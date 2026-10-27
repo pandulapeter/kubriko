@@ -96,6 +96,19 @@ internal class SceneEditingController(
      */
     fun markOutdated() = _state.update { if (it is SceneEditingState.Open) it.copy(isOutdated = true) else it }
 
+    /**
+     * Notes that commands changed the Scene files called [names]: the open Scene is outdated if it is one of them,
+     * and closed if it was deleted.
+     */
+    fun onScenesChanged(names: Collection<String>) {
+        val scene = (_state.value as? SceneEditingState.Open)?.scene ?: return
+        when {
+            scene.file.nameWithoutExtension !in names -> Unit
+            scene.file.isFile -> markOutdated()
+            else -> close()
+        }
+    }
+
     fun close() {
         job?.cancel()
         job = null

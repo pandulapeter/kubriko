@@ -38,6 +38,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new_actor_type
+import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_code
@@ -45,6 +46,8 @@ import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_sprite
+import kubriko.creator.generated.resources.new_actor_type_hint
+import kubriko.creator.generated.resources.new_scene_hint
 import kubriko.creator.generated.resources.resource_group_actor_types
 import kubriko.creator.generated.resources.resource_group_empty
 import org.jetbrains.compose.resources.DrawableResource
@@ -71,8 +74,10 @@ internal fun ProjectSidebar(
     onSceneSelected: (ProjectResource) -> Unit,
     onActorTypeSelected: (String) -> Unit,
     onCreateActorType: (String) -> StringResource?,
+    onCreateScene: (String) -> StringResource?,
 ) {
     var isCreatingActorType by remember { mutableStateOf(false) }
+    var isCreatingScene by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = modifier,
     ) {
@@ -91,7 +96,8 @@ internal fun ProjectSidebar(
             }
             if (isCreatingActorType) {
                 item(key = "newActorType") {
-                    NewActorTypeField(
+                    NewNameField(
+                        placeholder = Res.string.new_actor_type_hint,
                         onCreate = { name -> onCreateActorType(name).also { if (it == null) isCreatingActorType = false } },
                         onCancel = { isCreatingActorType = false },
                     )
@@ -111,10 +117,27 @@ internal fun ProjectSidebar(
                 PanelHeader(
                     icon = group.icon,
                     title = stringResource(group.title),
-                )
+                ) {
+                    if (group == ResourceGroup.SCENES) {
+                        IconActionButton(
+                            icon = Res.drawable.ic_add,
+                            label = Res.string.action_new_scene,
+                            onClick = { isCreatingScene = !isCreatingScene },
+                        )
+                    }
+                }
+            }
+            if (group == ResourceGroup.SCENES && isCreatingScene) {
+                item(key = "newScene") {
+                    NewNameField(
+                        placeholder = Res.string.new_scene_hint,
+                        onCreate = { name -> onCreateScene(name).also { if (it == null) isCreatingScene = false } },
+                        onCancel = { isCreatingScene = false },
+                    )
+                }
             }
             val groupResources = resources[group].orEmpty()
-            if (groupResources.isEmpty()) {
+            if (groupResources.isEmpty() && !(group == ResourceGroup.SCENES && isCreatingScene)) {
                 item(key = "$group-empty") {
                     Text(
                         modifier = Modifier.padding(start = 36.dp, top = 2.dp, bottom = 6.dp),

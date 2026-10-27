@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
+import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.git.GitRepository
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
@@ -31,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
+import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineDispatcher
@@ -121,6 +123,18 @@ internal class WorkspaceController(
         return null
     }
 
+    /**
+     * Creates an empty Scene.
+     *
+     * @return Why [name] can't be used, or null if the Scene is being created.
+     */
+    fun createScene(name: String): StringResource? {
+        val invocation = Invocation(CreateScene, CreateScene.Input(name))
+        commands.validate(invocation)?.let { return it.reason }
+        commands.dispatch(invocation)
+        return null
+    }
+
     val git = GitController(
         openRepository = openGitRepository,
         createRepository = createGitRepository,
@@ -136,6 +150,12 @@ internal class WorkspaceController(
         context = CommandContext(
             actorTypes = actorTypes,
             git = git,
+            scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() },
+            ioDispatcher = ioDispatcher,
+            onScenesChanged = { names ->
+                refreshResources()
+                sceneEditing.onScenesChanged(names)
+            },
         ),
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },

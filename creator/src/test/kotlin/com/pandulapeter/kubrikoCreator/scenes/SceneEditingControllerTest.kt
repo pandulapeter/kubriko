@@ -140,6 +140,21 @@ class SceneEditingControllerTest {
     }
 
     @Test
+    fun theOpenSceneIsOutdatedWhenItsFileChangesAndClosedWhenItIsDeleted() = runTest {
+        val controller = createController()
+        scene.file.parentFile.mkdirs()
+        scene.file.writeText("[]")
+        controller.open(scene)
+        controller.onScenesChanged(listOf("other"))
+        assertEquals(false, assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
+        controller.onScenesChanged(listOf("main"))
+        assertTrue(assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
+        scene.file.delete()
+        controller.onScenesChanged(listOf("main"))
+        assertEquals(SceneEditingState.Closed, controller.state.value)
+    }
+
+    @Test
     fun closingReleasesTheProjectsClassesOnceTheEditorIsGone() = runTest {
         val controller = createController()
         controller.open(scene)

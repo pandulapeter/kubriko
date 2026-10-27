@@ -26,6 +26,7 @@ import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_actor_type_name_invalid
 import kubriko.creator.generated.resources.error_command_actor_type_missing
+import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
@@ -289,6 +290,13 @@ class WorkspaceControllerTest {
         val controller = createController(actorTypeRepository = FakeActorTypeRepository())
         assertEquals(Res.string.error_actor_type_name_invalid, controller.createActorType("ball game"))
         assertTrue(controller.actorTypes!!.actorTypes.value.isEmpty())
+        assertNull(controller.commands.history.value.nextUndoTitle)
+    }
+
+    @Test
+    fun aSceneNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
+        val controller = createController()
+        assertEquals(Res.string.error_scene_name_invalid, controller.createScene("my level"))
         assertNull(controller.commands.history.value.nextUndoTitle)
     }
 

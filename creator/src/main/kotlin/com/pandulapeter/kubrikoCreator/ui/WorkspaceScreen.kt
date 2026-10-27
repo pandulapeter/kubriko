@@ -112,6 +112,7 @@ internal fun WorkspaceScreen(
                     actorTypesController?.select(it)
                 },
                 onCreateActorType = { name -> controller.createActorType(name) },
+                onCreateScene = { name -> controller.createScene(name) },
             )
             VerticalDivider()
             val centerModifier = Modifier.weight(1f).fillMaxHeight()

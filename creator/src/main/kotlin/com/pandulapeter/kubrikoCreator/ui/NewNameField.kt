@@ -39,15 +39,15 @@ import kubriko.creator.generated.resources.action_add
 import kubriko.creator.generated.resources.action_cancel
 import kubriko.creator.generated.resources.ic_check
 import kubriko.creator.generated.resources.ic_close
-import kubriko.creator.generated.resources.new_actor_type_hint
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Names and creates a new Actor type: Enter creates it, Escape cancels, and a rejected name shows why.
+ * Names and creates something new (an Actor type, a Scene): Enter creates it, Escape cancels, and a rejected name shows why.
  */
 @Composable
-internal fun NewActorTypeField(
+internal fun NewNameField(
+    placeholder: StringResource,
     onCreate: (String) -> StringResource?,
     onCancel: () -> Unit,
 ) = Column(
@@ -79,7 +79,7 @@ internal fun NewActorTypeField(
                 name = it
                 error = null
             },
-            placeholder = stringResource(Res.string.new_actor_type_hint),
+            placeholder = stringResource(placeholder),
             isError = error != null,
         )
         IconActionButton(

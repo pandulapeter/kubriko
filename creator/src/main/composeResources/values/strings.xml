@@ -121,7 +121,7 @@
     <string name="error_entry_point_multiple">The project registers more than one CreatorEntryPoint.</string>
     <string name="error_entry_point_not_loaded">The project's CreatorEntryPoint couldn't be loaded.</string>
     <string name="scene_preparing">Preparing %1$s…</string>
-    <string name="scene_outdated">Actor types changed since this Scene was opened.</string>
+    <string name="scene_outdated">The project changed since this Scene was opened.</string>
     <string name="action_reload_scene">Reload</string>
     <string name="action_open_scene_in_window">Open in its own window</string>
     <string name="action_close_scene">Close the Scene</string>
@@ -192,4 +192,19 @@
     <string name="command_start_version_control">Start version control</string>
     <string name="command_commit">Commit</string>
     <string name="command_discard_changes">Discard changes</string>
+    <string name="error_command_scene_missing">There's no Scene called %1$s.</string>
+    <string name="error_command_scene_invalid">%1$s isn't a valid Scene file.</string>
+    <string name="error_command_scene_content_invalid">That isn't valid Scene content.</string>
+    <string name="error_command_scene_actor_missing">%1$s has no Actor at index %2$s.</string>
+    <string name="error_command_scene_actor_without_position">The Actor at index %1$s has no position.</string>
+    <string name="error_scene_name_invalid">Use only letters, numbers, dashes, and underscores, like level-1.</string>
+    <string name="error_scene_name_taken">There's already a Scene with that name.</string>
+    <string name="command_create_scene">Create Scene</string>
+    <string name="command_delete_scene">Delete Scene</string>
+    <string name="command_place_actor">Place Actor</string>
+    <string name="command_move_actor">Move Actor</string>
+    <string name="command_remove_actor">Remove Actor</string>
+    <string name="command_restore_actor">Restore Actor</string>
+    <string name="action_new_scene">New Scene</string>
+    <string name="new_scene_hint">New Scene name</string>
 </resources>

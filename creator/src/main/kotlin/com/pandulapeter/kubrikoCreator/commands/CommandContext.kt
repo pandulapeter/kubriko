@@ -10,14 +10,20 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.git.GitController
+import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
+import kotlinx.coroutines.CoroutineDispatcher
 
 /**
  * What commands read and change: the parts of the open project.
  *
  * @param actorTypes The project's block-built Actor types, or null if the project hasn't opted in to them.
+ * @param onScenesChanged Tells the rest of the editor which Scene files a command changed.
  */
 internal class CommandContext(
     val actorTypes: ActorTypesController?,
     val git: GitController,
+    val scenes: SceneStore,
+    val ioDispatcher: CoroutineDispatcher,
+    val onScenesChanged: (names: Collection<String>) -> Unit,
 )

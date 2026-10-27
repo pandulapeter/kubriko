@@ -14,12 +14,15 @@ package com.pandulapeter.kubrikoCreator.commands
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.GitController
+import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
 import com.pandulapeter.kubrikoCreator.workspace.FakeActorTypeRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import java.io.File
+import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
@@ -48,9 +51,14 @@ internal fun TestScope.commandContext(
     vararg definitions: ActorTypeDefinition,
     actorTypes: ActorTypesController? = actorTypesController(*definitions),
     git: GitController = gitController(repository = null),
+    rootDirectory: File = createTempDirectory().toFile(),
+    onScenesChanged: (Collection<String>) -> Unit = {},
 ) = CommandContext(
     actorTypes = actorTypes,
     git = git,
+    scenes = SceneStore(rootDirectory) { emptyList() },
+    ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+    onScenesChanged = onScenesChanged,
 )
 
 /**
