@@ -265,13 +265,15 @@ class WorkspaceControllerTest {
     fun savingAnActorTypeRescansTheResourcesSoItsGeneratedCodeShowsUp() = runTest {
         var scanCount = 0
         val controller = createController(scanResources = { scanCount++; emptyMap() }, actorTypeRepository = FakeActorTypeRepository())
-        controller.actorTypes!!.create("Player")
         assertEquals(2, scanCount)
+        controller.actorTypes!!.create("Player")
+        assertEquals(3, scanCount)
     }
 
     @Test
     fun aFailedActorTypeSaveIsReportedInTheConsole() = runTest {
         val controller = createController(actorTypeRepository = FakeActorTypeRepository().apply { isFailing = true })
+        controller.clearConsole()
         controller.actorTypes!!.create("Player")
         assertEquals(listOf(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)), controller.console.value)
     }

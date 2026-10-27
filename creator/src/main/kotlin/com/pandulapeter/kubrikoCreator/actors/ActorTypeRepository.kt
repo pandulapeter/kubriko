@@ -19,4 +19,9 @@ internal interface ActorTypeRepository {
     fun save(definition: ActorTypeDefinition)
 
     fun delete(name: String)
+
+    /**
+     * Rewrites every Actor type's generated code, so that it matches what this version of Kubriko Creator generates.
+     */
+    fun regenerateAll()
 }

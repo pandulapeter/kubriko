@@ -53,7 +53,7 @@ internal class ActorTypeStore private constructor(
     /**
      * Rewrites every generated file from the definitions, for example after a template was copied.
      */
-    fun regenerateAll() {
+    override fun regenerateAll() {
         val definitions = load()
         val names = definitions.map { it.name }
         generatedDirectory.mkdirs()

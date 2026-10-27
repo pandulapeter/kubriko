@@ -47,6 +47,8 @@ internal class ActorTypesController(
         scope.launch {
             _actorTypes.value = withContext(ioDispatcher) { repository.load() }
         }
+        // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away.
+        write { repository.regenerateAll() }
     }
 
     fun select(name: String?) {

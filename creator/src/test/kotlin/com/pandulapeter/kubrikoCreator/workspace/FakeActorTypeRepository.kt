@@ -28,6 +28,11 @@ internal class FakeActorTypeRepository(
         stored[definition.name] = definition
     }
 
+    override fun regenerateAll() {
+        if (isFailing) throw IOException("Disk full.")
+        writes += "regenerate"
+    }
+
     override fun delete(name: String) {
         if (isFailing) throw IOException("Disk full.")
         writes += "delete $name"

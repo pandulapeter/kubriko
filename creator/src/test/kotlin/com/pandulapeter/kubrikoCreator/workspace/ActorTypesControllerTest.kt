@@ -57,8 +57,8 @@ class ActorTypesControllerTest {
         assertNull(controller.create("Player"))
         assertEquals(listOf(ActorTypeDefinition(name = "Player")), controller.actorTypes.value)
         assertEquals("Player", controller.selectedName.value)
-        assertEquals(listOf("save Player"), repository.writes)
-        assertEquals(1, savedCount)
+        assertEquals(listOf("regenerate", "save Player"), repository.writes)
+        assertEquals(2, savedCount)
     }
 
     @Test
@@ -69,7 +69,7 @@ class ActorTypesControllerTest {
         assertEquals(Res.string.error_actor_type_name_taken, controller.create("BALL"))
         assertEquals(listOf(ball), controller.actorTypes.value)
         assertNull(controller.selectedName.value)
-        assertTrue(repository.writes.isEmpty())
+        assertEquals(listOf("regenerate"), repository.writes)
     }
 
     @Test
@@ -79,7 +79,7 @@ class ActorTypesControllerTest {
         runCurrent()
         controller.update(ball.copy(width = 10f))
         assertEquals(listOf(ball.copy(width = 10f)), controller.actorTypes.value)
-        assertTrue(repository.writes.isEmpty())
+        assertEquals(listOf("regenerate"), repository.writes)
         runCurrent()
         assertEquals(ball.copy(width = 10f), repository.stored["Ball"])
     }
@@ -92,7 +92,7 @@ class ActorTypesControllerTest {
         (1..5).forEach { controller.update(ball.copy(width = it.toFloat())) }
         controller.delete("Ball")
         runCurrent()
-        assertEquals(List(5) { "save Ball" } + "delete Ball", repository.writes)
+        assertEquals(listOf("regenerate") + List(5) { "save Ball" } + "delete Ball", repository.writes)
         assertTrue(repository.stored.isEmpty())
     }
 
@@ -109,11 +109,19 @@ class ActorTypesControllerTest {
     }
 
     @Test
+    fun theGeneratedCodeIsBroughtUpToDateWhenOpened() = runTest {
+        val repository = FakeActorTypeRepository(listOf(ball))
+        createController(repository)
+        assertEquals(listOf("regenerate"), repository.writes)
+        assertEquals(1, savedCount)
+    }
+
+    @Test
     fun aFailedWriteIsReported() = runTest {
         val repository = FakeActorTypeRepository(listOf(ball)).apply { isFailing = true }
         val controller = createController(repository)
         controller.update(ball.copy(width = 1f))
-        assertEquals(1, failedCount)
+        assertEquals(2, failedCount)
         assertEquals(0, savedCount)
     }
 }
