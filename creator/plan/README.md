@@ -14,10 +14,11 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-1. [AI assistant](01-ai-assistant.md) - next. The command registry, its MCP server, one-click setup, the game tools, and the activity view
-   exist; next is trying them with real Claude Code and Codex sessions, then an in-app panel with the user's API key. **Every new editor feature lands with its command, its AI tool, and their tests.**
-2. [Blocks and Actor types](02-blocks.md) - Properties, Timers, on-screen text, sprites, and the rest of the Block set; the Paddle game
-   template; Convert to code; drag-and-drop.
+1. [Blocks and Actor types](02-blocks.md) - next: Flow, Timers, on-screen text, sprites, and the rest of the Block set (Properties exist);
+   the Paddle game template; Convert to code; drag-and-drop. The editor comes before more AI work.
+2. [AI assistant](01-ai-assistant.md) - the command registry, its MCP server, one-click setup, the game tools, and the activity view exist,
+   and real Claude Code sessions use them; the in-app panel with the user's API key waits until the editor does more. **Every new editor
+   feature lands with its command, its AI tool, and their tests.**
 3. [Version control](03-git.md) - sidebar change markers, restoring old versions, branches, remotes.
 4. [Debugger](04-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
 5. [Export and distribution](05-export-and-distribution.md) - signed Android builds, desktop installers, web export, iOS, the JDK download,
