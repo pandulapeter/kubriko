@@ -113,4 +113,6 @@
     <string name="action_refresh">Refresh</string>
     <string name="action_collapse_console">Hide the console</string>
     <string name="action_expand_console">Show the console</string>
+    <string name="recent_projects">Recent projects</string>
+    <string name="action_forget_recent_project">Remove from the list</string>
 </resources>

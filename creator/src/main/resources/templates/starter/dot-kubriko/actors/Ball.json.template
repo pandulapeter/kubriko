@@ -1,13 +1,12 @@
 {
     "name": "Ball",
     "shape": "circle",
-    "color": 4284506282,
+    "color": "#6060AA",
     "width": 80.0,
     "height": 80.0,
     "events": [
         {
             "type": "addedToScene",
-            "key": null,
             "blocks": [
                 {
                     "type": "setVelocity",
@@ -18,7 +17,6 @@
         },
         {
             "type": "edgeTouched",
-            "key": null,
             "blocks": [
                 {
                     "type": "bounceOffEdge"

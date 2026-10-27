@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new_project
 import kubriko.creator.generated.resources.action_open_project
@@ -43,8 +45,10 @@ import java.io.File
 @Composable
 internal fun WelcomeScreen(
     error: StringResource?,
+    recentProjects: List<RecentProject>,
     onNewProject: () -> Unit,
     onOpenProject: (File) -> Unit,
+    onForgetRecentProject: (RecentProject) -> Unit,
 ) {
     val pickerTitle = stringResource(Res.string.choose_project_folder)
     Column(
@@ -81,6 +85,14 @@ internal fun WelcomeScreen(
             Text(
                 text = stringResource(error),
                 color = MaterialTheme.colorScheme.error,
+            )
+        }
+        if (recentProjects.isNotEmpty()) {
+            RecentProjectsList(
+                modifier = Modifier.padding(top = 24.dp).widthIn(max = 520.dp),
+                projects = recentProjects,
+                onOpen = { onOpenProject(it.directory) },
+                onForget = onForgetRecentProject,
             )
         }
     }

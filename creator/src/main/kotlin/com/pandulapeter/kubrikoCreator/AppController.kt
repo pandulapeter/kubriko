@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator
 
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.recent.RecentProject
+import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
@@ -39,9 +41,27 @@ internal class AppController(
     private val workspaceOpener: WorkspaceOpener = GradleWorkspaceOpener,
     private val projectCreator: ProjectCreator = ProjectGenerator(CreatorConfiguration.load()),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val recentProjectsStore: RecentProjectsStore = RecentProjectsStore.default(),
 ) {
     private val _screen = MutableStateFlow<AppScreen>(AppScreen.Welcome())
     val screen = _screen.asStateFlow()
+    private val _recentProjects = MutableStateFlow(emptyList<RecentProject>())
+
+    /**
+     * The projects opened recently whose folders still exist, newest first.
+     */
+    val recentProjects = _recentProjects.asStateFlow()
+
+    init {
+        scope.launch {
+            _recentProjects.value = withContext(ioDispatcher) { recentProjectsStore.load() }
+        }
+    }
+
+    fun forgetRecentProject(project: RecentProject) {
+        _recentProjects.value = _recentProjects.value - project
+        scope.launch(ioDispatcher) { recentProjectsStore.remove(project.path) }
+    }
     private var job: Job? = null
 
     fun showNewProject() {
@@ -69,7 +89,9 @@ internal class AppController(
         _screen.value = AppScreen.Opening(directory)
         launchOperation {
             _screen.value = try {
-                AppScreen.Workspace(workspaceOpener.open(directory, scope))
+                val workspace = workspaceOpener.open(directory, scope)
+                _recentProjects.value = withContext(ioDispatcher) { recentProjectsStore.add(directory, workspace.project.name) }
+                AppScreen.Workspace(workspace)
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: ProjectInspectionException) {

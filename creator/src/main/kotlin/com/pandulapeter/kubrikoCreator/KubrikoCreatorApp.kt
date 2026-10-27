@@ -48,6 +48,7 @@ fun main(args: Array<String>) {
         val scope = rememberCoroutineScope()
         val controller = remember { AppController(scope) }
         val screen by controller.screen.collectAsState()
+        val recentProjects by controller.recentProjects.collectAsState()
         val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
         val windowState = rememberWindowState(width = 1280.dp, height = 820.dp)
         var titleBar by remember { mutableStateOf<ExtendedTitleBar?>(null) }
@@ -76,8 +77,10 @@ fun main(args: Array<String>) {
                         titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
                         AppContent(
                             screen = screen,
+                            recentProjects = recentProjects,
                             defaultParentDirectory = defaultParentDirectory,
                             onNewProject = controller::showNewProject,
+                            onForgetRecentProject = controller::forgetRecentProject,
                             onCreateProject = controller::createProject,
                             onOpenProject = controller::openProject,
                             onCloseProject = controller::closeProject,

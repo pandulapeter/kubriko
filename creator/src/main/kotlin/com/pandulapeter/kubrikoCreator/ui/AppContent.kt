@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.AppScreen
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.app_name
 import kubriko.creator.generated.resources.creating_project
@@ -29,8 +30,10 @@ import java.io.File
 @Composable
 internal fun AppContent(
     screen: AppScreen,
+    recentProjects: List<RecentProject>,
     defaultParentDirectory: File,
     onNewProject: () -> Unit,
+    onForgetRecentProject: (RecentProject) -> Unit,
     onCreateProject: (NewProjectRequest) -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
@@ -49,8 +52,10 @@ internal fun AppContent(
         ) {
             ScreenContent(
                 screen = screen,
+                recentProjects = recentProjects,
                 defaultParentDirectory = defaultParentDirectory,
                 onNewProject = onNewProject,
+                onForgetRecentProject = onForgetRecentProject,
                 onCreateProject = onCreateProject,
                 onOpenProject = onOpenProject,
                 onCloseProject = onCloseProject,
@@ -62,8 +67,10 @@ internal fun AppContent(
 @Composable
 private fun ScreenContent(
     screen: AppScreen,
+    recentProjects: List<RecentProject>,
     defaultParentDirectory: File,
     onNewProject: () -> Unit,
+    onForgetRecentProject: (RecentProject) -> Unit,
     onCreateProject: (NewProjectRequest) -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
@@ -71,8 +78,10 @@ private fun ScreenContent(
     when (screen) {
         is AppScreen.Welcome -> WelcomeScreen(
             error = screen.error,
+            recentProjects = recentProjects,
             onNewProject = onNewProject,
             onOpenProject = onOpenProject,
+            onForgetRecentProject = onForgetRecentProject,
         )
         is AppScreen.NewProject -> NewProjectScreen(
             error = screen.error,

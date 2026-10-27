@@ -74,6 +74,7 @@ internal class ActorTypeStore private constructor(
         private val json = Json {
             prettyPrint = true
             encodeDefaults = true
+            explicitNulls = false
             ignoreUnknownKeys = true
         }
 

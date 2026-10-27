@@ -124,6 +124,8 @@ class ActorTypeStoreTest {
         val text = file.readText()
         assertContains(text, "\n    \"name\": \"Ball\",")
         assertContains(text, "\"type\": \"bounceOffEdge\"")
+        assertContains(text, "\"color\": \"#6060AA\"")
+        assertFalse("null" in text, text)
         file.writeText(text.replace("\"name\": \"Ball\",", "\"name\": \"Ball\", \"addedLater\": true,"))
         assertEquals(listOf(ball), store.load())
     }

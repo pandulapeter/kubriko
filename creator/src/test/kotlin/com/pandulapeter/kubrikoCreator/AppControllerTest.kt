@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator
 
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
@@ -33,6 +34,8 @@ import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_not_a_gradle_project
 import java.io.File
 import java.io.IOException
+import kotlin.io.path.createTempDirectory
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -43,6 +46,9 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppControllerTest {
     private val directory = File("/projects/game")
+    private val temporaryDirectory = createTempDirectory().toFile()
+    private var time = 0L
+    private val recentProjectsStore = RecentProjectsStore(File(temporaryDirectory, "recent.json"), currentTimeMillis = { ++time })
     private val builds = mutableListOf<FakeProjectBuild>()
 
     private val request = NewProjectRequest(name = "My Game", packageName = "com.example.mygame", parentDirectory = File("/projects"))
@@ -57,6 +63,7 @@ class AppControllerTest {
         workspaceOpener = opener,
         projectCreator = creator,
         ioDispatcher = ioDispatcher,
+        recentProjectsStore = recentProjectsStore,
     )
 
     private fun workspace(scope: CoroutineScope) = WorkspaceController(
@@ -66,6 +73,11 @@ class AppControllerTest {
         scope = scope,
         scanResources = { emptyMap() },
     )
+
+    @AfterTest
+    fun tearDown() {
+        temporaryDirectory.deleteRecursively()
+    }
 
     @Test
     fun theWelcomeScreenComesFirst() = runTest {
@@ -191,5 +203,34 @@ class AppControllerTest {
         runCurrent()
         assertEquals(0, createdCount)
         assertEquals(AppScreen.Welcome(), controller.screen.value)
+    }
+
+    @Test
+    fun anOpenedProjectIsRememberedFirst() = runTest {
+        val existing = File(temporaryDirectory, "existing").apply { mkdirs() }
+        recentProjectsStore.add(existing, "existing")
+        val project = File(temporaryDirectory, "game").apply { mkdirs() }
+        val controller = createController(opener = { _, scope -> workspace(scope) })
+        controller.openProject(project)
+        assertEquals(listOf(project.path, existing.path), controller.recentProjects.value.map { it.path })
+        assertEquals("game", controller.recentProjects.value.first().name)
+    }
+
+    @Test
+    fun aProjectThatFailsToOpenIsNotRemembered() = runTest {
+        val controller = createController(opener = { _, _ -> throw IOException("Not a build.") })
+        controller.openProject(File(temporaryDirectory, "broken").apply { mkdirs() })
+        assertTrue(controller.recentProjects.value.isEmpty())
+    }
+
+    @Test
+    fun recentProjectsAreLoadedAndCanBeForgotten() = runTest {
+        val existing = File(temporaryDirectory, "existing").apply { mkdirs() }
+        recentProjectsStore.add(existing, "existing")
+        val controller = createController()
+        val project = controller.recentProjects.value.single()
+        controller.forgetRecentProject(project)
+        assertTrue(controller.recentProjects.value.isEmpty())
+        assertTrue(recentProjectsStore.load().isEmpty())
     }
 }
