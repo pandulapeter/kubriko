@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -52,6 +53,25 @@ class SessionServerTest {
                 }
             }
             assertEquals(setOf(hello, failure), received.await().toSet())
+        }
+        scope.cancel()
+    }
+
+    @Test
+    fun messagesArriveWhileTheSessionKeepsItsConnectionOpen() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        SessionServer(scope).use { server ->
+            val hello = SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY)
+            val received = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+                withTimeout(10_000) { server.messages.first() }
+            }
+            Socket(InetAddress.getLoopbackAddress(), server.port).use { socket ->
+                socket.getOutputStream().bufferedWriter().apply {
+                    write("${SessionProtocol.encode(hello)}\n")
+                    flush()
+                }
+                assertEquals(hello, received.await())
+            }
         }
         scope.cancel()
     }

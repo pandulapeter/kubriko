@@ -48,21 +48,23 @@ internal class SessionServer(
     }
 
     private suspend fun Socket.readMessages() = use {
-        val lines = try {
-            getInputStream().bufferedReader(Charsets.UTF_8).readLines()
-        } catch (_: IOException) {
-            emptyList()
-        }
-        lines.forEach { line ->
-            val message = try {
-                SessionProtocol.decode(line)
-            } catch (_: SerializationException) {
+        val reader = getInputStream().bufferedReader(Charsets.UTF_8)
+        while (true) {
+            val line = try {
+                reader.readLine()
+            } catch (_: IOException) {
                 null
-            } catch (_: IllegalArgumentException) {
-                null
-            }
-            if (message != null) _messages.emit(message)
+            } ?: break
+            decode(line)?.let { _messages.emit(it) }
         }
+    }
+
+    private fun decode(line: String) = try {
+        SessionProtocol.decode(line)
+    } catch (_: SerializationException) {
+        null
+    } catch (_: IllegalArgumentException) {
+        null
     }
 
     override fun close() = serverSocket.close()
