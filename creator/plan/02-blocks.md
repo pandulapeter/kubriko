@@ -17,7 +17,6 @@ case in the integration test's every-Block Actor type.
 - **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist).
 - **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
-- **Actors:** add an Actor of a type at a position (spawning), find the nearest of a type.
 - **On-screen text and score:** a Scene-level value store (score, lives) with Blocks to change it, and text drawn by a Manager.
 - **Scene:** go to another Scene, restart the Scene, pause; Scene settings (size, background, camera start, music) as a `Unique` `Editable` Actor.
 - **Audio:** play a sound, play or stop music (from the project's resources).

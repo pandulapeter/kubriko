@@ -397,4 +397,30 @@ class ActorTypeCodeGeneratorTest {
         assertEquals(listOf("// Start a Timer only works with Timers 1 to 8."), lines(BlockDefinition.StartTimer(timer = 9)))
         assertFalse("timer0" in generate(EventDefinition(EventType.TIMER_FINISHED, timer = 0, blocks = listOf(BlockDefinition.Stop))))
     }
+
+    @Test
+    fun actorsAreAddedWithTheirTypesDefaultsRelativeToThisActorOrTheScene() {
+        fun lines(block: BlockDefinition) = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player", knownActorTypeNames = listOf("Player", "Bullet"))
+        assertEquals(listOf("actorManager.add(Bullet.metadata.instantiate(body.position + SceneOffset(0f.sceneUnit, -20f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Bullet", 0f, -20f)))
+        assertEquals(listOf("actorManager.add(Player.metadata.instantiate(SceneOffset(5f.sceneUnit, 0f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Player", 5f, isRelative = false)))
+        assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.AddActor("Deleted")))
+        assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.MoveTowardsNearest()))
+    }
+
+    @Test
+    fun movingTowardsTheNearestLooksAtEveryOtherActorOfTheTypeWithoutAllocating() {
+        assertFalse("distanceTo" in generate())
+        val code = ActorTypeCodeGenerator.generateActorType(
+            ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.MoveTowardsNearest("Coin", 150f))))),
+            packageName,
+            knownActorTypeNames = listOf("Player", "Coin"),
+        )
+        assertContains(code, "import com.pandulapeter.kubriko.helpers.extensions.distanceTo\n")
+        assertContains(code, "import com.pandulapeter.kubriko.helpers.extensions.normalized\n")
+        assertContains(code, "            for (index in actors.indices) {\n                val candidate = actors[index] as? Coin ?: continue\n")
+        assertContains(code, "                if ((nearest == null || ")
+        assertContains(code, "            if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * 150f\n")
+        val towardsItsOwnType = ActorTypeCodeGenerator.blockLines(BlockDefinition.MoveTowardsNearest("Player"), EventType.EVERY_FRAME, "Player")
+        assertTrue(towardsItsOwnType.any { "if (candidate !== this && (nearest == null || " in it })
+    }
 }

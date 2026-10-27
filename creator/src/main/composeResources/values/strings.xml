@@ -77,6 +77,10 @@
     <string name="block_parameter_value">Value</string>
     <string name="block_parameter_by">By</string>
     <string name="block_parameter_text">Text</string>
+    <string name="block_add_actor">Add an Actor</string>
+    <string name="block_move_towards_nearest">Move towards the nearest</string>
+    <string name="block_parameter_relative">From this Actor</string>
+    <string name="block_parameter_speed">Speed</string>
     <string name="block_start_timer">Start a Timer</string>
     <string name="block_stop_timer">Stop a Timer</string>
     <string name="block_parameter_seconds">Seconds</string>

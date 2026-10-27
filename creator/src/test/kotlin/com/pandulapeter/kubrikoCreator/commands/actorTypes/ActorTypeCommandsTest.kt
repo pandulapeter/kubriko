@@ -200,6 +200,18 @@ class ActorTypeCommandsTest {
     }
 
     @Test
+    fun blocksThatNameAnActorTypeNeedOneThatExistsAndFollowItsRename() = runTest {
+        val context = commandContext(ball, wall)
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor())))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.MoveTowardsNearest("Wall"))))
+        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Brick"))))
+        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", x = Float.NaN))))
+        Invocation(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", 1f, 2f))).apply(context)
+        Invocation(RenameActorType, RenameActorType.Input("Wall", "Brick")).apply(context)
+        assertEquals(BlockDefinition.AddActor("Brick", 1f, 2f), context.ball()!!.events[0].blocks.last())
+    }
+
+    @Test
     fun flowBlocksAreValidated() = runTest {
         val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("score"))), wall)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("score", value = 3f)))))

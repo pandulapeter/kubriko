@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.block_add_actor
 import kubriko.creator.generated.resources.block_add_to_velocity
 import kubriko.creator.generated.resources.block_bounce_off_edge
 import kubriko.creator.generated.resources.block_bounce_off_other
@@ -20,6 +21,7 @@ import kubriko.creator.generated.resources.block_if
 import kubriko.creator.generated.resources.block_jump_to
 import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
+import kubriko.creator.generated.resources.block_move_towards_nearest
 import kubriko.creator.generated.resources.block_remove_other
 import kubriko.creator.generated.resources.block_remove_self
 import kubriko.creator.generated.resources.block_repeat
@@ -51,6 +53,8 @@ internal enum class BlockKind(
     CHANGE_NUMBER(Res.string.block_change_number, { BlockDefinition.ChangeNumber() }),
     SET_TEXT(Res.string.block_set_text, { BlockDefinition.SetText() }),
     SET_TOGGLE(Res.string.block_set_toggle, { BlockDefinition.SetToggle() }),
+    ADD_ACTOR(Res.string.block_add_actor, { BlockDefinition.AddActor() }),
+    MOVE_TOWARDS_NEAREST(Res.string.block_move_towards_nearest, { BlockDefinition.MoveTowardsNearest() }),
     START_TIMER(Res.string.block_start_timer, { BlockDefinition.StartTimer() }),
     STOP_TIMER(Res.string.block_stop_timer, { BlockDefinition.StopTimer() }),
     IF(Res.string.block_if, { BlockDefinition.If() }),
@@ -85,6 +89,8 @@ internal enum class BlockKind(
             is BlockDefinition.ChangeNumber -> CHANGE_NUMBER
             is BlockDefinition.SetText -> SET_TEXT
             is BlockDefinition.SetToggle -> SET_TOGGLE
+            is BlockDefinition.AddActor -> ADD_ACTOR
+            is BlockDefinition.MoveTowardsNearest -> MOVE_TOWARDS_NEAREST
             is BlockDefinition.StartTimer -> START_TIMER
             is BlockDefinition.StopTimer -> STOP_TIMER
             is BlockDefinition.If -> IF

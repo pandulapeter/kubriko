@@ -118,6 +118,30 @@ internal sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("addActor")
+    @Description("Adds a new Actor of a block-built Actor type to the Scene, with that type's size and Property values, like one placed in the Scene editor.")
+    data class AddActor(
+        @Description("The name of the Actor type.")
+        @SerialName("actorType") val actorType: String = "",
+        @Description("The horizontal position, positive to the right.")
+        @SerialName("x") val x: Float = 0f,
+        @Description("The vertical position, positive downwards.")
+        @SerialName("y") val y: Float = 0f,
+        @Description("True to place it relative to this Actor, false to place it relative to the center of the Scene.")
+        @SerialName("isRelative") val isRelative: Boolean = true,
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("moveTowardsNearest")
+    @Description("Sets the velocity of the Actor towards the nearest other Actor of an Actor type, at a speed. Does nothing if there is none.")
+    data class MoveTowardsNearest(
+        @Description("The name of the Actor type.")
+        @SerialName("actorType") val actorType: String = "",
+        @Description("The speed, in scene units per second.")
+        @SerialName("speed") val speed: Float = 200f,
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("startTimer")
     @Description("Starts one of the Actor's Timers, or starts it again from the beginning. When it finishes, the timerFinished Event of that Timer runs.")
     data class StartTimer(
@@ -199,6 +223,25 @@ internal val BlockDefinition.propertyReference: Pair<String, PropertyKind>?
         }
         else -> null
     }
+
+/**
+ * The Actor type [this] Block adds or moves towards, if it is one of those and one is chosen.
+ */
+internal val BlockDefinition.actorTypeReference
+    get() = when (this) {
+        is BlockDefinition.AddActor -> actorType
+        is BlockDefinition.MoveTowardsNearest -> actorType
+        else -> null
+    }?.ifEmpty { null }
+
+/**
+ * [this] Block with the Actor type it adds or moves towards renamed from [oldName] to [newName], if it is that one.
+ */
+internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String) = when {
+    this is BlockDefinition.AddActor && actorType == oldName -> copy(actorType = newName)
+    this is BlockDefinition.MoveTowardsNearest && actorType == oldName -> copy(actorType = newName)
+    else -> this
+}
 
 /**
  * The Timer [this] Block starts or stops, if it is one of those.

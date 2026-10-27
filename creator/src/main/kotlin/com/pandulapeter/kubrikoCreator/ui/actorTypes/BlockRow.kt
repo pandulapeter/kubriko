@@ -42,8 +42,10 @@ import kubriko.creator.generated.resources.block_else_stray
 import kubriko.creator.generated.resources.block_end_stray
 import kubriko.creator.generated.resources.block_parameter_code
 import kubriko.creator.generated.resources.block_parameter_message
+import kubriko.creator.generated.resources.block_parameter_relative
 import kubriko.creator.generated.resources.block_parameter_repeating
 import kubriko.creator.generated.resources.block_parameter_seconds
+import kubriko.creator.generated.resources.block_parameter_speed
 import kubriko.creator.generated.resources.block_parameter_times
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
@@ -62,6 +64,7 @@ internal fun BlockRow(
     block: BlockDefinition,
     nesting: BlockNesting,
     properties: List<PropertyDefinition>,
+    actorTypeNames: List<String>,
     isFirst: Boolean,
     isLast: Boolean,
     onBlockChange: (BlockDefinition) -> Unit,
@@ -96,7 +99,7 @@ internal fun BlockRow(
     Row(
         modifier = Modifier.padding(start = 24.dp),
     ) {
-        InlineParameters(block, properties, onBlockChange)
+        InlineParameters(block, properties, actorTypeNames, onBlockChange)
     }
     if (nesting.role == BlockNesting.Role.STRAY) {
         Text(
@@ -122,8 +125,41 @@ internal fun BlockRow(
 private fun InlineParameters(
     block: BlockDefinition,
     properties: List<PropertyDefinition>,
+    actorTypeNames: List<String>,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = when (block) {
+    is BlockDefinition.AddActor -> Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ActorTypeChoice(block.actorType, actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
+        OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+        Text(
+            text = stringResource(Res.string.block_parameter_relative),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Switch(
+            checked = block.isRelative,
+            onCheckedChange = { onBlockChange(block.copy(isRelative = it)) },
+        )
+    }
+    is BlockDefinition.MoveTowardsNearest -> Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ActorTypeChoice(block.actorType, actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
+        NumberField(
+            modifier = Modifier.width(96.dp),
+            label = Res.string.block_parameter_speed,
+            value = block.speed,
+            onValueChange = { onBlockChange(block.copy(speed = it)) },
+        )
+        Text(
+            text = stringResource(Res.string.block_velocity_unit),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
     is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, properties, onBlockChange)
     is BlockDefinition.StartTimer -> Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),

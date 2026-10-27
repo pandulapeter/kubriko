@@ -41,8 +41,9 @@ internal object ActorTypeCodeGenerator {
         val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents + timerEvents
         val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerNumber } }).filter { it in TIMER_NUMBERS }.distinct().sorted()
         val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
-        val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, name, definition.properties).any { "absoluteValue" in it } }
-        val conditions = generatedEvents.flatMap { event -> event.blocks.mapNotNull { (it as? BlockDefinition.If)?.condition } }
+        val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, name, definition.properties, knownActorTypeNames).any { "absoluteValue" in it } }
+        val generatedBlocks = generatedEvents.flatMap { it.blocks }
+        val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
         val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
         val traits = listOfNotNull(
             "Visible",
@@ -69,6 +70,10 @@ internal object ActorTypeCodeGenerator {
             if (collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }) add("com.pandulapeter.kubriko.types.SceneUnit")
             if (usesKeyHeld) addAll(KEYBOARD_MANAGER_IMPORTS)
             if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
+            if (generatedBlocks.any { it is BlockDefinition.MoveTowardsNearest && it.actorType in knownActorTypeNames }) {
+                add("com.pandulapeter.kubriko.helpers.extensions.distanceTo")
+                add("com.pandulapeter.kubriko.helpers.extensions.normalized")
+            }
         }.sorted()
         return GeneratedFile.withHeader(" from .kubriko/actors/$name.json", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
@@ -110,18 +115,18 @@ internal object ActorTypeCodeGenerator {
             appendLine("        actorManager = kubriko.get()")
             appendLine("        viewportManager = kubriko.get()")
             if (usesKeyHeld) appendLine("        keyboardInputManager = kubriko.get()")
-            appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, definition = definition)
+            appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, definition = definition, knownActorTypeNames = knownActorTypeNames)
             appendLine("    }")
             appendLine()
             appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
-            timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, definition) }
-            appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, definition = definition)
+            timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, definition, knownActorTypeNames) }
+            appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, definition = definition, knownActorTypeNames = knownActorTypeNames)
             appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
-            if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, definition)
+            if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, definition, knownActorTypeNames)
             appendLine("        collisionMask.position = body.position")
             appendLine("    }")
-            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, definition)
-            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, definition)
+            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, definition, knownActorTypeNames)
+            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, definition, knownActorTypeNames)
             appendLine()
             appendLine(drawFunction(definition.shape))
             if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, definition.properties) } }) {
@@ -177,8 +182,8 @@ internal object ActorTypeCodeGenerator {
         appendLine("}")
     })
 
-    private fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, definition: ActorTypeDefinition) {
-        val lines = events.flatMap { event -> eventLines(event.blocks, event.type, definition.name, definition.properties) }
+    private fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
+        val lines = events.flatMap { event -> eventLines(event.blocks, event.type, definition.name, definition.properties, knownActorTypeNames) }
         if (lines.isNotEmpty() && events.first().type != EventType.KEY_PRESSED && events.first().type != EventType.COLLISION && events.first().type != EventType.TIMER_FINISHED) {
             appendLine(INDENT.repeat(depth) + "// " + eventComment(events.first().type))
         }
@@ -194,7 +199,7 @@ internal object ActorTypeCodeGenerator {
         EventType.TIMER_FINISHED -> "When a Timer finishes"
     }
 
-    private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
+    private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
         appendLine("        val halfSize = SceneOffset(body.size.width / 2, body.size.height / 2)")
         appendLine("        val topLeft = viewportManager.topLeft.value + halfSize")
         appendLine("        val bottomRight = viewportManager.bottomRight.value - halfSize")
@@ -205,7 +210,7 @@ internal object ActorTypeCodeGenerator {
         appendLine("        val isTouchingBottomEdge = body.position.y > bottomRight.y")
         appendLine("        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {")
         appendLine("            body.position = body.position.constrainedWithin(topLeft, bottomRight)")
-        appendEvents(edgeEvents, depth = 3, definition = definition)
+        appendEvents(edgeEvents, depth = 3, definition = definition, knownActorTypeNames = knownActorTypeNames)
         appendLine("        }")
     }
 
@@ -213,7 +218,7 @@ internal object ActorTypeCodeGenerator {
      * Counts Timer [timer] down and runs the Blocks of its [events] when it finishes. A repeating Timer carries the time
      * it overshot into its next round, and the Blocks may start or stop it again.
      */
-    private fun StringBuilder.appendTimer(timer: Int, events: List<EventDefinition>, definition: ActorTypeDefinition) {
+    private fun StringBuilder.appendTimer(timer: Int, events: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
         val remaining = remainingField(timer)
         val period = periodField(timer)
         appendLine("        if ($remaining > 0) {")
@@ -221,7 +226,7 @@ internal object ActorTypeCodeGenerator {
         appendLine("            if ($remaining <= 0) {")
         appendLine("                // When Timer $timer finishes")
         appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
-        appendEvents(events, depth = 4, definition = definition)
+        appendEvents(events, depth = 4, definition = definition, knownActorTypeNames = knownActorTypeNames)
         appendLine("            }")
         appendLine("        }")
     }
@@ -230,27 +235,27 @@ internal object ActorTypeCodeGenerator {
 
     private fun periodField(timer: Int) = "timer${timer}PeriodInMilliseconds"
 
-    private fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
+    private fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
         appendLine()
         appendLine("    override fun onKeyPressed(key: Key) {")
         appendLine("        when (key) {")
         keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
             appendLine("            Key.${key.composeKeyName} -> {")
-            appendEvents(events, depth = 4, definition = definition)
+            appendEvents(events, depth = 4, definition = definition, knownActorTypeNames = knownActorTypeNames)
             appendLine("            }")
         }
         appendLine("        }")
         appendLine("    }")
     }
 
-    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
+    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
         appendLine()
         appendLine("    override fun onCollisionDetected(collidables: List<Collidable>) {")
         appendLine("        for (index in collidables.indices) {")
         appendLine("            when (val other = collidables[index]) {")
         collisionEvents.groupBy { it.otherActorType!! }.toSortedMap().forEach { (otherActorType, events) ->
             appendLine("                is $otherActorType -> {")
-            appendEvents(events, depth = 5, definition = definition)
+            appendEvents(events, depth = 5, definition = definition, knownActorTypeNames = knownActorTypeNames)
             appendLine("                }")
         }
         appendLine("            }")
@@ -298,6 +303,7 @@ internal object ActorTypeCodeGenerator {
         eventType: EventType,
         actorTypeName: String,
         properties: List<PropertyDefinition> = emptyList(),
+        knownActorTypeNames: Collection<String> = listOf(actorTypeName),
     ): List<String> {
         val (nesting, openSections) = BlockNesting.of(blocks)
         return blocks.indices.flatMap { index ->
@@ -306,7 +312,7 @@ internal object ActorTypeCodeGenerator {
                 BlockNesting.Role.ELSE -> listOf("$indent} else {")
                 BlockNesting.Role.CLOSES -> listOf("$indent}")
                 BlockNesting.Role.STRAY -> listOf(indent + if (blocks[index] == BlockDefinition.Else) "// Else only works once, after an if Block." else "// End only works after an if or repeat Block.")
-                BlockNesting.Role.PLAIN, BlockNesting.Role.OPENS -> blockLines(blocks[index], eventType, actorTypeName, properties).map { indent + it }
+                BlockNesting.Role.PLAIN, BlockNesting.Role.OPENS -> blockLines(blocks[index], eventType, actorTypeName, properties, knownActorTypeNames).map { indent + it }
             }
         } + (openSections - 1 downTo 0).map { depth -> INDENT.repeat(depth) + "}" }
     }
@@ -320,6 +326,7 @@ internal object ActorTypeCodeGenerator {
         eventType: EventType,
         actorTypeName: String,
         properties: List<PropertyDefinition> = emptyList(),
+        knownActorTypeNames: Collection<String> = listOf(actorTypeName),
     ): List<String> = when (block) {
         is BlockDefinition.SetVelocity -> listOf("velocity = ${offsetLiteral(block.x, block.y)}")
         is BlockDefinition.AddToVelocity -> listOf("velocity += ${offsetLiteral(block.x, block.y)}")
@@ -359,6 +366,29 @@ internal object ActorTypeCodeGenerator {
         is BlockDefinition.ChangeNumber -> propertyLines(block, properties) { "${block.property} += ${floatLiteral(block.by)}" }
         is BlockDefinition.SetText -> propertyLines(block, properties) { "${block.property} = ${stringLiteral(block.value)}" }
         is BlockDefinition.SetToggle -> propertyLines(block, properties) { "${block.property} = ${block.value}" }
+        is BlockDefinition.AddActor -> if (block.actorType in knownActorTypeNames) {
+            val position = offsetLiteral(block.x, block.y)
+            listOf("actorManager.add(${block.actorType}.metadata.instantiate(${if (block.isRelative) "body.position + $position" else position}).restore())")
+        } else {
+            listOf("// Choose an Actor type for this Block.")
+        }
+        is BlockDefinition.MoveTowardsNearest -> if (block.actorType in knownActorTypeNames) {
+            listOf(
+                "run {",
+                "    val actors = actorManager.allActors.value",
+                "    var nearest: ${block.actorType}? = null",
+                "    for (index in actors.indices) {",
+                "        val candidate = actors[index] as? ${block.actorType} ?: continue",
+                "        if (${if (block.actorType == actorTypeName) "candidate !== this && " else ""}(nearest == null || body.position.distanceTo(candidate.body.position) < body.position.distanceTo(nearest.body.position))) {",
+                "            nearest = candidate",
+                "        }",
+                "    }",
+                "    if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * ${floatLiteral(block.speed)}",
+                "}",
+            )
+        } else {
+            listOf("// Choose an Actor type for this Block.")
+        }
         is BlockDefinition.StartTimer -> if (block.timer in TIMER_NUMBERS) {
             val milliseconds = (block.seconds * 1000).roundToLong().coerceAtLeast(1)
             listOf("${remainingField(block.timer)} = $milliseconds", "${periodField(block.timer)} = ${if (block.isRepeating) milliseconds else 0}")

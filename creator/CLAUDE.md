@@ -68,6 +68,10 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
 - **Timers** 1 to 8 per Actor, like GameMaker's alarms: the startTimer (seconds, once or repeating) and stopTimer Blocks, and a
   timerFinished Event per Timer (its number set like a key Event's key). Generated as two `Long` fields per Timer that is used,
   counted down at the start of `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting one never allocates.
+- **Other Actor types** in Blocks: addActor spawns one through its own `metadata.instantiate(position)` (so with its size
+  and initial Property values, at a position relative to the Actor or the Scene), and moveTowardsNearest aims the velocity at
+  the closest Actor of a type (a loop over `allActors` by index). Like collision Events, they follow renames, are rejected for
+  types that don't exist, and generate a comment for a type deleted later.
 - **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`): Actors are `typeId` + JSON state, positions live in
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
   Actor type renames its Actors in every Scene. A command that changes the open Scene marks it outdated (or closes it if deleted).

@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
+import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.timerNumber
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -77,17 +78,18 @@ internal fun validateEvent(event: EventDefinition, actorTypeNames: Collection<St
     event.timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
     event.timer != null && event.timer !in TIMER_NUMBERS -> Rejection(Res.string.error_command_timer_invalid)
     event.otherActorType != null && event.otherActorType !in actorTypeNames -> Rejection(Res.string.error_command_actor_type_missing, event.otherActorType)
-    else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, properties) }
+    else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, properties, actorTypeNames) }
 }
 
 /**
- * Why [block] can't be in an Event of [eventType] of an Actor type with [properties]. A Block may leave its Property
- * unchosen, but not name one the Actor type doesn't have.
+ * Why [block] can't be in an Event of [eventType] of an Actor type with [properties], in a project with Actor types of
+ * [actorTypeNames]. A Block may leave its Property or Actor type unchosen, but not name one that doesn't exist.
  */
-internal fun validateBlock(block: BlockDefinition, eventType: EventType, properties: List<PropertyDefinition>): Rejection? = when {
+internal fun validateBlock(block: BlockDefinition, eventType: EventType, properties: List<PropertyDefinition>, actorTypeNames: Collection<String>): Rejection? = when {
     !BlockKind.of(block).isAvailableIn(eventType) -> Rejection(Res.string.error_command_block_not_allowed, block.serialName, eventType.serialName)
     !block.areNumbersFinite -> Rejection(Res.string.error_command_number_invalid)
     block.timerNumber?.let { it !in TIMER_NUMBERS } == true -> Rejection(Res.string.error_command_timer_invalid)
+    block.actorTypeReference?.let { it !in actorTypeNames } == true -> Rejection(Res.string.error_command_actor_type_missing, block.actorTypeReference.orEmpty())
     else -> block.propertyReference?.let { (name, kind) ->
         if (name.isNotEmpty() && properties.none { it.name == name && PropertyKind.of(it) == kind }) Rejection(Res.string.error_command_property_missing, name, kind.serialName) else null
     }
@@ -117,6 +119,8 @@ private val BlockDefinition.areNumbersFinite
         }
         is BlockDefinition.Repeat -> times >= 0
         is BlockDefinition.StartTimer -> seconds.isFinite() && seconds >= 0f
+        is BlockDefinition.AddActor -> x.isFinite() && y.isFinite()
+        is BlockDefinition.MoveTowardsNearest -> speed.isFinite()
         is BlockDefinition.SetNumber -> value.isFinite()
         is BlockDefinition.ChangeNumber -> by.isFinite()
         BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,

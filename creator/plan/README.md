@@ -14,7 +14,7 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-1. [Blocks and Actor types](02-blocks.md) - next: on-screen text, spawning Actors, sprites, and the rest of the Block set (Properties, flow, and Timers exist);
+1. [Blocks and Actor types](02-blocks.md) - next: on-screen text and score, Scenes, audio, sprites, and the rest of the Block set (Properties, flow, Timers, and spawning exist);
    the Paddle game template; Convert to code; drag-and-drop. The editor comes before more AI work.
 2. [AI assistant](01-ai-assistant.md) - the command registry, its MCP server, one-click setup, the game tools, and the activity view exist,
    and real Claude Code sessions use them; the in-app panel with the user's API key waits until the editor does more. **Every new editor

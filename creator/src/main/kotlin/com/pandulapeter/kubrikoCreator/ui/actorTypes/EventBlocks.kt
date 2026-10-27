@@ -36,7 +36,6 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_blocks_empty
-import kubriko.creator.generated.resources.event_collision_choose
 import kubriko.creator.generated.resources.event_none_selected
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -96,10 +95,9 @@ internal fun EventBlocks(
                 timer = event.timer ?: TIMER_NUMBERS.first,
                 onSelected = onTimerChange,
             )
-            EventType.COLLISION -> MenuButton(
-                label = event.otherActorType ?: stringResource(Res.string.event_collision_choose),
-                options = actorTypeNames,
-                optionText = { it },
+            EventType.COLLISION -> ActorTypeChoice(
+                actorType = event.otherActorType.orEmpty(),
+                actorTypeNames = actorTypeNames,
                 onSelected = onOtherActorTypeChange,
             )
             else -> Unit
@@ -124,6 +122,7 @@ internal fun EventBlocks(
                 block = block,
                 nesting = nesting[index],
                 properties = properties,
+                actorTypeNames = actorTypeNames,
                 isFirst = index == 0,
                 isLast = index == event.blocks.lastIndex,
                 onBlockChange = { onBlockChange(index, it) },

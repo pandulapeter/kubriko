@@ -48,10 +48,15 @@ internal fun ActorTypeDefinition.withBlockMoved(eventIndex: Int, blockIndex: Int
 }
 
 /**
- * Every collision Event that names [oldName] names [newName] instead.
+ * Every collision Event and Block that names [oldName] names [newName] instead.
  */
 internal fun ActorTypeDefinition.withOtherActorTypeRenamed(oldName: String, newName: String) = copy(
-    events = events.map { event -> if (event.otherActorType == oldName) event.copy(otherActorType = newName) else event },
+    events = events.map { event ->
+        event.copy(
+            otherActorType = if (event.otherActorType == oldName) newName else event.otherActorType,
+            blocks = event.blocks.map { it.withActorTypeRenamed(oldName, newName) },
+        )
+    },
 )
 
 internal fun ActorTypeDefinition.withPropertyInserted(index: Int, property: PropertyDefinition) = copy(

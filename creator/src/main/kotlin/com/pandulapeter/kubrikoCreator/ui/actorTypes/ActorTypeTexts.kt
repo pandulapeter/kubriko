@@ -21,6 +21,7 @@ import kubriko.creator.generated.resources.event_every_frame
 import kubriko.creator.generated.resources.event_key_pressed
 import kubriko.creator.generated.resources.event_timer_finished
 import kubriko.creator.generated.resources.ic_add
+import kubriko.creator.generated.resources.ic_add_actor
 import kubriko.creator.generated.resources.ic_bounce
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_collision
@@ -31,6 +32,7 @@ import kubriko.creator.generated.resources.ic_edge
 import kubriko.creator.generated.resources.ic_end
 import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.ic_loop
+import kubriko.creator.generated.resources.ic_move_towards
 import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_open_with
 import kubriko.creator.generated.resources.ic_remove_other
@@ -88,6 +90,8 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.CHANGE_NUMBER -> Res.drawable.ic_add
         BlockKind.SET_TEXT -> Res.drawable.ic_text
         BlockKind.SET_TOGGLE -> Res.drawable.ic_toggle
+        BlockKind.ADD_ACTOR -> Res.drawable.ic_add_actor
+        BlockKind.MOVE_TOWARDS_NEAREST -> Res.drawable.ic_move_towards
         BlockKind.START_TIMER -> Res.drawable.ic_timer
         BlockKind.STOP_TIMER -> Res.drawable.ic_timer_off
         BlockKind.IF, BlockKind.ELSE -> Res.drawable.ic_condition
