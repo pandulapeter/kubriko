@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import kotlinx.coroutines.flow.Flow
 
@@ -23,4 +24,11 @@ internal interface SessionChannel : AutoCloseable {
     val port: Int
 
     val messages: Flow<SessionMessage>
+
+    /**
+     * Sends [command] to the session that connected last.
+     *
+     * @return Whether there was a session to send it to.
+     */
+    fun send(command: SessionCommand): Boolean
 }

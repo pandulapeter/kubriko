@@ -24,6 +24,7 @@ import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
 import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
+import io.modelcontextprotocol.kotlin.sdk.types.ImageContent
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
@@ -50,6 +51,7 @@ import java.io.IOException
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.security.MessageDigest
+import java.util.Base64
 
 /**
  * Serves the command registry as MCP tools over Streamable HTTP on localhost, so that AI clients (Claude Code, for
@@ -135,13 +137,17 @@ internal class McpToolServer(
 
     private suspend fun runTool(toolName: String, arguments: JsonObject): CallToolResult {
         val outcome = withContext(callDispatcher) { executor()?.call(toolName, arguments) }
+        val image = (outcome as? CommandOutcome.Success)?.image
         val (result, isError) = when (outcome) {
             null -> getString(Res.string.error_mcp_no_project) to true
             is CommandOutcome.Success -> (if (outcome.result == JsonNull) getString(Res.string.mcp_tool_done) else outcome.result.toString()) to false
             is CommandOutcome.Rejected -> getString(outcome.rejection.reason, *outcome.rejection.arguments.toTypedArray()) to true
         }
         _calls.update { (it + McpToolCall(toolName, arguments.toString(), result, isError)).takeLast(LOG_SIZE) }
-        return CallToolResult(content = listOf(TextContent(result)), isError = isError)
+        return CallToolResult(
+            content = listOfNotNull(TextContent(result), image?.let { ImageContent(data = Base64.getEncoder().encodeToString(it), mimeType = "image/png") }),
+            isError = isError,
+        )
     }
 
     companion object {

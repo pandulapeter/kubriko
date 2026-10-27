@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import kotlinx.coroutines.CoroutineScope
@@ -18,13 +19,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
+import java.io.BufferedWriter
 import java.io.IOException
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 
 /**
- * Listens on a free localhost port for session processes, and emits every message they send.
+ * Listens on a free localhost port for session processes, emits every message they send, and sends commands to the
+ * one that connected last.
  */
 internal class SessionServer(
     private val scope: CoroutineScope,
@@ -33,6 +36,8 @@ internal class SessionServer(
     private val _messages = MutableSharedFlow<SessionMessage>(extraBufferCapacity = 256)
     override val messages = _messages.asSharedFlow()
     override val port: Int get() = serverSocket.localPort
+    @Volatile
+    private var latestWriter: BufferedWriter? = null
 
     init {
         scope.launch(Dispatchers.IO) {
@@ -47,7 +52,23 @@ internal class SessionServer(
         }
     }
 
+    override fun send(command: SessionCommand): Boolean {
+        val writer = latestWriter ?: return false
+        return try {
+            synchronized(writer) {
+                writer.write(SessionProtocol.encodeCommand(command))
+                writer.newLine()
+                writer.flush()
+            }
+            true
+        } catch (_: IOException) {
+            false
+        }
+    }
+
     private suspend fun Socket.readMessages() = use {
+        val writer = getOutputStream().bufferedWriter(Charsets.UTF_8)
+        latestWriter = writer
         val reader = getInputStream().bufferedReader(Charsets.UTF_8)
         while (true) {
             val line = try {
@@ -57,6 +78,7 @@ internal class SessionServer(
             } ?: break
             decode(line)?.let { _messages.emit(it) }
         }
+        if (latestWriter === writer) latestWriter = null
     }
 
     private fun decode(line: String) = try {

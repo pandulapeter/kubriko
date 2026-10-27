@@ -241,4 +241,11 @@
     <string name="ai_client_connected">Connected. New %1$s sessions can work on the open project.</string>
     <string name="ai_client_failed">Couldn't connect: %1$s</string>
     <string name="ai_client_command">The command that runs %1$s</string>
+    <string name="error_game_not_running">The game isn't running.</string>
+    <string name="error_game_unsupported">This project's Kubriko version is too old for the game to be played from Kubriko Creator's tools.</string>
+    <string name="error_game_no_answer">The game didn't answer.</string>
+    <string name="error_game_command_failed">The game couldn't do that: %1$s</string>
+    <string name="error_game_keys_count">Press between 1 and %1$s keys at a time.</string>
+    <string name="error_game_key_unknown">There's no key called %1$s.</string>
+    <string name="error_game_duration_invalid">Use between 1 and %1$s milliseconds.</string>
 </resources>

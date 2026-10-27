@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
@@ -16,15 +17,21 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
 import kubriko.creator.generated.resources.status_unsupported_protocol
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The session process that plays the game or edits a Scene in a window of its own: starting and stopping it, and what
@@ -44,6 +51,8 @@ internal class SessionController(
      */
     var job: Job? = null
         private set
+    private var protocolVersion = SessionProtocol.VERSION
+    private val commandIds = AtomicInteger()
 
     init {
         scope.launch {
@@ -87,7 +96,8 @@ internal class SessionController(
     }
 
     private fun onMessage(message: SessionMessage) = when (message) {
-        is SessionMessage.Hello -> if (message.protocolVersion == SessionProtocol.VERSION) {
+        is SessionMessage.Hello -> if (message.protocolVersion in SUPPORTED_PROTOCOL_VERSIONS) {
+            protocolVersion = message.protocolVersion
             _state.value = SessionState.Running(message.mode)
             console.append(ConsoleEntry.Status(Res.string.status_session_started))
         } else {
@@ -103,6 +113,39 @@ internal class SessionController(
         )
         is SessionMessage.Failure -> console.append(ConsoleEntry.SessionFailure(message.message))
         is SessionMessage.CommandDone, is SessionMessage.Screenshot, is SessionMessage.CommandFailed -> Unit
+    }
+
+    private companion object {
+        val SUPPORTED_PROTOCOL_VERSIONS = 1..SessionProtocol.VERSION
+
+        /**
+         * The first protocol version whose sessions take [SessionCommand]s.
+         */
+        const val COMMANDS_PROTOCOL_VERSION = 2
+    }
+
+    /**
+     * Sends the command [create] makes with a new ID to the running game, and waits for its answer.
+     */
+    suspend fun request(timeoutInMilliseconds: Long, create: (id: Int) -> SessionCommand): GameAnswer {
+        if (_state.value != SessionState.Running(SessionMode.PLAY)) return GameAnswer.NotPlaying
+        if (protocolVersion < COMMANDS_PROTOCOL_VERSION) return GameAnswer.Unsupported
+        val command = create(commandIds.incrementAndGet())
+        return coroutineScope {
+            val answer = async(start = CoroutineStart.UNDISPATCHED) { channel.messages.first { it.answers(command.id) } }
+            if (!channel.send(command)) {
+                answer.cancel()
+                return@coroutineScope GameAnswer.NotPlaying
+            }
+            withTimeoutOrNull(timeoutInMilliseconds) { GameAnswer.Answered(answer.await()) } ?: GameAnswer.NoAnswer.also { answer.cancel() }
+        }
+    }
+
+    private fun SessionMessage.answers(id: Int) = when (this) {
+        is SessionMessage.CommandDone -> this.id == id
+        is SessionMessage.Screenshot -> this.id == id
+        is SessionMessage.CommandFailed -> this.id == id
+        is SessionMessage.Hello, is SessionMessage.Log, is SessionMessage.Failure -> false
     }
 
     override fun close() {

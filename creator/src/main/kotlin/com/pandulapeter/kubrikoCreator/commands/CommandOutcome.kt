@@ -14,9 +14,20 @@ import kotlinx.serialization.json.JsonNull
 
 internal sealed interface CommandOutcome {
 
-    data class Success(
+    /**
+     * @param image A PNG that goes with the [result] (a screenshot, for example).
+     */
+    class Success(
         val result: JsonElement = JsonNull,
-    ) : CommandOutcome
+        val image: ByteArray? = null,
+    ) : CommandOutcome {
+
+        override fun equals(other: Any?) = other is Success && other.result == result && other.image.contentEquals(image)
+
+        override fun hashCode() = 31 * result.hashCode() + image.contentHashCode()
+
+        override fun toString() = "Success(result=$result, image=${image?.size} bytes)"
+    }
 
     data class Rejected(
         val rejection: Rejection,

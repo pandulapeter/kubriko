@@ -9,10 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
@@ -27,7 +29,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
@@ -37,6 +41,10 @@ import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_actor_type_name_invalid
 import kubriko.creator.generated.resources.error_command_actor_type_missing
+import kubriko.creator.generated.resources.error_game_command_failed
+import kubriko.creator.generated.resources.error_game_no_answer
+import kubriko.creator.generated.resources.error_game_not_running
+import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
@@ -278,6 +286,72 @@ class WorkspaceControllerTest {
         build.currentRun.finish(isSuccessful = false)
         val result = assertIs<CommandOutcome.Success>(outcome.await()).result.jsonObject
         assertEquals(false, result.getValue("hasStarted").jsonPrimitive.boolean)
+    }
+
+    @Test
+    fun sessionsOfTheFirstProtocolVersionStillRunButCantBePlayedByTools() = runTest {
+        val controller = createController()
+        val outcome = async { controller.commands.call("start_game", JsonObject(emptyMap())) }
+        runCurrent()
+        channel.receive(SessionMessage.Hello(protocolVersion = 1, mode = SessionMode.PLAY))
+        assertIs<CommandOutcome.Success>(outcome.await())
+        assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
+        assertTrue(channel.sent.isEmpty())
+        val pressed = assertIs<CommandOutcome.Rejected>(controller.commands.call("press_keys", buildJsonObject { put("keys", JsonArray(listOf(JsonPrimitive("LEFT")))) }))
+        assertEquals(Res.string.error_game_unsupported, pressed.rejection.reason)
+    }
+
+    @Test
+    fun theGameToolsPlayTheRunningGameAndBringItToTheFrontFirst() = runTest {
+        val controller = createController()
+        val pressedWithoutGame = assertIs<CommandOutcome.Rejected>(controller.commands.call("press_keys", buildJsonObject { put("keys", JsonArray(listOf(JsonPrimitive("LEFT")))) }))
+        assertEquals(Res.string.error_game_not_running, pressedWithoutGame.rejection.reason)
+        val started = async { controller.commands.call("start_game", JsonObject(emptyMap())) }
+        runCurrent()
+        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
+        assertEquals(true, assertIs<CommandOutcome.Success>(started.await()).result.jsonObject.getValue("hasStarted").jsonPrimitive.boolean)
+        channel.answer = { command ->
+            if (command is SessionCommand.PressKeys) channel.receive(SessionMessage.Log(id = "1", message = "Paddle moved", details = null, source = "Paddle", timestamp = 0L, importance = "LOW"))
+            SessionMessage.CommandDone(command.id)
+        }
+        val pressed = async { controller.commands.call("press_keys", buildJsonObject { put("keys", JsonArray(listOf(JsonPrimitive("left"), JsonPrimitive("SPACE")))); put("milliseconds", 200) }) }
+        runCurrent()
+        assertEquals(
+            listOf("Paddle moved"),
+            assertIs<CommandOutcome.Success>(pressed.await()).result.jsonObject.getValue("console").jsonArray.map { it.jsonObject.getValue("text").jsonPrimitive.content },
+        )
+        assertEquals(listOf("LEFT", "SPACE"), channel.sent.filterIsInstance<SessionCommand.PressKeys>().single().keys)
+        assertEquals(200L, channel.sent.filterIsInstance<SessionCommand.PressKeys>().single().durationInMilliseconds)
+        assertIs<SessionCommand.BringToFront>(channel.sent[channel.sent.indexOfFirst { it is SessionCommand.PressKeys } - 1])
+        channel.answer = { command ->
+            when (command) {
+                is SessionCommand.CaptureScreen -> SessionMessage.Screenshot(command.id, java.util.Base64.getEncoder().encodeToString(byteArrayOf(1, 2, 3)))
+                else -> SessionMessage.CommandDone(command.id)
+            }
+        }
+        val screenshot = assertIs<CommandOutcome.Success>(controller.commands.call("take_screenshot", JsonObject(emptyMap())))
+        assertEquals(listOf<Byte>(1, 2, 3), screenshot.image?.toList())
+        assertEquals(1280, channel.sent.filterIsInstance<SessionCommand.CaptureScreen>().single().maximumWidth)
+        channel.answer = { command -> if (command is SessionCommand.CaptureScreen) SessionMessage.CommandFailed(command.id, "The game hasn't drawn anything yet.") else SessionMessage.CommandDone(command.id) }
+        val failed = assertIs<CommandOutcome.Rejected>(controller.commands.call("take_screenshot", JsonObject(emptyMap())))
+        assertEquals(Rejection(Res.string.error_game_command_failed, "The game hasn't drawn anything yet."), failed.rejection)
+        val stopped = assertIs<CommandOutcome.Success>(controller.commands.call("stop_game", JsonObject(emptyMap())))
+        assertEquals(true, stopped.result.jsonObject.getValue("wasRunning").jsonPrimitive.boolean)
+        assertEquals(SessionState.Idle, controller.sessionState.value)
+    }
+
+    @Test
+    fun aGameThatDoesntAnswerIsReported() = runTest {
+        val controller = createController()
+        val started = async { controller.commands.call("start_game", JsonObject(emptyMap())) }
+        runCurrent()
+        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
+        started.await()
+        channel.answer = { null }
+        val waited = async { controller.commands.call("wait", buildJsonObject { put("milliseconds", 500) }) }
+        runCurrent()
+        advanceTimeBy(20_000)
+        assertEquals(Res.string.error_game_no_answer, assertIs<CommandOutcome.Rejected>(waited.await()).rejection.reason)
     }
 
     @Test

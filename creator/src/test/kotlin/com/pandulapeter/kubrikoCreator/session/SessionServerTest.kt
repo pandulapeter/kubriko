@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
@@ -27,6 +28,7 @@ import java.net.InetAddress
 import java.net.Socket
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SessionServerTest {
@@ -71,6 +73,29 @@ class SessionServerTest {
                     flush()
                 }
                 assertEquals(hello, received.await())
+            }
+        }
+        scope.cancel()
+    }
+
+    @Test
+    fun commandsGoToTheSessionThatConnectedLast() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        SessionServer(scope).use { server ->
+            assertFalse(server.send(SessionCommand.BringToFront(1)))
+            val hello = SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY)
+            val received = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+                withTimeout(10_000) { server.messages.first() }
+            }
+            Socket(InetAddress.getLoopbackAddress(), server.port).use { socket ->
+                socket.getOutputStream().bufferedWriter().apply {
+                    write("${SessionProtocol.encode(hello)}\n")
+                    flush()
+                }
+                received.await()
+                val command = SessionCommand.PressKeys(2, listOf("LEFT"), 100)
+                assertTrue(server.send(command))
+                assertEquals(command, SessionProtocol.decodeCommand(socket.getInputStream().bufferedReader().readLine()))
             }
         }
         scope.cancel()

@@ -13,12 +13,23 @@ import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 
 internal class FakeProjectRunner(
     var result: ProjectRunner.RunResult = ProjectRunner.RunResult(isSuccessful = true, console = emptyList()),
+    var step: GameStep = GameStep.Done(console = emptyList()),
 ) : ProjectRunner {
     val calls = mutableListOf<String>()
 
     override suspend fun build() = result.also { calls += "build" }
 
     override suspend fun play(durationInMilliseconds: Long) = result.also { calls += "play $durationInMilliseconds" }
+
+    override suspend fun startGame() = result.also { calls += "start" }
+
+    override suspend fun stopGame() = result.also { calls += "stop" }
+
+    override suspend fun pressKeys(keys: List<String>, durationInMilliseconds: Long) = step.also { calls += "press ${keys.joinToString("+")} $durationInMilliseconds" }
+
+    override suspend fun wait(durationInMilliseconds: Long) = step.also { calls += "wait $durationInMilliseconds" }
+
+    override suspend fun captureScreen() = step.also { calls += "screenshot" }
 
     companion object {
         fun failing(vararg console: ConsoleEntry) = FakeProjectRunner(ProjectRunner.RunResult(isSuccessful = false, console = console.toList()))

@@ -29,6 +29,35 @@ internal interface ProjectRunner {
     suspend fun play(durationInMilliseconds: Long): RunResult
 
     /**
+     * Builds and starts the game, waits until it is up, and leaves it running for [pressKeys], [wait], and
+     * [captureScreen], until [stopGame].
+     *
+     * @return Whether the game started, and what the console showed meanwhile.
+     */
+    suspend fun startGame(): RunResult
+
+    /**
+     * @return Whether a game was running, and what the console showed while it stopped.
+     */
+    suspend fun stopGame(): RunResult
+
+    /**
+     * Holds [keys] (named as in `java.awt.event.KeyEvent`, without `VK_`) down together in the running game for
+     * [durationInMilliseconds], then releases them.
+     */
+    suspend fun pressKeys(keys: List<String>, durationInMilliseconds: Long): GameStep
+
+    /**
+     * Lets the running game run for [durationInMilliseconds].
+     */
+    suspend fun wait(durationInMilliseconds: Long): GameStep
+
+    /**
+     * Captures what the running game shows, as a PNG.
+     */
+    suspend fun captureScreen(): GameStep
+
+    /**
      * @param isSuccessful Whether the build succeeded, or the game started.
      * @param console What the console showed meanwhile.
      */

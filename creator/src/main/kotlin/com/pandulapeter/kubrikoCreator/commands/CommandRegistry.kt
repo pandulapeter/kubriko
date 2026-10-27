@@ -26,6 +26,11 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
+import com.pandulapeter.kubrikoCreator.commands.game.PressKeys
+import com.pandulapeter.kubrikoCreator.commands.game.StartGame
+import com.pandulapeter.kubrikoCreator.commands.game.StopGame
+import com.pandulapeter.kubrikoCreator.commands.game.TakeScreenshot
+import com.pandulapeter.kubrikoCreator.commands.game.Wait
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
@@ -83,6 +88,11 @@ internal class CommandRegistry(
                 GetVersionControlStatus,
                 Build,
                 Play,
+                StartGame,
+                PressKeys,
+                Wait,
+                TakeScreenshot,
+                StopGame,
                 CreateActorType,
                 RenameActorType,
                 DeleteActorType,

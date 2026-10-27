@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.mcp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
+import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
+import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import io.ktor.client.HttpClient
@@ -26,6 +28,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.StreamableHttpClientTransport
+import io.modelcontextprotocol.kotlin.sdk.types.ImageContent
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +37,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import java.util.Base64
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -149,6 +153,16 @@ class McpToolServerTest {
             }
         }
         assertEquals(CommandRegistry.editor.tools.size, tools.size)
+    }
+
+    @Test
+    fun screenshotsComeBackAsImages() = runTest {
+        val runner = FakeProjectRunner(step = GameStep.Done(console = emptyList(), png = byteArrayOf(1, 2, 3)))
+        val port = start(CommandExecutor(commandContext(runner = runner), testScope()))
+        val result = connected(port) { callTool("take_screenshot", emptyMap()) }
+        val image = result.content.filterIsInstance<ImageContent>().single()
+        assertEquals("image/png", image.mimeType)
+        assertEquals(listOf<Byte>(1, 2, 3), Base64.getDecoder().decode(image.data).toList())
     }
 
     @Test
