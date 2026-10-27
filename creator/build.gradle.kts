@@ -15,7 +15,22 @@ plugins {
 }
 
 dependencies {
+    // Every published module a project could use, so that a project's classes loaded next to Creator's share them
+    // (scenes/ClassLoaderEntryPointLoader.kt).
+    implementation(projects.plugins.audioPlayback)
+    implementation(projects.plugins.collision)
+    implementation(projects.plugins.gamepadInput)
+    implementation(projects.plugins.keyboardInput)
+    implementation(projects.plugins.particles)
+    implementation(projects.plugins.persistence)
+    implementation(projects.plugins.physics)
+    implementation(projects.plugins.pointerInput)
+    implementation(projects.plugins.serialization)
+    implementation(projects.plugins.shaders)
+    implementation(projects.plugins.sprites)
+    implementation(projects.tools.creatorApi)
     implementation(projects.tools.creatorSession)
+    implementation(projects.tools.sceneEditor)
     implementation(projects.tools.uiComponents)
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.resources)

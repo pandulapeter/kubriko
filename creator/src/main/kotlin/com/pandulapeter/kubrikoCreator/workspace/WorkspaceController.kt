@@ -19,6 +19,9 @@ import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
+import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
+import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
+import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineDispatcher
@@ -52,6 +55,8 @@ internal class WorkspaceController(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
     private val actorTypeRepository: ActorTypeRepository? = null,
+    creatorKubrikoVersion: String = "",
+    entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
 ) : AutoCloseable {
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
@@ -62,6 +67,19 @@ internal class WorkspaceController(
     private var sessionJob: Job? = null
 
     /**
+     * The Scene shown in Kubriko Creator's own window. Declared before [actorTypes], whose changes it hears about.
+     */
+    val sceneEditing = SceneEditingController(
+        creatorKubrikoVersion = creatorKubrikoVersion,
+        runTask = ::runCreatorTask,
+        entryPointLoader = entryPointLoader,
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+        openInSessionWindow = ::editSceneInWindow,
+        report = ::appendToConsole,
+    )
+
+    /**
      * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
      */
     val actorTypes = actorTypeRepository?.let { repository ->
@@ -69,7 +87,10 @@ internal class WorkspaceController(
             repository = repository,
             scope = scope,
             ioDispatcher = ioDispatcher,
-            onSaved = ::refreshResources,
+            onSaved = {
+                refreshResources()
+                sceneEditing.markOutdated()
+            },
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
         )
     }
@@ -89,7 +110,10 @@ internal class WorkspaceController(
 
     fun play() = startSession(SessionMode.PLAY, scene = null)
 
-    fun editScene(scene: ProjectResource) = startSession(SessionMode.EDIT, scene)
+    /**
+     * Edits [scene] in a session window of its own, rather than in Kubriko Creator's ([sceneEditing]).
+     */
+    fun editSceneInWindow(scene: ProjectResource) = startSession(SessionMode.EDIT, scene)
 
     fun stopSession() {
         if (sessionJob?.isActive == true) {
@@ -106,59 +130,61 @@ internal class WorkspaceController(
         sessionJob?.cancel()
         sessionJob = scope.launch {
             _sessionState.value = SessionState.Starting(mode)
-            appendToConsole(ConsoleEntry.Status(Res.string.status_building))
-            val outputTail = ArrayDeque<String>()
-            val hasReportedProblems = AtomicBoolean(false)
             try {
-                val isSuccessful = build.run(
-                    taskPath = sessionTaskPath(),
-                    arguments = sessionArguments(mode, scene),
-                    onEvent = { event ->
-                        when (event) {
-                            is GradleBuildEvent.Output -> synchronized(outputTail) {
-                                outputTail.addLast(event.line)
-                                if (outputTail.size > OUTPUT_TAIL_SIZE) outputTail.removeFirst()
-                            }
-                            is GradleBuildEvent.Problem -> {
-                                hasReportedProblems.set(true)
-                                appendToConsole(event.toConsoleEntry())
+                val isSuccessful = runCreatorTask(
+                    taskName = SessionInitScript.SESSION_TASK_NAME,
+                    properties = buildMap {
+                        put("kubrikoCreatorPort", sessionChannel.port.toString())
+                        when (mode) {
+                            SessionMode.PLAY -> put("kubrikoCreatorMode", "play")
+                            SessionMode.EDIT -> {
+                                put("kubrikoCreatorMode", "edit")
+                                scene?.let {
+                                    put("kubrikoCreatorSceneFolder", it.file.parentFile.absolutePath)
+                                    put("kubrikoCreatorSceneFile", it.name)
+                                }
                             }
                         }
                     },
                 )
-                if (isSuccessful) {
-                    appendToConsole(ConsoleEntry.Status(Res.string.status_session_ended))
-                } else {
-                    appendToConsole(ConsoleEntry.Status(Res.string.status_build_failed, isError = true))
-                    if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { appendToConsole(ConsoleEntry.BuildOutput(it)) }
-                }
+                if (isSuccessful) appendToConsole(ConsoleEntry.Status(Res.string.status_session_ended))
             } finally {
                 _sessionState.value = SessionState.Idle
             }
         }
     }
 
-    private fun sessionTaskPath() = if (project.desktopModulePath == ":") {
-        ":${SessionInitScript.TASK_NAME}"
-    } else {
-        "${project.desktopModulePath}:${SessionInitScript.TASK_NAME}"
-    }
-
-    private fun sessionArguments(mode: SessionMode, scene: ProjectResource?) = buildList {
-        add("--init-script")
-        add(SessionInitScript.file.absolutePath)
-        add("--no-configuration-cache")
-        add("-PkubrikoCreatorPort=${sessionChannel.port}")
-        when (mode) {
-            SessionMode.PLAY -> add("-PkubrikoCreatorMode=play")
-            SessionMode.EDIT -> {
-                add("-PkubrikoCreatorMode=edit")
-                scene?.let {
-                    add("-PkubrikoCreatorSceneFolder=${it.file.parentFile.absolutePath}")
-                    add("-PkubrikoCreatorSceneFile=${it.name}")
+    /**
+     * Runs one of the init script's tasks in the project's desktop module with Kubriko Creator's [properties], reporting
+     * compiler errors (or, when the build reports none, the end of its output) in the console.
+     *
+     * @return Whether the build succeeded.
+     */
+    private suspend fun runCreatorTask(taskName: String, properties: Map<String, String>): Boolean {
+        appendToConsole(ConsoleEntry.Status(Res.string.status_building))
+        val outputTail = ArrayDeque<String>()
+        val hasReportedProblems = AtomicBoolean(false)
+        val isSuccessful = build.run(
+            taskPath = if (project.desktopModulePath == ":") ":$taskName" else "${project.desktopModulePath}:$taskName",
+            arguments = listOf("--init-script", SessionInitScript.file.absolutePath, "--no-configuration-cache") + properties.map { (key, value) -> "-P$key=$value" },
+            onEvent = { event ->
+                when (event) {
+                    is GradleBuildEvent.Output -> synchronized(outputTail) {
+                        outputTail.addLast(event.line)
+                        if (outputTail.size > OUTPUT_TAIL_SIZE) outputTail.removeFirst()
+                    }
+                    is GradleBuildEvent.Problem -> {
+                        hasReportedProblems.set(true)
+                        appendToConsole(event.toConsoleEntry())
+                    }
                 }
-            }
+            },
+        )
+        if (!isSuccessful) {
+            appendToConsole(ConsoleEntry.Status(Res.string.status_build_failed, isError = true))
+            if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { appendToConsole(ConsoleEntry.BuildOutput(it)) }
         }
+        return isSuccessful
     }
 
     private fun onSessionMessage(message: SessionMessage) = when (message) {
@@ -189,6 +215,7 @@ internal class WorkspaceController(
     private fun appendToConsole(entry: ConsoleEntry) = _console.update { (it + entry).takeLast(CONSOLE_SIZE) }
 
     override fun close() {
+        sceneEditing.close()
         sessionJob?.cancel()
         sessionChannel.close()
         build.close()

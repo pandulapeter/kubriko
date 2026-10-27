@@ -18,15 +18,15 @@ The editor runs **two separate Kubriko instances**:
 1. **`editorKubriko`** — hosts the scene being edited. Auto-configured with `ViewportManager` (Dynamic aspect ratio, scale 0.1–10), `StateManager(shouldAutoStart = false)`, `KeyboardInputManager`, `PointerInputManager`, `PersistenceManager("kubrikoSceneEditor")`, the caller-supplied `SerializationManager`, and any `customManagers`.
 2. **`overlayKubriko`** — hosts the `OverlayManager` that draws selection highlights and actor placement previews on top of the scene viewport.
 
-`InternalSceneEditor` (Composable) creates and wires both instances; `EditorController` is the central coordinator that both read.
+`InternalSceneEditorContent` (Composable) creates and wires both instances and draws the editor into the caller's layout; `InternalSceneEditor` puts it into a window of its own, and the public `SceneEditor.Content` into another app's (Kubriko Creator's). `EditorController` is the central coordinator that both instances read.
 
-Both instances and the editor's `CoroutineScope` (created there and passed to `EditorController`) are disposed when `InternalSceneEditor` leaves composition (a `DisposableEffect`), never in the close handler.
+Both instances and the editor's `CoroutineScope` (created there and passed to `EditorController`) are disposed when `InternalSceneEditorContent` leaves composition (a `DisposableEffect`), never in the close handler.
 
 The debug menu dependency follows `showcase.isDebugMenuEnabled` for local Showcase builds; publishing requires the flag to be `true`, so the released artifact always depends on `tool-debug-menu`.
 
 ## `EditorController`
 
-Coordinates the editor (filter, preference pass-throughs, text-input focus count, Escape handling, click routing) on the `CoroutineScope` `InternalSceneEditor` gives it (SupervisorJob + Dispatchers.Default, cancelled when the editor leaves composition), and delegates the rest to four collaborators: `SceneDocument` (the scene's actors, undo/redo and the dirty flag), `SceneFiles` (scene I/O and its errors), `CameraAnimator` (the locate animation, with an injectable `TimeSource`) and `EditorSelection` (selected actor, selected type and placement preview):
+Coordinates the editor (filter, preference pass-throughs, text-input focus count, Escape handling, click routing) on the `CoroutineScope` `InternalSceneEditorContent` gives it (SupervisorJob + Dispatchers.Default, cancelled when the editor leaves composition), and delegates the rest to four collaborators: `SceneDocument` (the scene's actors, undo/redo and the dirty flag), `SceneFiles` (scene I/O and its errors), `CameraAnimator` (the locate animation, with an injectable `TimeSource`) and `EditorSelection` (selected actor, selected type and placement preview):
 
 - **Selection**: `selectedActor: StateFlow<Editable<*>?>` plus `selectedActorRevision: StateFlow<Int>`, which `notifySelectedActorUpdate` increments so the property panel and the instance browser recompose when a setter is called.
 - **Actor picking**: left-click calls `findActorOnPosition` which uses `isCollidingWith(boundingBoxCollisionMask)` on all `filteredVisibleActorsWithinViewport` and picks the one with the lowest `drawingOrder`. Right-click deletes the actor under the cursor. `boundingBoxCollisionMask` (in `extensions/PointBodyExtensions.kt`) builds the mask from a `BoxBody`'s **rendered** corners — scaled around its pivot, rotated, and translated exactly as it is drawn — so picking matches the on-screen shape for any scale/rotation/pivot, not just the unscaled box.

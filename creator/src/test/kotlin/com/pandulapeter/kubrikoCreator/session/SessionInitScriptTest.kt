@@ -18,7 +18,12 @@ class SessionInitScriptTest {
 
     @Test
     fun theScriptRegistersTheTaskKubrikoCreatorRuns() {
-        assertTrue("register<JavaExec>(\"${SessionInitScript.TASK_NAME}\")" in script)
+        assertTrue("register<JavaExec>(\"${SessionInitScript.SESSION_TASK_NAME}\")" in script)
+    }
+
+    @Test
+    fun theScriptRegistersTheClasspathTaskKubrikoCreatorRuns() {
+        assertTrue("register(\"${SessionInitScript.CLASSPATH_TASK_NAME}\")" in script)
     }
 
     @Test
@@ -34,6 +39,7 @@ class SessionInitScriptTest {
 
     @Test
     fun theScriptInjectsCreatorSessionAtTheProjectsOwnKubrikoVersion() {
-        assertTrue("io.github.pandulapeter.kubriko:tool-creator-session:\$version" in script)
+        assertTrue("io.github.pandulapeter.kubriko:tool-creator-session:\${kubrikoVersion(runtime)}" in script)
+        assertTrue("it.group == \"io.github.pandulapeter.kubriko\" && it.module == \"engine\"" in script)
     }
 }

@@ -10,10 +10,13 @@
 package com.pandulapeter.kubriko.sceneEditor
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sceneEditor.implementation.InternalSceneEditor
+import com.pandulapeter.kubriko.sceneEditor.implementation.InternalSceneEditorContent
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import java.awt.Frame
 
 /**
  * The real implementation of [SceneEditorContract]: a Desktop-only visual editor for [Editable] actors.
@@ -56,5 +59,26 @@ object SceneEditor : SceneEditorContract {
         sceneEditorMode = sceneEditorMode,
         title = title,
         onCloseRequest = onCloseRequest,
+    )
+
+    @Composable
+    override fun Content(
+        defaultSceneFilename: String?,
+        defaultSceneFolderPath: String,
+        serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
+        sceneEditorMode: SceneEditorMode,
+        parentWindow: Frame?,
+        onCloseRequest: () -> Unit,
+        modifier: Modifier,
+    ) = InternalSceneEditorContent(
+        defaultSceneFilename = defaultSceneFilename,
+        defaultSceneFolderPath = defaultSceneFolderPath,
+        serializationManager = serializationManager,
+        customManagers = customManagers,
+        sceneEditorMode = sceneEditorMode,
+        parentWindow = parentWindow,
+        onCloseRequest = onCloseRequest,
+        modifier = modifier,
     )
 }

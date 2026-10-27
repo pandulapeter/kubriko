@@ -12,12 +12,13 @@ package com.pandulapeter.kubrikoCreator.session
 import java.io.File
 
 /**
- * The Gradle init script that adds the `kubrikoCreatorSession` task to a project's build, copied out of the app's
+ * The Gradle init script that adds Kubriko Creator's tasks to a project's build, copied out of the app's
  * resources once per run, since Gradle only accepts init scripts as files.
  */
 internal object SessionInitScript {
 
-    const val TASK_NAME = "kubrikoCreatorSession"
+    const val SESSION_TASK_NAME = "kubrikoCreatorSession"
+    const val CLASSPATH_TASK_NAME = "kubrikoCreatorClasspath"
     private const val RESOURCE_NAME = "kubriko-creator-session.init.gradle.kts"
 
     val file: File by lazy {

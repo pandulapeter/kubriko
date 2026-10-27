@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
@@ -35,6 +36,7 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
                 scope = scope,
                 scanResources = { ResourceScanner.scan(it, hiddenDirectory = actorTypeStore?.generatedPath) },
                 actorTypeRepository = actorTypeStore,
+                creatorKubrikoVersion = CreatorConfiguration.load().kubrikoVersion,
             )
         } catch (exception: Exception) {
             connection.close()

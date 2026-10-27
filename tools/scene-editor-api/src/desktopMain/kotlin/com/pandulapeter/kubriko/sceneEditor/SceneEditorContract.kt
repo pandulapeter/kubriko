@@ -10,8 +10,10 @@
 package com.pandulapeter.kubriko.sceneEditor
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import java.awt.Frame
 
 /**
  * Contract for the Scene Editor tool.
@@ -121,4 +123,33 @@ interface SceneEditorContract {
         title: String, // TODO:  = "Scene Editor",
         onCloseRequest: () -> Unit,
     )
+
+    /**
+     * Draws the Scene Editor into the caller's layout instead of a window of its own, for hosting it inside another
+     * desktop app (Kubriko Creator does). Its settings and file dialogs still open as windows of their own.
+     *
+     * Implementations that can't embed the editor draw nothing, which is what this default does.
+     *
+     * @param defaultSceneFilename The name of the scene file to load by default, or null to open no file.
+     * @param defaultSceneFolderPath The path to the folder containing scene files.
+     * @param serializationManager The manager used for serializing/deserializing actors.
+     * @param customManagers Additional engine managers to include in the editor's engine instance.
+     * @param sceneEditorMode The operational mode of the editor.
+     * @param parentWindow The window the editor is drawn in, which its file dialogs belong to.
+     * @param onCloseRequest Called when the user asks to close the editor (Escape). The editor stays until the caller
+     * removes it from composition; it then disposes its Kubriko instances, including [serializationManager] and
+     * [customManagers].
+     * @param modifier The modifier of the editor's layout.
+     */
+    @Composable
+    fun Content(
+        defaultSceneFilename: String?,
+        defaultSceneFolderPath: String,
+        serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
+        sceneEditorMode: SceneEditorMode,
+        parentWindow: Frame?,
+        onCloseRequest: () -> Unit,
+        modifier: Modifier,
+    ) = Unit
 }

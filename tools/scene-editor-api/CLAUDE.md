@@ -64,9 +64,10 @@ EditableMetadata(
 Pass multiple `EditableMetadata` instances to `EditableMetadata.newSerializationManagerInstance(...)` to build the `SerializationManager` required by the editor.
 
 ### `SceneEditorContract` (Desktop only)
-Interface implemented by both the real `SceneEditor` object and the noop. Two entry points:
+Interface implemented by both the real `SceneEditor` object and the noop. Three entry points:
 - `show(...)` — launches a standalone Compose Desktop `application { }` window (blocking call; use for dedicated editor entry points).
-- `operator fun invoke(...)` — embeds the editor as a Composable inside an existing window.
+- `operator fun invoke(...)` — a Composable that opens the editor in a window of its own, from an existing application's composition.
+- `Content(...)` — draws the editor into the caller's layout instead of a window (Kubriko Creator embeds it this way); its settings and file dialogs still open as windows, the dialogs belonging to `parentWindow`. The contract's default draws nothing, which the noop inherits.
 
 Key parameters shared by both:
 - `defaultSceneFolderPath` — default `"./src/commonMain/composeResources/files/scenes"`.

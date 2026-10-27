@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,6 +24,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoCreator.ui.AppContent
+import com.pandulapeter.kubrikoCreator.ui.LocalAppWindow
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
 import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar
 import com.pandulapeter.kubrikoCreator.window.ProvideInterfaceScale
@@ -72,19 +74,21 @@ fun main(args: Array<String>) {
                 titleBar = titleBar,
                 isFullscreen = rememberIsFullscreen(window = window, windowState = windowState),
             ) {
-                ProvideInterfaceScale {
-                    KubrikoTheme {
-                        titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
-                        AppContent(
-                            screen = screen,
-                            recentProjects = recentProjects,
-                            defaultParentDirectory = defaultParentDirectory,
-                            onNewProject = controller::showNewProject,
-                            onForgetRecentProject = controller::forgetRecentProject,
-                            onCreateProject = controller::createProject,
-                            onOpenProject = controller::openProject,
-                            onCloseProject = controller::closeProject,
-                        )
+                CompositionLocalProvider(LocalAppWindow provides window) {
+                    ProvideInterfaceScale {
+                        KubrikoTheme {
+                            titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
+                            AppContent(
+                                screen = screen,
+                                recentProjects = recentProjects,
+                                defaultParentDirectory = defaultParentDirectory,
+                                onNewProject = controller::showNewProject,
+                                onForgetRecentProject = controller::forgetRecentProject,
+                                onCreateProject = controller::createProject,
+                                onOpenProject = controller::openProject,
+                                onCloseProject = controller::closeProject,
+                            )
+                        }
                     }
                 }
             }

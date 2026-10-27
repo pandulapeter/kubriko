@@ -36,10 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
+import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_actor_type
+import kubriko.creator.generated.resources.scene_preparing
 import kubriko.creator.generated.resources.workspace_hint
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -59,6 +62,7 @@ internal fun WorkspaceScreen(
     val actorTypes = actorTypesController?.actorTypes?.collectAsState()?.value.orEmpty()
     val selectedActorTypeName = actorTypesController?.selectedName?.collectAsState()?.value
     val selectedActorType = actorTypes.firstOrNull { it.name == selectedActorTypeName }
+    val sceneEditing by controller.sceneEditing.state.collectAsState()
     var isConsoleExpanded by remember { mutableStateOf(true) }
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -78,12 +82,35 @@ internal fun WorkspaceScreen(
                 modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                 resources = resources,
                 actorTypes = actorTypesController?.let { ActorTypeTreeState(actorTypes.map { it.name }, selectedActorTypeName) },
-                onSceneSelected = controller::editScene,
-                onActorTypeSelected = { actorTypesController?.select(it) },
+                onSceneSelected = { scene ->
+                    actorTypesController?.select(null)
+                    controller.sceneEditing.open(scene)
+                },
+                onActorTypeSelected = {
+                    controller.sceneEditing.close()
+                    actorTypesController?.select(it)
+                },
                 onCreateActorType = { actorTypesController?.create(it) },
             )
             VerticalDivider()
-            if (actorTypesController != null && selectedActorType != null) {
+            val centerModifier = Modifier.weight(1f).fillMaxHeight()
+            when (val state = sceneEditing) {
+                is SceneEditingState.Open -> SceneEditorPane(
+                    modifier = centerModifier,
+                    state = state,
+                    onReload = controller.sceneEditing::reload,
+                    onOpenInWindow = {
+                        controller.sceneEditing.close()
+                        controller.editSceneInWindow(state.scene)
+                    },
+                    onClose = controller.sceneEditing::close,
+                )
+                is SceneEditingState.Preparing -> Box(centerModifier) {
+                    ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
+                }
+                SceneEditingState.Closed -> Unit
+            }
+            if (sceneEditing == SceneEditingState.Closed && actorTypesController != null && selectedActorType != null) {
                 ActorTypeEditor(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     definition = selectedActorType,
@@ -91,7 +118,7 @@ internal fun WorkspaceScreen(
                     onChange = actorTypesController::update,
                     onDelete = { actorTypesController.delete(selectedActorType.name) },
                 )
-            } else {
+            } else if (sceneEditing == SceneEditingState.Closed) {
                 WorkspaceHint(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                 )

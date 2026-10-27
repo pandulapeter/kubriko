@@ -115,4 +115,14 @@
     <string name="action_expand_console">Show the console</string>
     <string name="recent_projects">Recent projects</string>
     <string name="action_forget_recent_project">Remove from the list</string>
+    <string name="status_scene_opened">The Scene is open.</string>
+    <string name="status_scene_in_separate_window">This project uses another Kubriko version than Kubriko Creator, so its Scene opens in a window of its own.</string>
+    <string name="error_entry_point_missing">The project has no CreatorEntryPoint, so its Scenes can't be edited.</string>
+    <string name="error_entry_point_multiple">The project registers more than one CreatorEntryPoint.</string>
+    <string name="error_entry_point_not_loaded">The project's CreatorEntryPoint couldn't be loaded.</string>
+    <string name="scene_preparing">Preparing %1$s…</string>
+    <string name="scene_outdated">Actor types changed since this Scene was opened.</string>
+    <string name="action_reload_scene">Reload</string>
+    <string name="action_open_scene_in_window">Open in its own window</string>
+    <string name="action_close_scene">Close the Scene</string>
 </resources>

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.sceneEditor.implementation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -17,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.AwtWindow
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -64,6 +66,41 @@ internal fun InternalSceneEditor(
     sceneEditorMode: SceneEditorMode,
     title: String,
     onCloseRequest: () -> Unit,
+) {
+    val currentOnCloseRequest by rememberUpdatedState(onCloseRequest)
+    Window(
+        onCloseRequest = { currentOnCloseRequest() },
+        title = title,
+    ) {
+        window.minimumSize = Dimension(600, 400)
+        InternalSceneEditorContent(
+            defaultSceneFilename = defaultSceneFilename,
+            defaultSceneFolderPath = defaultSceneFolderPath,
+            serializationManager = serializationManager,
+            customManagers = customManagers,
+            sceneEditorMode = sceneEditorMode,
+            parentWindow = window,
+            onCloseRequest = onCloseRequest,
+        )
+    }
+}
+
+/**
+ * The editor itself, drawn into the caller's layout: [InternalSceneEditor] puts it into a window of its own, and
+ * `SceneEditor.Content` into another app's.
+ *
+ * @param parentWindow The window the file dialogs belong to.
+ */
+@Composable
+internal fun InternalSceneEditorContent(
+    defaultSceneFilename: String?,
+    defaultSceneFolderPath: String,
+    serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+    customManagers: List<Manager>,
+    sceneEditorMode: SceneEditorMode,
+    parentWindow: Frame?,
+    onCloseRequest: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val editorKubriko = remember {
         Kubriko.newInstance(
@@ -116,7 +153,7 @@ internal fun InternalSceneEditor(
             overlayManager,
         )
     }
-    // Registered before the windows so that their viewports are torn down before the instances they render.
+    // Registered before the content so that its viewports are torn down before the instances they render.
     DisposableEffect(Unit) {
         onDispose {
             editorScope.cancel()
@@ -125,11 +162,9 @@ internal fun InternalSceneEditor(
         }
     }
 
-    Window(
-        onCloseRequest = { currentOnCloseRequest() },
-        title = title,
+    Box(
+        modifier = modifier,
     ) {
-        window.minimumSize = Dimension(600, 400)
         CompositionLocalProvider(
             LocalTextInputFocusReporter provides editorController::onTextInputFocusChanged,
         ) {
@@ -141,34 +176,34 @@ internal fun InternalSceneEditor(
                 overlayKubriko = overlayKubriko,
             )
         }
-        if (isLoadFileChooserOpen.value) {
-            FileDialog(
-                parent = window,
-                currentFileName = editorController.currentFileName.value,
-                currentFolderPath = editorController.currentFolderPath.value,
-                isForLoading = true,
-                onCloseRequest = { directory, fileName ->
-                    isLoadFileChooserOpen.value = false
-                    if (fileName != null) {
-                        editorController.loadMap("$directory/$fileName")
-                    }
+    }
+    if (isLoadFileChooserOpen.value) {
+        FileDialog(
+            parent = parentWindow,
+            currentFileName = editorController.currentFileName.value,
+            currentFolderPath = editorController.currentFolderPath.value,
+            isForLoading = true,
+            onCloseRequest = { directory, fileName ->
+                isLoadFileChooserOpen.value = false
+                if (fileName != null) {
+                    editorController.loadMap("$directory/$fileName")
                 }
-            )
-        }
-        if (isSaveFileChooserOpen.value) {
-            FileDialog(
-                parent = window,
-                currentFileName = editorController.currentFileName.value,
-                currentFolderPath = editorController.currentFolderPath.value,
-                isForLoading = false,
-                onCloseRequest = { directory, fileName ->
-                    isSaveFileChooserOpen.value = false
-                    if (fileName != null) {
-                        editorController.saveScene("$directory/$fileName")
-                    }
+            }
+        )
+    }
+    if (isSaveFileChooserOpen.value) {
+        FileDialog(
+            parent = parentWindow,
+            currentFileName = editorController.currentFileName.value,
+            currentFolderPath = editorController.currentFolderPath.value,
+            isForLoading = false,
+            onCloseRequest = { directory, fileName ->
+                isSaveFileChooserOpen.value = false
+                if (fileName != null) {
+                    editorController.saveScene("$directory/$fileName")
                 }
-            )
-        }
+            }
+        )
     }
     if (isSettingsOpen.value) {
         Window(

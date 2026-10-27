@@ -266,7 +266,7 @@ Not for production builds. Swapped in/out via `gradle.properties` flags (`isDebu
 
 - **`debug-menu`** (`tool-debug-menu`) — in-game overlay: log viewer, actor inspector, perf metrics. Wrap `KubrikoViewport` with `DebugMenu(kubriko, isEnabled) { ... }`. Toggle with `DebugMenu.toggleVisibility()`.
 - **`debug-menu-api`** / **`debug-menu-noop`** — public API surface and blank noop; consumers depend on these, not on `debug-menu` directly.
-- **`scene-editor`** (`tool-scene-editor`, Desktop only) — visual scene editor: property inspector, transform tools, serialization to/from JSON. Launch as standalone window with `SceneEditor.show(...)` or embed as Composable. Actors must implement `Editable` and use `@Exposed` annotation on setters to appear in the editor.
+- **`scene-editor`** (`tool-scene-editor`, Desktop only) — visual scene editor: property inspector, transform tools, serialization to/from JSON. Launch as standalone window with `SceneEditor.show(...)`, open its window from a Composable with `SceneEditor(...)`, or draw it into another app's layout with `SceneEditor.Content(...)`. Actors must implement `Editable` and use `@Exposed` annotation on setters to appear in the editor.
 - **`scene-editor-api`** / **`scene-editor-noop`** — same -api/-noop split as debug-menu.
 - **`logger`** (`tool-logger`) — `Logger.log(message, details, source, importance)`. Observable via `Logger.logs: StateFlow`. Already part of the engine's API; no separate dependency needed for basic logging.
 - **`ui-components`** — Compose components for the Kubriko visual style, shared by tools and the Showcase app.

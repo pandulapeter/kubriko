@@ -98,8 +98,12 @@ cannot host two Compose runtimes in one UI. So the editor never loads the user's
 - **Session protocol.** A small JSON-over-localhost protocol: load and save Scene, select Actor, report the `@Exposed` properties of code Actors (so the
   editor's inspector knows them without loading classes), live Actor tree, logs, frame metrics, pause and step.
 
-The session window is a separate OS window docked next to the editor; cross-process embedding is not portable across desktop OSes. A later optimization
-can host the scene in-process when the project's Kubriko version matches the editor's exactly.
+Scenes are edited inside Creator's own window whenever the project uses the Kubriko version Creator was built with, which is always the case for
+projects Creator created (done 2026-10-27): the init script's `kubrikoCreatorClasspath` task compiles the project and writes its runtime
+classpath, Creator loads it into a class loader whose parent is its own (so Kubriko, Compose, and Kotlin are shared, and only the project's
+classes are new; the project's jars are copied first so that the next build can replace them), finds the project's `CreatorEntryPoint`, and
+draws the Scene editor into its center pane through the public `SceneEditor.Content`. When Actor types change, the open Scene offers to reload.
+A project on another Kubriko version, which can't share Creator's classes, still edits its Scenes in a session window of its own.
 
 This replaces the earlier idea of deprecating `SceneEditor.show(...)`: the published scene editor stays, as the engine behind the editor's scene view,
 and keeps working on its own for library users.
