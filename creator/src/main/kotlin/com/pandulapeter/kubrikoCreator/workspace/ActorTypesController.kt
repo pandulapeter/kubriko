@@ -23,6 +23,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The block-built Actor types of a project that opted in to them, and the one being edited.
@@ -41,7 +42,15 @@ internal class ActorTypesController(
     val actorTypes = _actorTypes.asStateFlow()
     private val _selectedName = MutableStateFlow<String?>(null)
     val selectedName = _selectedName.asStateFlow()
+    private val _changedByHand = MutableStateFlow(emptySet<String>())
+
+    /**
+     * The Actor types whose generated code was changed by hand (in IntelliJ, for example), and which Kubriko Creator
+     * therefore stopped updating until those changes are discarded ([discardChangesMadeByHand]).
+     */
+    val changedByHand = _changedByHand.asStateFlow()
     private val writes = Mutex()
+    private val pendingWriteCount = AtomicInteger(0)
 
     init {
         scope.launch {
@@ -81,19 +90,49 @@ internal class ActorTypesController(
         write { repository.delete(name) }
     }
 
-    private fun write(change: () -> Unit) {
+    /**
+     * Throws away the changes made by hand to [name]'s generated code, so that Kubriko Creator updates it again.
+     */
+    fun discardChangesMadeByHand(name: String) = write { repository.regenerateAll(overwriting = setOf(name)) }
+
+    /**
+     * Reads the definitions again after they changed outside Kubriko Creator (in IntelliJ, or through git), unless one
+     * of Creator's own changes is still being written, which the next change on disk is then checked against.
+     */
+    fun reloadFromDisk() {
+        if (pendingWriteCount.get() > 0) return
         scope.launch {
-            val isSuccessful = writes.withLock {
-                withContext(ioDispatcher) {
-                    try {
-                        change()
-                        true
-                    } catch (_: IOException) {
-                        false
+            val stored = withContext(ioDispatcher) { repository.load() }
+            if (pendingWriteCount.get() == 0 && stored != _actorTypes.value) {
+                _actorTypes.value = stored
+                if (_selectedName.value !in stored.map { it.name }) _selectedName.value = null
+                write { repository.regenerateAll() }
+            }
+        }
+    }
+
+    private fun write(change: () -> Set<String>) {
+        pendingWriteCount.incrementAndGet()
+        scope.launch {
+            val changedByHand = try {
+                writes.withLock {
+                    withContext(ioDispatcher) {
+                        try {
+                            change()
+                        } catch (_: IOException) {
+                            null
+                        }
                     }
                 }
+            } finally {
+                pendingWriteCount.decrementAndGet()
             }
-            if (isSuccessful) onSaved() else onSaveFailed()
+            if (changedByHand == null) {
+                onSaveFailed()
+            } else {
+                _changedByHand.value = changedByHand
+                onSaved()
+            }
         }
     }
 }

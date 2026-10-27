@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
+import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.session.SessionServer
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +38,9 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
                 scanResources = { ResourceScanner.scan(it, hiddenDirectory = actorTypeStore?.generatedPath) },
                 actorTypeRepository = actorTypeStore,
                 creatorKubrikoVersion = CreatorConfiguration.load().kubrikoVersion,
+                startWatching = { onChange ->
+                    ProjectWatcher(directory, actorTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
+                },
             )
         } catch (exception: Exception) {
             connection.close()

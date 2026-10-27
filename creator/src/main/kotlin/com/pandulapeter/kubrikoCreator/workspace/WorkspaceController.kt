@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -57,6 +58,7 @@ internal class WorkspaceController(
     private val actorTypeRepository: ActorTypeRepository? = null,
     creatorKubrikoVersion: String = "",
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
+    startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
 ) : AutoCloseable {
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
@@ -95,11 +97,22 @@ internal class WorkspaceController(
         )
     }
 
+    private val watching = startWatching(::onProjectChanged)
+
     init {
         scope.launch {
             sessionChannel.messages.collect(::onSessionMessage)
         }
         refreshResources()
+    }
+
+    /**
+     * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them.
+     */
+    fun onProjectChanged(changes: Set<ProjectChange>) {
+        if (ProjectChange.ACTOR_TYPE_DEFINITIONS in changes) actorTypes?.reloadFromDisk()
+        if (ProjectChange.SOURCES in changes) sceneEditing.markOutdated()
+        if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) refreshResources()
     }
 
     fun refreshResources() {
@@ -215,6 +228,7 @@ internal class WorkspaceController(
     private fun appendToConsole(entry: ConsoleEntry) = _console.update { (it + entry).takeLast(CONSOLE_SIZE) }
 
     override fun close() {
+        watching.close()
         sceneEditing.close()
         sessionJob?.cancel()
         sessionChannel.close()

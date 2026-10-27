@@ -22,20 +22,25 @@ internal class FakeActorTypeRepository(
 
     override fun load() = stored.values.sortedBy { it.name }
 
-    override fun save(definition: ActorTypeDefinition) {
+    var changedByHand = emptySet<String>()
+
+    override fun save(definition: ActorTypeDefinition): Set<String> {
         if (isFailing) throw IOException("Disk full.")
         writes += "save ${definition.name}"
         stored[definition.name] = definition
+        return changedByHand
     }
 
-    override fun regenerateAll() {
+    override fun regenerateAll(overwriting: Set<String>): Set<String> {
         if (isFailing) throw IOException("Disk full.")
-        writes += "regenerate"
+        writes += if (overwriting.isEmpty()) "regenerate" else "regenerate overwriting ${overwriting.sorted().joinToString()}"
+        return changedByHand - overwriting
     }
 
-    override fun delete(name: String) {
+    override fun delete(name: String): Set<String> {
         if (isFailing) throw IOException("Disk full.")
         writes += "delete $name"
         stored.remove(name)
+        return changedByHand
     }
 }

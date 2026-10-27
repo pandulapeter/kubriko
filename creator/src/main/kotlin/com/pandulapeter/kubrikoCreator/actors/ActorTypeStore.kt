@@ -38,29 +38,36 @@ internal class ActorTypeStore private constructor(
      * Writes [definition] and regenerates the code of every Actor type, since Actor types refer to each other (in
      * collision Events).
      */
-    override fun save(definition: ActorTypeDefinition) {
+    override fun save(definition: ActorTypeDefinition): Set<String> {
         definitionsDirectory.mkdirs()
         definitionFile(definition.name).writeText(json.encodeToString(ActorTypeDefinition.serializer(), definition) + "\n")
-        regenerateAll()
+        return regenerateAll()
     }
 
-    override fun delete(name: String) {
+    override fun delete(name: String): Set<String> {
         definitionFile(name).delete()
         generatedFile(name).delete()
-        regenerateAll()
+        return regenerateAll()
     }
 
-    /**
-     * Rewrites every generated file from the definitions, for example after a template was copied.
-     */
-    override fun regenerateAll() {
+    override fun regenerateAll(overwriting: Set<String>): Set<String> {
         val definitions = load()
         val names = definitions.map { it.name }
         generatedDirectory.mkdirs()
-        definitions.forEach { definition ->
-            generatedFile(definition.name).writeText(ActorTypeCodeGenerator.generateActorType(definition, settings.packageName, names))
+        val changedByHand = definitions.mapNotNull { definition ->
+            val file = generatedFile(definition.name)
+            if (definition.name !in overwriting && file.isFile && !GeneratedFile.isUnchanged(file.readText())) {
+                definition.name
+            } else {
+                file.writeText(ActorTypeCodeGenerator.generateActorType(definition, settings.packageName, names))
+                null
+            }
+        }.toSet()
+        val registry = File(generatedDirectory, "${ActorTypeCodeGenerator.REGISTRY_NAME}.kt")
+        if (!registry.isFile || GeneratedFile.isUnchanged(registry.readText())) {
+            registry.writeText(ActorTypeCodeGenerator.generateRegistry(names, settings.packageName))
         }
-        File(generatedDirectory, "${ActorTypeCodeGenerator.REGISTRY_NAME}.kt").writeText(ActorTypeCodeGenerator.generateRegistry(names, settings.packageName))
+        return changedByHand
     }
 
     private fun definitionFile(name: String) = File(definitionsDirectory, "$name.json")

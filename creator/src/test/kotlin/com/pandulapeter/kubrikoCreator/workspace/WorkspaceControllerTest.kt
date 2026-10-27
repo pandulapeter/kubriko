@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
@@ -54,6 +55,7 @@ class WorkspaceControllerTest {
         desktopModulePath: String = ":",
         scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = { emptyMap() },
         actorTypeRepository: FakeActorTypeRepository? = null,
+        startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -64,6 +66,7 @@ class WorkspaceControllerTest {
             ioDispatcher = dispatcher,
             scanResources = scanResources,
             actorTypeRepository = actorTypeRepository,
+            startWatching = startWatching,
         )
     }
 
@@ -276,5 +279,32 @@ class WorkspaceControllerTest {
         controller.clearConsole()
         controller.actorTypes!!.create("Player")
         assertEquals(listOf(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)), controller.console.value)
+    }
+
+    @Test
+    fun theProjectIsWatchedUntilTheWorkspaceCloses() = runTest {
+        var isWatching = false
+        val controller = createController(startWatching = { isWatching = true; AutoCloseable { isWatching = false } })
+        assertTrue(isWatching)
+        controller.close()
+        assertFalse(isWatching)
+    }
+
+    @Test
+    fun changedSourcesRescanTheResources() = runTest {
+        var scanCount = 0
+        val controller = createController(scanResources = { scanCount++; emptyMap() })
+        controller.onProjectChanged(setOf(ProjectChange.SOURCES))
+        controller.onProjectChanged(setOf(ProjectChange.SCENES))
+        assertEquals(3, scanCount)
+    }
+
+    @Test
+    fun changedDefinitionsAreReloaded() = runTest {
+        val repository = FakeActorTypeRepository()
+        val controller = createController(actorTypeRepository = repository)
+        repository.stored["Ball"] = com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition(name = "Ball")
+        controller.onProjectChanged(setOf(ProjectChange.ACTOR_TYPE_DEFINITIONS))
+        assertEquals(listOf("Ball"), controller.actorTypes!!.actorTypes.value.map { it.name })
     }
 }

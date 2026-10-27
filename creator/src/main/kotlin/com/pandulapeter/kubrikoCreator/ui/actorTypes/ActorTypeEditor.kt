@@ -55,8 +55,10 @@ import org.jetbrains.compose.resources.stringResource
 internal fun ActorTypeEditor(
     definition: ActorTypeDefinition,
     actorTypeNames: List<String>,
+    isChangedByHand: Boolean,
     onChange: (ActorTypeDefinition) -> Unit,
     onDelete: () -> Unit,
+    onDiscardChangesMadeByHand: () -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 16.dp),
@@ -81,6 +83,12 @@ internal fun ActorTypeEditor(
             icon = Res.drawable.ic_delete,
             label = Res.string.action_delete_actor_type,
             onClick = onDelete,
+        )
+    }
+    if (isChangedByHand) {
+        ChangedByHandNotice(
+            actorTypeName = definition.name,
+            onDiscard = onDiscardChangesMadeByHand,
         )
     }
     Text(

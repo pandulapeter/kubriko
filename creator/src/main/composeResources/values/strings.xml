@@ -125,4 +125,6 @@
     <string name="action_reload_scene">Reload</string>
     <string name="action_open_scene_in_window">Open in its own window</string>
     <string name="action_close_scene">Close the Scene</string>
+    <string name="actor_type_changed_by_hand">%1$s.kt was changed outside Kubriko Creator, so Creator stopped updating it. Changes made here won't reach the game until those edits are discarded.</string>
+    <string name="action_discard_changes_made_by_hand">Discard the edits</string>
 </resources>

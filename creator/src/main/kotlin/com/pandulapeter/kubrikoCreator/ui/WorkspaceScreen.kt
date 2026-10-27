@@ -62,6 +62,7 @@ internal fun WorkspaceScreen(
     val actorTypes = actorTypesController?.actorTypes?.collectAsState()?.value.orEmpty()
     val selectedActorTypeName = actorTypesController?.selectedName?.collectAsState()?.value
     val selectedActorType = actorTypes.firstOrNull { it.name == selectedActorTypeName }
+    val actorTypesChangedByHand = actorTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     var isConsoleExpanded by remember { mutableStateOf(true) }
     Column(
@@ -115,8 +116,10 @@ internal fun WorkspaceScreen(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     definition = selectedActorType,
                     actorTypeNames = actorTypes.map { it.name },
+                    isChangedByHand = selectedActorType.name in actorTypesChangedByHand,
                     onChange = actorTypesController::update,
                     onDelete = { actorTypesController.delete(selectedActorType.name) },
+                    onDiscardChangesMadeByHand = { actorTypesController.discardChangesMadeByHand(selectedActorType.name) },
                 )
             } else if (sceneEditing == SceneEditingState.Closed) {
                 WorkspaceHint(

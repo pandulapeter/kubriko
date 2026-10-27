@@ -124,4 +124,49 @@ class ActorTypesControllerTest {
         assertEquals(2, failedCount)
         assertEquals(0, savedCount)
     }
+
+    @Test
+    fun actorTypesWhoseCodeWasChangedByHandAreReportedAndCanBeDiscarded() = runTest {
+        val repository = FakeActorTypeRepository(listOf(ball)).apply { changedByHand = setOf("Ball") }
+        val controller = createController(repository)
+        assertEquals(setOf("Ball"), controller.changedByHand.value)
+        controller.discardChangesMadeByHand("Ball")
+        assertEquals("regenerate overwriting Ball", repository.writes.last())
+        assertEquals(emptySet(), controller.changedByHand.value)
+    }
+
+    @Test
+    fun definitionsChangedOnDiskAreReloadedAndTheirCodeRegenerated() = runTest {
+        val repository = FakeActorTypeRepository(listOf(ball, wall))
+        val controller = createController(repository)
+        controller.select("Wall")
+        repository.stored.remove("Wall")
+        repository.stored["Ball"] = ball.copy(width = 7f)
+        controller.reloadFromDisk()
+        assertEquals(listOf(ball.copy(width = 7f)), controller.actorTypes.value)
+        assertNull(controller.selectedName.value)
+        assertEquals(listOf("regenerate", "regenerate"), repository.writes)
+    }
+
+    @Test
+    fun reloadingWhatCreatorJustWroteChangesNothing() = runTest {
+        val repository = FakeActorTypeRepository(listOf(ball))
+        val controller = createController(repository)
+        controller.update(ball.copy(width = 3f))
+        controller.reloadFromDisk()
+        assertEquals(listOf("regenerate", "save Ball"), repository.writes)
+        assertEquals(listOf(ball.copy(width = 3f)), controller.actorTypes.value)
+    }
+
+    @Test
+    fun reloadingWaitsForCreatorsOwnPendingWrites() = runTest {
+        val repository = FakeActorTypeRepository(listOf(ball))
+        val controller = createController(repository, ioDispatcher = StandardTestDispatcher(testScheduler))
+        runCurrent()
+        controller.update(ball.copy(width = 3f))
+        repository.stored["Ball"] = ball.copy(width = 99f)
+        controller.reloadFromDisk()
+        runCurrent()
+        assertEquals(listOf(ball.copy(width = 3f)), controller.actorTypes.value)
+    }
 }

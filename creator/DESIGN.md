@@ -557,3 +557,21 @@ explains which files clash.
 **Testing:** every operation runs against real temporary repositories in unit tests (JGit needs no installed git), including the "both files
 of an Actor type are one entry" grouping and the deterministic formats that keep diffs small.
 
+## 22. Working alongside IntelliJ
+
+A project can be open in Kubriko Creator and IntelliJ (or changed by git) at the same time. Each kind of file has one owner, and Creator
+notices when something it owns is changed by someone else (done 2026-10-27):
+
+| Files | Owner | When changed elsewhere |
+|---|---|---|
+| `.kubriko/actors/*.json` | Creator | Reloaded within a second (`ProjectWatcher` polls a fingerprint of paths, sizes, and modification times) and their code regenerated, unless one of Creator's own saves is still being written, in which case the next change is checked instead. |
+| Generated code (`generated/*.kt`) | Creator | Every generated file carries a checksum of its contents in its header. One whose contents no longer match was edited by hand: Creator stops overwriting it, says so in the Actor type's editor, and offers to discard the edits. Files from before checksums are updated as before. |
+| Scenes (`*.json` under `scenes`) | Shared | The sidebar refreshes; the Scene editor saves only when told to. |
+| Hand-written Kotlin and resources | The user | The sidebar refreshes, and an open Scene offers to reload, since the project's classes changed. |
+| Template files (`Game.kt`, the build files) | The user, after creation | Not tracked yet; see below. |
+
+**Next: template drift.** Template files are written once and then belong to the user, so a newer Creator can't simply rewrite them, yet it
+sometimes needs them to change (collisions needed `CollisionManager` in `Game.kt`). The plan: `.kubriko/project.json` records the template
+version a project was created with; when Creator needs something newer, it shows the exact change as a diff, offers to commit first
+(section 21), and applies it only when the file still looks like the template produced it, explaining what to add by hand otherwise.
+
