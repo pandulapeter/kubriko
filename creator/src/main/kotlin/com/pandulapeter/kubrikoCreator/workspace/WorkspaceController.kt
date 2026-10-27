@@ -148,6 +148,8 @@ internal class WorkspaceController(
      */
     val commands = CommandExecutor(
         context = CommandContext(
+            project = project,
+            console = console,
             actorTypes = actorTypes,
             git = git,
             scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() },

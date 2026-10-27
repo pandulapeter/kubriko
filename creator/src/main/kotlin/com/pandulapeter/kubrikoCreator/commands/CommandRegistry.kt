@@ -15,8 +15,11 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.GetBlockCatalog
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.ListActorTypes
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.ReadActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
@@ -26,10 +29,15 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorTyp
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
+import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
+import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
+import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
+import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActor
 
@@ -62,6 +70,14 @@ internal class CommandRegistry(
     companion object {
         val editor = CommandRegistry(
             commands = listOf(
+                GetProjectOverview,
+                GetBlockCatalog,
+                ListActorTypes,
+                ReadActorType,
+                ListScenes,
+                ReadScene,
+                ReadConsole,
+                GetVersionControlStatus,
                 CreateActorType,
                 RenameActorType,
                 DeleteActorType,

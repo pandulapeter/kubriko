@@ -15,12 +15,8 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.JsonSchema
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_block_missing
@@ -83,7 +79,3 @@ private val BlockDefinition.areNumbersFinite
         is BlockDefinition.JumpTo -> x.isFinite() && y.isFinite()
         BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> true
     }
-
-private val EventType.serialName get() = EventType.serializer().descriptor.getElementName(ordinal)
-
-private val BlockDefinition.serialName get() = Json.encodeToJsonElement(BlockDefinition.serializer(), this).jsonObject.getValue(JsonSchema.TYPE_PROPERTY).jsonPrimitive.content

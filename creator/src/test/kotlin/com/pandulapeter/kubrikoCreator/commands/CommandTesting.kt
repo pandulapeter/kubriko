@@ -14,11 +14,14 @@ package com.pandulapeter.kubrikoCreator.commands
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.GitController
+import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
+import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.workspace.FakeActorTypeRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import java.io.File
@@ -52,8 +55,11 @@ internal fun TestScope.commandContext(
     actorTypes: ActorTypesController? = actorTypesController(*definitions),
     git: GitController = gitController(repository = null),
     rootDirectory: File = createTempDirectory().toFile(),
+    console: List<ConsoleEntry> = emptyList(),
     onScenesChanged: (Collection<String>) -> Unit = {},
 ) = CommandContext(
+    project = CreatorProject(rootDirectory = rootDirectory, name = "game", desktopModulePath = ":"),
+    console = MutableStateFlow(console),
     actorTypes = actorTypes,
     git = git,
     scenes = SceneStore(rootDirectory) { emptyList() },
