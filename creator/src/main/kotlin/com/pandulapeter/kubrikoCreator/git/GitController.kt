@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.git
 
+import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -50,22 +51,37 @@ internal class GitController(
         refresh()
     }
 
-    fun refresh() = run { repository -> repository?.let(::readState) ?: GitState.NoRepository }
-
-    fun commit(message: String) {
-        if (message.isBlank()) return
-        run(onSuccess = { report(ConsoleEntry.Status(Res.string.status_git_committed)) }) { repository ->
-            repository?.commitAll(message.trim())
-            repository?.let(::readState) ?: GitState.NoRepository
+    fun refresh() {
+        scope.launch {
+            if (!perform { repository -> repository?.let(::readState) ?: GitState.NoRepository }) report(ConsoleEntry.Status(Res.string.status_git_failed, isError = true))
         }
     }
 
-    fun discard(entry: ChangeEntry) = run { repository ->
-        repository?.discard(entry.paths)
+    /**
+     * @return Whether the changes were committed. Failures are left for the caller to report.
+     */
+    @EditorMutation
+    suspend fun commit(message: String) = perform(onSuccess = { report(ConsoleEntry.Status(Res.string.status_git_committed)) }) { repository ->
+        repository?.commitAll(message.trim())
         repository?.let(::readState) ?: GitState.NoRepository
     }
 
-    fun startVersionControl() = run(onSuccess = { report(ConsoleEntry.Status(Res.string.status_git_repository_created)) }) {
+    /**
+     * Restores [paths] to how the last commit has them.
+     *
+     * @return Whether the changes were discarded.
+     */
+    @EditorMutation
+    suspend fun discard(paths: Collection<String>) = perform { repository ->
+        repository?.discard(paths)
+        repository?.let(::readState) ?: GitState.NoRepository
+    }
+
+    /**
+     * @return Whether the repository was created.
+     */
+    @EditorMutation
+    suspend fun startVersionControl() = perform(onSuccess = { report(ConsoleEntry.Status(Res.string.status_git_repository_created)) }) {
         readState(createRepository(firstCommitMessage))
     }
 
@@ -78,26 +94,22 @@ internal class GitController(
         )
     }
 
-    private fun run(onSuccess: () -> Unit = {}, operation: (GitRepository?) -> GitState) {
-        scope.launch {
-            val newState = operations.withLock {
-                withContext(ioDispatcher) {
-                    try {
-                        operation(openRepository())
-                    } catch (_: GitAPIException) {
-                        null
-                    } catch (_: IOException) {
-                        null
-                    }
+    private suspend fun perform(onSuccess: () -> Unit = {}, operation: (GitRepository?) -> GitState): Boolean {
+        val newState = operations.withLock {
+            withContext(ioDispatcher) {
+                try {
+                    operation(openRepository())
+                } catch (_: GitAPIException) {
+                    null
+                } catch (_: IOException) {
+                    null
                 }
             }
-            if (newState == null) {
-                report(ConsoleEntry.Status(Res.string.status_git_failed, isError = true))
-            } else {
-                _state.value = newState
-                onSuccess()
-            }
         }
+        if (newState == null) return false
+        _state.value = newState
+        onSuccess()
+        return true
     }
 
     private companion object {

@@ -11,14 +11,22 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
+import org.jetbrains.compose.resources.StringResource
 
 /**
- * The result of a [WriteCommand] that was applied.
+ * The result of applying a [WriteCommand].
  *
  * @param inverse The command that reverts the change, or null if it can't be undone (a git commit, for example).
  * @param result What the change produced, for the AI (the index of a placed Actor, for example).
+ * @param failure Why the change couldn't be made after all, though it was valid (the disk or git failed, for example).
  */
 internal data class Applied(
     val inverse: Invocation<*>?,
     val result: JsonElement = JsonNull,
-)
+    val failure: Rejection? = null,
+) {
+    companion object {
+
+        fun failed(reason: StringResource) = Applied(inverse = null, failure = Rejection(reason))
+    }
+}

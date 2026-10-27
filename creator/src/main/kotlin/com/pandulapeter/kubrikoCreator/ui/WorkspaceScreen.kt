@@ -37,6 +37,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.git.Commit
+import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
+import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
@@ -145,9 +150,9 @@ internal fun WorkspaceScreen(
                     modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                     state = gitState,
                     onRefresh = controller.git::refresh,
-                    onStartVersionControl = controller.git::startVersionControl,
-                    onCommit = controller.git::commit,
-                    onDiscard = controller.git::discard,
+                    onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },
+                    onCommit = { message -> controller.commands.dispatch(Invocation(Commit, Commit.Input(message))) },
+                    onDiscard = { change -> controller.commands.dispatch(Invocation(DiscardChanges, DiscardChanges.Input(change.paths))) },
                 )
             }
         }

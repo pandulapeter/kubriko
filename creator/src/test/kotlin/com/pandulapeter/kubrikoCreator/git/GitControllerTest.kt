@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.git
 
+import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,10 +22,11 @@ import kubriko.creator.generated.resources.status_git_failed
 import kubriko.creator.generated.resources.status_git_repository_created
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, EditorMutation::class)
 class GitControllerTest {
     private val reports = mutableListOf<ConsoleEntry>()
     private val generated = "src/game/generated"
@@ -76,19 +78,12 @@ class GitControllerTest {
     }
 
     @Test
-    fun aBlankMessageCommitsNothing() = runTest {
-        val repository = FakeGitRepository()
-        createController(repository).commit("   ")
-        assertTrue(repository.commits.isEmpty())
-    }
-
-    @Test
     fun discardingAnActorTypeDiscardsAllOfItsFiles() = runTest {
         val repository = FakeGitRepository(
             RepositoryStatus("main", listOf(FileChange(".kubriko/actors/Ball.json", ChangeKind.MODIFIED), FileChange("$generated/Ball.kt", ChangeKind.MODIFIED))),
         )
         val controller = createController(repository)
-        controller.discard(assertIs<GitState.Ready>(controller.state.value).changes.single())
+        assertTrue(controller.discard(assertIs<GitState.Ready>(controller.state.value).changes.single().paths))
         assertEquals(listOf<Collection<String>>(listOf(".kubriko/actors/Ball.json", "$generated/Ball.kt")), repository.discarded)
         assertTrue(assertIs<GitState.Ready>(controller.state.value).changes.isEmpty())
     }
@@ -109,8 +104,18 @@ class GitControllerTest {
         val controller = createController(repository)
         val before = controller.state.value
         repository.isFailing = true
-        controller.commit("Broken")
+        assertFalse(controller.commit("Broken"))
         assertEquals(before, controller.state.value)
+        assertTrue(reports.isEmpty())
+    }
+
+    @Test
+    fun aFailedRefreshIsReported() = runTest {
+        val repository = FakeGitRepository()
+        val controller = createController(repository)
+        repository.isFailing = true
+        repository.status = repository.status.copy(branch = "other")
+        controller.refresh()
         assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_git_failed, isError = true)), reports)
     }
 }

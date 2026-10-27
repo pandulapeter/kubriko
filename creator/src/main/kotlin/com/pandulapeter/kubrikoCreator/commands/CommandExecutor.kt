@@ -53,6 +53,7 @@ internal class CommandExecutor(
     suspend fun execute(invocation: Invocation<*>): CommandOutcome = changes.withLock {
         invocation.validate(context)?.let { return@withLock CommandOutcome.Rejected(it) }
         val applied = invocation.apply(context)
+        applied.failure?.let { return@withLock CommandOutcome.Rejected(it) }
         applied.inverse?.let { inverse -> record(HistoryEntry(revert = inverse, reapply = invocation)) }
         CommandOutcome.Success(applied.result)
     }
@@ -91,6 +92,10 @@ internal class CommandExecutor(
             return@withLock CommandOutcome.Rejected(rejection)
         }
         val applied = invocation.apply(context)
+        applied.failure?.let {
+            _history.value = remaining
+            return@withLock CommandOutcome.Rejected(it)
+        }
         val stepped = applied.inverse?.let { inverse ->
             if (isUndo) HistoryEntry(revert = invocation, reapply = inverse) else HistoryEntry(revert = inverse, reapply = invocation)
         }

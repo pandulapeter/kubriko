@@ -110,17 +110,6 @@ internal class WorkspaceController(
     }
 
     /**
-     * Every change to the project goes through here, so that it can be undone, and the AI can make it too.
-     */
-    val commands = CommandExecutor(
-        context = CommandContext(
-            actorTypes = actorTypes,
-        ),
-        scope = scope,
-        onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
-    )
-
-    /**
      * Creates an empty Actor type and selects it.
      *
      * @return Why [name] can't be used, or null if the Actor type is being created.
@@ -140,6 +129,18 @@ internal class WorkspaceController(
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
     )
+    /**
+     * Every change to the project goes through here, so that it can be undone, and the AI can make it too.
+     */
+    val commands = CommandExecutor(
+        context = CommandContext(
+            actorTypes = actorTypes,
+            git = git,
+        ),
+        scope = scope,
+        onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
+    )
+
     private val watching = startWatching(::onProjectChanged)
 
     init {

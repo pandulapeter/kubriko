@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
 
 /**
@@ -18,4 +19,5 @@ import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
  */
 internal class CommandContext(
     val actorTypes: ActorTypesController?,
+    val git: GitController,
 )

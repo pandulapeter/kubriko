@@ -12,6 +12,8 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
+import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
 import com.pandulapeter.kubrikoCreator.workspace.FakeActorTypeRepository
 import kotlinx.coroutines.CoroutineScope
@@ -33,8 +35,22 @@ internal fun TestScope.actorTypesController(vararg definitions: ActorTypeDefinit
     onSaveFailed = {},
 )
 
-internal fun TestScope.commandContext(vararg definitions: ActorTypeDefinition) = CommandContext(
-    actorTypes = actorTypesController(*definitions),
+internal fun TestScope.gitController(repository: FakeGitRepository?) = GitController(
+    openRepository = { repository },
+    createRepository = { message -> FakeGitRepository().apply { commitAll(message) } },
+    generatedPath = null,
+    scope = testScope(),
+    ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+    report = {},
+)
+
+internal fun TestScope.commandContext(
+    vararg definitions: ActorTypeDefinition,
+    actorTypes: ActorTypesController? = actorTypesController(*definitions),
+    git: GitController = gitController(repository = null),
+) = CommandContext(
+    actorTypes = actorTypes,
+    git = git,
 )
 
 /**

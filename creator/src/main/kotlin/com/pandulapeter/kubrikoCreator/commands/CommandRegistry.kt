@@ -23,6 +23,9 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
+import com.pandulapeter.kubrikoCreator.commands.git.Commit
+import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
+import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 
 /**
  * Every command of the editor. The AI tool list is generated from it, so a command reaches the AI as soon as it is
@@ -67,6 +70,9 @@ internal class CommandRegistry(
                 MoveBlock,
                 RemoveBlock,
                 DiscardChangesMadeByHand,
+                StartVersionControl,
+                Commit,
+                DiscardChanges,
             ),
         )
     }

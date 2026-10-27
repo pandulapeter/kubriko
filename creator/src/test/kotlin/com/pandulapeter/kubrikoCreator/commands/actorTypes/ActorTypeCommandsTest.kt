@@ -109,7 +109,7 @@ class ActorTypeCommandsTest {
 
     @Test
     fun projectsWithoutBlockBuiltActorTypesRejectActorTypeCommands() = runTest {
-        val context = CommandContext(actorTypes = null)
+        val context = commandContext(actorTypes = null)
         assertEquals(Rejection(Res.string.error_command_no_actor_types), context.rejection(CreateActorType, ball))
         assertEquals(Rejection(Res.string.error_command_no_actor_types), context.rejection(SetAppearance, SetAppearance.Input("Ball", width = 1f)))
     }
@@ -177,7 +177,7 @@ class ActorTypeCommandsTest {
     @Test
     fun onlyCodeChangedByHandCanBeDiscardedAndThatCantBeUndone() = runTest {
         val repository = FakeActorTypeRepository(listOf(ball)).apply { changedByHand = setOf("Ball") }
-        val context = CommandContext(actorTypes = actorTypesController(repository = repository))
+        val context = commandContext(actorTypes = actorTypesController(repository = repository))
         assertNull(context.rejection(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input("Ball")))
         assertNull(DiscardChangesMadeByHand.apply(context, DiscardChangesMadeByHand.Input("Ball")).inverse)
         assertEquals("regenerate overwriting Ball", repository.writes.last())
