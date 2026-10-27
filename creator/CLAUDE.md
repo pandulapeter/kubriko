@@ -81,6 +81,12 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   terminal (an app started from the Finder lacks the shell's PATH, and aliases such as `claude-personal` live in `.zshrc`),
   dropping the shell's job control notices; the command is user-editable. A tool counts as connected only when its output names
   the server, since a wrapper alias can succeed without doing anything.
+- **Apps with a configuration file** (`AiConfigFileClient`: Claude Desktop, Cursor) are connected by editing their JSON file
+  (`McpConfigFile`): only `mcpServers.kubriko-creator` changes, the rest keeps its values, order, and indentation, the file is
+  replaced atomically through a link and keeps its permissions (a new one is owner-only), and a file that isn't valid JSON is never
+  written. An app counts as installed once its configuration folder exists. Claude Desktop only starts stdio servers, so its entry
+  runs `mcp-remote` through the full path of the `npx` the user's shell finds (`ProcessRunner.locate`), with that folder on the
+  PATH, and passes the token through the environment; without npx the row asks for Node.js. Cursor gets the URL and header.
 - **The panel** (toolbar → AI connection): a Connect / Disconnect / Install row per client, the on/off switch, the address
   with the token for other MCP clients, Advanced (port, token, commands), and the call log.
 - **Playing the game:** `start_game`, `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through

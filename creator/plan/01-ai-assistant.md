@@ -33,8 +33,10 @@ step-by-step view of the AI's work (activity bar, follow mode, highlights) exist
   written by hand. It still read Kubriko's sources jars with its own shell to find the API for those Kotlin Blocks, so a read tool with
   Kubriko's API (the root `CLAUDE.md`'s overview, or KDoc for a named class) would save turns. Still to do: a Codex run, and watching the
   activity view pace those bursts of calls in the window. The Gemini CLI commands come from its documentation and haven't been run yet.
-- Claude Desktop and Cursor keep their MCP servers in JSON files rather than behind a CLI, and Claude Desktop only starts local
-  servers over stdio (so it needs a bridge such as `mcp-remote`): add them as file-based `AiClient`s once verified.
+- Claude Desktop and Cursor are connected through their configuration files (`../CLAUDE.md` → AI connection). `mcp-remote` was tried
+  from a terminal against the server; still owed: clicking Connect for Claude Desktop and using the tools from a real chat (its log
+  is `~/Library/Logs/Claude/mcp-server-kubriko-creator.log`), Cursor at all (not installed here), and Windows, where the entry
+  runs plain `npx`.
 - The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the
   running Kubriko instance, which is the debug agent's job (`04-debugger.md`); expose it as a tool once that exists.
 - Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows. fish's `alias name 'value'`

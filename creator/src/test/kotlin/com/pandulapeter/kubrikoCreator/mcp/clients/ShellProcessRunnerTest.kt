@@ -14,6 +14,7 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -59,5 +60,12 @@ class ShellProcessRunnerTest {
         val result = runner.run("sh", listOf("-c", "echo broken >&2; exit 3"))
         assertEquals(3, result.exitCode)
         assertEquals("broken", result.output)
+    }
+
+    @Test
+    fun programsAreLocatedByTheirFullPath() {
+        if (isWindows) return
+        assertEquals("/bin/sh", runner.locate("sh"))
+        assertNull(runner.locate("kubriko-creator-no-such-program"))
     }
 }

@@ -18,6 +18,13 @@ internal sealed interface AiClientStatus {
      */
     data object NotInstalled : AiClientStatus
 
+    /**
+     * The tool is installed, but a program it needs to reach Kubriko Creator isn't.
+     */
+    data class NeedsProgram(
+        val program: AiConfigFileClient.RequiredProgram,
+    ) : AiClientStatus
+
     data object NotConnected : AiClientStatus
 
     data object Connected : AiClientStatus

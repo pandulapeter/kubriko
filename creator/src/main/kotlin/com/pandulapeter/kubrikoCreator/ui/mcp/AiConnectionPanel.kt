@@ -37,9 +37,11 @@ import com.pandulapeter.kubrikoCreator.mcp.McpSettings
 import com.pandulapeter.kubrikoCreator.mcp.McpToolCall
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientSetup
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientStatus
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.ai_client_variant
 import kubriko.creator.generated.resources.ai_connection_advanced
 import kubriko.creator.generated.resources.ai_connection_calls
 import kubriko.creator.generated.resources.ai_connection_calls_empty
@@ -65,12 +67,15 @@ internal fun AiConnectionPanel(
     settings: McpSettings,
     state: McpServerState,
     clientSetups: List<AiClientSetup>,
+    configFileClients: List<AiConfigFileClient>,
     clientStatuses: Map<String, AiClientStatus>,
     calls: List<McpToolCall>,
     onEnabledChange: (Boolean) -> Unit,
     onRefreshClients: () -> Unit,
     onConnect: (AiClientSetup) -> Unit,
     onDisconnect: (AiClientSetup) -> Unit,
+    onConnectConfigFile: (AiConfigFileClient) -> Unit,
+    onDisconnectConfigFile: (AiConfigFileClient) -> Unit,
     onPortChange: (Int) -> Boolean,
     onRegenerateToken: () -> Unit,
     onCommandChange: (AiClient, String) -> Unit,
@@ -94,10 +99,24 @@ internal fun AiConnectionPanel(
         )
         clientSetups.forEach { setup ->
             AiClientRow(
-                setup = setup,
+                title = setup.variant?.let { stringResource(Res.string.ai_client_variant, setup.client.displayName, it) } ?: setup.client.displayName,
+                clientName = setup.client.displayName,
+                installUrl = setup.client.installUrl,
+                isReadOnStart = false,
                 status = clientStatuses[setup.id] ?: AiClientStatus.Checking,
                 onConnect = { onConnect(setup) },
                 onDisconnect = { onDisconnect(setup) },
+            )
+        }
+        configFileClients.forEach { client ->
+            AiClientRow(
+                title = client.displayName,
+                clientName = client.displayName,
+                installUrl = client.installUrl,
+                isReadOnStart = true,
+                status = clientStatuses[client.id] ?: AiClientStatus.Checking,
+                onConnect = { onConnectConfigFile(client) },
+                onDisconnect = { onDisconnectConfigFile(client) },
             )
         }
         HorizontalDivider()

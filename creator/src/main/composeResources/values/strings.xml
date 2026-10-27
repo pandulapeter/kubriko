@@ -240,6 +240,8 @@
     <string name="ai_client_not_installed">Not installed</string>
     <string name="ai_client_not_connected">Not connected</string>
     <string name="ai_client_connected">Connected. New %1$s sessions can work on the open project.</string>
+    <string name="ai_client_connected_after_restart">Connected. Restart %1$s if it's open; then its new chats can work on the open project.</string>
+    <string name="ai_client_needs_program">Needs %1$s, which isn't installed.</string>
     <string name="ai_client_failed">Couldn't connect: %1$s</string>
     <string name="ai_client_command">The command that runs %1$s</string>
     <string name="error_game_not_running">The game isn't running.</string>

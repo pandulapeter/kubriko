@@ -19,6 +19,12 @@ internal interface ProcessRunner {
      */
     fun exists(command: String): Boolean
 
+    /**
+     * The full path of the program [command] runs, as the user's shell finds it, or null if it isn't found or there
+     * is no such shell.
+     */
+    fun locate(command: String): String?
+
     fun run(command: String, arguments: List<String>): Result
 
     /**

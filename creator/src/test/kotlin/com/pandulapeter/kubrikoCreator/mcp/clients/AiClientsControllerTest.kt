@@ -28,6 +28,7 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -51,7 +52,24 @@ class AiClientsControllerTest {
         )
         created.setPort(ServerSocket(0).use { it.localPort })
         mcp = created
-        return AiClientsController(mcp = created, runner = runner, scope = testScope(), ioDispatcher = UnconfinedTestDispatcher(testScheduler))
+        return AiClientsController(
+            mcp = created,
+            runner = runner,
+            scope = testScope(),
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+            configFileOf = ::configFileOf,
+        )
+    }
+
+    private fun configFileOf(client: AiConfigFileClient) = File(directory, "apps/${client.id}/config.json")
+
+    private fun installApp(client: AiConfigFileClient, configuration: String? = null) = configFileOf(client).run {
+        parentFile.mkdirs()
+        configuration?.let(::writeText)
+    }
+
+    private suspend fun AiClientsController.awaitStatus(client: AiConfigFileClient, expected: AiClientStatus) = withContext(Dispatchers.IO) {
+        withTimeout(5_000) { statuses.first { it[client.id] == expected } }
     }
 
     private fun setup(client: AiClient, command: String = client.defaultCommand) = AiClientSetup(client, command, "personal".takeIf { command != client.defaultCommand })
@@ -160,5 +178,76 @@ class AiClientsControllerTest {
         controller.connect(setup(AiClient.CLAUDE_CODE, "claude-personal"))
         controller.awaitStatus(setup(AiClient.CLAUDE_CODE, "claude-personal"), AiClientStatus.Connected)
         assertTrue("claude-personal" in runner.registered)
+    }
+
+    @Test
+    fun appsWithConfigurationFilesAreInstalledOnceTheyHaveMadeTheirFolderAndMayNeedAProgram() = runTest {
+        installApp(AiConfigFileClient.CURSOR, """{"mcpServers":{"kubriko-creator":{"url":"http://127.0.0.1:7781/mcp"}}}""")
+        val controller = controller()
+        controller.refresh()
+        controller.awaitStatus(AiConfigFileClient.CURSOR, AiClientStatus.Connected)
+        controller.awaitStatus(AiConfigFileClient.CLAUDE_DESKTOP, AiClientStatus.NotInstalled)
+        installApp(AiConfigFileClient.CLAUDE_DESKTOP)
+        controller.refresh()
+        controller.awaitStatus(AiConfigFileClient.CLAUDE_DESKTOP, AiClientStatus.NeedsProgram(AiConfigFileClient.CLAUDE_DESKTOP.requiredProgram!!))
+        runner.installed += "npx"
+        controller.refresh()
+        controller.awaitStatus(AiConfigFileClient.CLAUDE_DESKTOP, AiClientStatus.NotConnected)
+    }
+
+    @Test
+    fun connectingAnAppWritesItsEntryWithTheProgramsPathAndDisconnectingRemovesIt() = runTest {
+        val original = "{\n  \"preferences\": {\n    \"menuBarEnabled\": false\n  }\n}\n"
+        installApp(AiConfigFileClient.CLAUDE_DESKTOP, original)
+        runner.installed += "npx"
+        val controller = controller()
+        controller.connectConfigFile(AiConfigFileClient.CLAUDE_DESKTOP)
+        controller.awaitStatus(AiConfigFileClient.CLAUDE_DESKTOP, AiClientStatus.Connected)
+        val settings = mcp!!.settings.value
+        assertTrue(settings.isEnabled)
+        assertEquals(setOf("claudeDesktop"), settings.connectedClients)
+        assertEquals(
+            AiConfigFileClient.CLAUDE_DESKTOP.entry(settings, "/opt/tools/bin/npx"),
+            McpConfigFile.server(configFileOf(AiConfigFileClient.CLAUDE_DESKTOP), "kubriko-creator"),
+        )
+        controller.disconnectConfigFile(AiConfigFileClient.CLAUDE_DESKTOP)
+        controller.awaitStatus(AiConfigFileClient.CLAUDE_DESKTOP, AiClientStatus.NotConnected)
+        assertEquals(original, configFileOf(AiConfigFileClient.CLAUDE_DESKTOP).readText())
+        assertEquals(emptySet(), mcp!!.settings.value.connectedClients)
+    }
+
+    @Test
+    fun connectedAppsGetTheNewTokenInTheirFile() = runTest {
+        installApp(AiConfigFileClient.CURSOR)
+        val controller = controller()
+        controller.connectConfigFile(AiConfigFileClient.CURSOR)
+        controller.awaitStatus(AiConfigFileClient.CURSOR, AiClientStatus.Connected)
+        mcp!!.regenerateToken()
+        val newToken = mcp!!.settings.value.token
+        withContext(Dispatchers.IO) {
+            withTimeout(5_000) {
+                while (McpConfigFile.server(configFileOf(AiConfigFileClient.CURSOR), "kubriko-creator")?.toString()?.contains(newToken) != true) Thread.sleep(20)
+            }
+        }
+    }
+
+    @Test
+    fun anAppsBrokenFileIsReportedAndLeftAlone() = runTest {
+        installApp(AiConfigFileClient.CURSOR, "{ broken")
+        val controller = controller()
+        controller.connectConfigFile(AiConfigFileClient.CURSOR)
+        val failed = withContext(Dispatchers.IO) { withTimeout(5_000) { controller.statuses.first { it[AiConfigFileClient.CURSOR.id] is AiClientStatus.Failed } } }
+        assertTrue((failed[AiConfigFileClient.CURSOR.id] as AiClientStatus.Failed).output.isNotBlank())
+        assertEquals("{ broken", configFileOf(AiConfigFileClient.CURSOR).readText())
+        assertEquals(emptySet(), mcp!!.settings.value.connectedClients)
+    }
+
+    @Test
+    fun anAppThatIsntInstalledIsntConnected() = runTest {
+        val controller = controller()
+        controller.connectConfigFile(AiConfigFileClient.CURSOR)
+        controller.awaitStatus(AiConfigFileClient.CURSOR, AiClientStatus.NotInstalled)
+        assertFalse(configFileOf(AiConfigFileClient.CURSOR).exists())
+        assertFalse(mcp!!.settings.value.isEnabled)
     }
 }

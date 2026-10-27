@@ -32,6 +32,10 @@ internal class ShellProcessRunner(
         run(if (isWindows) listOf("where", executable) else shellCommand("command -v ${quoted(executable)}")).exitCode == 0
     }
 
+    override fun locate(command: String) = if (isWindows) null else run(shellCommand("command -v ${quoted(executableOf(command))}")).let { result ->
+        result.output.lines().lastOrNull()?.trim()?.takeIf { result.exitCode == 0 && it.startsWith("/") }
+    }
+
     override fun aliases() = if (isWindows) emptyMap() else run(shellCommand("alias")).let { result ->
         if (result.exitCode == 0) ShellAliases.parse(result.output) else emptyMap()
     }

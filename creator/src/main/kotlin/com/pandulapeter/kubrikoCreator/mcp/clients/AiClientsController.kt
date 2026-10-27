@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.mcp.clients
 
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
+import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import java.io.File
+import java.io.IOException
 
 /**
  * Connects AI tools to Kubriko Creator's MCP server with their own command-line programs, so that the user doesn't
@@ -35,6 +39,7 @@ internal class AiClientsController(
     private val runner: ProcessRunner,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
+    private val configFileOf: (AiConfigFileClient) -> File = { it.configFile() },
 ) {
     private val _setups = MutableStateFlow(AiClient.entries.map { AiClientSetup(it, mcp.settings.value.commandOf(it)) })
     val setups = _setups.asStateFlow()
@@ -49,9 +54,10 @@ internal class AiClientsController(
     init {
         scope.launch {
             mcp.settings.map { it.port to it.token }.distinctUntilChanged().drop(1).collect {
-                mcp.settings.value.connectedClients
-                    .mapNotNull { id -> _setups.value.firstOrNull { it.id == id } ?: AiClientSetup.fromId(id) }
-                    .forEach(::connect)
+                mcp.settings.value.connectedClients.forEach { id ->
+                    AiConfigFileClient.entries.firstOrNull { it.id == id }?.let(::connectConfigFile)
+                        ?: (_setups.value.firstOrNull { it.id == id } ?: AiClientSetup.fromId(id))?.let(::connect)
+                }
             }
         }
     }
@@ -64,18 +70,16 @@ internal class AiClientsController(
             val aliases = withContext(ioDispatcher) { runner.aliases() }
             _setups.value = AiClientSetup.discover(aliases, mcp.settings.value::commandOf)
             _statuses.value = emptyMap()
-            _setups.value.forEach { setup -> perform(setup) { status(setup) } }
+            _setups.value.forEach { setup -> perform(setup.id) { status(setup) } }
+            AiConfigFileClient.entries.forEach { client -> perform(client.id) { status(client) } }
         }
     }
 
     /**
      * Registers Kubriko Creator in [setup], turning the server on first if it is off.
      */
-    fun connect(setup: AiClientSetup) = perform(setup) {
-        if (!mcp.settings.value.isEnabled) {
-            mcp.setEnabled(true)
-            mcp.state.first { it is McpServerState.Running || it is McpServerState.Failed }
-        }
+    fun connect(setup: AiClientSetup) = perform(setup.id) {
+        enableServer()
         val result = withContext(ioDispatcher) {
             if (!runner.exists(setup.command)) return@withContext null
             runner.run(setup.command, setup.client.removeArguments)
@@ -89,10 +93,32 @@ internal class AiClientsController(
         }
     }
 
-    fun disconnect(setup: AiClientSetup) = perform(setup) {
+    fun disconnect(setup: AiClientSetup) = perform(setup.id) {
         val result = withContext(ioDispatcher) { runner.run(setup.command, setup.client.removeArguments) }
         mcp.setClientConnected(setup.id, false)
         status(setup).let { status -> if (status == AiClientStatus.Connected) AiClientStatus.Failed(result.output) else status }
+    }
+
+    /**
+     * Adds Kubriko Creator's server to [client]'s configuration file, turning the server on first if it is off.
+     */
+    fun connectConfigFile(client: AiConfigFileClient) = perform(client.id) {
+        when (val status = status(client)) {
+            AiClientStatus.NotInstalled, is AiClientStatus.NeedsProgram -> status
+            else -> {
+                enableServer()
+                val settings = mcp.settings.value
+                editConfigFile(client) { file ->
+                    val programPath = client.requiredProgram?.let { runner.locate(it.command) }
+                    McpConfigFile.addServer(file, McpToolServer.SERVER_NAME, client.entry(settings, programPath))
+                }.also { if (it == AiClientStatus.Connected) mcp.setClientConnected(client.id, true) }
+            }
+        }
+    }
+
+    fun disconnectConfigFile(client: AiConfigFileClient) = perform(client.id) {
+        editConfigFile(client) { file -> McpConfigFile.removeServer(file, McpToolServer.SERVER_NAME) }
+            .also { mcp.setClientConnected(client.id, false) }
     }
 
     /**
@@ -111,12 +137,46 @@ internal class AiClientsController(
         }
     }
 
-    private fun perform(setup: AiClientSetup, operation: suspend () -> AiClientStatus) {
+    private suspend fun status(client: AiConfigFileClient) = withContext(ioDispatcher) {
+        val file = configFileOf(client)
+        val program = client.requiredProgram
+        when {
+            file.parentFile?.isDirectory != true -> AiClientStatus.NotInstalled
+            program != null && !runner.exists(program.command) -> AiClientStatus.NeedsProgram(program)
+            else -> try {
+                if (McpConfigFile.server(file, McpToolServer.SERVER_NAME) != null) AiClientStatus.Connected else AiClientStatus.NotConnected
+            } catch (exception: SerializationException) {
+                AiClientStatus.Failed(exception.message.orEmpty())
+            }
+        }
+    }
+
+    /**
+     * Does [edit] to [client]'s configuration file, then reports its status, or what went wrong. A file that isn't valid
+     * JSON is never written.
+     */
+    private suspend fun editConfigFile(client: AiConfigFileClient, edit: (File) -> Unit) = try {
+        withContext(ioDispatcher) { edit(configFileOf(client)) }
+        status(client)
+    } catch (exception: SerializationException) {
+        AiClientStatus.Failed(exception.message.orEmpty())
+    } catch (exception: IOException) {
+        AiClientStatus.Failed(exception.message.orEmpty())
+    }
+
+    private suspend fun enableServer() {
+        if (!mcp.settings.value.isEnabled) {
+            mcp.setEnabled(true)
+            mcp.state.first { it is McpServerState.Running || it is McpServerState.Failed }
+        }
+    }
+
+    private fun perform(id: String, operation: suspend () -> AiClientStatus) {
         scope.launch {
             operations.withLock {
-                _statuses.update { it + (setup.id to AiClientStatus.Checking) }
+                _statuses.update { it + (id to AiClientStatus.Checking) }
                 val status = operation()
-                _statuses.update { it + (setup.id to status) }
+                _statuses.update { it + (id to status) }
             }
         }
     }

@@ -31,6 +31,8 @@ internal class FakeProcessRunner(
 
     override fun exists(command: String) = command in installed
 
+    override fun locate(command: String) = "/opt/tools/bin/$command".takeIf { command in installed }
+
     override fun run(command: String, arguments: List<String>): ProcessRunner.Result {
         calls += (listOf(command) + arguments).joinToString(" ")
         if (command !in installed) return ProcessRunner.Result(127, "not found")

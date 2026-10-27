@@ -47,6 +47,7 @@ import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
@@ -181,12 +182,15 @@ internal fun WorkspaceScreen(
                     settings = mcp.settings.collectAsState().value,
                     state = mcpState,
                     clientSetups = aiClients.setups.collectAsState().value,
+                    configFileClients = AiConfigFileClient.entries,
                     clientStatuses = aiClients.statuses.collectAsState().value,
                     calls = mcp.calls.collectAsState().value,
                     onEnabledChange = mcp::setEnabled,
                     onRefreshClients = aiClients::refresh,
                     onConnect = aiClients::connect,
                     onDisconnect = aiClients::disconnect,
+                    onConnectConfigFile = aiClients::connectConfigFile,
+                    onDisconnectConfigFile = aiClients::disconnectConfigFile,
                     onPortChange = mcp::setPort,
                     onRegenerateToken = mcp::regenerateToken,
                     onCommandChange = aiClients::setCommand,
