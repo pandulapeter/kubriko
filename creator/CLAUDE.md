@@ -37,15 +37,39 @@ placed in Scenes, and played with one click. This file describes what exists; wh
   project's `CreatorEntryPoint` through `ServiceLoader`, and draws `SceneEditor.Content` in its center pane. Loaders are released a few seconds
   after their editor leaves composition. Otherwise the Scene opens in a session window.
 
+## Commands
+
+Every change to a project goes through a command (`commands/`), so the user interface, undo and redo, and the AI share one
+path. `CommandRegistry.editor` lists them all; the AI tool list (`ToolDefinition`: name, description, input schema) is generated
+from it, each input schema from the input class's serial descriptor (`JsonSchema`, with `@Description` on every property).
+
+- **Kinds:** `ReadCommand` (reports, never recorded), `WriteCommand` (`validate` returns a `Rejection` with a user-facing
+  `StringResource`; `apply` returns `Applied` with the inverse `Invocation`, or none for git operations, which can't be undone),
+  and `ActionCommand` (build, play; run outside the change lock).
+- **`CommandExecutor`** (one per workspace): applies changes one at a time, keeps the undo and redo history (consecutive changes
+  with the same `mergeKey`, like typing into one field, are one step; a step that no longer validates is dropped), and decodes
+  AI tool calls (`call(name, JsonObject)`). UI callbacks use `dispatch`, which starts undispatched, so in-memory changes show
+  before it returns. Rejections of dispatched changes and of undo steps go to the console.
+- **Enforced by tests** (`CommandRegistryTest`): every `EditorCommand` class is registered, tool names are snake_case, every
+  part of every schema is described, and nothing outside `commands/` opts in to `@EditorMutation`, the `RequiresOptIn` marker on
+  every controller and store function that changes the project. A new mutation is marked, so only a command can call it.
+- **Addressing:** Actor types and Scenes by name, Events, Blocks, and Scene Actors by index. `commands/CommandTesting.kt`
+  (`assertRoundTrip`) checks that a command's inverse reverts it and the inverse of the inverse makes it again.
+- **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`): Actors are `typeId` + JSON state, positions live in
+  `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
+  Actor type renames its Actors in every Scene. A command that changes the open Scene marks it outdated (or closes it if deleted).
+  Changes made inside the embedded Scene editor are the library tool's own and don't go through commands.
+
 ## Packages (`com.pandulapeter.kubrikoCreator`)
 
 | Package | What it holds |
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions). |
 | `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code). |
-| `actors` | The Block model: `ActorTypeDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors`, hex colors, no empty fields), `BlockKind` (palette + which Events allow a Block), pure edits (`ActorTypeEdits.kt`), `ActorTypeCodeGenerator`, `GeneratedFile` (checksummed header), `ActorTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
-| `workspace` | `WorkspaceController` (sessions, console, routing watcher changes), `ActorTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`. |
+| `actors` | The Block model: `ActorTypeDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `BlockKind` (palette + which Events allow a Block), pure edits (`ActorTypeEdits.kt`), `ActorTypeCodeGenerator`, `GeneratedFile` (checksummed header), `ActorTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
+| `commands`, `commands/actorTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
+| `workspace` | `WorkspaceController` (sessions, console, routing watcher changes, the `CommandExecutor` and the `ProjectRunner` behind build and play), `ActorTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
+| `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SceneStore` and `SceneDocument` (Scene files by name). |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (an Actor type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates Actor types; runs Gradle's `wrapper` task; first git commit), naming and form rules. |
 | `recent` | `RecentProjectsStore` (platform settings folder). |
@@ -54,6 +78,9 @@ placed in Scenes, and played with one click. This file describes what exists; wh
 
 ## Conventions specific to Creator
 
+- **Every editor change is a command** with its AI tool and tests (validation, apply, and the inverse round trip); the UI
+  dispatches commands rather than calling controllers. Undo and redo: toolbar buttons naming the step, Ctrl+Z / Ctrl+Shift+Z /
+  Ctrl+Y (Cmd on macOS).
 - Desktop-sized UI from the start: `ui/components` (`CompactTextField`, `IconActionButton` with tooltip, `PanelHeader`), vector icons in
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
