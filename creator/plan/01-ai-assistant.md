@@ -18,14 +18,16 @@ Actor types, Scenes, console, version control) and action tools (build, play).
 
 ## The MCP server: what's left
 
-The server and its panel exist (`../CLAUDE.md` → AI connection). Still to do:
+The server, one-click setup for Claude Code, Codex, and Gemini CLI, and the game tools exist (`../CLAUDE.md` → AI connection).
+Still to do:
 
-- Try it with a real Claude Code session end to end (`claude mcp add` from the panel), and write down what works and what Claude
-  stumbles on; that feeds the eval set below.
-- Claude Desktop only starts local MCP servers over stdio, so it needs a bridge (such as `mcp-remote`) with the header; verify one
-  and show its config in the panel.
-- Notify clients when the project changes underneath them (`tools/list` is static, but resources or a changed-project hint could
-  save rereads), if sessions show it matters.
+- Try it with real Claude Code and Codex sessions end to end, and write down what works and what they stumble on; that feeds the
+  eval set below. The Gemini CLI commands come from its documentation and haven't been run yet.
+- Claude Desktop and Cursor keep their MCP servers in JSON files rather than behind a CLI, and Claude Desktop only starts local
+  servers over stdio (so it needs a bridge such as `mcp-remote`): add them as file-based `AiClient`s once verified.
+- The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the
+  running Kubriko instance, which is the debug agent's job (`04-debugger.md`); expose it as a tool once that exists.
+- Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows.
 
 ## Next: in-app assistant panel
 
@@ -38,6 +40,12 @@ A chat panel next to the editor, behind a small backend interface, so it can tal
 - **The user's own Claude Code**, for subscription users, if Anthropic confirms it is allowed (see below): Creator runs the user's installed,
   unmodified `claude` in headless mode with streamed JSON in and out, pointed at Creator's MCP server, and shows its messages in
   the panel. The user signs in through Claude Code's own flow; Creator never sees their credentials.
+
+**Local models** (checked October 2026): Apple's on-device model (Foundation Models, macOS 26) has a 4,096-token context (8,192
+for the newer model, by one report), less than Creator's tool list alone (about 6,000 tokens), and early tool-calling reports are
+mixed. Windows' Phi Silica (being replaced by Aion Instruct) needs a Copilot+ PC and a packaged app. The practical local option on
+every platform is an OpenAI-compatible local server (Ollama, LM Studio, Microsoft's Foundry Local) running an open model with tool
+calling: one more panel backend, offered as free and private but less capable, after the Claude ones work.
 
 **What the terms allow** (Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) page, read
 October 2026): third-party apps may not offer Claude.ai login, route requests through a user's Free, Pro, or Max plan, or collect Claude.ai

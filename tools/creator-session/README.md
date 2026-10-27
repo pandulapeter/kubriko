@@ -15,7 +15,8 @@ Gradle init script, at the game's Kubriko version, so games never declare it.
 - `play <main class>` runs the game through its own main function.
 
 Either way, the session connects to Kubriko Creator on the localhost port given in the `kubriko.creator.port` system property and streams the
-game's log entries to it, one JSON message per line.
+game's log entries to it, one JSON message per line. In play mode it also carries out the commands Kubriko Creator sends back on that connection
+(`SessionCommand`, protocol version 2): pressing keys, capturing the game's window, and bringing it to the front.
 
 ## Public artifact
 The artifact for this module has the following ID:
