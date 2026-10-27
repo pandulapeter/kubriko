@@ -103,6 +103,12 @@ class ActorTypeStoreTest {
     }
 
     @Test
+    fun theGeneratedPathIsRelativeToTheProject() {
+        optIn()
+        assertEquals("src/commonMain/kotlin/com/example/game/generated", ActorTypeStore.open(root)!!.generatedPath)
+    }
+
+    @Test
     fun theSourceFolderComesFromTheSettings() {
         optIn("""{ "packageName": "io.game", "sourceDirectory": "shared/src/commonMain/kotlin" }""")
         ActorTypeStore.open(root)!!.save(ball)

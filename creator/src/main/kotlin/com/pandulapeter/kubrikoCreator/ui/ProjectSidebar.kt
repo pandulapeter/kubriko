@@ -1,0 +1,189 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.project.ResourceScanner
+import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_new_actor_type
+import kubriko.creator.generated.resources.ic_actor_type
+import kubriko.creator.generated.resources.ic_add
+import kubriko.creator.generated.resources.ic_code
+import kubriko.creator.generated.resources.ic_music
+import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.ic_sound
+import kubriko.creator.generated.resources.ic_sprite
+import kubriko.creator.generated.resources.resource_group_actor_types
+import kubriko.creator.generated.resources.resource_group_empty
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+
+/**
+ * The Actor types shown at the top of the sidebar, for projects that opted in to them.
+ */
+internal data class ActorTypeTreeState(
+    val names: List<String>,
+    val selectedName: String?,
+)
+
+/**
+ * The project's contents: its Actor types, then its files grouped by what they are. Clicking a Scene edits it.
+ */
+@Composable
+internal fun ProjectSidebar(
+    modifier: Modifier,
+    resources: Map<ResourceGroup, List<ProjectResource>>,
+    actorTypes: ActorTypeTreeState?,
+    onSceneSelected: (ProjectResource) -> Unit,
+    onActorTypeSelected: (String) -> Unit,
+    onCreateActorType: (String) -> StringResource?,
+) {
+    var isCreatingActorType by remember { mutableStateOf(false) }
+    LazyColumn(
+        modifier = modifier,
+    ) {
+        if (actorTypes != null) {
+            item(key = "actorTypes") {
+                PanelHeader(
+                    icon = Res.drawable.ic_actor_type,
+                    title = stringResource(Res.string.resource_group_actor_types),
+                ) {
+                    IconActionButton(
+                        icon = Res.drawable.ic_add,
+                        label = Res.string.action_new_actor_type,
+                        onClick = { isCreatingActorType = !isCreatingActorType },
+                    )
+                }
+            }
+            if (isCreatingActorType) {
+                item(key = "newActorType") {
+                    NewActorTypeField(
+                        onCreate = { name -> onCreateActorType(name).also { if (it == null) isCreatingActorType = false } },
+                        onCancel = { isCreatingActorType = false },
+                    )
+                }
+            }
+            items(actorTypes.names, key = { "actorType-$it" }) { name ->
+                SidebarItem(
+                    icon = Res.drawable.ic_actor_type,
+                    text = name,
+                    isSelected = name == actorTypes.selectedName,
+                    onClick = { onActorTypeSelected(name) },
+                )
+            }
+        }
+        ResourceGroup.entries.forEach { group ->
+            item(key = group) {
+                PanelHeader(
+                    icon = group.icon,
+                    title = stringResource(group.title),
+                )
+            }
+            val groupResources = resources[group].orEmpty()
+            if (groupResources.isEmpty()) {
+                item(key = "$group-empty") {
+                    Text(
+                        modifier = Modifier.padding(start = 36.dp, top = 2.dp, bottom = 6.dp),
+                        text = stringResource(Res.string.resource_group_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
+                items(groupResources, key = { it.relativePath }) { resource ->
+                    SidebarItem(
+                        icon = group.icon,
+                        text = resource.name,
+                        detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
+                        onClick = if (group == ResourceGroup.SCENES) ({ onSceneSelected(resource) }) else null,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SidebarItem(
+    icon: DrawableResource,
+    text: String,
+    onClick: (() -> Unit)?,
+    isSelected: Boolean = false,
+    detail: String? = null,
+) = Row(
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(28.dp)
+        .then(if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
+        .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
+        .padding(start = 28.dp, end = 12.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    val color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+    Icon(
+        modifier = Modifier.size(14.dp),
+        painter = painterResource(icon),
+        contentDescription = null,
+        tint = color.copy(alpha = 0.7f),
+    )
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = color,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+    if (detail != null) {
+        Text(
+            text = detail,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+    }
+}
+
+private val ResourceGroup.icon
+    get() = when (this) {
+        ResourceGroup.SCENES -> Res.drawable.ic_scene
+        ResourceGroup.SPRITES -> Res.drawable.ic_sprite
+        ResourceGroup.SOUNDS -> Res.drawable.ic_sound
+        ResourceGroup.MUSIC -> Res.drawable.ic_music
+        ResourceGroup.KOTLIN -> Res.drawable.ic_code
+    }

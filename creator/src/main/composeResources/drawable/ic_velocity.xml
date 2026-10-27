@@ -1,0 +1,18 @@
+<!--
+ This file is part of Kubriko.
+ Copyright (c) Pandula Péter 2025-2026.
+ https://github.com/pandulapeter/kubriko
+
+ This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ If a copy of the MPL was not distributed with this file, You can obtain one at
+ https://mozilla.org/MPL/2.0/.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M20.38,8.57L19.15,10.42C20.35,12.83 20.27,15.69 18.93,18H5.07C2.86,14.17 4.18,9.28 8.01,7.07C10.32,5.74 13.17,5.66 15.58,6.85L17.43,5.62C12.79,2.65 6.62,4.01 3.65,8.65C1.67,11.75 1.53,15.68 3.35,18.91C3.71,19.57 4.33,19.99 5.07,20H18.92C19.65,20 20.32,19.6 20.66,18.96C22.47,15.74 22.34,11.68 20.38,8.57ZM10.59,15.41C11.37,16.19 12.64,16.19 13.42,15.41L19.08,6.92L10.59,12.58C9.81,13.36 9.81,14.63 10.59,15.41Z"/>
+</vector>

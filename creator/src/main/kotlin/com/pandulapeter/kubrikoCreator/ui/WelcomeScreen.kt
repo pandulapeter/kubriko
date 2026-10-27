@@ -9,11 +9,15 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -26,8 +30,13 @@ import kubriko.creator.generated.resources.action_new_project
 import kubriko.creator.generated.resources.action_open_project
 import kubriko.creator.generated.resources.app_name
 import kubriko.creator.generated.resources.choose_project_folder
+import kubriko.creator.generated.resources.ic_create_new_folder
+import kubriko.creator.generated.resources.ic_folder_open
+import kubriko.creator.generated.resources.ic_icon
 import kubriko.creator.generated.resources.welcome_subtitle
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
 
@@ -40,9 +49,14 @@ internal fun WelcomeScreen(
     val pickerTitle = stringResource(Res.string.choose_project_folder)
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Image(
+            modifier = Modifier.size(96.dp),
+            painter = painterResource(Res.drawable.ic_icon),
+            contentDescription = null,
+        )
         Text(
             text = stringResource(Res.string.app_name),
             style = MaterialTheme.typography.headlineMedium,
@@ -50,19 +64,17 @@ internal fun WelcomeScreen(
         Text(
             text = stringResource(Res.string.welcome_subtitle),
             style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Button(
-                onClick = onNewProject,
-            ) {
-                Text(stringResource(Res.string.action_new_project))
+            Button(onClick = onNewProject) {
+                ButtonLabel(Res.drawable.ic_create_new_folder, Res.string.action_new_project)
             }
-            OutlinedButton(
-                onClick = { pickFolder(pickerTitle)?.let(onOpenProject) },
-            ) {
-                Text(stringResource(Res.string.action_open_project))
+            OutlinedButton(onClick = { pickFolder(pickerTitle)?.let(onOpenProject) }) {
+                ButtonLabel(Res.drawable.ic_folder_open, Res.string.action_open_project)
             }
         }
         if (error != null) {
@@ -72,4 +84,17 @@ internal fun WelcomeScreen(
             )
         }
     }
+}
+
+@Composable
+private fun ButtonLabel(
+    icon: DrawableResource,
+    label: StringResource,
+) {
+    Icon(
+        modifier = Modifier.padding(end = 8.dp).size(18.dp),
+        painter = painterResource(icon),
+        contentDescription = null,
+    )
+    Text(stringResource(label))
 }

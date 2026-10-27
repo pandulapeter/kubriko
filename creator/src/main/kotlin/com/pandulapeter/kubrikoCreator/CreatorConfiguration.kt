@@ -14,8 +14,8 @@ import java.util.Properties
 /**
  * The versions Kubriko Creator writes into the projects it creates.
  *
- * They are bundled at build time; the `kubriko.creator.kubrikoVersion` and `kubriko.creator.useMavenLocal` system
- * properties override them for trying Creator against unreleased Kubriko modules.
+ * They are bundled at build time (a development build bundles the version it just published to Maven Local, along with
+ * `useMavenLocal`); the `kubriko.creator.kubrikoVersion` and `kubriko.creator.useMavenLocal` system properties override them.
  */
 internal data class CreatorConfiguration(
     val kubrikoVersion: String,
@@ -40,7 +40,7 @@ internal data class CreatorConfiguration(
             kotlinVersion = bundled.require("kotlinVersion"),
             composeVersion = bundled.require("composeVersion"),
             gradleVersion = bundled.require("gradleVersion"),
-            useMavenLocal = overrides.getProperty("kubriko.creator.useMavenLocal") == "true",
+            useMavenLocal = (overrides.getProperty("kubriko.creator.useMavenLocal") ?: bundled.getProperty("useMavenLocal")) == "true",
         )
 
         private fun Properties.require(key: String) = getProperty(key) ?: error("$RESOURCE_NAME has no $key.")

@@ -22,8 +22,12 @@ internal object ResourceScanner {
     private val soundExtensions = setOf("wav")
     private val musicExtensions = setOf("mp3", "ogg")
 
-    fun scan(rootDirectory: File): Map<ResourceGroup, List<ProjectResource>> = rootDirectory.walkTopDown()
-        .onEnter { it == rootDirectory || it.name !in ignoredDirectoryNames }
+    /**
+     * @param hiddenDirectory A folder, relative to [rootDirectory], whose files are left out: the generated code of
+     *   block-built Actor types, which the Actor types themselves stand for.
+     */
+    fun scan(rootDirectory: File, hiddenDirectory: String? = null): Map<ResourceGroup, List<ProjectResource>> = rootDirectory.walkTopDown()
+        .onEnter { it == rootDirectory || (it.name !in ignoredDirectoryNames && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
         .filter { it.isFile }
         .mapNotNull { file ->
             val relativePath = file.relativeTo(rootDirectory).invariantSeparatorsPath
@@ -45,5 +49,13 @@ internal object ResourceScanner {
             extension in musicExtensions -> ResourceGroup.MUSIC
             else -> null
         }
+    }
+
+    /**
+     * The source set a file belongs to (`desktopMain` for `src/desktopMain/kotlin/Main.kt`), which tells apart files of
+     * the same name, or null outside a source folder.
+     */
+    fun sourceSetOf(resource: ProjectResource) = resource.relativePath.split('/').let { segments ->
+        segments.indexOf("src").takeIf { it >= 0 }?.let { segments.getOrNull(it + 1) }
     }
 }

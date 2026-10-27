@@ -10,61 +10,78 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_clear_console
+import kubriko.creator.generated.resources.action_collapse_console
+import kubriko.creator.generated.resources.action_expand_console
 import kubriko.creator.generated.resources.console_title
 import kubriko.creator.generated.resources.console_with_prefix
+import kubriko.creator.generated.resources.ic_clear
+import kubriko.creator.generated.resources.ic_console
+import kubriko.creator.generated.resources.ic_move_down
+import kubriko.creator.generated.resources.ic_move_up
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * The console at the bottom of the workspace, which can be collapsed to its header.
+ */
 @Composable
 internal fun Console(
-    modifier: Modifier,
     entries: List<ConsoleEntry>,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     onClear: () -> Unit,
 ) = Column(
-    modifier = modifier,
+    modifier = Modifier.fillMaxWidth(),
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    PanelHeader(
+        icon = Res.drawable.ic_console,
+        title = stringResource(Res.string.console_title),
     ) {
-        Text(
-            text = stringResource(Res.string.console_title),
-            style = MaterialTheme.typography.titleSmall,
+        IconActionButton(
+            icon = Res.drawable.ic_clear,
+            label = Res.string.action_clear_console,
+            onClick = onClear,
+            isEnabled = entries.isNotEmpty(),
         )
-        Spacer(Modifier.weight(1f))
-        TextButton(onClick = onClear) {
-            Text(stringResource(Res.string.action_clear_console))
+        IconActionButton(
+            icon = if (isExpanded) Res.drawable.ic_move_down else Res.drawable.ic_move_up,
+            label = if (isExpanded) Res.string.action_collapse_console else Res.string.action_expand_console,
+            onClick = { onExpandedChange(!isExpanded) },
+        )
+    }
+    if (isExpanded) {
+        val listState = rememberLazyListState()
+        LaunchedEffect(entries.size) {
+            if (entries.isNotEmpty()) listState.scrollToItem(entries.lastIndex)
         }
-    }
-    val listState = rememberLazyListState()
-    LaunchedEffect(entries.size) {
-        if (entries.isNotEmpty()) listState.scrollToItem(entries.lastIndex)
-    }
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth().weight(1f),
-        state = listState,
-    ) {
-        itemsIndexed(entries) { _, entry ->
-            ConsoleLine(entry)
+        SelectionContainer {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().height(180.dp),
+                state = listState,
+            ) {
+                itemsIndexed(entries) { _, entry ->
+                    ConsoleLine(entry)
+                }
+            }
         }
     }
 }
@@ -73,7 +90,7 @@ internal fun Console(
 private fun ConsoleLine(
     entry: ConsoleEntry,
 ) = Text(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 1.dp),
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 1.dp),
     text = entry.text(),
     color = entry.color(),
     style = MaterialTheme.typography.bodySmall,

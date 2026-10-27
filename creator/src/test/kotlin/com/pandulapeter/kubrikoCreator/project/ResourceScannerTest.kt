@@ -73,4 +73,28 @@ class ResourceScannerTest {
             root.parentFile.deleteRecursively()
         }
     }
+
+    @Test
+    fun theHiddenFolderIsLeftOut() {
+        val root = createTempDirectory().toFile()
+        try {
+            listOf("src/commonMain/kotlin/game/Game.kt", "src/commonMain/kotlin/game/generated/Ball.kt").forEach {
+                File(root, it).apply { parentFile.mkdirs() }.writeText("")
+            }
+            assertEquals(
+                listOf("src/commonMain/kotlin/game/Game.kt"),
+                ResourceScanner.scan(root, hiddenDirectory = "src/commonMain/kotlin/game/generated").getValue(ResourceGroup.KOTLIN).map { it.relativePath },
+            )
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun theSourceSetTellsApartFilesOfTheSameName() {
+        fun resource(path: String) = ProjectResource(ResourceGroup.KOTLIN, File(path), path)
+        assertEquals("desktopMain", ResourceScanner.sourceSetOf(resource("src/desktopMain/kotlin/game/Main.kt")))
+        assertEquals("wasmJsMain", ResourceScanner.sourceSetOf(resource("app/src/wasmJsMain/kotlin/Main.kt")))
+        assertNull(ResourceScanner.sourceSetOf(resource("scripts/Tool.kt")))
+    }
 }

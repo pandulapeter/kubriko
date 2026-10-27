@@ -15,11 +15,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,10 +29,14 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_block
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.event_blocks_empty
+import kubriko.creator.generated.resources.ic_add
+import kubriko.creator.generated.resources.ic_delete
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -46,19 +51,28 @@ internal fun EventCard(
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
     onBlockMoved: (blockIndex: Int, offset: Int) -> Unit,
     onBlockRemoved: (blockIndex: Int) -> Unit,
-) = OutlinedCard(
+) = Surface(
     modifier = Modifier.fillMaxWidth(),
+    color = MaterialTheme.colorScheme.surfaceContainer,
+    shape = MaterialTheme.shapes.medium,
 ) {
     Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Icon(
+                modifier = Modifier.size(18.dp),
+                painter = painterResource(event.type.icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
             Text(
                 text = stringResource(event.type.title),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
             )
             event.key?.let { key ->
                 MenuButton(
@@ -69,21 +83,26 @@ internal fun EventCard(
                 )
             }
             Spacer(Modifier.weight(1f))
-            TextButton(onClick = onRemove) {
-                Text(stringResource(Res.string.action_remove))
-            }
+            IconActionButton(
+                icon = Res.drawable.ic_delete,
+                label = Res.string.action_remove,
+                onClick = onRemove,
+            )
         }
+        HorizontalDivider(modifier = Modifier.padding(end = 8.dp))
         if (event.blocks.isEmpty()) {
             Text(
+                modifier = Modifier.padding(start = 24.dp, top = 4.dp),
                 text = stringResource(Res.string.event_blocks_empty),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         event.blocks.forEachIndexed { index, block ->
-            if (index > 0) HorizontalDivider()
             BlockRow(
                 block = block,
+                isFirst = index == 0,
+                isLast = index == event.blocks.lastIndex,
                 onBlockChange = { onBlockChange(index, it) },
                 onMoveUp = { onBlockMoved(index, -1) },
                 onMoveDown = { onBlockMoved(index, 1) },
@@ -92,8 +111,10 @@ internal fun EventCard(
         }
         MenuButton(
             label = stringResource(Res.string.action_add_block),
+            icon = Res.drawable.ic_add,
             options = BlockKind.entries.filter { it.isAvailableIn(event.type) },
             optionTitle = { it.title },
+            optionIcon = { it.icon },
             onSelected = { onBlockAdded(it.createDefault()) },
         )
     }

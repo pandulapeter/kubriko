@@ -37,6 +37,12 @@ class CreatorConfigurationTest {
     }
 
     @Test
+    fun aDevelopmentBuildBundlesMavenLocal() {
+        bundled.setProperty("useMavenLocal", "true")
+        assertTrue(CreatorConfiguration.from(bundled, Properties()).useMavenLocal)
+    }
+
+    @Test
     fun aMissingBundledVersionFailsLoudly() {
         assertFailsWith<IllegalStateException> { CreatorConfiguration.from(properties("kubrikoVersion" to "1.0.0"), Properties()) }
     }

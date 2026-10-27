@@ -23,8 +23,11 @@ internal class ActorTypeStore private constructor(
     private val settings: CreatorProjectSettings,
 ) : ActorTypeRepository {
     private val definitionsDirectory get() = File(rootDirectory, "$CREATOR_DIRECTORY/actors")
-    private val generatedDirectory
-        get() = File(rootDirectory, "${settings.sourceDirectory}/${settings.packageName.replace('.', '/')}/${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
+    /**
+     * Where the generated classes are written, relative to the project root.
+     */
+    val generatedPath get() = "${settings.sourceDirectory}/${settings.packageName.replace('.', '/')}/${ActorTypeCodeGenerator.GENERATED_PACKAGE}"
+    private val generatedDirectory get() = File(rootDirectory, generatedPath)
 
     override fun load(): List<ActorTypeDefinition> = definitionsDirectory.listFiles { file -> file.extension == "json" }
         .orEmpty()

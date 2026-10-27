@@ -12,47 +12,79 @@ package com.pandulapeter.kubrikoCreator
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.awt.SwingWindow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoCreator.ui.AppContent
+import com.pandulapeter.kubrikoCreator.ui.windowTitle
+import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar
+import com.pandulapeter.kubrikoCreator.window.ProvideInterfaceScale
+import com.pandulapeter.kubrikoCreator.window.TitleBarAppearance
+import com.pandulapeter.kubrikoCreator.window.TitleBarInsets
+import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar
+import com.pandulapeter.kubrikoCreator.window.rememberIsFullscreen
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.app_name
+import kubriko.creator.generated.resources.ic_icon
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import java.awt.Dimension
 import java.io.File
 
 /**
  * Starts Kubriko Creator. A project folder passed as the first argument is opened right away.
  */
-fun main(args: Array<String>) = application {
-    val scope = rememberCoroutineScope()
-    val controller = remember { AppController(scope) }
-    val screen by controller.screen.collectAsState()
-    val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
-    LaunchedEffect(Unit) {
-        args.firstOrNull()?.let { controller.openProject(File(it)) }
-    }
-    Window(
-        title = stringResource(Res.string.app_name),
-        state = rememberWindowState(width = 1200.dp, height = 800.dp),
-        onCloseRequest = {
-            controller.closeProject()
-            exitApplication()
-        },
-    ) {
-        KubrikoTheme {
-            AppContent(
-                screen = screen,
-                defaultParentDirectory = defaultParentDirectory,
-                onNewProject = controller::showNewProject,
-                onCreateProject = controller::createProject,
-                onOpenProject = controller::openProject,
-                onCloseProject = controller::closeProject,
-            )
+@OptIn(ExperimentalComposeUiApi::class)
+fun main(args: Array<String>) {
+    // A Gradle or IDE run has no app bundle, so macOS would show the Java launcher's name in the menu bar.
+    System.setProperty("apple.awt.application.name", "Kubriko Creator")
+    application {
+        val scope = rememberCoroutineScope()
+        val controller = remember { AppController(scope) }
+        val screen by controller.screen.collectAsState()
+        val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
+        val windowState = rememberWindowState(width = 1280.dp, height = 820.dp)
+        var titleBar by remember { mutableStateOf<ExtendedTitleBar?>(null) }
+        LaunchedEffect(Unit) {
+            args.firstOrNull()?.let { controller.openProject(File(it)) }
+        }
+        SwingWindow(
+            title = screen.windowTitle(),
+            icon = painterResource(Res.drawable.ic_icon),
+            state = windowState,
+            onCloseRequest = {
+                controller.closeProject()
+                exitApplication()
+            },
+            init = { window ->
+                titleBar = window.extendContentIntoTitleBar()
+                window.minimumSize = Dimension(960, 600)
+            },
+        ) {
+            TitleBarInsets(
+                titleBar = titleBar,
+                isFullscreen = rememberIsFullscreen(window = window, windowState = windowState),
+            ) {
+                ProvideInterfaceScale {
+                    KubrikoTheme {
+                        titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
+                        AppContent(
+                            screen = screen,
+                            defaultParentDirectory = defaultParentDirectory,
+                            onNewProject = controller::showNewProject,
+                            onCreateProject = controller::createProject,
+                            onOpenProject = controller::openProject,
+                            onCloseProject = controller::closeProject,
+                        )
+                    }
+                }
+            }
         }
     }
 }

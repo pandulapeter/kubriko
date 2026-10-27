@@ -20,6 +20,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.resources)
     implementation(libs.gradle.toolingApi)
+    implementation(libs.jbr.api)
     implementation(libs.kotlinx.coroutines.desktop)
     implementation(libs.kotlinx.serialization)
     testImplementation(libs.kotlin.test)
@@ -27,7 +28,8 @@ dependencies {
 }
 
 /**
- * The versions Kubriko Creator writes into the projects it creates: the ones this repository builds Kubriko with.
+ * The versions Kubriko Creator writes into the projects it creates: the ones this repository builds Kubriko with. With
+ * `creator.localKubriko`, projects use the libraries just published to Maven Local instead (see creator/DESIGN.md).
  */
 val generateCreatorProperties = tasks.register("generateCreatorProperties") {
     val outputDirectory = layout.buildDirectory.dir("generated/creatorProperties")
@@ -36,6 +38,7 @@ val generateCreatorProperties = tasks.register("generateCreatorProperties") {
         "kotlinVersion" to libs.versions.kotlin.get(),
         "composeVersion" to libs.versions.compose.multiplatform.get(),
         "gradleVersion" to libs.versions.gradle.toolingApi.get(),
+        "useMavenLocal" to (findProperty("creator.localKubriko") == "true").toString(),
     )
     inputs.properties(properties)
     outputs.dir(outputDirectory)
@@ -51,9 +54,14 @@ sourceSets.main {
 compose.desktop {
     application {
         mainClass = "com.pandulapeter.kubrikoCreator.KubrikoCreatorAppKt"
-        // For trying Creator against unreleased Kubriko modules published to Maven Local (see creator/DESIGN.md).
-        providers.gradleProperty("creator.kubrikoVersion").orNull?.let { jvmArgs += "-Dkubriko.creator.kubrikoVersion=$it" }
-        providers.gradleProperty("creator.useMavenLocal").orNull?.let { jvmArgs += "-Dkubriko.creator.useMavenLocal=$it" }
+        // The JetBrains Runtime is what lets the content be laid out under a title bar that still behaves as one (ExtendedTitleBar.kt).
+        javaHome = javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(21))
+            vendor.set(JvmVendorSpec.JETBRAINS)
+        }.get().metadata.installationPath.asFile.absolutePath
+        if (System.getProperty("os.name").orEmpty().lowercase().contains("mac")) {
+            jvmArgs += "--add-exports=java.desktop/com.apple.eawt=ALL-UNNAMED"
+        }
         nativeDistributions {
             packageName = "Kubriko Creator"
             packageVersion = "1.0.0"

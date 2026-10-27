@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
+import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.session.SessionServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,12 +27,14 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
     override suspend fun open(directory: File, scope: CoroutineScope) = withContext(Dispatchers.IO) {
         val connection = GradleProjectConnection(directory)
         try {
+            val actorTypeStore = ActorTypeStore.open(directory)
             WorkspaceController(
                 project = ProjectInspector.inspect(connection),
                 build = connection,
                 sessionChannel = SessionServer(scope),
                 scope = scope,
-                actorTypeRepository = ActorTypeStore.open(directory),
+                scanResources = { ResourceScanner.scan(it, hiddenDirectory = actorTypeStore?.generatedPath) },
+                actorTypeRepository = actorTypeStore,
             )
         } catch (exception: Exception) {
             connection.close()

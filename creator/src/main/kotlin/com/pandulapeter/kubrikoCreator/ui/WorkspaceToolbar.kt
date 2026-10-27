@@ -10,66 +10,113 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
+import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_project
 import kubriko.creator.generated.resources.action_play
+import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_stop
+import kubriko.creator.generated.resources.ic_close
+import kubriko.creator.generated.resources.ic_play
+import kubriko.creator.generated.resources.ic_refresh
+import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.session_editing
 import kubriko.creator.generated.resources.session_playing
 import kubriko.creator.generated.resources.session_starting
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun WorkspaceToolbar(
-    projectName: String,
     sessionState: SessionState,
     onPlay: () -> Unit,
     onStop: () -> Unit,
+    onRefresh: () -> Unit,
     onCloseProject: () -> Unit,
 ) = Row(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-    horizontalArrangement = Arrangement.spacedBy(12.dp),
+    modifier = Modifier.fillMaxWidth().height(44.dp).padding(horizontal = 12.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    Text(
-        text = projectName,
-        style = MaterialTheme.typography.titleMedium,
-    )
-    Spacer(Modifier.weight(1f))
+    if (sessionState == SessionState.Idle) {
+        Button(
+            contentPadding = ToolbarButtonPadding,
+            onClick = onPlay,
+        ) {
+            ButtonContent(Res.drawable.ic_play, Res.string.action_play)
+        }
+    } else {
+        FilledTonalButton(
+            contentPadding = ToolbarButtonPadding,
+            onClick = onStop,
+        ) {
+            ButtonContent(Res.drawable.ic_stop, Res.string.action_stop)
+        }
+    }
     sessionState.description()?.let { description ->
+        if (sessionState is SessionState.Starting) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 2.dp,
+            )
+        }
         Text(
             text = stringResource(description),
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    if (sessionState == SessionState.Idle) {
-        Button(onClick = onPlay) {
-            Text(stringResource(Res.string.action_play))
-        }
-    } else {
-        OutlinedButton(onClick = onStop) {
-            Text(stringResource(Res.string.action_stop))
-        }
-    }
-    TextButton(onClick = onCloseProject) {
-        Text(stringResource(Res.string.action_close_project))
-    }
+    Spacer(Modifier.weight(1f))
+    IconActionButton(
+        icon = Res.drawable.ic_refresh,
+        label = Res.string.action_refresh,
+        onClick = onRefresh,
+    )
+    IconActionButton(
+        icon = Res.drawable.ic_close,
+        label = Res.string.action_close_project,
+        onClick = onCloseProject,
+    )
 }
+
+@Composable
+private fun ButtonContent(
+    icon: DrawableResource,
+    label: StringResource,
+) {
+    Icon(
+        modifier = Modifier.size(16.dp),
+        painter = painterResource(icon),
+        contentDescription = null,
+    )
+    Text(
+        modifier = Modifier.padding(start = 6.dp),
+        text = stringResource(label),
+    )
+}
+
+private val ToolbarButtonPadding = PaddingValues(start = 12.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
 
 internal fun SessionState.description() = when (this) {
     SessionState.Idle -> null

@@ -28,9 +28,10 @@ gradle.projectsEvaluated {
                 attributes.attribute(key as Attribute<Any>, runtime.attributes.getAttribute(key)!!)
             }
             withDependencies {
-                val version = runtime.incoming.resolutionResult.allComponents
-                    .mapNotNull { it.moduleVersion }
-                    .firstOrNull { it.group == "io.github.pandulapeter.kubriko" && it.name.startsWith("engine") }
+                // The requested version rather than the resolved one, so that a version that can't be found is reported as such.
+                val version = runtime.incoming.resolutionResult.allDependencies
+                    .mapNotNull { it.requested as? org.gradle.api.artifacts.component.ModuleComponentSelector }
+                    .firstOrNull { it.group == "io.github.pandulapeter.kubriko" && it.module == "engine" }
                     ?.version ?: throw GradleException("${project.path} does not depend on the Kubriko engine.")
                 add(project.dependencies.create("io.github.pandulapeter.kubriko:tool-creator-session:$version"))
             }

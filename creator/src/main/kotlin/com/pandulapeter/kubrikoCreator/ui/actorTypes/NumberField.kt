@@ -9,19 +9,18 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A text field for a number that keeps whatever is being typed, and reports the value whenever it is a valid number.
+ * A field for a number that keeps whatever is being typed, and reports the value whenever it is a valid number.
  */
 @Composable
 internal fun NumberField(
@@ -34,16 +33,15 @@ internal fun NumberField(
     if (parseNumber(text) != value) {
         text = formatNumber(value)
     }
-    OutlinedTextField(
+    CompactTextField(
         modifier = modifier,
         value = text,
         onValueChange = { newText ->
             text = newText
             parseNumber(newText)?.let(onValueChange)
         },
-        label = { Text(stringResource(label)) },
+        label = stringResource(label),
         isError = parseNumber(text) == null,
-        singleLine = true,
     )
 }
 

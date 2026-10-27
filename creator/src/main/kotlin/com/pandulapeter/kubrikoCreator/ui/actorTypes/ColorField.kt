@@ -10,13 +10,14 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ColorHex
+import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_color
 import org.jetbrains.compose.resources.stringResource
@@ -41,22 +43,27 @@ internal fun ColorField(
     modifier: Modifier = Modifier,
 ) = Row(
     modifier = modifier,
-    horizontalArrangement = Arrangement.spacedBy(12.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
     var text by remember { mutableStateOf(ColorHex.format(color)) }
     if (ColorHex.parse(text) != color) {
         text = ColorHex.format(color)
     }
-    Box(Modifier.size(32.dp).background(Color(color), CircleShape))
-    OutlinedTextField(
+    Box(
+        Modifier
+            .size(24.dp)
+            .background(Color(color), CircleShape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
+    )
+    CompactTextField(
+        modifier = Modifier.width(150.dp),
         value = text,
         onValueChange = { newText ->
             text = newText
             ColorHex.parse(newText)?.let(onColorChange)
         },
-        label = { Text(stringResource(Res.string.actor_type_color)) },
+        label = stringResource(Res.string.actor_type_color),
         isError = ColorHex.parse(text) == null,
-        singleLine = true,
     )
 }

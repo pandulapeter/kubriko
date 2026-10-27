@@ -152,6 +152,8 @@ Anything the editor cannot interpret (custom Gradle logic, an unusual layout) lo
 | `.kubriko/actors/*.json` | Editor | Block definitions for block-built Actor types. Committed. |
 | `.kubriko/local/` | Editor | Window layout, recent files, caches. Git-ignored. |
 
+Projects are git repositories by default (section 21).
+
 Both tools can have the project open at once. The editor watches the file system and reloads changed files. Generated files store a content hash; if one
 was edited by hand, the editor stops regenerating it and offers two choices: discard the edit, or convert the Actor type to code.
 
@@ -169,6 +171,11 @@ files; the tree is a view, not a database.
 
 **Simple mode** (the default for templates) shows Scenes, Actor types, Sprites, Sounds, and Music; Blocks only; Run on Desktop and Web. **Advanced mode**
 adds Kotlin files, Kotlin blocks, Managers and Plugins, all export targets, and Gradle output. Switching never changes the project.
+
+**Look and feel:** a desktop app, not a phone app: the whole interface is drawn at 0.85 of Material's size (`ProvideInterfaceScale`,
+as Campfire does), the content extends under the title bar on macOS and Windows through the JetBrains Runtime's custom title bar
+(`window/ExtendedTitleBar.kt`, from Campfire), compact one-line fields and icon buttons with tooltips replace Material's touch-sized ones, and
+every action has an icon (vector drawables in `composeResources/drawable`). A unit test fails on any string or icon that nothing uses.
 
 **Center editors:** Scene (the session's Edit mode, with the Actor type palette), Actor type (section 7), Kotlin code (section 8), and simple viewers for
 sprites, sprite sheets, and audio.
@@ -365,6 +372,7 @@ reviewing and testing; most of the elapsed time is review and hands-on testing.
 | 0. Spikes | Session process started through an init script against an existing project; Tooling API builds with structured errors; `jpackage` of an empty editor. Each spike answers a question in section 17. | 1–2 sessions |
 | 1. Project shell | Templates, opening at levels 0 and 1, resource tree, file watching, basic code editor, Run on Desktop and Web, the session process in Edit mode (scene editor ported into it), Android signed export, host-OS installer export. | About 1 week |
 | 2. Actor types and Blocks | Actor type editor, Events, Block palettes, code generation, Convert to code, generated wiring, Simple mode, the Paddle game template. | About 1 week |
+| Git (alongside 2) | Version control built in, as described in section 21: a repository and first commit for new projects, change markers, commit, history, and discarding changes, then remotes. | 3–5 sessions for the local part |
 | 3. Debugger | Debug agent, Play mode, debugger panels, `debug-overlay`, debug menu deprecation, Showcase migration. | 3–5 sessions |
 | 4. Comforts | Hot reload, `kotlin-lsp`, Android and web debugging, iOS export, generated CI workflow, asset editor extension point. | Open-ended, each item independent |
 
@@ -467,12 +475,14 @@ Done (2026-10-27), not yet released:
   target can't even be configured without it. Verified end to end: the generated project compiled for both targets, its Scene opened in Edit
   mode, and Play mode ran it.
 
-Developing against unreleased modules: `./gradlew publishDesktopPublicationToMavenLocal publishWasmJsPublicationToMavenLocal
-publishKotlinMultiplatformPublicationToMavenLocal -Plibrary.version=0.7.5-creator`, then either a test project that uses that version and
-`mavenLocal()`, or `./gradlew :creator:run -Pcreator.kubrikoVersion=0.7.5-creator -Pcreator.useMavenLocal=true`, which makes new projects use
-them. The separate version keeps local builds from shadowing a real release. `KUBRIKO_CREATOR_INTEGRATION=true
-KUBRIKO_CREATOR_VERSION=0.7.5-creator ./gradlew :creator:test` also generates every template for real and compiles it for every target; it's
-opt-in because it downloads Gradle and every dependency.
+Developing against unreleased modules: until a Kubriko release ships `tool-creator-api` and `tool-creator-session`, projects can only
+resolve them from Maven Local. The `[Desktop] Kubriko Creator` run configuration (`.run/Desktop_Creator.run.xml`) does it all in one go:
+`./gradlew publishDesktopPublicationToMavenLocal publishWasmJsPublicationToMavenLocal publishKotlinMultiplatformPublicationToMavenLocal
+:creator:run -Pcreator.localKubriko=true`. The `creator.localKubriko` property publishes the libraries under `<library.version>-creator`, so
+that they never stand in for a real release in other projects, and bundles that version and `mavenLocal()` into Creator, so the projects it
+creates use them. Without it, Creator uses the released version, and a project whose Kubriko version can't be found says so in the console.
+`KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<that version> ./gradlew :creator:test` also generates every template for real and
+compiles it for every target; it's opt-in because it downloads Gradle and every dependency.
 
 ## 20. Stage 2 progress
 
@@ -500,3 +510,38 @@ generated files, and drag-and-drop from the Block palette (Blocks are added from
 
 Still open from Stage 1: the code editor (minor), Android signed export (with the Android SDK download, which also lets templates gain an Android
 target), desktop installers, downloading a full JDK on first launch.
+
+## 21. Version control (git)
+
+Hobbyists rarely set up version control on their own, and a broken game with no way back is the fastest way to lose one. So git is part of
+Creator from the start, kept to the few things a beginner needs, while the project stays an ordinary git repository that IntelliJ, GitHub
+Desktop, or the command line can work with at the same time.
+
+**Why the formats already fit:** Scenes and Actor type definitions are deterministic JSON (stable key order, fixed number formatting), and
+generated code is deterministic too, so diffs show only what changed. Generated code is committed, so a clone builds without Creator, and
+`.kubriko/local/` is git-ignored.
+
+**Implementation:** [JGit](https://www.eclipse.org/jgit/) (Eclipse Distribution License, BSD-style, so compatible with MPL-2.0), so nobody has to
+install git first and Windows needs nothing extra. If a `git` executable is found it can be offered for operations JGit handles poorly (large
+repositories, some credential helpers), but nothing requires it.
+
+**Local, first:**
+
+- New projects get a repository with a first commit ("Created with Kubriko Creator"); a checkbox on the New project screen can turn it off.
+  Opening a project that has no repository offers to create one, once.
+- The resource tree marks new and changed files, and Actor types and Scenes count as changed when their JSON or generated code did.
+- A Changes panel lists what changed since the last commit, grouped the way the resource tree is (an Actor type's JSON and its generated
+  Kotlin are one entry), with a message field and a Commit button. Discarding an entry's changes restores both files.
+- A History panel lists commits; selecting one shows what it changed, and any version of a Scene or an Actor type can be restored from it.
+- The toolbar shows the current branch. Branches are created and switched from a menu; merging is left to other tools at first.
+- Before a risky operation (Convert to code, deleting an Actor type, upgrading Kubriko), Creator offers to commit first.
+
+**Remotes, second:** publishing to a new GitHub repository, push, and pull (fast-forward only, with a clear message and a pointer to another tool
+when histories have diverged), with credentials kept in the OS keychain. A generated GitHub Actions workflow (section 10) builds on top of this.
+
+**Conflicts:** Creator never writes conflict markers into the JSON it owns. If a pull would conflict, it stops before changing anything and
+explains which files clash.
+
+**Testing:** every operation runs against real temporary repositories in unit tests (JGit needs no installed git), including the "both files
+of an Actor type are one entry" grouping and the deterministic formats that keep diffs small.
+

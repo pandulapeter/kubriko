@@ -7,7 +7,9 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-version = project.findProperty("library.version").toString()
+// Kubriko Creator's development run publishes the libraries to Maven Local under a version of their own, so that they never
+// stand in for a real release in other projects (see creator/DESIGN.md).
+version = project.findProperty("library.version").toString() + if (project.findProperty("creator.localKubriko") == "true") "-creator" else ""
 
 plugins {
     alias(libs.plugins.android.application) apply false
