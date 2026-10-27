@@ -11,12 +11,10 @@
 
 ## Template drift
 
-Template files (`Game.kt`, the build files) belong to the user after creation, yet a newer Creator sometimes needs them to change (collisions
-needed `CollisionManager` in `Game.kt` and the collision plugin in the build). `.kubriko/project.json` records the template version a project
-was created with; when Creator needs something newer, it shows the exact change as a diff, offers to commit first, and applies it only when the
-file still looks like the template produced it, explaining what to add by hand otherwise. A generated `KubrikoWiring.kt` (Managers and Plugins
-from project settings, Scene registry) would shrink what lives in hand-owned files; Manager types (`02-blocks.md`) bring it first, for
-the Managers they generate, and are the first change to go through this flow.
+`templateVersion` and the upgrade flow exist (`template/ProjectUpgrader`, see `../CLAUDE.md` → Commands), with one step: version 2
+passes the generated Managers to Kubriko. Still to do: build files (a plugin a newer Creator needs, as collisions did), steps that
+remove or replace lines rather than add them, and moving more out of hand-owned files into generated ones (the Managers and Plugins
+from project settings, a Scene registry), so that fewer upgrades are needed.
 
 ## Kubriko versions
 

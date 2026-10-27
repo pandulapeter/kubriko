@@ -9,8 +9,9 @@
 -->
 # creator (Kubriko Creator)
 
-A standalone desktop app for making Kubriko games without IntelliJ, inspired by GameMaker 6.1: Actor types are built from Events and Blocks,
-placed in Scenes, and played with one click. This file describes what exists; what is planned lives in `plan/` (start with `plan/README.md`).
+A standalone desktop app for making Kubriko games without IntelliJ, inspired by GameMaker 6.1: Actor types and Manager types are built from
+Events and Blocks, Actors are placed in Scenes, and the game is played with one click. This file describes what exists; what is planned
+lives in `plan/` (start with `plan/README.md`).
 
 ## Running and testing
 
@@ -19,7 +20,8 @@ placed in Scenes, and played with one click. This file describes what exists; wh
   `creator.localKubriko` publishes the libraries to Maven Local as `<library.version>-creator` (so they never shadow a real release) and bundles
   that version and `mavenLocal()` into `creator.properties`, so new projects use them. Without it, projects use the released version.
 - `./gradlew :creator:test` runs the unit tests (also in the `Tests` workflow). `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<version>`
-  additionally generates every template for real and compiles it, plus an Actor type using every Event and Block, for desktop and web.
+  additionally generates every template for real and compiles it, plus an Actor type and two Manager types using every Event and Block (and
+  each other's Properties), for desktop and web.
 - **Every change ships with solid unit tests**: controllers against fakes (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`,
   `FakeGitRepository`), file code against real temporary folders, git against real temporary repositories (JGit needs no installed git),
   sockets over real localhost connections. `StringResourcesTest` fails on any string or icon nothing uses, and on escaped apostrophes.
@@ -53,7 +55,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
 - **Enforced by tests** (`CommandRegistryTest`): every `EditorCommand` class is registered, tool names are snake_case, every
   part of every schema is described, and nothing outside `commands/` opts in to `@EditorMutation`, the `RequiresOptIn` marker on
   every controller and store function that changes the project. A new mutation is marked, so only a command can call it.
-- **Addressing:** Actor types and Scenes by name, Events, Blocks, and Scene Actors by index. `commands/CommandTesting.kt`
+- **Addressing:** Actor types, Manager types, and Scenes by name, Events, Blocks, texts, and Scene Actors by index. The Event, Block, and
+  Property commands take either kind of type (their `actorType` input names an Actor type or a Manager type). `commands/CommandTesting.kt`
   (`assertRoundTrip`) checks that a command's inverse reverts it and the inverse of the inverse makes it again.
 - **Properties** (number, text, toggle) are values each Actor keeps: generated as `@Exposed` fields kept in `State`, so the
   Scene editor edits them per Actor, changed by the setNumber / changeNumber / setText / setToggle Blocks, and shown by Log
@@ -72,6 +75,24 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   and initial Property values, at a position relative to the Actor or the Scene), and moveTowardsNearest aims the velocity at
   the closest Actor of a type (a loop over `allActors` by index). Like collision Events, they follow renames, are rejected for
   types that don't exist, and generate a comment for a type deleted later.
+- **Manager types** (`ManagerTypeDefinition`, in `.kubriko/managers`) hold game-wide state, like the score: Properties, Events
+  (gameStarted, everyFrame, keyPressed, timerFinished), and texts shown on top of the game (`ScreenTextDefinition`: placeholders,
+  one of nine places, size, color). Both kinds are a `BlockTypeDefinition` and share one namespace, the edits (`BlockTypeEdits.kt`),
+  the Block editor, and the commands; Blocks and conditions that need an Actor (`BlockKind.needsActor`, the velocity condition) and
+  Actor-only Events are rejected in a Manager and hidden from its palette. Each one becomes a `Manager` subclass whose Properties are
+  Compose state (`mutableFloatStateOf` for numbers, so nothing boxes), whose texts are `BasicText`s in its `Composable`, and whose
+  Events don't run in the Scene editor (`isInSceneEditor`). The generated `KubrikoWiring.createManagers()` creates all of them; the
+  template passes it to `Kubriko.newInstance` in `Game.kt` and to the Scene editor in `GameEntryPoint.kt`.
+- **Reaching a Manager:** the Property Blocks and conditions have an optional `manager`, and Log Blocks and texts show `{Manager.name}`
+  placeholders (`PropertyPlaceholders`). `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the
+  editor's Property choices alike: an Actor looks the Managers it uses up in `onAdded` (a field named after the type, unless a
+  Property has that name), a Manager through `manager<T>()`, and a Manager naming itself means its own Properties. Renaming a
+  Manager type or one of its Properties follows every Block, placeholder, and text of every type.
+- **Template upgrades** (`template/ProjectUpgrader`): the template files belong to the user, so `.kubriko/project.json` records the
+  `templateVersion` they have. When it is older than Creator needs, the workspace shows a notice, and its dialog shows each change as a
+  diff (`LineDiff`), offers to commit first, and applies it (`upgrade_project`; `get_project_upgrade` for the AI) only to a file that
+  still looks like the template's. Files changed too much are listed with what to add by hand, and a file that already uses
+  `KubrikoWiring` counts as done, however it got there. Version 2 is the Manager wiring.
 - **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`): Actors are `typeId` + JSON state, positions live in
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
   Actor type renames its Actors in every Scene. A command that changes the open Scene marks it outdated (or closes it if deleted).
@@ -127,15 +148,15 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
 | `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code). |
-| `actors` | The Block model: `ActorTypeDefinition` / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockKind` (palette + which Events allow a Block), pure edits (`ActorTypeEdits.kt`), `ActorTypeCodeGenerator`, `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
-| `commands`, `commands/actorTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
+| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator` and `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
+| `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
 | `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SceneStore` and `SceneDocument` (Scene files by name). |
-| `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (an Actor type's JSON + generated Kotlin = one change), `GitController`. |
-| `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates Actor types; runs Gradle's `wrapper` task; first git commit), naming and form rules. |
+| `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
+| `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |
-| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/components` | Compose UI. The Actor type editor follows GameMaker's object window: appearance, Event column, the selected Event's Blocks, Block palette. |
+| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/components` | Compose UI. `BlockTypeEditor` follows GameMaker's object window: appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette. |
 | `window` | JetBrains Runtime title bar the content extends under, and the 0.85 interface scale (both from the user's Campfire app). |
 
 ## Conventions specific to Creator
@@ -143,7 +164,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - **Every editor change is a command** with its AI tool and tests (validation, apply, and the inverse round trip); the UI
   dispatches commands rather than calling controllers. Undo and redo: toolbar buttons naming the step, Ctrl+Z / Ctrl+Shift+Z /
   Ctrl+Y (Cmd on macOS).
-- **Beginner-friendly by default:** the Block palette shows one category at a time (`BlockCategory`, tabs like GameMaker's),
+- **Beginner-friendly by default:** the Block palette shows one category at a time (`BlockCategory`, tabs like GameMaker's, without the
+  ones a Manager has no Blocks in),
   Blocks are added by a click (at the end) or dragged (from the palette or by a Block's handle) to where they go
   (`BlockDragState`: an in-window drag, dropped through `add_block` / `move_block`), each Block is a card indented by its
   section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing
