@@ -18,16 +18,22 @@ Actor types, Scenes, console, version control) and action tools (build, play).
 
 ## The MCP server: what's left
 
-The server, one-click setup for Claude Code, Codex, and Gemini CLI, and the game tools exist (`../CLAUDE.md` → AI connection).
-Still to do:
+The server, one-click setup for Claude Code, Codex, and Gemini CLI (one row per shell alias that runs them), the game tools, and the
+step-by-step view of the AI's work (activity bar, follow mode, highlights) exist (`../CLAUDE.md` → AI connection). Still to do:
 
 - Try it with real Claude Code and Codex sessions end to end, and write down what works and what they stumble on; that feeds the
-  eval set below. The Gemini CLI commands come from its documentation and haven't been run yet.
+  eval set below. So far it was driven by scripted MCP calls (`curl`), never by a model. Watch how the activity view paces a real
+  model's bursts of calls. The Gemini CLI commands come from its documentation and haven't been run yet.
 - Claude Desktop and Cursor keep their MCP servers in JSON files rather than behind a CLI, and Claude Desktop only starts local
   servers over stdio (so it needs a bridge such as `mcp-remote`): add them as file-based `AiClient`s once verified.
 - The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the
   running Kubriko instance, which is the debug agent's job (`04-debugger.md`); expose it as a tool once that exists.
-- Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows.
+- Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows. fish lists aliases as
+  `alias name 'value'`, which `ShellAliases` doesn't read yet.
+- The activity view lights Scenes up only in the sidebar (opening one compiles the project), and numbers steps per run of
+  Kubriko Creator. Naming the client (from MCP's `clientInfo`) in the bar could help when two are connected.
+- Checked only through tests and screenshots, never by clicking: the Log Block's message field, the Event move buttons, the New
+  Scene field, undo and redo, and the Connect and Disconnect buttons against a real (non-scratch) Claude Code configuration.
 
 ## Next: in-app assistant panel
 

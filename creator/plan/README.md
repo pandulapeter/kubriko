@@ -14,8 +14,8 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-1. [AI assistant](01-ai-assistant.md) - next. The command registry and its MCP server exist; next is trying them with Claude Code, then an
-   in-app panel with the user's API key. **Every new editor feature lands with its command, its AI tool, and their tests.**
+1. [AI assistant](01-ai-assistant.md) - next. The command registry, its MCP server, one-click setup, the game tools, and the activity view
+   exist; next is trying them with real Claude Code and Codex sessions, then an in-app panel with the user's API key. **Every new editor feature lands with its command, its AI tool, and their tests.**
 2. [Blocks and Actor types](02-blocks.md) - Properties, Timers, on-screen text, sprites, and the rest of the Block set; the Paddle game
    template; Convert to code; drag-and-drop.
 3. [Version control](03-git.md) - sidebar change markers, restoring old versions, branches, remotes.
@@ -86,4 +86,4 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
 2. Whether the Showcase should become editable in Creator.
 3. Whether web export should offer one-click hosting.
 4. Whether Creator may run the user's own Claude Code for its assistant panel, so subscription users need no API key. Calling the API with
-   a subscription is not allowed; see `01-ai-assistant.md` → Step 2 for what the terms say and what to ask Anthropic.
+   a subscription is not allowed; see `01-ai-assistant.md` → in-app assistant panel for what the terms say and what to ask Anthropic.
