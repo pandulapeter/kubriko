@@ -77,5 +77,5 @@ private val BlockDefinition.areNumbersFinite
         is BlockDefinition.SetVelocity -> x.isFinite() && y.isFinite()
         is BlockDefinition.AddToVelocity -> x.isFinite() && y.isFinite()
         is BlockDefinition.JumpTo -> x.isFinite() && y.isFinite()
-        BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> true
+        BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
     }

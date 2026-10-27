@@ -78,8 +78,16 @@ internal sealed interface BlockDefinition {
     data object RemoveOther : BlockDefinition
 
     @Serializable
+    @SerialName("log")
+    @Description("Writes a line to Kubriko Creator's console while the game runs, with the Actor type as its source. The way to see what happens in the game: println doesn't reach the console.")
+    data class Log(
+        @Description("The text of the line.")
+        @SerialName("message") val message: String = "",
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("kotlin")
-    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), color, actorManager, and viewportManager.")
+    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), color, actorManager, and viewportManager. println doesn't reach the console; use the log Block, or Logger.log.")
     data class Kotlin(
         @Description("The Kotlin statements.")
         @SerialName("code") val code: String = "",

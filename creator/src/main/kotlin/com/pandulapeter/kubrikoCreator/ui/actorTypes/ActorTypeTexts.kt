@@ -22,6 +22,7 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_bounce
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_collision
+import kubriko.creator.generated.resources.ic_console
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edge
 import kubriko.creator.generated.resources.ic_keyboard
@@ -72,6 +73,7 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.REMOVE_SELF -> Res.drawable.ic_delete
         BlockKind.BOUNCE_OFF_OTHER -> Res.drawable.ic_bounce
         BlockKind.REMOVE_OTHER -> Res.drawable.ic_remove_other
+        BlockKind.LOG -> Res.drawable.ic_console
         BlockKind.KOTLIN -> Res.drawable.ic_code
     }
 

@@ -94,25 +94,35 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun everyBlockBecomesItsStatement() {
-        assertEquals(listOf("velocity = SceneOffset(1.5f.sceneUnit, -2f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.SetVelocity(1.5f, -2f), EventType.EVERY_FRAME))
-        assertEquals(listOf("velocity += SceneOffset(0f.sceneUnit, 3f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.AddToVelocity(0f, 3f), EventType.EVERY_FRAME))
-        assertEquals(listOf("velocity = SceneOffset.Zero"), ActorTypeCodeGenerator.blockLines(BlockDefinition.Stop, EventType.EVERY_FRAME))
-        assertEquals(listOf("body.position = SceneOffset(-10f.sceneUnit, 10f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.JumpTo(-10f, 10f), EventType.EVERY_FRAME))
-        assertEquals(listOf("actorManager.remove(this)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.RemoveSelf, EventType.EVERY_FRAME))
-        assertEquals(4, ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EDGE_TOUCHED).size)
+        assertEquals(listOf("velocity = SceneOffset(1.5f.sceneUnit, -2f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.SetVelocity(1.5f, -2f), EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("velocity += SceneOffset(0f.sceneUnit, 3f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.AddToVelocity(0f, 3f), EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("velocity = SceneOffset.Zero"), ActorTypeCodeGenerator.blockLines(BlockDefinition.Stop, EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("body.position = SceneOffset(-10f.sceneUnit, 10f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.JumpTo(-10f, 10f), EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("actorManager.remove(this)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.RemoveSelf, EventType.EVERY_FRAME, "Ball"))
+        assertEquals(4, ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EDGE_TOUCHED, "Ball").size)
     }
 
     @Test
     fun bouncingOutsideTheEdgeEventLeavesOnlyAnExplanation() {
-        val lines = ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EVERY_FRAME)
+        val lines = ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EVERY_FRAME, "Ball")
         assertTrue(lines.all { it.startsWith("//") }, lines.toString())
+    }
+
+    @Test
+    fun logBlocksWriteToKubrikosLoggerWithTheActorTypeAsTheirSource() {
+        assertEquals(
+            listOf("Logger.log(message = \"Say \\\"\\\$hi\\\" \\\\ to\\neveryone\", source = \"Ball\")"),
+            ActorTypeCodeGenerator.blockLines(BlockDefinition.Log("Say \"\$hi\" \\ to\neveryone"), EventType.EVERY_FRAME, "Ball"),
+        )
+        assertContains(generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("Hello")))), "import com.pandulapeter.kubriko.logger.Logger")
+        assertFalse("Logger" in generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop))))
     }
 
     @Test
     fun kotlinBlocksAreInsertedVerbatimInAScopeOfTheirOwn() {
         assertEquals(
             listOf("run {", "    val speed = velocity.x", "", "    if (speed > 0f.sceneUnit) {", "        velocity = SceneOffset.Zero", "    }", "}"),
-            ActorTypeCodeGenerator.blockLines(BlockDefinition.Kotlin("\n\nval speed = velocity.x   \n\nif (speed > 0f.sceneUnit) {\n    velocity = SceneOffset.Zero\n}\n\n"), EventType.EVERY_FRAME),
+            ActorTypeCodeGenerator.blockLines(BlockDefinition.Kotlin("\n\nval speed = velocity.x   \n\nif (speed > 0f.sceneUnit) {\n    velocity = SceneOffset.Zero\n}\n\n"), EventType.EVERY_FRAME, "Ball"),
         )
         assertContains(
             generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("velocity = SceneOffset.Zero\nprintln(1)")))),
@@ -122,7 +132,7 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun anEmptyKotlinBlockGeneratesNothing() {
-        assertEquals(emptyList(), ActorTypeCodeGenerator.blockLines(BlockDefinition.Kotlin(" \n "), EventType.EVERY_FRAME))
+        assertEquals(emptyList(), ActorTypeCodeGenerator.blockLines(BlockDefinition.Kotlin(" \n "), EventType.EVERY_FRAME, "Ball"))
     }
 
     @Test
@@ -219,14 +229,14 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun collisionBlocksOutsideACollisionEventLeaveOnlyAnExplanation() {
         listOf(BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther).forEach { block ->
-            val lines = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME)
+            val lines = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Ball")
             assertTrue(lines.all { it.startsWith("//") }, lines.toString())
         }
     }
 
     @Test
     fun bouncingOffAnotherActorIsScopedSoItCanBeUsedTwiceInOneEvent() {
-        val lines = ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffOther, EventType.COLLISION)
+        val lines = ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffOther, EventType.COLLISION, "Ball")
         assertEquals("run {", lines.first())
         assertEquals("}", lines.last())
     }

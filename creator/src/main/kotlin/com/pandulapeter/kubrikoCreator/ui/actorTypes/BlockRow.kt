@@ -34,6 +34,7 @@ import kubriko.creator.generated.resources.action_move_down
 import kubriko.creator.generated.resources.action_move_up
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.block_parameter_code
+import kubriko.creator.generated.resources.block_parameter_message
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
 import kubriko.creator.generated.resources.block_velocity_unit
@@ -104,6 +105,12 @@ private fun InlineParameters(
     is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
+    is BlockDefinition.Log -> CompactTextField(
+        modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+        value = block.message,
+        onValueChange = { onBlockChange(block.copy(message = it)) },
+        placeholder = stringResource(Res.string.block_parameter_message),
+    )
     BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> Unit
 }
 

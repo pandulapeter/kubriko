@@ -70,6 +70,7 @@
     <string name="block_remove_self">Remove this Actor</string>
     <string name="block_bounce_off_other">Bounce off it</string>
     <string name="block_remove_other">Remove the other Actor</string>
+    <string name="block_log">Write to the console</string>
     <string name="block_kotlin">Run Kotlin code</string>
     <string name="resource_group_actor_types">Actor types</string>
     <string name="new_actor_type_hint">New Actor type name</string>
@@ -98,6 +99,7 @@
     <string name="block_parameter_x">X</string>
     <string name="block_parameter_y">Y</string>
     <string name="block_parameter_code">Kotlin code</string>
+    <string name="block_parameter_message">Message</string>
     <string name="block_velocity_unit">units per second</string>
     <string name="key_left">Left arrow</string>
     <string name="key_right">Right arrow</string>

@@ -77,6 +77,7 @@ class ProjectTemplateIntegrationTest {
                 BlockDefinition.RemoveSelf,
                 BlockDefinition.BounceOffOther,
                 BlockDefinition.RemoveOther,
+                BlockDefinition.Log(message = "Say \"\$hi\" \\ to\neveryone"),
                 BlockDefinition.Kotlin(code = "val speed = velocity.x\nif (speed > 0f.sceneUnit) velocity = SceneOffset.Zero"),
             )
             when (type) {

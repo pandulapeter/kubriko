@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
@@ -68,7 +69,7 @@ class JsonSchemaTest {
     fun sealedTypesBecomeOneSchemaPerSubclassTellingThemApartByType() {
         val block = JsonSchema.of(AddBlock.Input.serializer().descriptor)["properties"]!!.jsonObject["block"]!!.jsonObject
         val options = block["oneOf"]!!.jsonArray.map { it.jsonObject }
-        assertEquals(9, options.size)
+        assertEquals(BlockKind.entries.size, options.size)
         val setVelocity = options.single { it["properties"]!!.jsonObject["type"]!!.jsonObject["const"]!!.jsonPrimitive.content == "setVelocity" }
         assertEquals(listOf("type"), setVelocity["required"]!!.jsonArray.map { it.jsonPrimitive.content })
         assertEquals(listOf("type", "x", "y"), setVelocity["properties"]!!.jsonObject.keys.toList())
