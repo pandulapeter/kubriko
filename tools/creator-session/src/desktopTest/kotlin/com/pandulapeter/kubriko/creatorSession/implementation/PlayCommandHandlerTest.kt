@@ -19,7 +19,9 @@ import java.awt.event.KeyEvent
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class PlayCommandHandlerTest {
     private val received = mutableListOf<String>()
@@ -51,6 +53,25 @@ class PlayCommandHandlerTest {
             listOf("press ${KeyEvent.getKeyText(KeyEvent.VK_LEFT)}", "press ${KeyEvent.getKeyText(KeyEvent.VK_SPACE)}", "wait 250", "release ${KeyEvent.getKeyText(KeyEvent.VK_SPACE)}", "release ${KeyEvent.getKeyText(KeyEvent.VK_LEFT)}"),
             received,
         )
+    }
+
+    @Test
+    fun aFocusedWindowIsNotWaitedFor() {
+        assertTrue(handler.awaitFocus { true })
+        assertEquals(emptyList(), sleeps)
+    }
+
+    @Test
+    fun focusThatArrivesLaterIsWaitedForAndGivenTimeToReachKubriko() {
+        var checks = 0
+        assertTrue(handler.awaitFocus { ++checks > 3 })
+        assertEquals(listOf(20L, 20L, 20L, 100L), sleeps)
+    }
+
+    @Test
+    fun focusThatNeverArrivesIsReportedAfterTwoSeconds() {
+        assertFalse(handler.awaitFocus { false })
+        assertEquals(2000L, sleeps.sum())
     }
 
     @Test

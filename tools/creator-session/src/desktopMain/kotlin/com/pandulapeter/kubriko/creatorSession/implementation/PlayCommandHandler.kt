@@ -51,11 +51,16 @@ internal class PlayCommandHandler(
             is SessionCommand.BringToFront -> {
                 val window = requireWindow()
                 onEventThread { bringToFront(window) }
+                awaitFocus { window.isFocused }
                 SessionMessage.CommandDone(command.id)
             }
             is SessionCommand.PressKeys -> {
                 val keyCodes = command.keys.map { name -> keyCodeOf(name) ?: throw CommandException("There's no key called $name.") }
-                pressKeys(requireWindow(), keyCodes, command.durationInMilliseconds)
+                val window = requireWindow()
+                if (!awaitFocus { window.isFocused }) throw CommandException(
+                    "The game's window didn't get the keyboard focus, so no keys were pressed. Another app may have taken it; try again.",
+                )
+                pressKeys(window, keyCodes, command.durationInMilliseconds)
                 SessionMessage.CommandDone(command.id)
             }
             is SessionCommand.CaptureScreen -> {
@@ -77,6 +82,25 @@ internal class PlayCommandHandler(
         keyCodes.forEach { onEventThread { dispatchKey(source, KeyEvent.KEY_PRESSED, it) } }
         sleep(durationInMilliseconds.coerceAtLeast(0))
         keyCodes.asReversed().forEach { onEventThread { dispatchKey(source, KeyEvent.KEY_RELEASED, it) } }
+    }
+
+    /**
+     * Waits up to [FOCUS_TIMEOUT_IN_MILLISECONDS] for [isFocused], since focus arrives some time after it's requested and
+     * Kubriko ignores keys while the window isn't focused.
+     *
+     * @return Whether the window has the focus.
+     */
+    internal fun awaitFocus(isFocused: () -> Boolean): Boolean {
+        if (isFocused()) return true
+        repeat((FOCUS_TIMEOUT_IN_MILLISECONDS / FOCUS_POLL_INTERVAL_IN_MILLISECONDS).toInt()) {
+            sleep(FOCUS_POLL_INTERVAL_IN_MILLISECONDS)
+            if (isFocused()) {
+                // AWT knows about the focus a frame or two before Compose passes it on to Kubriko's StateManager.
+                sleep(FOCUS_SETTLE_TIME_IN_MILLISECONDS)
+                return true
+            }
+        }
+        return false
     }
 
     private fun requireWindow() = findWindow() ?: throw CommandException("The game has no window yet.")
@@ -122,6 +146,9 @@ internal class PlayCommandHandler(
     private class CommandException(message: String) : Exception(message)
 
     companion object {
+        private const val FOCUS_TIMEOUT_IN_MILLISECONDS = 2000L
+        private const val FOCUS_POLL_INTERVAL_IN_MILLISECONDS = 20L
+        private const val FOCUS_SETTLE_TIME_IN_MILLISECONDS = 100L
 
         /**
          * The code of the `java.awt.event.KeyEvent` key called `VK_[name]`, or null if there is none.
