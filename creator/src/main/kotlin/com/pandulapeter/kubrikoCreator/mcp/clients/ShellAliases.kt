@@ -14,11 +14,21 @@ package com.pandulapeter.kubrikoCreator.mcp.clients
  */
 internal object ShellAliases {
 
+    /**
+     * The aliases in the output of a shell's `alias` command: `name='value'` (zsh), `alias name='value'` (bash), or
+     * `alias name 'value'` (fish, whose quoting differs).
+     */
     fun parse(output: String): Map<String, String> = output.lines().mapNotNull { line ->
-        val definition = line.trim().removePrefix("alias ").trim()
-        val separator = definition.indexOf('=')
-        if (separator <= 0) return@mapNotNull null
-        definition.substring(0, separator) to unquote(definition.substring(separator + 1))
+        val trimmed = line.trim()
+        val definition = trimmed.removePrefix("alias ").trim()
+        val space = definition.indexOfFirst { it.isWhitespace() }
+        val equalsSign = definition.indexOf('=')
+        val isFish = trimmed.startsWith("alias ") && space > 0 && (equalsSign < 0 || space < equalsSign)
+        when {
+            isFish -> definition.substring(0, space) to unquote(definition.substring(space + 1).trim(), isFish = true)
+            equalsSign > 0 -> definition.substring(0, equalsSign) to unquote(definition.substring(equalsSign + 1))
+            else -> null
+        }
     }.toMap()
 
     /**
@@ -31,16 +41,21 @@ internal object ShellAliases {
         .orEmpty()
 
     /**
-     * [text] as a POSIX shell reads it: quotes removed, escapes resolved.
+     * [text] as a POSIX shell (or, with [isFish], fish) reads it: quotes removed, escapes resolved. Fish differs only in
+     * single quotes, where `\'` and `\\` are escapes.
      */
-    internal fun unquote(text: String) = buildString {
+    internal fun unquote(text: String, isFish: Boolean = false) = buildString {
         var index = 0
         while (index < text.length) {
             when (val character = text[index]) {
                 '\'' -> {
-                    val end = text.indexOf('\'', index + 1).let { if (it < 0) text.length else it }
-                    append(text, index + 1, end)
-                    index = end + 1
+                    index++
+                    while (index < text.length && text[index] != '\'') {
+                        if (isFish && text[index] == '\\' && index + 1 < text.length && text[index + 1] in fishSingleQuoteEscapes) index++
+                        append(text[index])
+                        index++
+                    }
+                    index++
                 }
                 '"' -> {
                     index++
@@ -64,5 +79,6 @@ internal object ShellAliases {
     }
 
     private val whitespace = Regex("\\s+")
+    private val fishSingleQuoteEscapes = setOf('\'', '\\')
     private val prefixes = setOf("env", "exec", "command")
 }

@@ -74,7 +74,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - **One-click clients** (`mcp/clients`): `AiClient` lists the supported tools (Claude Code, Codex, Gemini CLI), each a CLI with
   `mcp add` / `get` / `remove` at user scope; Codex can't send headers, so it gets the token in the URL. `AiClientSetup` is one way
   to run a tool: its usual command, or each shell alias that runs its program (`claude-personal` → "Claude Code (personal)"),
-  found by parsing the shell's `alias` listing (`ShellAliases`); an alias that shadows the usual command with something else hides
+  found by parsing the shell's `alias` listing (`ShellAliases`: zsh, bash, and fish quoting); an alias that shadows the usual command with something else hides
   it. Setups are connected separately and remembered by id (`claudeCode@claude-personal`). `AiClientsController`
   finds the setups, checks which are installed and connected, connects (turning the server on first) and disconnects, and connects them again
   when the port or token changes. `ShellProcessRunner` runs them through the user's shell as an interactive login shell, like a

@@ -33,6 +33,27 @@ class ShellAliasesTest {
     }
 
     @Test
+    fun fishListingsAreReadWithTheirQuoting() {
+        val fish = """
+            alias claude 'echo \'Use specific commands\''
+            alias claude-personal 'CLAUDE_CONFIG_DIR=~/.claude-personal /opt/homebrew/bin/claude'
+            alias codex-work 'env CODEX_HOME=~/.codex-work codex'
+            alias g git
+            alias path 'echo C:\\Users'
+        """.trimIndent()
+        assertEquals(
+            mapOf(
+                "claude" to "echo 'Use specific commands'",
+                "claude-personal" to "CLAUDE_CONFIG_DIR=~/.claude-personal /opt/homebrew/bin/claude",
+                "codex-work" to "env CODEX_HOME=~/.codex-work codex",
+                "g" to "git",
+                "path" to "echo C:\\Users",
+            ),
+            ShellAliases.parse(fish),
+        )
+    }
+
+    @Test
     fun theProgramIsTheFirstWordThatRunsSomething() {
         assertEquals("claude", ShellAliases.programOf("CLAUDE_CONFIG_DIR=~/.claude-personal /opt/homebrew/bin/claude"))
         assertEquals("codex", ShellAliases.programOf("env CODEX_HOME=~/.codex-work codex"))

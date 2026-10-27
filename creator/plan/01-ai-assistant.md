@@ -36,8 +36,8 @@ step-by-step view of the AI's work (activity bar, follow mode, highlights) exist
   servers over stdio (so it needs a bridge such as `mcp-remote`): add them as file-based `AiClient`s once verified.
 - The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the
   running Kubriko instance, which is the debug agent's job (`04-debugger.md`); expose it as a tool once that exists.
-- Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows. fish lists aliases as
-  `alias name 'value'`, which `ShellAliases` doesn't read yet.
+- Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows. fish's `alias name 'value'`
+  listing is read as its `alias.fish` prints it, but has never been tried with a real fish.
 - The activity view lights Scenes up only in the sidebar (opening one compiles the project), and numbers steps per run of
   Kubriko Creator. Naming the client (from MCP's `clientInfo`) in the bar could help when two are connected.
 - Checked only through tests and screenshots, never by clicking: the Log Block's message field, the Event move buttons, the New
