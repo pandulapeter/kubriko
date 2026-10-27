@@ -44,6 +44,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_mcp_no_project
 import kubriko.creator.generated.resources.mcp_tool_done
 import org.jetbrains.compose.resources.getString
@@ -136,16 +137,26 @@ internal class McpToolServer(
     }
 
     private suspend fun runTool(toolName: String, arguments: JsonObject): CallToolResult {
-        val outcome = withContext(callDispatcher) { executor()?.call(toolName, arguments) }
-        val image = (outcome as? CommandOutcome.Success)?.image
+        val outcome = try {
+            withContext(callDispatcher) { executor()?.call(toolName, arguments) }
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (throwable: Throwable) {
+            // Left to the SDK, the client would only see the message, which for a missing class is just its name.
+            return result(toolName, arguments, getString(Res.string.error_mcp_internal, throwable.toString()), isError = true)
+        }
         val (result, isError) = when (outcome) {
             null -> getString(Res.string.error_mcp_no_project) to true
             is CommandOutcome.Success -> (if (outcome.result == JsonNull) getString(Res.string.mcp_tool_done) else outcome.result.toString()) to false
             is CommandOutcome.Rejected -> getString(outcome.rejection.reason, *outcome.rejection.arguments.toTypedArray()) to true
         }
-        _calls.update { (it + McpToolCall(toolName, arguments.toString(), result, isError)).takeLast(LOG_SIZE) }
+        return result(toolName, arguments, result, isError, image = (outcome as? CommandOutcome.Success)?.image)
+    }
+
+    private fun result(toolName: String, arguments: JsonObject, text: String, isError: Boolean, image: ByteArray? = null): CallToolResult {
+        _calls.update { (it + McpToolCall(toolName, arguments.toString(), text, isError)).takeLast(LOG_SIZE) }
         return CallToolResult(
-            content = listOfNotNull(TextContent(result), image?.let { ImageContent(data = Base64.getEncoder().encodeToString(it), mimeType = "image/png") }),
+            content = listOfNotNull(TextContent(text), image?.let { ImageContent(data = Base64.getEncoder().encodeToString(it), mimeType = "image/png") }),
             isError = isError,
         )
     }

@@ -211,6 +211,7 @@
     <string name="new_scene_hint">New Scene name</string>
     <string name="error_command_play_duration_invalid">Play for between 1 and %1$s seconds.</string>
     <string name="error_mcp_no_project">No project is open in Kubriko Creator.</string>
+    <string name="error_mcp_internal">Kubriko Creator ran into an internal error, so nothing was done: %1$s. This is a problem in Kubriko Creator, not in the request.</string>
     <string name="mcp_tool_done">Done.</string>
     <string name="action_toggle_ai_connection">AI connection</string>
     <string name="action_copy">Copy</string>

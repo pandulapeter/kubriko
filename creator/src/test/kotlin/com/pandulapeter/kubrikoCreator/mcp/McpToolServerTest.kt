@@ -55,8 +55,10 @@ class McpToolServerTest {
         httpClient.close()
     }
 
-    private suspend fun TestScope.start(executor: CommandExecutor?): Int {
-        val started = McpToolServer(executor = { executor }, callDispatcher = Dispatchers.Default, version = "1.0.0")
+    private suspend fun TestScope.start(executor: CommandExecutor?): Int = start { executor }
+
+    private suspend fun TestScope.start(executor: () -> CommandExecutor?): Int {
+        val started = McpToolServer(executor = executor, callDispatcher = Dispatchers.Default, version = "1.0.0")
         server = started
         return withContext(Dispatchers.IO) { started.start(port = 0, token = token) }
     }
@@ -115,6 +117,18 @@ class McpToolServerTest {
         assertEquals("create_actor_type", logged.toolName)
         assertEquals("""{"name":"Ball"}""", logged.arguments)
         assertTrue(logged.isError)
+    }
+
+    @Test
+    fun internalErrorsSayWhatWentWrongAndAreLogged() = runTest {
+        val port = start { throw NoClassDefFoundError("com/example/Missing") }
+        val result = connected(port) { callTool("list_scenes", emptyMap()) }
+        assertEquals(true, result.isError)
+        assertEquals(
+            "Kubriko Creator ran into an internal error, so nothing was done: java.lang.NoClassDefFoundError: com/example/Missing. This is a problem in Kubriko Creator, not in the request.",
+            (result.content.single() as TextContent).text,
+        )
+        assertTrue(server!!.calls.value.single().isError)
     }
 
     @Test
