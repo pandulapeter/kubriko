@@ -137,6 +137,21 @@ class McpToolServerTest {
     }
 
     @Test
+    fun clientsThatCantSendHeadersCanPassTheTokenInTheUrl() = runTest {
+        val port = start(executor = null)
+        val tools = withContext(Dispatchers.IO) {
+            val client = Client(Implementation(name = "test", version = "1.0.0"))
+            client.connect(StreamableHttpClientTransport(httpClient, "http://127.0.0.1:$port/mcp?token=$token"))
+            try {
+                client.listTools().tools
+            } finally {
+                client.close()
+            }
+        }
+        assertEquals(CommandRegistry.editor.tools.size, tools.size)
+    }
+
+    @Test
     fun stoppingFreesThePort() = runTest {
         val port = start(executor = null)
         server!!.stop()

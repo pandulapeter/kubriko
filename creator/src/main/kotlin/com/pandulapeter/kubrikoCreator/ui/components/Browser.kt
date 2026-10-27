@@ -7,9 +7,11 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.mcp
+package com.pandulapeter.kubrikoCreator.ui.components
 
-/**
- * The command that connects Claude Code to Kubriko Creator with these settings.
- */
-internal fun McpSettings.claudeCodeCommand() = "claude mcp add --transport http ${McpToolServer.SERVER_NAME} $url --header \"Authorization: Bearer $token\""
+import java.awt.Desktop
+import java.net.URI
+
+internal fun openInBrowser(url: String) {
+    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) Desktop.getDesktop().browse(URI(url))
+}

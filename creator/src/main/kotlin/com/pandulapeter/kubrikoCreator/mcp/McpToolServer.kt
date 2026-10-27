@@ -54,7 +54,7 @@ import java.security.MessageDigest
 /**
  * Serves the command registry as MCP tools over Streamable HTTP on localhost, so that AI clients (Claude Code, for
  * example) can work on the open project with the same validated commands the user has. Every request needs the
- * token as a bearer token.
+ * token, as a bearer token or, for clients that can't send headers, as the [TOKEN_PARAMETER] query parameter.
  *
  * @param executor The command executor of the open project, or null if none is open.
  * @param callDispatcher Where tool calls run: the main thread, which the command history is confined to.
@@ -84,10 +84,12 @@ internal class McpToolServer(
         // Binding first keeps a taken port from failing inside the engine's own coroutines, which only report it as uncaught.
         if (port != 0) ServerSocket(port, 1, InetAddress.getByName(HOST)).close()
         val expectedAuthorization = "Bearer $token".toByteArray()
+        val expectedToken = token.toByteArray()
         val started = embeddedServer(CIO, host = HOST, port = port) {
             intercept(ApplicationCallPipeline.Plugins) {
                 val authorization = call.request.headers[HttpHeaders.Authorization].orEmpty().toByteArray()
-                if (!MessageDigest.isEqual(authorization, expectedAuthorization)) {
+                val queryToken = call.request.queryParameters[TOKEN_PARAMETER].orEmpty().toByteArray()
+                if (!MessageDigest.isEqual(authorization, expectedAuthorization) && !MessageDigest.isEqual(queryToken, expectedToken)) {
                     call.respond(HttpStatusCode.Unauthorized)
                     finish()
                 }
@@ -145,6 +147,7 @@ internal class McpToolServer(
     companion object {
         const val HOST = "127.0.0.1"
         const val PATH = "/mcp"
+        const val TOKEN_PARAMETER = "token"
         const val SERVER_NAME = "kubriko-creator"
         private const val LOG_SIZE = 200
         private val INSTRUCTIONS = """

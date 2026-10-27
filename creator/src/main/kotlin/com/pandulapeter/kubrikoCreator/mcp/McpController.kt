@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp
 
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -49,15 +50,33 @@ internal class McpController(
         return true
     }
 
+    fun setClientConnected(client: AiClient, isConnected: Boolean) = updateStored(
+        _settings.value.copy(connectedClients = if (isConnected) _settings.value.connectedClients + client else _settings.value.connectedClients - client),
+    )
+
+    /**
+     * Runs [command] for [client] from now on, or its usual program if it is blank.
+     */
+    fun setClientCommand(client: AiClient, command: String) = updateStored(
+        _settings.value.copy(clientCommands = if (command.isBlank()) _settings.value.clientCommands - client else _settings.value.clientCommands + (client to command.trim())),
+    )
+
     /**
      * Replaces the token, so that clients set up with the old one can no longer connect.
      */
     fun regenerateToken() = update(_settings.value.copy(token = store.newToken()))
 
     private fun update(settings: McpSettings) {
+        updateStored(settings)
+        apply(settings)
+    }
+
+    /**
+     * Keeps settings that don't change how the server runs.
+     */
+    private fun updateStored(settings: McpSettings) {
         _settings.value = settings
         scope.launch(ioDispatcher) { store.save(settings) }
-        apply(settings)
     }
 
     private fun apply(settings: McpSettings) {

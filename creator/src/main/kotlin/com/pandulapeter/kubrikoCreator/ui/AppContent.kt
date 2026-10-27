@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.AppScreen
 import com.pandulapeter.kubrikoCreator.mcp.McpController
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import kubriko.creator.generated.resources.Res
@@ -39,6 +40,7 @@ internal fun AppContent(
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
     mcp: McpController,
+    aiClients: AiClientsController,
 ) = Surface(
     modifier = Modifier.fillMaxSize(),
     color = MaterialTheme.colorScheme.surface,
@@ -62,6 +64,7 @@ internal fun AppContent(
                 onOpenProject = onOpenProject,
                 onCloseProject = onCloseProject,
                 mcp = mcp,
+                aiClients = aiClients,
             )
         }
     }
@@ -78,6 +81,7 @@ private fun ScreenContent(
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
     mcp: McpController,
+    aiClients: AiClientsController,
 ) {
     when (screen) {
         is AppScreen.Welcome -> WelcomeScreen(
@@ -102,6 +106,7 @@ private fun ScreenContent(
         is AppScreen.Workspace -> WorkspaceScreen(
             controller = screen.controller,
             mcp = mcp,
+            aiClients = aiClients,
             onCloseProject = onCloseProject,
         )
     }

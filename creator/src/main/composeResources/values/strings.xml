@@ -225,8 +225,20 @@
     <string name="ai_connection_port">Port</string>
     <string name="ai_connection_port_invalid">Use a port between %1$s and %2$s.</string>
     <string name="ai_connection_token">Token</string>
-    <string name="ai_connection_claude_code">Connect Claude Code by running this in a terminal:</string>
     <string name="ai_connection_note">Changes made through the AI connection show up here as they happen, and can be undone like your own. Anyone with the token can change the open project, so keep it to yourself.</string>
     <string name="ai_connection_calls">Tool calls</string>
     <string name="ai_connection_calls_empty">No AI client has used a tool yet.</string>
+    <string name="action_connect">Connect</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="action_install">Install</string>
+    <string name="action_apply_command">Use this command</string>
+    <string name="ai_connection_clients">Connect an AI tool</string>
+    <string name="ai_connection_other">Other tools that support MCP over HTTP can connect to this address:</string>
+    <string name="ai_connection_advanced">Advanced</string>
+    <string name="ai_client_checking">Checking…</string>
+    <string name="ai_client_not_installed">Not installed</string>
+    <string name="ai_client_not_connected">Not connected</string>
+    <string name="ai_client_connected">Connected. New %1$s sessions can work on the open project.</string>
+    <string name="ai_client_failed">Couldn't connect: %1$s</string>
+    <string name="ai_client_command">The command that runs %1$s</string>
 </resources>

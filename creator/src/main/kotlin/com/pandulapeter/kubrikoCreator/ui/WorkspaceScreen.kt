@@ -45,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
@@ -65,6 +66,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun WorkspaceScreen(
     controller: WorkspaceController,
     mcp: McpController,
+    aiClients: AiClientsController,
     onCloseProject: () -> Unit,
 ) {
     val resources by controller.resources.collectAsState()
@@ -157,10 +159,15 @@ internal fun WorkspaceScreen(
                     modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                     settings = mcp.settings.collectAsState().value,
                     state = mcpState,
+                    clientStatuses = aiClients.statuses.collectAsState().value,
                     calls = mcp.calls.collectAsState().value,
                     onEnabledChange = mcp::setEnabled,
+                    onRefreshClients = aiClients::refresh,
+                    onConnect = aiClients::connect,
+                    onDisconnect = aiClients::disconnect,
                     onPortChange = mcp::setPort,
                     onRegenerateToken = mcp::regenerateToken,
+                    onCommandChange = aiClients::setCommand,
                 )
             }
             if (openPanel == SidePanel.VERSION_CONTROL) {

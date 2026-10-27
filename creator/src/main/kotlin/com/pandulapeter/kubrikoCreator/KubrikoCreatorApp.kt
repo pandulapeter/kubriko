@@ -26,6 +26,8 @@ import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
+import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
 import com.pandulapeter.kubrikoCreator.ui.AppContent
 import com.pandulapeter.kubrikoCreator.ui.LocalAppWindow
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
@@ -65,6 +67,7 @@ fun main(args: Array<String>) {
                 ioDispatcher = Dispatchers.IO,
             )
         }
+        val aiClients = remember { AiClientsController(mcp = mcp, runner = ShellProcessRunner(), scope = scope, ioDispatcher = Dispatchers.IO) }
         val screen by controller.screen.collectAsState()
         val recentProjects by controller.recentProjects.collectAsState()
         val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
@@ -105,6 +108,7 @@ fun main(args: Array<String>) {
                                 onOpenProject = controller::openProject,
                                 onCloseProject = controller::closeProject,
                                 mcp = mcp,
+                                aiClients = aiClients,
                             )
                         }
                     }
