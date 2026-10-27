@@ -85,4 +85,5 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
    `tool-creator-api` and `tool-creator-session`).
 2. Whether the Showcase should become editable in Creator.
 3. Whether web export should offer one-click hosting.
-4. Whether a Claude.ai subscription may be used from inside Creator (check Anthropic's current terms; MCP sidesteps it).
+4. Whether Creator may run the user's own Claude Code for its assistant panel, so subscription users need no API key. Calling the API with
+   a subscription is not allowed; see `01-ai-assistant.md` → Step 2 for what the terms say and what to ask Anthropic.

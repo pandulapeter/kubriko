@@ -21,11 +21,29 @@ Actor types, Scenes, console, version control) and action tools (build, play).
 Creator serves its command registry over MCP on localhost (Streamable HTTP, behind a per-session token shown in the UI), so Claude Desktop
 and Claude Code drive the open project with the user's own subscription while Creator shows every change live. Each tool call goes through
 `CommandExecutor.call` on the main dispatcher (the history is confined to it); rejections are resolved to text with `getString`. Verify the
-Kotlin MCP SDK's current API before implementing. Settings: on/off, the port, the token, and a log of every tool call.
+Kotlin MCP SDK's current API before implementing (`io.modelcontextprotocol:kotlin-sdk-server`, 0.15.0 in October 2026: Ktor-based, Streamable
+HTTP supported, no Ktor engine pulled in, so Creator adds one). Settings: on/off, the port, the token, and a log of every tool call.
 
 ## Step 2: in-app assistant panel
 
-A chat panel next to the editor, using the user's API key (OS keychain) through Anthropic's Java SDK (Kotlin uses it directly).
+A chat panel next to the editor, behind a small backend interface, so it can talk to Claude in either of two ways:
+
+- **The user's API key** (the default): Anthropic's Java SDK (`com.anthropic:anthropic-java`, 3.3.0 in October 2026), called from Kotlin
+  directly, with `CommandRegistry.editor.tools` as its tools. The key lives in the OS keychain (`java-keyring` covers the macOS Keychain,
+  Windows Credential Manager, and the Linux Secret Service, but its last release is from 2023, so check it still works on current JDKs, or
+  use JNA directly; macOS only protects the item from other apps when Creator ships as a signed app bundle with its own runtime).
+- **The user's own Claude Code**, for subscription users, if Anthropic confirms it is allowed (see below): Creator runs the user's installed,
+  unmodified `claude` in headless mode with streamed JSON in and out, pointed at Creator's MCP server (Step 1), and shows its messages in
+  the panel. The user signs in through Claude Code's own flow; Creator never sees their credentials.
+
+**What the terms allow** (Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) page, read
+October 2026): third-party apps may not offer Claude.ai login, route requests through a user's Free, Pro, or Max plan, or collect Claude.ai
+credentials, and products built on the Agent SDK must use API keys. So Creator can't call the API with a subscription itself, and the Agent
+SDK (which has no JVM version anyway) doesn't change that. The same page does allow an end user to sign in to the unmodified Claude Code
+binary with their own subscription where a product runs it, but running Claude Code in a product requires agreeing to the Commercial Terms
+of Service. Whether that applies to a free, open-source desktop app running a copy the user installed themselves is unclear: ask Anthropic
+(the page points to sales) before building the second backend. MCP (Step 1) needs no such answer, since the user's own Claude client
+makes the requests.
 
 - Model: Claude Opus 5.5 by default, with a selector (the user pays). Streaming, adaptive thinking, prompt caching on the tool list and the
   system prompt (Kubriko's concepts plus the generated Block catalog), refusal handling.
