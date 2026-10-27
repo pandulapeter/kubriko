@@ -9,23 +9,29 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.withBlockAdded
 import com.pandulapeter.kubrikoCreator.actors.withBlockMoved
 import com.pandulapeter.kubrikoCreator.actors.withBlockRemoved
@@ -36,20 +42,16 @@ import com.pandulapeter.kubrikoCreator.actors.withEventOtherActorType
 import com.pandulapeter.kubrikoCreator.actors.withEventRemoved
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_add_event
 import kubriko.creator.generated.resources.action_delete_actor_type
-import kubriko.creator.generated.resources.actor_type_appearance
-import kubriko.creator.generated.resources.actor_type_events
-import kubriko.creator.generated.resources.actor_type_events_empty
 import kubriko.creator.generated.resources.actor_type_regenerated
 import kubriko.creator.generated.resources.ic_actor_type
-import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_delete
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Edits a block-built Actor type: how it looks, and which Blocks run on which Events.
+ * Edits a block-built Actor type in GameMaker's arrangement: its appearance, the column of its Events, the Blocks of
+ * the selected Event in the order they run, and the palette of Blocks to add.
  */
 @Composable
 internal fun ActorTypeEditor(
@@ -61,91 +63,97 @@ internal fun ActorTypeEditor(
     onDiscardChangesMadeByHand: () -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
-    modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 16.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
+    modifier = modifier,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            modifier = Modifier.size(22.dp),
-            painter = painterResource(Res.drawable.ic_actor_type),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            modifier = Modifier.weight(1f),
-            text = definition.name,
-            style = MaterialTheme.typography.titleLarge,
-        )
-        IconActionButton(
-            icon = Res.drawable.ic_delete,
-            label = Res.string.action_delete_actor_type,
-            onClick = onDelete,
-        )
-    }
+    var requestedEventIndex by remember(definition.name) { mutableStateOf<Int?>(null) }
+    val eventIndex = selectedEventIndex(requestedEventIndex, definition.events.size)
+    val event = eventIndex?.let { definition.events[it] }
+    Header(
+        definition = definition,
+        onDelete = onDelete,
+    )
     if (isChangedByHand) {
         ChangedByHandNotice(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             actorTypeName = definition.name,
             onDiscard = onDiscardChangesMadeByHand,
         )
     }
-    Text(
-        modifier = Modifier.widthIn(max = 640.dp),
-        text = stringResource(Res.string.actor_type_regenerated),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    SectionTitle(stringResource(Res.string.actor_type_appearance))
-    AppearanceSection(
-        definition = definition,
-        onChange = onChange,
-    )
+    HorizontalDivider()
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().weight(1f),
     ) {
-        SectionTitle(
-            modifier = Modifier.weight(1f),
-            text = stringResource(Res.string.actor_type_events),
+        AppearanceColumn(
+            modifier = Modifier.width(210.dp).fillMaxHeight(),
+            definition = definition,
+            onChange = onChange,
         )
-        MenuButton(
-            label = stringResource(Res.string.action_add_event),
-            icon = Res.drawable.ic_add,
-            options = EventType.entries,
-            optionText = { stringResource(it.title) },
-            optionIcon = { it.icon },
-            onSelected = { onChange(definition.withEventAdded(it)) },
+        VerticalDivider()
+        EventList(
+            modifier = Modifier.width(260.dp).fillMaxHeight(),
+            events = definition.events,
+            selectedIndex = eventIndex,
+            onSelected = { requestedEventIndex = it },
+            onAdded = { type ->
+                onChange(definition.withEventAdded(type))
+                requestedEventIndex = definition.events.size
+            },
+            onRemoved = { index ->
+                onChange(definition.withEventRemoved(index))
+                if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
+            },
         )
-    }
-    if (definition.events.isEmpty()) {
-        Text(
-            text = stringResource(Res.string.actor_type_events_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    definition.events.forEachIndexed { eventIndex, event ->
-        EventCard(
+        VerticalDivider()
+        EventBlocks(
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             event = event,
             actorTypeNames = actorTypeNames,
-            onKeyChange = { onChange(definition.withEventKey(eventIndex, it)) },
-            onOtherActorTypeChange = { onChange(definition.withEventOtherActorType(eventIndex, it)) },
-            onRemove = { onChange(definition.withEventRemoved(eventIndex)) },
-            onBlockAdded = { onChange(definition.withBlockAdded(eventIndex, it)) },
-            onBlockChange = { blockIndex, block -> onChange(definition.withBlockReplaced(eventIndex, blockIndex, block)) },
-            onBlockMoved = { blockIndex, offset -> onChange(definition.withBlockMoved(eventIndex, blockIndex, offset)) },
-            onBlockRemoved = { onChange(definition.withBlockRemoved(eventIndex, it)) },
+            onKeyChange = { key -> eventIndex?.let { onChange(definition.withEventKey(it, key)) } },
+            onOtherActorTypeChange = { name -> eventIndex?.let { onChange(definition.withEventOtherActorType(it, name)) } },
+            onBlockChange = { blockIndex, block -> eventIndex?.let { onChange(definition.withBlockReplaced(it, blockIndex, block)) } },
+            onBlockMoved = { blockIndex, offset -> eventIndex?.let { onChange(definition.withBlockMoved(it, blockIndex, offset)) } },
+            onBlockRemoved = { blockIndex -> eventIndex?.let { onChange(definition.withBlockRemoved(it, blockIndex)) } },
+        )
+        VerticalDivider()
+        BlockPalette(
+            modifier = Modifier.width(200.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+            eventType = event?.type,
+            onBlockKindSelected = { kind -> eventIndex?.let { onChange(definition.withBlockAdded(it, kind.createDefault())) } },
         )
     }
 }
 
 @Composable
-private fun SectionTitle(
-    text: String,
-    modifier: Modifier = Modifier,
-) = Text(
-    modifier = modifier.padding(top = 8.dp),
-    text = text,
-    style = MaterialTheme.typography.titleMedium,
-)
+private fun Header(
+    definition: ActorTypeDefinition,
+    onDelete: () -> Unit,
+) = Row(
+    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+    horizontalArrangement = Arrangement.spacedBy(10.dp),
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    Icon(
+        modifier = Modifier.size(20.dp),
+        painter = painterResource(Res.drawable.ic_actor_type),
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.primary,
+    )
+    Column(
+        modifier = Modifier.weight(1f),
+    ) {
+        Text(
+            text = definition.name,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            text = stringResource(Res.string.actor_type_regenerated),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    IconActionButton(
+        icon = Res.drawable.ic_delete,
+        label = Res.string.action_delete_actor_type,
+        onClick = onDelete,
+    )
+}

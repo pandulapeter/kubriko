@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -45,7 +44,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * One Block of an Event on a single line: its icon and name, its parameters, and the buttons that rearrange it.
+ * One Block of an Event: its icon and name with the buttons that rearrange it, and its parameters under them.
  */
 @Composable
 internal fun BlockRow(
@@ -72,19 +71,22 @@ internal fun BlockRow(
             tint = MaterialTheme.colorScheme.tertiary,
         )
         Text(
-            modifier = Modifier.width(150.dp),
+            modifier = Modifier.weight(1f),
             text = stringResource(kind.title),
             style = MaterialTheme.typography.bodyMedium,
         )
-        InlineParameters(block, onBlockChange)
-        Spacer(Modifier.weight(1f))
         IconActionButton(icon = Res.drawable.ic_move_up, label = Res.string.action_move_up, onClick = onMoveUp, isEnabled = !isFirst)
         IconActionButton(icon = Res.drawable.ic_move_down, label = Res.string.action_move_down, onClick = onMoveDown, isEnabled = !isLast)
         IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
     }
+    Row(
+        modifier = Modifier.padding(start = 24.dp),
+    ) {
+        InlineParameters(block, onBlockChange)
+    }
     if (block is BlockDefinition.Kotlin) {
         CompactTextField(
-            modifier = Modifier.fillMaxWidth().padding(start = 24.dp).heightIn(min = 72.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 8.dp, bottom = 4.dp).heightIn(min = 72.dp),
             value = block.code,
             onValueChange = { onBlockChange(block.copy(code = it)) },
             placeholder = stringResource(Res.string.block_parameter_code),

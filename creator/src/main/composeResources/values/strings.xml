@@ -75,7 +75,6 @@
     <string name="action_add">Add</string>
     <string name="action_delete_actor_type">Delete Actor type</string>
     <string name="action_add_event">Add Event</string>
-    <string name="action_add_block">Add Block</string>
     <string name="action_remove">Remove</string>
     <string name="action_move_up">Up</string>
     <string name="action_move_down">Down</string>
@@ -87,14 +86,14 @@
     <string name="actor_type_color">Color</string>
     <string name="actor_type_width">Width</string>
     <string name="actor_type_height">Height</string>
-    <string name="actor_type_regenerated">Kubriko Creator keeps this Actor type's Kotlin code up to date. Play the game or edit a Scene to see your changes.</string>
+    <string name="actor_type_regenerated">Kubriko Creator keeps its Kotlin code up to date.</string>
     <string name="event_added_to_scene">When added to the Scene</string>
     <string name="event_every_frame">Every frame</string>
     <string name="event_key_pressed">When a key is pressed</string>
     <string name="event_edge_touched">When an edge of the screen is touched</string>
     <string name="event_collision">When it collides with</string>
     <string name="event_collision_choose">Choose an Actor type</string>
-    <string name="event_blocks_empty">No Blocks yet.</string>
+    <string name="event_blocks_empty">No Blocks yet. Click one in the palette to add it.</string>
     <string name="block_parameter_x">X</string>
     <string name="block_parameter_y">Y</string>
     <string name="block_parameter_code">Kotlin code</string>
@@ -127,4 +126,8 @@
     <string name="action_close_scene">Close the Scene</string>
     <string name="actor_type_changed_by_hand">%1$s.kt was changed outside Kubriko Creator, so Creator stopped updating it. Changes made here won't reach the game until those edits are discarded.</string>
     <string name="action_discard_changes_made_by_hand">Discard the edits</string>
+    <string name="action_remove_event">Remove the Event</string>
+    <string name="event_none_selected">Add an Event, or select one, to see its Blocks.</string>
+    <string name="block_palette">Blocks</string>
+    <string name="block_palette_hint">Select an Event to add Blocks to it.</string>
 </resources>

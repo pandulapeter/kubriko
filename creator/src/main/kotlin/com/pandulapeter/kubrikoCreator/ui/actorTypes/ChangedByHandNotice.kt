@@ -37,8 +37,9 @@ import org.jetbrains.compose.resources.stringResource
 internal fun ChangedByHandNotice(
     actorTypeName: String,
     onDiscard: () -> Unit,
+    modifier: Modifier = Modifier,
 ) = Surface(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth(),
     color = MaterialTheme.colorScheme.tertiaryContainer,
     shape = MaterialTheme.shapes.medium,
 ) {
