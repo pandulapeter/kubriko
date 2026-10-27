@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.commands.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -16,35 +17,26 @@ import kotlinx.serialization.Serializable
  * When an Event's Blocks run.
  */
 @Serializable
+@Description("When an Event happens.")
 internal enum class EventType {
 
-    /**
-     * Once, when the Actor is added to the Scene.
-     */
+    @Description("Once, when the Actor is added to the Scene.")
     @SerialName("addedToScene")
     ADDED_TO_SCENE,
 
-    /**
-     * On every frame, before the Actor moves.
-     */
+    @Description("On every frame, before the Actor moves.")
     @SerialName("everyFrame")
     EVERY_FRAME,
 
-    /**
-     * When the player presses the Event's key.
-     */
+    @Description("When the player presses the Event's key.")
     @SerialName("keyPressed")
     KEY_PRESSED,
 
-    /**
-     * When the Actor reaches an edge of the screen. It is kept inside the screen either way.
-     */
+    @Description("When the Actor reaches an edge of the screen. It is kept inside the screen either way.")
     @SerialName("edgeTouched")
     EDGE_TOUCHED,
 
-    /**
-     * On every frame the Actor overlaps an Actor of the Event's other Actor type, once per overlapping Actor.
-     */
+    @Description("On every frame the Actor overlaps an Actor of the Event's other Actor type, once per overlapping Actor.")
     @SerialName("collision")
     COLLISION,
 }

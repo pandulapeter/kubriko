@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.git.GitState
@@ -69,11 +70,15 @@ internal fun WorkspaceScreen(
     var isConsoleExpanded by remember { mutableStateOf(true) }
     var isVersionControlOpen by remember { mutableStateOf(false) }
     val gitState by controller.git.state.collectAsState()
+    val history by controller.commands.history.collectAsState()
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> if (isUndo) controller.commands.undo() else controller.commands.redo() } != null },
     ) {
         WorkspaceToolbar(
             sessionState = sessionState,
+            history = history,
+            onUndo = controller.commands::undo,
+            onRedo = controller.commands::redo,
             branch = (gitState as? GitState.Ready)?.branch,
             isVersionControlOpen = isVersionControlOpen,
             onVersionControlToggled = {
@@ -101,7 +106,7 @@ internal fun WorkspaceScreen(
                     controller.sceneEditing.close()
                     actorTypesController?.select(it)
                 },
-                onCreateActorType = { actorTypesController?.create(it) },
+                onCreateActorType = { name -> controller.createActorType(name) },
             )
             VerticalDivider()
             val centerModifier = Modifier.weight(1f).fillMaxHeight()
@@ -127,9 +132,7 @@ internal fun WorkspaceScreen(
                     definition = selectedActorType,
                     actorTypeNames = actorTypes.map { it.name },
                     isChangedByHand = selectedActorType.name in actorTypesChangedByHand,
-                    onChange = actorTypesController::update,
-                    onDelete = { actorTypesController.delete(selectedActorType.name) },
-                    onDiscardChangesMadeByHand = { actorTypesController.discardChangesMadeByHand(selectedActorType.name) },
+                    onCommand = { controller.commands.dispatch(it) },
                 )
             } else if (sceneEditing == SceneEditingState.Closed) {
                 WorkspaceHint(

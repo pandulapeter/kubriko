@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_appearance
@@ -37,7 +38,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AppearanceColumn(
     definition: ActorTypeDefinition,
-    onChange: (ActorTypeDefinition) -> Unit,
+    onChange: (SetAppearance.Input) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
@@ -56,26 +57,26 @@ internal fun AppearanceColumn(
             ActorShape.entries.forEach { shape ->
                 FilterChip(
                     selected = definition.shape == shape,
-                    onClick = { onChange(definition.copy(shape = shape)) },
+                    onClick = { onChange(SetAppearance.Input(definition.name, shape = shape)) },
                     label = { Text(stringResource(shape.title)) },
                 )
             }
         }
         ColorField(
             color = definition.color,
-            onColorChange = { onChange(definition.copy(color = it)) },
+            onColorChange = { onChange(SetAppearance.Input(definition.name, color = it)) },
         )
         NumberField(
             modifier = Modifier.fillMaxWidth(),
             label = Res.string.actor_type_width,
             value = definition.width,
-            onValueChange = { if (it > 0f) onChange(definition.copy(width = it)) },
+            onValueChange = { if (it > 0f) onChange(SetAppearance.Input(definition.name, width = it)) },
         )
         NumberField(
             modifier = Modifier.fillMaxWidth(),
             label = Res.string.actor_type_height,
             value = definition.height,
-            onValueChange = { if (it > 0f) onChange(definition.copy(height = it)) },
+            onValueChange = { if (it > 0f) onChange(SetAppearance.Input(definition.name, height = it)) },
         )
     }
 }

@@ -24,6 +24,8 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_actor_type_name_invalid
+import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
@@ -269,16 +271,37 @@ class WorkspaceControllerTest {
         var scanCount = 0
         val controller = createController(scanResources = { scanCount++; emptyMap() }, actorTypeRepository = FakeActorTypeRepository())
         assertEquals(2, scanCount)
-        controller.actorTypes!!.create("Player")
+        assertNull(controller.createActorType("Player"))
         assertEquals(3, scanCount)
+        assertEquals("Player", controller.actorTypes!!.selectedName.value)
     }
 
     @Test
     fun aFailedActorTypeSaveIsReportedInTheConsole() = runTest {
         val controller = createController(actorTypeRepository = FakeActorTypeRepository().apply { isFailing = true })
         controller.clearConsole()
-        controller.actorTypes!!.create("Player")
+        controller.createActorType("Player")
         assertEquals(listOf(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)), controller.console.value)
+    }
+
+    @Test
+    fun anActorTypeNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
+        val controller = createController(actorTypeRepository = FakeActorTypeRepository())
+        assertEquals(Res.string.error_actor_type_name_invalid, controller.createActorType("ball game"))
+        assertTrue(controller.actorTypes!!.actorTypes.value.isEmpty())
+        assertNull(controller.commands.history.value.nextUndoTitle)
+    }
+
+    @Test
+    fun rejectedUndoStepsAreReportedInTheConsole() = runTest {
+        val repository = FakeActorTypeRepository()
+        val controller = createController(actorTypeRepository = repository)
+        controller.createActorType("Player")
+        repository.stored.clear()
+        controller.onProjectChanged(setOf(ProjectChange.ACTOR_TYPE_DEFINITIONS))
+        controller.clearConsole()
+        controller.commands.undo()
+        assertEquals(listOf(ConsoleEntry.Status(Res.string.error_command_actor_type_missing, isError = true, arguments = listOf("Player"))), controller.console.value)
     }
 
     @Test

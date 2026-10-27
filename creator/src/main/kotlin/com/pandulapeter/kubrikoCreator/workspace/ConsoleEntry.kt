@@ -18,10 +18,13 @@ internal sealed interface ConsoleEntry {
 
     /**
      * Something Kubriko Creator itself reports, such as a session starting or ending.
+     *
+     * @param arguments The values of the [text]'s placeholders.
      */
     data class Status(
         val text: StringResource,
         val isError: Boolean = false,
+        val arguments: List<String> = emptyList(),
     ) : ConsoleEntry
 
     /**

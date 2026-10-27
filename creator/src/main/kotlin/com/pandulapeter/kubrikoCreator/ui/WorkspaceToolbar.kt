@@ -29,19 +29,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
+import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_project
 import kubriko.creator.generated.resources.action_play
+import kubriko.creator.generated.resources.action_redo
+import kubriko.creator.generated.resources.action_redo_named
 import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_stop
 import kubriko.creator.generated.resources.action_toggle_version_control
+import kubriko.creator.generated.resources.action_undo
+import kubriko.creator.generated.resources.action_undo_named
 import kubriko.creator.generated.resources.ic_branch
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_play
+import kubriko.creator.generated.resources.ic_redo
 import kubriko.creator.generated.resources.ic_refresh
 import kubriko.creator.generated.resources.ic_stop
+import kubriko.creator.generated.resources.ic_undo
 import kubriko.creator.generated.resources.session_editing
 import kubriko.creator.generated.resources.session_playing
 import kubriko.creator.generated.resources.session_starting
@@ -53,6 +60,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun WorkspaceToolbar(
     sessionState: SessionState,
+    history: CommandHistory,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
     branch: String?,
     isVersionControlOpen: Boolean,
     onVersionControlToggled: () -> Unit,
@@ -94,6 +104,11 @@ internal fun WorkspaceToolbar(
         )
     }
     Spacer(Modifier.weight(1f))
+    HistoryButtons(
+        history = history,
+        onUndo = onUndo,
+        onRedo = onRedo,
+    )
     if (isVersionControlOpen) {
         FilledTonalButton(
             contentPadding = ToolbarButtonPadding,
@@ -118,6 +133,26 @@ internal fun WorkspaceToolbar(
         icon = Res.drawable.ic_close,
         label = Res.string.action_close_project,
         onClick = onCloseProject,
+    )
+}
+
+@Composable
+private fun HistoryButtons(
+    history: CommandHistory,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+) {
+    IconActionButton(
+        icon = Res.drawable.ic_undo,
+        label = history.nextUndoTitle?.let { stringResource(Res.string.action_undo_named, stringResource(it)) } ?: stringResource(Res.string.action_undo),
+        onClick = onUndo,
+        isEnabled = history.nextUndoTitle != null,
+    )
+    IconActionButton(
+        icon = Res.drawable.ic_redo,
+        label = history.nextRedoTitle?.let { stringResource(Res.string.action_redo_named, stringResource(it)) } ?: stringResource(Res.string.action_redo),
+        onClick = onRedo,
+        isEnabled = history.nextRedoTitle != null,
     )
 }
 

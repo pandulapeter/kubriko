@@ -48,7 +48,7 @@ internal fun EventBlocks(
     onKeyChange: (KeyChoice) -> Unit,
     onOtherActorTypeChange: (String) -> Unit,
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
-    onBlockMoved: (blockIndex: Int, offset: Int) -> Unit,
+    onBlockMoved: (blockIndex: Int, targetIndex: Int) -> Unit,
     onBlockRemoved: (blockIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
@@ -113,8 +113,8 @@ internal fun EventBlocks(
                 isFirst = index == 0,
                 isLast = index == event.blocks.lastIndex,
                 onBlockChange = { onBlockChange(index, it) },
-                onMoveUp = { onBlockMoved(index, -1) },
-                onMoveDown = { onBlockMoved(index, 1) },
+                onMoveUp = { onBlockMoved(index, index - 1) },
+                onMoveDown = { onBlockMoved(index, index + 1) },
                 onRemove = { onBlockRemoved(index) },
             )
         }

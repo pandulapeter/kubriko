@@ -12,7 +12,12 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
+import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.git.GitRepository
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
@@ -45,6 +50,7 @@ import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
 import kubriko.creator.generated.resources.status_unsupported_protocol
+import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -101,6 +107,29 @@ internal class WorkspaceController(
             },
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
         )
+    }
+
+    /**
+     * Every change to the project goes through here, so that it can be undone, and the AI can make it too.
+     */
+    val commands = CommandExecutor(
+        context = CommandContext(
+            actorTypes = actorTypes,
+        ),
+        scope = scope,
+        onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
+    )
+
+    /**
+     * Creates an empty Actor type and selects it.
+     *
+     * @return Why [name] can't be used, or null if the Actor type is being created.
+     */
+    fun createActorType(name: String): StringResource? {
+        val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
+        commands.validate(invocation)?.let { return it.reason }
+        commands.dispatch(invocation) { actorTypes?.select(name) }
+        return null
     }
 
     val git = GitController(

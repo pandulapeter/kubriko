@@ -10,8 +10,9 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeNaming
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
+import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.StringResource
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -64,26 +64,18 @@ internal class ActorTypesController(
         _selectedName.value = name
     }
 
-    /**
-     * Creates an empty Actor type and selects it.
-     *
-     * @return Why [name] can't be used, or null if the Actor type was created.
-     */
-    fun create(name: String): StringResource? {
-        ActorTypeNaming.validate(name, _actorTypes.value.map { it.name })?.let { return it }
-        update(ActorTypeDefinition(name = name))
-        _selectedName.value = name
-        return null
-    }
+    operator fun get(name: String) = _actorTypes.value.firstOrNull { it.name == name }
 
     /**
-     * Replaces the Actor type of the same name.
+     * Adds [definition], or replaces the Actor type of the same name.
      */
-    fun update(definition: ActorTypeDefinition) {
+    @EditorMutation
+    fun put(definition: ActorTypeDefinition) {
         _actorTypes.update { actorTypes -> (actorTypes.filter { it.name != definition.name } + definition).sortedBy { it.name } }
         write { repository.save(definition) }
     }
 
+    @EditorMutation
     fun delete(name: String) {
         _actorTypes.update { actorTypes -> actorTypes.filter { it.name != name } }
         if (_selectedName.value == name) _selectedName.value = null
@@ -91,8 +83,27 @@ internal class ActorTypesController(
     }
 
     /**
+     * Renames [oldName] to [newName], in the collision Events that refer to it too, keeping it selected if it was.
+     */
+    @EditorMutation
+    fun rename(oldName: String, newName: String) {
+        val renamed = _actorTypes.value.mapNotNull { definition ->
+            when {
+                definition.name == oldName -> definition.copy(name = newName).withOtherActorTypeRenamed(oldName, newName)
+                definition.events.any { it.otherActorType == oldName } -> definition.withOtherActorTypeRenamed(oldName, newName)
+                else -> null
+            }
+        }
+        _actorTypes.update { actorTypes -> (actorTypes.filter { definition -> definition.name != oldName && renamed.none { it.name == definition.name } } + renamed).sortedBy { it.name } }
+        if (_selectedName.value == oldName) _selectedName.value = newName
+        renamed.forEach { definition -> write { repository.save(definition) } }
+        write { repository.delete(oldName) }
+    }
+
+    /**
      * Throws away the changes made by hand to [name]'s generated code, so that Kubriko Creator updates it again.
      */
+    @EditorMutation
     fun discardChangesMadeByHand(name: String) = write { repository.regenerateAll(overwriting = setOf(name)) }
 
     /**

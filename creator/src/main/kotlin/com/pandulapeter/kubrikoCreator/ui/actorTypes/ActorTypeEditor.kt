@@ -32,14 +32,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.withBlockAdded
-import com.pandulapeter.kubrikoCreator.actors.withBlockMoved
-import com.pandulapeter.kubrikoCreator.actors.withBlockRemoved
-import com.pandulapeter.kubrikoCreator.actors.withBlockReplaced
-import com.pandulapeter.kubrikoCreator.actors.withEventAdded
-import com.pandulapeter.kubrikoCreator.actors.withEventKey
-import com.pandulapeter.kubrikoCreator.actors.withEventOtherActorType
-import com.pandulapeter.kubrikoCreator.actors.withEventRemoved
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveBlock
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_delete_actor_type
@@ -58,25 +63,24 @@ internal fun ActorTypeEditor(
     definition: ActorTypeDefinition,
     actorTypeNames: List<String>,
     isChangedByHand: Boolean,
-    onChange: (ActorTypeDefinition) -> Unit,
-    onDelete: () -> Unit,
-    onDiscardChangesMadeByHand: () -> Unit,
+    onCommand: (Invocation<*>) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
 ) {
+    val name = definition.name
     var requestedEventIndex by remember(definition.name) { mutableStateOf<Int?>(null) }
     val eventIndex = selectedEventIndex(requestedEventIndex, definition.events.size)
     val event = eventIndex?.let { definition.events[it] }
     Header(
         definition = definition,
-        onDelete = onDelete,
+        onDelete = { onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name))) },
     )
     if (isChangedByHand) {
         ChangedByHandNotice(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             actorTypeName = definition.name,
-            onDiscard = onDiscardChangesMadeByHand,
+            onDiscard = { onCommand(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name))) },
         )
     }
     HorizontalDivider()
@@ -86,7 +90,7 @@ internal fun ActorTypeEditor(
         AppearanceColumn(
             modifier = Modifier.width(210.dp).fillMaxHeight(),
             definition = definition,
-            onChange = onChange,
+            onChange = { onCommand(Invocation(SetAppearance, it)) },
         )
         VerticalDivider()
         EventList(
@@ -95,11 +99,15 @@ internal fun ActorTypeEditor(
             selectedIndex = eventIndex,
             onSelected = { requestedEventIndex = it },
             onAdded = { type ->
-                onChange(definition.withEventAdded(type))
+                onCommand(Invocation(AddEvent, AddEvent.Input(name, type)))
                 requestedEventIndex = definition.events.size
             },
+            onMoved = { index, targetIndex ->
+                onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
+                requestedEventIndex = targetIndex
+            },
             onRemoved = { index ->
-                onChange(definition.withEventRemoved(index))
+                onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
                 if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
             },
         )
@@ -108,17 +116,17 @@ internal fun ActorTypeEditor(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             event = event,
             actorTypeNames = actorTypeNames,
-            onKeyChange = { key -> eventIndex?.let { onChange(definition.withEventKey(it, key)) } },
-            onOtherActorTypeChange = { name -> eventIndex?.let { onChange(definition.withEventOtherActorType(it, name)) } },
-            onBlockChange = { blockIndex, block -> eventIndex?.let { onChange(definition.withBlockReplaced(it, blockIndex, block)) } },
-            onBlockMoved = { blockIndex, offset -> eventIndex?.let { onChange(definition.withBlockMoved(it, blockIndex, offset)) } },
-            onBlockRemoved = { blockIndex -> eventIndex?.let { onChange(definition.withBlockRemoved(it, blockIndex)) } },
+            onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
+            onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
+            onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
+            onBlockMoved = { blockIndex, targetIndex -> eventIndex?.let { onCommand(Invocation(MoveBlock, MoveBlock.Input(name, it, blockIndex, targetIndex))) } },
+            onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
         )
         VerticalDivider()
         BlockPalette(
             modifier = Modifier.width(200.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
             eventType = event?.type,
-            onBlockKindSelected = { kind -> eventIndex?.let { onChange(definition.withBlockAdded(it, kind.createDefault())) } },
+            onBlockKindSelected = { kind -> eventIndex?.let { onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault()))) } },
         )
     }
 }

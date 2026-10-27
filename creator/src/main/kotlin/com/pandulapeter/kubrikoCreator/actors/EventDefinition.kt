@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.commands.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -20,9 +21,14 @@ import kotlinx.serialization.Serializable
  *   one is chosen.
  */
 @Serializable
+@Description("Something an Actor reacts to, with the Blocks it runs when it happens.")
 internal data class EventDefinition(
+    @Description("When the Event happens.")
     @SerialName("type") val type: EventType,
+    @Description("The key a keyPressed Event reacts to. Only keyPressed Events have one.")
     @SerialName("key") val key: KeyChoice? = null,
+    @Description("The Actor type a collision Event reacts to overlapping. Only collision Events have one.")
     @SerialName("otherActorType") val otherActorType: String? = null,
+    @Description("The Blocks the Event runs, in order.")
     @SerialName("blocks") val blocks: List<BlockDefinition> = emptyList(),
 )

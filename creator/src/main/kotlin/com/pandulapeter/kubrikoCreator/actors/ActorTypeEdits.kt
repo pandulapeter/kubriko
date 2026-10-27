@@ -9,12 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-/**
- * The changes the Actor type editor can make, as pure functions returning the changed definition. Out-of-range
- * indices leave the definition unchanged.
- */
-internal fun ActorTypeDefinition.withEventAdded(type: EventType) = copy(
-    events = events + EventDefinition(type = type, key = if (type == EventType.KEY_PRESSED) KeyChoice.SPACE else null),
+internal fun ActorTypeDefinition.withEventInserted(eventIndex: Int, event: EventDefinition) = copy(
+    events = events.toMutableList().apply { add(eventIndex.coerceIn(0, size), event) },
 )
 
 internal fun ActorTypeDefinition.withEventRemoved(eventIndex: Int) = if (eventIndex in events.indices) {
@@ -23,11 +19,19 @@ internal fun ActorTypeDefinition.withEventRemoved(eventIndex: Int) = if (eventIn
     this
 }
 
+internal fun ActorTypeDefinition.withEventMoved(eventIndex: Int, targetIndex: Int) = if (eventIndex in events.indices) {
+    copy(events = events.moved(eventIndex, targetIndex))
+} else {
+    this
+}
+
 internal fun ActorTypeDefinition.withEventKey(eventIndex: Int, key: KeyChoice) = withEvent(eventIndex) { it.copy(key = key) }
 
-internal fun ActorTypeDefinition.withEventOtherActorType(eventIndex: Int, actorTypeName: String) = withEvent(eventIndex) { it.copy(otherActorType = actorTypeName) }
+internal fun ActorTypeDefinition.withEventOtherActorType(eventIndex: Int, actorTypeName: String?) = withEvent(eventIndex) { it.copy(otherActorType = actorTypeName) }
 
-internal fun ActorTypeDefinition.withBlockAdded(eventIndex: Int, block: BlockDefinition) = withEvent(eventIndex) { it.copy(blocks = it.blocks + block) }
+internal fun ActorTypeDefinition.withBlockInserted(eventIndex: Int, blockIndex: Int, block: BlockDefinition) = withEvent(eventIndex) { event ->
+    event.copy(blocks = event.blocks.toMutableList().apply { add(blockIndex.coerceIn(0, size), block) })
+}
 
 internal fun ActorTypeDefinition.withBlockReplaced(eventIndex: Int, blockIndex: Int, block: BlockDefinition) = withEvent(eventIndex) { event ->
     if (blockIndex in event.blocks.indices) event.copy(blocks = event.blocks.mapIndexed { index, it -> if (index == blockIndex) block else it }) else event
@@ -37,17 +41,21 @@ internal fun ActorTypeDefinition.withBlockRemoved(eventIndex: Int, blockIndex: I
     event.copy(blocks = event.blocks.filterIndexed { index, _ -> index != blockIndex })
 }
 
-/**
- * Moves a Block by [offset] places within its Event; moves past either end stop at the end.
- */
-internal fun ActorTypeDefinition.withBlockMoved(eventIndex: Int, blockIndex: Int, offset: Int) = withEvent(eventIndex) { event ->
-    if (blockIndex !in event.blocks.indices) return@withEvent event
-    val targetIndex = (blockIndex + offset).coerceIn(event.blocks.indices)
-    event.copy(blocks = event.blocks.toMutableList().apply { add(targetIndex, removeAt(blockIndex)) })
+internal fun ActorTypeDefinition.withBlockMoved(eventIndex: Int, blockIndex: Int, targetIndex: Int) = withEvent(eventIndex) { event ->
+    if (blockIndex in event.blocks.indices) event.copy(blocks = event.blocks.moved(blockIndex, targetIndex)) else event
 }
+
+/**
+ * Every collision Event that names [oldName] names [newName] instead.
+ */
+internal fun ActorTypeDefinition.withOtherActorTypeRenamed(oldName: String, newName: String) = copy(
+    events = events.map { event -> if (event.otherActorType == oldName) event.copy(otherActorType = newName) else event },
+)
 
 private fun ActorTypeDefinition.withEvent(eventIndex: Int, change: (EventDefinition) -> EventDefinition) = if (eventIndex in events.indices) {
     copy(events = events.mapIndexed { index, event -> if (index == eventIndex) change(event) else event })
 } else {
     this
 }
+
+private fun <T> List<T>.moved(index: Int, targetIndex: Int) = toMutableList().apply { add(targetIndex.coerceIn(indices), removeAt(index)) }

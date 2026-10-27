@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.commands.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -18,65 +19,69 @@ import kotlinx.serialization.Serializable
  * Speeds and velocities are in scene units per second.
  */
 @Serializable
+@Description("One statement an Event runs. The type property says which Block it is.")
 internal sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("setVelocity")
+    @Description("Sets the velocity of the Actor, in scene units per second.")
     data class SetVelocity(
+        @Description("The horizontal velocity, positive to the right.")
         @SerialName("x") val x: Float = 0f,
+        @Description("The vertical velocity, positive downwards.")
         @SerialName("y") val y: Float = 0f,
     ) : BlockDefinition
 
     @Serializable
     @SerialName("addToVelocity")
+    @Description("Adds to the velocity of the Actor, in scene units per second.")
     data class AddToVelocity(
+        @Description("Added to the horizontal velocity, positive to the right.")
         @SerialName("x") val x: Float = 0f,
+        @Description("Added to the vertical velocity, positive downwards.")
         @SerialName("y") val y: Float = 0f,
     ) : BlockDefinition
 
     @Serializable
     @SerialName("stop")
+    @Description("Sets the velocity of the Actor to zero.")
     data object Stop : BlockDefinition
 
     @Serializable
     @SerialName("jumpTo")
+    @Description("Moves the Actor to a position in the Scene at once.")
     data class JumpTo(
+        @Description("The horizontal position, where 0 is the center of the Scene.")
         @SerialName("x") val x: Float = 0f,
+        @Description("The vertical position, where 0 is the center of the Scene, positive downwards.")
         @SerialName("y") val y: Float = 0f,
     ) : BlockDefinition
 
-    /**
-     * Only meaningful in an [EventType.EDGE_TOUCHED] Event: turns the velocity away from the touched edge.
-     */
     @Serializable
     @SerialName("bounceOffEdge")
+    @Description("Turns the velocity of the Actor away from the edge of the screen it touched. Only allowed in edgeTouched Events.")
     data object BounceOffEdge : BlockDefinition
 
     @Serializable
     @SerialName("removeSelf")
+    @Description("Removes the Actor from the Scene.")
     data object RemoveSelf : BlockDefinition
 
-    /**
-     * Only meaningful in an [EventType.COLLISION] Event: turns the velocity away from the other Actor, along the axis
-     * it was hit on.
-     */
     @Serializable
     @SerialName("bounceOffOther")
+    @Description("Turns the velocity of the Actor away from the Actor it collided with, along the axis it was hit on. Only allowed in collision Events.")
     data object BounceOffOther : BlockDefinition
 
-    /**
-     * Only meaningful in an [EventType.COLLISION] Event: removes the Actor this one collided with.
-     */
     @Serializable
     @SerialName("removeOther")
+    @Description("Removes the Actor this one collided with from the Scene. Only allowed in collision Events.")
     data object RemoveOther : BlockDefinition
 
-    /**
-     * Kotlin statements inserted verbatim (in a scope of their own), for anything the other Blocks can't express.
-     */
     @Serializable
     @SerialName("kotlin")
+    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), color, actorManager, and viewportManager.")
     data class Kotlin(
+        @Description("The Kotlin statements.")
         @SerialName("code") val code: String = "",
     ) : BlockDefinition
 }

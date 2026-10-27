@@ -33,7 +33,6 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * A compact icon-only button, named by a tooltip and for screen readers by the same [label].
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun IconActionButton(
     icon: DrawableResource,
@@ -42,9 +41,30 @@ internal fun IconActionButton(
     modifier: Modifier = Modifier,
     isEnabled: Boolean = true,
     tint: Color = LocalContentColor.current,
+) = IconActionButton(
+    icon = icon,
+    label = stringResource(label),
+    onClick = onClick,
+    modifier = modifier,
+    isEnabled = isEnabled,
+    tint = tint,
+)
+
+/**
+ * An [IconActionButton] whose [label] is put together at the call site.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun IconActionButton(
+    icon: DrawableResource,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isEnabled: Boolean = true,
+    tint: Color = LocalContentColor.current,
 ) = TooltipArea(
     modifier = modifier,
-    tooltip = { Tooltip(stringResource(label)) },
+    tooltip = { Tooltip(label) },
     delayMillis = 500,
     tooltipPlacement = TooltipPlacement.CursorPoint(offset = DpOffset(0.dp, 16.dp)),
 ) {
@@ -56,7 +76,7 @@ internal fun IconActionButton(
         Icon(
             modifier = Modifier.size(18.dp),
             painter = painterResource(icon),
-            contentDescription = stringResource(label),
+            contentDescription = label,
             tint = if (isEnabled) tint else tint.copy(alpha = 0.38f),
         )
     }

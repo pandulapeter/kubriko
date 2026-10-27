@@ -34,6 +34,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_event
+import kubriko.creator.generated.resources.action_move_down
+import kubriko.creator.generated.resources.action_move_up
 import kubriko.creator.generated.resources.action_remove_event
 import kubriko.creator.generated.resources.actor_type_events
 import kubriko.creator.generated.resources.actor_type_events_empty
@@ -41,6 +43,8 @@ import kubriko.creator.generated.resources.event_collision_choose
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_loop
+import kubriko.creator.generated.resources.ic_move_down
+import kubriko.creator.generated.resources.ic_move_up
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -53,6 +57,7 @@ internal fun EventList(
     selectedIndex: Int?,
     onSelected: (Int) -> Unit,
     onAdded: (EventType) -> Unit,
+    onMoved: (index: Int, targetIndex: Int) -> Unit,
     onRemoved: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
@@ -86,7 +91,11 @@ internal fun EventList(
             EventListItem(
                 event = event,
                 isSelected = index == selectedIndex,
+                isFirst = index == 0,
+                isLast = index == events.lastIndex,
                 onClick = { onSelected(index) },
+                onMoveUp = { onMoved(index, index - 1) },
+                onMoveDown = { onMoved(index, index + 1) },
                 onRemove = { onRemoved(index) },
             )
         }
@@ -97,7 +106,11 @@ internal fun EventList(
 private fun EventListItem(
     event: EventDefinition,
     isSelected: Boolean,
+    isFirst: Boolean,
+    isLast: Boolean,
     onClick: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
     onRemove: () -> Unit,
 ) = Row(
     modifier = Modifier
@@ -132,6 +145,10 @@ private fun EventListItem(
                 maxLines = 1,
             )
         }
+    }
+    if (isSelected) {
+        IconActionButton(icon = Res.drawable.ic_move_up, label = Res.string.action_move_up, onClick = onMoveUp, isEnabled = !isFirst)
+        IconActionButton(icon = Res.drawable.ic_move_down, label = Res.string.action_move_down, onClick = onMoveDown, isEnabled = !isLast)
     }
     IconActionButton(
         icon = Res.drawable.ic_close,

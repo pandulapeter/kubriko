@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.commands.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,15 +18,20 @@ import kotlinx.serialization.Serializable
  *
  * @param name The Actor type's name, which is also its Kotlin class name and its Scene type ID.
  * @param color The Actor's color as `0xAARRGGBB`, stored as `"#RRGGBB"` ([HexColorSerializer]).
- * @param width The default width of a newly placed Actor, in scene units.
- * @param height The default height of a newly placed Actor, in scene units.
  */
 @Serializable
+@Description("A block-built Actor type: how its Actors look, and the Events they react to with Blocks.")
 internal data class ActorTypeDefinition(
+    @Description("The name of the Actor type, and of its generated Kotlin class: an uppercase letter, then letters and numbers.")
     @SerialName("name") val name: String,
+    @Description("The shape its Actors are drawn as.")
     @SerialName("shape") val shape: ActorShape = ActorShape.CIRCLE,
+    @Description("The color its Actors are drawn with, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
     @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long = 0xFF6060AA,
+    @Description("The width of a newly placed Actor, in scene units.")
     @SerialName("width") val width: Float = 80f,
+    @Description("The height of a newly placed Actor, in scene units.")
     @SerialName("height") val height: Float = 80f,
+    @Description("The Events its Actors react to, in order. Each runs its Blocks in order.")
     @SerialName("events") val events: List<EventDefinition> = emptyList(),
 )
