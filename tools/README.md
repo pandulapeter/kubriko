@@ -11,6 +11,8 @@
 This folder contains all the tooling submodules that can be added to games to enhance their development.
 
 ## Modules
+- [creator-api](https://github.com/pandulapeter/kubriko/tree/main/tools/creator-api) - The opt-in contract through which a game works with Kubriko Creator.
+- [creator-session](https://github.com/pandulapeter/kubriko/tree/main/tools/creator-session) - Runs a game's Scenes and the game itself for Kubriko Creator. Added by Kubriko Creator, never declared by games.
 - [debug-menu](https://github.com/pandulapeter/kubriko/tree/main/tools/debug-menu) - Displays a customizable menu with logs and other important information.
 - [debug-menu-api](https://github.com/pandulapeter/kubriko/tree/main/tools/debug-menu-api) - Defines the public API of the Debug Menu.
 - [debug-menu-noop](https://github.com/pandulapeter/kubriko/tree/main/tools/debug-menu-noop) - Blank implementation of the Debug Menu public API.

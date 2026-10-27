@@ -26,6 +26,10 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        maven {
+            url = uri("https://repo.gradle.org/gradle/libs-releases")
+            content { includeGroup("org.gradle") }
+        }
     }
 }
 include(
@@ -34,6 +38,7 @@ include(
     ":app:ios",
     ":app:shared",
     ":app:web",
+    ":creator",
     ":engine",
     ":examples:demo-content-shaders",
     ":examples:demo-isometric-graphics",
@@ -63,6 +68,8 @@ include(
     ":plugins:serialization",
     ":plugins:shaders",
     ":plugins:sprites",
+    ":tools:creator-api",
+    ":tools:creator-session",
     ":tools:debug-menu",
     ":tools:debug-menu-api",
     ":tools:debug-menu-noop",

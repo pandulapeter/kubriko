@@ -34,7 +34,7 @@ jobs:
           java-version: 21
           cache: 'gradle'
       - name: Run unit tests
-        run: ./gradlew desktopTest --continue --no-configuration-cache
+        run: ./gradlew desktopTest :creator:test --continue --no-configuration-cache
       - name: Check the web triangle bridge
         run: node engine/src/webMain/checkTriangleBridge.mjs
       - name: Upload test reports

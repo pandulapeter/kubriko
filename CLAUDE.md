@@ -26,6 +26,7 @@ Requires **JDK 21** (the Kotlin Multiplatform toolchain pins language version 21
 ./gradlew :app:web:wasmJsBrowserDevelopmentRun   # Run the Showcase app in a browser
 ./gradlew :app:android:installDebug   # Install the Showcase app on a connected Android device/emulator
 ./gradlew desktopTest                 # Run the unit tests of every module on the desktop JVM
+./gradlew :creator:test               # Run Kubriko Creator's unit tests (a plain JVM module, so not part of desktopTest)
 node engine/src/webMain/checkTriangleBridge.mjs  # Check the bridge's embedded JS
 ./gradlew :engine:desktopTest --tests "com.pandulapeter.kubriko.KubrikoTest"   # Single test
 ./gradlew publishToMavenCentral --no-configuration-cache   # Publish (CI uses this)
@@ -43,7 +44,7 @@ iOS runs from Xcode / the IDE run configuration (Mac only); there is no `gradlew
 - `library.version` — the published artifact version
 - `showcase.versionName`, `showcase.buildNumber` — the Showcase app's version, shared by every platform; the build number is Android's version code and the iOS `CFBundleVersion`, and has to be raised for every release
 
-**Testing**: `commonTest` runs on the desktop JVM only (the Wasm and iOS test tasks are disabled), so JVM-only APIs go in `desktopTest`. Every module's `desktopTest` already depends on `:tools:test-fixtures` (manual-tick instance, `awaitProcessed`, counting actors, allocation measurement) — use it instead of hand-rolling a harness. Library test classpaths have no native Skia runtime, so tests must not create a real `ImageBitmap` or draw. `KUBRIKO_STRESS=1 ./gradlew :engine:desktopTest` runs the long randomized suites (`ActorLifecycleChurnTest`), as the nightly CI job does. `Tests` (`.github/workflows/tests.yml`) runs `desktopTest` on every pull request, and nightly with `KUBRIKO_STRESS=1`; `[Library] Publish` and `[Showcase] Publish all` call it first and publish nothing when a test fails. `[Showcase] Publish all` (`.github/workflows/showcase-publish-all.yml`) is the Showcase's release: after the tests it calls the Android, iOS, web and desktop publishing workflows side by side, each of which can still be dispatched alone.
+**Testing**: `commonTest` runs on the desktop JVM only (the Wasm and iOS test tasks are disabled), so JVM-only APIs go in `desktopTest`. Every module's `desktopTest` already depends on `:tools:test-fixtures` (manual-tick instance, `awaitProcessed`, counting actors, allocation measurement) — use it instead of hand-rolling a harness. Library test classpaths have no native Skia runtime, so tests must not create a real `ImageBitmap` or draw. `KUBRIKO_STRESS=1 ./gradlew :engine:desktopTest` runs the long randomized suites (`ActorLifecycleChurnTest`), as the nightly CI job does. `Tests` (`.github/workflows/tests.yml`) runs `desktopTest` and `:creator:test` on every pull request, and nightly with `KUBRIKO_STRESS=1`; `[Library] Publish` and `[Showcase] Publish all` call it first and publish nothing when a test fails. `[Showcase] Publish all` (`.github/workflows/showcase-publish-all.yml`) is the Showcase's release: after the tests it calls the Android, iOS, web and desktop publishing workflows side by side, each of which can still be dispatched alone.
 
 ## Module layout
 
@@ -53,6 +54,7 @@ Top-level Gradle areas (each has its own README with details):
 - `plugins/` — opt-in feature modules; each exposes a Manager (sometimes new Traits). Artifacts: `io.github.pandulapeter.kubriko:plugin-<name>`
 - `tools/` — development-time modules not meant to ship to players. Artifacts: `io.github.pandulapeter.kubriko:tool-<name>`
 - `examples/` — the games/demos/tests embedded in the Showcase app; canonical "how to use Kubriko" references.
+- `creator/` — Kubriko Creator, a standalone desktop app (in progress) that opens Kubriko projects, runs them, and edits their Scenes; `creator/DESIGN.md` is the plan, the rest of the folder is the app module (`:creator`). Not published as a library, and nothing under `engine/`, `plugins/`, or `tools/` may depend on it.
 - `app/` — the Showcase shell (menu system + per-platform entry points: `android`, `desktop`, `ios`, `web`, `shared`). Intentionally atypical (runs many Kubriko instances in parallel), so not a best-practices source.
 - `gradle/build-logic/` — an `includeBuild` of convention plugins. **All module build files apply these, not raw Compose/KMP plugins.**
 
@@ -266,6 +268,8 @@ Not for production builds. Swapped in/out via `gradle.properties` flags (`isDebu
 - **`scene-editor-api`** / **`scene-editor-noop`** — same -api/-noop split as debug-menu.
 - **`logger`** (`tool-logger`) — `Logger.log(message, details, source, importance)`. Observable via `Logger.logs: StateFlow`. Already part of the engine's API; no separate dependency needed for basic logging.
 - **`ui-components`** — Compose components for the Kubriko visual style, shared by tools and the Showcase app.
+- **`creator-api`** (`tool-creator-api`) — `CreatorEntryPoint`, found through `ServiceLoader`: how an opted-in game hands Kubriko Creator its `SerializationManager` and the Managers its placeable Actors need.
+- **`creator-session`** (`tool-creator-session`, Desktop only) — the session process Kubriko Creator starts from a project's own classpath through a Gradle init script, at the project's Kubriko version: Edit mode (the Scene editor) and Play mode (the game's own `main`), streaming `Logger` entries back over a localhost line protocol (`SessionProtocol`). Projects never declare it.
 - **`test-fixtures`** (unpublished) — JVM helpers for this repository's own unit tests; every module's `desktopTest` depends on it.
 
 The `Editable` trait from `scene-editor-api` can be combined with `Serializable` for full scene save/load integration.

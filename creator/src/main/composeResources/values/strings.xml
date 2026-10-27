@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+-->
+<resources>
+    <string name="app_name">Kubriko Creator</string>
+    <string name="action_open_project">Open project…</string>
+    <string name="action_close_project">Close project</string>
+    <string name="action_play">Play</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_clear_console">Clear</string>
+    <string name="choose_project_folder">Choose a Kubriko project folder</string>
+    <string name="welcome_subtitle">Open a Kubriko project to run it and edit its Scenes.</string>
+    <string name="opening_project">Opening %1$s…</string>
+    <string name="error_not_a_gradle_project">Kubriko Creator couldn\'t open this folder as a Gradle project.</string>
+    <string name="error_no_desktop_module">None of this project\'s modules can run on desktop.</string>
+    <string name="resource_group_scenes">Scenes</string>
+    <string name="resource_group_sprites">Sprites</string>
+    <string name="resource_group_sounds">Sounds</string>
+    <string name="resource_group_music">Music</string>
+    <string name="resource_group_kotlin">Kotlin files</string>
+    <string name="resource_group_empty">Nothing here yet.</string>
+    <string name="workspace_hint">Click Play to run the game, or click a Scene to edit it. Scenes open in a window of their own.</string>
+    <string name="session_starting">Building…</string>
+    <string name="session_playing">Playing</string>
+    <string name="session_editing">Editing a Scene</string>
+    <string name="console_title">Console</string>
+    <string name="console_with_prefix">%1$s: %2$s</string>
+    <string name="status_building">Building the project…</string>
+    <string name="status_session_started">Session started.</string>
+    <string name="status_session_ended">Session ended.</string>
+    <string name="status_session_stopped">Session stopped.</string>
+    <string name="status_build_failed">The build failed.</string>
+    <string name="status_unsupported_protocol">This version of Kubriko Creator doesn\'t support the project\'s Kubriko version.</string>
+</resources>
