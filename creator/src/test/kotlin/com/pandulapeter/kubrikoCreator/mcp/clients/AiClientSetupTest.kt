@@ -30,12 +30,14 @@ class AiClientSetupTest {
     }
 
     @Test
-    fun anAliasThatShadowsTheUsualCommandHidesItUnlessNothingElseRunsTheTool() {
+    fun anAliasThatShadowsTheUsualCommandIsGonePastSoTheDefaultConfigurationCanStillBeConnected() {
         val shadowing = mapOf("claude" to "echo 'Use claude-personal'")
-        assertEquals(listOf(AiClientSetup(AiClient.CLAUDE_CODE, "claude")), AiClientSetup.discover(shadowing, usual).filter { it.client == AiClient.CLAUDE_CODE })
+        val bypassing = AiClientSetup(AiClient.CLAUDE_CODE, "command claude")
+        assertEquals(listOf(bypassing), AiClientSetup.discover(shadowing, usual).filter { it.client == AiClient.CLAUDE_CODE })
+        assertEquals("claudeCode", bypassing.id)
         val withVariant = shadowing + ("claude-personal" to "CLAUDE_CONFIG_DIR=~/.claude-personal claude")
         assertEquals(
-            listOf(AiClientSetup(AiClient.CLAUDE_CODE, "claude-personal", "personal")),
+            listOf(bypassing, AiClientSetup(AiClient.CLAUDE_CODE, "claude-personal", "personal")),
             AiClientSetup.discover(withVariant, usual).filter { it.client == AiClient.CLAUDE_CODE },
         )
         val wrappingItself = mapOf("claude" to "CLAUDE_CONFIG_DIR=~/.other claude")
@@ -43,12 +45,15 @@ class AiClientSetupTest {
     }
 
     @Test
-    fun aReplacedCommandIsTheUsualSetupAndNotListedTwice() {
-        val aliases = mapOf("claude-personal" to "CLAUDE_CONFIG_DIR=~/.claude-personal claude")
+    fun aReplacedCommandIsListedOnceNextToTheProgramsDefaultConfiguration() {
+        val aliases = mapOf(
+            "claude" to "echo 'Use claude-personal'",
+            "claude-personal" to "CLAUDE_CONFIG_DIR=~/.claude-personal claude",
+        )
         val replaced: (AiClient) -> String = { if (it == AiClient.CLAUDE_CODE) "claude-personal" else it.defaultCommand }
         val setups = AiClientSetup.discover(aliases, replaced).filter { it.client == AiClient.CLAUDE_CODE }
-        assertEquals(listOf(AiClientSetup(AiClient.CLAUDE_CODE, "claude-personal", "personal")), setups)
-        assertEquals("claudeCode@claude-personal", setups.single().id)
+        assertEquals(listOf(AiClientSetup(AiClient.CLAUDE_CODE, "command claude"), AiClientSetup(AiClient.CLAUDE_CODE, "claude-personal", "personal")), setups)
+        assertEquals(listOf("claudeCode", "claudeCode@claude-personal"), setups.map { it.id })
     }
 
     @Test

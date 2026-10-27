@@ -28,12 +28,18 @@ internal class ShellProcessRunner(
     private val environment: Map<String, String> = emptyMap(),
 ) : ProcessRunner {
 
-    override fun exists(command: String) = executableOf(command).let { executable ->
-        run(if (isWindows) listOf("where", executable) else shellCommand("command -v ${quoted(executable)}")).exitCode == 0
+    override fun exists(command: String) = if (isWindows) run(listOf("where", executableOf(command))).exitCode == 0 else lookUp(command).exitCode == 0
+
+    override fun locate(command: String) = if (isWindows) null else lookUp(command).let { result ->
+        result.output.lines().lastOrNull()?.trim()?.takeIf { result.exitCode == 0 && it.startsWith("/") }
     }
 
-    override fun locate(command: String) = if (isWindows) null else run(shellCommand("command -v ${quoted(executableOf(command))}")).let { result ->
-        result.output.lines().lastOrNull()?.trim()?.takeIf { result.exitCode == 0 && it.startsWith("/") }
+    /**
+     * Asks the shell what [command] runs, leaving out an alias of the same name when the command goes past it.
+     */
+    private fun lookUp(command: String) = executableOf(command).let { executable ->
+        val unalias = if (command.trim().startsWith(AiClientSetup.ALIAS_BYPASS)) "unalias ${quoted(executable)} 2>/dev/null; " else ""
+        run(shellCommand("${unalias}command -v ${quoted(executable)}"))
     }
 
     override fun aliases() = if (isWindows) emptyMap() else run(shellCommand("alias")).let { result ->
@@ -76,9 +82,9 @@ internal class ShellProcessRunner(
         val jobControlNotice = Regex("^(\\S+: )?(no job control in this shell|cannot set terminal process group.*|initialize_job_control.*)$")
 
         /**
-         * The program [command] runs: its first word that doesn't set an environment variable.
+         * The program [command] runs: its first word that doesn't set an environment variable or go past aliases.
          */
-        fun executableOf(command: String) = command.trim().split(whitespace).firstOrNull { '=' !in it }.orEmpty()
+        fun executableOf(command: String) = command.trim().removePrefix(AiClientSetup.ALIAS_BYPASS).split(whitespace).firstOrNull { '=' !in it }.orEmpty()
 
         /**
          * Quotes [argument] for a POSIX shell, so that tokens and URLs are passed as they are.

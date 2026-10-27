@@ -23,25 +23,33 @@ internal data class AiClientSetup(
     /**
      * Identifies the setup in the settings, which remember the connected ones.
      */
-    val id get() = if (command == client.defaultCommand) client.id else "${client.id}$SEPARATOR$command"
+    val id get() = if (command == client.defaultCommand || command == ALIAS_BYPASS + client.defaultCommand) client.id else "${client.id}$SEPARATOR$command"
 
     companion object {
         private const val SEPARATOR = "@"
 
         /**
-         * The setups of every AI tool: the usual command (or the user's replacement for it), unless an alias of the same
-         * name runs something else, and every alias that runs the tool's program.
+         * Runs a program even where an alias of the same name runs something else (POSIX shells' `command`).
+         */
+        const val ALIAS_BYPASS = "command "
+
+        /**
+         * The setups of every AI tool: its program with its default configuration (run past an alias of the same name that
+         * runs something else, since apps such as the Claude app use that configuration too), the user's replacement for
+         * its command, and every alias that runs the program.
          */
         fun discover(aliases: Map<String, String>, commandOf: (AiClient) -> String): List<AiClientSetup> = AiClient.entries.flatMap { client ->
+            val program = client.defaultCommand
             val command = commandOf(client)
-            val isShadowed = aliases[command]?.let { ShellAliases.programOf(it) != client.defaultCommand } == true
+            val isShadowed = aliases[program]?.let { ShellAliases.programOf(it) != program } == true
+            val default = AiClientSetup(client, if (isShadowed) ALIAS_BYPASS + program else program)
+            val replacement = AiClientSetup(client, command, variantOf(command, program)).takeIf { command != program }
             val variants = aliases
-                .filter { (name, value) -> name != command && name != client.defaultCommand && ShellAliases.programOf(value) == client.defaultCommand }
+                .filter { (name, value) -> name != command && name != program && ShellAliases.programOf(value) == program }
                 .keys
                 .sorted()
-                .map { name -> AiClientSetup(client, name, variantOf(name, client.defaultCommand)) }
-            val usual = AiClientSetup(client, command, variantOf(command, client.defaultCommand).takeIf { command != client.defaultCommand })
-            if (isShadowed && variants.isNotEmpty()) variants else listOf(usual) + variants
+                .map { name -> AiClientSetup(client, name, variantOf(name, program)) }
+            listOf(default) + listOfNotNull(replacement) + variants
         }
 
         /**

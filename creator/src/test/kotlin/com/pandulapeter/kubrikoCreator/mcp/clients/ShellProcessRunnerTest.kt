@@ -54,6 +54,22 @@ class ShellProcessRunnerTest {
     }
 
     @Test
+    fun aShadowingAliasCanBeGonePast() {
+        if (isWindows || !File("/bin/zsh").canExecute()) return
+        val home = createTempDirectory().toFile()
+        try {
+            File(home, ".zshrc").writeText("alias sh='echo Use something else'\n")
+            val runner = ShellProcessRunner(shell = "/bin/zsh", environment = mapOf("ZDOTDIR" to home.absolutePath))
+            assertEquals("Use something else -c echo real", runner.run("sh", listOf("-c", "echo real")).output.lines().last())
+            assertEquals("real", runner.run("command sh", listOf("-c", "echo real")).output.lines().last())
+            assertEquals("/bin/sh", runner.locate("command sh"))
+            assertTrue(runner.exists("command sh"))
+        } finally {
+            home.deleteRecursively()
+        }
+    }
+
+    @Test
     fun missingProgramsAreReportedAndFailuresKeepTheirOutput() {
         if (isWindows) return
         assertFalse(runner.exists("kubriko-creator-no-such-program"))

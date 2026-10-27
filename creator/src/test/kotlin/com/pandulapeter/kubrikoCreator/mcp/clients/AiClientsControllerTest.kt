@@ -124,7 +124,7 @@ class AiClientsControllerTest {
     }
 
     @Test
-    fun aliasesThatRunAToolAreSetupsOfTheirOwnAndAShadowingAliasHidesTheUsualCommand() = runTest {
+    fun aliasesThatRunAToolAreSetupsOfTheirOwnAndAShadowingAliasIsGonePast() = runTest {
         runner.aliases += mapOf(
             "claude" to "echo 'Use specific commands: claude-flashfood or claude-personal'",
             "claude-personal" to "CLAUDE_CONFIG_DIR=~/.claude-personal /opt/homebrew/bin/claude",
@@ -138,7 +138,7 @@ class AiClientsControllerTest {
         val personal = AiClientSetup(AiClient.CLAUDE_CODE, "claude-personal", "personal")
         controller.awaitStatus(flashfood, AiClientStatus.Connected)
         controller.awaitStatus(personal, AiClientStatus.NotConnected)
-        assertEquals(listOf(flashfood, personal), controller.setups.value.filter { it.client == AiClient.CLAUDE_CODE })
+        assertEquals(listOf(AiClientSetup(AiClient.CLAUDE_CODE, "command claude"), flashfood, personal), controller.setups.value.filter { it.client == AiClient.CLAUDE_CODE })
         controller.connect(personal)
         controller.awaitStatus(personal, AiClientStatus.Connected)
         assertEquals(setOf("claudeCode@claude-personal"), mcp!!.settings.value.connectedClients)
