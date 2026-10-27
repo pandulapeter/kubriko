@@ -44,6 +44,10 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
@@ -61,24 +65,33 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_delete_actor_type
+import kubriko.creator.generated.resources.action_delete_manager_type
+import kubriko.creator.generated.resources.actor_type_properties_empty
 import kubriko.creator.generated.resources.actor_type_regenerated
-import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_delete
+import kubriko.creator.generated.resources.manager_type_properties_empty
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Edits a block-built Actor type in GameMaker's arrangement: its appearance, the column of its Events, the Blocks of
- * the selected Event in the order they run, and the palette of Blocks to add.
+ * Edits a block-built Actor type or Manager type in GameMaker's arrangement: its appearance (or, for a Manager type,
+ * the texts it shows) and Properties, the column of its Events, the Blocks of the selected Event in the order they run,
+ * and the palette of Blocks to add.
+ *
+ * @param scope What its Blocks can refer to.
  */
 @Composable
-internal fun ActorTypeEditor(
-    definition: ActorTypeDefinition,
-    actorTypeNames: List<String>,
+internal fun BlockTypeEditor(
+    definition: BlockTypeDefinition,
+    scope: BlockScope,
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>) -> Unit,
     modifier: Modifier = Modifier,
@@ -109,7 +122,12 @@ internal fun ActorTypeEditor(
         Header(
             flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
             definition = definition,
-            onDelete = { onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name))) },
+            onDelete = {
+                when (definition) {
+                    is ActorTypeDefinition -> onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name)))
+                    is ManagerTypeDefinition -> onCommand(Invocation(DeleteManagerType, DeleteManagerType.Input(name)))
+                }
+            },
         )
         if (isChangedByHand) {
             ChangedByHandNotice(
@@ -125,21 +143,34 @@ internal fun ActorTypeEditor(
             Column(
                 modifier = Modifier.width(230.dp).fillMaxHeight().verticalScroll(rememberScrollState()),
             ) {
-                AppearanceColumn(
-                    definition = definition,
-                    onChange = { onCommand(Invocation(SetAppearance, it)) },
-                )
-                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                if (definition is ActorTypeDefinition) {
+                    AppearanceColumn(
+                        definition = definition,
+                        onChange = { onCommand(Invocation(SetAppearance, it)) },
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                }
                 PropertyList(
                     properties = definition.properties,
+                    emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
                     onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
                     onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
                     onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
                 )
+                if (definition is ManagerTypeDefinition) {
+                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                    ScreenTextList(
+                        texts = definition.texts,
+                        onAdded = { onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition(text = "{${definition.properties.firstOrNull()?.name ?: "score"}}")))) },
+                        onChanged = { index, text -> onCommand(Invocation(EditText, EditText.Input(name, index, text))) },
+                        onRemoved = { index -> onCommand(Invocation(RemoveText, RemoveText.Input(name, index))) },
+                    )
+                }
             }
             VerticalDivider()
             EventList(
                 modifier = Modifier.width(260.dp).fillMaxHeight(),
+                typeKind = definition.kind,
                 events = definition.events,
                 selectedIndex = eventIndex,
                 onSelected = { requestedEventIndex = it },
@@ -161,8 +192,7 @@ internal fun ActorTypeEditor(
             EventBlocks(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 event = event,
-                properties = definition.properties,
-                actorTypeNames = actorTypeNames,
+                scope = scope,
                 onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
                 onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
                 onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
@@ -187,7 +217,7 @@ internal fun ActorTypeEditor(
 @Composable
 private fun Header(
     flashKey: Any?,
-    definition: ActorTypeDefinition,
+    definition: BlockTypeDefinition,
     onDelete: () -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().background(rememberFlashColor(flashKey)).padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
@@ -196,7 +226,7 @@ private fun Header(
 ) {
     Icon(
         modifier = Modifier.size(20.dp),
-        painter = painterResource(Res.drawable.ic_actor_type),
+        painter = painterResource(definition.kind.icon),
         contentDescription = null,
         tint = MaterialTheme.colorScheme.primary,
     )
@@ -215,7 +245,7 @@ private fun Header(
     }
     IconActionButton(
         icon = Res.drawable.ic_delete,
-        label = Res.string.action_delete_actor_type,
+        label = if (definition is ManagerTypeDefinition) Res.string.action_delete_manager_type else Res.string.action_delete_actor_type,
         onClick = onDelete,
     )
 }

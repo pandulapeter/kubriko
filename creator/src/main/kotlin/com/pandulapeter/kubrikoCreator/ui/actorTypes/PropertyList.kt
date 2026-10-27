@@ -37,13 +37,13 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_property
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.actor_type_properties
-import kubriko.creator.generated.resources.actor_type_properties_empty
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_property
 import kubriko.creator.generated.resources.property_initial_value
 import kubriko.creator.generated.resources.property_name
 import kubriko.creator.generated.resources.property_toggle_initially_on
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -55,6 +55,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun PropertyList(
     properties: List<PropertyDefinition>,
+    emptyHint: StringResource,
     onAdded: (PropertyDefinition) -> Unit,
     onChanged: (name: String, PropertyDefinition) -> Unit,
     onRemoved: (name: String) -> Unit,
@@ -81,7 +82,7 @@ internal fun PropertyList(
     ) {
         if (properties.isEmpty()) {
             Text(
-                text = stringResource(Res.string.actor_type_properties_empty),
+                text = stringResource(emptyHint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

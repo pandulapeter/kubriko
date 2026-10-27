@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withPropertyReference
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
@@ -29,21 +29,21 @@ import kubriko.creator.generated.resources.block_parameter_value
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The parameters of a Block that changes a Property: which of the Actor type's [properties] (of the kind the Block
- * needs) it changes, and the value.
+ * The parameters of a Block that changes a Property: which of the Properties in [scope] (of the kind the Block needs)
+ * it changes, and the value.
  */
 @Composable
 internal fun PropertyBlockParameters(
     block: BlockDefinition,
-    properties: List<PropertyDefinition>,
+    scope: BlockScope,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    val (propertyName, kind) = block.propertyReference ?: return@Row
-    PropertyChoice(propertyName, properties, kind) { onBlockChange(block.withPropertyReference(null, it)) }
-    if (propertyChoices(properties, kind).isEmpty()) return@Row
+    val reference = block.propertyReference ?: return@Row
+    PropertyChoice(reference, scope) { onBlockChange(block.withPropertyReference(it.manager, it.name)) }
+    if (propertyChoices(scope, reference.kind).isEmpty()) return@Row
     when (block) {
         is BlockDefinition.SetNumber -> NumberField(
             modifier = Modifier.width(96.dp),

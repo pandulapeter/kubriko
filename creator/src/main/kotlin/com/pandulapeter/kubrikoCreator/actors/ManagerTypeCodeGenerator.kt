@@ -42,7 +42,7 @@ internal object ManagerTypeCodeGenerator {
         managerTypes: List<ManagerTypeDefinition> = listOf(definition),
     ): String {
         val name = definition.name
-        val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames, managerTypes)
+        val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames.toList(), managerTypes)
         val events = definition.events.filter { it.type.isAvailableIn(BlockTypeKind.MANAGER) }
         val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
         val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer in TIMER_NUMBERS }

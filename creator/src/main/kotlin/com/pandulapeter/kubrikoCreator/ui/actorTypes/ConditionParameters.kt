@@ -18,12 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.Axis
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
-import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
+import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_text
@@ -51,7 +52,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun ConditionParameters(
     condition: ConditionDefinition,
-    properties: List<PropertyDefinition>,
+    scope: BlockScope,
     onConditionChange: (ConditionDefinition) -> Unit,
 ) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -60,13 +61,13 @@ internal fun ConditionParameters(
 ) {
     MenuButton(
         label = stringResource(ConditionKind.of(condition).title),
-        options = ConditionKind.entries,
+        options = ConditionKind.entries.filter { it.isAvailableIn(scope.kind) },
         optionText = { stringResource(it.title) },
         onSelected = { if (it != ConditionKind.of(condition)) onConditionChange(it.createDefault()) },
     )
     when (condition) {
         is ConditionDefinition.Number -> {
-            PropertyChoice(condition.property, properties, PropertyKind.NUMBER) { onConditionChange(condition.copy(property = it)) }
+            PropertyChoice(PropertyReference(condition.property, PropertyKind.NUMBER, condition.manager), scope) { onConditionChange(condition.copy(property = it.name, manager = it.manager)) }
             ComparisonChoice(condition.comparison) { onConditionChange(condition.copy(comparison = it)) }
             NumberField(
                 modifier = Modifier.width(88.dp),
@@ -76,7 +77,7 @@ internal fun ConditionParameters(
             )
         }
         is ConditionDefinition.Text -> {
-            PropertyChoice(condition.property, properties, PropertyKind.TEXT) { onConditionChange(condition.copy(property = it)) }
+            PropertyChoice(PropertyReference(condition.property, PropertyKind.TEXT, condition.manager), scope) { onConditionChange(condition.copy(property = it.name, manager = it.manager)) }
             YesNoChoice(condition.isEqual, Res.string.condition_is, Res.string.condition_is_not) { onConditionChange(condition.copy(isEqual = it)) }
             CompactTextField(
                 modifier = Modifier.width(140.dp),
@@ -86,7 +87,7 @@ internal fun ConditionParameters(
             )
         }
         is ConditionDefinition.Toggle -> {
-            PropertyChoice(condition.property, properties, PropertyKind.TOGGLE) { onConditionChange(condition.copy(property = it)) }
+            PropertyChoice(PropertyReference(condition.property, PropertyKind.TOGGLE, condition.manager), scope) { onConditionChange(condition.copy(property = it.name, manager = it.manager)) }
             YesNoChoice(condition.isOn, Res.string.condition_is_on, Res.string.condition_is_off) { onConditionChange(condition.copy(isOn = it)) }
         }
         is ConditionDefinition.KeyHeld -> {

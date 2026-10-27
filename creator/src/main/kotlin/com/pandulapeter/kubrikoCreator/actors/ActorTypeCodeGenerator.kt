@@ -46,7 +46,7 @@ internal object ActorTypeCodeGenerator {
         managerTypes: List<ManagerTypeDefinition> = emptyList(),
     ): String {
         val name = definition.name
-        val scope = BlockScope(name, BlockTypeKind.ACTOR, definition.properties, knownActorTypeNames, managerTypes)
+        val scope = BlockScope(name, BlockTypeKind.ACTOR, definition.properties, knownActorTypeNames.toList(), managerTypes)
         val keyEvents = definition.events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
         val edgeEvents = definition.events.filter { it.type == EventType.EDGE_TOUCHED }
         val collisionEvents = definition.events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }

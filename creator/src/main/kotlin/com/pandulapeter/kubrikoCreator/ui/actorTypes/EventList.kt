@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -51,10 +52,11 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The Events of an Actor type, as in GameMaker's object window: selecting one shows its Blocks next to it.
+ * The Events of an Actor type or Manager type, as in GameMaker's object window: selecting one shows its Blocks next to it.
  */
 @Composable
 internal fun EventList(
+    typeKind: BlockTypeKind,
     events: List<EventDefinition>,
     selectedIndex: Int?,
     onSelected: (Int) -> Unit,
@@ -73,7 +75,7 @@ internal fun EventList(
         MenuIconButton(
             icon = Res.drawable.ic_add,
             label = Res.string.action_add_event,
-            options = EventType.entries,
+            options = EventType.entries.filter { it.isAvailableIn(typeKind) },
             optionText = { stringResource(it.title) },
             optionIcon = { it.icon },
             onSelected = onAdded,

@@ -12,10 +12,12 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.git.GitRepository
@@ -33,6 +35,8 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,8 +50,6 @@ import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import org.jetbrains.compose.resources.StringResource
-import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Holds the state of an open project: its resources, its console, and the session process that runs or edits it.
@@ -115,6 +117,18 @@ internal class WorkspaceController(
      */
     fun createActorType(name: String): StringResource? {
         val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
+        commands.validate(invocation)?.let { return it.reason }
+        commands.dispatch(invocation) { blockTypes?.select(name) }
+        return null
+    }
+
+    /**
+     * Creates an empty Manager type and selects it.
+     *
+     * @return Why [name] can't be used, or null if the Manager type is being created.
+     */
+    fun createManagerType(name: String): StringResource? {
+        val invocation = Invocation(CreateManagerType, ManagerTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it.reason }
         commands.dispatch(invocation) { blockTypes?.select(name) }
         return null

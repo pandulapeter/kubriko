@@ -66,9 +66,7 @@ internal fun CommandContext.requireManagerType(name: String) = checkNotNull(bloc
 /**
  * What the Blocks of [definition] can refer to.
  */
-internal fun CommandContext.scopeOf(definition: BlockTypeDefinition) = requireBlockTypes.let { types ->
-    BlockScope(definition.name, definition.kind, definition.properties, types.actorTypes.value.map { it.name }, types.managerTypes.value)
-}
+internal fun CommandContext.scopeOf(definition: BlockTypeDefinition) = BlockScope.of(definition, requireBlockTypes.types.value)
 
 /**
  * Why there is no Actor type or Manager type called [name] to change.
@@ -154,7 +152,7 @@ internal fun BlockTypeDefinition.validateContents(actorTypeNames: Collection<Str
         typeName = name,
         kind = kind,
         properties = properties,
-        actorTypeNames = if (this is ActorTypeDefinition) actorTypeNames + name else actorTypeNames,
+        actorTypeNames = if (this is ActorTypeDefinition) actorTypeNames + name else actorTypeNames.toList(),
         managerTypes = if (this is ManagerTypeDefinition) managerTypes + this else managerTypes,
     )
     return (this as? ActorTypeDefinition)?.let { validateSize(it.width, it.height) }

@@ -36,10 +36,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
-import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_blocks_empty
@@ -54,8 +54,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun EventBlocks(
     event: EventDefinition?,
-    properties: List<PropertyDefinition>,
-    actorTypeNames: List<String>,
+    scope: BlockScope,
     onKeyChange: (KeyChoice) -> Unit,
     onTimerChange: (Int) -> Unit,
     onOtherActorTypeChange: (String) -> Unit,
@@ -104,7 +103,7 @@ internal fun EventBlocks(
             )
             EventType.COLLISION -> ActorTypeChoice(
                 actorType = event.otherActorType.orEmpty(),
-                actorTypeNames = actorTypeNames,
+                actorTypeNames = scope.actorTypeNames,
                 onSelected = onOtherActorTypeChange,
             )
             else -> Unit
@@ -136,8 +135,7 @@ internal fun EventBlocks(
                 modifier = Modifier.onGloballyPositioned { dragState.rowBounds[index] = it.boundsInRoot() },
                 block = block,
                 nesting = nesting[index],
-                properties = properties,
-                actorTypeNames = actorTypeNames,
+                scope = scope,
                 index = index,
                 dragState = dragState,
                 onBlockChange = { onBlockChange(index, it) },

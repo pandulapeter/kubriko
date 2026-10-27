@@ -20,7 +20,7 @@ internal data class BlockScope(
     val typeName: String,
     val kind: BlockTypeKind = BlockTypeKind.ACTOR,
     val properties: List<PropertyDefinition> = emptyList(),
-    val actorTypeNames: Collection<String> = listOf(typeName),
+    val actorTypeNames: List<String> = listOf(typeName),
     val managerTypes: List<ManagerTypeDefinition> = emptyList(),
 ) {
     /**
@@ -57,4 +57,18 @@ internal data class BlockScope(
     fun propertyOf(placeholder: PropertyPlaceholders.Placeholder) = propertiesOf(placeholder.manager)?.firstOrNull { it.name == placeholder.name }
 
     private fun isOwn(manager: String?) = manager == null || (kind == BlockTypeKind.MANAGER && manager == typeName)
+
+    companion object {
+
+        /**
+         * The scope of [definition] in a project with [types].
+         */
+        fun of(definition: BlockTypeDefinition, types: List<BlockTypeDefinition>) = BlockScope(
+            typeName = definition.name,
+            kind = definition.kind,
+            properties = definition.properties,
+            actorTypeNames = types.filterIsInstance<ActorTypeDefinition>().map { it.name },
+            managerTypes = types.filterIsInstance<ManagerTypeDefinition>(),
+        )
+    }
 }

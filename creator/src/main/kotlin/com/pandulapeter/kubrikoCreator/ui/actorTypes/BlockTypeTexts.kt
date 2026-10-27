@@ -10,9 +10,11 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
+import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_added_to_scene
 import kubriko.creator.generated.resources.event_collision
@@ -21,6 +23,7 @@ import kubriko.creator.generated.resources.event_every_frame
 import kubriko.creator.generated.resources.event_game_started
 import kubriko.creator.generated.resources.event_key_pressed
 import kubriko.creator.generated.resources.event_timer_finished
+import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_add_actor
 import kubriko.creator.generated.resources.ic_bounce
@@ -33,6 +36,7 @@ import kubriko.creator.generated.resources.ic_edge
 import kubriko.creator.generated.resources.ic_end
 import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.ic_loop
+import kubriko.creator.generated.resources.ic_manager_type
 import kubriko.creator.generated.resources.ic_move_towards
 import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_open_with
@@ -55,6 +59,15 @@ import kubriko.creator.generated.resources.key_s
 import kubriko.creator.generated.resources.key_space
 import kubriko.creator.generated.resources.key_up
 import kubriko.creator.generated.resources.key_w
+import kubriko.creator.generated.resources.screen_position_bottom
+import kubriko.creator.generated.resources.screen_position_bottom_left
+import kubriko.creator.generated.resources.screen_position_bottom_right
+import kubriko.creator.generated.resources.screen_position_center
+import kubriko.creator.generated.resources.screen_position_left
+import kubriko.creator.generated.resources.screen_position_right
+import kubriko.creator.generated.resources.screen_position_top
+import kubriko.creator.generated.resources.screen_position_top_left
+import kubriko.creator.generated.resources.screen_position_top_right
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 
@@ -125,3 +138,23 @@ internal val PropertyKind.icon: DrawableResource
         PropertyKind.TEXT -> Res.drawable.ic_text
         PropertyKind.TOGGLE -> Res.drawable.ic_toggle
     }
+
+internal val ScreenPosition.title: StringResource
+    get() = when (this) {
+        ScreenPosition.TOP_LEFT -> Res.string.screen_position_top_left
+        ScreenPosition.TOP -> Res.string.screen_position_top
+        ScreenPosition.TOP_RIGHT -> Res.string.screen_position_top_right
+        ScreenPosition.LEFT -> Res.string.screen_position_left
+        ScreenPosition.CENTER -> Res.string.screen_position_center
+        ScreenPosition.RIGHT -> Res.string.screen_position_right
+        ScreenPosition.BOTTOM_LEFT -> Res.string.screen_position_bottom_left
+        ScreenPosition.BOTTOM -> Res.string.screen_position_bottom
+        ScreenPosition.BOTTOM_RIGHT -> Res.string.screen_position_bottom_right
+    }
+
+internal val BlockTypeKind.icon: DrawableResource
+    get() = when (this) {
+        BlockTypeKind.ACTOR -> Res.drawable.ic_actor_type
+        BlockTypeKind.MANAGER -> Res.drawable.ic_manager_type
+    }
+

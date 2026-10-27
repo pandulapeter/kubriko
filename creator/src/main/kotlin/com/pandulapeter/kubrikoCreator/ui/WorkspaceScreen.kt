@@ -19,8 +19,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
@@ -49,7 +52,7 @@ import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
@@ -76,10 +79,10 @@ internal fun WorkspaceScreen(
     val console by controller.console.collectAsState()
     val sessionState by controller.sessionState.collectAsState()
     val blockTypesController = controller.blockTypes
-    val actorTypes = blockTypesController?.actorTypes?.collectAsState()?.value.orEmpty()
-    val selectedActorTypeName = blockTypesController?.selectedName?.collectAsState()?.value
-    val selectedActorType = actorTypes.firstOrNull { it.name == selectedActorTypeName }
-    val actorTypesChangedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
+    val blockTypes = blockTypesController?.types?.collectAsState()?.value.orEmpty()
+    val selectedBlockTypeName = blockTypesController?.selectedName?.collectAsState()?.value
+    val selectedBlockType = blockTypes.firstOrNull { it.name == selectedBlockTypeName }
+    val blockTypesChangedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     var isConsoleExpanded by remember { mutableStateOf(false) }
     LaunchedEffect(console.lastOrNull()) {
@@ -132,16 +135,23 @@ internal fun WorkspaceScreen(
             ProjectSidebar(
                 modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                 resources = resources,
-                actorTypes = blockTypesController?.let { ActorTypeTreeState(actorTypes.map { it.name }, selectedActorTypeName) },
+                blockTypes = blockTypesController?.let {
+                    BlockTypeTreeState(
+                        actorTypeNames = blockTypes.filterIsInstance<ActorTypeDefinition>().map { it.name },
+                        managerTypeNames = blockTypes.filterIsInstance<ManagerTypeDefinition>().map { it.name },
+                        selectedName = selectedBlockTypeName,
+                    )
+                },
                 onSceneSelected = { scene ->
                     blockTypesController?.select(null)
                     controller.sceneEditing.open(scene)
                 },
-                onActorTypeSelected = {
+                onBlockTypeSelected = {
                     controller.sceneEditing.close()
                     blockTypesController?.select(it)
                 },
                 onCreateActorType = { name -> controller.createActorType(name) },
+                onCreateManagerType = { name -> controller.createManagerType(name) },
                 onCreateScene = { name -> controller.createScene(name) },
                 flashedName = latestAiStep?.sidebarName(),
                 flashKey = latestAiStep?.flashKey,
@@ -164,14 +174,14 @@ internal fun WorkspaceScreen(
                 }
                 SceneEditingState.Closed -> Unit
             }
-            if (sceneEditing == SceneEditingState.Closed && blockTypesController != null && selectedActorType != null) {
-                ActorTypeEditor(
+            if (sceneEditing == SceneEditingState.Closed && blockTypesController != null && selectedBlockType != null) {
+                BlockTypeEditor(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
-                    definition = selectedActorType,
-                    actorTypeNames = actorTypes.map { it.name },
-                    isChangedByHand = selectedActorType.name in actorTypesChangedByHand,
+                    definition = selectedBlockType,
+                    scope = remember(selectedBlockType, blockTypes) { BlockScope.of(selectedBlockType, blockTypes) },
+                    isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
                     onCommand = { controller.commands.dispatch(it) },
-                    highlight = latestAiStep?.highlightIn(selectedActorType.name),
+                    highlight = latestAiStep?.highlightIn(selectedBlockType.name),
                 )
             } else if (sceneEditing == SceneEditingState.Closed) {
                 WorkspaceHint(

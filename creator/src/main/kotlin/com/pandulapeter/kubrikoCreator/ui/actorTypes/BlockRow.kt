@@ -32,7 +32,8 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
-import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
@@ -63,8 +64,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun BlockRow(
     block: BlockDefinition,
     nesting: BlockNesting,
-    properties: List<PropertyDefinition>,
-    actorTypeNames: List<String>,
+    scope: BlockScope,
     index: Int,
     dragState: BlockDragState,
     onBlockChange: (BlockDefinition) -> Unit,
@@ -110,7 +110,7 @@ internal fun BlockRow(
         Row(
             modifier = Modifier.padding(start = 46.dp),
         ) {
-            InlineParameters(block, properties, actorTypeNames, onBlockChange)
+            InlineParameters(block, scope, onBlockChange)
         }
     }
     if (nesting.role == BlockNesting.Role.STRAY) {
@@ -136,30 +136,31 @@ internal fun BlockRow(
 @Composable
 private fun InlineParameters(
     block: BlockDefinition,
-    properties: List<PropertyDefinition>,
-    actorTypeNames: List<String>,
+    scope: BlockScope,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = when (block) {
     is BlockDefinition.AddActor -> Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ActorTypeChoice(block.actorType, actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
+        ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
         OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
-        Text(
-            text = stringResource(Res.string.block_parameter_relative),
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Switch(
-            checked = block.isRelative,
-            onCheckedChange = { onBlockChange(block.copy(isRelative = it)) },
-        )
+        if (scope.kind == BlockTypeKind.ACTOR) {
+            Text(
+                text = stringResource(Res.string.block_parameter_relative),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Switch(
+                checked = block.isRelative,
+                onCheckedChange = { onBlockChange(block.copy(isRelative = it)) },
+            )
+        }
     }
     is BlockDefinition.MoveTowardsNearest -> Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ActorTypeChoice(block.actorType, actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
+        ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
         NumberField(
             modifier = Modifier.width(96.dp),
             label = Res.string.block_parameter_speed,
@@ -172,7 +173,7 @@ private fun InlineParameters(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, properties, onBlockChange)
+    is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, scope, onBlockChange)
     is BlockDefinition.StartTimer -> Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -194,7 +195,7 @@ private fun InlineParameters(
         )
     }
     is BlockDefinition.StopTimer -> TimerChoice(block.timer) { onBlockChange(block.copy(timer = it)) }
-    is BlockDefinition.If -> ConditionParameters(block.condition, properties) { onBlockChange(block.copy(condition = it)) }
+    is BlockDefinition.If -> ConditionParameters(block.condition, scope) { onBlockChange(block.copy(condition = it)) }
     is BlockDefinition.Repeat -> NumberField(
         modifier = Modifier.width(96.dp),
         label = Res.string.block_parameter_times,
