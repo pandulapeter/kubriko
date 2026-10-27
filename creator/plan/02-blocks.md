@@ -20,6 +20,20 @@ The model, Events, Blocks reaching their Properties, on-screen texts, and the wi
 - **Reacting to Actors:** an Actor of a type added or removed, for "all Bricks are gone", and counting the Actors of a type.
 - **More text:** showing a text only while a toggle Property is on, and fonts.
 
+## Game UI
+
+A Manager's texts on screen suit a score or a lives counter, not menus, buttons, health bars, or layouts. Game UI grows from them in
+three steps, always generated into ordinary Compose (no runtime interpreter):
+
+1. **Kotlin UI (next, after the Scene Blocks):** a verbatim body for the Manager's `Composable`, like the Kotlin Block, with its
+   Properties, the other Managers it uses, and `windowInsets` in scope. The escape hatch for advanced users, and real Compose.
+2. **UI elements (once a second UI need comes, such as a title screen with a Start button):** `texts` becomes a sealed `elements`
+   tree (column, row, box, text, image, button, progress bar) that the editor builds visually, with a text as one kind of element so
+   existing files still load. Buttons run a new Manager Event, "When a button is clicked", so UI behavior stays Events and Blocks.
+   Worth doing before many projects depend on the flat `texts` list.
+3. **Hand-written Composables:** a Manager shows a `@Composable` from the project's own code, chosen by name, so a project that
+   outgrows Creator's UI keeps it in its own files.
+
 ## Next additions
 
 - **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist).
