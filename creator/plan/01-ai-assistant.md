@@ -25,14 +25,15 @@ step-by-step view of the AI's work (activity bar, follow mode, highlights) exist
   account was out of quota): "make the Ball faster and log when the game starts, then play it" took 18 turns, 45 s, and $0.46, entirely
   through the tools. The model read before writing, placed an invisible Actor to get a "game started" Event, and checked its work with
   `start_game`, `press_keys`, `take_screenshot`, and `read_console`. "Also move with A and D, stop on key release, and show a score" took
-  42 turns, 3 minutes, and $1.06. A and D went through the tools; for the rest there are no Blocks yet (key released, score, on-screen
-  text: `02-blocks.md`), so it hand-wrote a Manager and edited `Game.kt` with its own file tools, and said so. What it revealed was fixed:
+  42 turns, 3 minutes, and $1.06. A and D went through the tools; there were no Blocks for the rest then (key released, score,
+  on-screen text), so it hand-wrote a Manager and edited `Game.kt` with its own file tools, and said so. What it revealed was fixed:
   the edge Event ran on every frame an Actor rested at the edge, the first key press after another app had taken the focus was lost, and
   internal errors reached the model as a bare class name. The server's instructions now ask for every change to go through the tools,
   using a Kotlin Block when no Block fits and otherwise saying what's missing; the same request then took 34 turns and $0.91 with no file
   written by hand. It still read Kubriko's sources jars with its own shell to find the API for those Kotlin Blocks, so a read tool with
-  Kubriko's API (the root `CLAUDE.md`'s overview, or KDoc for a named class) would save turns. Still to do: a Codex run, and watching the
-  activity view pace those bursts of calls in the window. The Gemini CLI commands come from its documentation and haven't been run yet.
+  Kubriko's API (the root `CLAUDE.md`'s overview, or KDoc for a named class) would save turns. Still to do: a Codex run, watching the activity
+  view pace those bursts of calls in the window, and the score request again now that Manager types exist (only key released is
+  still missing): the Manager type, text, and upgrade tools haven't been used by a real session yet. The Gemini CLI commands come from its documentation and haven't been run yet.
 - Claude Desktop and Cursor are connected through their configuration files (`../CLAUDE.md` → AI connection). `mcp-remote` was tried
   from a terminal against the server; still owed: clicking Connect for Claude Desktop and using the tools from a real chat (its log
   is `~/Library/Logs/Claude/mcp-server-kubriko-creator.log`), Cursor at all (not installed here), and Windows, where the entry

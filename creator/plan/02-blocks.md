@@ -10,11 +10,9 @@
 # Blocks, Actor types, and Manager types
 
 Blocks are the heart of the product. Each addition below lands with its command and AI tool (`01-ai-assistant.md`), generator tests, and a
-case in the integration test's every-Block Actor type.
+case in the integration test's every-Block types (an Actor type and two Manager types).
 
-## Manager types, later
-
-The model, Events, Blocks reaching their Properties, on-screen texts, and the wiring exist (see `../CLAUDE.md` → Commands). Still to do:
+## More for Manager types
 
 - **Managers in the Scene editor:** their Properties shown and set per Scene.
 - **Reacting to Actors:** an Actor of a type added or removed, for "all Bricks are gone", and counting the Actors of a type.
@@ -56,8 +54,8 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 
 ## Templates
 
-- **Paddle game:** the Getting started tutorial's game rebuilt from Blocks, including score and sounds; possible once Manager types (score
-  and its text) and audio exist. It doubles as the beginner reference project.
+- **Paddle game:** the Getting started tutorial's game rebuilt from Blocks, including score and sounds; possible once audio exists (the
+  score and its text come from a Manager type). It doubles as the beginner reference project.
 - **Platformer** and **top-down** starters (physics or collision, keyboard and gamepad input).
 
 ## Scene editor (in `tools/scene-editor`)
