@@ -22,6 +22,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.net.InetAddress
@@ -102,13 +104,14 @@ class SessionServerTest {
     }
 
     @Test
-    fun theServerListensOnLocalhostUntilClosed() {
+    fun theServerListensOnLocalhostUntilClosed() = runBlocking {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val server = SessionServer(scope)
         assertTrue(server.port > 0)
         Socket(InetAddress.getLoopbackAddress(), server.port).close()
         server.close()
-        assertTrue(runCatching { Socket(InetAddress.getLoopbackAddress(), server.port).close() }.isFailure)
+        // Connecting to the freed port proves nothing: another process, or the client itself, may be bound to it by then.
+        withTimeout(10_000) { scope.coroutineContext.job.children.toList().joinAll() }
         scope.cancel()
     }
 }
