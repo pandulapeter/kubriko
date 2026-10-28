@@ -27,22 +27,11 @@ internal object HexColorSerializer : KSerializer<Long> {
 
     override val descriptor = PrimitiveSerialDescriptor("HexColor", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: Long) = encoder.encodeString(format(value))
+    override fun serialize(encoder: Encoder, value: Long) = encoder.encodeString(ColorHex.format(value))
 
     override fun deserialize(decoder: Decoder): Long {
         val element = (decoder as? JsonDecoder)?.decodeJsonElement() as? JsonPrimitive
         val text = element?.content ?: decoder.decodeString()
-        return element?.takeUnless { it.isString }?.longOrNull ?: parse(text) ?: throw SerializationException("Not a color: $text")
-    }
-
-    internal fun format(color: Long): String {
-        val argb = color and 0xFFFFFFFFL
-        return if (argb ushr 24 == 0xFFL) ColorHex.format(argb) else "#" + argb.toString(16).uppercase().padStart(8, '0')
-    }
-
-    internal fun parse(text: String) = when (text.length) {
-        7 -> ColorHex.parse(text)
-        9 -> text.takeIf { it.startsWith("#") }?.drop(1)?.toLongOrNull(16)
-        else -> null
+        return element?.takeUnless { it.isString }?.longOrNull ?: text.takeIf { it.startsWith("#") }?.let(ColorHex::parse) ?: throw SerializationException("Not a color: $text")
     }
 }

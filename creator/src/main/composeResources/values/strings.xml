@@ -221,6 +221,12 @@
     <string name="actor_type_shape_circle">Circle</string>
     <string name="actor_type_shape_rectangle">Rectangle</string>
     <string name="actor_type_color">Color</string>
+    <string name="color_picker_title">Choose a color</string>
+    <string name="color_picker_hex">Hex code</string>
+    <string name="color_picker_hue">Hue</string>
+    <string name="color_picker_saturation">Saturation</string>
+    <string name="color_picker_brightness">Brightness</string>
+    <string name="color_picker_opacity">Opacity</string>
     <string name="actor_type_width">Width</string>
     <string name="actor_type_height">Height</string>
     <string name="actor_type_regenerated">Kubriko Creator keeps its Kotlin code up to date.</string>

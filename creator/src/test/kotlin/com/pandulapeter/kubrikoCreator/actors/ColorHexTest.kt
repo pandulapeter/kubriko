@@ -16,9 +16,15 @@ import kotlin.test.assertNull
 class ColorHexTest {
 
     @Test
-    fun colorsAreShownWithoutTheirAlpha() {
+    fun opaqueColorsAreShownWithoutTheirAlpha() {
         assertEquals("#6060AA", ColorHex.format(0xFF6060AA))
         assertEquals("#000001", ColorHex.format(0xFF000001))
+    }
+
+    @Test
+    fun translucentColorsAreShownWithTheirAlpha() {
+        assertEquals("#806060AA", ColorHex.format(0x806060AA))
+        assertEquals("#00000000", ColorHex.format(0L))
     }
 
     @Test
@@ -28,7 +34,13 @@ class ColorHexTest {
     }
 
     @Test
+    fun typedColorsWithEightDigitsKeepTheirAlpha() {
+        assertEquals(0x806060AA, ColorHex.parse("#806060aa"))
+        assertEquals(0L, ColorHex.parse("00000000"))
+    }
+
+    @Test
     fun anythingElseIsRejected() {
-        listOf("", "#6060A", "#6060AAFF", "#GGGGGG", "red").forEach { assertNull(ColorHex.parse(it), it) }
+        listOf("", "#6060A", "#6060AAF", "#6060AAFFF", "#GGGGGG", "red").forEach { assertNull(ColorHex.parse(it), it) }
     }
 }

@@ -225,7 +225,10 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   (`BlockDragState`: an in-window drag, dropped through `add_block` / `move_block`), each Block is a card indented by its
   section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing
   uses yet and collapses Kotlin files, and New project keeps the package under More options.
-- Desktop-sized UI from the start: `ui/components` (`CompactTextField`, which scrolls code sideways instead of wrapping it, `IconActionButton` with tooltip, `PanelHeader`), vector icons in
+- Desktop-sized UI from the start: `ui/components` (`CompactTextField`, which scrolls code sideways instead of wrapping it, `IconActionButton` and
+  `WithTooltip`, `PanelHeader`, and `ColorPickerDialog`: hue, saturation, brightness, and opacity sliders (`GradientSlider`) and a hex code,
+  ported from Tesselar's model editor, with its logic in `ColorPickerValue` and `HsvColor`, and `checkerboard()` behind what is
+  translucent; every color field's swatch opens it, and hex codes are `#RRGGBB` or `#AARRGGBB`), vector icons in
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
 - Generated Kotlin reads like the examples' hand-written Kubriko code: an Actor type is `Dynamic` only when it moves or has work every
   frame (a Kotlin Block counts), looks up only the Managers its Blocks use, is `Collidable` only when a collision Event (its own or another

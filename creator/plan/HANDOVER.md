@@ -12,7 +12,7 @@
 The state between sessions: where the last one stopped, what to do next, and what was never checked by hand. Each session rewrites it
 before it ends. What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
-## State (committed on main but not pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
+## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
 
 - **Audio exists** (2026-10-28): playSound, playMusic, and stopMusic Blocks (palette tab "Sound and music"), a Scene's music in
   `SceneSettings` (`set_scene_settings` takes `music`), and the generated `GeneratedAudio` Manager, written only while something plays
@@ -20,6 +20,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   type's last tab was already cut off before.
 - **The audio plugin brings a JitPack block** into `settings.gradle.kts` (JLayer, which its desktop library needs); the integration
   test now resolves the desktop runtime classpath, which is where a missing repository shows.
+- **A color picker** (`ui/components/ColorPickerDialog`, from Tesselar's model editor) opens from every color field's swatch, with
+  opacity; the sprite editor should reuse it. Seen working in a screenshot (a hue click, Done, the Actor type's color saved).
 
 - **Kubriko 0.8.0 is released.** `00-library-release.md` is now the policy for later releases.
 - **Projects follow Creator's Kubriko version and code** (`project/KubrikoBuildFiles`, after every regeneration, so also on open and on

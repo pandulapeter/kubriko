@@ -10,13 +10,22 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 /**
- * Converts opaque colors between their stored form (`0xAARRGGBB`) and the `#RRGGBB` form people type.
+ * Converts colors between their stored form (`0xAARRGGBB`) and the form people type: `#RRGGBB` for an opaque color, and
+ * `#AARRGGBB` for one that isn't.
  */
 internal object ColorHex {
 
-    private val pattern = Regex("#?([0-9A-Fa-f]{6})")
+    private val pattern = Regex("#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})")
 
-    fun format(color: Long) = "#" + (color and 0xFFFFFF).toString(16).uppercase().padStart(6, '0')
+    fun format(color: Long): String {
+        val argb = color and 0xFFFFFFFFL
+        return "#" + if (argb ushr 24 == 0xFFL) (argb and 0xFFFFFF).toString(16).uppercase().padStart(6, '0') else argb.toString(16).uppercase().padStart(8, '0')
+    }
 
-    fun parse(text: String) = pattern.matchEntire(text.trim())?.let { 0xFF000000 or it.groupValues[1].toLong(16) }
+    /**
+     * The color [text] names, opaque if it has six digits, or null if it isn't a color.
+     */
+    fun parse(text: String) = pattern.matchEntire(text.trim())?.groupValues?.get(1)?.let { digits ->
+        if (digits.length == 6) 0xFF000000 or digits.toLong(16) else digits.toLong(16)
+    }
 }

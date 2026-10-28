@@ -31,7 +31,8 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
   transparent pixels.
 - **Tools:** pencil, eraser, line, rectangle and ellipse (outline or filled), flood fill (contiguous or every pixel of the color), color
   picker, and a rectangular selection that moves, copies, and pastes (also between frames and sprites).
-- **Colors:** a left and a right color (left and right mouse buttons, as in GameMaker), transparency as a color, a palette that the
+- **Colors:** a left and a right color (left and right mouse buttons, as in GameMaker), picked with the shared
+  `ui/components/ColorPickerDialog` (hue, saturation, brightness, opacity, and hex code; `checkerboard()` for what is see-through), transparency as a color, a palette that the
   project keeps (`.kubriko/palette.json`), and the colors the sprite already uses.
 - **Whole image:** flip, rotate by 90 degrees, shift with wrapping, resize the canvas (anchored), and scale by a whole number, applied to one
   frame or to all of them.
