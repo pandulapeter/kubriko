@@ -133,14 +133,6 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
 private const val DEVICE_INDEX_COUNT = 16
 
 /**
- * Jamepad wraps a single SDL instance for the whole process, while a Kubriko application may well run several
- * [com.pandulapeter.kubriko.Kubriko] instances at once. Reference counting keeps the last one standing from
- * shutting SDL down under the others.
- *
- * A failure to load the native library leaves the plugin inert rather than taking the game down with it: a
- * desktop build that can't reach a gamepad is still perfectly playable with a keyboard.
- */
-/**
  * The mapping database handed to Jamepad, which insists on loading one and prints a stack trace when it can't -
  * its own default path naming a file it does not ship. The bundled one is deliberately empty, leaving SDL's
  * compiled-in database and its native drivers in charge; the name is Kubriko's own rather than the
@@ -148,6 +140,14 @@ private const val DEVICE_INDEX_COUNT = 16
  */
 private const val MAPPINGS_PATH = "/kubriko-gamepad-mappings.txt"
 
+/**
+ * Jamepad wraps a single SDL instance for the whole process, while a Kubriko application may well run several
+ * [com.pandulapeter.kubriko.Kubriko] instances at once. Reference counting keeps the last one standing from
+ * shutting SDL down under the others.
+ *
+ * A failure to load the native library leaves the plugin inert rather than taking the game down with it: a
+ * desktop build that can't reach a gamepad is still perfectly playable with a keyboard.
+ */
 private object JamepadRuntime {
 
     private var controllerManager: ControllerManager? = null

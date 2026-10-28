@@ -84,7 +84,7 @@ class SweepAndPruneTest {
             for (j in i + 1 until bodies.size) {
                 val bodyA = bodies[i]
                 val bodyB = bodies[j]
-                if (bodyA.invMass == 0f && bodyB.invMass == 0f || bodyA.isParticle && bodyB.isParticle) {
+                if ((bodyA.invMass == 0f && bodyB.invMass == 0f) || (bodyA.isParticle && bodyB.isParticle)) {
                     continue
                 }
                 if (bodyA.collisionMask.axisAlignedBoundingBox.isOverlapping(bodyB.collisionMask.axisAlignedBoundingBox)) {
