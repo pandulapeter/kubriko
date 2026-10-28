@@ -47,7 +47,7 @@
     <string name="resource_group_music">Music</string>
     <string name="resource_group_kotlin">Kotlin files</string>
     <string name="resource_group_empty">Nothing here yet.</string>
-    <string name="project_upgrade_notice">This project was made by an older Kubriko Creator. Manager types and the Scene Blocks need a few small changes to its template files.</string>
+    <string name="project_upgrade_notice">This project was made by an older Kubriko Creator, and its template files need a few small changes for what this version generates.</string>
     <string name="project_upgrade_title">Upgrade the template files</string>
     <string name="project_upgrade_message">These files belong to you, so nothing changes until you apply this. Commit first to be able to go back with version control.</string>
     <string name="project_upgrade_by_hand">Kubriko Creator can't change %1$s, which changed too much. Make the changes by hand: in Game.kt, pass *KubrikoWiring.createManagers(firstScene = "main").toTypedArray() to Kubriko.newInstance instead of a SceneLoader, in GameEntryPoint.kt, add override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true), and in the desktop Main.kt, set KubrikoWiring.isLoggingEnabled = System.getProperty("kubriko.creator.logging").toBoolean() before the application starts.</string>
