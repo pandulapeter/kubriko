@@ -9,7 +9,8 @@
  */
 // Kubriko Creator's development run publishes the libraries to Maven Local under a version of their own, so that they never
 // stand in for a real release in other projects (see creator/CLAUDE.md).
-version = project.findProperty("library.version").toString() + if (project.findProperty("creator.localKubriko") == "true") "-creator" else ""
+// Read from the start parameter, which settings.gradle.kts changes for :creator:run (findProperty doesn't see that).
+version = project.findProperty("library.version").toString() + if (gradle.startParameter.projectProperties["creator.localKubriko"] == "true") "-creator" else ""
 
 plugins {
     alias(libs.plugins.android.application) apply false

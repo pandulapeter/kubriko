@@ -58,7 +58,7 @@ val generateCreatorProperties = tasks.register("generateCreatorProperties") {
         "kotlinVersion" to libs.versions.kotlin.get(),
         "composeVersion" to libs.versions.compose.multiplatform.get(),
         "gradleVersion" to libs.versions.gradle.toolingApi.get(),
-        "useMavenLocal" to (findProperty("creator.localKubriko") == "true").toString(),
+        "useMavenLocal" to (gradle.startParameter.projectProperties["creator.localKubriko"] == "true").toString(),
     )
     inputs.properties(properties)
     outputs.dir(outputDirectory)
