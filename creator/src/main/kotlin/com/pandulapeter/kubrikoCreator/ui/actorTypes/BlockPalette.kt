@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -110,9 +111,9 @@ private fun CategoryTabs(
     categories: List<BlockCategory>,
     selected: BlockCategory,
     onSelected: (BlockCategory) -> Unit,
-) = Row(
+) = FlowRow(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
-    horizontalArrangement = Arrangement.SpaceBetween,
+    horizontalArrangement = Arrangement.Start,
 ) {
     categories.forEach { category ->
         val isSelected = category == selected

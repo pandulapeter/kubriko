@@ -204,8 +204,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - **Every editor change is a command** with its AI tool and tests (validation, apply, and the inverse round trip); the UI
   dispatches commands rather than calling controllers. Undo and redo: toolbar buttons naming the step, Ctrl+Z / Ctrl+Shift+Z /
   Ctrl+Y (Cmd on macOS).
-- **Beginner-friendly by default:** the Block palette shows one category at a time (`BlockCategory`, tabs like GameMaker's, without the
-  ones a Manager has no Blocks in),
+- **Beginner-friendly by default:** the Block palette shows one category at a time (`BlockCategory`, tabs like GameMaker's that wrap
+  onto a second row, without the ones a Manager has no Blocks in),
   Blocks are added by a click (at the end) or dragged (from the palette or by a Block's handle) to where they go
   (`BlockDragState`: an in-window drag, dropped through `add_block` / `move_block`), each Block is a card indented by its
   section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing
