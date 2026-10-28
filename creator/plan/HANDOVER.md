@@ -12,8 +12,18 @@
 The state between sessions: where the last one stopped, what to do next, and what was never checked by hand. Each session rewrites it
 before it ends. What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
-## State (17 commits on main not pushed, b5b65fbfb through this handover update; ask before pushing; `library.version` is 0.8.1, unreleased; 0.8.0 is on Maven Central)
+## State (commits on main not pushed since b5b65fbfb; ask before pushing; `library.version` is 0.8.1, unreleased; 0.8.0 is on Maven Central)
 
+- **Foundation work** (2026-10-28/29, `01-foundation.md`), after a review found generated games with real bugs and a data flow
+  that recomputed the whole project on every change. Done: generated games (Log Blocks off outside play sessions through a
+  version 5 template upgrade; movement steps at most 33 ms; removed Actors skipped; Actors active off screen; edges from the
+  bounding box; child collisions before parents'; goToScene not restarting its own load; shared `ActorClassCode`), opening
+  without Gradle, a scope per workspace, Scene classes kept between Scenes, build and Scene timings in the console, the
+  benchmark, batched type writes, generation from memory with caches, `ActorTypeFamily` no longer quadratic, Scenes cached
+  in `SceneStore`, a watcher that ignores Creator's own writes, `ScenePatch` in the Scene editor, and a narrower workspace
+  recomposition. A type change at 200 types went from 1.3 s to 0.14 s, a Scene edit at 5,000 Actors from 1.26 s to 45 ms.
+- **`tools/logger` change left uncommitted for the user's review:** `Logger.log` builds its list once instead of three times
+  (no API change). Everything else is committed.
 - **Parent Actor types** (2026-10-28), generated as real Kotlin inheritance (`<Name>Base` classes with Event hooks), with the
   runParentEvent Block, and the editor's parent menu and greyed inherited Properties and Events. The integration test builds a
   three-generation family for desktop and web; seen working: choosing Brick as GoldBrick's parent in the editor, and the scratch
@@ -58,16 +68,20 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-The plans were renumbered on 2026-10-28 into the order they are worked on (`README.md` → Roadmap), after a review found that the
-foundation under the command layer doesn't scale and that generated games had real bugs. Work through `01-foundation.md` step by
-step, committing each part:
-
-1. Generated games (`01-foundation.md` → 1), with `Logger.log` in `tools/logger` (a library change without API changes).
-2. Workspace lifecycle and opening (→ 2).
-3. The benchmark (→ 3), then one project in memory (→ 4), Scene editing in place (→ 5), and the editor's UI (→ 6).
-4. Then `02-fast-iteration.md`, and the rest in file order. Search, the next item before, is now `04-resource-organization.md`.
+1. The rest of `01-foundation.md`, in its order: what is left of steps 1 and 4 to 6 (Scene cache filled when a Scene opens,
+   lazy Event/Block/Property lists with drag targets that work off screen, the picking grid, the remaining screen-wide
+   collections). Run the benchmark (`KUBRIKO_CREATOR_BENCHMARK=true`) before and after anything on the data flow.
+2. `02-fast-iteration.md`: no waiting for Gradle in the Scene editor (preview Actors from definitions, swapping classes in the
+   background), measured first.
+3. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Foundation (2026-10-29): playing the scratch Breakout with the new generated code (the integration test compiled every Block,
+  and the Scene editor compiled the scratch copy, but no game ran); a Log Block's line reaching the console in a play session
+  after the version 5 upgrade; quitting with a change made less than 100 ms before (it should be written); the Scene editor
+  after an inspector edit (a replaced Actor) and after placing and removing Actors (`ScenePatch` add and remove); a Scene
+  changed by git while open; and the version 5 upgrade's diff on the real Breakout copy.
 
 - Parents in the editor: the inherited Properties and Events, replacing an inherited Event (it starts with runParentEvent), the
   parent menu leaving out the type's own descendants, deleting a parent with children (rejected in the console), and a child of
