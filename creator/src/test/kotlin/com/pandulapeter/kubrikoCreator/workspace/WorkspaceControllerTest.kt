@@ -500,6 +500,7 @@ class WorkspaceControllerTest {
             File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
             val game = File(root, "src/commonMain/kotlin/com/example/game/Game.kt").apply { parentFile.mkdirs() }
             game.writeText("package com.example.game\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
+            File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled.\n")
             val controller = createController(rootDirectory = root)
             val upgrade = assertIs<TemplateUpgrade.Needed>(controller.projectUpgrade.value)
             assertEquals(listOf("src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"), upgrade.byHand)
@@ -507,7 +508,7 @@ class WorkspaceControllerTest {
             File(root, "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt").writeText("// Uses KubrikoWiring.\n")
             controller.onProjectChanged(setOf(ProjectChange.SOURCES))
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
-            assertTrue("\"templateVersion\": 4" in File(root, ".kubriko/project.json").readText())
+            assertTrue("\"templateVersion\": 5" in File(root, ".kubriko/project.json").readText())
         } finally {
             root.deleteRecursively()
         }

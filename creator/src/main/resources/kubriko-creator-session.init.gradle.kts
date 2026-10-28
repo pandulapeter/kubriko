@@ -49,6 +49,7 @@ gradle.projectsEvaluated {
             jvmArgs(run.jvmArgs ?: emptyList<String>())
             workingDir = run.workingDir
             if (port != null) systemProperty("kubriko.creator.port", port)
+            systemProperty("kubriko.creator.logging", "true")
             args("play", run.mainClass.get())
         }
     }

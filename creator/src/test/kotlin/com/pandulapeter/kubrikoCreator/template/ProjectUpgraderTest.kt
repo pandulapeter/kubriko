@@ -29,6 +29,8 @@ class ProjectUpgraderTest {
     private val settingsFile = File(directory, ".kubriko/project.json")
     private val newGame = File(packageDirectory, "Game.kt").readText()
     private val newEntryPoint = File(packageDirectory, "GameEntryPoint.kt").readText()
+    private val mainFile = File(directory, "src/desktopMain/kotlin/com/example/mygame/Main.kt")
+    private val newMain = mainFile.readText()
     private val sceneLoaderFile = File(packageDirectory, "SceneLoader.kt")
     private val oldSceneLoader = TemplateRenderer.renderContent(checkNotNull(TemplateFiles.readResource("upgrades/SceneLoader-2.kt.template")), mapOf("PACKAGE" to "com.example.mygame"))
 
@@ -44,6 +46,7 @@ class ProjectUpgraderTest {
     private fun makeItOld(game: String = OLD_GAME) {
         File(packageDirectory, "Game.kt").writeText(game)
         File(packageDirectory, "GameEntryPoint.kt").writeText(OLD_ENTRY_POINT)
+        mainFile.writeText(OLD_MAIN)
         sceneLoaderFile.writeText(oldSceneLoader)
         settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "extra": true }""")
     }
@@ -60,7 +63,7 @@ class ProjectUpgraderTest {
     @Test
     fun aNewProjectIsUpToDate() {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
         assertFalse(sceneLoaderFile.exists())
     }
 
@@ -74,15 +77,16 @@ class ProjectUpgraderTest {
     fun upgradingAnOldProjectMakesItsFilesWhatTheTemplateMakesNow() {
         makeItOld()
         val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
-        assertEquals(listOf("$PACKAGE_PATH/Game.kt", "$PACKAGE_PATH/GameEntryPoint.kt", "$PACKAGE_PATH/SceneLoader.kt"), upgrade.changes.map { it.path })
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", "$PACKAGE_PATH/GameEntryPoint.kt", MAIN_PATH, "$PACKAGE_PATH/SceneLoader.kt"), upgrade.changes.map { it.path })
         assertNull(upgrade.changes.last().after)
         assertEquals(emptyList(), upgrade.byHand)
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
         assertEquals(newEntryPoint, File(packageDirectory, "GameEntryPoint.kt").readText())
+        assertEquals(newMain, mainFile.readText())
         assertFalse(sceneLoaderFile.exists())
         val settings = settingsFile.readText()
-        assertContains(settings, "\"templateVersion\": 4")
+        assertContains(settings, "\"templateVersion\": 5")
         assertContains(settings, "\"extra\": true")
     }
 
@@ -90,11 +94,11 @@ class ProjectUpgraderTest {
     fun upgradingAVersion2ProjectHandsTheFirstSceneToTheGeneratedManagers() {
         makeItVersion2()
         val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
-        assertEquals(listOf("$PACKAGE_PATH/Game.kt", "$PACKAGE_PATH/SceneLoader.kt"), upgrade.changes.map { it.path })
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", MAIN_PATH, "$PACKAGE_PATH/SceneLoader.kt"), upgrade.changes.map { it.path })
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
         assertFalse(sceneLoaderFile.exists())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
     }
 
     @Test
@@ -103,12 +107,29 @@ class ProjectUpgraderTest {
             .replace(KUBRIKO_IMPORT_LINE, "$KUBRIKO_IMPORT_LINE\n$COLLISION_IMPORT\n$KUBRIKO_IMPORT")
             .replace(SERIALIZATION_LINE, "$SERIALIZATION_LINE\n            CollisionManager.newInstance(),\n            KeyboardInputManager.newInstance(),")
         File(packageDirectory, "Game.kt").writeText(version3Game)
+        mainFile.writeText(OLD_MAIN)
         settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 3 }""")
         val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
-        assertEquals(listOf("$PACKAGE_PATH/Game.kt"), upgrade.changes.map { it.path })
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", MAIN_PATH), upgrade.changes.map { it.path })
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
+    }
+
+    @Test
+    fun upgradingAVersion4ProjectLetsPlaySessionsTurnTheLogBlocksOn() {
+        mainFile.writeText(OLD_MAIN)
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 4 }""")
+        assertEquals(listOf(MAIN_PATH), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newMain, mainFile.readText())
+        assertContains(newMain, "KubrikoWiring.isLoggingEnabled = System.getProperty(\"kubriko.creator.logging\").toBoolean()")
+    }
+
+    @Test
+    fun aMainThatIsNotTheTemplatesIsLeftToTheUser() {
+        assertNull(ProjectUpgrader.withLoggingTurnedOn("fun main() {\n    application { Game() }\n}\n", "import x"))
+        assertNull(ProjectUpgrader.withLoggingTurnedOn("fun main() = application {\n    Game()\n}\n\nfun other() = Unit\n", "import x"))
     }
 
     @Test
@@ -123,7 +144,7 @@ class ProjectUpgraderTest {
     fun aSceneLoaderChangedByHandIsKept() {
         makeItVersion2()
         sceneLoaderFile.writeText(oldSceneLoader + "\n// Mine.\n")
-        assertEquals(listOf("$PACKAGE_PATH/Game.kt"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", MAIN_PATH), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertContains(sceneLoaderFile.readText(), "// Mine.")
     }
@@ -156,9 +177,10 @@ class ProjectUpgraderTest {
         File(packageDirectory, "GameEntryPoint.kt").delete()
         assertEquals(listOf("$PACKAGE_PATH/GameEntryPoint.kt"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).byHand)
         File(packageDirectory, "GameEntryPoint.kt").writeText(newEntryPoint)
+        mainFile.writeText(newMain)
         sceneLoaderFile.delete()
         ProjectUpgrader(directory).recordVersionIfUpToDate()
-        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
     }
 
     @Test
@@ -177,6 +199,7 @@ class ProjectUpgraderTest {
 
     companion object {
         private const val PACKAGE_PATH = "src/commonMain/kotlin/com/example/mygame"
+        private const val MAIN_PATH = "src/desktopMain/kotlin/com/example/mygame/Main.kt"
         private const val SCENE_LOADER_LINE = "            SceneLoader(scenePath = \"files/scenes/main.json\"),"
         private const val KUBRIKO_IMPORT = "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
         private const val WIRING_IMPORT = "import com.example.mygame.generated.KubrikoWiring"
@@ -233,6 +256,23 @@ class ProjectUpgraderTest {
             |class GameEntryPoint : CreatorEntryPoint {
             |
             |    override fun createSerializationManager() = GameSerialization.createSerializationManager()
+            |}
+            |
+        """.trimMargin()
+
+        private val OLD_MAIN = """
+            |package com.example.mygame
+            |
+            |import androidx.compose.ui.window.Window
+            |import androidx.compose.ui.window.application
+            |
+            |fun main() = application {
+            |    Window(
+            |        title = "My Game",
+            |        onCloseRequest = ::exitApplication,
+            |    ) {
+            |        Game()
+            |    }
             |}
             |
         """.trimMargin()

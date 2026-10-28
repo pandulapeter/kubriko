@@ -157,6 +157,7 @@ class ManagerTypeCodeGeneratorTest {
         val wiring = ManagerTypeCodeGenerator.generateWiring(listOf("Level", "Game"), "com.example.game")
         assertTrue(GeneratedFile.isUnchanged(wiring))
         assertContains(wiring, "object KubrikoWiring {\n")
+        assertContains(wiring, "    var isLoggingEnabled = false\n")
         assertContains(
             wiring,
             "    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> {\n" +

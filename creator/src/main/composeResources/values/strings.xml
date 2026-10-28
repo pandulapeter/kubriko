@@ -50,7 +50,7 @@
     <string name="project_upgrade_notice">This project was made by an older Kubriko Creator. Manager types and the Scene Blocks need a few small changes to its template files.</string>
     <string name="project_upgrade_title">Upgrade the template files</string>
     <string name="project_upgrade_message">These files belong to you, so nothing changes until you apply this. Commit first to be able to go back with version control.</string>
-    <string name="project_upgrade_by_hand">Kubriko Creator can't change %1$s, which changed too much. Make the changes by hand: in Game.kt, pass *KubrikoWiring.createManagers(firstScene = "main").toTypedArray() to Kubriko.newInstance instead of a SceneLoader, and in GameEntryPoint.kt, add override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true).</string>
+    <string name="project_upgrade_by_hand">Kubriko Creator can't change %1$s, which changed too much. Make the changes by hand: in Game.kt, pass *KubrikoWiring.createManagers(firstScene = "main").toTypedArray() to Kubriko.newInstance instead of a SceneLoader, in GameEntryPoint.kt, add override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true), and in the desktop Main.kt, set KubrikoWiring.isLoggingEnabled = System.getProperty("kubriko.creator.logging").toBoolean() before the application starts.</string>
     <string name="project_upgrade_file_deleted">%1$s (no longer needed, so it is deleted)</string>
     <string name="project_upgrade_commit_message">Save the project before Kubriko Creator upgrades its template files.</string>
     <string name="action_review_upgrade">Review changes</string>

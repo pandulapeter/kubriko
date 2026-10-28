@@ -222,7 +222,11 @@ internal object BlockCodeGenerator {
         is BlockDefinition.If -> listOf("if (${conditionExpression(block.condition, scope)}) {")
         is BlockDefinition.Repeat -> listOf("repeat(${block.times.coerceAtLeast(0)}) {")
         BlockDefinition.Else, BlockDefinition.End -> emptyList()
-        is BlockDefinition.Log -> listOf("Logger.log(message = ${templateLiteral(block.message, scope)}, source = ${stringLiteral(scope.typeName)})")
+        // Logging allocates on every call, so a released game, which leaves it off, doesn't pay for it.
+        is BlockDefinition.Log -> listOf(
+            "if (${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}) " +
+                "Logger.log(message = ${templateLiteral(block.message, scope)}, source = ${stringLiteral(scope.typeName)})",
+        )
         // Each Kotlin Block gets a scope of its own, like GameMaker's code actions, so two of them can declare the same name.
         is BlockDefinition.Kotlin -> block.code.lines().map { it.trimEnd() }.dropWhile { it.isEmpty() }.dropLastWhile { it.isEmpty() }
             .takeIf { it.isNotEmpty() }

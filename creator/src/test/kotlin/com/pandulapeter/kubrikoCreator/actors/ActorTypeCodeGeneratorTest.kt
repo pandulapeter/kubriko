@@ -140,7 +140,7 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun logBlocksWriteToKubrikosLoggerWithTheActorTypeAsTheirSource() {
         assertEquals(
-            listOf("Logger.log(message = \"Say \\\"\\\$hi\\\" \\\\ to\\neveryone\", source = \"Ball\")"),
+            listOf("if (KubrikoWiring.isLoggingEnabled) Logger.log(message = \"Say \\\"\\\$hi\\\" \\\\ to\\neveryone\", source = \"Ball\")"),
             BlockCodeGenerator.blockLines(BlockDefinition.Log("Say \"\$hi\" \\ to\neveryone"), EventType.EVERY_FRAME, BlockScope("Ball")),
         )
         assertContains(generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("Hello")))), "import com.pandulapeter.kubriko.logger.Logger")
@@ -319,7 +319,7 @@ class ActorTypeCodeGeneratorTest {
         assertEquals("\"Score: \${score.asText()} ({title}) \\$5 {unknown} {}\"", BlockCodeGenerator.templateLiteral("Score: {score} ({title}) \$5 {unknown} {}", BlockScope("Player", properties = properties.take(1))))
         assertEquals("\"\${title}: \${score.asText()}\"", BlockCodeGenerator.templateLiteral("{title}: {score}", BlockScope("Player", properties = properties)))
         assertEquals(
-            listOf("Logger.log(message = \"Score: \${score.asText()}\", source = \"Player\")"),
+            listOf("if (KubrikoWiring.isLoggingEnabled) Logger.log(message = \"Score: \${score.asText()}\", source = \"Player\")"),
             BlockCodeGenerator.blockLines(BlockDefinition.Log("Score: {score}"), EventType.EVERY_FRAME, BlockScope("Player", properties = properties)),
         )
     }
@@ -485,7 +485,7 @@ class ActorTypeCodeGeneratorTest {
         val code = ActorTypeCodeGenerator.generateActorType(brick, "com.example.game", listOf("Brick"), listOf(game))
         assertContains(code, "    private lateinit var game: Game\n")
         assertContains(code, "        game = kubriko.get()\n")
-        assertContains(code, "        if (game.isOver) {\n            game.score += 10f\n            Logger.log(message = \"Score: \${game.score.asText()}\", source = \"Brick\")\n            // Choose a Property for this Block.\n        }\n")
+        assertContains(code, "        if (game.isOver) {\n            game.score += 10f\n            if (KubrikoWiring.isLoggingEnabled) Logger.log(message = \"Score: \${game.score.asText()}\", source = \"Brick\")\n            // Choose a Property for this Block.\n        }\n")
         assertFalse("Missing" in code.substringAfter("\n"))
     }
 

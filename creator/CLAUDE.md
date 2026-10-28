@@ -171,7 +171,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   `KubrikoWiring` counts as done, however it got there. Version 2 is the Manager wiring; version 3 drops the template's `SceneLoader`
   for `createManagers(firstScene = …)` and deletes `SceneLoader.kt` if it is still the template's (`resources/upgrades` keeps that
   copy; one changed by hand stays). Version 4 drops the plugin Managers from `Game.kt` (and their imports, unless still used),
-  since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. A change's `after` is null for a file it deletes.
+  since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. Version 5 has the desktop `Main.kt`
+  set `KubrikoWiring.isLoggingEnabled` from the `kubriko.creator.logging` system property, which only the play session sets (the
+  init script), so Log Blocks (`if (KubrikoWiring.isLoggingEnabled) Logger.log(...)`) cost nothing in a released game. A change's `after` is null for a file it deletes.
 - **Parent Actor types** (`ActorTypeFamily`, `set_parent`): an Actor type may name a `parent`, like GameMaker's parent objects
   (cycles and a parent named nowhere count as none). A child gets its ancestors' Properties (one of its own with the same name
   and kind only changes the initial value; another kind is rejected) and Events (one of its own of the same kind, key, other

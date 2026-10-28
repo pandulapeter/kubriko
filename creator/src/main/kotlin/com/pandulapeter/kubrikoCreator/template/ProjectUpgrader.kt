@@ -30,7 +30,9 @@ import java.io.File
  * the generated `GeneratedScenes` load the first Scene, so that Blocks can load others: `Game.kt` hands
  * `KubrikoWiring.createManagers` the Scene its `SceneLoader` loaded instead, and `SceneLoader.kt` is deleted if it is
  * still the template's. Version 4 leaves the plugins' Managers to `KubrikoWiring`, which creates only those the game uses,
- * so that the project only depends on the plugins it uses: `Game.kt` stops creating them. A file is only changed when it
+ * so that the project only depends on the plugins it uses: `Game.kt` stops creating them. Version 5 lets play sessions turn
+ * the Log Blocks on, which released games leave off: the desktop `Main.kt` sets `KubrikoWiring.isLoggingEnabled` from a system
+ * property before the application starts. A file is only changed when it
  * still looks like the template's (one `Kubriko.newInstance` with a one-line `SceneLoader` in it, one-line plugin
  * Managers, one `createSerializationManager`); a file that already does what the version needs counts as done, whoever
  * changed it, and so does a `SceneLoader.kt` changed by hand, which is left alone.
@@ -58,6 +60,8 @@ internal class ProjectUpgrader(
         }
         val isGameUpgraded = propose("$packagePath/$GAME_FILE", ::isGameUpToDate) { upgradedGame(it, wiringImport) }
         propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it }) { withManagersHandedToTheSceneEditor(it, wiringImport) }
+        val desktopPackagePath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}"
+        propose("$desktopPackagePath/$MAIN_FILE", ::turnsLoggingOn) { withLoggingTurnedOn(it, wiringImport) }
         val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
         read(sceneLoaderPath)?.takeIf { isGameUpgraded && it.trimEnd() == templateSceneLoader(packageName)?.trimEnd() }?.let { text ->
             changes += ProposedFileChange(sceneLoaderPath, text, after = null)
@@ -103,8 +107,11 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 4
+        const val CURRENT_VERSION = 5
         private const val GAME_FILE = "Game.kt"
+        private const val MAIN_FILE = "Main.kt"
+        private const val APPLICATION_MAIN = "fun main() = application {"
+        private const val LOGGING_SWITCH = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}"
         private const val ENTRY_POINT_FILE = "GameEntryPoint.kt"
         private const val SCENE_LOADER_FILE = "SceneLoader.kt"
         private const val SCENE_LOADER_TEMPLATE = "upgrades/SceneLoader-2.kt.template"
@@ -188,6 +195,24 @@ internal class ProjectUpgrader(
                 addAll(line + 1, listOf("", "${indent}override fun createCustomManagers() = ${ManagerTypeCodeGenerator.WIRING_NAME}.createManagers(isInSceneEditor = true)"))
             }
             return withImport(withOverride, wiringImport)
+        }
+
+        private fun turnsLoggingOn(text: String) = LOGGING_SWITCH in text
+
+        /**
+         * [text] (a desktop `Main.kt`) turning the Log Blocks on from the play session's system property before the application
+         * starts, or null if its `main` isn't the template's `application` expression at the end of the file.
+         */
+        internal fun withLoggingTurnedOn(text: String, wiringImport: String): String? {
+            val lines = text.lines()
+            val main = lines.indexOf(APPLICATION_MAIN).takeIf { it >= 0 && lines.count { line -> line == APPLICATION_MAIN } == 1 } ?: return null
+            val end = lines.indexOfLast { it.isNotBlank() }
+            if (lines[end] != "}") return null
+            val body = lines.subList(main + 1, end + 1).map { if (it.isEmpty()) it else "    $it" }
+            val changed = lines.subList(0, main) +
+                listOf("fun main() {", "    $LOGGING_SWITCH = System.getProperty(\"${ManagerTypeCodeGenerator.LOGGING_PROPERTY}\").toBoolean()", "    application {") +
+                body + "}" + lines.subList(end + 1, lines.size)
+            return if (wiringImport in changed) changed.joinToString("\n") else withImport(changed, wiringImport)
         }
 
         /**

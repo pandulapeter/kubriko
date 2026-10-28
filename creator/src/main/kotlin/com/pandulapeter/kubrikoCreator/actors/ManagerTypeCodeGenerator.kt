@@ -33,6 +33,12 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
 internal object ManagerTypeCodeGenerator {
 
     const val WIRING_NAME = "KubrikoWiring"
+
+    /**
+     * The field of [WIRING_NAME] that turns the Log Blocks on, and the system property the play session sets for it.
+     */
+    const val LOGGING_FLAG = "isLoggingEnabled"
+    const val LOGGING_PROPERTY = "kubriko.creator.logging"
     private const val SCENE_EDITOR_GUARD = "if (isInSceneEditor) return"
     private const val ACTOR_MANAGER_FIELD = "actorManager"
     private const val VIEWPORT_MANAGER_FIELD = "viewportManager"
@@ -174,6 +180,12 @@ internal object ManagerTypeCodeGenerator {
         appendLine(" * What Kubriko needs from the types built in Kubriko Creator.")
         appendLine(" */")
         appendLine("object $WIRING_NAME {")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Whether the Log Blocks log. Kubriko Creator turns it on while it plays the game (`Main.kt` reads it from the")
+        appendLine("     * `$LOGGING_PROPERTY` system property); a released game leaves it off, since every log allocates.")
+        appendLine("     */")
+        appendLine("    var $LOGGING_FLAG = false")
         appendLine()
         appendLine("    /**")
         appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, the one that loads Scenes (and the one that plays")
