@@ -31,7 +31,7 @@ Each one changes the libraries, so each is offered only to sessions whose protoc
 - the debug agent, `tools/debug-overlay`, and deprecating the debug menu (`04-debugger.md`);
 - Managers' Properties per Scene (Creator's Scene editor is its own now, so its other plans need no library change)
   (`02-blocks.md` → Scene editor);
-- hot reload in the session process and the asset editor extension point (`07-later.md`).
+- hot reload in the session process (`10-fast-iteration.md`) and the asset editor extension point (`07-later.md`).
 
 Blocks, Manager types, templates, git, the AI assistant, and export are Creator-only (generated code uses existing plugins) and don't wait
 for any of this.

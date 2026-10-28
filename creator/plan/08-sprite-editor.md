@@ -20,8 +20,9 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
   a format of Creator's own or GIF: the game and IntelliJ need nothing else (`README.md` → Principles 2).
 - `.kubriko/sprites/<name>.json` keeps what the sheet can't: frame size, frame count, frames per row, frames per second, and the origin
   (the pivot). Deleting it leaves a plain image, which can be opened again by entering the frame size.
-- Sprites live in the sidebar beside Actor types and Scenes. Renaming one follows every Actor type that uses it, like an Actor type rename
-  follows collision Events.
+- Sprites live in the sidebar beside Actor types and Scenes, in virtual folders kept in their JSON (`12-resource-organization.md`; Compose
+  resources take no subfolders in `drawable`). Renaming one follows every Actor type that uses it, like an Actor type rename follows
+  collision Events.
 - A new sprite starts as one fully transparent frame of the size the user picks (32 by 32 by default).
 - Importing: a PNG, a sheet sliced by frame size, or a strip of separate images (one per frame). Exporting is the sheet itself.
 

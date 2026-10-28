@@ -44,11 +44,15 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).
-2. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
+1. The file format changes, before projects grow (in this order): stable Scene Actor IDs and one Actor per line
+   (`09-large-projects.md`), folders for Actor types, Manager types, and Scenes with Scene names as paths (`12-resource-organization.md`),
+   and parent Actor types (`11-reuse-and-traits.md`). Then incremental Scene editing, functions, Traits, search, and compile times; the
+   user wants every item in those four plans done, with nothing capped in number.
+2. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).
+3. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
    `08-sprite-editor.md` plans), then the sprite editor itself, then the rest of `02-blocks.md`. Plugins come and go with the Blocks
    that use them, as audio's and sprites' do (`PluginManagers`, `KubrikoWiring`); not in a template upgrade.
-3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
+4. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
 

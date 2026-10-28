@@ -42,7 +42,7 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **Camera:** follow an Actor, shake, zoom.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
   editor (`08-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
-  column; tinting a sprite with the color; layer and drawing order.
+  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`11-reuse-and-traits.md`).
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
   Scene bounds (as opposed to touching the edge).
 - **More drag and drop:** reordering Events the same way, dragging a Block into another Event, and scrolling the Block list while
