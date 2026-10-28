@@ -61,4 +61,4 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - Test on a scratch copy of `~/Projects/breakout` (it has the user's uncommitted work), opened with `:creator:run --args=<dir>`.
   The real one was opened with unfinished code once, and still shows the upgrade notice: leave it to the user.
 - Never recompile `:creator` while `:creator:run` is up, and restart it with the publish tasks after `tools/creator-session` changes.
-- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.7.5-creator ./gradlew :creator:test --rerun`.
+- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.0-creator ./gradlew :creator:test --rerun`.

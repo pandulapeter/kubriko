@@ -9,7 +9,7 @@
 -->
 # The groundwork release
 
-The next Kubriko release (`library.version` is 0.7.5, not yet tagged) ships the library side of Creator, so projects and Creator's own
+The next Kubriko release (0.8.0) ships the library side of Creator, so projects and Creator's own
 development resolve Kubriko from Maven Central instead of `<version>-creator` builds in Maven Local. It doesn't ship a usable Creator.
 
 ## Why it can't be "every library change Creator will ever need"
