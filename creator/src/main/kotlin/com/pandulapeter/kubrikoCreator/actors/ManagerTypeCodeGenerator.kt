@@ -222,6 +222,10 @@ internal object ManagerTypeCodeGenerator {
      * The Manager's `Composable`: its texts, then its Kotlin UI, which is drawn on top of them.
      */
     private fun StringBuilder.appendComposable(definitions: List<ScreenTextDefinition>, texts: List<String>, kotlinUi: KotlinUi?) {
+        definitions.forEachIndexed { index, definition ->
+            appendLine()
+            appendLine("    private val ${textStyleField(index)} = TextStyle(color = Color(${colorLiteral(definition.color)}), fontSize = ${floatLiteral(definition.size.coerceAtLeast(1f))}.sp)")
+        }
         appendLine()
         appendLine("    @Composable")
         appendLine("    override fun Composable(windowInsets: WindowInsets) {")
@@ -233,7 +237,7 @@ internal object ManagerTypeCodeGenerator {
                 appendLine("            BasicText(")
                 appendLine("                modifier = Modifier.align(Alignment.${definition.position.alignment}),")
                 appendLine("                text = ${texts[index]},")
-                appendLine("                style = TextStyle(color = Color(${colorLiteral(definition.color)}), fontSize = ${floatLiteral(definition.size.coerceAtLeast(1f))}.sp),")
+                appendLine("                style = ${textStyleField(index)},")
                 appendLine("            )")
             }
             appendLine("        }")
@@ -241,6 +245,11 @@ internal object ManagerTypeCodeGenerator {
         kotlinUi?.statements?.forEach { appendLine(if (it.isEmpty()) it else "        $it") }
         appendLine("    }")
     }
+
+    /**
+     * The field that keeps the style of the text at [index], so that it isn't built again on every recomposition.
+     */
+    private fun textStyleField(index: Int) = "textStyle${index + 1}"
 
     private val COMPOSABLE_IMPORTS = listOf(
         "androidx.compose.foundation.layout.WindowInsets",

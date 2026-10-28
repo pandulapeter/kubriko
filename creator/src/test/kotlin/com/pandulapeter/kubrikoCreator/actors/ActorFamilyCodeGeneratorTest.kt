@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ActorFamilyCodeGeneratorTest {
     private val enemy = ActorTypeDefinition(
@@ -44,8 +45,8 @@ class ActorFamilyCodeGeneratorTest {
     fun theTopmostTypeOfAFamilyGetsABaseClassWithItsEventsAsHooks() {
         val code = generate(enemy)
         assertContains(code, "abstract class EnemyBase(\n    final override val body: BoxBody,\n    color: Color,\n    hp: Float,\n    final override val collisionMask: CollisionMask,\n) : Visible, Dynamic, CollisionDetector {")
-        assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        onEveryFrame()\n")
-        assertContains(code, "                is Wall -> onCollisionWithWall(other)\n")
+        assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        if (isRemoved) return\n        onEveryFrame()\n")
+        assertContains(code, "                is Wall -> if (!other.isRemoved) onCollisionWithWall(other)\n")
         assertContains(code, "    protected open fun onEveryFrame() {\n        hp += -1f\n    }\n")
         assertContains(code, "class Enemy private constructor(state: State) : EnemyBase(\n    body = state.body,\n    color = state.color,\n    hp = state.hp,\n")
         assertContains(code, "), Editable<Enemy> {")
@@ -79,7 +80,34 @@ class ActorFamilyCodeGeneratorTest {
     fun aParentStandsForItsChildrenInOtherTypesCollisions() {
         val code = generate(wall)
         assertContains(code, "listOf(EnemyBase::class)")
-        assertContains(code, "is EnemyBase -> {")
+        assertContains(code, "is EnemyBase -> if (!other.isRemoved) {")
+    }
+
+    @Test
+    fun aChildsCollisionEventComesBeforeItsParentsSoTheParentsDoesNotCatchIt() {
+        val hunter = ActorTypeDefinition(
+            name = "Hunter",
+            events = listOf(
+                EventDefinition(EventType.COLLISION, otherActorType = "Enemy", blocks = listOf(BlockDefinition.Stop)),
+                EventDefinition(EventType.COLLISION, otherActorType = "Bat", blocks = listOf(BlockDefinition.RemoveOther)),
+            ),
+        )
+        val code = ActorTypeCodeGenerator.generateActorType(
+            definition = hunter,
+            packageName = "com.example.game",
+            knownActorTypeNames = (actorTypes + hunter).map { it.name },
+            actorTypes = actorTypes + hunter,
+        )
+        assertTrue(code.indexOf("is Bat -> if (!other.isRemoved) {") < code.indexOf("is EnemyBase -> if (!other.isRemoved) {"), code)
+        assertContains(code, "                    other.isRemoved = true\n                    actorManager.remove(other)\n")
+    }
+
+    @Test
+    fun theBaseClassOfAFamilyOfShapesUpdatesWhicheverMaskItsActorHas() {
+        val code = generate(enemy)
+        assertContains(code, "        when (val mask = collisionMask) {\n            is CircleCollisionMask -> mask.radius = body.size.width * body.scale.horizontal / 2\n            is BoxCollisionMask -> mask.rotation = body.rotation\n            else -> Unit\n        }\n")
+        assertContains(code, "    override val isAlwaysActive = true\n")
+        assertContains(code, "    var isRemoved = false\n")
     }
 
     @Test

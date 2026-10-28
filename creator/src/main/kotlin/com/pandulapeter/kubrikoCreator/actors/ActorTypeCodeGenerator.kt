@@ -9,18 +9,21 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.INDENT
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.MOVEMENT_LINE
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.REMOVED_GUARD
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendAlwaysActive
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBounceOffFunction
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendCollisionMaskUpdate
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendEdgeHandling
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.blockLines
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventLines
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.periodField
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.remainingField
@@ -110,7 +113,9 @@ internal object ActorTypeCodeGenerator {
                 appendLine("     * In scene units per second: the Actor moves by this much every second.")
                 appendLine("     */")
                 appendLine("    var velocity = SceneOffset.Zero")
+                appendAlwaysActive()
             }
+            appendRemovedField()
             definition.properties.forEach { property ->
                 appendLine()
                 appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
@@ -146,16 +151,18 @@ internal object ActorTypeCodeGenerator {
             if (isDynamic) {
                 appendLine()
                 appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
+                appendLine(REMOVED_GUARD)
                 timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
                 appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, scope = scope)
-                appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
+                appendLine(MOVEMENT_LINE)
                 if (edgeEvents.isNotEmpty()) appendEdgeHandling { appendEvents(edgeEvents, depth = 3, scope = scope) }
-                if (isCollidable) appendLine("        collisionMask.position = bodyCenter")
+                if (isCollidable) appendCollisionMaskUpdate(setOf(definition.shape))
                 appendLine("    }")
             }
             // Kubriko keeps telling Actors about key presses while the game is paused.
             if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope, guard = "if (!$STATE_MANAGER_FIELD.isRunning.value) return")
-            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, scope)
+            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, scope, family)
+            if (features.usesBounceOff) appendBounceOffFunction("private")
             appendLine()
             appendLine(if (spriteAccessor == null) drawFunction(definition.shape) else SPRITE_DRAW_FUNCTION)
             if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) } }) {
@@ -223,33 +230,14 @@ internal object ActorTypeCodeGenerator {
         appendLine("}")
     })
 
-    /**
-     * Keeps the Actor inside the Scene's bounds (or the screen's), and runs [onTouched] when it touched one of their
-     * edges, with `isTouchingLeftEdge` and the others in scope.
-     */
-    internal fun StringBuilder.appendEdgeHandling(onTouched: StringBuilder.() -> Unit) {
-        appendLine("        val halfSize = SceneOffset(body.size.width / 2, body.size.height / 2)")
-        appendLine("        val sceneSettings = $SCENES_FIELD.settings")
-        appendLine("        val topLeft = (sceneSettings?.topLeft ?: viewportManager.topLeft.value) + halfSize")
-        appendLine("        val bottomRight = (sceneSettings?.bottomRight ?: viewportManager.bottomRight.value) - halfSize")
-        // Strict, so an Actor resting where the clamp below left it doesn't run the Event again every frame.
-        appendLine("        val isTouchingLeftEdge = body.position.x < topLeft.x")
-        appendLine("        val isTouchingRightEdge = body.position.x > bottomRight.x")
-        appendLine("        val isTouchingTopEdge = body.position.y < topLeft.y")
-        appendLine("        val isTouchingBottomEdge = body.position.y > bottomRight.y")
-        appendLine("        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {")
-        appendLine("            body.position = body.position.constrainedWithin(topLeft, bottomRight)")
-        onTouched()
-        appendLine("        }")
-    }
-
-    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, scope: BlockScope) {
+    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, scope: BlockScope, family: ActorTypeFamily) {
         appendLine()
         appendLine("    override fun onCollisionDetected(collidables: List<Collidable>) {")
+        appendLine(REMOVED_GUARD)
         appendLine("        for (index in collidables.indices) {")
         appendLine("            when (val other = collidables[index]) {")
-        collisionEvents.groupBy { it.otherActorType!! }.toSortedMap().forEach { (otherActorType, events) ->
-            appendLine("                is ${scope.classOf(otherActorType)} -> {")
+        collisionEvents.groupBy { it.otherActorType!! }.toSortedMap(collisionTargetOrder(family)).forEach { (otherActorType, events) ->
+            appendLine("                is ${scope.classOf(otherActorType)} -> if (!other.$REMOVED_FIELD) {")
             appendEvents(events, depth = 5, scope = scope)
             appendLine("                }")
         }

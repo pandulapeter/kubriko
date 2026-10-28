@@ -22,6 +22,8 @@ internal object BlockCodeGenerator {
     const val SCENES_FIELD = "generatedScenes"
     const val AUDIO_FIELD = "generatedAudio"
     const val STATE_MANAGER_FIELD = "stateManager"
+    const val REMOVED_FIELD = "isRemoved"
+    const val BOUNCE_OFF_FUNCTION = "bounceOff"
     const val STATE_MANAGER_IMPORT = "com.pandulapeter.kubriko.manager.StateManager"
 
     /**
@@ -148,23 +150,14 @@ internal object BlockCodeGenerator {
         } else {
             listOf("// Bounce off the edge only works in the Edge touched Event.")
         }
-        BlockDefinition.RemoveSelf -> listOf("actorManager.remove(this)")
+        BlockDefinition.RemoveSelf -> listOf("$REMOVED_FIELD = true", "actorManager.remove(this)")
         BlockDefinition.BounceOffOther -> if (eventType == EventType.COLLISION) {
-            listOf(
-                "run {",
-                "    val offset = body.position - other.body.position",
-                "    if (offset.x.raw.absoluteValue * (body.size.height + other.body.size.height).raw >= offset.y.raw.absoluteValue * (body.size.width + other.body.size.width).raw) {",
-                "        velocity = SceneOffset(if (offset.x > SceneUnit.Zero) velocity.x.raw.absoluteValue.sceneUnit else -velocity.x.raw.absoluteValue.sceneUnit, velocity.y)",
-                "    } else {",
-                "        velocity = SceneOffset(velocity.x, if (offset.y > SceneUnit.Zero) velocity.y.raw.absoluteValue.sceneUnit else -velocity.y.raw.absoluteValue.sceneUnit)",
-                "    }",
-                "}",
-            )
+            listOf("$BOUNCE_OFF_FUNCTION(other)")
         } else {
             listOf("// Bounce off it only works in a collision Event.")
         }
         BlockDefinition.RemoveOther -> if (eventType == EventType.COLLISION) {
-            listOf("actorManager.remove(other)")
+            listOf("other.$REMOVED_FIELD = true", "actorManager.remove(other)")
         } else {
             listOf("// Remove the other Actor only works in a collision Event.")
         }
@@ -180,14 +173,20 @@ internal object BlockCodeGenerator {
         }
         is BlockDefinition.MoveTowardsNearest -> if (block.actorType in scope.actorTypeNames) {
             val actorClass = scope.classOf(block.actorType)
+            val isOwnType = block.actorType == scope.typeName || block.actorType in scope.ancestorNames
             listOf(
                 "run {",
                 "    val actors = actorManager.allActors.value",
                 "    var nearest: $actorClass? = null",
+                "    var nearestDistanceSquared = Float.MAX_VALUE",
                 "    for (index in actors.indices) {",
                 "        val candidate = actors[index] as? $actorClass ?: continue",
-                "        if (${if (block.actorType == scope.typeName || block.actorType in scope.ancestorNames) "candidate !== this && " else ""}(nearest == null || body.position.distanceTo(candidate.body.position) < body.position.distanceTo(nearest.body.position))) {",
+                "        if (${if (isOwnType) "candidate === this || " else ""}candidate.$REMOVED_FIELD) continue",
+                "        val offset = candidate.body.position - body.position",
+                "        val distanceSquared = offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw",
+                "        if (distanceSquared < nearestDistanceSquared) {",
                 "            nearest = candidate",
+                "            nearestDistanceSquared = distanceSquared",
                 "        }",
                 "    }",
                 "    if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * ${floatLiteral(block.speed)}",

@@ -103,7 +103,8 @@ class ManagerTypeCodeGeneratorTest {
             ),
         )
         assertContains(code, "    @Composable\n    override fun Composable(windowInsets: WindowInsets) {\n")
-        assertContains(code, "                modifier = Modifier.align(Alignment.TopEnd),\n                text = \"Score: \${score.asText()}\",\n                style = TextStyle(color = Color(0xFFFFFFFF), fontSize = 30f.sp),\n")
+        assertContains(code, "                modifier = Modifier.align(Alignment.TopEnd),\n                text = \"Score: \${score.asText()}\",\n                style = textStyle1,\n")
+        assertContains(code, "    private val textStyle1 = TextStyle(color = Color(0xFFFFFFFF), fontSize = 30f.sp)\n")
         assertContains(code, "                modifier = Modifier.align(Alignment.Center),\n                text = \"Game over\",\n")
         assertContains(code, "    private fun Float.asText() = ")
         assertContains(code, "import androidx.compose.foundation.text.BasicText\n")

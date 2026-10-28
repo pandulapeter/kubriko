@@ -33,7 +33,7 @@ internal class ActorTypeFeatures(
     events: List<EventDefinition>,
     scope: BlockScope,
     packageName: String,
-    shapes: Set<ActorShape>,
+    val shapes: Set<ActorShape>,
     hasSprite: Boolean,
     isCollidableAnyway: Boolean,
 ) {
@@ -50,6 +50,7 @@ internal class ActorTypeFeatures(
     val generatedBlocks = generatedEvents.flatMap { it.blocks }
     private val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
     val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
+    val usesBounceOff = collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }
 
     // Edge Events use the Scene settings' bounds, which GeneratedScenes knows.
     private val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks) || edgeEvents.isNotEmpty()
@@ -89,11 +90,10 @@ internal class ActorTypeFeatures(
         if (collisionEvents.isNotEmpty()) add("com.pandulapeter.kubriko.collision.CollisionDetector")
         if (collisionEvents.isNotEmpty()) add("kotlin.reflect.KClass")
         if (keyEvents.isNotEmpty()) addAll(KEYBOARD_IMPORTS)
-        if (edgeEvents.isNotEmpty()) add("com.pandulapeter.kubriko.helpers.extensions.constrainedWithin")
         val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
-        if (blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, scope).any { "absoluteValue" in it } }) add("kotlin.math.absoluteValue")
+        if (usesBounceOff || blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, scope).any { "absoluteValue" in it } }) add("kotlin.math.absoluteValue")
         if (generatedBlocks.any { it is BlockDefinition.Log }) add("com.pandulapeter.kubriko.logger.Logger")
-        if (collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }) add("com.pandulapeter.kubriko.types.SceneUnit")
+        if (usesBounceOff || edgeEvents.isNotEmpty()) add("com.pandulapeter.kubriko.types.SceneUnit")
         if (usesKeyHeld) addAll(KEYBOARD_MANAGER_IMPORTS)
         if (usesStateManager) add(STATE_MANAGER_IMPORT)
         if (isDynamic) add("com.pandulapeter.kubriko.actor.traits.Dynamic")
@@ -106,7 +106,6 @@ internal class ActorTypeFeatures(
         if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
         if (hasSprite) addAll(SPRITE_IMPORTS + listOf("$packageName.resources.Res", "$packageName.resources.allDrawableResources"))
         if (generatedBlocks.any { it is BlockDefinition.MoveTowardsNearest && it.actorType in knownActorTypeNames }) {
-            add("com.pandulapeter.kubriko.helpers.extensions.distanceTo")
             add("com.pandulapeter.kubriko.helpers.extensions.normalized")
         }
     }

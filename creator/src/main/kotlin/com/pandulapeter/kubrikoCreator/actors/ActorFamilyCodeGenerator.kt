@@ -9,13 +9,21 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.MOVEMENT_LINE
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.REMOVED_GUARD
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendAlwaysActive
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBounceOffFunction
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendCollisionMaskUpdate
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendEdgeHandling
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.GENERATED_PACKAGE
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_DRAW_FUNCTION
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendEdgeHandling
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendSavedState
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.drawFunction
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.INDENT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventLines
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.periodField
@@ -116,7 +124,9 @@ internal object ActorFamilyCodeGenerator {
             appendLine("     * In scene units per second: the Actor moves by this much every second.")
             appendLine("     */")
             appendLine("    var velocity = SceneOffset.Zero")
+            appendAlwaysActive()
         }
+        appendRemovedField()
         appendPropertyFields(properties)
         if (features.isCollidable && features.isDynamic) {
             appendLine()
@@ -144,6 +154,7 @@ internal object ActorFamilyCodeGenerator {
         if (features.isDynamic) {
             appendLine()
             appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
+            appendLine(REMOVED_GUARD)
             features.timers.forEach { timer ->
                 val remaining = remainingField(timer)
                 val period = periodField(timer)
@@ -156,9 +167,9 @@ internal object ActorFamilyCodeGenerator {
                 appendLine("        }")
             }
             if (features.everyFrameEvents.isNotEmpty()) appendLine("        ${Hooks.EVERY_FRAME}()")
-            appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
+            appendLine(MOVEMENT_LINE)
             if (features.edgeEvents.isNotEmpty()) appendEdgeHandling { appendLine("            ${Hooks.EDGE}(${Hooks.EDGE_ARGUMENTS})") }
-            if (features.isCollidable) appendLine("        collisionMask.position = bodyCenter")
+            if (features.isCollidable) appendCollisionMaskUpdate(features.shapes)
             appendLine("    }")
         }
         if (features.keyEvents.isNotEmpty()) {
@@ -176,10 +187,11 @@ internal object ActorFamilyCodeGenerator {
         if (features.collisionEvents.isNotEmpty()) {
             appendLine()
             appendLine("    override fun onCollisionDetected(collidables: List<Collidable>) {")
+            appendLine(REMOVED_GUARD)
             appendLine("        for (index in collidables.indices) {")
             appendLine("            when (val other = collidables[index]) {")
-            features.collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted().forEach { other ->
-                appendLine("                is ${hooks.scope.classOf(other)} -> ${Hooks.collision(other)}(other)")
+            features.collisionEvents.mapNotNull { it.otherActorType }.distinct().sortedWith(collisionTargetOrder(family)).forEach { other ->
+                appendLine("                is ${hooks.scope.classOf(other)} -> if (!other.$REMOVED_FIELD) ${Hooks.collision(other)}(other)")
             }
             appendLine("            }")
             appendLine("        }")
@@ -192,6 +204,7 @@ internal object ActorFamilyCodeGenerator {
             own.forEach { event -> eventLines(event.blocks, event.type, scopeOf(null)).forEach { appendLine(INDENT.repeat(2) + it) } }
             appendLine("    }")
         }
+        if (features.usesBounceOff) appendBounceOffFunction("protected")
         if (usesNumberText) {
             appendLine()
             appendLine("    protected fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")

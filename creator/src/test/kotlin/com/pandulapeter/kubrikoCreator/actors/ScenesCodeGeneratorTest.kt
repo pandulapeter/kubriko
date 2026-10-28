@@ -27,6 +27,13 @@ class ScenesCodeGeneratorTest {
     }
 
     @Test
+    fun goingToTheSceneBeingLoadedDoesNotStartItOverAndTheSettingsAreSharedBetweenThreads() {
+        assertContains(code, "        if (scene == currentScene && loading?.isActive == true) return\n        currentScene = scene\n        loading?.cancel()\n")
+        assertContains(code, "    @Volatile\n    var settings: SceneSettings? = null\n")
+        assertContains(code, "import kotlin.concurrent.Volatile\n")
+    }
+
+    @Test
     fun onlyLaterScenesRemoveTheActorsBeforeThemAndManagersThatAreActorsStay() {
         assertContains(code, "if (!isFirst) {\n                actorManager.removeAll()\n                actorManager.add(managerActors)\n            }\n            actorManager.add(actors)\n")
         assertContains(code, "if (!isInSceneEditor && firstScene != null) load(firstScene, isFirst = true)")

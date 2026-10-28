@@ -102,7 +102,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   counted down at the start of `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting one never allocates.
 - **Other Actor types** in Blocks: addActor spawns one through its own `metadata.instantiate(position)` (so with its size
   and initial Property values, at a position relative to the Actor or the Scene), and moveTowardsNearest aims the velocity at
-  the closest Actor of a type (a loop over `allActors` by index). Like collision Events, they follow renames, are rejected for
+  the closest Actor of a type (a loop over `allActors` by index, comparing squared distances, skipping removed Actors). Like collision Events, they follow renames, are rejected for
   types that don't exist, and generate a comment for a type deleted later.
 - **Manager types** (`ManagerTypeDefinition`, in `.kubriko/managers`) hold game-wide state, like the score: Properties, Events
   (gameStarted, everyFrame, keyPressed, timerFinished), and texts shown on top of the game (`ScreenTextDefinition`: placeholders,
@@ -295,6 +295,15 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   frame (a Kotlin Block counts), looks up only the Managers its Blocks use, is `Collidable` only when a collision Event (its own or another
   type's) involves it, and builds its collision mask with the body's scale and rotation, centered on the body wherever its pivot is (the Scene editor creates an edited Actor again from its state, so the mask
   follows a new size too).
+- Generated Actors behave like a careful hand-written game's (`ActorClassCode`, shared by both Actor generators): movement
+  steps at most 33 ms at a time, so a hitch can't move a fast Actor through a thin one; the remove Blocks set `isRemoved`
+  right away, which `update`, collisions, and moveTowardsNearest skip until Kubriko removes the Actor after the frame (so a
+  Brick can't score twice); Dynamic types are `isAlwaysActive`, since a Scene can be larger than the screen; edge Events use
+  the bounding box, so pivots, rotation, and scale don't move the edges; collision branches put descendants before their
+  ancestors (`is Bat` before `is EnemyBase`); the mask follows the body's rotation (boxes) or size (circles) every frame;
+  Bounce off it is one `bounceOff(other)` function per class; and Manager screen texts keep their `TextStyle`s in fields.
+  `GeneratedScenes` ignores a request for the Scene it is already loading, so goToScene in an Event that runs every frame
+  doesn't restart the load forever.
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
   `run { }` scope, Blocks outside their Event become comments) and follow the engine's no-allocation rules.
 - Nothing under `engine/`, `plugins/`, or `tools/` may depend on `creator`. Library changes Creator needs follow the public API rules (confirm first).

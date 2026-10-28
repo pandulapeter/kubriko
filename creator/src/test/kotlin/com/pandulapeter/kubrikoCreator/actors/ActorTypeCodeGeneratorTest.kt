@@ -63,16 +63,27 @@ class ActorTypeCodeGeneratorTest {
     fun everyFrameBlocksRunBeforeTheActorMoves() {
         val update = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop)))
             .substringAfter("override fun update(").substringBefore("\n    }")
-        assertTrue(update.indexOf("velocity = SceneOffset.Zero") < update.indexOf("body.position += velocity * (deltaTimeInMilliseconds / 1000f)"), update)
+        assertTrue(update.indexOf("velocity = SceneOffset.Zero") < update.indexOf("body.position += velocity * (deltaTimeInMilliseconds.coerceAtMost(33) / 1000f)"), update)
+    }
+
+    @Test
+    fun aMovingActorStaysActiveOffScreenStepsAtMost33MillisecondsAndIsSkippedOnceRemoved() {
+        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(1f, 0f), BlockDefinition.RemoveSelf)))
+        assertContains(code, "    override val isAlwaysActive = true\n")
+        assertContains(code, "    var isRemoved = false\n")
+        assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        if (isRemoved) return\n")
+        assertContains(code, "        isRemoved = true\n        actorManager.remove(this)\n")
+        assertFalse("isAlwaysActive" in generate(), "an Actor that doesn't update has nothing to keep active")
     }
 
     @Test
     fun edgeHandlingIsOnlyGeneratedWhenAnEdgeEventExists() {
         assertFalse("isTouchingLeftEdge" in generate())
-        assertFalse("constrainedWithin" in generate())
         val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)))
-        assertContains(code, "import com.pandulapeter.kubriko.helpers.extensions.constrainedWithin")
-        assertContains(code, "body.position = body.position.constrainedWithin(topLeft, bottomRight)")
+        assertFalse("constrainedWithin" in code)
+        assertContains(code, "        val box = body.axisAlignedBoundingBox\n")
+        assertContains(code, "                if (isTouchingLeftEdge) topLeft.x - box.min.x else if (isTouchingRightEdge) bottomRight.x - box.max.x else SceneUnit.Zero,\n")
+        assertContains(code, "import com.pandulapeter.kubriko.types.SceneUnit")
         assertContains(code, "if (isTouchingRightEdge) velocity = SceneOffset(-velocity.x.raw.absoluteValue.sceneUnit, velocity.y)")
         assertContains(code, "import kotlin.math.absoluteValue")
     }
@@ -80,10 +91,10 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun anActorRestingAtTheEdgeDoesNotTouchItAgain() {
         val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Stop)))
-        assertContains(code, "val isTouchingLeftEdge = body.position.x < topLeft.x")
-        assertContains(code, "val isTouchingRightEdge = body.position.x > bottomRight.x")
-        assertContains(code, "val isTouchingTopEdge = body.position.y < topLeft.y")
-        assertContains(code, "val isTouchingBottomEdge = body.position.y > bottomRight.y")
+        assertContains(code, "val isTouchingLeftEdge = box.min.x < topLeft.x")
+        assertContains(code, "val isTouchingRightEdge = box.max.x > bottomRight.x")
+        assertContains(code, "val isTouchingTopEdge = box.min.y < topLeft.y")
+        assertContains(code, "val isTouchingBottomEdge = box.max.y > bottomRight.y")
     }
 
     @Test
@@ -94,8 +105,8 @@ class ActorTypeCodeGeneratorTest {
         assertContains(
             code,
             "        val sceneSettings = generatedScenes.settings\n" +
-                "        val topLeft = (sceneSettings?.topLeft ?: viewportManager.topLeft.value) + halfSize\n" +
-                "        val bottomRight = (sceneSettings?.bottomRight ?: viewportManager.bottomRight.value) - halfSize\n",
+                "        val topLeft = sceneSettings?.topLeft ?: viewportManager.topLeft.value\n" +
+                "        val bottomRight = sceneSettings?.bottomRight ?: viewportManager.bottomRight.value\n",
         )
         assertFalse("GeneratedScenes" in generate())
     }
@@ -127,7 +138,7 @@ class ActorTypeCodeGeneratorTest {
         assertEquals(listOf("velocity += SceneOffset(0f.sceneUnit, 3f.sceneUnit)"), BlockCodeGenerator.blockLines(BlockDefinition.AddToVelocity(0f, 3f), EventType.EVERY_FRAME, BlockScope("Ball")))
         assertEquals(listOf("velocity = SceneOffset.Zero"), BlockCodeGenerator.blockLines(BlockDefinition.Stop, EventType.EVERY_FRAME, BlockScope("Ball")))
         assertEquals(listOf("body.position = SceneOffset(-10f.sceneUnit, 10f.sceneUnit)"), BlockCodeGenerator.blockLines(BlockDefinition.JumpTo(-10f, 10f), EventType.EVERY_FRAME, BlockScope("Ball")))
-        assertEquals(listOf("actorManager.remove(this)"), BlockCodeGenerator.blockLines(BlockDefinition.RemoveSelf, EventType.EVERY_FRAME, BlockScope("Ball")))
+        assertEquals(listOf("isRemoved = true", "actorManager.remove(this)"), BlockCodeGenerator.blockLines(BlockDefinition.RemoveSelf, EventType.EVERY_FRAME, BlockScope("Ball")))
         assertEquals(4, BlockCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EDGE_TOUCHED, BlockScope("Ball")).size)
     }
 
@@ -212,7 +223,7 @@ class ActorTypeCodeGeneratorTest {
         assertFalse("CircleCollisionMask" in rectangle)
         val moving = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(1f, 0f))), isCollidable = true)
         val update = moving.substringAfter("override fun update(").substringBefore("\n    }")
-        assertTrue(update.trimEnd().endsWith("collisionMask.position = bodyCenter"), update)
+        assertTrue(update.trimEnd().endsWith("collisionMask.position = bodyCenter\n        collisionMask.radius = body.size.width * body.scale.horizontal / 2"), update)
         assertContains(circle, "    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }\n")
         assertContains(circle, "        initialPosition = bodyCenter,\n")
     }
@@ -275,10 +286,23 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
-    fun bouncingOffAnotherActorIsScopedSoItCanBeUsedTwiceInOneEvent() {
-        val lines = BlockCodeGenerator.blockLines(BlockDefinition.BounceOffOther, EventType.COLLISION, BlockScope("Ball"))
-        assertEquals("run {", lines.first())
-        assertEquals("}", lines.last())
+    fun bouncingOffAnotherActorCallsOneFunctionOfTheType() {
+        assertEquals(listOf("bounceOff(other)"), BlockCodeGenerator.blockLines(BlockDefinition.BounceOffOther, EventType.COLLISION, BlockScope("Ball")))
+        val code = ActorTypeCodeGenerator.generateActorType(
+            ActorTypeDefinition(
+                name = "Ball",
+                events = listOf(
+                    EventDefinition(EventType.COLLISION, otherActorType = "Brick", blocks = listOf(BlockDefinition.BounceOffOther)),
+                    EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.BounceOffOther)),
+                ),
+            ),
+            packageName,
+            knownActorTypeNames = listOf("Ball", "Brick", "Paddle"),
+        )
+        assertEquals(1, Regex("private fun bounceOff\\(other: Visible\\) \\{").findAll(code).count())
+        assertEquals(2, Regex("bounceOff\\(other\\)\n").findAll(code).count())
+        assertContains(code, "import kotlin.math.absoluteValue\n")
+        assertContains(code, "import com.pandulapeter.kubriko.types.SceneUnit\n")
     }
 
     @Test
@@ -355,6 +379,7 @@ class ActorTypeCodeGeneratorTest {
                 "        velocity = SceneOffset.Zero",
                 "    }",
                 "} else {",
+                "    isRemoved = true",
                 "    actorManager.remove(this)",
                 "    // Else only works once, after an if Block.",
                 "    if (velocity.y <= -3f.sceneUnit) {",
@@ -416,6 +441,7 @@ class ActorTypeCodeGeneratorTest {
             code,
             """
                 |    override fun update(deltaTimeInMilliseconds: Int) {
+                |        if (isRemoved) return
                 |        if (timer2RemainingInMilliseconds > 0) {
                 |            timer2RemainingInMilliseconds -= deltaTimeInMilliseconds
                 |            if (timer2RemainingInMilliseconds <= 0) {
@@ -456,13 +482,13 @@ class ActorTypeCodeGeneratorTest {
             packageName,
             knownActorTypeNames = listOf("Player", "Coin"),
         )
-        assertContains(code, "import com.pandulapeter.kubriko.helpers.extensions.distanceTo\n")
+        assertFalse("distanceTo" in code)
         assertContains(code, "import com.pandulapeter.kubriko.helpers.extensions.normalized\n")
-        assertContains(code, "            for (index in actors.indices) {\n                val candidate = actors[index] as? Coin ?: continue\n")
-        assertContains(code, "                if ((nearest == null || ")
+        assertContains(code, "            for (index in actors.indices) {\n                val candidate = actors[index] as? Coin ?: continue\n                if (candidate.isRemoved) continue\n")
+        assertContains(code, "                val distanceSquared = offset.x.raw * offset.x.raw + offset.y.raw * offset.y.raw\n                if (distanceSquared < nearestDistanceSquared) {\n")
         assertContains(code, "            if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * 150f\n")
         val towardsItsOwnType = BlockCodeGenerator.blockLines(BlockDefinition.MoveTowardsNearest("Player"), EventType.EVERY_FRAME, BlockScope("Player"))
-        assertTrue(towardsItsOwnType.any { "if (candidate !== this && (nearest == null || " in it })
+        assertTrue(towardsItsOwnType.any { "if (candidate === this || candidate.isRemoved) continue" in it })
     }
 
     @Test

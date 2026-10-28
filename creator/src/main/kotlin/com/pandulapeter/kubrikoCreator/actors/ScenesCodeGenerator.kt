@@ -34,6 +34,7 @@ internal object ScenesCodeGenerator {
             "com.pandulapeter.kubriko.sceneEditor.Editable",
             "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
             "com.pandulapeter.kubriko.serialization.SerializationManager",
+            "kotlin.concurrent.Volatile",
             "kotlinx.coroutines.CancellationException",
             "kotlinx.coroutines.Job",
             "kotlinx.coroutines.launch",
@@ -67,6 +68,7 @@ internal object ScenesCodeGenerator {
             |    /**
             |     * The settings of the Scene shown, or null if it has none (or while it is being loaded).
             |     */
+            |    @Volatile
             |    var settings: ${SceneSettingsCodeGenerator.SETTINGS_NAME}? = null
             |
             |    override fun onInitialize(kubriko: Kubriko) {
@@ -74,7 +76,8 @@ internal object ScenesCodeGenerator {
             |    }
             |
             |    /**
-            |     * Removes every Actor and adds the Actors of [scene] instead, once its file is read.
+            |     * Removes every Actor and adds the Actors of [scene] instead, once its file is read. Asking for the Scene that is
+            |     * being loaded again (from an Event that runs every frame, for example) doesn't start it over.
             |     */
             |    fun goTo(scene: String) {
             |        if (!isInSceneEditor) load(scene, isFirst = false)
@@ -88,6 +91,7 @@ internal object ScenesCodeGenerator {
             |    }
             |
             |    private fun load(scene: String, isFirst: Boolean) {
+            |        if (scene == currentScene && loading?.isActive == true) return
             |        currentScene = scene
             |        loading?.cancel()
             |        loading = scope.launch {
