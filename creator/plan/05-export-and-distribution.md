@@ -28,4 +28,4 @@ Showcase). Desktop exports run ProGuard with the rules from `app/desktop/proguar
 - One installer per OS with `jpackage`. Its bundled runtime can't start Gradle (jpackage strips `bin/`), so Creator downloads a full JDK 21 into
   its data folder on first launch, alongside Gradle, and points the Tooling API at it; sizes are shown up front.
 - Update checks that offer, never install silently; its own release workflow and test job.
-- Until a Kubriko release ships `tool-creator-api` and `tool-creator-session`, Creator only works through the development route (`../CLAUDE.md`).
+- Until the groundwork release (`00-library-release.md`) ships, Creator only works through the development route (`../CLAUDE.md`).

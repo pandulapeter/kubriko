@@ -37,8 +37,8 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
 - **Audio:** play a sound, play or stop music (from the project's resources), and a Scene's music in its `SceneSettings`
   (which adds the audio plugin to projects through a template upgrade).
-- **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (needs a public
-  `ViewportManager.setAspectRatioMode`, an engine API change to confirm first).
+- **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (once
+  `ViewportManager.setAspectRatioMode` is public, `00-library-release.md`).
 - **Camera:** follow an Actor, shake, zoom.
 - **Appearance:** sprites and sprite sheets (with animation settings) instead of shapes; layer and drawing order.
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
@@ -60,5 +60,6 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 
 ## Scene editor (in `tools/scene-editor`)
 
+Library changes, so each reaches projects only with a Kubriko release after the groundwork one (`00-library-release.md`).
 Taking commands from Creator (open, save, select, place) so the AI and Creator's own palette can drive it; an Actor type palette with sprite
 thumbnails; layer filtering and locking; multi-select; Creator's look (it still has its own).

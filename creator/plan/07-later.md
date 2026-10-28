@@ -16,4 +16,5 @@
 - **Asset editor extension point:** a project or plugin registers an editor for its own resource type, running with the project's classes
   (Tesselar's cuboid model editor would be the first).
 - **Project settings panel:** targets, application ID and name, icons, Managers and Plugins (as a diff), aspect ratio, target frame rate.
-- **Library version range** and the session protocol's version negotiation across Kubriko releases.
+- **Library version range:** which Kubriko versions Creator offers and supports (the protocol negotiation itself is in
+  `00-library-release.md`).

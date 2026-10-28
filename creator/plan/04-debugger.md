@@ -10,8 +10,9 @@
 # Debugger
 
 - **Debug agent** in `tools/creator-session`, answering the session protocol: Actor tree, live property values (through `@Exposed`), logs,
-  `MetadataManager` metrics, pause, single-step through a `TickSource`, editing a property while paused. It needs the running `Kubriko`
-  instances: add them to `CreatorEntryPoint` as a member with a default implementation (decided: through the entry point, not a new engine API).
+  `MetadataManager` metrics, pause, single-step through a `TickSource`, editing a property while paused. It reads the running `Kubriko`
+  instances from `CreatorEntryPoint` (added in the groundwork release, `00-library-release.md`), and reaches projects with a later
+  release, offered only to sessions that report the capability.
 - **Panels in Creator:** Actors, Inspector, Logs, and a frame-time graph, next to Play.
 - **Other targets:** Android through `adb reverse`, web through a WebSocket variant of the protocol.
 - **IntelliJ users** can add the agent to a debug build and attach Creator to a game they started themselves.

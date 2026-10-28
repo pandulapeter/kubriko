@@ -27,9 +27,11 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`.
-2. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
-3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
+1. The groundwork release (`00-library-release.md`): protocol compatibility, the first-frame signal, the entry point's Kubriko
+   instances, and the decisions on `setAspectRatioMode` and patch-version embedding, then the release itself.
+2. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`.
+3. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
+4. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
 

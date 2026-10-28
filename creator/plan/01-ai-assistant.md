@@ -17,8 +17,6 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 
 - **Kubriko's API as a read tool** (the root `CLAUDE.md`'s overview, or the KDoc of a named class): real sessions read Kubriko's sources
   jars with their own shell to write Kotlin Blocks.
-- **A screenshot right after `start_game` can be empty:** the window is open, but the Scene's Actors aren't added yet. Waiting for the
-  first frame that draws Actors (the session can ask the Kubriko instance through the entry point) would fix it.
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
   (`04-debugger.md`) exists.
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), numbering steps per project rather than
