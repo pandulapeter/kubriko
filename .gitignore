@@ -19,3 +19,4 @@ build
 xcuserdata/
 /kotlin-js-store/
 /.release-notes/
+__pycache__/

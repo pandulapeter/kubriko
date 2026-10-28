@@ -1,3 +1,11 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
 # Builds the signed release bundle of the Showcase app and uploads it to the production track of the Play Console. With
 # "submit" off the release is left as a draft in the Play Console, to be rolled out from there.
 
@@ -37,16 +45,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
-        # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          distribution: 'jetbrains'
-          java-version: 21
-          cache: 'gradle'
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
       - name: Read version information
         id: version
         run: |

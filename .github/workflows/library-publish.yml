@@ -1,3 +1,11 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
 name: '[Library] Publish'
 on:
   release:
@@ -7,26 +15,46 @@ permissions:
   contents: read
 
 jobs:
+  version:
+    name: Check the tag against the version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+      # A tag on a commit that still carries another version would publish that version under the release's name.
+      - name: Check the tag against library.version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION=$(sed -n 's/^library\.version=//p' gradle.properties | tr -d '\r')
+          if [ "${RELEASE_TAG#v}" != "$VERSION" ]; then
+            echo "::error::The release is tagged $RELEASE_TAG, but gradle.properties at that tag says library.version=$VERSION." >&2
+            exit 1
+          fi
+          echo "Releasing version $VERSION"
+      # Maven Central never takes a version twice, and would say so only after the whole build.
+      - name: Check that the version isn't on Maven Central yet
+        run: |
+          VERSION=$(sed -n 's/^library\.version=//p' gradle.properties | tr -d '\r')
+          if curl -fsS https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/engine/maven-metadata.xml \
+            | grep -q "<version>$VERSION</version>"; then
+            echo "::error::Version $VERSION is already on Maven Central; raise library.version and tag again." >&2
+            exit 1
+          fi
+
   tests:
     name: Tests
     uses: ./.github/workflows/tests.yml
 
   publish:
     name: Release build and publish
-    needs: tests
+    needs: [ version, tests ]
     runs-on: macOS-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v5
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
-        # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          distribution: 'jetbrains'
-          java-version: 21
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
       - name: Publish to MavenCentral
         run: ./gradlew publishToMavenCentral --no-configuration-cache
         env:

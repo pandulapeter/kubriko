@@ -1,0 +1,29 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
+# The JDK every Gradle build runs on and Gradle's cache, for tests.yml and the publishing workflows.
+
+name: 'Set up JDK 21 and Gradle'
+description: 'The JetBrains runtime 21 and the Gradle cache.'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK 21
+      uses: actions/setup-java@v5
+      # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
+      # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        distribution: 'jetbrains'
+        java-version: 21
+    # Caches the dependencies, the wrapper and the build cache's task outputs. The cache is written by runs on the
+    # default branch and only read by every other run, a release's included.
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v5

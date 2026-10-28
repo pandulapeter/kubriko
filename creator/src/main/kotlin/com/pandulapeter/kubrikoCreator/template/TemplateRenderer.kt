@@ -15,7 +15,7 @@ package com.pandulapeter.kubrikoCreator.template
 internal object TemplateRenderer {
 
     private const val PACKAGE_PATH_TOKEN = "__PACKAGE__"
-    private val placeholderPattern = Regex("\\{\\{([A-Z_]+)}}")
+    private val placeholderPattern = Regex("\\{\\{([A-Z_]+)\\}\\}")
     private const val DOT_PREFIX = "dot-"
 
     fun renderContent(content: String, values: Map<String, String>) = placeholderPattern.replace(content) { match ->

@@ -1,0 +1,17 @@
+#!/bin/sh
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
+# The checks tests.yml runs that take seconds, run before every commit instead, so that nothing they refuse reaches
+# the branch and waits there for a nightly run or a release to fail. Enabled once per clone with
+# `git config core.hooksPath .githooks`.
+set -e
+python3 .github/scripts/check_license_headers.py
+python3 .github/scripts/check_sizes.py
+python3 .github/scripts/check_doc_names.py --staged
+python3 .github/scripts/check_regexes.py

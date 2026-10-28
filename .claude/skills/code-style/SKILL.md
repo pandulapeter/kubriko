@@ -57,8 +57,10 @@ that explains what the code already says.
   small private helpers used only by it stay with it. Shared non-UI helpers (constants, state classes,
   `Modifier` extensions, `remember…` functions) go into a file named for what they are (`EditorMetrics.kt`, `ActorDefaults.kt`) —
   never `Utils.kt` / `Helpers.kt`.
-- **Files stay small.** Aim for under ~500 lines. A file that outgrows that is split by cohesion as part of
-  the change that grows it: private state classes become `internal` top-level classes in files of their
+- **Files and functions stay small.** Main Kotlin files stay under 500 lines, and top-level functions (Composables
+  above all) under 120. `.github/scripts/check_sizes.py` enforces both in the pre-commit hook, after every edit Claude
+  makes, and in `Tests`, but only on crossing a limit: what is already past one may change. A file that outgrows the
+  limit is split by cohesion as part of the change that grows it: private state classes become `internal` top-level classes in files of their
   own, a pure algorithm moves next to its users in a file named for it. A single algorithm that splitting
   would only scatter may stay whole.
 - **Package by role, not by first user.** A building block a second screen, example or tool needs moves

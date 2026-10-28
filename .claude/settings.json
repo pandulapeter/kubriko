@@ -6,8 +6,30 @@
         "hooks": [
           {
             "type": "command",
-            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.kt|*.kts) jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",additionalContext:\"Kubriko code-style skill applies to this Kotlin file (.claude/skills/code-style/SKILL.md): comment with restraint (do not narrate routine code); use KDoc (/** */), never //, for any declaration-level doc; document 100% of public API in published modules; never explain already-fixed bugs; prefer clear names over comments; match the surrounding file style.\"}}' ;; esac",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.kt|*.kts) jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",additionalContext:\"Kubriko code-style skill applies to this Kotlin file (.claude/skills/code-style/SKILL.md): comment with restraint (do not narrate routine code); use KDoc (/** */), never //, for any declaration-level doc; document 100% of public API in published modules; never explain already-fixed bugs; prefer clear names over comments; keep main files under 500 lines and top-level functions (Composables above all) under 120, so split while writing; match the surrounding file style.\"}}' ;; esac",
             "statusMessage": "Loading code-style conventions"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.github/scripts/check_sizes.py\" --hook",
+            "statusMessage": "Checking file and function sizes"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && python3 .github/scripts/check_sizes.py --shell-hook",
+            "statusMessage": "Checking file and function sizes"
           }
         ]
       }

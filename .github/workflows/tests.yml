@@ -1,3 +1,11 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
 name: 'Tests'
 
 on:
@@ -33,16 +41,28 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
-        # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
+      # The checks below take seconds and run before Gradle, whose failure would skip them. .githooks/pre-commit runs
+      # them before every commit too; these are the backstop.
+      - name: Run the Python scripts' tests
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+      # Every source file, script, workflow and CLAUDE.md carries the MPL-2.0 header.
+      - name: Check the license headers
+        run: python3 .github/scripts/check_license_headers.py
+      # Android's ICU refuses a regular expression's bare brace the JVM, and so every test, accepts.
+      - name: Check the regular expressions' braces
+        run: python3 .github/scripts/check_regexes.py
+      # A pull request or a push to main pushes no Kotlin file or top-level function past the code-style skill's
+      # limits; what was past them already may change. A push is judged against what main was before it, all of its
+      # commits together.
+      - name: Check the file and function sizes
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          distribution: 'jetbrains'
-          java-version: 21
-          cache: 'gradle'
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE"
+          python3 .github/scripts/check_sizes.py --base "$BASE"
       - name: Run unit tests
         run: ./gradlew desktopTest :creator:test --continue --no-configuration-cache
       - name: Check the web triangle bridge
@@ -63,16 +83,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
-        # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          distribution: 'jetbrains'
-          java-version: 21
-          cache: 'gradle'
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
       - name: Run unit tests in stress mode
         run: ./gradlew desktopTest --continue --no-configuration-cache
         env:
@@ -93,16 +105,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
-        # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          distribution: 'jetbrains'
-          java-version: 21
-          cache: 'gradle'
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
       # Everything publishToMavenCentral does except signing and uploading, under a version no release uses.
       - name: Publish every artifact to Maven Local
         run: ./gradlew publishToMavenLocal -Plibrary.version=0.0.0-check --no-configuration-cache
