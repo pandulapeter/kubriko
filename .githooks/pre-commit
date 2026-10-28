@@ -15,3 +15,8 @@ python3 .github/scripts/check_license_headers.py
 python3 .github/scripts/check_sizes.py
 python3 .github/scripts/check_doc_names.py --staged
 python3 .github/scripts/check_regexes.py
+# Spotless needs Gradle, a few seconds with a warm daemon, so it runs only when Kotlin is staged. It checks the working
+# tree, which is what the staged files are unless a commit stages part of a file.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '\.kts?$'; then
+    ./gradlew spotlessCheck --quiet
+fi

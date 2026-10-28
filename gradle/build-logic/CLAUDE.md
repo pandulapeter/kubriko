@@ -17,6 +17,7 @@ Convention plugins for all Kubriko modules. The `includeBuild("gradle")` in root
 |---|---|---|
 | `kubriko-library` | `LibraryPlugin` | KMP library with Android + Desktop (JVM) + iOS (arm64/simulatorArm64) + Wasm/JS targets. No Compose. |
 | `kubriko-compose-library` | `ComposeLibraryPlugin` | Same targets as above plus Compose Multiplatform and Compose compiler plugins. |
+| `kubriko-style` | `StylePlugin` | ktlint through Spotless for `src/**/*.kt` and the module's `*.gradle.kts`, with the rules the root `.editorconfig` leaves enabled. Applied by both library plugins; every other module (the root, `creator`, the `app` modules) applies it itself. |
 | `kubriko-public-artifact` | `PublicArtifactPlugin` | Adds vanniktech Maven Publish; exposes `artifactMetadata { artifactId = "..." }` DSL. Always paired with one of the above. |
 
 ## KMP targets configured by both library plugins

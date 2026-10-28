@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.desktop)
     alias(libs.plugins.kotlin.serialization)
+    id("kubriko-style")
 }
 
 dependencies {

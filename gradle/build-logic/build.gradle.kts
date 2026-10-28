@@ -26,6 +26,7 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     implementation(libs.gradle)
     implementation(libs.kotlin)
+    implementation(libs.spotless.gradlePlugin)
     implementation(libs.vanniktech.publish)
 }
 
@@ -38,6 +39,10 @@ gradlePlugin {
         register("compose-library") {
             id = "kubriko-compose-library"
             implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.ComposeLibraryPlugin"
+        }
+        register("style") {
+            id = "kubriko-style"
+            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.StylePlugin"
         }
         register("public-artifact") {
             id = "kubriko-public-artifact"

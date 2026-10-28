@@ -50,6 +50,9 @@ that explains what the code already says.
   multiple guards, etc. This keeps diffs minimal and reordering clean.
 - Match the formatting, indentation, and idiom of the surrounding file rather than reformatting to a
   personal preference.
+- **ktlint, through Spotless, owns the formatting it checks** (the rules `.editorconfig` leaves enabled): run
+  `./gradlew spotlessApply` after editing Kotlin rather than fixing its findings by hand. `Tests` and the pre-commit
+  hook run `spotlessCheck`.
 
 ## Files and packages
 

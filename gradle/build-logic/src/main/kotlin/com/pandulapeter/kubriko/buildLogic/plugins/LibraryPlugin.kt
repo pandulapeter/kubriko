@@ -23,6 +23,7 @@ class LibraryPlugin : Plugin<Project> {
             apply(libs.findPlugin("kotlin-multiplatform").get().get().pluginId)
             apply(libs.findPlugin("android-multiplatformLibrary").get().get().pluginId)
         }
+        pluginManager.apply(StylePlugin::class.java)
         extensions.configure<KotlinMultiplatformExtension>(::configureKotlinMultiplatform)
     }
 }

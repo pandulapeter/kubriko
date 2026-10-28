@@ -25,6 +25,7 @@ class ComposeLibraryPlugin : Plugin<Project> {
             apply(libs.findPlugin("compose").get().get().pluginId)
             apply(libs.findPlugin("compose-compiler").get().get().pluginId)
         }
+        pluginManager.apply(StylePlugin::class.java)
         extensions.configure<KotlinMultiplatformExtension>(::configureKotlinMultiplatform)
     }
 }

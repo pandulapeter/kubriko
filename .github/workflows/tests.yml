@@ -63,8 +63,10 @@ jobs:
         run: |
           git fetch --no-tags --depth=1 origin "$BASE"
           python3 .github/scripts/check_sizes.py --base "$BASE"
+      # --continue reports the failures of every module rather than only the first, and a ktlint violation
+      # (spotlessCheck) together with them.
       - name: Run unit tests
-        run: ./gradlew desktopTest :creator:test --continue --no-configuration-cache
+        run: ./gradlew spotlessCheck desktopTest :creator:test --continue --no-configuration-cache
       - name: Check the web triangle bridge
         run: node engine/src/webMain/checkTriangleBridge.mjs
       - name: Upload test reports

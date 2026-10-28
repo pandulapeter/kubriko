@@ -1,5 +1,5 @@
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 /*
  * This file is part of Kubriko.
@@ -20,6 +20,7 @@ fun findProperty(key: String) = localProperties.getProperty(key) ?: project.find
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
+    id("kubriko-style")
 }
 
 dependencies {

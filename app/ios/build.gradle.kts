@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
+    id("kubriko-style")
 }
 
 kotlin {

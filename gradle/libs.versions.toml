@@ -29,8 +29,10 @@ ktor = "3.6.0" # https://github.com/ktorio/ktor/releases (also lifts the MCP SDK
 kotlinx-coroutines = "1.11.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-datetime = "0.8.0" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinx-immutable = "0.5.2" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
+ktlint = "1.8.0" # https://github.com/pinterest/ktlint/releases
 kotlinx-serialization = "1.12.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 mcp = "0.16.0" # https://github.com/modelcontextprotocol/kotlin-sdk/releases
+spotless = "8.10.4" # https://github.com/diffplug/spotless/blob/main/plugin-gradle/CHANGES.md
 vanniktech-publish = "0.37.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 [libraries]
@@ -66,6 +68,7 @@ kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collectio
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 mcp-client = { group = "io.modelcontextprotocol", name = "kotlin-sdk-client", version.ref = "mcp" }
 mcp-server = { group = "io.modelcontextprotocol", name = "kotlin-sdk-server", version.ref = "mcp" }
+spotless-gradlePlugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 vanniktech-publish = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-publish" }
 
 [plugins]
@@ -77,4 +80,5 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 kotlin-desktop = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
