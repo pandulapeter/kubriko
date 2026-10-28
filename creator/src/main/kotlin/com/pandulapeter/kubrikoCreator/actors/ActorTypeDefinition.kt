@@ -25,6 +25,8 @@ import kotlinx.serialization.Transient
 internal data class ActorTypeDefinition(
     @Description("The name of the Actor type, and of its generated Kotlin class: an uppercase letter, then letters and numbers.")
     @SerialName("name") override val name: String,
+    @Description("The Actor type it inherits from, like GameMaker's parent objects: it gets the parent's Properties and Events (an Event of its own of the same kind replaces the parent's), and the parent stands for it in collision Events and other Blocks. None for no parent.")
+    @SerialName("parent") val parent: String? = null,
     @Description("The shape its Actors are drawn as, and of their collision mask.")
     @SerialName("shape") val shape: ActorShape = ActorShape.CIRCLE,
     @Description("The image its Actors are drawn as instead of the shape, by its path from composeResources (drawable/ball.png), or none to draw the shape. The shape is still the collision mask's.")

@@ -22,6 +22,11 @@ import org.jetbrains.compose.resources.StringResource
 internal object BlockTypeNaming {
 
     private val namePattern = Regex("[A-Z][A-Za-z0-9]*")
+
+    /**
+     * What the base class of an Actor type with children is named after it (`EnemyBase`), so no type can end with it.
+     */
+    const val BASE_SUFFIX = "Base"
     private val reservedNames = setOf(
         ActorTypeCodeGenerator.REGISTRY_NAME,
         ManagerTypeCodeGenerator.WIRING_NAME,
@@ -39,7 +44,7 @@ internal object BlockTypeNaming {
      */
     fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
         !namePattern.matches(name) -> Res.string.error_type_name_invalid
-        name in reservedNames -> Res.string.error_type_name_reserved
+        name in reservedNames || name.endsWith(BASE_SUFFIX) -> Res.string.error_type_name_reserved
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_type_name_taken
         else -> null
     }

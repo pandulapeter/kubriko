@@ -57,7 +57,9 @@ internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newN
             blocks = event.blocks.map { it.withActorTypeRenamed(oldName, newName) },
         )
     },
-).withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }
+).withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }.let { renamed ->
+    if (renamed is ActorTypeDefinition && renamed.parent == oldName) renamed.copy(parent = newName) else renamed
+}
 
 /**
  * Every goToScene Block that goes to the Scene [oldName] goes to [newName] instead.
