@@ -14,26 +14,27 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## State (not pushed since a957441b)
 
-- **Scene Blocks exist:** go to a Scene, restart the Scene, and pause / resume / toggle, through the generated `GeneratedScenes`
-  Manager and `StateManager`. Template version 3 hands the first Scene to `KubrikoWiring.createManagers(firstScene = …)` and deletes
-  the template's `SceneLoader.kt`; the upgrade can now delete files.
-- **Generated code reviewed against the examples:** Manager types with key Events are `KeyboardInputAware` Actors (they had never
-  received keys), Actors' key Events don't run while paused, Actor types are `Dynamic` only when needed, collision masks follow the
-  body's scale and rotation, and only used Managers are looked up.
-- **Checked live** on a scratch Breakout copy (version 2): the upgrade proposed exactly Game.kt plus deleting SceneLoader.kt, Enter
-  went to `level-2`, W froze and resumed the game (and still worked after
-  each Scene change), and S restarted the Scene. All unit tests and the integration test pass.
+- **Scene settings exist** as the generated `SceneSettings` Actor (bounds, background color, camera start), with
+  `set_scene_settings`. The user chose bounds only: the view stays `Dynamic`, and edge Events use the bounds when a Scene has
+  them. Music waits for the Audio Blocks.
+- **The if Block can check whether the game is paused.**
+- **Checked live** on a scratch Breakout copy (template version 2, regenerated): the background fills the bounds behind every
+  Actor, the camera start shifts the view, and the ball stays within the bounds (frames 0.4 s apart, so no bounce was caught exactly
+  at an edge). Unit tests and the integration test pass (the integration test is quick with warm Gradle daemons, and a deliberately
+  broken `SceneSettings` made it fail, so it does compile).
 - **AI work is paused** by the user's choice: only fix bugs in what exists.
 
 ## Next
 
-1. Scene settings (`02-blocks.md` → Next additions): size, background, camera start, and music as a `Unique` `Editable` Actor, and a
-   condition for whether the game is paused.
-2. Kotlin UI for Manager types (`02-blocks.md` → Game UI).
-3. Audio, sprites, and the rest of `02-blocks.md`.
+1. Kotlin UI for Manager types (`02-blocks.md` → Game UI).
+2. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`.
+3. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
 
 ## Never checked by hand
 
+- Placing and editing `SceneSettings` from the embedded Scene editor's palette and inspector (the color and `SceneOffset` editors),
+  and that its camera start doesn't move the editor's camera. `set_scene_settings` from a real AI session.
+- A ball bouncing exactly at the bounds' edge, and going to another Scene with different (or no) settings.
 - The Scene editor creating an edited Actor again when a drag ends or the selection moves on (unit-tested in `SceneDocumentTest`;
   watch the debug overlay's collision mask follow a resize, and that undo still selects the right Actor).
 - The go to a Scene card's Scene menu (the pause card was seen in a screenshot), and the upgrade dialog's "deleted" file row.

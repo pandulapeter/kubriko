@@ -81,7 +81,7 @@ class BlockTypeStoreTest {
         store.delete("Ball")
         assertTrue(store.load().isEmpty())
         assertFalse(File(generated, "Ball.kt").exists())
-        assertContains(File(generated, "GeneratedActorTypes.kt").readText(), "emptyList()")
+        assertFalse("Ball" in File(generated, "GeneratedActorTypes.kt").readText())
     }
 
     @Test
@@ -96,10 +96,11 @@ class BlockTypeStoreTest {
     }
 
     @Test
-    fun regeneratingAProjectWithoutActorTypesStillWritesAnEmptyRegistry() {
+    fun regeneratingAProjectWithoutActorTypesStillWritesTheRegistryAndTheSceneSettings() {
         optIn()
         BlockTypeStore.open(root)!!.regenerateAll()
-        assertContains(File(generated, "GeneratedActorTypes.kt").readText(), "emptyList()")
+        assertContains(File(generated, "GeneratedActorTypes.kt").readText(), "        SceneSettings.metadata,\n")
+        assertTrue(File(generated, "SceneSettings.kt").isFile)
     }
 
     @Test
@@ -201,6 +202,7 @@ class BlockTypeStoreTest {
         assertEquals(ManagerTypeCodeGenerator.generateManagerType(game, "com.example.game", listOf("Ball"), listOf(game)), File(generated, "Game.kt").readText())
         assertContains(File(generated, "KubrikoWiring.kt").readText(), "        Game(isInSceneEditor),\n")
         assertEquals(ScenesCodeGenerator.generate("com.example.game"), File(generated, "GeneratedScenes.kt").readText())
+        assertEquals(SceneSettingsCodeGenerator.generate("com.example.game"), File(generated, "SceneSettings.kt").readText())
         store.delete("Game")
         assertFalse(File(root, ".kubriko/managers/Game.json").exists())
         assertFalse(File(generated, "Game.kt").exists())

@@ -74,6 +74,7 @@ internal class BlockTypeStore private constructor(
         }.toSet()
         writeUnlessChangedByHand(ActorTypeCodeGenerator.REGISTRY_NAME, ActorTypeCodeGenerator.generateRegistry(actorTypeNames, settings.packageName))
         writeUnlessChangedByHand(ScenesCodeGenerator.SCENES_NAME, ScenesCodeGenerator.generate(settings.packageName))
+        writeUnlessChangedByHand(SceneSettingsCodeGenerator.SETTINGS_NAME, SceneSettingsCodeGenerator.generate(settings.packageName))
         writeUnlessChangedByHand(ManagerTypeCodeGenerator.WIRING_NAME, ManagerTypeCodeGenerator.generateWiring(managerTypes.map { it.name }, settings.packageName))
         return changedByHand
     }

@@ -342,6 +342,7 @@
     <string name="command_delete_scene">Delete Scene</string>
     <string name="command_place_actor">Place Actor</string>
     <string name="command_move_actor">Move Actor</string>
+    <string name="command_set_scene_settings">Change Scene settings</string>
     <string name="command_remove_actor">Remove Actor</string>
     <string name="command_restore_actor">Restore Actor</string>
     <string name="action_new_scene">New Scene</string>

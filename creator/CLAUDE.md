@@ -94,6 +94,14 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   comment until one is chosen. pauseGame pauses, resumes, or toggles through `StateManager.updateIsRunning`; key presses still
   arrive while paused, so Actors' key pressed Events return early then (as Wallbreaker's `Ball` does) and Managers' still run, so a
   Manager's key can resume the game.
+- **Scene settings** are an Actor, not a separate file: the generated `SceneSettings` (`SceneSettingsCodeGenerator`,
+  written into every project and always in `GeneratedActorTypes`) is `Unique`, `Editable`, and placed like any other Actor. Its body
+  is the Scene's bounds, which it fills with its background color behind every other Actor (`drawingOrder` at the maximum) and which
+  edge Events use instead of the screen's edges (through `GeneratedScenes.settings`, which it sets while it is in the Scene); a
+  Scene without one keeps the screen's edges. Its camera start moves the camera when it is added, except in the Scene editor. The
+  view stays `Dynamic`, so a window of another size shows more or less around the bounds. `set_scene_settings` changes it (adding one
+  at the end of the Scene if it has none), editing its state as JSON (`SceneSettingsState`; colors are saved as Compose's packed
+  value); otherwise it is placed and edited in the Scene editor, from its palette and inspector.
 - **Reaching a Manager:** the Property Blocks and conditions have an optional `manager`, and Log Blocks and texts show `{Manager.name}`
   placeholders (`PropertyPlaceholders`). `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the
   editor's Property choices alike: an Actor looks the Managers it uses up in `onAdded` (a field named after the type, unless a
@@ -161,11 +169,11 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
 | `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code). |
-| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), and `ScenesCodeGenerator` (`GeneratedScenes`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
+| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `ScenesCodeGenerator` (`GeneratedScenes`), and `SceneSettingsCodeGenerator` (`SceneSettings`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SceneStore` and `SceneDocument` (Scene files by name). |
+| `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |

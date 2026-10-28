@@ -37,8 +37,10 @@ three steps, always generated into ordinary Compose (no runtime interpreter):
 - **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist).
 - **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
-- **Scene settings:** size, background, camera start, and music, as a `Unique` `Editable` Actor.
-- **Audio:** play a sound, play or stop music (from the project's resources).
+- **Audio:** play a sound, play or stop music (from the project's resources), and a Scene's music in its `SceneSettings`
+  (which adds the audio plugin to projects through a template upgrade).
+- **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (needs a public
+  `ViewportManager.setAspectRatioMode`, an engine API change to confirm first).
 - **Camera:** follow an Actor, shake, zoom.
 - **Appearance:** sprites and sprite sheets (with animation settings) instead of shapes; layer and drawing order.
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the

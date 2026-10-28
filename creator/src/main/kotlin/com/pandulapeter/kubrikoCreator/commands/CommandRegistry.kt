@@ -61,6 +61,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 
 /**
  * Every command of the editor. The AI tool list is generated from it, so a command reaches the AI as soon as it is
@@ -138,6 +139,7 @@ internal class CommandRegistry(
                 DeleteScene,
                 PlaceActor,
                 MoveActor,
+                SetSceneSettings,
                 RemoveActor,
                 RestoreActor,
                 StartVersionControl,

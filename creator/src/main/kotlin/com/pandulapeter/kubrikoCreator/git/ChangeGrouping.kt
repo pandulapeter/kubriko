@@ -13,6 +13,8 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
 
 /**
  * Groups changed files the way Kubriko Creator thinks of them: an Actor type's or Manager type's definition and its
@@ -21,7 +23,12 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
 internal object ChangeGrouping {
 
     private val definitionPaths = BlockTypeKind.entries.map { "${BlockTypeStore.CREATOR_DIRECTORY}/${BlockTypeStore.definitionsFolder(it)}/" }
-    private val generatedFilesOfNoType = setOf(ActorTypeCodeGenerator.REGISTRY_NAME, ManagerTypeCodeGenerator.WIRING_NAME)
+    private val generatedFilesOfNoType = setOf(
+        ActorTypeCodeGenerator.REGISTRY_NAME,
+        ManagerTypeCodeGenerator.WIRING_NAME,
+        ScenesCodeGenerator.SCENES_NAME,
+        SceneSettingsCodeGenerator.SETTINGS_NAME,
+    )
 
     /**
      * @param generatedPath Where the project's generated code lives, or null for a project without block-built types.

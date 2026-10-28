@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.int
@@ -33,6 +34,7 @@ import kubriko.creator.generated.resources.error_command_scene_actor_without_pos
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_missing
+import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kotlin.test.Test
@@ -109,6 +111,31 @@ class SceneCommandsTest {
         @OptIn(EditorMutation::class)
         context.scenes.write("main", "broken")
         assertEquals(Rejection(Res.string.error_command_scene_invalid, "main"), RemoveActor.validate(context, RemoveActor.Input("main", 0)))
+    }
+
+    @Test
+    fun sceneSettingsAreAddedAtTheEndWhenTheSceneHasNone() = runTest {
+        val context = context(wall)
+        val actors = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", width = 800f, backgroundColor = 0xFF000000L))) { context.main() }!!
+        assertEquals(listOf("Wall", "SceneSettings"), actors.map { it.typeId })
+        assertEquals(SceneSettingsState.Values(width = 800f, backgroundColor = 0xFF000000L), SceneSettingsState.read(actors[1].state))
+    }
+
+    @Test
+    fun existingSceneSettingsChangeInPlaceAndOnlyWhatIsGiven() = runTest {
+        val settings = SceneActorEntry("SceneSettings", SceneSettingsState.withChanges(x = 1f, cameraX = 2f))
+        val context = context(settings, wall)
+        val actors = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", y = 5f, height = 100f, cameraY = -3f))) { context.main() }!!
+        assertEquals(listOf("SceneSettings", "Wall"), actors.map { it.typeId })
+        assertEquals(SceneSettingsState.Values(x = 1f, y = 5f, height = 100f, cameraX = 2f, cameraY = -3f), SceneSettingsState.read(actors[0].state))
+    }
+
+    @Test
+    fun sceneSettingsAreValidated() = runTest {
+        val context = context()
+        assertEquals(Rejection(Res.string.error_command_number_invalid), SetSceneSettings.validate(context, SetSceneSettings.Input("main", cameraX = Float.POSITIVE_INFINITY)))
+        assertEquals(Rejection(Res.string.error_command_size_invalid), SetSceneSettings.validate(context, SetSceneSettings.Input("main", width = 0f)))
+        assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), SetSceneSettings.validate(context, SetSceneSettings.Input("other")))
     }
 
     @Test

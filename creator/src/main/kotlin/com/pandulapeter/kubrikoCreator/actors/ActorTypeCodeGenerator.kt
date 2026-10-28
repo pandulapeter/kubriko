@@ -62,7 +62,8 @@ internal object ActorTypeCodeGenerator {
         val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
         val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
         val usedManagers = scope.managersUsedBy(generatedBlocks)
-        val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks)
+        // Edge Events use the Scene settings' bounds, which GeneratedScenes knows.
+        val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks) || edgeEvents.isNotEmpty()
         val usesPause = BlockCodeGenerator.usesPause(generatedBlocks)
         val usesKotlin = generatedBlocks.any { it is BlockDefinition.Kotlin }
         val isDynamic = usesKotlin || edgeEvents.isNotEmpty() || timers.isNotEmpty() ||
@@ -212,29 +213,29 @@ internal object ActorTypeCodeGenerator {
         })
     }
 
+    /**
+     * The registry of every block-built Actor type, plus the Scene settings ([SceneSettingsCodeGenerator]).
+     */
     fun generateRegistry(actorTypeNames: List<String>, packageName: String) = GeneratedFile.withHeader("", buildString {
         appendLine("package $packageName.$GENERATED_PACKAGE")
         appendLine()
         appendLine("import com.pandulapeter.kubriko.sceneEditor.EditableMetadata")
         appendLine()
         appendLine("/**")
-        appendLine(" * The Scene metadata of every Actor type built in Kubriko Creator.")
+        appendLine(" * The Scene metadata of every Actor type built in Kubriko Creator, and of the Scene settings.")
         appendLine(" */")
         appendLine("object $REGISTRY_NAME {")
-        if (actorTypeNames.isEmpty()) {
-            appendLine("    val metadata: List<EditableMetadata<*>> = emptyList()")
-        } else {
-            appendLine("    val metadata: List<EditableMetadata<*>> = listOf(")
-            actorTypeNames.sorted().forEach { appendLine("        $it.metadata,") }
-            appendLine("    )")
-        }
+        appendLine("    val metadata: List<EditableMetadata<*>> = listOf(")
+        (actorTypeNames + SceneSettingsCodeGenerator.SETTINGS_NAME).sorted().forEach { appendLine("        $it.metadata,") }
+        appendLine("    )")
         appendLine("}")
     })
 
     private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, scope: BlockScope) {
         appendLine("        val halfSize = SceneOffset(body.size.width / 2, body.size.height / 2)")
-        appendLine("        val topLeft = viewportManager.topLeft.value + halfSize")
-        appendLine("        val bottomRight = viewportManager.bottomRight.value - halfSize")
+        appendLine("        val sceneSettings = $SCENES_FIELD.settings")
+        appendLine("        val topLeft = (sceneSettings?.topLeft ?: viewportManager.topLeft.value) + halfSize")
+        appendLine("        val bottomRight = (sceneSettings?.bottomRight ?: viewportManager.bottomRight.value) - halfSize")
         // Strict, so an Actor resting where the clamp below left it doesn't run the Event again every frame.
         appendLine("        val isTouchingLeftEdge = body.position.x < topLeft.x")
         appendLine("        val isTouchingRightEdge = body.position.x > bottomRight.x")

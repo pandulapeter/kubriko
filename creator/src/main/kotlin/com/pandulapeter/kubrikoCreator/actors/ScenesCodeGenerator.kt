@@ -51,7 +51,7 @@ internal object ScenesCodeGenerator {
             | */
             |class $SCENES_NAME(
             |    private val firstScene: String? = null,
-            |    private val isInSceneEditor: Boolean = false,
+            |    val isInSceneEditor: Boolean = false,
             |    private val managerActors: List<Actor> = emptyList(),
             |) : Manager() {
             |    private val actorManager by manager<ActorManager>()
@@ -63,6 +63,11 @@ internal object ScenesCodeGenerator {
             |     */
             |    var currentScene: String? = null
             |        private set
+            |
+            |    /**
+            |     * The settings of the Scene shown, or null if it has none (or while it is being loaded).
+            |     */
+            |    var settings: ${SceneSettingsCodeGenerator.SETTINGS_NAME}? = null
             |
             |    override fun onInitialize(kubriko: Kubriko) {
             |        if (!isInSceneEditor && firstScene != null) load(firstScene, isFirst = true)

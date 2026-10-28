@@ -32,4 +32,10 @@ class ScenesCodeGeneratorTest {
         assertContains(code, "if (!isInSceneEditor && firstScene != null) load(firstScene, isFirst = true)")
         assertContains(code, "if (!isInSceneEditor) load(scene, isFirst = false)")
     }
+
+    @Test
+    fun theSceneSettingsCanFindOutWhereTheyAreAndRegisterThemselves() {
+        assertContains(code, "    val isInSceneEditor: Boolean = false,\n")
+        assertContains(code, "    var settings: SceneSettings? = null\n")
+    }
 }

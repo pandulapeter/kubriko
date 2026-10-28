@@ -86,7 +86,7 @@ internal object SceneDocument {
         put("y", y)
     }
 
-    private fun stateObject(state: String) = try {
+    internal fun stateObject(state: String) = try {
         json.parseToJsonElement(state) as? JsonObject
     } catch (_: SerializationException) {
         null

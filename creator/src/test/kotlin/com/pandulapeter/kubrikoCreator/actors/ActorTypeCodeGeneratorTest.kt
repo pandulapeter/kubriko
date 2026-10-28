@@ -81,6 +81,20 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun edgesAreTheSceneSettingsBoundsWhenTheSceneHasThemAndTheScreensOtherwise() {
+        val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Stop)))
+        assertContains(code, "    private lateinit var generatedScenes: GeneratedScenes\n")
+        assertContains(code, "        generatedScenes = kubriko.get()\n")
+        assertContains(
+            code,
+            "        val sceneSettings = generatedScenes.settings\n" +
+                "        val topLeft = (sceneSettings?.topLeft ?: viewportManager.topLeft.value) + halfSize\n" +
+                "        val bottomRight = (sceneSettings?.bottomRight ?: viewportManager.bottomRight.value) - halfSize\n",
+        )
+        assertFalse("GeneratedScenes" in generate())
+    }
+
+    @Test
     fun keyEventsMakeTheActorKeyboardAwareAndShareOneBranchPerKey() {
         assertFalse("KeyboardInputAware" in generate())
         val code = generate(
@@ -166,12 +180,12 @@ class ActorTypeCodeGeneratorTest {
         val registry = ActorTypeCodeGenerator.generateRegistry(listOf("Wall", "Ball"), packageName)
         assertContains(registry, "package com.example.game.generated\n")
         assertContains(registry, "object GeneratedActorTypes {")
-        assertContains(registry, "        Ball.metadata,\n        Wall.metadata,\n")
+        assertContains(registry, "        Ball.metadata,\n        SceneSettings.metadata,\n        Wall.metadata,\n")
     }
 
     @Test
-    fun anEmptyRegistryStillCompiles() {
-        assertContains(ActorTypeCodeGenerator.generateRegistry(emptyList(), packageName), "val metadata: List<EditableMetadata<*>> = emptyList()")
+    fun aProjectWithoutActorTypesStillHasSceneSettings() {
+        assertContains(ActorTypeCodeGenerator.generateRegistry(emptyList(), packageName), "    val metadata: List<EditableMetadata<*>> = listOf(\n        SceneSettings.metadata,\n    )\n")
     }
 
     @Test

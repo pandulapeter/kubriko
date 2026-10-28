@@ -42,6 +42,15 @@ class ChangeGroupingTest {
     }
 
     @Test
+    fun generatedCodeOfNoTypeIsAPlainFile() {
+        val entries = ChangeGrouping.group(
+            listOf("GeneratedActorTypes", "KubrikoWiring", "GeneratedScenes", "SceneSettings").map { FileChange("$generated/$it.kt", ChangeKind.MODIFIED) },
+            generated,
+        )
+        assertEquals(listOf(false, false, false, false), entries.map { it.isBlockType })
+    }
+
+    @Test
     fun aNewActorTypeIsAddedAndAMixedOneModified() {
         val entries = ChangeGrouping.group(
             listOf(
