@@ -49,9 +49,15 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
             syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
             creatorKubrikoVersion = configuration.kubrikoVersion,
             generatedPath = blockTypeStore?.generatedPath,
+            writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
             startWatching = { onChange ->
                 ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
             },
         )
     }
+
+    /**
+     * How long changes wait to be written together with the next ones, which typing into a field makes many of.
+     */
+    private const val WRITE_DELAY_IN_MILLISECONDS = 100L
 }

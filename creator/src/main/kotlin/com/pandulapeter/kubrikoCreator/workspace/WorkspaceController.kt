@@ -78,6 +78,7 @@ internal class WorkspaceController(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     findDesktopModulePath: () -> String = { ":" },
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
+    writeDelayInMilliseconds: Long = 0,
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
@@ -150,6 +151,7 @@ internal class WorkspaceController(
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
             syncBuildFiles = syncBuildFiles,
             onBuildFilesSynced = ::reportBuildFileChanges,
+            writeDelayInMilliseconds = writeDelayInMilliseconds,
         )
     }
 

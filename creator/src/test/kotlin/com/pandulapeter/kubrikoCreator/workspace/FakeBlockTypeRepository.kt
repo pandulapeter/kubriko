@@ -25,14 +25,13 @@ internal class FakeBlockTypeRepository(
 
     var changedByHand = emptySet<String>()
 
-    override fun save(definition: BlockTypeDefinition): Set<String> {
+    override fun save(definition: BlockTypeDefinition) {
         if (isFailing) throw IOException("Disk full.")
         writes += "save ${definition.name}"
         stored[definition.name] = definition
-        return changedByHand
     }
 
-    override fun regenerateAll(overwriting: Set<String>): Set<String> {
+    override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): Set<String> {
         if (isFailing) throw IOException("Disk full.")
         writes += if (overwriting.isEmpty()) "regenerate" else "regenerate overwriting ${overwriting.sorted().joinToString()}"
         return changedByHand - overwriting
@@ -52,10 +51,9 @@ internal class FakeBlockTypeRepository(
         folders[kind]?.removeAll { it == path || it.startsWith("$path/") }
     }
 
-    override fun delete(name: String): Set<String> {
+    override fun delete(name: String) {
         if (isFailing) throw IOException("Disk full.")
         writes += "delete $name"
         stored.remove(name)
-        return changedByHand
     }
 }

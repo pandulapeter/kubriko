@@ -24,6 +24,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -44,6 +45,7 @@ class BlockTypesControllerTest {
         ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
         syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
         onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
+        writeDelayInMilliseconds: Long = 0,
     ) = BlockTypesController(
         repository = repository,
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
@@ -55,6 +57,7 @@ class BlockTypesControllerTest {
         onSaveFailed = { failedCount++ },
         syncBuildFiles = syncBuildFiles,
         onBuildFilesSynced = onBuildFilesSynced,
+        writeDelayInMilliseconds = writeDelayInMilliseconds,
     )
 
     @Test
@@ -95,7 +98,7 @@ class BlockTypesControllerTest {
         controller.put(ball.copy(width = 5f))
         assertEquals(listOf(ball.copy(width = 5f), wall), controller.actorTypes.value)
         assertEquals(ball.copy(width = 5f), controller["Ball"])
-        assertEquals(listOf("regenerate", "save Ball", "save Ball"), repository.writes)
+        assertEquals(listOf("regenerate", "save Ball", "regenerate", "save Ball", "regenerate"), repository.writes)
     }
 
     @Test
@@ -123,15 +126,35 @@ class BlockTypesControllerTest {
     }
 
     @Test
-    fun writesHappenInTheOrderTheChangesWereMade() = runTest {
+    fun changesMadeTogetherAreWrittenAsOneBatchInOrderWithoutSavesThatLaterOnesUndo() = runTest {
         val repository = FakeBlockTypeRepository(listOf(ball))
         val controller = createController(repository, ioDispatcher = StandardTestDispatcher(testScheduler))
         runCurrent()
         (1..5).forEach { controller.put(ball.copy(width = it.toFloat())) }
+        controller.put(wall)
         controller.delete("Ball")
         runCurrent()
-        assertEquals(listOf("regenerate") + List(5) { "save Ball" } + "delete Ball", repository.writes)
-        assertTrue(repository.stored.isEmpty())
+        // The first save is already being written when the others come, which make up the next batch.
+        assertEquals(listOf("regenerate", "save Ball", "regenerate", "save Wall", "delete Ball", "regenerate"), repository.writes)
+        assertEquals(listOf("Wall"), repository.stored.keys.toList())
+    }
+
+    @Test
+    fun changesWithinTheWriteDelayOfEachOtherAreWrittenTogether() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createController(repository, writeDelayInMilliseconds = 100)
+        advanceTimeBy(200)
+        runCurrent()
+        (1..10).forEach { width ->
+            controller.put(ball.copy(width = width.toFloat()))
+            advanceTimeBy(10)
+        }
+        assertEquals(listOf("regenerate"), repository.writes)
+        advanceTimeBy(200)
+        runCurrent()
+        assertEquals(listOf("regenerate", "save Ball", "regenerate"), repository.writes)
+        assertEquals(ball.copy(width = 10f), repository.stored["Ball"])
+        controller.awaitWrites()
     }
 
     @Test
@@ -192,7 +215,7 @@ class BlockTypesControllerTest {
         val controller = createController(repository)
         controller.put(ball.copy(width = 3f))
         controller.reloadFromDisk()
-        assertEquals(listOf("regenerate", "save Ball"), repository.writes)
+        assertEquals(listOf("regenerate", "save Ball", "regenerate"), repository.writes)
         assertEquals(listOf(ball.copy(width = 3f)), controller.actorTypes.value)
     }
 

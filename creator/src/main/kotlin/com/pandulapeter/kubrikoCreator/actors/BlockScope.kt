@@ -82,16 +82,17 @@ internal data class BlockScope(
     companion object {
 
         /**
-         * The scope of [definition] in a project with [types], [sceneNames], and [audioFiles].
+         * The scope of [definition] in a project with [types], [sceneNames], and [audioFiles], whose Actor types make up
+         * [family] (passed in when many scopes of one project are made, since building it costs more than the scope).
          */
         fun of(
             definition: BlockTypeDefinition,
             types: List<BlockTypeDefinition>,
             sceneNames: List<String>? = null,
             audioFiles: AudioFiles? = null,
+            family: ActorTypeFamily = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()),
         ): BlockScope {
             val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
-            val family = ActorTypeFamily(actorTypes)
             return BlockScope(
                 typeName = definition.name,
                 kind = definition.kind,

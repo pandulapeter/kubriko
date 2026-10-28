@@ -17,9 +17,12 @@ package com.pandulapeter.kubrikoCreator.actors
  */
 internal class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
     private val byName = actorTypes.associateBy { it.name }
-    private val parents: Map<String, String> = actorTypes.mapNotNull { type ->
-        type.parent?.takeIf { it in byName && !isAncestor(type.name, it, actorTypes.associate { t -> t.name to t.parent }) }?.let { type.name to it }
-    }.toMap()
+    private val parents: Map<String, String> = actorTypes.associate { it.name to it.parent }.let { declaredParents ->
+        actorTypes.mapNotNull { type ->
+            type.parent?.takeIf { it in byName && !isAncestor(type.name, it, declaredParents) }?.let { type.name to it }
+        }.toMap()
+    }
+    private val parentNames = parents.values.toSet()
 
     fun parentOf(name: String) = parents[name]
 
@@ -35,7 +38,7 @@ internal class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
      */
     fun descendantsOf(name: String): List<String> = childrenOf(name).flatMap { listOf(it) + descendantsOf(it) }
 
-    fun hasChildren(name: String) = parents.containsValue(name)
+    fun hasChildren(name: String) = name in parentNames
 
     /**
      * [name] and every Actor type that inherits from it: what a reference to [name] stands for.

@@ -21,23 +21,25 @@ import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
 /**
  * The block-built Actor types and Manager types of a project that opted in to them, and the one being edited.
  *
- * Changes show up immediately; writing them (and regenerating their code) happens in the background, one at a time
- * and in order. After each write, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code.
+ * Changes show up immediately; writing them happens in the background, in order, in batches: the changes made within
+ * [writeDelayInMilliseconds] of each other (typing into a field, for example) are written together, a type saved
+ * several times is written once, and the code is regenerated once per batch, from the types in memory. After each
+ * batch, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code.
  *
- * @param onSaved Called after each write, with whether the types changed, rather than only the Scenes they were
+ * @param onSaved Called after each batch, with whether the types changed, rather than only the Scenes they were
  *   regenerated for.
  */
 internal class BlockTypesController(
@@ -48,6 +50,7 @@ internal class BlockTypesController(
     private val onSaveFailed: () -> Unit,
     private val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
+    private val writeDelayInMilliseconds: Long = 0,
 ) {
     private val _types = MutableStateFlow(emptyList<BlockTypeDefinition>())
 
@@ -79,17 +82,23 @@ internal class BlockTypesController(
      * Every folder of each kind of type, as paths (`enemies/flying`), parents included: those types are in, and empty ones.
      */
     val folders = _folders.asStateFlow()
-    private val writes = Mutex()
+    private val pendingWrites = ArrayList<PendingWrite>()
+    private var havePendingTypesChanged = false
+    private val writeRequests = Channel<Unit>(Channel.CONFLATED)
     private val pendingWriteCount = MutableStateFlow(0)
 
     init {
+        // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away.
+        queue(PendingWrite.Regenerate)
         scope.launch {
             val types = withContext(ioDispatcher) { repository.load() }
             emptyFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
             setTypes(types)
+            for (request in writeRequests) {
+                delay(writeDelayInMilliseconds)
+                writePending()
+            }
         }
-        // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away.
-        write { repository.regenerateAll() }
     }
 
     /**
@@ -122,17 +131,14 @@ internal class BlockTypesController(
             emptyFolders = emptyFolders.withFolder(previous.kind, previous.folder)
         }
         setTypes(_types.value.filter { it.name != definition.name } + definition)
-        write { repository.save(definition) }
+        queue(PendingWrite.Save(definition))
     }
 
     @EditorMutation
     fun createFolder(kind: BlockTypeKind, path: String) {
         emptyFolders = emptyFolders.withFolder(kind, path)
         setTypes(_types.value)
-        write(haveTypesChanged = false) {
-            repository.createFolder(kind, path)
-            _changedByHand.value
-        }
+        queue(PendingWrite.CreateFolder(kind, path), haveTypesChanged = false)
     }
 
     /**
@@ -142,17 +148,14 @@ internal class BlockTypesController(
     fun deleteFolder(kind: BlockTypeKind, path: String) {
         emptyFolders = emptyFolders + (kind to emptyFolders[kind].orEmpty().filterTo(mutableSetOf()) { it != path && !it.startsWith("$path/") })
         setTypes(_types.value)
-        write(haveTypesChanged = false) {
-            repository.deleteFolder(kind, path)
-            _changedByHand.value
-        }
+        queue(PendingWrite.DeleteFolder(kind, path), haveTypesChanged = false)
     }
 
     @EditorMutation
     fun delete(name: String) {
         setTypes(_types.value.filter { it.name != name })
         if (_selectedName.value == name) _selectedName.value = null
-        write { repository.delete(name) }
+        queue(PendingWrite.Delete(name))
     }
 
     /**
@@ -172,21 +175,21 @@ internal class BlockTypesController(
         }
         setTypes(_types.value.filter { definition -> definition.name != oldName && renamed.none { it.name == definition.name } } + renamed)
         if (_selectedName.value == oldName) _selectedName.value = newName
-        renamed.forEach { definition -> write { repository.save(definition) } }
-        write { repository.delete(oldName) }
+        renamed.forEach { definition -> queue(PendingWrite.Save(definition)) }
+        queue(PendingWrite.Delete(oldName))
     }
 
     /**
      * Throws away the changes made by hand to [name]'s generated code, so that Kubriko Creator updates it again.
      */
     @EditorMutation
-    fun discardChangesMadeByHand(name: String) = write { repository.regenerateAll(overwriting = setOf(name)) }
+    fun discardChangesMadeByHand(name: String) = queue(PendingWrite.Overwrite(name))
 
     /**
      * Brings the generated code in line with the project's Scenes after they changed, since a Scene's music decides
      * whether the game plays audio.
      */
-    fun onScenesChanged() = write(haveTypesChanged = false) { repository.regenerateAll() }
+    fun onScenesChanged() = queue(PendingWrite.Regenerate, haveTypesChanged = false)
 
     /**
      * Reads the definitions again after they changed outside Kubriko Creator (in IntelliJ, or through git), unless one
@@ -201,7 +204,7 @@ internal class BlockTypesController(
                 emptyFolders = storedFolders
                 setTypes(stored)
                 if (_selectedName.value !in stored.map { it.name }) _selectedName.value = null
-                write { repository.regenerateAll() }
+                queue(PendingWrite.Regenerate)
             }
         }
     }
@@ -218,30 +221,51 @@ internal class BlockTypesController(
 
     private fun Map<BlockTypeKind, Set<String>>.withFolder(kind: BlockTypeKind, path: String) = this + (kind to get(kind).orEmpty() + path)
 
-    private fun write(haveTypesChanged: Boolean = true, change: () -> Set<String>) {
+    private fun queue(write: PendingWrite, haveTypesChanged: Boolean = true) {
+        pendingWrites += write
+        if (haveTypesChanged) havePendingTypesChanged = true
         pendingWriteCount.update { it + 1 }
-        scope.launch {
-            var buildFileChanges: KubrikoBuildFileChanges? = null
-            val changedByHand = try {
-                writes.withLock {
-                    withContext(ioDispatcher) {
-                        try {
-                            change().also { buildFileChanges = syncBuildFiles() }
-                        } catch (_: IOException) {
-                            null
+        writeRequests.trySend(Unit)
+    }
+
+    /**
+     * Writes every change queued so far as one batch, then regenerates the code from the types as they are in memory.
+     */
+    private suspend fun writePending() {
+        if (pendingWrites.isEmpty()) return
+        val batch = pendingWrites.toList()
+        pendingWrites.clear()
+        val haveTypesChanged = havePendingTypesChanged
+        havePendingTypesChanged = false
+        val types = _types.value
+        var buildFileChanges: KubrikoBuildFileChanges? = null
+        val changedByHand = try {
+            withContext(ioDispatcher) {
+                try {
+                    PendingWrite.withoutOverwrittenSaves(batch).forEach { write ->
+                        when (write) {
+                            is PendingWrite.Save -> repository.save(write.definition)
+                            is PendingWrite.Delete -> repository.delete(write.name)
+                            is PendingWrite.CreateFolder -> repository.createFolder(write.kind, write.path)
+                            is PendingWrite.DeleteFolder -> repository.deleteFolder(write.kind, write.path)
+                            PendingWrite.Regenerate, is PendingWrite.Overwrite -> Unit
                         }
                     }
+                    repository.regenerate(types, overwriting = batch.filterIsInstance<PendingWrite.Overwrite>().mapTo(mutableSetOf()) { it.name })
+                        .also { buildFileChanges = syncBuildFiles() }
+                } catch (_: IOException) {
+                    null
                 }
-            } finally {
-                pendingWriteCount.update { it - 1 }
             }
-            if (changedByHand == null) {
-                onSaveFailed()
-            } else {
-                _changedByHand.value = changedByHand
-                buildFileChanges?.let(onBuildFilesSynced)
-                onSaved(haveTypesChanged)
-            }
+        } finally {
+            pendingWriteCount.update { it - batch.size }
+        }
+        if (changedByHand == null) {
+            onSaveFailed()
+        } else {
+            _changedByHand.value = changedByHand
+            buildFileChanges?.let(onBuildFilesSynced)
+            onSaved(haveTypesChanged)
         }
     }
 }

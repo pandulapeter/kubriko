@@ -54,8 +54,11 @@ class CreatorBenchmarkTest {
         val main = executor.asCoroutineDispatcher()
         val scope = CoroutineScope(main + SupervisorJob())
         try {
-            val directory = BenchmarkProject.create(parentDirectory)
-            runBlocking { withTimeout(TIMEOUT_IN_MILLISECONDS) { measure(directory, scope, main) } }
+            // The first round warms the JIT up, so only the second one's numbers are printed.
+            listOf(false, true).forEach { isReported ->
+                val directory = BenchmarkProject.create(File(parentDirectory, "round-$isReported"))
+                runBlocking { withTimeout(TIMEOUT_IN_MILLISECONDS) { measure(directory, scope, main, isReported) } }
+            }
         } finally {
             scope.cancel()
             executor.shutdown()
@@ -63,7 +66,10 @@ class CreatorBenchmarkTest {
         }
     }
 
-    private suspend fun measure(directory: File, scope: CoroutineScope, main: CoroutineDispatcher) {
+    private suspend fun measure(directory: File, scope: CoroutineScope, main: CoroutineDispatcher, isReported: Boolean) {
+        fun report(step: String, mainThreadNanos: Long, totalNanos: Long) {
+            if (isReported) println("BENCHMARK %-80s main thread %8.1f ms, total %8.1f ms".format(step, mainThreadNanos / 1e6, totalNanos / 1e6))
+        }
         val store = checkNotNull(BlockTypeStore.open(directory))
         var mainTime = 0L
         var totalStart = System.nanoTime()
@@ -142,10 +148,6 @@ class CreatorBenchmarkTest {
         val start = System.nanoTime()
         block()
         return System.nanoTime() - start
-    }
-
-    private fun report(step: String, mainThreadNanos: Long, totalNanos: Long) {
-        println("BENCHMARK %-80s main thread %8.1f ms, total %8.1f ms".format(step, mainThreadNanos / 1e6, totalNanos / 1e6))
     }
 
     private companion object {

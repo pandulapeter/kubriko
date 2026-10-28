@@ -49,13 +49,14 @@ internal object ActorFamilyCodeGenerator {
         actorTypes: List<ActorTypeDefinition>,
         managerTypes: List<ManagerTypeDefinition>,
         collidableActorTypeNames: Set<String>,
+        family: ActorTypeFamily = ActorTypeFamily(actorTypes),
     ): String {
-        val family = ActorTypeFamily(actorTypes)
         val byName = actorTypes.associateBy { it.name }
         val name = definition.name
         val root = family.rootOf(name)
         val members = family.familyOf(root).mapNotNull(byName::get)
-        fun scopeOf(type: ActorTypeDefinition, parentEventCall: String? = null) = BlockScope.of(type, actorTypes + managerTypes).copy(parentEventCall = parentEventCall)
+        val types = actorTypes + managerTypes
+        fun scopeOf(type: ActorTypeDefinition, parentEventCall: String? = null) = BlockScope.of(type, types, family = family).copy(parentEventCall = parentEventCall)
         val features = ActorTypeFeatures(
             events = members.flatMap { family.eventsOf(it.name) },
             scope = scopeOf(byName.getValue(root)),

@@ -17,22 +17,28 @@ internal interface BlockTypeRepository {
     fun load(): List<BlockTypeDefinition>
 
     /**
-     * @return The types whose generated code was changed by hand, and so wasn't updated.
+     * Writes [definition], leaving its code to [regenerate].
      */
-    fun save(definition: BlockTypeDefinition): Set<String>
+    fun save(definition: BlockTypeDefinition)
 
     /**
-     * @return The types whose generated code was changed by hand, and so wasn't updated.
+     * Deletes the type called [name] and its generated code.
      */
-    fun delete(name: String): Set<String>
+    fun delete(name: String)
 
     /**
-     * Rewrites every type's generated code, so that it matches what this version of Kubriko Creator generates,
-     * except where it was changed by hand, unless that type is in [overwriting].
+     * Brings the generated code of [definitions] (every type of the project, as they are now) in line with them and with
+     * what this version of Kubriko Creator generates, except where it was changed by hand, unless that type is in
+     * [overwriting]. Code that didn't change isn't written.
      *
      * @return The types whose generated code was changed by hand, and so wasn't updated.
      */
-    fun regenerateAll(overwriting: Set<String> = emptySet()): Set<String>
+    fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String> = emptySet()): Set<String>
+
+    /**
+     * [regenerate] with the definitions [load] reads.
+     */
+    fun regenerateAll(overwriting: Set<String> = emptySet()) = regenerate(load(), overwriting)
 
     /**
      * Every folder that holds types of [kind], or held them, as paths (`enemies/flying`), parents included.

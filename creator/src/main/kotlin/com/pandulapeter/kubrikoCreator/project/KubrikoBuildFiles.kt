@@ -38,7 +38,7 @@ internal class KubrikoBuildFiles(
         val buildText = read(BUILD_FILE) ?: return null
         val projectVersion = VersionCatalog.kubrikoVersion(catalogText) ?: return null
         val version = if (compareVersions(projectVersion, kubrikoVersion) > 0) projectVersion else kubrikoVersion
-        val used = KubrikoArtifact.usedBy(sources())
+        val used = usedArtifacts()
         val aliases = VersionCatalog.kubrikoLibraries(catalogText)
         val accessors = KubrikoArtifact.entries.associateWith { VersionCatalog.accessorOf(aliases[it] ?: VersionCatalog.aliasOf(it)) }
         val added = used.filter { !BuildScript.refersTo(buildText, accessors.getValue(it)) }
@@ -64,9 +64,24 @@ internal class KubrikoBuildFiles(
         )
     }
 
-    private fun sources() = File(rootDirectory, SOURCE_DIRECTORY).walkTopDown()
-        .filter { it.isFile && it.extension == "kt" }
-        .map { it.readText() }
+    /**
+     * The Kubriko libraries each source file names, kept by its length and modification time, so that a sync reads only
+     * the files that changed since the last one.
+     */
+    private val artifactsBySource = HashMap<File, SourceArtifacts>()
+
+    private fun usedArtifacts(): Set<KubrikoArtifact> {
+        val sources = File(rootDirectory, SOURCE_DIRECTORY).walkTopDown().filter { it.isFile && it.extension == "kt" }.toSet()
+        artifactsBySource.keys.retainAll(sources)
+        return sources.flatMapTo(mutableSetOf()) { file ->
+            val length = file.length()
+            val lastModified = file.lastModified()
+            artifactsBySource[file]?.takeIf { it.length == length && it.lastModified == lastModified }?.artifacts
+                ?: KubrikoArtifact.usedBy(sequenceOf(file.readText())).also { artifactsBySource[file] = SourceArtifacts(length, lastModified, it) }
+        }
+    }
+
+    private class SourceArtifacts(val length: Long, val lastModified: Long, val artifacts: Set<KubrikoArtifact>)
 
     private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()
 
