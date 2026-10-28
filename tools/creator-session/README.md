@@ -18,7 +18,8 @@ Either way, the session connects to Kubriko Creator on the localhost port given 
 game's log entries to it, one JSON message per line. In play mode it also carries out the commands Kubriko Creator sends back on that connection
 (`SessionCommand`): pressing keys, capturing the game's window, bringing it to the front, and waiting until the game has drawn its first Actors.
 
-The protocol only grows, so a session can be older or newer than Kubriko Creator: each side skips what it doesn't know, a command the session
+The protocol's types (`SessionProtocol`, `SessionMessage`, `SessionCommand`, `SessionMode`) are common code, so the module builds for every
+Kubriko target, though the session itself only runs on Desktop. The protocol only grows, so a session can be older or newer than Kubriko Creator: each side skips what it doesn't know, a command the session
 doesn't know is answered with a failure, and both use only what the lower of their `SessionProtocol.VERSION`s has.
 
 ## Public artifact

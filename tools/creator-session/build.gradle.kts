@@ -8,7 +8,7 @@
  * https://mozilla.org/MPL/2.0/.
  */
 plugins {
-    id("kubriko-compose-library")
+    id("kubriko-library")
     alias(libs.plugins.kotlin.serialization)
     id("kubriko-public-artifact")
 }
@@ -22,11 +22,13 @@ kotlin {
         namespace = "com.pandulapeter.kubriko.creatorSession"
     }
     sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.serialization)
+        }
         getByName("desktopMain") {
             dependencies {
                 implementation(projects.tools.creatorApi)
                 implementation(projects.tools.sceneEditor)
-                api(libs.kotlinx.serialization)
             }
         }
     }
