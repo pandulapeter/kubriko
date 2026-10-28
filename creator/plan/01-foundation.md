@@ -25,35 +25,14 @@ Each step lands with its tests, and steps 3 to 6 are measured against the benchm
 
 ## 1. Generated games
 
-The generated code already avoids per-frame allocation in `update` and `draw`, looks Managers up once, and is `Dynamic`
-only when needed. What it gets wrong:
+Done (`../CLAUDE.md` → Conventions specific to Creator), except:
 
-- **Log Blocks in release builds.** `Logger.log` allocates a UUID string and copies the whole log list on every call, so
-  a Log Block in an Every frame Event is the most expensive thing a generated game can do. Generated logging goes
-  through one `GeneratedLogging.isEnabled` flag (`KubrikoWiring`), which play sessions turn on and a release build
-  leaves off, with the message built only inside the check. `Logger.log` itself prepends without copying the list twice
-  (an engine-side fix that helps every Kubriko game).
-- **goToScene from a repeating Event never finishes.** Every call cancels the load in progress and reads the file again,
-  so "if lives are 0, go to Game over" in an Every frame Event restarts the load each tick. A request for the Scene
-  already loading is ignored, a decoded Scene's text is cached, and `settings` is `@Volatile` (written on the batch
-  thread, read on the tick thread).
-- **Tunneling after a hitch.** Movement uses the raw frame time; a 250 ms hitch moves a fast ball past a brick. The
-  movement delta is clamped, as Wallbreaker's is.
-- **An Actor that was removed keeps colliding.** Removal is asynchronous, so a Brick can be hit, and score, twice.
-  Actor types get an `isRemoved` flag that the remove Blocks set, and collision handling and `update` skip removed
-  Actors.
-- **A child's collision Event that never runs.** `when (other)` branches are sorted by name, so `is MonsterBase` comes
-  before `is Zombie` and catches it. Descendants come before their ancestors.
-- **Actors that sleep off screen.** `ActorManager` puts far-away Actors to sleep, and Scenes can be larger than the
-  screen, so off-screen Timers, spawners, and chasers stop. Generated types are `isAlwaysActive` when they have Timers,
-  Every frame Events, or Blocks that act on other Actors; only plain movers may sleep.
-- **moveTowardsNearest** keeps the best squared distance in a local instead of computing two square roots per
-  comparison. (A per-type instance list waits for measurements in `03-large-projects.md`.)
-- **Collision masks and edges that drift.** The mask's size and rotation are set only at construction, and edge checks
-  assume a centered pivot. Both follow the body's bounding box, updated in `update` (Dynamic types) and when a Block
-  changes the body.
-- **Screen texts** keep their `TextStyle` and modifiers in fields instead of building them on every recomposition.
-- **Repeated code:** the Bounce Block becomes one private function per type instead of a copy per collision branch.
+- `Logger.log` copies the log list once instead of three times (`tools/logger`, a library change without API changes): in the
+  working tree, waiting for the user's review.
+- A box mask keeps the size it was built with; when Blocks that change an Actor's size or scale arrive (`06-blocks.md`), the
+  generated code builds a new mask when the size changes.
+- Dynamic Actors are always active now; a per-type "Sleep while far off screen" choice for big levels comes with
+  `03-large-projects.md`.
 
 ## 2. Workspace lifecycle and opening
 
