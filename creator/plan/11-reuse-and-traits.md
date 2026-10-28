@@ -14,39 +14,21 @@ Kubriko's own Traits. Without them, 20 enemy types are 20 copies of the same Blo
 Every addition lands with its command, AI tool, generator tests, and a case in the integration test's every-Block types, as in
 `02-blocks.md`.
 
-**Order:** parent types first (they change the Actor type file and what every type reference means), then functions, then Traits, then
-the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter.
+**Order:** functions, then Traits, then the rest (parent types exist). Each is generated into ordinary Kotlin, as now: no runtime interpreter.
 
 ## Parent Actor types
 
-Exist (`../CLAUDE.md` → Commands → Parent Actor types), as real Kotlin inheritance. Left: the "only a parent" toggle (a type never
-placed and never created by addActor), changing an inherited Property's initial value from the editor (today it takes adding a
-Property of the same name), a child inheriting its parent's appearance until it sets its own (today it always has its own), and
-imports per file rather than per family. What follows is the original plan, kept for those details.
+Exist (`../CLAUDE.md` → Commands → Parent Actor types), as real Kotlin inheritance. Left:
 
-An Actor type can name a parent (`parent` in its JSON), like GameMaker's parent objects. Chains are allowed (Enemy → FlyingEnemy →
-Bat), cycles are rejected.
-
-- **What a child gets:** the parent's Properties (it may change their initial values, not their kind), its appearance unless the child
-  sets its own, and its Events. A child's Event of the same kind (same key, other Actor type, or Timer) replaces the parent's; the new
-  "Run the parent's Event" Block (GameMaker's `event_inherited`) runs the parent's Blocks at that point.
-- **A parent stands for its children:** a collision Event with Enemy fires for any Enemy's child, moveTowardsNearest Enemy and (later)
-  counting Enemies include children, and Blocks that read another Actor's Property (`other.hp`) work for every child. addActor of a
-  parent creates the parent itself, which an "only a parent" toggle forbids (such a type is also left out of placing).
-- **Generated code: real Kotlin inheritance.** Kubriko registers a saveable type as `T : Editable<T>`, and a subclass can't implement
-  `Editable` again for itself, so a type with children is generated as two classes: an abstract `EnemyBase` with everything the
-  family does (its Properties as fields, the Manager lookups, the update loop, timers, collision and key dispatch), each Event an
-  `open` hook (`onEveryFrame()`, `onCollisionWith(other: Wall)`, `onKeyPressed(key)`, ...), and a final `Enemy : EnemyBase(...),
-  Editable<Enemy>` that only keeps the state (`State`, `save`, `metadata`), the drawing, and the collision mask. A child is
-  `Bat : EnemyBase(...), Editable<Bat>` (or `FlyingEnemyBase : EnemyBase` and `Bat : FlyingEnemyBase` when it has children itself)
-  that overrides the hooks of the Events it defines; "Run the parent's Event" is the `super` call. The root base implements every
-  Trait and declares every hook any type in the family needs, so subclasses only override; the drawing, the collision mask (passed
-  to the base's constructor, so a child may have another shape), and the State stay per concrete class. `is EnemyBase` stands for
-  the family in collision `collidableTypes`, `is` checks, and lookups. Types without children stay one class, as now. `Base` is a
-  reserved suffix for type names.
-- **Editing:** the Actor type editor shows inherited Properties and Events greyed, with "override" and "back to the parent's"; renaming or
-  deleting a parent follows its children (deleting asks whether to copy what they inherit into them).
-- **Scenes** are unaffected: every Actor names its concrete type.
+- **"Only a parent":** a toggle for a type that is never placed (left out of the sidebar drag and the Scene editor's placing) and
+  never created by addActor; addActor of a parent otherwise creates the parent itself.
+- **Inherited initial values from the editor:** today changing one takes adding a Property of the same name and kind; the inherited
+  row should offer it directly, with "back to the parent's".
+- **Appearance:** a child inherits its parent's shape, color, size, and sprite until it sets its own (today it always has its own).
+- **Deleting a parent** is rejected while it has children; offer instead to copy what they inherit into them.
+- **Other Actors' Properties:** once Blocks can read another Actor's Property (`other.hp`), a parent's work for every child, and
+  counting Actors of a type includes children.
+- **Imports per file** rather than per family (some generated files import what they don't use).
 
 ## Functions
 

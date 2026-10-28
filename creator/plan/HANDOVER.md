@@ -12,11 +12,14 @@
 The state between sessions: where the last one stopped, what to do next, and what was never checked by hand. Each session rewrites it
 before it ends. What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
-## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
+## State (17 commits on main not pushed, b5b65fbfb through this handover update; ask before pushing; `library.version` is 0.8.1, unreleased; 0.8.0 is on Maven Central)
 
-- **Parent Actor types** (2026-10-28), generated as real Kotlin inheritance (`<Name>Base` classes with Event hooks). The
-  integration test builds a three-generation family for desktop and web; seen working: choosing Brick as GoldBrick's parent in the
-  editor, and the scratch Breakout compiling with `GoldBrick : BrickBase` and Ball colliding with `BrickBase`.
+- **Parent Actor types** (2026-10-28), generated as real Kotlin inheritance (`<Name>Base` classes with Event hooks), with the
+  runParentEvent Block, and the editor's parent menu and greyed inherited Properties and Events. The integration test builds a
+  three-generation family for desktop and web; seen working: choosing Brick as GoldBrick's parent in the editor, and the scratch
+  Breakout compiling with `GoldBrick : BrickBase` and Ball colliding with `BrickBase`. The editor's inherited rows and their
+  replace button were only built and unit-tested, not seen.
+- **Plans for scaling** (`09` to `12`): the user wants every item in them done, with nothing capped in number.
 - **`:creator:run` always uses local libraries** (`settings.gradle.kts`); the first version of that didn't take effect (fixed in
   b05e09d83), which moved the scratch Breakout to plain `0.8.1` once more: an opened project recovers on its own.
 - **Folders** (2026-10-28) for Actor types, Manager types, and Scenes, with Scene names as paths and `rename_scene`. Seen working:
@@ -54,18 +57,27 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. Search (`12-resource-organization.md`: the sidebar filter, quick open, find usages), then incremental Scene editing
-   (`09-large-projects.md`), functions and Traits (`11-reuse-and-traits.md`), the rest of "No caps" (named Timers, every key), and
-   `10-fast-iteration.md`. Then incremental Scene editing, functions, Traits, search, and compile times; the
-   user wants every item in those four plans done, with nothing capped in number.
-2. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).
-3. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
+1. Search (`12-resource-organization.md` → Search): the sidebar filter field, quick open, find usages, search in Blocks, and the
+   `search_project` and `find_usages` tools.
+2. Incremental Scene editing (`09-large-projects.md`), then the rest of that file: regenerating only affected types, paged and batch
+   AI tools, the watcher per folder.
+3. The rest of "No caps" (`09-large-projects.md`): named Timers instead of 1 to 8, every key instead of 10, virtualized lists.
+4. Functions, then the Traits section, then "More for bigger games" (`11-reuse-and-traits.md`), and the parent leftovers listed there.
+5. `10-fast-iteration.md`, measured first.
+6. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).
+7. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
    `08-sprite-editor.md` plans), then the sprite editor itself, then the rest of `02-blocks.md`. Plugins come and go with the Blocks
    that use them, as audio's and sprites' do (`PluginManagers`, `KubrikoWiring`); not in a template upgrade.
-4. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
+8. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
 
+- Parents in the editor: the inherited Properties and Events, replacing an inherited Event (it starts with runParentEvent), the
+  parent menu leaving out the type's own descendants, deleting a parent with children (rejected in the console), and a child of
+  another shape colliding. Playing the scratch Breakout with GoldBrick placed.
+- Scene Actor IDs in the running app: selecting what was just placed, undoing a removal (the same Actor back, selected), and an old
+  Scene file gaining IDs on its first edit.
+- Folders: renaming a Scene folder that holds the open Scene, and dragging a Manager type into a folder.
 - The inspector's Property fields and color, the Scene settings (adding them from the hint, music, camera start), scale, and size
   (whether the pivot moving to the middle surprises anyone), and that typing a number is one undo step.
 - The Scene editor: a hand-written Actor type in a Scene (drawn, selectable, movable), an Actor without a `BoxBody`, zoom to fit
@@ -110,4 +122,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - Test on a scratch copy of `~/Projects/breakout` (it has the user's uncommitted work), opened with `:creator:run --args=<dir>`.
   The real one was opened with unfinished code once, and still shows the upgrade notice: leave it to the user.
 - Never recompile `:creator` while `:creator:run` is up, and restart it with the publish tasks after `tools/creator-session` changes.
-- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.0 ./gradlew :creator:test --rerun`.
+- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.1-creator ./gradlew :creator:test --tests
+  "*ProjectTemplateIntegrationTest*" --rerun` (after a `:creator:run` or `publishToMavenLocal` with `-Pcreator.localKubriko=true`,
+  since 0.8.1 isn't released; the libraries changed since 0.8.0).
+- The last session's scratch Breakout lived in its scratchpad, so make a fresh copy; a copy opened by `:creator:run` gets
+  `0.8.1-creator` and the Maven Local block on its own.

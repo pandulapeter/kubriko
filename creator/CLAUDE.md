@@ -40,12 +40,12 @@ lives in `plan/` (start with `plan/README.md`).
   `tools/scene-editor`. When the project's Kubriko version equals Creator's, Creator loads the project's classes into a class
   loader whose parent is its own (Kubriko, Compose, and Kotlin shared; project jars copied first so rebuilds can replace them), finds the
   project's `CreatorEntryPoint` through `ServiceLoader`, and `SceneView` creates the Scene's Actors from the file's states with the
-  project's `SerializationManager` and Managers in a Kubriko instance of its own that never runs (one Actor per entry, so indices
-  match the file), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). A click selects the Actor on top (`SceneHitTest`:
+  project's `SerializationManager` and Managers in a Kubriko instance of its own that never runs (one Actor per entry, kept by
+  the Actor's ID), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). A click selects the Actor on top (`SceneHitTest`:
   lowest drawing order, then the later one; the Scene settings only where nothing else is), dragging it moves it live and dispatches
   `move_actor` when let go, dragging elsewhere or scrolling pans, Ctrl/Cmd+scroll and the header zoom (`SceneFraming` shows the
   Scene settings' bounds, or every Actor), Delete or Backspace dispatches `remove_actor`, and an Actor type dragged from the sidebar
-  (`ActorTypeDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). The inspector beside it
+  (`SidebarDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). The inspector beside it
   (`SceneInspector`) shows the selected Actor's position, size, rotation in degrees, and scale (`ActorBodyValues`, read from the live
   Actor, so defaults its state leaves out show), and for block-built types its color and Property values (the type's where the
   state has none), set through `set_actor_values`; the Scene settings through `set_scene_settings`; with nothing selected, a hint

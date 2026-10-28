@@ -19,8 +19,8 @@ has a file of its own, so a session only needs the one it works on.
 0. [Library releases](00-library-release.md) - 0.8.0 shipped Creator's library side; how later library changes reach projects.
 1. [Large projects](09-large-projects.md), [Reuse, Traits, and bigger games](11-reuse-and-traits.md), [Folders and
    search](12-resource-organization.md), and [Fast iteration](10-fast-iteration.md) - Creator has to scale to GameMaker-sized games with
-   nothing capped. **File format changes come first** (stable Scene Actor IDs, one Actor per line, folders for types and Scenes, parent
-   Actor types), before projects have many files; then incremental Scene editing, functions, Traits, search, and compile times.
+   nothing capped. The file format changes are done (Scene Actor IDs, one Actor per line, folders, parent Actor types); next come
+   search, incremental Scene editing, the remaining caps, functions, Traits, and compile times.
 2. [Blocks, Actor types, and Manager types](02-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, UI
    elements, the Paddle game template, Convert to code, and more drag and drop. The editor comes before more AI work.
 3. [Sprite editor](08-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
@@ -59,9 +59,9 @@ compatibility or a copy of its look, icons, or action set; running Creator itsel
 
 | Path | Owner | When changed elsewhere |
 |---|---|---|
-| `.kubriko/actors/*.json`, `.kubriko/managers/*.json`, `.kubriko/project.json` | Creator | Reloaded within a second; code regenerated. |
+| `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json`, `.kubriko/project.json` | Creator | Reloaded within a second; code regenerated. |
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
-| `composeResources/files/scenes/*.json` | Shared | Sidebar refreshes. |
+| `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes. |
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene offers to reload. |
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff (`06-project-upkeep.md`). |
 | The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
