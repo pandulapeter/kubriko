@@ -84,6 +84,7 @@ fun InternalViewport(
         val sizeState = kubrikoImpl.viewportManager.size.collectAsState()
         val isSized by remember { derivedStateOf { !sizeState.value.isEmpty() } }
         val targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.collectAsState().value
+        val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode.collectAsState().value
         PlatformFrameRateHint(if (isSized) targetFrameRate else null)
 
         // Publish what the display is capable of, so a game can offer frame rates that suit the panel.
@@ -153,7 +154,7 @@ fun InternalViewport(
             }
         ) {
             Box(
-                modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
+                modifier = when (aspectRatioMode) {
                     ViewportManager.AspectRatioMode.Dynamic,
                     is ViewportManager.AspectRatioMode.FitHorizontal,
                     is ViewportManager.AspectRatioMode.FitVertical,

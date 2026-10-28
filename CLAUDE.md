@@ -77,7 +77,7 @@ val kubriko = Kubriko.newInstance(
 - Owns all Managers and thus the entire game state.
 - `kubriko.dispose()` stops the TickSource, disposes all Managers (actors still in the scene receive `Disposable.dispose()`, but not `onRemoved()`), cancels the coroutine scope.
 - `kubriko.get<T: Manager>()` retrieves a Manager by type (throws if not registered or disposed).
-- The internal Manager set is deduplicated by class; the first instance of a class wins. Default Managers (see below) are auto-added unless explicitly overridden.
+- The internal Manager set is deduplicated by class; the last instance of a class wins, in its own place in the order. Default Managers (see below) are auto-added unless explicitly overridden.
 - Custom subclasses of the four built-in `Manager` sealed classes are **not** supported; always use `.newInstance()`.
 - Persist the `Kubriko` instance across configuration changes (e.g. in a `remember {}` or ViewModel).
 
@@ -140,7 +140,7 @@ ViewportManager.newInstance(
     initialTargetFrameRate: TargetFrameRate = TargetFrameRate.Limit(60),
 )
 ```
-- `AspectRatioMode` variants: `Dynamic` (matches screen), `FitHorizontal(width)`, `FitVertical(height)`, `Fixed(ratio, width, alignment)`, `Stretched(size)`.
+- `AspectRatioMode` variants: `Dynamic` (matches screen), `FitHorizontal(width)`, `FitVertical(height)`, `Fixed(ratio, width, alignment)`, `Stretched(size)`. `aspectRatioMode: StateFlow<AspectRatioMode>` / `setAspectRatioMode(AspectRatioMode)` change it at runtime.
 - `cameraPosition`, `size` (pixels), `scaleFactor`, `topLeft`, `bottomRight` — observable state.
 - `setCameraPosition(SceneOffset)`, `addToCameraPosition(Offset)`, `setScaleFactor(Float)`, `multiplyScaleFactor(Float)` — camera control.
 - `targetFrameRate: StateFlow<TargetFrameRate>` / `setTargetFrameRate(TargetFrameRate)` — runtime update-rate control. `TargetFrameRate.Limit(fps)` (default `Limit(60)`) caps to an absolute, refresh-rate-independent rate; `TargetFrameRate.DisplayDefault` ticks every display frame (device maximum); `TargetFrameRate.DisplayDivider(divisor)` ticks every `divisor`-th display frame (the classic frame-divider behavior, so the rate scales with the panel's refresh rate). A throttled target sleeps through the display frames between its ticks rather than awaiting each one, so a low `Limit` no longer costs a redraw per vsync on the Skia-backed platforms (see `engine/CLAUDE.md` → Tick Dispatch).

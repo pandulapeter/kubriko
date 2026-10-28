@@ -73,6 +73,12 @@ sealed class ViewportManager(
     abstract val targetFrameRate: StateFlow<TargetFrameRate>
 
     /**
+     * How the viewport fits the screen. Starts as the mode passed to [newInstance] and can be changed at runtime via
+     * [setAspectRatioMode]; the [scaleFactor], [topLeft] and [bottomRight] follow it right away.
+     */
+    abstract val aspectRatioMode: StateFlow<AspectRatioMode>
+
+    /**
      * The top-left corner coordinates of the visible area in the scene.
      */
     abstract val topLeft: StateFlow<SceneOffset>
@@ -122,6 +128,14 @@ sealed class ViewportManager(
     abstract fun setTargetFrameRate(targetFrameRate: TargetFrameRate)
 
     /**
+     * Updates [aspectRatioMode]. Switching to or from [AspectRatioMode.Fixed] also changes the viewport's [size], once the viewport
+     * has been laid out again.
+     *
+     * @param aspectRatioMode The new way for the viewport to fit the screen.
+     */
+    abstract fun setAspectRatioMode(aspectRatioMode: AspectRatioMode)
+
+    /**
      * Defines how the viewport should handle different screen aspect ratios.
      */
     sealed class AspectRatioMode {
@@ -166,7 +180,7 @@ sealed class ViewportManager(
         /**
          * Creates a new [ViewportManager] instance.
          *
-         * @param aspectRatioMode How the viewport should scale to fit the screen.
+         * @param aspectRatioMode How the viewport should scale to fit the screen. Can be changed at runtime via [setAspectRatioMode].
          * @param initialScaleFactor The starting zoom level, clamped to [minimumScaleFactor]..[maximumScaleFactor] like every later change.
          * @param minimumScaleFactor The minimum zoom level allowed, applied to [initialScaleFactor], [setScaleFactor] and [multiplyScaleFactor].
          * @param maximumScaleFactor The maximum zoom level allowed, applied to [initialScaleFactor], [setScaleFactor] and [multiplyScaleFactor].
@@ -187,7 +201,7 @@ sealed class ViewportManager(
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ViewportManager = ViewportManagerImpl(
-            aspectRatioMode = aspectRatioMode,
+            initialAspectRatioMode = aspectRatioMode,
             initialScaleFactor = initialScaleFactor,
             minimumScaleFactor = minimumScaleFactor,
             maximumScaleFactor = maximumScaleFactor,

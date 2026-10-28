@@ -37,8 +37,8 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
 - **Audio:** play a sound, play or stop music (from the project's resources), and a Scene's music in its `SceneSettings`
   (which adds the audio plugin to projects through a template upgrade).
-- **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (once
-  `ViewportManager.setAspectRatioMode` is public, `00-library-release.md`).
+- **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (through
+  `ViewportManager.setAspectRatioMode`).
 - **Camera:** follow an Actor, shake, zoom.
 - **Appearance:** sprites and sprite sheets (with animation settings) instead of shapes; layer and drawing order.
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the

@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 
 internal class ViewportManagerImpl(
-    val aspectRatioMode: AspectRatioMode,
+    initialAspectRatioMode: AspectRatioMode,
     initialScaleFactor: Float,
     override val minimumScaleFactor: Float,
     override val maximumScaleFactor: Float,
@@ -40,6 +40,8 @@ internal class ViewportManagerImpl(
 
     private val _targetFrameRate = MutableStateFlow(initialTargetFrameRate)
     override val targetFrameRate = _targetFrameRate.asStateFlow()
+    private val _aspectRatioMode = MutableStateFlow(initialAspectRatioMode)
+    override val aspectRatioMode = _aspectRatioMode.asStateFlow()
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
@@ -135,12 +137,22 @@ internal class ViewportManagerImpl(
 
     override fun setTargetFrameRate(targetFrameRate: TargetFrameRate) = _targetFrameRate.update { targetFrameRate }
 
+    override fun setAspectRatioMode(aspectRatioMode: AspectRatioMode) {
+        _aspectRatioMode.update { aspectRatioMode }
+        val currentSize = size.value
+        updateScaleFactorMultiplier(currentSize.width, currentSize.height)
+    }
+
     fun updateSize(size: Size) = _size.update { size }
 
     fun onViewportSizeChanged(widthPx: Float, heightPx: Float) {
         updateSize(Size(widthPx, heightPx))
+        updateScaleFactorMultiplier(widthPx, heightPx)
+    }
+
+    private fun updateScaleFactorMultiplier(widthPx: Float, heightPx: Float) {
         scaleFactorMultiplier.update {
-            when (val mode = aspectRatioMode) {
+            when (val mode = _aspectRatioMode.value) {
                 AspectRatioMode.Dynamic -> Scale.Unit
                 is AspectRatioMode.FitHorizontal -> (widthPx / mode.width.raw).let { Scale(it, it) }
                 is AspectRatioMode.FitVertical -> (heightPx / mode.height.raw).let { Scale(it, it) }

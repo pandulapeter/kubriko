@@ -263,6 +263,24 @@ class ViewportManagerTest {
     }
 
     @Test
+    fun aspectRatioModeCanBeChangedAtRuntime() = withViewport(
+        ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.FitHorizontal(400f.sceneUnit)),
+    ) { viewportManager ->
+        viewportManager.onViewportSizeChanged(800f, 600f)
+        val boundsMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(200f.sceneUnit, 100f.sceneUnit))
+
+        viewportManager.setAspectRatioMode(boundsMode)
+
+        assertEquals(boundsMode, viewportManager.aspectRatioMode.value)
+        assertClose(offset(200f, 100f), viewportManager.visibleArea())
+
+        viewportManager.setAspectRatioMode(ViewportManager.AspectRatioMode.Dynamic)
+
+        assertEquals(Scale.Unit, viewportManager.scaleFactor.value)
+        assertClose(offset(800f, 600f), viewportManager.visibleArea())
+    }
+
+    @Test
     fun targetFrameRateCanBeChangedAtRuntime() = withViewport(
         ViewportManager.newInstance(initialTargetFrameRate = TargetFrameRate.DisplayDivider(2)),
     ) { viewportManager ->

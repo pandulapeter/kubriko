@@ -27,8 +27,8 @@ the project upgrades to, whenever it lands. This release can't make that go away
 
 - `tool-creator-api` (`CreatorEntryPoint`) and `tool-creator-session` (Edit and Play modes, protocol 2) as new artifacts.
 - `SceneEditor.Content` and the rest of the `scene-editor-api` contract Creator embeds.
-- `Kubriko.newInstance` keeps the **last** of several Managers of one class (a behavior change for the release notes; the root
-  `CLAUDE.md` still says the first wins).
+- `Kubriko.newInstance` keeps the **last** of several Managers of one class (a behavior change for the release notes).
+- `ViewportManager.aspectRatioMode` and `setAspectRatioMode`, for fitting the Scene editor's view to a Scene's bounds.
 - Pointer input documentation for touchscreens on desktop.
 
 ## Before the release
@@ -41,12 +41,10 @@ the project upgrades to, whenever it lands. This release can't make that go away
    instance through the entry point whether Actors are drawn). Small, and it is protocol work best done alongside 1.
 3. **The running Kubriko instances on `CreatorEntryPoint`** (decided in `04-debugger.md`: a member with a default implementation). Cheap,
    and it lets the debug agent come later as session-only code.
-4. **`ViewportManager.setAspectRatioMode`**, public, for fitting the Scene editor's view to a Scene's bounds. An engine API change: confirm
-   with the user first, or leave it out.
-5. **Embedded Scene editing across patch versions:** decide whether Creator may embed a project whose Kubriko version differs only in the
+4. **Embedded Scene editing across patch versions:** decide whether Creator may embed a project whose Kubriko version differs only in the
    patch number, which then has to keep `scene-editor-api` and `creator-api` binary compatible within a minor version. Without it, every
    Creator release built on a newer Kubriko stops embedding Scenes of projects on this one.
-6. **Release steps:** the tests, the `release-notes` skill, the publish workflow, then in Creator: the bundled `kubrikoVersion`, the
+5. **Release steps:** the tests, the `release-notes` skill, the publish workflow, then in Creator: the bundled `kubrikoVersion`, the
    templates, the integration test's default `KUBRIKO_CREATOR_VERSION`, the Breakout reference project, and `../CLAUDE.md` (Building)
    and `HANDOVER.md` switch to the released version. `creator.localKubriko` stays, for work that changes the libraries.
 
