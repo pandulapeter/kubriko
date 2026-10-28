@@ -70,6 +70,7 @@ class ProjectTemplateIntegrationTest {
                             ImageIO.write(BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB), "png", image)
                         }
                         (listOf(everyBlockInEveryEvent, everyManager, hud) + family).forEach(store::save)
+                        store.regenerateAll()
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
                         listOf("audioPlayback", "collision", "keyboardInput", "sprites").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
                         assertCompiles(connection, directory, "${template.id} with every Block")
