@@ -15,12 +15,14 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 
 ## Files
 
-- **The PNG sprite sheet is the source of truth**, in the project's `composeResources/drawable`, laid out the way `AnimatedSprite` reads it
-  (frames in rows, `framesPerRow` wide), so the game and IntelliJ need nothing else (`README.md` → Principles 2).
+- **The PNG sprite sheet is the source of truth**, in the project's `composeResources/drawable`. Kubriko's sprites plugin already plays an
+  animation from a sheet (`AnimatedSprite`: frames of one size in rows, `framesPerRow` wide), so that is the format under the hood, not
+  a format of Creator's own or GIF: the game and IntelliJ need nothing else (`README.md` → Principles 2).
 - `.kubriko/sprites/<name>.json` keeps what the sheet can't: frame size, frame count, frames per row, frames per second, and the origin
   (the pivot). Deleting it leaves a plain image, which can be opened again by entering the frame size.
 - Sprites live in the sidebar beside Actor types and Scenes. Renaming one follows every Actor type that uses it, like an Actor type rename
   follows collision Events.
+- A new sprite starts as one fully transparent frame of the size the user picks (32 by 32 by default).
 - Importing: a PNG, a sheet sliced by frame size, or a strip of separate images (one per frame). Exporting is the sheet itself.
 
 ## The editor
@@ -37,7 +39,8 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 
 ## Animation
 
-- **Frame strip** under the canvas: add, duplicate, delete, and reorder frames (dragged, like Blocks), with a thumbnail each.
+- **Frame strip** under the canvas: add (a fully transparent frame), duplicate, delete, and reorder frames (dragged, like Blocks), with a
+  thumbnail each.
 - **Onion skinning:** the previous and next frames (one to three each way) drawn faintly under the current one, tinted so they can be told
   apart (previous reddish, next bluish), with their opacity adjustable and a toggle.
 - **Preview:** the animation playing at its frames per second, looping, beside the canvas, and its speed set there.
@@ -60,4 +63,4 @@ editor shows sprites as they are drawn in the game; its palette's thumbnails are
 
 ## Later
 
-Layers per frame, color replacement, outlines and shading helpers, a tile set mode for tile maps, and GIF import.
+Layers per frame (flattened into the sheet when saved), color replacement, and outline and shading helpers.
