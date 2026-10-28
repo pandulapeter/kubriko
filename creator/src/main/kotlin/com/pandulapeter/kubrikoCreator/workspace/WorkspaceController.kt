@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -102,6 +103,7 @@ internal class WorkspaceController(
         ioDispatcher = ioDispatcher,
         openInSessionWindow = ::editSceneInWindow,
         report = ::appendToConsole,
+        spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
     )
 
     /**
@@ -180,6 +182,7 @@ internal class WorkspaceController(
             runner = WorkspaceRunner(sessions = sessions, runTask = ::runCreatorTask, console = consoleLog, ioDispatcher = ioDispatcher),
             ioDispatcher = ioDispatcher,
             audioFiles = { AudioFiles.of(_resources.value) },
+            spriteFiles = { SpriteFiles.of(_resources.value) },
             onScenesChanged = { names ->
                 refreshResources()
                 sceneEditing.onScenesChanged(names)

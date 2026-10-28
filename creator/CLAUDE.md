@@ -37,7 +37,10 @@ lives in `plan/` (start with `plan/README.md`).
   writes the Kubriko version and runtime classpath to a file).
 - **Embedded Scene editing** (`scenes/`): when the project's Kubriko version equals Creator's, Creator loads the project's classes into a class
   loader whose parent is its own (Kubriko, Compose, and Kotlin shared; project jars copied first so rebuilds can replace them), finds the
-  project's `CreatorEntryPoint` through `ServiceLoader`, and draws `SceneEditor.Content` in its center pane. Loaders are released a few seconds
+  project's `CreatorEntryPoint` through `ServiceLoader`, and draws `SceneEditor.Content` in its center pane. Compose resources are read
+  through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
+  `SpriteManager` for one whose `imageLoader` (`ProjectSpriteLoader`) reads the sprite files from disk, matching resources by ID
+  (`drawable:<accessor>`, which is what Compose resources are equal by). Loaders are released a few seconds
   after their editor leaves composition. Otherwise the Scene opens in a session window.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
   and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
@@ -100,7 +103,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Events don't run in the Scene editor (`isInSceneEditor`), nor every frame while the game is paused. The generated
   `KubrikoWiring.createManagers(isInSceneEditor, firstScene)` creates all of them, plus `GeneratedScenes` and the plugin Managers the
   game uses (`PluginManagers`: `CollisionManager` when a collision Event involves an Actor type, `KeyboardInputManager` for key Events
-  and held-key conditions, `MusicManager` and `SoundManager` when the game plays audio; not in the Scene editor, which has its own); the template passes it to `Kubriko.newInstance` in `Game.kt`
+  and held-key conditions, `MusicManager` and `SoundManager` when the game plays audio; not in the Scene editor, which has its own;
+  and `SpriteManager` when an Actor type is drawn as a sprite, also in the Scene editor, which has none); the template passes it to `Kubriko.newInstance` in `Game.kt`
   (with the first Scene) and to the Scene editor in `GameEntryPoint.kt`.
 - **Scenes and pausing** in Blocks: goToScene and restartScene go through the generated `GeneratedScenes` Manager
   (`ScenesCodeGenerator`, written into every project), which reads `files/scenes/<name>.json` from the project's resources in
@@ -121,6 +125,13 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Scene's music decides whether the game plays audio, `BlockTypeStore` reads the music of every Scene in
   `composeResources/files/scenes` next to the source folder, and Scene changes (on disk or by a command) regenerate the code;
   regenerating leaves a file whose content didn't change untouched.
+- **Sprites** as an appearance: an Actor type's `sprite` (`set_appearance`) names a bitmap right in a `drawable` folder of
+  `composeResources` by its path (`drawable/ball.png`; `SpriteFiles` lists them, only those whose names make a resource accessor;
+  qualified folders are left out, since the sprite plugin doesn't scale them back). It is drawn stretched over the body with
+  `FilterQuality.None`, and the shape is still the collision mask's (the color is hidden then, and unused). The generated code finds
+  it through `Res.allDrawableResources[accessor]` rather than its accessor, so a deleted image doesn't break the build, and reaches
+  `SpriteManager` in `onAdded`. Choosing a sprite sizes the Actor type to the image (`SpriteFiles.sizeOf`), unless a size is given;
+  the inverse always carries the old size, so undo never resizes.
 - **Scene settings** are an Actor, not a separate file: the generated `SceneSettings` (`SceneSettingsCodeGenerator`,
   written into every project and always in `GeneratedActorTypes`) is `Unique`, `Editable`, and placed like any other Actor. Its body
   is the Scene's bounds, which it fills with its background color behind every other Actor (`drawingOrder` at the maximum) and which
@@ -203,11 +214,11 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
 | `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`). |
-| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
+| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `SpriteFiles`, `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
+| `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |

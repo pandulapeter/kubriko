@@ -19,6 +19,7 @@ package com.pandulapeter.kubrikoCreator.actors
  * @param usesAudio Whether any type plays a sound or music, or stops the music, or any Scene has music.
  * @param sounds The sound files the Blocks play, by their path from `composeResources`.
  * @param music The music files the Blocks and the Scenes play, by their path from `composeResources`.
+ * @param usesSprites Whether any Actor type is drawn as a sprite.
  */
 internal data class PluginManagers(
     val collidableActorTypeNames: Set<String> = emptySet(),
@@ -26,6 +27,7 @@ internal data class PluginManagers(
     val usesAudio: Boolean = false,
     val sounds: Set<String> = emptySet(),
     val music: Set<String> = emptySet(),
+    val usesSprites: Boolean = false,
 ) {
     val usesCollisions get() = collidableActorTypeNames.isNotEmpty()
 
@@ -54,6 +56,7 @@ internal data class PluginManagers(
                 usesAudio = sceneMusic.isNotEmpty() || BlockCodeGenerator.usesAudio(blocks),
                 sounds = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlaySound)?.audioFile },
                 music = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlayMusic)?.audioFile } + sceneMusic,
+                usesSprites = actorTypes.any { definition -> definition.sprite?.let(SpriteFiles::accessorOf) != null },
             )
         }
     }

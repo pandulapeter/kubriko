@@ -57,9 +57,9 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 
 ## Sprites in the game
 
-What the editor makes is used through `02-blocks.md` → Appearance: an Actor type draws a sprite instead of a shape (generated with
-`SpriteManager` and `AnimatedSprite`), its size defaulting to the frame size, its collision mask following the frame, and Blocks to set the
-animation's frame, speed, and whether it loops. The sprites plugin then comes and goes with that code (`KubrikoBuildFiles`). The Scene
+Actor types already draw a whole image as their sprite (`../CLAUDE.md` → Commands → Sprites), with the sprites plugin coming and going
+with that code. What the editor adds is used through `02-blocks.md` → Appearance: sprite sheets drawn with `AnimatedSprite`, the size
+defaulting to the frame size, and Blocks to set the animation's frame, speed, and whether it loops. The Scene
 editor shows sprites as they are drawn in the game; its palette's thumbnails are a library change (`02-blocks.md` → Scene editor).
 
 ## Later

@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -46,12 +47,15 @@ import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_sound_missing
+import kubriko.creator.generated.resources.error_command_sprite_missing
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_not_allowed
 import kubriko.creator.generated.resources.error_property_name_taken
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_type_name_taken
+import java.awt.image.BufferedImage
 import java.io.File
+import javax.imageio.ImageIO
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -137,6 +141,22 @@ class ActorTypeCommandsTest {
         assertEquals(Rejection(Res.string.error_command_size_invalid), context.rejection(SetAppearance, SetAppearance.Input("Ball", width = -1f)))
         assertEquals(SetAppearance.mergeKey(SetAppearance.Input("Ball", width = 1f)), SetAppearance.mergeKey(SetAppearance.Input("Ball", width = 2f)))
         assertEquals(false, SetAppearance.mergeKey(SetAppearance.Input("Ball", width = 1f)) == SetAppearance.mergeKey(SetAppearance.Input("Ball", height = 1f)))
+    }
+
+    @Test
+    fun choosingASpriteSizesTheActorTypeToTheImageUnlessASizeIsGiven() = runTest {
+        val root = createTempDirectory().toFile()
+        val image = File(root, "ball.png").apply { ImageIO.write(BufferedImage(24, 16, BufferedImage.TYPE_INT_ARGB), "png", this) }
+        val context = commandContext(ball, rootDirectory = root, spriteFiles = SpriteFiles(mapOf("drawable/ball.png" to image)))
+        val withSprite = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ball.png"))) { context.ball() }
+        assertEquals(ball.copy(sprite = "drawable/ball.png", width = 24f, height = 16f), withSprite)
+        val resized = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ball.png", width = 50f))) { context.ball() }
+        assertEquals(ball.copy(sprite = "drawable/ball.png", width = 50f, height = 16f), resized)
+        assertEquals(ball.copy(width = 50f, height = 16f), context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = ""))) { context.ball() })
+        assertEquals(Rejection(Res.string.error_command_sprite_missing, "drawable/ghost.png"), context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ghost.png")))
+        assertEquals(Rejection(Res.string.error_command_sprite_missing, "files/ball.png"), commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "files/ball.png")))
+        assertNull(commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/unknown.png")))
+        root.deleteRecursively()
     }
 
     @Test

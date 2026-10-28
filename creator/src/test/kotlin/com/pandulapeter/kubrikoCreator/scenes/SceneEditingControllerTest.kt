@@ -30,8 +30,8 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
-import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -80,7 +80,9 @@ class SceneEditingControllerTest {
         controller.open(scene)
         val state = assertIs<SceneEditingState.Open>(controller.state.value)
         assertEquals(scene, state.scene)
-        assertSame(entryPoint, state.entryPoint)
+        // The project's entry point, with its sprites read by Creator.
+        assertIs<SpriteLoadingEntryPoint>(state.entryPoint)
+        assertFailsWith<NotImplementedError> { state.entryPoint.createSerializationManager() }
         assertEquals(SessionInitScript.CLASSPATH_TASK_NAME, tasks.single().first)
         assertEquals("classpath", tasks.single().second["kubrikoCreatorMode"])
         assertEquals(listOf(File("/game/build/libs/game.jar")), loadedClasspaths.single().files)

@@ -33,6 +33,8 @@ import java.io.IOException
  * so its Scenes open in a session window instead ([openInSessionWindow]).
  *
  * @param runTask Runs one of the init script's tasks with the given properties, reporting problems in the console.
+ * @param spriteFiles The project's sprite files by the name of their resource accessor, which the Scene editor reads
+ *   itself ([SpriteLoadingEntryPoint]).
  */
 internal class SceneEditingController(
     private val creatorKubrikoVersion: String,
@@ -43,6 +45,7 @@ internal class SceneEditingController(
     private val openInSessionWindow: (ProjectResource) -> Unit,
     private val report: (ConsoleEntry) -> Unit,
     private val createClasspathFile: () -> File = { File.createTempFile("kubriko-creator-classpath", ".txt").apply { deleteOnExit() } },
+    private val spriteFiles: () -> Map<String, File> = { emptyMap() },
 ) {
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
     val state = _state.asStateFlow()
@@ -70,7 +73,11 @@ internal class SceneEditingController(
                 else -> try {
                     val loaded = withContext(ioDispatcher) { entryPointLoader.load(classpath) }
                     loadedEntryPoint = loaded
-                    _state.value = SceneEditingState.Open(scene = scene, entryPoint = loaded.entryPoint, revision = ++revision)
+                    _state.value = SceneEditingState.Open(
+                        scene = scene,
+                        entryPoint = SpriteLoadingEntryPoint(loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
+                        revision = ++revision,
+                    )
                     report(ConsoleEntry.Status(Res.string.status_scene_opened))
                 } catch (exception: EntryPointLoadingException) {
                     _state.value = SceneEditingState.Closed

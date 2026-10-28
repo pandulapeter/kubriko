@@ -30,7 +30,9 @@ import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.runBlocking
+import java.awt.image.BufferedImage
 import java.io.File
+import javax.imageio.ImageIO
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -64,9 +66,12 @@ class ProjectTemplateIntegrationTest {
                     assertEquals(":", ProjectInspector.inspect(connection).desktopModulePath, template.id)
                     assertCompiles(connection, directory, "${template.id} as created")
                     BlockTypeStore.open(directory)?.let { store ->
+                        directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->
+                            ImageIO.write(BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB), "png", image)
+                        }
                         listOf(everyBlockInEveryEvent, everyManager, hud).forEach(store::save)
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
-                        listOf("audioPlayback", "collision", "keyboardInput").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
+                        listOf("audioPlayback", "collision", "keyboardInput", "sprites").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
                         assertCompiles(connection, directory, "${template.id} with every Block")
                         assertRuntimeClasspathResolves(connection, "${template.id} with every Block")
                     }
@@ -209,6 +214,7 @@ class ProjectTemplateIntegrationTest {
     private val everyBlockInEveryEvent = ActorTypeDefinition(
         name = "EveryBlock",
         shape = ActorShape.RECTANGLE,
+        sprite = "drawable/every-block.png",
         properties = properties + PropertyDefinition.Number("everyManager"),
         events = everyEvent(everyBlock),
     )

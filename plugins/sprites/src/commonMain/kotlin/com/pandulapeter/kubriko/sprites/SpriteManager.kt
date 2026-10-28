@@ -109,5 +109,26 @@ sealed class SpriteManager(
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
         )
+
+        /**
+         * Creates a new [SpriteManager] instance that loads sprites with [imageLoader] instead of reading the drawables
+         * through Compose resources: for resources the default loader can't reach, such as those of classes loaded by
+         * another class loader.
+         *
+         * @param imageLoader Loads a sprite on the manager's coroutine scope, applying its [SpriteResource.rotation], and
+         *   decoding it at its file's pixel size to match the default loader. Returning null (or throwing) is a failed
+         *   load, which is retried like a failed default load.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
+        fun newInstance(
+            imageLoader: suspend (SpriteResource) -> ImageBitmap?,
+            isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
+        ): SpriteManager = SpriteManagerImpl(
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
+            imageLoader = imageLoader,
+        )
     }
 }

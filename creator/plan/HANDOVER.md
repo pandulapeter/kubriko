@@ -14,6 +14,12 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
 
+- **Static sprites exist** (2026-10-28): an Actor type's `sprite` (`set_appearance`, the appearance column's Sprite menu) draws an
+  image from `composeResources/drawable` instead of the shape, which stays the collision mask's; choosing one sizes the type to the
+  image. `SpriteManager` is created in `KubrikoWiring` (also in the Scene editor) only while some type has a sprite. **Library
+  change for 0.8.1:** a new `SpriteManager.newInstance(imageLoader, …)` overload (the old one is untouched, so binary compatible),
+  which Creator's embedded Scene editor uses to read sprites from the project's files (`SpriteLoadingEntryPoint`). Seen working on
+  the scratch Breakout: the appearance column, the Ball sprite in the embedded Scene editor, and in the played game.
 - **Audio exists** (2026-10-28): playSound, playMusic, and stopMusic Blocks (palette tab "Sound and music"), a Scene's music in
   `SceneSettings` (`set_scene_settings` takes `music`), and the generated `GeneratedAudio` Manager, written only while something plays
   audio. Scene changes now regenerate the code, since a Scene's music decides that. The palette's category tabs wrap now; an Actor
@@ -34,13 +40,18 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. Sprites as an Actor type's appearance, then the rest of `02-blocks.md`. Their plugins come and go with the Blocks that use them,
-   as audio's does (`PluginManagers`, `KubrikoWiring`, a generated Manager written only when used); not in a template upgrade. The
-   sprite editor (`08-sprite-editor.md`) is next after sprites.
+1. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
+   `08-sprite-editor.md` plans), then the sprite editor itself, then the rest of `02-blocks.md`. Plugins come and go with the Blocks
+   that use them, as audio's and sprites' do (`PluginManagers`, `KubrikoWiring`); not in a template upgrade.
 2. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
 3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
+
+- Sprites: a non-square or translucent image, a `.webp` or `.jpg` (its size isn't read when ImageIO can't, so the size stays), deleting
+  the image while an Actor type uses it (the game should build and draw nothing), and undo and redo of choosing a sprite from the UI.
+  The sprite menu's hint with no images in the project. A game window opened before the template upgrade (an older `Game.kt` has no
+  `KubrikoWiring`, so `kubriko.get<SpriteManager>()` would throw).
 
 - Hearing the audio: the scratch Breakout played with a playMusic Block in a Manager's gameStarted Event and a playSound Block in a
   collision Event, and ran without errors, but nobody listened. Also: music pausing and resuming with the window's focus, a non-looping

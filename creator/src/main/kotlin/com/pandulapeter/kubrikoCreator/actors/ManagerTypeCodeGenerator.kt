@@ -168,6 +168,7 @@ internal object ManagerTypeCodeGenerator {
         if (pluginManagers.usesCollisions) appendLine("import com.pandulapeter.kubriko.collision.CollisionManager")
         if (pluginManagers.usesKeyboard) appendLine("import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
         appendLine("import com.pandulapeter.kubriko.manager.Manager")
+        if (pluginManagers.usesSprites) appendLine("import com.pandulapeter.kubriko.sprites.SpriteManager")
         appendLine()
         appendLine("/**")
         appendLine(" * What Kubriko needs from the types built in Kubriko Creator.")
@@ -179,7 +180,7 @@ internal object ManagerTypeCodeGenerator {
         appendLine("     * sounds and music, if the game does), and those of the plugins the game uses, for Kubriko.newInstance.")
         appendLine("     *")
         appendLine("     * @param isInSceneEditor True in the Scene editor, where their Events don't run, no Scene is loaded, and the plugins'")
-        appendLine("     *   Managers are left to the editor.")
+        appendLine("     *   Managers are left to the editor (except the one that draws sprites, which it doesn't have).")
         appendLine("     * @param firstScene The name of the Scene loaded when the game starts, or null to load none.")
         appendLine("     */")
         appendLine("    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> {")
@@ -187,7 +188,8 @@ internal object ManagerTypeCodeGenerator {
         managerTypeNames.sorted().forEach { appendLine("            $it(isInSceneEditor),") }
         appendLine("        )")
         val scenes = "listOf(${ScenesCodeGenerator.SCENES_NAME}(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())" +
-            (if (pluginManagers.usesAudio) ", ${AudioCodeGenerator.AUDIO_NAME}(isInSceneEditor)" else "") + ")"
+            (if (pluginManagers.usesAudio) ", ${AudioCodeGenerator.AUDIO_NAME}(isInSceneEditor)" else "") +
+            (if (pluginManagers.usesSprites) ", SpriteManager.newInstance()" else "") + ")"
         if (pluginManagerNames.isEmpty()) {
             appendLine("        return $scenes + managers")
         } else {

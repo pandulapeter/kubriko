@@ -228,6 +228,10 @@
     <string name="color_picker_brightness">Brightness</string>
     <string name="color_picker_opacity">Opacity</string>
     <string name="actor_type_width">Width</string>
+    <string name="actor_type_sprite">Sprite</string>
+    <string name="actor_type_sprite_none">None: draw the shape</string>
+    <string name="actor_type_sprites_empty">Put .png images right in the drawable folder of composeResources to draw Actors as sprites.</string>
+    <string name="actor_type_collision_shape">Collision shape</string>
     <string name="actor_type_height">Height</string>
     <string name="actor_type_regenerated">Kubriko Creator keeps its Kotlin code up to date.</string>
     <string name="event_game_started">When the game starts</string>
@@ -358,6 +362,7 @@
     <string name="command_discard_changes">Discard changes</string>
     <string name="error_command_scene_missing">There's no Scene called %1$s.</string>
     <string name="error_command_sound_missing">There's no sound at %1$s. Sounds are .wav files in the files folder of composeResources.</string>
+    <string name="error_command_sprite_missing">There's no sprite at %1$s. Sprites are .png, .jpg, or .webp images right in the drawable folder of composeResources.</string>
     <string name="error_command_music_missing">There's no music at %1$s. Music is an .mp3 or .ogg file in the files folder of composeResources.</string>
     <string name="error_command_scene_invalid">%1$s isn't a valid Scene file.</string>
     <string name="error_command_scene_content_invalid">That isn't valid Scene content.</string>

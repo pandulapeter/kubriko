@@ -42,6 +42,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
@@ -214,6 +215,7 @@ internal fun WorkspaceScreen(
                             audioFiles = AudioFiles.of(resources),
                         )
                     },
+                    sprites = remember(resources) { SpriteFiles.of(resources).paths },
                     isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
                     onCommand = { controller.commands.dispatch(it) },
                     highlight = latestAiStep?.highlightIn(selectedBlockType.name),

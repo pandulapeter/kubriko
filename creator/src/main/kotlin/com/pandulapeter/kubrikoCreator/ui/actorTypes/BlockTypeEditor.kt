@@ -88,11 +88,13 @@ import org.jetbrains.compose.resources.stringResource
  * and the palette of Blocks to add.
  *
  * @param scope What its Blocks can refer to.
+ * @param sprites The images an Actor type can be drawn as, by their path from `composeResources`.
  */
 @Composable
 internal fun BlockTypeEditor(
     definition: BlockTypeDefinition,
     scope: BlockScope,
+    sprites: List<String>,
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>) -> Unit,
     modifier: Modifier = Modifier,
@@ -147,6 +149,7 @@ internal fun BlockTypeEditor(
                 if (definition is ActorTypeDefinition) {
                     AppearanceColumn(
                         definition = definition,
+                        sprites = sprites,
                         onChange = { onCommand(Invocation(SetAppearance, it)) },
                     )
                     HorizontalDivider(modifier = Modifier.padding(top = 8.dp))

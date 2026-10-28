@@ -31,9 +31,7 @@ class SpriteManagerTest {
 
     private val requestedResources: MutableList<SpriteResource> = Collections.synchronizedList(mutableListOf())
     private val pendingLoads = ConcurrentHashMap<SpriteResource, CompletableDeferred<ImageBitmap>>()
-    private val spriteManager = SpriteManagerImpl(
-        isLoggingEnabled = false,
-        instanceNameForLogging = null,
+    private val spriteManager = SpriteManager.newInstance(
         imageLoader = { resource ->
             requestedResources.add(resource)
             pendingLoadOf(resource).await()

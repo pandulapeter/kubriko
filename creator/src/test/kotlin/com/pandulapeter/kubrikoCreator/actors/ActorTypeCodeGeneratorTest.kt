@@ -22,8 +22,9 @@ class ActorTypeCodeGeneratorTest {
         vararg events: EventDefinition,
         shape: ActorShape = ActorShape.CIRCLE,
         isCollidable: Boolean = false,
+        sprite: String? = null,
     ) = ActorTypeCodeGenerator.generateActorType(
-        ActorTypeDefinition(name = "Player", shape = shape, color = 0xFF5AB06A, width = 60f, height = 30f, events = events.toList()),
+        ActorTypeDefinition(name = "Player", shape = shape, sprite = sprite, color = 0xFF5AB06A, width = 60f, height = 30f, events = events.toList()),
         packageName,
         collidableActorTypeNames = if (isCollidable) setOf("Player") else emptySet(),
     )
@@ -578,5 +579,22 @@ class ActorTypeCodeGeneratorTest {
         val code = generate(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.Log("Jump"))))
         assertContains(code, "        stateManager = kubriko.get()\n")
         assertContains(code, "    override fun onKeyPressed(key: Key) {\n        if (!stateManager.isRunning.value) return\n        when (key) {\n")
+    }
+
+    @Test
+    fun aSpriteIsDrawnInsteadOfTheShapeAndLookedUpByName() {
+        val code = generate(sprite = "drawable/player-1.png", isCollidable = true)
+        assertContains(code, "import com.example.game.resources.Res\nimport com.example.game.resources.allDrawableResources\n")
+        assertContains(code, "import com.pandulapeter.kubriko.sprites.SpriteManager\n")
+        assertContains(code, "    private lateinit var spriteManager: SpriteManager\n")
+        assertContains(code, "        spriteManager = kubriko.get()\n")
+        assertContains(code, "        private val sprite = Res.allDrawableResources[\"player_1\"]\n")
+        assertContains(code, "        val image = sprite?.let { spriteManager.get(it) } ?: return\n")
+        assertContains(code, "dstSize = IntSize(body.size.width.raw.roundToInt(), body.size.height.raw.roundToInt()),\n")
+        assertFalse("drawCircle" in code)
+        // The shape is still the collision mask's.
+        assertContains(code, "CircleCollisionMask(")
+        assertFalse("SpriteManager" in generate(sprite = "drawable/nested/player.png"))
+        assertFalse("SpriteManager" in generate())
     }
 }

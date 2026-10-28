@@ -13,6 +13,7 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
@@ -59,6 +60,7 @@ internal fun TestScope.commandContext(
     console: List<ConsoleEntry> = emptyList(),
     runner: ProjectRunner = FakeProjectRunner(),
     audioFiles: AudioFiles? = null,
+    spriteFiles: SpriteFiles? = null,
     onScenesChanged: (Collection<String>) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
 ) = CommandContext(
@@ -70,6 +72,7 @@ internal fun TestScope.commandContext(
     runner = runner,
     ioDispatcher = UnconfinedTestDispatcher(testScheduler),
     audioFiles = { audioFiles },
+    spriteFiles = { spriteFiles },
     onScenesChanged = onScenesChanged,
     onProjectUpgraded = onProjectUpgraded,
 )

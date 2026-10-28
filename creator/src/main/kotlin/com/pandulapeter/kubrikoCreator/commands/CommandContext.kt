@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * @param blockTypes The project's block-built types, or null if the project hasn't opted in to them.
  * @param audioFiles The sounds and music of the project, or null if they aren't known, so they aren't checked.
+ * @param spriteFiles The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
  * @param onScenesChanged Tells the rest of the editor which Scene files a command changed.
  * @param onProjectUpgraded Tells the rest of the editor that the project's template files were brought up to date.
  */
@@ -35,6 +37,7 @@ internal class CommandContext(
     val runner: ProjectRunner,
     val ioDispatcher: CoroutineDispatcher,
     val audioFiles: () -> AudioFiles? = { null },
+    val spriteFiles: () -> SpriteFiles? = { null },
     val onScenesChanged: (names: Collection<String>) -> Unit,
     val onProjectUpgraded: () -> Unit = {},
 )

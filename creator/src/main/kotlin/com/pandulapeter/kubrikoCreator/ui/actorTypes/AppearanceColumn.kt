@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_appearance
+import kubriko.creator.generated.resources.actor_type_collision_shape
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_shape_circle
 import kubriko.creator.generated.resources.actor_type_shape_rectangle
@@ -33,11 +35,15 @@ import kubriko.creator.generated.resources.ic_sprite
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * How an Actor type looks: its shape, color, and the size it is placed with.
+ * How an Actor type looks: its sprite, or its shape and color, and the size it is placed with. With a sprite, the
+ * shape is only its collision mask's.
+ *
+ * @param sprites The images it can be drawn as, by their path from `composeResources`.
  */
 @Composable
 internal fun AppearanceColumn(
     definition: ActorTypeDefinition,
+    sprites: List<String>,
     onChange: (SetAppearance.Input) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
@@ -51,6 +57,17 @@ internal fun AppearanceColumn(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        SpriteChoice(
+            sprite = definition.sprite,
+            sprites = sprites,
+            onSpriteChange = { onChange(SetAppearance.Input(definition.name, sprite = it)) },
+        )
+        if (definition.sprite != null) {
+            Text(
+                text = stringResource(Res.string.actor_type_collision_shape),
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -62,10 +79,12 @@ internal fun AppearanceColumn(
                 )
             }
         }
-        ColorField(
-            color = definition.color,
-            onColorChange = { onChange(SetAppearance.Input(definition.name, color = it)) },
-        )
+        if (definition.sprite == null) {
+            ColorField(
+                color = definition.color,
+                onColorChange = { onChange(SetAppearance.Input(definition.name, color = it)) },
+            )
+        }
         NumberField(
             modifier = Modifier.fillMaxWidth(),
             label = Res.string.actor_type_width,

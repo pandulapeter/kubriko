@@ -75,6 +75,7 @@ internal object ActorTypeCodeGenerator {
         val usesActorManager = usesKotlin || generatedBlocks.any { it.needsActorManager(knownActorTypeNames) }
         val usesViewportManager = usesKotlin || edgeEvents.isNotEmpty()
         val usesStateManager = usesPause || keyEvents.isNotEmpty()
+        val spriteAccessor = definition.sprite?.let(SpriteFiles::accessorOf)
         val lookups = listOfNotNull(
             "actorManager: ActorManager".takeIf { usesActorManager },
             "viewportManager: ViewportManager".takeIf { usesViewportManager },
@@ -82,6 +83,7 @@ internal object ActorTypeCodeGenerator {
             "$STATE_MANAGER_FIELD: StateManager".takeIf { usesStateManager },
             "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}".takeIf { usesScenes },
             "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}".takeIf { BlockCodeGenerator.usesAudio(generatedBlocks) },
+            "$SPRITE_MANAGER_FIELD: SpriteManager".takeIf { spriteAccessor != null },
         ) + usedManagers.map { "${scope.managerField(it)}: $it" }
         val addedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE }
         val traits = listOfNotNull(
@@ -119,6 +121,7 @@ internal object ActorTypeCodeGenerator {
                 add("com.pandulapeter.kubriko.types.SceneOffset")
             }
             if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
+            if (spriteAccessor != null) addAll(SPRITE_IMPORTS + listOf("$packageName.resources.Res", "$packageName.resources.allDrawableResources"))
             if (generatedBlocks.any { it is BlockDefinition.MoveTowardsNearest && it.actorType in knownActorTypeNames }) {
                 add("com.pandulapeter.kubriko.helpers.extensions.distanceTo")
                 add("com.pandulapeter.kubriko.helpers.extensions.normalized")
@@ -187,7 +190,7 @@ internal object ActorTypeCodeGenerator {
             if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope, guard = "if (!$STATE_MANAGER_FIELD.isRunning.value) return")
             if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, scope)
             appendLine()
-            appendLine(drawFunction(definition.shape))
+            appendLine(if (spriteAccessor == null) drawFunction(definition.shape) else SPRITE_DRAW_FUNCTION)
             if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) } }) {
                 appendLine()
                 appendLine("    private fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
@@ -214,6 +217,11 @@ internal object ActorTypeCodeGenerator {
             appendLine("    }")
             appendLine()
             appendLine("    companion object {")
+            if (spriteAccessor != null) {
+                // Looked up by name rather than through its accessor, so the game still compiles once the image is gone.
+                appendLine("        private val sprite = Res.allDrawableResources[${stringLiteral(spriteAccessor)}]")
+                appendLine()
+            }
             appendLine("        val metadata = EditableMetadata.create<$name, State>(typeId = \"$name\") { position ->")
             appendLine("            State(body = BoxBody(initialPosition = position, initialSize = SceneSize(${unitLiteral(definition.width)}, ${unitLiteral(definition.height)})))")
             appendLine("        }")
@@ -302,6 +310,29 @@ internal object ActorTypeCodeGenerator {
             |    )
         """.trimMargin()
     }
+
+    private const val SPRITE_MANAGER_FIELD = "spriteManager"
+
+    /**
+     * Draws the sprite stretched over the body, its pixels kept sharp, as pixel art wants them.
+     */
+    private val SPRITE_DRAW_FUNCTION = """
+        |    override fun DrawScope.draw() {
+        |        val image = sprite?.let { $SPRITE_MANAGER_FIELD.get(it) } ?: return
+        |        drawImage(
+        |            image = image,
+        |            dstSize = IntSize(body.size.width.raw.roundToInt(), body.size.height.raw.roundToInt()),
+        |            filterQuality = FilterQuality.None,
+        |        )
+        |    }
+    """.trimMargin()
+
+    private val SPRITE_IMPORTS = listOf(
+        "androidx.compose.ui.graphics.FilterQuality",
+        "androidx.compose.ui.unit.IntSize",
+        "com.pandulapeter.kubriko.sprites.SpriteManager",
+        "kotlin.math.roundToInt",
+    )
 
     private val BASE_IMPORTS = listOf(
         "androidx.compose.ui.graphics.Color",

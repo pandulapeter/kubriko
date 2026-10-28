@@ -46,4 +46,11 @@ class PluginManagersTest {
         assertTrue(PluginManagers.of(listOf(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.StopMusic)))))).usesAudio)
         assertTrue(PluginManagers.of(emptyList(), sceneMusic = setOf("files/music/level.mp3")).usesAudio)
     }
+
+    @Test
+    fun spritesAreUsedByActorTypesDrawnAsOne() {
+        assertTrue(PluginManagers.of(listOf(ActorTypeDefinition(name = "Ball", sprite = "drawable/ball.png"))).usesSprites)
+        assertFalse(PluginManagers.of(listOf(ActorTypeDefinition(name = "Ball"))).usesSprites)
+        assertFalse(PluginManagers.of(listOf(ActorTypeDefinition(name = "Ball", sprite = "files/ball.png"))).usesSprites)
+    }
 }

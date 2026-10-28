@@ -24,8 +24,10 @@ import kotlinx.serialization.Serializable
 internal data class ActorTypeDefinition(
     @Description("The name of the Actor type, and of its generated Kotlin class: an uppercase letter, then letters and numbers.")
     @SerialName("name") override val name: String,
-    @Description("The shape its Actors are drawn as.")
+    @Description("The shape its Actors are drawn as, and of their collision mask.")
     @SerialName("shape") val shape: ActorShape = ActorShape.CIRCLE,
+    @Description("The image its Actors are drawn as instead of the shape, by its path from composeResources (drawable/ball.png), or none to draw the shape. The shape is still the collision mask's.")
+    @SerialName("sprite") val sprite: String? = null,
     @Description("The color its Actors are drawn with, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
     @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long = 0xFF6060AA,
     @Description("The width of a newly placed Actor, in scene units.")

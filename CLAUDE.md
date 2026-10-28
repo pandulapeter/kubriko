@@ -258,7 +258,7 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 
 **Persistence**: Returns `MutableStateFlow`s that auto-persist on value change. Types: `boolean`, `int`, `float`, `string`, `generic(serializer, deserializer)`.
 
-**Sprites**: `SpriteManager.get(resource)` returns null while loading (triggers load on first call). `AnimatedSprite` handles frame-based animation from sprite sheets. Preload with `spriteManager.preload(...)`.
+**Sprites**: `SpriteManager.get(resource)` returns null while loading (triggers load on first call). `AnimatedSprite` handles frame-based animation from sprite sheets. Preload with `spriteManager.preload(...)`. `SpriteManager.newInstance(imageLoader = …)` replaces the loading itself, for resources Compose can't reach (Kubriko Creator's embedded Scene editor).
 
 **Physics**: Based on KPhysics/JPhysics. Bodies can be circular or polygonal. Supports joints, ray casting, and explosion forces.
 

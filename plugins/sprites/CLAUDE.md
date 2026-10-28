@@ -16,6 +16,8 @@ Resources are identified by `SpriteResource(drawableResource: DrawableResource, 
 `getDrawableResourceBytes(getSystemResourceEnvironment(), resource)` on the manager's coroutine
 scope, then decoded platform-specifically to `ImageBitmap`. Rotation baking happens at decode time,
 not at draw time.
+`SpriteManager.newInstance(imageLoader = …)` replaces this whole step (reading, decoding, and rotating); Kubriko
+Creator uses it to read a project's sprites through the project's class loader in its embedded Scene editor.
 
 ## Null-while-loading contract
 `get(resource)` follows a strict state machine:
