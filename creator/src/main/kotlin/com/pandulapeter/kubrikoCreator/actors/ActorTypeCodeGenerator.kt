@@ -53,39 +53,25 @@ internal object ActorTypeCodeGenerator {
     ): String {
         val name = definition.name
         val scope = BlockScope(name, BlockTypeKind.ACTOR, definition.properties, knownActorTypeNames.toList(), managerTypes)
-        val keyEvents = definition.events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
-        val edgeEvents = definition.events.filter { it.type == EventType.EDGE_TOUCHED }
-        val collisionEvents = definition.events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
-        val timerEvents = definition.events.filter { it.type == EventType.TIMER_FINISHED && it.timer in TIMER_NUMBERS }
-        val isCollidable = collisionEvents.isNotEmpty() || name in collidableActorTypeNames
-        val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents + timerEvents
-        val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerNumber } }).filter { it in TIMER_NUMBERS }.distinct().sorted()
-        val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
-        val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, scope).any { "absoluteValue" in it } }
-        val generatedBlocks = generatedEvents.flatMap { it.blocks }
-        val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
-        val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
-        val usedManagers = scope.managersUsedBy(generatedBlocks)
-        // Edge Events use the Scene settings' bounds, which GeneratedScenes knows.
-        val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks) || edgeEvents.isNotEmpty()
-        val usesPause = BlockCodeGenerator.usesPause(generatedBlocks)
-        val usesKotlin = generatedBlocks.any { it is BlockDefinition.Kotlin }
-        val isDynamic = usesKotlin || edgeEvents.isNotEmpty() || timers.isNotEmpty() ||
-            definition.events.any { it.type == EventType.EVERY_FRAME && it.blocks.isNotEmpty() } || generatedBlocks.any { it.movesTheActor }
-        val usesActorManager = usesKotlin || generatedBlocks.any { it.needsActorManager(knownActorTypeNames) }
-        val usesViewportManager = usesKotlin || edgeEvents.isNotEmpty()
-        val usesStateManager = usesPause || keyEvents.isNotEmpty()
         val spriteAccessor = definition.sprite?.let(SpriteFiles::accessorOf)
-        val lookups = listOfNotNull(
-            "actorManager: ActorManager".takeIf { usesActorManager },
-            "viewportManager: ViewportManager".takeIf { usesViewportManager },
-            "keyboardInputManager: KeyboardInputManager".takeIf { usesKeyHeld },
-            "$STATE_MANAGER_FIELD: StateManager".takeIf { usesStateManager },
-            "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}".takeIf { usesScenes },
-            "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}".takeIf { BlockCodeGenerator.usesAudio(generatedBlocks) },
-            "$SPRITE_MANAGER_FIELD: SpriteManager".takeIf { spriteAccessor != null },
-        ) + usedManagers.map { "${scope.managerField(it)}: $it" }
-        val addedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE }
+        val features = ActorTypeFeatures(
+            events = definition.events,
+            scope = scope,
+            packageName = packageName,
+            shapes = setOf(definition.shape),
+            hasSprite = spriteAccessor != null,
+            isCollidableAnyway = name in collidableActorTypeNames,
+        )
+        val keyEvents = features.keyEvents
+        val edgeEvents = features.edgeEvents
+        val collisionEvents = features.collisionEvents
+        val timerEvents = features.timerEvents
+        val isCollidable = features.isCollidable
+        val generatedEvents = features.generatedEvents
+        val timers = features.timers
+        val isDynamic = features.isDynamic
+        val lookups = features.lookups
+        val addedEvents = features.addedEvents
         val traits = listOfNotNull(
             "Visible",
             "Dynamic".takeIf { isDynamic },
@@ -93,40 +79,7 @@ internal object ActorTypeCodeGenerator {
             "Editable<$name>",
             "KeyboardInputAware".takeIf { keyEvents.isNotEmpty() },
         )
-        val imports = buildSet {
-            addAll(BASE_IMPORTS)
-            if (isCollidable) {
-                add("com.pandulapeter.kubriko.collision.Collidable")
-                add(
-                    when (definition.shape) {
-                        ActorShape.CIRCLE -> "com.pandulapeter.kubriko.collision.mask.CircleCollisionMask"
-                        ActorShape.RECTANGLE -> "com.pandulapeter.kubriko.collision.mask.BoxCollisionMask"
-                    },
-                )
-            }
-            if (collisionEvents.isNotEmpty()) add("com.pandulapeter.kubriko.collision.CollisionDetector")
-            if (collisionEvents.isNotEmpty()) add("kotlin.reflect.KClass")
-            if (keyEvents.isNotEmpty()) addAll(KEYBOARD_IMPORTS)
-            if (edgeEvents.isNotEmpty()) add("com.pandulapeter.kubriko.helpers.extensions.constrainedWithin")
-            if (usesAbsoluteValue) add("kotlin.math.absoluteValue")
-            if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log } }) add("com.pandulapeter.kubriko.logger.Logger")
-            if (collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }) add("com.pandulapeter.kubriko.types.SceneUnit")
-            if (usesKeyHeld) addAll(KEYBOARD_MANAGER_IMPORTS)
-            if (usesStateManager) add(STATE_MANAGER_IMPORT)
-            if (isDynamic) add("com.pandulapeter.kubriko.actor.traits.Dynamic")
-            if (usesActorManager) add("com.pandulapeter.kubriko.manager.ActorManager")
-            if (usesViewportManager) add("com.pandulapeter.kubriko.manager.ViewportManager")
-            if (lookups.isNotEmpty()) addAll(listOf("com.pandulapeter.kubriko.Kubriko", "com.pandulapeter.kubriko.helpers.extensions.get"))
-            if (isDynamic || edgeEvents.isNotEmpty() || generatedBlocks.any { it is BlockDefinition.JumpTo || (it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames) }) {
-                add("com.pandulapeter.kubriko.types.SceneOffset")
-            }
-            if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
-            if (spriteAccessor != null) addAll(SPRITE_IMPORTS + listOf("$packageName.resources.Res", "$packageName.resources.allDrawableResources"))
-            if (generatedBlocks.any { it is BlockDefinition.MoveTowardsNearest && it.actorType in knownActorTypeNames }) {
-                add("com.pandulapeter.kubriko.helpers.extensions.distanceTo")
-                add("com.pandulapeter.kubriko.helpers.extensions.normalized")
-            }
-        }.sorted()
+        val imports = features.imports.sorted()
         return GeneratedFile.withHeader(" from .kubriko/actors/$name.json", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
             appendLine()
@@ -311,7 +264,7 @@ internal object ActorTypeCodeGenerator {
         """.trimMargin()
     }
 
-    private const val SPRITE_MANAGER_FIELD = "spriteManager"
+    const val SPRITE_MANAGER_FIELD = "spriteManager"
 
     /**
      * Draws the sprite stretched over the body, its pixels kept sharp, as pixel art wants them.
@@ -327,14 +280,14 @@ internal object ActorTypeCodeGenerator {
         |    }
     """.trimMargin()
 
-    private val SPRITE_IMPORTS = listOf(
+    val SPRITE_IMPORTS = listOf(
         "androidx.compose.ui.graphics.FilterQuality",
         "androidx.compose.ui.unit.IntSize",
         "com.pandulapeter.kubriko.sprites.SpriteManager",
         "kotlin.math.roundToInt",
     )
 
-    private val BASE_IMPORTS = listOf(
+    val BASE_IMPORTS = listOf(
         "androidx.compose.ui.graphics.Color",
         "androidx.compose.ui.graphics.drawscope.DrawScope",
         "com.pandulapeter.kubriko.actor.body.BoxBody",
@@ -351,32 +304,13 @@ internal object ActorTypeCodeGenerator {
         "kotlinx.serialization.json.Json",
     )
 
-    private val KEYBOARD_MANAGER_IMPORTS = listOf(
+    val KEYBOARD_MANAGER_IMPORTS = listOf(
         "androidx.compose.ui.input.key.Key",
         "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager",
     )
 
-    private val KEYBOARD_IMPORTS = listOf(
+    val KEYBOARD_IMPORTS = listOf(
         "androidx.compose.ui.input.key.Key",
         "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware",
     )
-
-    /**
-     * Whether [this] Block changes where the Actor is or how it moves, which only an Actor that updates every frame
-     * does. A Kotlin Block counts too, since it may.
-     */
-    private val BlockDefinition.movesTheActor
-        get() = when (this) {
-            is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, is BlockDefinition.JumpTo,
-            is BlockDefinition.MoveTowardsNearest, BlockDefinition.BounceOffEdge, BlockDefinition.BounceOffOther, is BlockDefinition.Kotlin -> true
-            is BlockDefinition.If -> condition is ConditionDefinition.Velocity
-            else -> false
-        }
-
-    private fun BlockDefinition.needsActorManager(knownActorTypeNames: Collection<String>) = when (this) {
-        BlockDefinition.RemoveSelf, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> true
-        is BlockDefinition.AddActor -> actorType in knownActorTypeNames
-        is BlockDefinition.MoveTowardsNearest -> actorType in knownActorTypeNames
-        else -> false
-    }
 }
