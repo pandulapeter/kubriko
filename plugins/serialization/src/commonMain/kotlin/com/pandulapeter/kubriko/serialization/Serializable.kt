@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.serialization
 
 import com.pandulapeter.kubriko.actor.Actor
 
-
 /**
  * An interface for [Actor]s that can be serialized and deserialized.
  *

@@ -25,13 +25,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
-import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_not_a_gradle_project
+import kubriko.creator.generated.resources.error_project_folder_not_empty
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory

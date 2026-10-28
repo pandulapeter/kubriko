@@ -61,7 +61,6 @@ internal fun ScalePropertyEditor(
     )
 }
 
-
 @Composable
 private fun UnitButton(
     value: Float,

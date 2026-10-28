@@ -41,7 +41,7 @@ fun <T : Shader.State> Modifier.shader(
     shader: Shader<T>,
     gameTime: State<Long>,
 ) = if (shader is ContentShader<*>) this then Modifier.graphicsLayer {
-    @Suppress("UNUSED_EXPRESSION") gameTime.value  // Invalidates the Canvas, causing a refresh on every frame
+    @Suppress("UNUSED_EXPRESSION") gameTime.value // Invalidates the Canvas, causing a refresh on every frame
     clip = true
     val cache = shader.shaderCache
     val shaderState = shader.shaderState
@@ -59,7 +59,7 @@ fun <T : Shader.State> Modifier.shader(
     // bounds rather than as a render effect: an effect with nothing to read still renders into an offscreen target the
     // size of the layer on every frame (two on Android, which gives any node carrying one a layer of its own), where
     // a fill blends straight into the target already being drawn.
-    @Suppress("UNUSED_EXPRESSION") gameTime.value  // Invalidates the draw, causing a refresh on every frame
+    @Suppress("UNUSED_EXPRESSION") gameTime.value // Invalidates the draw, causing a refresh on every frame
     if (!drawGenerativeShader(shader)) clipRect { this@drawWithContent.drawContent() }
 }
 

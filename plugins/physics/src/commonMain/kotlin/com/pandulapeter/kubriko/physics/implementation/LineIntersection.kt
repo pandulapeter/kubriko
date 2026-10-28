@@ -44,7 +44,6 @@ internal fun lineIntersect(line1Start: SceneOffset, line1End: SceneOffset, line2
     return SceneOffset(x, y)
 }
 
-
 internal fun isPointOnLine(lineStart: SceneOffset, lineEnd: SceneOffset, point: SceneOffset): Boolean {
     val startX = lineStart.x.raw
     val startY = lineStart.y.raw

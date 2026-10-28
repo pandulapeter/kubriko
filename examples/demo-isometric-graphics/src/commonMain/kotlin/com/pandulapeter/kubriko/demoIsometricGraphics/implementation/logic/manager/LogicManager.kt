@@ -84,8 +84,8 @@ class LogicManager : Manager() {
                     x = Random.nextInt(0, 12500).sceneUnit,
                     y = Random.nextInt(0, 12500).sceneUnit,
                 )
-                val tooClose = mainCharacterPosition.positionXY.distanceTo(candidate) < npcMinDistance
-                    || npcPositions.any { it.distanceTo(candidate) < npcMinDistance }
+                val tooClose = mainCharacterPosition.positionXY.distanceTo(candidate) < npcMinDistance ||
+                    npcPositions.any { it.distanceTo(candidate) < npcMinDistance }
                 if (!tooClose) npcPositions.add(candidate)
                 npcAttempts++
             }
@@ -112,8 +112,8 @@ class LogicManager : Manager() {
                     x = Random.nextInt(0, 12500).sceneUnit,
                     y = Random.nextInt(0, 12500).sceneUnit,
                 )
-                val tooClose = allCharacterPositions.any { it.distanceTo(candidate) < treeMinDistance }
-                    || treePositions.any { it.distanceTo(candidate) < treeMinDistance }
+                val tooClose = allCharacterPositions.any { it.distanceTo(candidate) < treeMinDistance } ||
+                    treePositions.any { it.distanceTo(candidate) < treeMinDistance }
                 if (!tooClose) treePositions.add(candidate)
                 treeAttempts++
             }
@@ -136,9 +136,9 @@ class LogicManager : Manager() {
                     x = Random.nextInt(0, 12500).sceneUnit,
                     y = Random.nextInt(0, 12500).sceneUnit,
                 )
-                val tooClose = allCharacterPositions.any { it.distanceTo(candidate) < bushMinDistanceToCharacter }
-                    || treePositions.any { it.distanceTo(candidate) < bushMinDistanceToTree }
-                    || bushPositions.any { it.distanceTo(candidate) < bushMinDistanceToBush }
+                val tooClose = allCharacterPositions.any { it.distanceTo(candidate) < bushMinDistanceToCharacter } ||
+                    treePositions.any { it.distanceTo(candidate) < bushMinDistanceToTree } ||
+                    bushPositions.any { it.distanceTo(candidate) < bushMinDistanceToBush }
                 if (!tooClose) bushPositions.add(candidate)
                 bushAttempts++
             }

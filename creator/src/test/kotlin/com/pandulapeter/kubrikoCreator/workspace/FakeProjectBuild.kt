@@ -11,8 +11,8 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 
 /**
  * A [ProjectBuild] whose runs last until the test finishes them.

@@ -65,10 +65,10 @@ import com.pandulapeter.kubriko.shared.ui.LocalInfoPanelVisibility
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 import kubriko.examples.demo_isometric_graphics.generated.resources.Res
 import kubriko.examples.demo_isometric_graphics.generated.resources.description
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val JOYSTICK_ENABLED = true
 

@@ -48,7 +48,7 @@ internal class SoundManagerImpl(
 
     private suspend fun load(player: SoundPlayer, uri: String): Any? {
         log(
-            message = "Preloading ${uri}...",
+            message = "Preloading $uri...",
             importance = Logger.Importance.LOW,
         )
         return player.preload(uri)?.also {

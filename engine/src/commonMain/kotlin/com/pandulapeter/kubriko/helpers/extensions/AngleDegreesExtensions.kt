@@ -20,7 +20,6 @@ import kotlin.math.sin
  */
 val AngleDegrees.rad get() = (raw * (PI / 180f).toFloat()).rad
 
-
 /**
  * Returns the sine of this angle.
  */

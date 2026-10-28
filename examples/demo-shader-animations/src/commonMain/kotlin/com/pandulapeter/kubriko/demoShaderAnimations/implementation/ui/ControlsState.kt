@@ -12,5 +12,5 @@ package com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui
 internal enum class ControlsState {
     COLLAPSED,
     EXPANDED_CODE,
-    EXPANDED_CONTROLS;
+    EXPANDED_CONTROLS
 }

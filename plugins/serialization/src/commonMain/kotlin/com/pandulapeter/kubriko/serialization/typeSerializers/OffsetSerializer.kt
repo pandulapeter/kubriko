@@ -48,8 +48,7 @@ object OffsetSerializer : KSerializer<Offset> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): Offset {
-        return decoder.decodeStructure(descriptor) {
+    override fun deserialize(decoder: Decoder): Offset = decoder.decodeStructure(descriptor) {
             var x = 0f
             var y = 0f
             while (true) {
@@ -62,5 +61,4 @@ object OffsetSerializer : KSerializer<Offset> {
             }
             Offset(x, y)
         }
-    }
 }

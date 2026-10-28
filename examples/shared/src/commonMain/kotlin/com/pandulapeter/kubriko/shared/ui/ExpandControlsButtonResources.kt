@@ -21,6 +21,6 @@ import kubriko.examples.shared.generated.resources.ic_brush
  * Whether the icon and strings of [ExpandControlsButton] are preloaded, for the resource gates of the examples using it.
  */
 @Composable
-fun areExpandControlsButtonResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
-        && preloadedString(Res.string.expand_controls).value.isNotBlank()
-        && preloadedString(Res.string.collapse_controls).value.isNotBlank()
+fun areExpandControlsButtonResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null &&
+        preloadedString(Res.string.expand_controls).value.isNotBlank() &&
+        preloadedString(Res.string.collapse_controls).value.isNotBlank()

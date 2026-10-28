@@ -10,15 +10,15 @@
 package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.animation
 
 import androidx.compose.ui.graphics.Color
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.CuboidAnimation
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.CuboidKeyframe
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.KeyframedColor
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.shortestDeltaTo
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneUnit
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.CuboidAnimation
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.CuboidKeyframe
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.KeyframedColor
 
 // Sorted parallel arrays for one float property. Null track = property has no keyframes → interpolation falls back to base value.
 internal class SortedFloatTrack(

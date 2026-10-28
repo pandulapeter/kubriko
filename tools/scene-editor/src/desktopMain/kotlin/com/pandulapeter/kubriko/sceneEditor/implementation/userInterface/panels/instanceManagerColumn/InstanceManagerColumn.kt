@@ -86,7 +86,7 @@ internal fun InstanceManagerColumn(
             if (selectedInstance == null) {
                 items(
                     items = registeredTypeIds,
-                    key = { "typeRadioButton_${it}" },
+                    key = { "typeRadioButton_$it" },
                 ) { typeId ->
                     EditorRadioButton(
                         label = if (isTypeUnique(typeId)) stringResource(Res.string.unique_prefix, typeId) else typeId,

@@ -18,6 +18,13 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.ControlManager
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.CuboidModel
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboidModel
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.MiniMapMarker
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.generic.Vec3
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.actor.PlanarCuboidModelRenderer
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.model.ProjectionPlane
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.rad
@@ -26,13 +33,6 @@ import com.pandulapeter.kubriko.helpers.extensions.shortestDeltaTo
 import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneUnit
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.ControlManager
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.CuboidModel
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboidModel
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.MiniMapMarker
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.generic.Vec3
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.actor.PlanarCuboidModelRenderer
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.model.ProjectionPlane
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import kotlin.random.Random

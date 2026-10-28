@@ -48,8 +48,7 @@ object ScaleSerializer : KSerializer<Scale> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): Scale {
-        return decoder.decodeStructure(descriptor) {
+    override fun deserialize(decoder: Decoder): Scale = decoder.decodeStructure(descriptor) {
             var horizontal = 0f
             var vertical = 0f
             while (true) {
@@ -62,5 +61,4 @@ object ScaleSerializer : KSerializer<Scale> {
             }
             Scale(horizontal, vertical)
         }
-    }
 }

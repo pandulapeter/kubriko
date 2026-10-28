@@ -29,14 +29,14 @@ sealed interface PhysicsDemoStateHolder : StateHolder {
         fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
-        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_chain).value != null
-                && preloadedImageVector(Res.drawable.ic_shape).value != null
-                && preloadedImageVector(Res.drawable.ic_explosion).value != null
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_chain).value != null &&
+                preloadedImageVector(Res.drawable.ic_shape).value != null &&
+                preloadedImageVector(Res.drawable.ic_explosion).value != null
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.shape).value.isNotBlank()
-                && preloadedString(Res.string.chain).value.isNotBlank()
-                && preloadedString(Res.string.explosion).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank() &&
+                preloadedString(Res.string.shape).value.isNotBlank() &&
+                preloadedString(Res.string.chain).value.isNotBlank() &&
+                preloadedString(Res.string.explosion).value.isNotBlank()
     }
 }

@@ -11,16 +11,16 @@ package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.v
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.RenderableCuboidHolder
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.rotateAround
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.actor.VolumetricCuboidBatchRenderer
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.actor.VolumetricCuboidRenderer
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.RenderableCuboidHolder
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.rotateAround
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.actor.VolumetricCuboidBatchRenderer
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.actor.VolumetricCuboidRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow

@@ -118,10 +118,10 @@ internal class LoadingManager(
     }
 
     @Composable
-    fun isGameLoaded() = isInitialized.collectAsState().value
-            && areMenuResourcesLoaded()
-            && isLevelLoaded.collectAsState().value
-            && areGameResourcesLoaded.collectAsState().value
+    fun isGameLoaded() = isInitialized.collectAsState().value &&
+            areMenuResourcesLoaded() &&
+            isLevelLoaded.collectAsState().value &&
+            areGameResourcesLoaded.collectAsState().value
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
@@ -136,42 +136,42 @@ internal class LoadingManager(
     }
 
     @Composable
-    private fun areMenuResourcesLoaded() = isFontLoaded.collectAsState().value
-            && areIconResourcesLoaded()
-            && areImageResourcesLoaded()
-            && areStringResourcesLoaded()
+    private fun areMenuResourcesLoaded() = isFontLoaded.collectAsState().value &&
+            areIconResourcesLoaded() &&
+            areImageResourcesLoaded() &&
+            areStringResourcesLoaded()
 
     @Composable
-    private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_back).value != null
-            && preloadedImageVector(Res.drawable.ic_exit).value != null
-            && preloadedImageVector(Res.drawable.ic_fullscreen_enter).value != null
-            && preloadedImageVector(Res.drawable.ic_fullscreen_exit).value != null
-            && preloadedImageVector(Res.drawable.ic_information).value != null
-            && preloadedImageVector(Res.drawable.ic_music_off).value != null
-            && preloadedImageVector(Res.drawable.ic_music_on).value != null
-            && preloadedImageVector(Res.drawable.ic_pause).value != null
-            && preloadedImageVector(Res.drawable.ic_sound_effects_off).value != null
-            && preloadedImageVector(Res.drawable.ic_sound_effects_on).value != null
+    private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_back).value != null &&
+            preloadedImageVector(Res.drawable.ic_exit).value != null &&
+            preloadedImageVector(Res.drawable.ic_fullscreen_enter).value != null &&
+            preloadedImageVector(Res.drawable.ic_fullscreen_exit).value != null &&
+            preloadedImageVector(Res.drawable.ic_information).value != null &&
+            preloadedImageVector(Res.drawable.ic_music_off).value != null &&
+            preloadedImageVector(Res.drawable.ic_music_on).value != null &&
+            preloadedImageVector(Res.drawable.ic_pause).value != null &&
+            preloadedImageVector(Res.drawable.ic_sound_effects_off).value != null &&
+            preloadedImageVector(Res.drawable.ic_sound_effects_on).value != null
 
     @Composable
     private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.img_logo).value != null
 
     @Composable
-    private fun areStringResourcesLoaded() = preloadedString(Res.string.back).value.isNotBlank()
-            && preloadedString(Res.string.pause).value.isNotBlank()
-            && preloadedString(Res.string.information).value.isNotBlank()
-            && preloadedString(Res.string.sound_effects_enable).value.isNotBlank()
-            && preloadedString(Res.string.sound_effects_disable).value.isNotBlank()
-            && preloadedString(Res.string.music_enable).value.isNotBlank()
-            && preloadedString(Res.string.music_disable).value.isNotBlank()
-            && preloadedString(Res.string.fullscreen_enter).value.isNotBlank()
-            && preloadedString(Res.string.fullscreen_exit).value.isNotBlank()
-            && preloadedString(Res.string.information_contents).value.isNotBlank()
-            && preloadedString(Res.string.play).value.isNotBlank()
-            && preloadedString(Res.string.close_confirmation).value.isNotBlank()
-            && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
-            && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()
-            && preloadedString(Res.string.unfinished_disclaimer).value.isNotBlank()
+    private fun areStringResourcesLoaded() = preloadedString(Res.string.back).value.isNotBlank() &&
+            preloadedString(Res.string.pause).value.isNotBlank() &&
+            preloadedString(Res.string.information).value.isNotBlank() &&
+            preloadedString(Res.string.sound_effects_enable).value.isNotBlank() &&
+            preloadedString(Res.string.sound_effects_disable).value.isNotBlank() &&
+            preloadedString(Res.string.music_enable).value.isNotBlank() &&
+            preloadedString(Res.string.music_disable).value.isNotBlank() &&
+            preloadedString(Res.string.fullscreen_enter).value.isNotBlank() &&
+            preloadedString(Res.string.fullscreen_exit).value.isNotBlank() &&
+            preloadedString(Res.string.information_contents).value.isNotBlank() &&
+            preloadedString(Res.string.play).value.isNotBlank() &&
+            preloadedString(Res.string.close_confirmation).value.isNotBlank() &&
+            preloadedString(Res.string.close_confirmation_positive).value.isNotBlank() &&
+            preloadedString(Res.string.close_confirmation_negative).value.isNotBlank() &&
+            preloadedString(Res.string.unfinished_disclaimer).value.isNotBlank()
 
     companion object {
         const val SCENE_NAME = "world.json"

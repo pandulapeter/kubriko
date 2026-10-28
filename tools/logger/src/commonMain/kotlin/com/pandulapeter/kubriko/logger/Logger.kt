@@ -90,7 +90,7 @@ object Logger {
         /**
          * For important events or errors.
          */
-        HIGH;
+        HIGH
     }
 
     /**

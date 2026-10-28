@@ -43,12 +43,12 @@ internal class MiniMapBuffer {
     fun contentEquals(other: MiniMapBuffer): Boolean {
         if (markerCount != other.markerCount) return false
         for (i in 0 until markerCount) {
-            if (markerX[i] != other.markerX[i] || markerY[i] != other.markerY[i]
-                || markerHalfWidth[i] != other.markerHalfWidth[i]
-                || markerHalfHeight[i] != other.markerHalfHeight[i]
-                || markerRotation[i] != other.markerRotation[i]
-                || markerColor[i] != other.markerColor[i]
-                || markerDrawers[i] != other.markerDrawers[i]
+            if (markerX[i] != other.markerX[i] || markerY[i] != other.markerY[i] ||
+                markerHalfWidth[i] != other.markerHalfWidth[i] ||
+                markerHalfHeight[i] != other.markerHalfHeight[i] ||
+                markerRotation[i] != other.markerRotation[i] ||
+                markerColor[i] != other.markerColor[i] ||
+                markerDrawers[i] != other.markerDrawers[i]
             ) return false
         }
         return true

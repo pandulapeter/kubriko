@@ -36,7 +36,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-
 internal fun LazyListScope.menu(
     allShowcaseEntries: List<ShowcaseEntry>,
     selectedShowcaseEntry: ShowcaseEntry?,

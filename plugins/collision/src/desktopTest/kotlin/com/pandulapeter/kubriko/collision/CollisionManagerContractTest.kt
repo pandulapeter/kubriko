@@ -101,7 +101,7 @@ class CollisionManagerContractTest {
     }
 
     @Test
-    fun noCallbackAfterRemoval()= withKubriko { collisionManager, kubriko ->
+    fun noCallbackAfterRemoval() = withKubriko { collisionManager, kubriko ->
         val overlappingA = TypeA(circle(5f, 0f))
         val overlappingB = TypeB(circle(5f, 0f))
         val detector = RecordingDetector(circle(0f, 0f), listOf(TypeA::class))

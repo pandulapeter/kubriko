@@ -27,10 +27,10 @@ sealed interface ParticlesDemoStateHolder : StateHolder {
         fun areResourcesLoaded() = areExpandControlsButtonResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.emit_continuously).value.isNotBlank()
-                && preloadedString(Res.string.rate).value.isNotBlank()
-                && preloadedString(Res.string.lifespan).value.isNotBlank()
-                && preloadedString(Res.string.burst).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank() &&
+                preloadedString(Res.string.emit_continuously).value.isNotBlank() &&
+                preloadedString(Res.string.rate).value.isNotBlank() &&
+                preloadedString(Res.string.lifespan).value.isNotBlank() &&
+                preloadedString(Res.string.burst).value.isNotBlank()
     }
 }

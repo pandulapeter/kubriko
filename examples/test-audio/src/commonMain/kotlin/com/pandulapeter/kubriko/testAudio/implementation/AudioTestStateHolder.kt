@@ -35,20 +35,20 @@ sealed interface AudioTestStateHolder : StateHolder {
         fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
-        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_loop_off).value != null
-                && preloadedImageVector(Res.drawable.ic_loop_on).value != null
-                && preloadedImageVector(Res.drawable.ic_pause).value != null
-                && preloadedImageVector(Res.drawable.ic_play).value != null
-                && preloadedImageVector(Res.drawable.ic_stop).value != null
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_loop_off).value != null &&
+                preloadedImageVector(Res.drawable.ic_loop_on).value != null &&
+                preloadedImageVector(Res.drawable.ic_pause).value != null &&
+                preloadedImageVector(Res.drawable.ic_play).value != null &&
+                preloadedImageVector(Res.drawable.ic_stop).value != null
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.music_track_1).value.isNotBlank()
-                && preloadedString(Res.string.music_track_2).value.isNotBlank()
-                && preloadedString(Res.string.play).value.isNotBlank()
-                && preloadedString(Res.string.pause).value.isNotBlank()
-                && preloadedString(Res.string.stop).value.isNotBlank()
-                && preloadedString(Res.string.loop_on).value.isNotBlank()
-                && preloadedString(Res.string.loop_off).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank() &&
+                preloadedString(Res.string.music_track_1).value.isNotBlank() &&
+                preloadedString(Res.string.music_track_2).value.isNotBlank() &&
+                preloadedString(Res.string.play).value.isNotBlank() &&
+                preloadedString(Res.string.pause).value.isNotBlank() &&
+                preloadedString(Res.string.stop).value.isNotBlank() &&
+                preloadedString(Res.string.loop_on).value.isNotBlank() &&
+                preloadedString(Res.string.loop_off).value.isNotBlank()
     }
 }

@@ -44,43 +44,42 @@ import kubriko.app.shared.generated.resources.welcome_subtitle
 internal object ResourceLoader {
 
     @Composable
-    fun areResourcesLoaded() = WelcomeScreenResources.areResourcesLoaded()
-            && areIconResourcesLoaded()
-            && areImageResourcesLoaded()
-            && areStringResourcesLoaded()
+    fun areResourcesLoaded() = WelcomeScreenResources.areResourcesLoaded() &&
+            areIconResourcesLoaded() &&
+            areImageResourcesLoaded() &&
+            areStringResourcesLoaded()
 
     @Composable
-    private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_back).value != null
-            && preloadedImageVector(Res.drawable.ic_collapse).value != null
-            && preloadedImageVector(Res.drawable.ic_debug_off).value != null
-            && preloadedImageVector(Res.drawable.ic_debug_on).value != null
-            && preloadedImageVector(Res.drawable.ic_demos).value != null
-            && preloadedImageVector(Res.drawable.ic_disclaimer).value != null
-            && preloadedImageVector(Res.drawable.ic_expand).value != null
-            && preloadedImageVector(Res.drawable.ic_games).value != null
-            && preloadedImageVector(Res.drawable.ic_info_off).value != null
-            && preloadedImageVector(Res.drawable.ic_info_on).value != null
-            && preloadedImageVector(Res.drawable.ic_other).value != null
-            && preloadedImageVector(Res.drawable.ic_tests).value != null
+    private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_back).value != null &&
+            preloadedImageVector(Res.drawable.ic_collapse).value != null &&
+            preloadedImageVector(Res.drawable.ic_debug_off).value != null &&
+            preloadedImageVector(Res.drawable.ic_debug_on).value != null &&
+            preloadedImageVector(Res.drawable.ic_demos).value != null &&
+            preloadedImageVector(Res.drawable.ic_disclaimer).value != null &&
+            preloadedImageVector(Res.drawable.ic_expand).value != null &&
+            preloadedImageVector(Res.drawable.ic_games).value != null &&
+            preloadedImageVector(Res.drawable.ic_info_off).value != null &&
+            preloadedImageVector(Res.drawable.ic_info_on).value != null &&
+            preloadedImageVector(Res.drawable.ic_other).value != null &&
+            preloadedImageVector(Res.drawable.ic_tests).value != null
 
     @Composable
     private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.img_logo).value != null
 
     @Composable
-    private fun areStringResourcesLoaded() = preloadedString(Res.string.kubriko_showcase).value.isNotBlank()
-            && preloadedString(Res.string.back).value.isNotBlank()
-            && preloadedString(Res.string.demos).value.isNotBlank()
-            && preloadedString(Res.string.games).value.isNotBlank()
-            && preloadedString(Res.string.tests).value.isNotBlank()
-            && preloadedString(Res.string.other).value.isNotBlank()
-            && preloadedString(Res.string.info).value.isNotBlank()
-            && preloadedString(Res.string.debug_menu).value.isNotBlank()
-            && preloadedString(Res.string.welcome).value.isNotBlank()
-            && preloadedString(Res.string.welcome_subtitle).value.isNotBlank()
-            && ShowcaseEntry.entries.all { showcaseEntry ->
-                preloadedString(showcaseEntry.titleStringResource).value.isNotBlank()
-                        && preloadedString(showcaseEntry.subtitleStringResource).value.isNotBlank()
-            }
-            && preloadedString(Res.string.welcome_disclaimer).value.isNotBlank()
-
+    private fun areStringResourcesLoaded() = preloadedString(Res.string.kubriko_showcase).value.isNotBlank() &&
+            preloadedString(Res.string.back).value.isNotBlank() &&
+            preloadedString(Res.string.demos).value.isNotBlank() &&
+            preloadedString(Res.string.games).value.isNotBlank() &&
+            preloadedString(Res.string.tests).value.isNotBlank() &&
+            preloadedString(Res.string.other).value.isNotBlank() &&
+            preloadedString(Res.string.info).value.isNotBlank() &&
+            preloadedString(Res.string.debug_menu).value.isNotBlank() &&
+            preloadedString(Res.string.welcome).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_subtitle).value.isNotBlank() &&
+            ShowcaseEntry.entries.all { showcaseEntry ->
+                preloadedString(showcaseEntry.titleStringResource).value.isNotBlank() &&
+                        preloadedString(showcaseEntry.subtitleStringResource).value.isNotBlank()
+            } &&
+            preloadedString(Res.string.welcome_disclaimer).value.isNotBlank()
 }

@@ -20,16 +20,16 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboid
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.utility.TextureMipChain
+import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboid
-import com.pandulapeter.kubriko.helpers.TriangleBatch
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.utility.TextureMipChain
 
 open class VolumetricCuboidRenderer(
     val id: String,
@@ -54,13 +54,13 @@ open class VolumetricCuboidRenderer(
     private var visibleCount: Int = 0
     private var currentZoom = 1f
 
-    private val texP0x = FloatArray(6);
+    private val texP0x = FloatArray(6)
     private val texP0y = FloatArray(6)
-    private val texP1x = FloatArray(6);
+    private val texP1x = FloatArray(6)
     private val texP1y = FloatArray(6)
-    private val texP2x = FloatArray(6);
+    private val texP2x = FloatArray(6)
     private val texP2y = FloatArray(6)
-    private val texP3x = FloatArray(6);
+    private val texP3x = FloatArray(6)
     private val texP3y = FloatArray(6)
 
     private val cubeX = FloatArray(8)
@@ -137,13 +137,13 @@ open class VolumetricCuboidRenderer(
         val colorYPlus = cuboid.colorYPlus
         val colorXMinus = cuboid.colorXMinus
 
-        if (sxRaw == lastSizeXRaw && syRaw == lastSizeYRaw && szRaw == lastSizeZRaw
-            && rxRaw == lastRxRaw && ryRaw == lastRyRaw && rzRaw == lastRzRaw
-            && worldRotRaw == lastWorldRotRaw && worldZoom == lastWorldZoom && worldTilt == lastWorldTilt
-            && worldCenterX == lastPosX && worldCenterY == lastPosY && worldCenterZ == lastPosZ
-            && colorZMinus == lastColorZMinus && colorZPlus == lastColorZPlus
-            && colorYMinus == lastColorYMinus && colorXPlus == lastColorXPlus
-            && colorYPlus == lastColorYPlus && colorXMinus == lastColorXMinus) {
+        if (sxRaw == lastSizeXRaw && syRaw == lastSizeYRaw && szRaw == lastSizeZRaw &&
+            rxRaw == lastRxRaw && ryRaw == lastRyRaw && rzRaw == lastRzRaw &&
+            worldRotRaw == lastWorldRotRaw && worldZoom == lastWorldZoom && worldTilt == lastWorldTilt &&
+            worldCenterX == lastPosX && worldCenterY == lastPosY && worldCenterZ == lastPosZ &&
+            colorZMinus == lastColorZMinus && colorZPlus == lastColorZPlus &&
+            colorYMinus == lastColorYMinus && colorXPlus == lastColorXPlus &&
+            colorYPlus == lastColorYPlus && colorXMinus == lastColorXMinus) {
             return translucencyChanged
         }
 
@@ -172,8 +172,8 @@ open class VolumetricCuboidRenderer(
             lastSizeXRaw = sxRaw
             lastSizeYRaw = syRaw
             lastSizeZRaw = szRaw
-            val hx = sxRaw * 0.5f;
-            val hy = syRaw * 0.5f;
+            val hx = sxRaw * 0.5f
+            val hy = syRaw * 0.5f
             val hz = szRaw * 0.5f
             cubeX[0] = -hx; cubeY[0] = -hy; cubeZ[0] = -hz
             cubeX[1] = hx; cubeY[1] = -hy; cubeZ[1] = -hz
@@ -184,12 +184,12 @@ open class VolumetricCuboidRenderer(
             cubeX[6] = hx; cubeY[6] = hy; cubeZ[6] = hz
             cubeX[7] = -hx; cubeY[7] = hy; cubeZ[7] = hz
         }
-        val rxCos = renderableCuboid.rotationX.cos;
+        val rxCos = renderableCuboid.rotationX.cos
         val rxSin = renderableCuboid.rotationX.sin
-        val ryCos = renderableCuboid.rotationY.cos;
+        val ryCos = renderableCuboid.rotationY.cos
         val rySin = renderableCuboid.rotationY.sin
         val totalRz = renderableCuboid.rotationZ + worldRotation
-        val rzCos = totalRz.cos;
+        val rzCos = totalRz.cos
         val rzSin = totalRz.sin
         val m00 = rzCos * ryCos
         val m01 = rzCos * rxSin * rySin - rzSin * rxCos
@@ -213,12 +213,12 @@ open class VolumetricCuboidRenderer(
             projX[i] = (lx - ly) * 0.5f * tileWidthMultiplier
             projY[i] = (lx + ly) * 0.5f * tileHeightMultiplier - (lz / depthEffect) * tileHeightMultiplier
         }
-        var minX = projX[0];
+        var minX = projX[0]
         var maxX = projX[0]
-        var minY = projY[0];
+        var minY = projY[0]
         var maxY = projY[0]
         for (i in 1 until 8) {
-            val px = projX[i];
+            val px = projX[i]
             val py = projY[i]
             if (px < minX) minX = px; if (px > maxX) maxX = px
             if (py < minY) minY = py; if (py > maxY) maxY = py
@@ -235,13 +235,13 @@ open class VolumetricCuboidRenderer(
         visibleCount = 0
         for (f in 0 until 6) {
             val idx = FACE_INDICES[f]
-            val px0 = projX[idx[0]] - minX;
+            val px0 = projX[idx[0]] - minX
             val py0 = projY[idx[0]] - minY
-            val px1 = projX[idx[1]] - minX;
+            val px1 = projX[idx[1]] - minX
             val py1 = projY[idx[1]] - minY
-            val px2 = projX[idx[2]] - minX;
+            val px2 = projX[idx[2]] - minX
             val py2 = projY[idx[2]] - minY
-            val px3 = projX[idx[3]] - minX;
+            val px3 = projX[idx[3]] - minX
             val py3 = projY[idx[3]] - minY
             val sum = (px1 - px0) * (py1 + py0) +
                     (px2 - px1) * (py2 + py1) +
@@ -430,11 +430,11 @@ open class VolumetricCuboidRenderer(
         for (i in 0 until visibleCount) {
             val texture = resolveFaceTexture(visibleFaceId[i])
 
-            val p0x = texP0x[i];
+            val p0x = texP0x[i]
             val p0y = texP0y[i]
-            val p1x = texP1x[i];
+            val p1x = texP1x[i]
             val p1y = texP1y[i]
-            val p3x = texP3x[i];
+            val p3x = texP3x[i]
             val p3y = texP3y[i]
 
             canvas.save()

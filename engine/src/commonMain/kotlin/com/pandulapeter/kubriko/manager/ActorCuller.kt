@@ -274,9 +274,9 @@ internal class ActorCuller(
         val totalTime = metadataManager.totalRuntimeInMilliseconds.value
         val visibleActorsList = visibleActors.value
         if (!viewportSize.isEmpty()) {
-            if (visibleActorsList !== lastVisibleActors
-                || viewportSize != lastViewportSizeForVisible
-                || (totalTime - lastVisibleRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis
+            if (visibleActorsList !== lastVisibleActors ||
+                viewportSize != lastViewportSizeForVisible ||
+                (totalTime - lastVisibleRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis
             ) {
                 updateVisibleActorsWithinViewport(cameraPosition, scaleFactor)
             }
@@ -287,9 +287,9 @@ internal class ActorCuller(
             val activeTime = metadataManager.activeRuntimeInMilliseconds.value
             val dynamicActorsList = dynamicActors.value
             if (!viewportSize.isEmpty()) {
-                if (dynamicActorsList !== lastDynamicActors
-                    || viewportSize != lastViewportSizeForDynamic
-                    || (activeTime - lastDynamicRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis
+                if (dynamicActorsList !== lastDynamicActors ||
+                    viewportSize != lastViewportSizeForDynamic ||
+                    (activeTime - lastDynamicRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis
                 ) {
                     updateActiveDynamicActors(cameraPosition, scaleFactor)
                 }

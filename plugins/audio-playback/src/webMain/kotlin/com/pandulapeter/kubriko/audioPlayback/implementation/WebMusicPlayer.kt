@@ -39,7 +39,6 @@ internal class WebMusicPlayer private constructor(
     private var leftVolume = 1f
     private var rightVolume = 1f
 
-
     /**
      * Starts playback – when [shouldRestart] is true we rewind the position before starting.
      */

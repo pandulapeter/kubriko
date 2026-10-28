@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.scenes
 
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

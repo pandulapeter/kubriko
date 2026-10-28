@@ -36,8 +36,7 @@ internal class CachedSound private constructor(
         }
     }
 
-    private fun createAndAddClip(): Clip? {
-        return try {
+    private fun createAndAddClip(): Clip? = try {
             val clip = AudioSystem.getClip()
             val stream = AudioInputStream(
                 ByteArrayInputStream(audioData),
@@ -55,7 +54,6 @@ internal class CachedSound private constructor(
         } catch (e: Exception) {
             null
         }
-    }
 
     fun getAvailableClip(): Clip? {
         val clip = clipPool.poll()

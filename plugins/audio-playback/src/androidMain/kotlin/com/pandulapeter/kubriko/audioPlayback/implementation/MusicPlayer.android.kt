@@ -51,12 +51,12 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
                 if (isPlaying) pause()
                 seekTo(0)
             }
-            
+
             isLooping = shouldLoop
             if (shouldLoop) {
                 setOnCompletionListener(null)
             } else {
-                setOnCompletionListener { 
+                setOnCompletionListener {
                     pause()
                     seekTo(0)
                 }

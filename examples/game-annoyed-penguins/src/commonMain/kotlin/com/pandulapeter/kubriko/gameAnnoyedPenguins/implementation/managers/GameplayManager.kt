@@ -24,8 +24,6 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import kotlin.math.max
-import kotlin.math.roundToLong
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -39,6 +37,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
+import kotlin.math.max
+import kotlin.math.roundToLong
 
 internal class GameplayManager : Manager() {
 

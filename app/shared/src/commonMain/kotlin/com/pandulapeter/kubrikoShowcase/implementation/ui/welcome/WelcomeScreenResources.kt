@@ -43,29 +43,29 @@ internal object WelcomeScreenResources {
     fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
 
     @Composable
-    private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_github).value != null
-            && preloadedImageVector(Res.drawable.ic_discord).value != null
-            && preloadedImageVector(Res.drawable.ic_documentation).value != null
-            && preloadedImageVector(Res.drawable.ic_getting_started).value != null
+    private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_github).value != null &&
+            preloadedImageVector(Res.drawable.ic_discord).value != null &&
+            preloadedImageVector(Res.drawable.ic_documentation).value != null &&
+            preloadedImageVector(Res.drawable.ic_getting_started).value != null
 
     @Composable
-    private fun areStringResourcesLoaded() = preloadedString(Res.string.welcome_message).value.isNotBlank()
-            && preloadedString(Res.string.welcome_more_details).value.isNotBlank()
-            && preloadedString(Res.string.welcome_hide_details).value.isNotBlank()
-            && preloadedString(Res.string.welcome_engine_details).value.isNotBlank()
-            && preloadedString(Res.string.welcome_repository).value.isNotBlank()
-            && preloadedString(Res.string.welcome_learning_1).value.isNotBlank()
-            && preloadedString(Res.string.welcome_getting_started).value.isNotBlank()
-            && preloadedString(Res.string.welcome_documentation).value.isNotBlank()
-            && preloadedString(Res.string.welcome_learning_2).value.isNotBlank()
-            && preloadedString(Res.string.welcome_community).value.isNotBlank()
-            && preloadedString(Res.string.welcome_license).value.isNotBlank()
-            && preloadedString(Res.string.welcome_app_details).value.isNotBlank()
-            && preloadedString(Res.string.welcome_app_details_call_to_action_collapsed).value.isNotBlank()
-            && preloadedString(Res.string.welcome_app_details_call_to_action_expanded).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_obfuscation).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_general).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_iphone).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_ipad).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_not_chrome_or_firefox).value.isNotBlank()
+    private fun areStringResourcesLoaded() = preloadedString(Res.string.welcome_message).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_more_details).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_hide_details).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_engine_details).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_repository).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_learning_1).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_getting_started).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_documentation).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_learning_2).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_community).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_license).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_app_details).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_app_details_call_to_action_collapsed).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_app_details_call_to_action_expanded).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_disclaimer_obfuscation).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_disclaimer_web_general).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_disclaimer_web_iphone).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_disclaimer_web_ipad).value.isNotBlank() &&
+            preloadedString(Res.string.welcome_disclaimer_web_not_chrome_or_firefox).value.isNotBlank()
 }

@@ -13,6 +13,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.ControlManager
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.manager.VolumetricRenderManager
 import com.pandulapeter.kubriko.helpers.extensions.angleTowards
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.normalized
@@ -37,8 +39,6 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.TargetFrameRate
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.manager.VolumetricRenderManager
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.ControlManager
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,6 +56,7 @@ internal class ControlOverlayManager(
     private val viewportManager by manager<ViewportManager>()
     private val volumetricRenderManager by manager<VolumetricRenderManager>()
     private val stateManager by manager<StateManager>()
+
     @Volatile
     var joystickLayout = JoystickLayout(
         isEnabled = true,

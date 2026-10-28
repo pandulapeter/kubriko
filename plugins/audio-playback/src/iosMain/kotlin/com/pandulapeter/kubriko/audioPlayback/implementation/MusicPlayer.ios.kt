@@ -32,12 +32,12 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) {
         cachedMusic as AVAudioPlayer
         cachedMusic.setNumberOfLoops(if (shouldLoop) NSIntegerMax else 0)
-        
+
         if (shouldRestart) {
             if (cachedMusic.isPlaying()) cachedMusic.stop()
             cachedMusic.setCurrentTime(0.0)
         }
-        
+
         if (!cachedMusic.isPlaying()) {
             cachedMusic.play()
         }
@@ -65,7 +65,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         // Overall volume as average of left and right
         val volume = (leftVolume + rightVolume) / 2f
         cachedMusic.setVolume(volume)
-        
+
         // Pan: -1.0 (left) to 1.0 (right)
         // Calculate pan from the balance between left and right volumes
         val pan = if (leftVolume + rightVolume > 0f) {

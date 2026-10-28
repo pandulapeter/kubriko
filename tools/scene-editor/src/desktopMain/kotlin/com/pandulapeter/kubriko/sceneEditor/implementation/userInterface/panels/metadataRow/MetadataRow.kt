@@ -38,7 +38,6 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-
 @Composable
 internal fun MetadataRow(
     modifier: Modifier = Modifier,

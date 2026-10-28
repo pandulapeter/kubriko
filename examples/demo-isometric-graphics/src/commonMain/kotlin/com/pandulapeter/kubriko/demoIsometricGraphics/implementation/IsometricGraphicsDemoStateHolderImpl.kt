@@ -10,9 +10,9 @@
 package com.pandulapeter.kubriko.demoIsometricGraphics.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.gameplay.resources.TextureResolver
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.ControlManager
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.LogicManager
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.gameplay.resources.TextureResolver
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.manager.VolumetricRenderManager
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.ui.ControlOverlayManager
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit

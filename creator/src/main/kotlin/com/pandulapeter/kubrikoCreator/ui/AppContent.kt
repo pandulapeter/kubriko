@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.AppScreen
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
-import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
+import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.app_name
 import kubriko.creator.generated.resources.creating_project

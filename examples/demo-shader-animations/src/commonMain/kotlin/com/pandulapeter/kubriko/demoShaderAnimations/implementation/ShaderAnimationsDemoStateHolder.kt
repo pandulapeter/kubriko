@@ -47,24 +47,24 @@ sealed interface ShaderAnimationsDemoStateHolder : StateHolder {
         private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_code).value != null
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.show_code).value.isNotBlank()
-                && preloadedString(Res.string.hide_code).value.isNotBlank()
-                && preloadedString(Res.string.gradient).value.isNotBlank()
-                && preloadedString(Res.string.ether).value.isNotBlank()
-                && preloadedString(Res.string.noodle).value.isNotBlank()
-                && preloadedString(Res.string.clouds).value.isNotBlank()
-                && preloadedString(Res.string.warp).value.isNotBlank()
-                && preloadedString(Res.string.scale).value.isNotBlank()
-                && preloadedString(Res.string.speed).value.isNotBlank()
-                && preloadedString(Res.string.dark).value.isNotBlank()
-                && preloadedString(Res.string.light).value.isNotBlank()
-                && preloadedString(Res.string.cover).value.isNotBlank()
-                && preloadedString(Res.string.alpha).value.isNotBlank()
-                && preloadedString(Res.string.sky_1).value.isNotBlank()
-                && preloadedString(Res.string.sky_2).value.isNotBlank()
-                && preloadedString(Res.string.focus).value.isNotBlank()
-                && preloadedString(Res.string.frequency).value.isNotBlank()
-                && preloadedString(Res.string.color).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank() &&
+                preloadedString(Res.string.show_code).value.isNotBlank() &&
+                preloadedString(Res.string.hide_code).value.isNotBlank() &&
+                preloadedString(Res.string.gradient).value.isNotBlank() &&
+                preloadedString(Res.string.ether).value.isNotBlank() &&
+                preloadedString(Res.string.noodle).value.isNotBlank() &&
+                preloadedString(Res.string.clouds).value.isNotBlank() &&
+                preloadedString(Res.string.warp).value.isNotBlank() &&
+                preloadedString(Res.string.scale).value.isNotBlank() &&
+                preloadedString(Res.string.speed).value.isNotBlank() &&
+                preloadedString(Res.string.dark).value.isNotBlank() &&
+                preloadedString(Res.string.light).value.isNotBlank() &&
+                preloadedString(Res.string.cover).value.isNotBlank() &&
+                preloadedString(Res.string.alpha).value.isNotBlank() &&
+                preloadedString(Res.string.sky_1).value.isNotBlank() &&
+                preloadedString(Res.string.sky_2).value.isNotBlank() &&
+                preloadedString(Res.string.focus).value.isNotBlank() &&
+                preloadedString(Res.string.frequency).value.isNotBlank() &&
+                preloadedString(Res.string.color).value.isNotBlank()
     }
 }

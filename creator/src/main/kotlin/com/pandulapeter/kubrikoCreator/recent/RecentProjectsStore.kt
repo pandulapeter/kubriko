@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.recent
 
+import com.pandulapeter.kubrikoCreator.settingsDirectory
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
-import com.pandulapeter.kubrikoCreator.settingsDirectory
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException

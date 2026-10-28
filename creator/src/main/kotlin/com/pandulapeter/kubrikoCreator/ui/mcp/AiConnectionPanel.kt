@@ -37,8 +37,8 @@ import com.pandulapeter.kubrikoCreator.mcp.McpSettings
 import com.pandulapeter.kubrikoCreator.mcp.McpToolCall
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientSetup
-import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientStatus
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ai_client_variant

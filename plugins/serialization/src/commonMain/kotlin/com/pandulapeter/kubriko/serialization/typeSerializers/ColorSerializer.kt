@@ -38,7 +38,5 @@ object ColorSerializer : KSerializer<Color> {
         encoder.encodeLong(value.value.toLong())
     }
 
-    override fun deserialize(decoder: Decoder): Color {
-        return Color(decoder.decodeLong().toULong())
-    }
+    override fun deserialize(decoder: Decoder): Color = Color(decoder.decodeLong().toULong())
 }

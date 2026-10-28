@@ -13,11 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
-import com.pandulapeter.kubriko.helpers.extensions.rad
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.helpers.extensions.shortestDeltaTo
-import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.CuboidAnimation
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboidModel
@@ -26,6 +21,11 @@ import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.da
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.animation.applyTo
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.animation.buildTracks
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.model.ProjectionPlane
+import com.pandulapeter.kubriko.helpers.extensions.rad
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.shortestDeltaTo
+import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.SceneUnit
 
 open class PlanarCuboidModelRenderer(
     renderableCuboidModel: RenderableCuboidModel,

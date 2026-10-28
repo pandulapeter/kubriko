@@ -226,7 +226,6 @@ class PhysicsBody(
         }
     }
 
-
     internal fun rayIntersect(
         startPoint: SceneOffset,
         endPoint: SceneOffset,
@@ -277,7 +276,7 @@ class PhysicsBody(
                 startOfPolyEdge = rotationMatrix.times(startOfPolyEdge) + position
                 endOfPolyEdge = rotationMatrix.times(endOfPolyEdge) + position
 
-                //detect if line (startPoint -> endpoint) intersects with the current edge (startOfPolyEdge -> endOfPolyEdge)
+                // detect if line (startPoint -> endpoint) intersects with the current edge (startOfPolyEdge -> endOfPolyEdge)
                 val intersection = lineIntersect(startPoint, endPoint, startOfPolyEdge, endOfPolyEdge)
                 if (intersection != null) {
                     val distance = startPoint.distanceTo(intersection)

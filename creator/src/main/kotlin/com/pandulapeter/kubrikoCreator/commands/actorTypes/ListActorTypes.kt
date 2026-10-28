@@ -20,8 +20,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.command_list_actor_types
+import kubriko.creator.generated.resources.error_command_no_actor_types
 
 internal object ListActorTypes : ReadCommand<NoInput> {
     override val name = "list_actor_types"

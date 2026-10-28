@@ -51,14 +51,12 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
         viewportManager = kubriko.get()
     }
 
-
     fun resetPointerTracking() {
         viewportManager.size.value.center.let { center ->
             pointerInputManager.tryToMoveHoveringPointer(center)
             previousPointerOffset = null
         }
     }
-
 
     override fun onPointerOffsetChanged(pointerId: PointerId?, screenOffset: Offset) {
         if (movementPointerId == null) {

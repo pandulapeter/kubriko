@@ -38,8 +38,8 @@ class TopDownGridLineCache {
         halfWidth: Float,
         gridMap: GridMap,
     ) {
-        if (iStart == this.iStart && iEnd == this.iEnd && jStart == this.jStart && jEnd == this.jEnd
-            && cellW == this.cellW && argb == this.argb && halfWidth == this.halfWidth && gridMap === this.gridMap
+        if (iStart == this.iStart && iEnd == this.iEnd && jStart == this.jStart && jEnd == this.jEnd &&
+            cellW == this.cellW && argb == this.argb && halfWidth == this.halfWidth && gridMap === this.gridMap
         ) {
             return
         }

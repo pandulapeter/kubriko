@@ -30,12 +30,12 @@ sealed interface ContentShadersDemoStateHolder : StateHolder {
         fun areResourcesLoaded() = areExpandControlsButtonResourcesLoaded() && areShadersNotSupportedMessageResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.chromatic_aberration).value.isNotBlank()
-                && preloadedString(Res.string.ripple).value.isNotBlank()
-                && preloadedString(Res.string.comic).value.isNotBlank()
-                && preloadedString(Res.string.blur).value.isNotBlank()
-                && preloadedString(Res.string.vignette).value.isNotBlank()
-                && preloadedString(Res.string.smooth_pixelation).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank() &&
+                preloadedString(Res.string.chromatic_aberration).value.isNotBlank() &&
+                preloadedString(Res.string.ripple).value.isNotBlank() &&
+                preloadedString(Res.string.comic).value.isNotBlank() &&
+                preloadedString(Res.string.blur).value.isNotBlank() &&
+                preloadedString(Res.string.vignette).value.isNotBlank() &&
+                preloadedString(Res.string.smooth_pixelation).value.isNotBlank()
     }
 }

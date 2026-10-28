@@ -43,16 +43,16 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
-import kotlin.math.abs
-import kotlin.math.hypot
-import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
+import kotlin.math.abs
+import kotlin.math.hypot
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware, Collidable, Unique {
 

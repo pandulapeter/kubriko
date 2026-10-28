@@ -28,9 +28,9 @@ internal sealed interface LicensesScreenStateHolder : StateHolder {
         fun areResourcesLoaded() = areStringResourcesLoaded()
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.other_licenses_content).value.isNotBlank()
-                && LicenseType.entries.all { preloadedString(it.licenseName).value.isNotBlank() }
-                && preloadedString(Res.string.other_licenses_music_note).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.other_licenses_content).value.isNotBlank() &&
+                LicenseType.entries.all { preloadedString(it.licenseName).value.isNotBlank() } &&
+                preloadedString(Res.string.other_licenses_music_note).value.isNotBlank()
     }
 }
 

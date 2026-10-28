@@ -36,6 +36,7 @@ internal class SessionServer(
     private val _messages = MutableSharedFlow<SessionMessage>(extraBufferCapacity = 256)
     override val messages = _messages.asSharedFlow()
     override val port: Int get() = serverSocket.localPort
+
     @Volatile
     private var latestWriter: BufferedWriter? = null
 

@@ -39,8 +39,10 @@ abstract class TickSource {
     protected val isRunning: Boolean
         get() = _isRunning.value
     internal val isRunningInternal: StateFlow<Boolean> get() = _isRunning
+
     @OptIn(ExperimentalAtomicApi::class)
     private val isApplyingTransition = AtomicBoolean(false)
+
     @Volatile
     private var isStartApplied = false
     private lateinit var _scope: CoroutineScope
@@ -250,4 +252,3 @@ abstract class TickSource {
         ): TickSource = FixedFrequencyTickSource(ticksPerSecond)
     }
 }
-

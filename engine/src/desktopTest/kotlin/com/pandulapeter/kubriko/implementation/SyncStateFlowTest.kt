@@ -19,11 +19,11 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
@@ -32,6 +32,7 @@ import kotlin.test.assertEquals
 class SyncStateFlowTest {
 
     private val delegate = MutableStateFlow(0)
+
     @Volatile
     private var syncValue = 1
     private val syncStateFlow = SyncStateFlow(delegate) { syncValue }

@@ -22,7 +22,7 @@ internal class UserPreferencesManager(
     val areSoundEffectsEnabled by lazy { _areSoundEffectsEnabled.asStateFlow() }
 
     private val _isMusicEnabled by lazy { persistenceManager.boolean("isMusicEnabled", true) }
-    val isMusicEnabled by lazy {_isMusicEnabled.asStateFlow() }
+    val isMusicEnabled by lazy { _isMusicEnabled.asStateFlow() }
 
     fun onAreSoundEffectsEnabledChanged() {
         _areSoundEffectsEnabled.update { !it }

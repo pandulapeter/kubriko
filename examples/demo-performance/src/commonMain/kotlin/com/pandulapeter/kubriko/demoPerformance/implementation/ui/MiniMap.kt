@@ -52,7 +52,7 @@ internal fun MiniMap(
                     val allVisibleActors = getAllVisibleActors()
                     val visibleActorsWithinViewport = getAllVisibleActorsWithinViewport()
                     val activeDynamicActors = getAllActiveDynamicActors()
-                    @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
+                    @Suppress("UNUSED_EXPRESSION") gameTime // This line invalidates the Canvas, causing a refresh on every frame
                     allVisibleActors
                         .forEach { actor ->
                             drawCircle(

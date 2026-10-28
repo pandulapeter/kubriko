@@ -174,4 +174,3 @@ internal val BlockTypeKind.icon: DrawableResource
         BlockTypeKind.ACTOR -> Res.drawable.ic_actor_type
         BlockTypeKind.MANAGER -> Res.drawable.ic_manager_type
     }
-

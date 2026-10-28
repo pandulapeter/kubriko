@@ -32,8 +32,7 @@ internal fun createBodyPropertyEditor(
     onBeforeChange: (editKey: Any) -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
     angleEditorMode: AngleEditorMode,
-): @Composable () -> Unit {
-    return {
+): @Composable () -> Unit = {
         BodyPropertyEditor(
             getActor = getActor,
             onBeforeChange = onBeforeChange,
@@ -41,7 +40,6 @@ internal fun createBodyPropertyEditor(
             angleEditorMode = angleEditorMode,
         )
     }
-}
 
 @Composable
 internal fun BodyPropertyEditor(

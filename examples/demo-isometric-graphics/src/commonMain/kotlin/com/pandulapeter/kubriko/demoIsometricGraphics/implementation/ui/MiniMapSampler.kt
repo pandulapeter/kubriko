@@ -11,11 +11,11 @@ package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.ui
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.pandulapeter.kubriko.helpers.extensions.deg
-import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.MiniMapMarker
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.RenderableCuboidHolder
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.actor.PlanarCuboidRenderer
+import com.pandulapeter.kubriko.helpers.extensions.deg
+import com.pandulapeter.kubriko.helpers.extensions.rad
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin

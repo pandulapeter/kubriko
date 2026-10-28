@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui
 import kubriko.app.shared.generated.resources.Res
 import kubriko.app.shared.generated.resources.welcome_disclaimer_obfuscation
 
-
 internal actual fun getWarningTexts() = buildList {
     if (isUnoptimized()) {
         add(Res.string.welcome_disclaimer_obfuscation)

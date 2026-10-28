@@ -46,8 +46,7 @@ object PointBodySerializer : KSerializer<PointBody> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): PointBody {
-        return decoder.decodeStructure(descriptor) {
+    override fun deserialize(decoder: Decoder): PointBody = decoder.decodeStructure(descriptor) {
             var position = SceneOffset.Zero
             while (true) {
                 when (val index = decodeElementIndex(descriptor)) {
@@ -60,5 +59,4 @@ object PointBodySerializer : KSerializer<PointBody> {
                 initialPosition = position,
             )
         }
-    }
 }

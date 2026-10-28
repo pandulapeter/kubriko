@@ -23,9 +23,9 @@ internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity:
 
     if (resourceDensity == targetDensity && rotation == SpriteResource.Rotation.NONE) return image.toComposeImageBitmap()
 
-    //https://youtrack.jetbrains.com/issue/CMP-5657
-    //android only downscales drawables. If there is only low dpi resource then use it as is (not upscale)
-    //we need a consistent behavior on all platforms
+    // https://youtrack.jetbrains.com/issue/CMP-5657
+    // android only downscales drawables. If there is only low dpi resource then use it as is (not upscale)
+    // we need a consistent behavior on all platforms
     val scale = if (resourceDensity > targetDensity) {
         targetDensity.toFloat() / resourceDensity.toFloat()
     } else {
@@ -50,9 +50,9 @@ internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity:
     val srcRect = Rect.makeWH(image.width.toFloat(), image.height.toFloat())
     val dstRect = when (rotation) {
         SpriteResource.Rotation.NONE -> Rect.makeWH(targetW, targetH)
-        SpriteResource.Rotation.DEGREES_90 -> Rect.makeXYWH(0f, -targetH,targetW, targetH)
-        SpriteResource.Rotation.DEGREES_180 -> Rect.makeXYWH(-targetW, -targetH,targetW, targetH)
-        SpriteResource.Rotation.DEGREES_270 -> Rect.makeXYWH(-targetW, 0f,targetW, targetH)
+        SpriteResource.Rotation.DEGREES_90 -> Rect.makeXYWH(0f, -targetH, targetW, targetH)
+        SpriteResource.Rotation.DEGREES_180 -> Rect.makeXYWH(-targetW, -targetH, targetW, targetH)
+        SpriteResource.Rotation.DEGREES_270 -> Rect.makeXYWH(-targetW, 0f, targetW, targetH)
     }
 
     return Surface.makeRasterN32Premul(canvasW.toInt(), canvasH.toInt()).run {

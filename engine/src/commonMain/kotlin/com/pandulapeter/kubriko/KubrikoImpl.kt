@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko
 
-import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.helpers.TickSource
+import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ActorManagerImpl
 import com.pandulapeter.kubriko.manager.Manager
@@ -97,8 +97,10 @@ internal class KubrikoImpl(
     }
 
     private val isInitializationClaimed = AtomicBoolean(false)
+
     @Volatile
     private var isInitialized = false
+
     @Volatile
     private var isDisposed = false
     internal val isDisposedInternal get() = isDisposed
@@ -124,10 +126,8 @@ internal class KubrikoImpl(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String): TI {
-        return get(T::class) as? TI
+    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String): TI = get(T::class) as? TI
             ?: throw IllegalStateException("Custom implementations of the $name interface are not supported. Use $name.newInstance() to instantiate $name.")
-    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Manager> get(managerType: KClass<T>): T {

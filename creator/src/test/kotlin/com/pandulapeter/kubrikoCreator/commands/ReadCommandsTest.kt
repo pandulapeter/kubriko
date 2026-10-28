@@ -20,10 +20,6 @@ import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertTrue
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -40,6 +36,10 @@ import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_scene_actor_missing
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.status_scene_opened
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class ReadCommandsTest {
     private val ball = ActorTypeDefinition(name = "Ball", color = 0xFF112233, events = listOf(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge))))

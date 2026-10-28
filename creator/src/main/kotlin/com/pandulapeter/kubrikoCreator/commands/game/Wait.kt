@@ -11,15 +11,15 @@ package com.pandulapeter.kubrikoCreator.commands.game
 
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_game_duration_invalid
 import kubriko.creator.generated.resources.command_wait
+import kubriko.creator.generated.resources.error_game_duration_invalid
 
 internal object Wait : ActionCommand<Wait.Input> {
     override val name = "wait"

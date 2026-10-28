@@ -52,31 +52,31 @@ internal sealed interface AboutScreenStateHolder : StateHolder {
         fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
-        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_bug).value != null
-                && preloadedImageVector(Res.drawable.ic_contact).value != null
-                && preloadedImageVector(Res.drawable.ic_privacy_policy).value != null
-                && preloadedImageVector(Res.drawable.ic_review).value != null
-                && preloadedImageVector(Res.drawable.ic_share).value != null
-                && preloadedImageVector(Res.drawable.ic_website).value != null
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_bug).value != null &&
+                preloadedImageVector(Res.drawable.ic_contact).value != null &&
+                preloadedImageVector(Res.drawable.ic_privacy_policy).value != null &&
+                preloadedImageVector(Res.drawable.ic_review).value != null &&
+                preloadedImageVector(Res.drawable.ic_share).value != null &&
+                preloadedImageVector(Res.drawable.ic_website).value != null
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.other_about_content).value.isNotBlank()
-                && preloadedString(Res.string.other_about_repository).value.isNotBlank()
-                && preloadedString(Res.string.other_about_report_an_issue).value.isNotBlank()
-                && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
-                && preloadedString(Res.string.other_about_write_a_review).value.isNotBlank()
-                && preloadedString(Res.string.other_about_contact_me).value.isNotBlank()
-                && preloadedString(Res.string.other_about_visit_my_website).value.isNotBlank()
-                && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_creator).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_license).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_android).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_ios).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_linux).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_mac_os).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_windows).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_web).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.other_about_content).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_repository).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_report_an_issue).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_write_a_review).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_contact_me).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_visit_my_website).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_creator).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_license).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_footer).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_footer_android).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_footer_ios).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_footer_linux).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_footer_mac_os).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_footer_windows).value.isNotBlank() &&
+                preloadedString(Res.string.other_about_content_footer_web).value.isNotBlank()
     }
 }
 

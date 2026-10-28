@@ -22,9 +22,9 @@ import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_commit
 import kubriko.creator.generated.resources.error_command_commit_message_empty
-import kubriko.creator.generated.resources.status_git_failed
 import kubriko.creator.generated.resources.error_command_no_repository
 import kubriko.creator.generated.resources.error_command_nothing_to_commit
+import kubriko.creator.generated.resources.status_git_failed
 
 @OptIn(EditorMutation::class)
 internal object Commit : WriteCommand<Commit.Input> {

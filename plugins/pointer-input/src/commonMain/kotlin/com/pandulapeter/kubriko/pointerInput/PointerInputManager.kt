@@ -51,7 +51,7 @@ sealed class PointerInputManager(
      *
      * @return True if the pointer was moved, false otherwise.
      */
-    abstract fun tryToMoveHoveringPointer(offset: Offset) : Boolean
+    abstract fun tryToMoveHoveringPointer(offset: Offset): Boolean
 
     companion object {
         /**

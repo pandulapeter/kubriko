@@ -23,19 +23,14 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
+import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
-import java.io.File
-import kotlin.io.path.createTempDirectory
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_type_name_invalid
-import kubriko.creator.generated.resources.error_type_name_taken
 import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_block_missing
 import kubriko.creator.generated.resources.error_command_block_not_allowed
 import kubriko.creator.generated.resources.error_command_event_missing
@@ -46,13 +41,18 @@ import kubriko.creator.generated.resources.error_command_not_changed_by_hand
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
 import kubriko.creator.generated.resources.error_command_property_missing
+import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_size_invalid
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_not_allowed
 import kubriko.creator.generated.resources.error_property_name_taken
+import kubriko.creator.generated.resources.error_type_name_invalid
+import kubriko.creator.generated.resources.error_type_name_taken
+import java.io.File
+import kotlin.io.path.createTempDirectory
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class ActorTypeCommandsTest {
     private val stop = BlockDefinition.Stop

@@ -204,7 +204,6 @@ private fun checkCircleToCircleCollision(
     )
 }
 
-
 /**
  * The contact normal points from the point towards the circle's center, or the other way around when
  * [shouldFlipContactNormal] is set (the circle is mask A).
@@ -285,20 +284,19 @@ private fun checkCircleToPolygonCollision(
     resultMode: Int,
     reusableResult: CollisionResult?,
 ): CollisionResult? {
-
-    //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
+    // Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
     val distOfBodies = circle.position.minus(polygon.position)
     val polyToCircleVec = polygon.transposedRotationMatrix.times(distOfBodies)
     var penetration = (-Float.MAX_VALUE).sceneUnit
     var faceNormalIndex = 0
 
-    //Applies SAT to check for potential penetration
-    //Retrieves best face of polygon
+    // Applies SAT to check for potential penetration
+    // Retrieves best face of polygon
     for (i in polygon.vertices.indices) {
         val v = polyToCircleVec.minus(polygon.vertices[i])
         val distance = polygon.normals[i].dot(v)
 
-        //If circle is outside of polygon, no collision detected.
+        // If circle is outside of polygon, no collision detected.
         if (distance > circle.radius) {
             return null
         }
@@ -308,18 +306,18 @@ private fun checkCircleToPolygonCollision(
         }
     }
 
-    //Get vertex's of best face
+    // Get vertex's of best face
     val vector1 = polygon.vertices[faceNormalIndex]
     val vector2 = polygon.vertices[if (faceNormalIndex + 1 < polygon.vertices.size) faceNormalIndex + 1 else 0]
     val v1ToV2 = vector2.minus(vector1)
     val circleBodyTov1 = polyToCircleVec.minus(vector1)
     val firstPolyCorner = circleBodyTov1.dot(v1ToV2)
 
-    //If first vertex is positive, v1 face region collision check
+    // If first vertex is positive, v1 face region collision check
     if (firstPolyCorner <= SceneUnit.Zero) {
         val distBetweenObj = polyToCircleVec.distanceTo(vector1)
 
-        //Check to see if vertex is within the circle
+        // Check to see if vertex is within the circle
         return if (distBetweenObj >= circle.radius) null
         else if (resultMode == RESULT_NONE) COLLISION_DETECTED
         else polygon.rotationMatrix.times((vector1 - polyToCircleVec).normalized()).let { contactNormal ->
@@ -336,12 +334,12 @@ private fun checkCircleToPolygonCollision(
     val circleBodyTov2 = polyToCircleVec.minus(vector2)
     val secondPolyCorner = circleBodyTov2.dot(v2ToV1)
 
-    //If second vertex is positive, v2 face region collision check
-    //Else circle has made contact with the polygon face.
+    // If second vertex is positive, v2 face region collision check
+    // Else circle has made contact with the polygon face.
     if (secondPolyCorner < SceneUnit.Zero) {
         val distBetweenObj = polyToCircleVec.distanceTo(vector2)
 
-        //Check to see if vertex is within the circle
+        // Check to see if vertex is within the circle
         return if (distBetweenObj >= circle.radius) null
         else if (resultMode == RESULT_NONE) COLLISION_DETECTED
         else polygon.rotationMatrix.times(vector2.minus(polyToCircleVec).normalized()).let { contactNormal ->
@@ -406,12 +404,12 @@ private fun checkPolygonToPolygonCollision(
 
     var referenceNormal = referencePoly.normals[referenceFaceIndex]
 
-    //Reference face of reference polygon in object space of incident polygon
+    // Reference face of reference polygon in object space of incident polygon
     referenceNormal = referencePoly.rotationMatrix.times(referenceNormal)
     referenceNormal = incidentPoly.transposedRotationMatrix.times(referenceNormal)
 
-    //Finds face of incident polygon angled best vs reference poly normal.
-    //Best face is the incident face that is the most anti parallel (most negative dot product)
+    // Finds face of incident polygon angled best vs reference poly normal.
+    // Best face is the incident face that is the most anti parallel (most negative dot product)
     var incidentIndex = 0
     var minDot = Float.MAX_VALUE.sceneUnit
     for (i in incidentPoly.vertices.indices) {
@@ -422,7 +420,7 @@ private fun checkPolygonToPolygonCollision(
         }
     }
 
-    //Incident faces vertexes in world space
+    // Incident faces vertexes in world space
     val incidentFaceVertex1 = incidentPoly.rotationMatrix.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.position
     val incidentFaceVertex2 =
         incidentPoly.rotationMatrix.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.position
@@ -431,12 +429,12 @@ private fun checkPolygonToPolygonCollision(
     incidentFaceVertexXs[1] = incidentFaceVertex2.x.raw
     incidentFaceVertexYs[1] = incidentFaceVertex2.y.raw
 
-    //Gets vertex's of reference polygon reference face in world space
+    // Gets vertex's of reference polygon reference face in world space
     var v1 = referencePoly.vertices[referenceFaceIndex]
     var v2 =
         referencePoly.vertices[if (referenceFaceIndex + 1 == referencePoly.vertices.size) 0 else referenceFaceIndex + 1]
 
-    //Rotate and translate vertex's of reference poly
+    // Rotate and translate vertex's of reference poly
     v1 = referencePoly.rotationMatrix.times(v1) + referencePoly.position
     v2 = referencePoly.rotationMatrix.times(v2) + referencePoly.position
     val refTangent = v2.minus(v1).normalized()
@@ -460,7 +458,7 @@ private fun checkPolygonToPolygonCollision(
     var totalPen = SceneUnit.Zero
     var contactsFound = 0
 
-    //Discards points that are positive/above the reference face
+    // Discards points that are positive/above the reference face
     for (i in 0..1) {
         val separation = refFaceNormal.dot(incidentFaceVertexAt(i)) - refFaceNormal.dot(v1)
         if (separation <= SceneUnit.Zero) {
@@ -497,16 +495,16 @@ private fun findAxisOfMinPenetration(
     var distance = (-Float.MAX_VALUE).sceneUnit
     var bestIndex = 0
     for (i in polygonA.vertices.indices) {
-        //Applies polygon A's orientation to its normals for calculation.
+        // Applies polygon A's orientation to its normals for calculation.
         val polyANormal = polygonA.rotationMatrix.times(polygonA.normals[i])
 
-        //Rotates the normal by the clock wise rotation matrix of B to put the normal relative to the object space of polygon B
-        //Polygon b is axis aligned and the normal is located according to this in the correct position in object space
+        // Rotates the normal by the clock wise rotation matrix of B to put the normal relative to the object space of polygon B
+        // Polygon b is axis aligned and the normal is located according to this in the correct position in object space
         val objectPolyANormal = polygonB.transposedRotationMatrix.times(polyANormal)
         var bestProjection = Float.MAX_VALUE.sceneUnit
         var bestVertex = polygonB.vertices[0]
 
-        //Finds the index of the most negative vertex relative to the normal of polygon A
+        // Finds the index of the most negative vertex relative to the normal of polygon A
         for (x in polygonB.vertices.indices) {
             val vertex = polygonB.vertices[x]
             val projection = vertex.dot(objectPolyANormal)
@@ -516,16 +514,16 @@ private fun findAxisOfMinPenetration(
             }
         }
 
-        //Distance of B to A in world space space
+        // Distance of B to A in world space space
         val distanceOfBA = polygonA.position.minus(polygonB.position)
 
-        //Best vertex relative to polygon B in object space
+        // Best vertex relative to polygon B in object space
         val polyANormalVertex = polygonB.transposedRotationMatrix.times(polygonA.rotationMatrix.times(polygonA.vertices[i]) + distanceOfBA)
 
-        //Distance between best vertex and polygon A's plane in object space
+        // Distance between best vertex and polygon A's plane in object space
         val d = objectPolyANormal.dot(bestVertex.minus(polyANormalVertex))
 
-        //Records penetration and vertex
+        // Records penetration and vertex
         if (d > distance) {
             distance = d
             bestIndex = i

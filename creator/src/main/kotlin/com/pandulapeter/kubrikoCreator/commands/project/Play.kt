@@ -11,8 +11,8 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import kotlinx.serialization.SerialName
@@ -20,8 +20,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_play_duration_invalid
 import kubriko.creator.generated.resources.command_play
+import kubriko.creator.generated.resources.error_command_play_duration_invalid
 
 internal object Play : ActionCommand<Play.Input> {
     override val name = "play"

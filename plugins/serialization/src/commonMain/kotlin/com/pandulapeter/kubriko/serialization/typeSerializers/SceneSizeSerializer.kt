@@ -49,8 +49,7 @@ object SceneSizeSerializer : KSerializer<SceneSize> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): SceneSize {
-        return decoder.decodeStructure(descriptor) {
+    override fun deserialize(decoder: Decoder): SceneSize = decoder.decodeStructure(descriptor) {
             var width = 0f
             var height = 0f
             while (true) {
@@ -63,5 +62,4 @@ object SceneSizeSerializer : KSerializer<SceneSize> {
             }
             SceneSize(width.sceneUnit, height.sceneUnit)
         }
-    }
 }

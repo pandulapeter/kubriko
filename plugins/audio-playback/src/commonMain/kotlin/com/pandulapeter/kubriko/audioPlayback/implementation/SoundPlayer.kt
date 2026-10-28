@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 
 internal interface SoundPlayer {
 
-    suspend fun preload(uri: String) : Any?
+    suspend fun preload(uri: String): Any?
 
     suspend fun play(cachedSound: Any)
 

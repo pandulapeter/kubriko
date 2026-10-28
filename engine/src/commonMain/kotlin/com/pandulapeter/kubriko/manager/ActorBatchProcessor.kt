@@ -48,6 +48,7 @@ internal class ActorBatchProcessor(
     private val operationChannel = Channel<Operation>(Channel.UNLIMITED)
     private var isProcessingStarted = false
     private var processorJob: Job? = null
+
     @OptIn(ExperimentalAtomicApi::class)
     private val isDisposing = AtomicBoolean(false)
     /**

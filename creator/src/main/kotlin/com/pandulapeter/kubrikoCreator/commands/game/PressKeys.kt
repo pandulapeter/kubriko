@@ -11,17 +11,17 @@ package com.pandulapeter.kubrikoCreator.commands.game
 
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_press_keys
 import kubriko.creator.generated.resources.error_game_duration_invalid
 import kubriko.creator.generated.resources.error_game_key_unknown
 import kubriko.creator.generated.resources.error_game_keys_count
-import kubriko.creator.generated.resources.command_press_keys
 
 internal object PressKeys : ActionCommand<PressKeys.Input> {
     override val name = "press_keys"

@@ -22,8 +22,8 @@ import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_discard_changes
 import kubriko.creator.generated.resources.error_command_change_missing
-import kubriko.creator.generated.resources.status_git_failed
 import kubriko.creator.generated.resources.error_command_no_repository
+import kubriko.creator.generated.resources.status_git_failed
 
 @OptIn(EditorMutation::class)
 internal object DiscardChanges : WriteCommand<DiscardChanges.Input> {

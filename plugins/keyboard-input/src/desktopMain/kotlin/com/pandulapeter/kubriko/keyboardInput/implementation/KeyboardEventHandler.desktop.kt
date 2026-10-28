@@ -24,8 +24,7 @@ internal actual fun createKeyboardEventHandler(
     coroutineScope: CoroutineScope,
 ): KeyboardEventHandler = object : KeyboardEventHandler, AWTEventListener {
 
-    override fun startListening(
-    ) = Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.KEY_EVENT_MASK)
+    override fun startListening() = Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.KEY_EVENT_MASK)
 
     override fun stopListening() = Toolkit.getDefaultToolkit().removeAWTEventListener(this)
 

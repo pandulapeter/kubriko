@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data
 
-import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.generic.Vec3
+import com.pandulapeter.kubriko.types.AngleRadians
 
 data class RenderableCuboidModel(
     val id: String,

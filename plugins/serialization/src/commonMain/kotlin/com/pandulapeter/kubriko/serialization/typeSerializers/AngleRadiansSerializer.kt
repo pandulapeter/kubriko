@@ -40,7 +40,5 @@ object AngleRadiansSerializer : KSerializer<AngleRadians> {
         encoder.encodeFloat(value.normalized)
     }
 
-    override fun deserialize(decoder: Decoder): AngleRadians {
-        return decoder.decodeFloat().rad
-    }
+    override fun deserialize(decoder: Decoder): AngleRadians = decoder.decodeFloat().rad
 }

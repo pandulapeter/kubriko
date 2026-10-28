@@ -21,12 +21,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.GridMap
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.GridMap
 import kotlin.math.hypot
 
 fun DrawScope.drawIsometricGrid(
@@ -111,9 +111,9 @@ fun DrawScope.drawIsometricGrid(
     val iMax = kotlin.math.ceil(maxOf(maxOf(i0, i1), maxOf(i2, i3))).toInt()
     val jMin = kotlin.math.floor(minOf(minOf(j0, j1), minOf(j2, j3))).toInt()
     val jMax = kotlin.math.ceil(maxOf(maxOf(j0, j1), maxOf(j2, j3))).toInt()
-    val dXi = tileW * m0;
+    val dXi = tileW * m0
     val dYi = tileW * m1
-    val dXj = tileW * m4;
+    val dXj = tileW * m4
     val dYj = tileW * m5
     if (gridMap != null) {
         val iStart = iMin.coerceAtLeast(0)

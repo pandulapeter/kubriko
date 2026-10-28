@@ -21,6 +21,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboid
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.MiniMapMarker
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.RenderableCuboidHolder
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.generic.Vec3
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.model.ProjectionPlane
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -30,12 +36,6 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboid
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.MiniMapMarker
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.RenderableCuboidHolder
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.generic.Vec3
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.model.ProjectionPlane
 
 open class PlanarCuboidRenderer(
     modelId: String,
@@ -92,13 +92,13 @@ open class PlanarCuboidRenderer(
     private val visibleFaceId: IntArray = IntArray(6)
     private var visibleCount = 0
 
-    private val texP0x = FloatArray(6);
+    private val texP0x = FloatArray(6)
     private val texP0y = FloatArray(6)
-    private val texP1x = FloatArray(6);
+    private val texP1x = FloatArray(6)
     private val texP1y = FloatArray(6)
-    private val texP2x = FloatArray(6);
+    private val texP2x = FloatArray(6)
     private val texP2y = FloatArray(6)
-    private val texP3x = FloatArray(6);
+    private val texP3x = FloatArray(6)
     private val texP3y = FloatArray(6)
 
     private val transformMatrix = Matrix()
@@ -168,14 +168,14 @@ open class PlanarCuboidRenderer(
         val colorZPlus = cuboid.colorZPlus
         val colorZMinus = cuboid.colorZMinus
 
-        if (modelPosXRaw == lastModelPosXRaw && modelPosYRaw == lastModelPosYRaw && modelPosZRaw == lastModelPosZRaw
-            && modelRotZRaw == lastModelRotZRaw
-            && localX == lastLocalXRaw && localY == lastLocalYRaw && localZ == lastLocalZRaw
-            && sx == lastSizeXRaw && sy == lastSizeYRaw && sz == lastSizeZRaw
-            && rxRaw == lastRxRaw && ryRaw == lastRyRaw && rzRaw == lastRzRaw
-            && colorXPlus == lastColorXPlus && colorXMinus == lastColorXMinus
-            && colorYPlus == lastColorYPlus && colorYMinus == lastColorYMinus
-            && colorZPlus == lastColorZPlus && colorZMinus == lastColorZMinus) {
+        if (modelPosXRaw == lastModelPosXRaw && modelPosYRaw == lastModelPosYRaw && modelPosZRaw == lastModelPosZRaw &&
+            modelRotZRaw == lastModelRotZRaw &&
+            localX == lastLocalXRaw && localY == lastLocalYRaw && localZ == lastLocalZRaw &&
+            sx == lastSizeXRaw && sy == lastSizeYRaw && sz == lastSizeZRaw &&
+            rxRaw == lastRxRaw && ryRaw == lastRyRaw && rzRaw == lastRzRaw &&
+            colorXPlus == lastColorXPlus && colorXMinus == lastColorXMinus &&
+            colorYPlus == lastColorYPlus && colorYMinus == lastColorYMinus &&
+            colorZPlus == lastColorZPlus && colorZMinus == lastColorZMinus) {
             return
         }
 
@@ -218,8 +218,8 @@ open class PlanarCuboidRenderer(
         // 2. Base mesh caching
         if (sx != lastSizeXRaw || sy != lastSizeYRaw || sz != lastSizeZRaw) {
             lastSizeXRaw = sx; lastSizeYRaw = sy; lastSizeZRaw = sz
-            val hx = sx * 0.5f;
-            val hy = sy * 0.5f;
+            val hx = sx * 0.5f
+            val hy = sy * 0.5f
             val hz = sz * 0.5f
             cubeX[0] = -hx; cubeY[0] = -hy; cubeZ[0] = -hz
             cubeX[1] = hx; cubeY[1] = -hy; cubeZ[1] = -hz
@@ -230,12 +230,12 @@ open class PlanarCuboidRenderer(
             cubeX[6] = hx; cubeY[6] = hy; cubeZ[6] = hz
             cubeX[7] = -hx; cubeY[7] = hy; cubeZ[7] = hz
         }
-        val cx = cuboid.rotationX.cos;
+        val cx = cuboid.rotationX.cos
         val sxR = cuboid.rotationX.sin
-        val cy = cuboid.rotationY.cos;
+        val cy = cuboid.rotationY.cos
         val syR = cuboid.rotationY.sin
         val totalRz = cuboid.rotationZ + modelRotZ
-        val cz = totalRz.cos;
+        val cz = totalRz.cos
         val szR = totalRz.sin
         val m00 = cz * cy
         val m01 = cz * sxR * syR - szR * cx
@@ -247,8 +247,8 @@ open class PlanarCuboidRenderer(
         val m21 = sxR * cy
         val m22 = cx * cy
         for (i in 0 until 8) {
-            val lx = cubeX[i];
-            val ly = cubeY[i];
+            val lx = cubeX[i]
+            val ly = cubeY[i]
             val lz = cubeZ[i]
             val wx = lx * m00 + ly * m01 + lz * m02 + worldX
             val wy = lx * m10 + ly * m11 + lz * m12 + worldY
@@ -270,12 +270,12 @@ open class PlanarCuboidRenderer(
                 }
             }
         }
-        var minX = projX[0];
+        var minX = projX[0]
         var maxX = projX[0]
-        var minY = projY[0];
+        var minY = projY[0]
         var maxY = projY[0]
         for (i in 1 until 8) {
-            val px = projX[i];
+            val px = projX[i]
             val py = projY[i]
             if (px < minX) minX = px; if (px > maxX) maxX = px
             if (py < minY) minY = py; if (py > maxY) maxY = py
@@ -283,7 +283,7 @@ open class PlanarCuboidRenderer(
         minX -= STROKE_WIDTH; maxX += STROKE_WIDTH
         minY -= STROKE_WIDTH; maxY += STROKE_WIDTH
         boundsMinXRaw = minX; boundsMinYRaw = minY
-        val sizeW = maxX - minX;
+        val sizeW = maxX - minX
         val sizeH = maxY - minY
         body.size = SceneSize(sizeW.sceneUnit, sizeH.sceneUnit)
         body.pivot = body.size.center
@@ -383,11 +383,11 @@ open class PlanarCuboidRenderer(
         for (i in 0 until visibleCount) {
             val texture = resolveFaceTexture(visibleFaceId[i])
 
-            val p0x = texP0x[i];
+            val p0x = texP0x[i]
             val p0y = texP0y[i]
-            val p1x = texP1x[i];
+            val p1x = texP1x[i]
             val p1y = texP1y[i]
-            val p3x = texP3x[i];
+            val p3x = texP3x[i]
             val p3y = texP3y[i]
 
             canvas.save()

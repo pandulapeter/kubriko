@@ -49,8 +49,7 @@ object SceneOffsetSerializer : KSerializer<SceneOffset> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): SceneOffset {
-        return decoder.decodeStructure(descriptor) {
+    override fun deserialize(decoder: Decoder): SceneOffset = decoder.decodeStructure(descriptor) {
             var x = 0f
             var y = 0f
             while (true) {
@@ -63,5 +62,4 @@ object SceneOffsetSerializer : KSerializer<SceneOffset> {
             }
             SceneOffset(x.sceneUnit, y.sceneUnit)
         }
-    }
 }

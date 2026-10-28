@@ -10,11 +10,11 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.floatLiteral

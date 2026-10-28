@@ -25,7 +25,6 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
-
 /**
  * A collision mask representing a convex polygon.
  *
@@ -169,7 +168,6 @@ open class PolygonCollisionMask internal constructor(
             max = SceneOffset(maxX, maxY) + position,
         )
     }
-
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@PolygonCollisionMask.size.raw.let { size ->
         if (vertices.isEmpty()) return@let

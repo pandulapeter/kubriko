@@ -48,12 +48,12 @@ data class CuboidKeyframe(
     @SerialName("colorZMinusCubic") val colorZMinusCubic: Boolean = true,
 ) {
     val isEmpty: Boolean
-        get() = positionX == null && positionY == null && positionZ == null
-                && sizeX == null && sizeY == null && sizeZ == null
-                && rotationX == null && rotationY == null && rotationZ == null
-                && colorXPlus == null && colorXMinus == null
-                && colorYPlus == null && colorYMinus == null
-                && colorZPlus == null && colorZMinus == null
+        get() = positionX == null && positionY == null && positionZ == null &&
+                sizeX == null && sizeY == null && sizeZ == null &&
+                rotationX == null && rotationY == null && rotationZ == null &&
+                colorXPlus == null && colorXMinus == null &&
+                colorYPlus == null && colorYMinus == null &&
+                colorZPlus == null && colorZMinus == null
 }
 
 // Wraps a nullable color so the outer null means "not keyed" and the inner null means "keyed as no color (use texture)".

@@ -48,8 +48,7 @@ object SizeSerializer : KSerializer<Size> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): Size {
-        return decoder.decodeStructure(descriptor) {
+    override fun deserialize(decoder: Decoder): Size = decoder.decodeStructure(descriptor) {
             var width = 0f
             var height = 0f
             while (true) {
@@ -62,5 +61,4 @@ object SizeSerializer : KSerializer<Size> {
             }
             Size(width, height)
         }
-    }
 }

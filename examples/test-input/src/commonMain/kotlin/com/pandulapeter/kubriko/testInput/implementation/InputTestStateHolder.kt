@@ -30,14 +30,14 @@ sealed interface InputTestStateHolder : StateHolder {
         fun areResourcesLoaded() = areStringResourcesLoaded()
 
         @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_none).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_none_web).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_header).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_unknown_name).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_sticks).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_triggers).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_buttons).value.isNotBlank()
-                && preloadedString(Res.string.gamepad_buttons_none).value.isNotBlank()
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_none).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_none_web).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_header).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_unknown_name).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_sticks).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_triggers).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_buttons).value.isNotBlank() &&
+                preloadedString(Res.string.gamepad_buttons_none).value.isNotBlank()
     }
 }

@@ -60,9 +60,9 @@ class IsometricGridLineCache {
         quadI2: Float, quadJ2: Float,
         quadI3: Float, quadJ3: Float,
     ) {
-        if (iStart == this.iStart && iEnd == this.iEnd && jStart == this.jStart && jEnd == this.jEnd
-            && dXi == this.dXi && dYi == this.dYi && dXj == this.dXj && dYj == this.dYj
-            && argb == this.argb && halfWidth == this.halfWidth && gridMap === this.gridMap
+        if (iStart == this.iStart && iEnd == this.iEnd && jStart == this.jStart && jEnd == this.jEnd &&
+            dXi == this.dXi && dYi == this.dYi && dXj == this.dXj && dYj == this.dYj &&
+            argb == this.argb && halfWidth == this.halfWidth && gridMap === this.gridMap
         ) {
             return
         }

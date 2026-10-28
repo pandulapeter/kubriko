@@ -84,17 +84,17 @@ internal class Arbiter(
         val contactA = contact - bodyA.position
         val contactB = contact - bodyB.position
 
-        //Relative velocity created from equation found in GDC talk of box2D lite.
+        // Relative velocity created from equation found in GDC talk of box2D lite.
         var relativeVel = bodyB.velocity
             .plus(contactB.cross(bodyB.angularVelocity.raw))
             .minus(bodyA.velocity)
             .minus(contactA.cross(bodyA.angularVelocity.raw))
 
-        //Positive = converging Negative = diverging
+        // Positive = converging Negative = diverging
         val contactVel = relativeVel.dot(contactNormal)
 
-        //Prevents objects colliding when they are moving away from each other.
-        //If not, objects could still be overlapping after a contact has been resolved and cause objects to stick together
+        // Prevents objects colliding when they are moving away from each other.
+        // If not, objects could still be overlapping after a contact has been resolved and cause objects to stick together
         if (contactVel >= SceneUnit.Zero) {
             return
         }

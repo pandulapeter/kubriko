@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
-import java.io.File
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_forget_recent_project
 import kubriko.creator.generated.resources.ic_close
@@ -37,6 +36,7 @@ import kubriko.creator.generated.resources.recent_project_missing
 import kubriko.creator.generated.resources.recent_projects
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import java.io.File
 
 /**
  * The projects opened recently, each opened with a click.

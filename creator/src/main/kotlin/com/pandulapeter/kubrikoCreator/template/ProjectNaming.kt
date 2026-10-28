@@ -10,9 +10,9 @@
 package com.pandulapeter.kubrikoCreator.template
 
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_package_name_invalid
 import kubriko.creator.generated.resources.error_project_name_empty
 import kubriko.creator.generated.resources.error_project_name_invalid
-import kubriko.creator.generated.resources.error_package_name_invalid
 import org.jetbrains.compose.resources.StringResource
 
 /**

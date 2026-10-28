@@ -31,10 +31,10 @@ import kubriko.creator.generated.resources.command_create_actor_type
 import kubriko.creator.generated.resources.command_edit_block
 import kubriko.creator.generated.resources.command_read_actor_type
 import kubriko.creator.generated.resources.command_set_appearance
-import kubriko.creator.generated.resources.error_type_name_taken
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
+import kubriko.creator.generated.resources.error_type_name_taken
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

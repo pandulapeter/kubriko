@@ -56,7 +56,6 @@ class AnimatedSprite(
 
         Rotation.DEGREES_90,
         Rotation.DEGREES_270 -> IntSize(width = frameSize.height, height = frameSize.width)
-
     }
     private var _frameIndex = 0f
 

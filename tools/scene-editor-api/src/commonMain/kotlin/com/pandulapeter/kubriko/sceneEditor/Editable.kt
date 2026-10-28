@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.serialization.Serializable
 
-
 /**
  * An interface for [Actor]s that can be manipulated within the Kubriko Scene Editor.
  *

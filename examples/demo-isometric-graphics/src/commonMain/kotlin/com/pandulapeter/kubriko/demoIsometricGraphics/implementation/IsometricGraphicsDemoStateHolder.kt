@@ -25,8 +25,8 @@ sealed interface IsometricGraphicsDemoStateHolder : StateHolder {
         fun areResourcesLoaded() = areImageResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
-        private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.texture_01).value != null
-                && preloadedImageBitmap(Res.drawable.map_01).value != null
+        private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.texture_01).value != null &&
+                preloadedImageBitmap(Res.drawable.map_01).value != null
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()

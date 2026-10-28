@@ -59,8 +59,7 @@ object BoxBodySerializer : KSerializer<BoxBody> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): BoxBody {
-        return decoder.decodeStructure(descriptor) {
+    override fun deserialize(decoder: Decoder): BoxBody = decoder.decodeStructure(descriptor) {
             var position = SceneOffset.Zero
             var size = SceneSize.Zero
             var pivot: SceneOffset? = null
@@ -85,5 +84,4 @@ object BoxBodySerializer : KSerializer<BoxBody> {
                 initialRotation = rotation,
             )
         }
-    }
 }

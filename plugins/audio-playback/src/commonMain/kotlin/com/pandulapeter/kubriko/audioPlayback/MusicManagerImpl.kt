@@ -77,7 +77,7 @@ internal class MusicManagerImpl(
 
     private suspend fun load(player: MusicPlayer, uri: String): Any? {
         log(
-            message = "Preloading ${uri}...",
+            message = "Preloading $uri...",
             importance = Logger.Importance.LOW,
         )
         return player.preload(uri)?.also {
@@ -156,9 +156,7 @@ internal class MusicManagerImpl(
         defaultVolume = Pair(leftVolume, rightVolume)
     }
 
-    override fun getVolume(uri: String): Pair<Float, Float> {
-        return volumeConfig.value[uri] ?: defaultVolume
-    }
+    override fun getVolume(uri: String): Pair<Float, Float> = volumeConfig.value[uri] ?: defaultVolume
 
     override fun onDispose() {
         val unloaded = audioCache.clear()

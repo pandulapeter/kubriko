@@ -34,11 +34,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.GameButton
 import com.pandulapeter.kubriko.shared.ui.gameHover
-import kotlin.math.max
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.max
 
 @Composable
 internal fun SpaceSquadronButton(

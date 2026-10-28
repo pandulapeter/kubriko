@@ -228,7 +228,6 @@ abstract class Manager(
         }
     }
 
-
     private inner class LazyManager<T : Manager>(private val managerType: KClass<T>) : ReadOnlyProperty<Manager, T> {
 
         private lateinit var value: T

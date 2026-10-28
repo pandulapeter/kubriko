@@ -27,11 +27,11 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
+import kotlinx.coroutines.runBlocking
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlinx.coroutines.runBlocking
 
 /**
  * Generates every template for real, adds an Actor type and two Manager types that use every Event and every Block

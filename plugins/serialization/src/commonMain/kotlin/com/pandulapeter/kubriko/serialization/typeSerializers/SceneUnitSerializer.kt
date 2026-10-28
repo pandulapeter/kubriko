@@ -39,7 +39,5 @@ object SceneUnitSerializer : KSerializer<SceneUnit> {
         encoder.encodeFloat(value.raw)
     }
 
-    override fun deserialize(decoder: Decoder): SceneUnit {
-        return decoder.decodeFloat().sceneUnit
-    }
+    override fun deserialize(decoder: Decoder): SceneUnit = decoder.decodeFloat().sceneUnit
 }
