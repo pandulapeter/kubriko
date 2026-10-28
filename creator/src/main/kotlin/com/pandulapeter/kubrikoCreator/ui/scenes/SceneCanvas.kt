@@ -79,11 +79,8 @@ internal fun SceneCanvas(
     DisposableEffect(dragState) {
         onDispose { dragState.dropTarget = null }
     }
-    var loadRevision by remember { mutableIntStateOf(0) }
-    LaunchedEffect(view, content) {
-        view.load(content)
-        loadRevision++
-    }
+    LaunchedEffect(view, content) { view.load(content) }
+    val loadRevision by view.loadRevision.collectAsState()
     val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
     val scaleFactor by view.viewportManager.scaleFactor.collectAsState()
     val viewportSize by view.viewportManager.size.collectAsState()

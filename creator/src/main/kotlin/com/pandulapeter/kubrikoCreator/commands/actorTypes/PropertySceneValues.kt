@@ -46,7 +46,7 @@ internal fun JsonObject.withValueRenamed(oldName: String, newName: String) = if 
     this
 }
 
-private fun JsonElement.fits(kind: PropertyKind) = this is JsonPrimitive && when (kind) {
+internal fun JsonElement.fits(kind: PropertyKind) = this is JsonPrimitive && when (kind) {
     PropertyKind.NUMBER -> !isString && floatOrNull != null
     PropertyKind.TEXT -> isString
     PropertyKind.TOGGLE -> !isString && booleanOrNull != null

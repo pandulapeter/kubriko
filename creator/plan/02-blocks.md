@@ -62,8 +62,7 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 
 ## Scene editor (Creator's own, `ui/scenes`)
 
-Selecting, moving, removing, and placing from the sidebar exist (`../CLAUDE.md` → Processes → Scene editing). Next: an inspector beside the
-canvas for the selected Actor (its Properties, color, size, rotation, and scale, through a command that sets values in its state; generic
-editors for hand-written types' states), the Scene settings in it (bounds, background, camera start, music), resize and rotate handles,
+Selecting, moving, removing, placing from the sidebar, and the inspector exist (`../CLAUDE.md` → Processes → Scene editing). Next: editors
+for hand-written types' other state values (through `set_actor_state`), resize and rotate handles, an outline that follows rotation,
 snapping to a grid, keyboard nudging, duplicating, placing hand-written Actor types (their default state through their metadata), sprite
 thumbnails in the sidebar while dragging, multi-select, and layer filtering and locking. None of it needs a library change.

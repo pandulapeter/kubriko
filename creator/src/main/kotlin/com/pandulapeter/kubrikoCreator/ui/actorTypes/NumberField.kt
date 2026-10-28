@@ -28,6 +28,19 @@ internal fun NumberField(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+) = NumberField(
+    label = stringResource(label),
+    value = value,
+    onValueChange = onValueChange,
+    modifier = modifier,
+)
+
+@Composable
+internal fun NumberField(
+    label: String,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var text by remember { mutableStateOf(formatNumber(value)) }
     if (parseNumber(text) != value) {
@@ -40,7 +53,7 @@ internal fun NumberField(
             text = newText
             parseNumber(newText)?.let(onValueChange)
         },
-        label = stringResource(label),
+        label = label,
         isError = parseNumber(text) == null,
     )
 }

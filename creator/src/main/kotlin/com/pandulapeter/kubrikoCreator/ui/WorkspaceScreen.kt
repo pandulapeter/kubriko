@@ -201,6 +201,8 @@ internal fun WorkspaceScreen(
                         state = state,
                         onCommand = { controller.commands.dispatch(it) },
                         actorTypeDragState = actorTypeDragState,
+                        actorTypes = blockTypes.filterIsInstance<ActorTypeDefinition>(),
+                        music = remember(resources) { AudioFiles.of(resources).music },
                         onReload = controller.sceneEditing::reload,
                         onClose = controller.sceneEditing::close,
                     )

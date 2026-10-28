@@ -44,7 +44,11 @@ lives in `plan/` (start with `plan/README.md`).
   lowest drawing order, then the later one; the Scene settings only where nothing else is), dragging it moves it live and dispatches
   `move_actor` when let go, dragging elsewhere or scrolling pans, Ctrl/Cmd+scroll and the header zoom (`SceneFraming` shows the
   Scene settings' bounds, or every Actor), Delete or Backspace dispatches `remove_actor`, and an Actor type dragged from the sidebar
-  (`ActorTypeDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). Every change is a command, so it
+  (`ActorTypeDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). The inspector beside it
+  (`SceneInspector`) shows the selected Actor's position, size, rotation in degrees, and scale (`ActorBodyValues`, read from the live
+  Actor, so defaults its state leaves out show), and for block-built types its color and Property values (the type's where the
+  state has none), set through `set_actor_values`; the Scene settings through `set_scene_settings`; with nothing selected, a hint
+  and a way to the Scene settings (added if the Scene has none). Every change is a command, so it
   is undone like any other, and the file is read again and the Actors created anew after each. A project on another Kubriko version
   gets a notice instead (`SceneEditingState.Unsupported`). Compose resources are read
   through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
@@ -170,6 +174,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
   Actor type renames its Actors in every Scene. A command that changes the open Scene shows it again (or closes it if deleted); a
   changed Actor type marks it outdated, since its classes must be compiled again, but regenerating code for changed Scenes doesn't.
+  `set_actor_values` changes one Actor's body (a new size moves the pivot to the middle), color, and Property values
+  (`ActorStateEdits`; colors as Compose's packed value, rotations in radians) and is undone by `set_actor_state`, which replaces
+  a whole state (and is the AI's way to hand-written types' other values).
 
 ## AI connection (MCP)
 
@@ -227,7 +234,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `SceneView`, `SceneHitTest`, `SceneFraming`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
+| `scenes` | `SceneEditingController`, `SceneView`, `SceneHitTest`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |

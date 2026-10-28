@@ -25,6 +25,9 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.SerializationException
 
 /**
@@ -59,6 +62,12 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     var actors: List<Editable<*>?> = emptyList()
         private set
 
+    /**
+     * Changes every time the Actors are created again, for what shows them.
+     */
+    private val _loadRevision = MutableStateFlow(0)
+    val loadRevision = _loadRevision.asStateFlow()
+
     fun load(content: String) {
         entries = try {
             SceneDocument.parse(content)
@@ -70,6 +79,7 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         actors = entries.map(::createActor)
         actorManager.removeAll()
         actorManager.add(actors.filterNotNull())
+        _loadRevision.update { it + 1 }
     }
 
     /**

@@ -17,8 +17,7 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - **Creator's own Scene editor** (2026-10-28) replaced the embedded library one (`tools/scene-editor`) and the session window: the Scene is drawn by the
   project's classes in Creator's pane, Actors are selected, moved, and removed, and Actor types are dragged in from the sidebar, all
   through commands (so undo and the AI share them). Seen working on the scratch Breakout: moving the Ball, dropping a Brick,
-  selecting, Backspace, and Cmd+Z. There is no inspector yet, so Properties, sizes, and Scene settings can't be edited in Creator
-  (only through `set_scene_settings`); that is next.
+  selecting, Backspace, and Cmd+Z, and the inspector (a Brick's values, rotating it by typing).
 - **Static sprites exist** (2026-10-28): an Actor type's `sprite` (`set_appearance`, the appearance column's Sprite menu) draws an
   image from `composeResources/drawable` instead of the shape, which stays the collision mask's; choosing one sizes the type to the
   image. `SpriteManager` is created in `KubrikoWiring` (also in the Scene editor) only while some type has a sprite. **Library
@@ -45,8 +44,7 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The Scene editor's inspector and the rest of `02-blocks.md` → Scene editor (Properties, size, rotation, Scene settings, handles,
-   snapping); until then, Scene settings and per-Actor Property values can't be edited from the UI at all.
+1. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).
 2. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
    `08-sprite-editor.md` plans), then the sprite editor itself, then the rest of `02-blocks.md`. Plugins come and go with the Blocks
    that use them, as audio's and sprites' do (`PluginManagers`, `KubrikoWiring`); not in a template upgrade.
@@ -54,6 +52,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Never checked by hand
 
+- The inspector's Property fields and color, the Scene settings (adding them from the hint, music, camera start), scale, and size
+  (whether the pivot moving to the middle surprises anyone), and that typing a number is one undo step.
 - The Scene editor: a hand-written Actor type in a Scene (drawn, selectable, movable), an Actor without a `BoxBody`, zoom to fit
   with and without Scene settings, the middle-button pan, scroll pan on a mouse wheel, dropping onto a zoomed-out view, the version
   notice, and the outdated notice after an Actor type change followed by Reload.

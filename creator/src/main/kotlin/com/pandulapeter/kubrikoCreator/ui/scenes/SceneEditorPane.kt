@@ -9,20 +9,24 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
@@ -57,13 +62,19 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * A Scene, edited inside Kubriko Creator's window: a header naming it, with the camera's zoom, offering to reload it
- * (when its Actor types changed) and to close it, above the Scene itself. Every change is a command.
+ * (when its Actor types changed) and to close it, above the Scene itself and the inspector of what is selected in it.
+ * Every change is a command.
+ *
+ * @param actorTypes The project's block-built Actor types.
+ * @param music The project's music files, by their path from `composeResources`.
  */
 @Composable
 internal fun SceneEditorPane(
     state: SceneEditingState.Open,
     onCommand: (Invocation<*>) -> Unit,
     actorTypeDragState: ActorTypeDragState,
+    actorTypes: List<ActorTypeDefinition>,
+    music: List<String>,
     onReload: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -86,23 +97,40 @@ internal fun SceneEditorPane(
         onClose = onClose,
     )
     HorizontalDivider()
-    SceneCanvas(
+    val onRemove = { index: Int ->
+        selectedIndex = null
+        onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, index)))
+    }
+    Row(
         modifier = Modifier.fillMaxSize(),
+    ) {
+        SceneCanvas(
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         view = view,
         content = state.content,
         selectedIndex = selectedIndex,
         onSelect = { selectedIndex = it },
         onMove = { index, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, index, x, y))) },
-        onRemove = { index ->
-            selectedIndex = null
-            onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, index)))
-        },
+        onRemove = onRemove,
         dragState = actorTypeDragState,
         onPlace = { actorTypeName, x, y ->
             selectedIndex = view.entries.size
             onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y)))
         },
     )
+        VerticalDivider()
+        SceneInspector(
+            modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+            view = view,
+            sceneName = state.sceneName,
+            selectedIndex = selectedIndex,
+            actorTypes = actorTypes,
+            music = music,
+            onSelect = { selectedIndex = it },
+            onCommand = onCommand,
+            onRemove = onRemove,
+        )
+    }
 }
 
 @Composable
