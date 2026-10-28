@@ -460,4 +460,23 @@ class ActorTypeCodeGeneratorTest {
         val code = ActorTypeCodeGenerator.generateActorType(ActorTypeDefinition("Ball"), "com.example.game", listOf("Ball"), listOf(ManagerTypeDefinition("Game")))
         assertFalse("Game" in code)
     }
+
+    @Test
+    fun sceneBlocksLookUpTheGeneratedScenesWhenTheyLoadOne() {
+        assertFalse("generatedScenes" in generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.GoToScene()))))
+        val code = generate(EventDefinition(EventType.COLLISION, otherActorType = "Player", blocks = listOf(BlockDefinition.GoToScene("game-over"), BlockDefinition.RestartScene)))
+        assertContains(code, "    private lateinit var generatedScenes: GeneratedScenes\n")
+        assertContains(code, "        generatedScenes = kubriko.get()\n")
+        assertContains(code, "                    generatedScenes.goTo(\"game-over\")\n                    generatedScenes.restart()\n")
+        assertFalse("StateManager" in code)
+    }
+
+    @Test
+    fun pauseBlocksLookUpTheStateManager() {
+        val code = generate(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.ENTER, blocks = listOf(BlockDefinition.PauseGame(PauseAction.PAUSE))))
+        assertContains(code, "import com.pandulapeter.kubriko.manager.StateManager\n")
+        assertContains(code, "    private lateinit var stateManager: StateManager\n")
+        assertContains(code, "        stateManager = kubriko.get()\n")
+        assertContains(code, "                stateManager.updateIsRunning(false)\n")
+    }
 }

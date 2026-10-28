@@ -56,7 +56,7 @@ class ManagerTypeCodeGeneratorTest {
             ),
         )
         assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n        // When the game starts\n        lives = 3f\n    }\n")
-        assertContains(code, "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor) return\n        // Every frame\n        if (lives <= 0f) {\n            isOver = true\n        }\n    }\n")
+        assertContains(code, "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor) return\n        if (!stateManager.isRunning.value) return\n        // Every frame\n        if (lives <= 0f) {\n            isOver = true\n        }\n    }\n")
     }
 
     @Test
@@ -69,8 +69,17 @@ class ManagerTypeCodeGeneratorTest {
                 ),
             ),
         )
-        assertContains(code, ") : Manager(), KeyboardInputAware {\n")
-        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        if (isInSceneEditor) return\n        when (key) {\n            Key.Spacebar -> {\n                timer2RemainingInMilliseconds = 500\n")
+        assertContains(code, ") : Manager() {\n")
+        assertFalse("KeyboardInputAware" in code)
+        assertContains(code, "    private val keyboardInputManager by manager<KeyboardInputManager>()\n")
+        assertContains(code, "    private var isKeySpacebarDown = false\n")
+        assertContains(
+            code,
+            "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor) return\n" +
+                "        if (keyboardInputManager.isKeyPressed(Key.Spacebar) != isKeySpacebarDown) {\n" +
+                "            isKeySpacebarDown = !isKeySpacebarDown\n            if (isKeySpacebarDown) {\n                timer2RemainingInMilliseconds = 500\n",
+        )
+        assertContains(code, "            }\n        }\n        if (!stateManager.isRunning.value) return\n        if (timer2RemainingInMilliseconds > 0) {\n")
         assertContains(code, "        if (timer2RemainingInMilliseconds > 0) {\n")
         assertContains(code, "                score += 1f\n")
     }
@@ -126,8 +135,38 @@ class ManagerTypeCodeGeneratorTest {
         val wiring = ManagerTypeCodeGenerator.generateWiring(listOf("Level", "Game"), "com.example.game")
         assertTrue(GeneratedFile.isUnchanged(wiring))
         assertContains(wiring, "object KubrikoWiring {\n")
-        assertContains(wiring, "    fun createManagers(isInSceneEditor: Boolean = false): List<Manager> = listOf(\n        Game(isInSceneEditor),\n        Level(isInSceneEditor),\n    )\n")
-        assertContains(ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"), "List<Manager> = emptyList()\n")
+        assertContains(
+            wiring,
+            "    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> = listOf(\n" +
+                "        GeneratedScenes(firstScene, isInSceneEditor),\n        Game(isInSceneEditor),\n        Level(isInSceneEditor),\n    )\n",
+        )
+        assertContains(ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"), "listOf(\n        GeneratedScenes(firstScene, isInSceneEditor),\n    )\n")
+    }
+
+    @Test
+    fun sceneAndPauseBlocksUseTheGeneratedScenesAndTheStateManager() {
+        val code = generate(
+            game.copy(
+                events = listOf(
+                    EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.ENTER, blocks = listOf(BlockDefinition.GoToScene("level-2"), BlockDefinition.RestartScene, BlockDefinition.GoToScene())),
+                    EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = PauseAction.entries.map { BlockDefinition.PauseGame(it) }),
+                ),
+            ),
+        )
+        assertContains(code, "import com.pandulapeter.kubriko.manager.StateManager\n")
+        assertContains(code, "    private val stateManager by manager<StateManager>()\n    private val generatedScenes by manager<GeneratedScenes>()\n")
+        assertContains(code, "                generatedScenes.goTo(\"level-2\")\n                generatedScenes.restart()\n                // Choose a Scene for this Block.\n")
+        assertContains(
+            code,
+            "                stateManager.updateIsRunning(false)\n                stateManager.updateIsRunning(true)\n                stateManager.updateIsRunning(!stateManager.isRunning.value)\n",
+        )
+    }
+
+    @Test
+    fun aManagerWithoutUpdatesOrPauseBlocksDoesNotLookUpTheStateManager() {
+        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.GoToScene())))))
+        assertFalse("StateManager" in code)
+        assertFalse("GeneratedScenes" in code)
     }
 
     @Test

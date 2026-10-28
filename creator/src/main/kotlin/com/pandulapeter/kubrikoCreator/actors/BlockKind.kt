@@ -17,14 +17,17 @@ import kubriko.creator.generated.resources.block_bounce_off_other
 import kubriko.creator.generated.resources.block_change_number
 import kubriko.creator.generated.resources.block_else
 import kubriko.creator.generated.resources.block_end
+import kubriko.creator.generated.resources.block_go_to_scene
 import kubriko.creator.generated.resources.block_if
 import kubriko.creator.generated.resources.block_jump_to
 import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
 import kubriko.creator.generated.resources.block_move_towards_nearest
+import kubriko.creator.generated.resources.block_pause_game
 import kubriko.creator.generated.resources.block_remove_other
 import kubriko.creator.generated.resources.block_remove_self
 import kubriko.creator.generated.resources.block_repeat
+import kubriko.creator.generated.resources.block_restart_scene
 import kubriko.creator.generated.resources.block_set_number
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
@@ -58,6 +61,9 @@ internal enum class BlockKind(
     MOVE_TOWARDS_NEAREST(Res.string.block_move_towards_nearest, { BlockDefinition.MoveTowardsNearest() }, needsActor = true),
     START_TIMER(Res.string.block_start_timer, { BlockDefinition.StartTimer() }),
     STOP_TIMER(Res.string.block_stop_timer, { BlockDefinition.StopTimer() }),
+    GO_TO_SCENE(Res.string.block_go_to_scene, { BlockDefinition.GoToScene() }),
+    RESTART_SCENE(Res.string.block_restart_scene, { BlockDefinition.RestartScene }),
+    PAUSE_GAME(Res.string.block_pause_game, { BlockDefinition.PauseGame() }),
     IF(Res.string.block_if, { BlockDefinition.If() }),
     ELSE(Res.string.block_else, { BlockDefinition.Else }),
     REPEAT(Res.string.block_repeat, { BlockDefinition.Repeat() }),
@@ -96,6 +102,9 @@ internal enum class BlockKind(
             is BlockDefinition.MoveTowardsNearest -> MOVE_TOWARDS_NEAREST
             is BlockDefinition.StartTimer -> START_TIMER
             is BlockDefinition.StopTimer -> STOP_TIMER
+            is BlockDefinition.GoToScene -> GO_TO_SCENE
+            BlockDefinition.RestartScene -> RESTART_SCENE
+            is BlockDefinition.PauseGame -> PAUSE_GAME
             is BlockDefinition.If -> IF
             BlockDefinition.Else -> ELSE
             is BlockDefinition.Repeat -> REPEAT

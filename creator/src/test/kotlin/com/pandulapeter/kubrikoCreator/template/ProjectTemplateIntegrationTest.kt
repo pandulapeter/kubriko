@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
@@ -130,6 +131,13 @@ class ProjectTemplateIntegrationTest {
         BlockDefinition.If(ConditionDefinition.Toggle("isShielded", manager = "EveryManager")),
         BlockDefinition.Log(message = "{EveryManager.score} {EveryManager.title} {EveryManager.isShielded} {Missing.score} {EveryManager.missing}"),
         BlockDefinition.Kotlin(code = "actorManager.allActors.value.size"),
+        BlockDefinition.GoToScene("main"),
+        BlockDefinition.GoToScene("missing"),
+        BlockDefinition.GoToScene(),
+        BlockDefinition.RestartScene,
+        BlockDefinition.PauseGame(PauseAction.PAUSE),
+        BlockDefinition.PauseGame(PauseAction.RESUME),
+        BlockDefinition.PauseGame(PauseAction.TOGGLE),
     )
 
     /**

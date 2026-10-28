@@ -30,8 +30,11 @@ internal sealed interface TemplateUpgrade {
 /**
  * A change to one file, relative to the project root, shown as a diff before it is made.
  */
+/**
+ * @param after The new content of the file, or null if it is deleted.
+ */
 internal data class ProposedFileChange(
     val path: String,
     val before: String,
-    val after: String,
+    val after: String?,
 )

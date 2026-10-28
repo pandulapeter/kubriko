@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -25,12 +26,16 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
+import java.io.File
+import kotlin.io.path.createTempDirectory
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_type_name_taken
 import kubriko.creator.generated.resources.error_command_actor_type_missing
+import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_block_missing
 import kubriko.creator.generated.resources.error_command_block_not_allowed
 import kubriko.creator.generated.resources.error_command_event_missing
@@ -169,6 +174,20 @@ class ActorTypeCommandsTest {
         assertEquals(listOf(BlockDefinition.SetVelocity(3f, 4f), jump), context.assertRoundTrip(Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(3f, 4f)))) { context.ball() }!!.events[0].blocks)
         assertEquals(listOf(jump, BlockDefinition.SetVelocity(3f, 4f)), context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 0, 1))) { context.ball() }!!.events[0].blocks)
         assertEquals(listOf(BlockDefinition.SetVelocity(3f, 4f)), context.assertRoundTrip(Invocation(RemoveBlock, RemoveBlock.Input("Ball", 0, 0))) { context.ball() }!!.events[0].blocks)
+    }
+
+    @Test
+    fun goToSceneBlocksMayLeaveTheSceneUnchosenButNotNameOneThatDoesNotExist() = runTest {
+        val root = createTempDirectory().toFile()
+        File(root, "${SceneStore.DEFAULT_SCENE_DIRECTORY}/level-2.json").apply { parentFile.mkdirs() }.writeText("[]")
+        val context = commandContext(ball, wall, rootDirectory = root)
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene())))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("level-2"))))
+        assertEquals(Rejection(Res.string.error_command_scene_missing, "ghost"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("ghost"))))
+        assertEquals(Rejection(Res.string.error_command_scene_missing, "ghost"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.GoToScene("ghost"))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RestartScene)))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PauseGame(PauseAction.RESUME))))
+        root.deleteRecursively()
     }
 
     @Test

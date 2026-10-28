@@ -27,8 +27,8 @@ internal object PropertyNaming {
         "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object",
         "package", "return", "super", "this", "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while",
         "actorManager", "body", "bottomRight", "collidableTypes", "collidables", "collisionMask", "color", "deltaTimeInMilliseconds",
-        "drawingOrder", "halfSize", "index", "isAlwaysActive", "isVisible", "key", "kubriko", "layerIndex", "metadata", "other",
-        "shouldClip", "state", "topLeft", "velocity", "viewportManager",
+        "drawingOrder", "generatedScenes", "halfSize", "index", "isAlwaysActive", "keyboardInputManager", "isVisible", "key", "kubriko", "layerIndex", "metadata", "other",
+        "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
     )
 
     /**
@@ -44,7 +44,7 @@ internal object PropertyNaming {
      */
     fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
         !namePattern.matches(name) -> Res.string.error_property_name_invalid
-        name in reservedNames || name.startsWith("isTouching") || generatedTimerField.matches(name) -> Res.string.error_property_name_reserved
+        name in reservedNames || name.startsWith("isTouching") || name.startsWith("isKey") || generatedTimerField.matches(name) -> Res.string.error_property_name_reserved
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_property_name_taken
         else -> null
     }

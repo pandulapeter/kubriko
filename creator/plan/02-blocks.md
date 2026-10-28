@@ -37,7 +37,7 @@ three steps, always generated into ordinary Compose (no runtime interpreter):
 - **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist).
 - **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
-- **Scene:** go to another Scene, restart the Scene, pause; Scene settings (size, background, camera start, music) as a `Unique` `Editable` Actor.
+- **Scene settings:** size, background, camera start, and music, as a `Unique` `Editable` Actor; and a condition for whether the game is paused.
 - **Audio:** play a sound, play or stop music (from the project's resources).
 - **Camera:** follow an Actor, shake, zoom.
 - **Appearance:** sprites and sprite sheets (with animation settings) instead of shapes; layer and drawing order.

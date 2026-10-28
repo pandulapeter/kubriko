@@ -18,11 +18,13 @@ import kubriko.creator.generated.resources.block_category_code
 import kubriko.creator.generated.resources.block_category_flow
 import kubriko.creator.generated.resources.block_category_movement
 import kubriko.creator.generated.resources.block_category_properties
+import kubriko.creator.generated.resources.block_category_scenes
 import kubriko.creator.generated.resources.block_category_timers
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_condition
 import kubriko.creator.generated.resources.ic_property
+import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_timer
 import kubriko.creator.generated.resources.ic_velocity
 import org.jetbrains.compose.resources.DrawableResource
@@ -53,6 +55,7 @@ internal enum class BlockCategory(
     PROPERTIES(Res.string.block_category_properties, Res.drawable.ic_property, listOf(BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER, BlockKind.SET_TEXT, BlockKind.SET_TOGGLE)),
     FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END)),
     TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),
+    SCENES(Res.string.block_category_scenes, Res.drawable.ic_scene, listOf(BlockKind.GO_TO_SCENE, BlockKind.RESTART_SCENE, BlockKind.PAUSE_GAME)),
     CODE(Res.string.block_category_code, Res.drawable.ic_code, listOf(BlockKind.LOG, BlockKind.KOTLIN));
 
     companion object {

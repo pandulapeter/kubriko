@@ -34,6 +34,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
@@ -195,6 +196,13 @@ private fun InlineParameters(
         )
     }
     is BlockDefinition.StopTimer -> TimerChoice(block.timer) { onBlockChange(block.copy(timer = it)) }
+    is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames.orEmpty()) { onBlockChange(block.copy(scene = it)) }
+    is BlockDefinition.PauseGame -> MenuButton(
+        label = stringResource(block.action.title),
+        options = PauseAction.entries,
+        optionText = { stringResource(it.title) },
+        onSelected = { onBlockChange(block.copy(action = it)) },
+    )
     is BlockDefinition.If -> ConditionParameters(block.condition, scope) { onBlockChange(block.copy(condition = it)) }
     is BlockDefinition.Repeat -> NumberField(
         modifier = Modifier.width(96.dp),
@@ -212,7 +220,7 @@ private fun InlineParameters(
         placeholder = stringResource(Res.string.block_parameter_message),
     )
     BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
-    BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin -> Unit
+    BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene -> Unit
 }
 
 @Composable
@@ -263,4 +271,5 @@ private val kindsWithoutParameters = setOf(
     BlockKind.ELSE,
     BlockKind.END,
     BlockKind.KOTLIN,
+    BlockKind.RESTART_SCENE,
 )

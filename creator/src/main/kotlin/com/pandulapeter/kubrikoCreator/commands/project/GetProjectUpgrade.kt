@@ -26,9 +26,9 @@ import kubriko.creator.generated.resources.command_get_project_upgrade
 
 internal object GetProjectUpgrade : ReadCommand<NoInput> {
     override val name = "get_project_upgrade"
-    override val description = "Tells whether the project's template files (Game.kt and GameEntryPoint.kt, which belong to the user) need a change that this " +
-        "Kubriko Creator relies on, such as passing the generated Manager types to Kubriko. Lists each change Kubriko Creator can make (the file before " +
-        "and after) and the files that were changed too much, which the user has to change by hand. Show the changes to the user before upgrade_project."
+    override val description = "Tells whether the project's template files (Game.kt, GameEntryPoint.kt, and SceneLoader.kt, which belong to the user) need a change that this " +
+        "Kubriko Creator relies on, such as passing the generated Manager types to Kubriko, or letting them load the Scenes. Lists each change Kubriko Creator can make " +
+        "(the file before and after, or after left out for a file it deletes) and the files that were changed too much, which the user has to change by hand. Show the changes to the user before upgrade_project."
     override val inputSerializer = NoInput.serializer()
     override val title = Res.string.command_get_project_upgrade
 
@@ -42,7 +42,7 @@ internal object GetProjectUpgrade : ReadCommand<NoInput> {
                         add(buildJsonObject {
                             put("path", change.path)
                             put("before", change.before)
-                            put("after", change.after)
+                            change.after?.let { put("after", it) }
                         })
                     }
                 }

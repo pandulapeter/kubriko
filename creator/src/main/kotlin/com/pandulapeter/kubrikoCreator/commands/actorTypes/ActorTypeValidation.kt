@@ -43,6 +43,7 @@ import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
 import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_property_unknown
+import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_invalid
@@ -66,7 +67,7 @@ internal fun CommandContext.requireManagerType(name: String) = checkNotNull(bloc
 /**
  * What the Blocks of [definition] can refer to.
  */
-internal fun CommandContext.scopeOf(definition: BlockTypeDefinition) = BlockScope.of(definition, requireBlockTypes.types.value)
+internal fun CommandContext.scopeOf(definition: BlockTypeDefinition) = BlockScope.of(definition, requireBlockTypes.types.value, scenes.names())
 
 /**
  * Why there is no Actor type or Manager type called [name] to change.
@@ -128,6 +129,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
     !block.areNumbersFinite -> Rejection(Res.string.error_command_number_invalid)
     block.timerNumber?.let { it !in TIMER_NUMBERS } == true -> Rejection(Res.string.error_command_timer_invalid)
     block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> Rejection(Res.string.error_command_actor_type_missing, block.actorTypeReference.orEmpty())
+    block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false -> Rejection(Res.string.error_command_scene_missing, block.scene)
     else -> block.propertyReference?.let { reference ->
         when {
             reference.manager != null && scope.propertiesOf(reference.manager) == null -> Rejection(Res.string.error_command_manager_type_missing, reference.manager)
@@ -185,5 +187,5 @@ private val BlockDefinition.areNumbersFinite
         is BlockDefinition.ChangeNumber -> by.isFinite()
         BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
         is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
-        is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
+        is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame -> true
     }

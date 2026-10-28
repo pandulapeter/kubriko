@@ -41,6 +41,7 @@ import kubriko.creator.generated.resources.action_apply_upgrade
 import kubriko.creator.generated.resources.action_commit_first
 import kubriko.creator.generated.resources.action_not_now
 import kubriko.creator.generated.resources.project_upgrade_by_hand
+import kubriko.creator.generated.resources.project_upgrade_file_deleted
 import kubriko.creator.generated.resources.project_upgrade_message
 import kubriko.creator.generated.resources.project_upgrade_title
 import org.jetbrains.compose.resources.stringResource
@@ -93,11 +94,11 @@ private fun FileDiff(change: ProposedFileChange) = Column(
     verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     Text(
-        text = change.path,
+        text = if (change.after == null) stringResource(Res.string.project_upgrade_file_deleted, change.path) else change.path,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
     )
-    val lines = remember(change) { LineDiff.withContext(LineDiff.of(change.before, change.after)) }
+    val lines = remember(change) { LineDiff.withContext(LineDiff.of(change.before, change.after.orEmpty())) }
     Column(
         modifier = Modifier
             .fillMaxWidth()

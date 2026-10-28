@@ -19,6 +19,16 @@ internal object BlockCodeGenerator {
 
     const val INDENT = "    "
     const val NUMBER_TEXT_FUNCTION = "asText"
+    const val SCENES_FIELD = "generatedScenes"
+    const val STATE_MANAGER_FIELD = "stateManager"
+    const val STATE_MANAGER_IMPORT = "com.pandulapeter.kubriko.manager.StateManager"
+
+    /**
+     * Whether any of [blocks] loads a Scene, through the generated [ScenesCodeGenerator.SCENES_NAME] Manager.
+     */
+    fun usesScenes(blocks: List<BlockDefinition>) = blocks.any { (it is BlockDefinition.GoToScene && it.scene.isNotEmpty()) || it == BlockDefinition.RestartScene }
+
+    fun usesPause(blocks: List<BlockDefinition>) = blocks.any { it is BlockDefinition.PauseGame }
 
     internal fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, scope: BlockScope) {
         val lines = events.flatMap { event -> eventLines(event.blocks, event.type, scope) }
@@ -55,13 +65,9 @@ internal object BlockCodeGenerator {
         appendLine("        }")
     }
 
-    /**
-     * @param guard A statement that runs before any of the Events, like an early return.
-     */
-    internal fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, scope: BlockScope, guard: String? = null) {
+    internal fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, scope: BlockScope) {
         appendLine()
         appendLine("    override fun onKeyPressed(key: Key) {")
-        guard?.let { appendLine("        $it") }
         appendLine("        when (key) {")
         keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
             appendLine("            Key.${key.composeKeyName} -> {")
@@ -181,6 +187,15 @@ internal object BlockCodeGenerator {
             listOf("// Start a Timer only works with Timers 1 to 8.")
         }
         is BlockDefinition.StopTimer -> if (block.timer in TIMER_NUMBERS) listOf("${remainingField(block.timer)} = 0") else listOf("// Stop a Timer only works with Timers 1 to 8.")
+        is BlockDefinition.GoToScene -> if (block.scene.isNotEmpty()) listOf("$SCENES_FIELD.goTo(${stringLiteral(block.scene)})") else listOf("// Choose a Scene for this Block.")
+        BlockDefinition.RestartScene -> listOf("$SCENES_FIELD.restart()")
+        is BlockDefinition.PauseGame -> listOf(
+            "$STATE_MANAGER_FIELD.updateIsRunning(" + when (block.action) {
+                PauseAction.PAUSE -> "false"
+                PauseAction.RESUME -> "true"
+                PauseAction.TOGGLE -> "!$STATE_MANAGER_FIELD.isRunning.value"
+            } + ")",
+        )
         is BlockDefinition.If -> listOf("if (${conditionExpression(block.condition, scope)}) {")
         is BlockDefinition.Repeat -> listOf("repeat(${block.times.coerceAtLeast(0)}) {")
         BlockDefinition.Else, BlockDefinition.End -> emptyList()

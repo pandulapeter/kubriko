@@ -10,8 +10,10 @@
 package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -24,10 +26,12 @@ import java.io.File
  * Brings the template files of an opted-in project (which belong to the user after creation) up to what this version of
  * Kubriko Creator needs, recorded as the `templateVersion` of `.kubriko/project.json`.
  *
- * Version 2 passes the generated Manager types to Kubriko: `Game.kt` adds `KubrikoWiring.createManagers()` to
- * `Kubriko.newInstance`, and `GameEntryPoint.kt` hands them to the Scene editor. A file is only changed when it still
- * looks like the template's (one `Kubriko.newInstance` with the `SceneLoader` in it, one `createSerializationManager`);
- * a file that already uses `KubrikoWiring` counts as done, whoever changed it.
+ * Version 2 passes the generated Manager types to Kubriko and to the Scene editor (`GameEntryPoint.kt`). Version 3 lets
+ * the generated `GeneratedScenes` load the first Scene, so that Blocks can load others: `Game.kt` hands
+ * `KubrikoWiring.createManagers` the Scene its `SceneLoader` loaded instead, and `SceneLoader.kt` is deleted if it is
+ * still the template's. A file is only changed when it still looks like the template's (one `Kubriko.newInstance` with a
+ * one-line `SceneLoader` in it, one `createSerializationManager`); a file that already does what the version needs counts
+ * as done, whoever changed it, and so does a `SceneLoader.kt` changed by hand, which is left alone.
  */
 internal class ProjectUpgrader(
     private val rootDirectory: File,
@@ -41,19 +45,20 @@ internal class ProjectUpgrader(
         val sourceDirectory = settings["sourceDirectory"]?.jsonPrimitive?.content ?: "src/commonMain/kotlin"
         val packagePath = "$sourceDirectory/${packageName.replace('.', '/')}"
         val wiringImport = "import $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}.${ManagerTypeCodeGenerator.WIRING_NAME}"
-        val steps = listOf(
-            "$packagePath/Game.kt" to { text: String -> withManagersCreated(text, wiringImport) },
-            "$packagePath/GameEntryPoint.kt" to { text: String -> withManagersHandedToTheSceneEditor(text, wiringImport) },
-        )
         val changes = mutableListOf<ProposedFileChange>()
         val byHand = mutableListOf<String>()
-        steps.forEach { (path, change) ->
-            val file = File(rootDirectory, path)
-            val text = if (file.isFile) file.readText() else null
-            if (text == null || ManagerTypeCodeGenerator.WIRING_NAME !in text) {
-                val changed = text?.let(change)
-                if (text != null && changed != null) changes += ProposedFileChange(path, text, changed) else byHand += path
-            }
+        fun propose(path: String, isDone: (String) -> Boolean, change: (String) -> String?): Boolean {
+            val text = read(path)
+            if (text != null && isDone(text)) return true
+            val changed = text?.let(change)
+            if (text != null && changed != null) changes += ProposedFileChange(path, text, changed) else byHand += path
+            return changed != null
+        }
+        val isGameUpgraded = propose("$packagePath/$GAME_FILE", ::loadsScenesThroughWiring) { withScenesLoadedByWiring(it, wiringImport) }
+        propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it }) { withManagersHandedToTheSceneEditor(it, wiringImport) }
+        val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
+        read(sceneLoaderPath)?.takeIf { isGameUpgraded && it.trimEnd() == templateSceneLoader(packageName)?.trimEnd() }?.let { text ->
+            changes += ProposedFileChange(sceneLoaderPath, text, after = null)
         }
         return if (changes.isEmpty() && byHand.isEmpty()) TemplateUpgrade.UpToDate else TemplateUpgrade.Needed(changes, byHand)
     }
@@ -69,7 +74,9 @@ internal class ProjectUpgrader(
         if (upgrade is TemplateUpgrade.Needed) {
             upgrade.changes.forEach { change ->
                 val file = File(rootDirectory, change.path)
-                if (file.readText() == change.before) file.writeText(change.after)
+                if (file.readText() == change.before) {
+                    if (change.after == null) file.delete() else file.writeText(change.after)
+                }
             }
         }
         return check().also { if (it == TemplateUpgrade.UpToDate) recordVersion() }
@@ -82,6 +89,8 @@ internal class ProjectUpgrader(
         if (recordedVersion()?.let { it < CURRENT_VERSION } == true && check() == TemplateUpgrade.UpToDate) recordVersion()
     }
 
+    private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()
+
     private fun recordedVersion() = readSettings()?.let { it["templateVersion"]?.jsonPrimitive?.intOrNull ?: 1 }
 
     private fun readSettings() = settingsFile.takeIf { it.isFile }?.let { runCatching { json.parseToJsonElement(it.readText()).jsonObject }.getOrNull() }
@@ -92,23 +101,43 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 2
+        const val CURRENT_VERSION = 3
+        private const val GAME_FILE = "Game.kt"
+        private const val ENTRY_POINT_FILE = "GameEntryPoint.kt"
+        private const val SCENE_LOADER_FILE = "SceneLoader.kt"
+        private const val SCENE_LOADER_TEMPLATE = "upgrades/SceneLoader-2.kt.template"
         private val json = Json { prettyPrint = true }
+        private val scenePathPattern = Regex("\"${ScenesCodeGenerator.SCENE_DIRECTORY}/([^\"/]+)\\.json\"")
 
         /**
-         * [text] (a `Game.kt`) with the generated Managers added before the `SceneLoader`, so that they are initialized
-         * before the Scene's Actors are added, or null if it doesn't look like the template's.
+         * Whether [text] (a `Game.kt`) passes the generated Managers to Kubriko without a `SceneLoader` of its own.
          */
-        internal fun withManagersCreated(text: String, wiringImport: String): String? {
+        internal fun loadsScenesThroughWiring(text: String) = ManagerTypeCodeGenerator.WIRING_NAME in text && text.lines().none { it.isSceneLoader }
+
+        /**
+         * [text] (a `Game.kt`) with its `SceneLoader` replaced by the generated Managers loading the same first Scene (and
+         * any generated Managers it created already dropped, since they are created again there), or null if it doesn't
+         * look like the template's.
+         */
+        internal fun withScenesLoadedByWiring(text: String, wiringImport: String): String? {
             val lines = text.lines()
             if (lines.count { "Kubriko.newInstance(" in it } != 1) return null
             val start = lines.indexOfFirst { "Kubriko.newInstance(" in it }
-            val sceneLoaders = lines.indices.filter { it > start && lines[it].trimStart().startsWith("SceneLoader(") }
+            val sceneLoaders = lines.indices.filter { it > start && lines[it].isSceneLoader }
             if (sceneLoaders.size != 1) return null
             val sceneLoader = sceneLoaders.single()
+            if (!lines[sceneLoader].trimEnd().endsWith("),")) return null
+            val firstScene = scenePathPattern.find(lines[sceneLoader])?.groupValues?.get(1) ?: return null
             val indent = lines[sceneLoader].takeWhile { it == ' ' }
-            val withManagers = lines.toMutableList().apply { add(sceneLoader, "$indent*${ManagerTypeCodeGenerator.WIRING_NAME}.createManagers().toTypedArray(),") }
-            return withImport(withManagers, wiringImport)
+            val wiring = "*${ManagerTypeCodeGenerator.WIRING_NAME}.createManagers("
+            val changed = lines.mapIndexedNotNull { index, line ->
+                when {
+                    index == sceneLoader -> "$indent${wiring}firstScene = ${BlockCodeGenerator.stringLiteral(firstScene)}).toTypedArray(),"
+                    index > start && line.trim() == "$wiring).toTypedArray()," -> null
+                    else -> line
+                }
+            }
+            return if (wiringImport in changed) changed.joinToString("\n") else withImport(changed, wiringImport)
         }
 
         /**
@@ -127,6 +156,14 @@ internal class ProjectUpgrader(
             }
             return withImport(withOverride, wiringImport)
         }
+
+        /**
+         * The `SceneLoader.kt` that templates before version 3 created in [packageName].
+         */
+        private fun templateSceneLoader(packageName: String) = TemplateFiles.readResource(SCENE_LOADER_TEMPLATE)
+            ?.let { TemplateRenderer.renderContent(it, mapOf("PACKAGE" to packageName)) }
+
+        private val String.isSceneLoader get() = trimStart().startsWith("SceneLoader(")
 
         private fun withImport(lines: List<String>, import: String): String {
             val lastImport = lines.indexOfLast { it.startsWith("import ") }

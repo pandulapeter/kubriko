@@ -200,10 +200,11 @@ class BlockTypeStoreTest {
         assertEquals(listOf(ball, game), store.load())
         assertEquals(ManagerTypeCodeGenerator.generateManagerType(game, "com.example.game", listOf("Ball"), listOf(game)), File(generated, "Game.kt").readText())
         assertContains(File(generated, "KubrikoWiring.kt").readText(), "        Game(isInSceneEditor),\n")
+        assertEquals(ScenesCodeGenerator.generate("com.example.game"), File(generated, "GeneratedScenes.kt").readText())
         store.delete("Game")
         assertFalse(File(root, ".kubriko/managers/Game.json").exists())
         assertFalse(File(generated, "Game.kt").exists())
-        assertContains(File(generated, "KubrikoWiring.kt").readText(), "emptyList()")
+        assertContains(File(generated, "KubrikoWiring.kt").readText(), "        GeneratedScenes(firstScene, isInSceneEditor),\n    )\n")
     }
 
     @Test

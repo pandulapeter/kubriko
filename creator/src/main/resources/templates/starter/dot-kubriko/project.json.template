@@ -1,5 +1,5 @@
 {
     "packageName": "{{PACKAGE}}",
     "sourceDirectory": "src/commonMain/kotlin",
-    "templateVersion": 2
+    "templateVersion": 3
 }

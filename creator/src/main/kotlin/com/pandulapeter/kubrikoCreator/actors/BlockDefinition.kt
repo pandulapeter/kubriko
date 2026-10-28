@@ -170,6 +170,27 @@ internal sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("goToScene")
+    @Description("Removes every Actor from the game and adds the Actors of another Scene instead. Manager types keep their Property values.")
+    data class GoToScene(
+        @Description("The name of the Scene.")
+        @SerialName("scene") val scene: String = "",
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("restartScene")
+    @Description("Removes every Actor from the game and adds the Actors of the current Scene again, as they were placed. Manager types keep their Property values.")
+    data object RestartScene : BlockDefinition
+
+    @Serializable
+    @SerialName("pauseGame")
+    @Description("Pauses or resumes the game. While it is paused, Actors and Timers stop and every frame Events don't run, but key pressed Events still do, so a key can resume it.")
+    data class PauseGame(
+        @Description("Whether it pauses the game, resumes it, or switches between the two.")
+        @SerialName("action") val action: PauseAction = PauseAction.TOGGLE,
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("if")
     @Description("Runs the Blocks after it, up to the matching else or end Block, only when its condition is true. An if Block without an end runs to the end of the Event.")
     data class If(

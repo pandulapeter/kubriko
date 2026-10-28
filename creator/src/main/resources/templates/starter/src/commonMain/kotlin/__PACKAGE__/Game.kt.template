@@ -22,8 +22,7 @@ fun Game(
             GameSerialization.createSerializationManager(),
             CollisionManager.newInstance(),
             KeyboardInputManager.newInstance(),
-            *KubrikoWiring.createManagers().toTypedArray(),
-            SceneLoader(scenePath = "files/scenes/main.json"),
+            *KubrikoWiring.createManagers(firstScene = "main").toTypedArray(),
         )
     }
     DisposableEffect(kubriko) {

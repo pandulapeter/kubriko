@@ -13,9 +13,13 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.block_pause_action_pause
+import kubriko.creator.generated.resources.block_pause_action_resume
+import kubriko.creator.generated.resources.block_pause_action_toggle
 import kubriko.creator.generated.resources.event_added_to_scene
 import kubriko.creator.generated.resources.event_collision
 import kubriko.creator.generated.resources.event_edge_touched
@@ -40,8 +44,11 @@ import kubriko.creator.generated.resources.ic_manager_type
 import kubriko.creator.generated.resources.ic_move_towards
 import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_open_with
+import kubriko.creator.generated.resources.ic_pause
 import kubriko.creator.generated.resources.ic_play
+import kubriko.creator.generated.resources.ic_refresh
 import kubriko.creator.generated.resources.ic_remove_other
+import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.ic_text
 import kubriko.creator.generated.resources.ic_timer
@@ -111,11 +118,21 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.MOVE_TOWARDS_NEAREST -> Res.drawable.ic_move_towards
         BlockKind.START_TIMER -> Res.drawable.ic_timer
         BlockKind.STOP_TIMER -> Res.drawable.ic_timer_off
+        BlockKind.GO_TO_SCENE -> Res.drawable.ic_scene
+        BlockKind.RESTART_SCENE -> Res.drawable.ic_refresh
+        BlockKind.PAUSE_GAME -> Res.drawable.ic_pause
         BlockKind.IF, BlockKind.ELSE -> Res.drawable.ic_condition
         BlockKind.REPEAT -> Res.drawable.ic_loop
         BlockKind.END -> Res.drawable.ic_end
         BlockKind.LOG -> Res.drawable.ic_console
         BlockKind.KOTLIN -> Res.drawable.ic_code
+    }
+
+internal val PauseAction.title: StringResource
+    get() = when (this) {
+        PauseAction.PAUSE -> Res.string.block_pause_action_pause
+        PauseAction.RESUME -> Res.string.block_pause_action_resume
+        PauseAction.TOGGLE -> Res.string.block_pause_action_toggle
     }
 
 internal val KeyChoice.title: StringResource

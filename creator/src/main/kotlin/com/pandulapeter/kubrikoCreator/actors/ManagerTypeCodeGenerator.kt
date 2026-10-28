@@ -10,8 +10,10 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.floatLiteral
@@ -55,6 +57,10 @@ internal object ManagerTypeCodeGenerator {
         val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
         val texts = definition.texts.map { templateLiteral(it.text, scope) }
         val usedManagers = scope.managersUsedBy(generatedBlocks, definition.texts.map { it.text })
+        val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks)
+        val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() }
+        val keys = keyEvents.mapNotNull { it.key }.distinct().sorted()
+        val usesStateManager = runsEveryFrame || BlockCodeGenerator.usesPause(generatedBlocks)
         val imports = buildSet {
             add("com.pandulapeter.kubriko.Kubriko")
             add("com.pandulapeter.kubriko.manager.ActorManager")
@@ -63,8 +69,8 @@ internal object ManagerTypeCodeGenerator {
             if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
             if (definition.properties.any { it !is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableStateOf")
             if (definition.properties.isNotEmpty()) addAll(listOf("androidx.compose.runtime.getValue", "androidx.compose.runtime.setValue"))
-            if (keyEvents.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
-            if (usesKeyHeld) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"))
+            if (usesKeyHeld || keys.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"))
+            if (usesStateManager) add(STATE_MANAGER_IMPORT)
             if (generatedBlocks.any { it is BlockDefinition.Log }) add("com.pandulapeter.kubriko.logger.Logger")
             if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
             if (generatedBlocks.any { it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames }) addAll(listOf("com.pandulapeter.kubriko.helpers.extensions.sceneUnit", "com.pandulapeter.kubriko.types.SceneOffset"))
@@ -80,14 +86,16 @@ internal object ManagerTypeCodeGenerator {
             appendLine(" */")
             appendLine("class $name(")
             appendLine("    private val isInSceneEditor: Boolean = false,")
-            appendLine(") : Manager()${if (keyEvents.isNotEmpty()) ", KeyboardInputAware" else ""} {")
+            appendLine(") : Manager() {")
             definition.properties.forEach { property ->
                 appendLine("    var ${property.name} by ${if (property is PropertyDefinition.Number) "mutableFloatStateOf" else "mutableStateOf"}(${initialValueLiteral(property)})")
             }
             if (definition.properties.isNotEmpty()) appendLine()
             appendLine("    private val actorManager by manager<ActorManager>()")
             appendLine("    private val viewportManager by manager<ViewportManager>()")
-            if (usesKeyHeld) appendLine("    private val keyboardInputManager by manager<KeyboardInputManager>()")
+            if (usesKeyHeld || keys.isNotEmpty()) appendLine("    private val keyboardInputManager by manager<KeyboardInputManager>()")
+            if (usesStateManager) appendLine("    private val $STATE_MANAGER_FIELD by manager<StateManager>()")
+            if (usesScenes) appendLine("    private val $SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()")
             usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
             timers.forEach { timer ->
                 appendLine()
@@ -97,6 +105,13 @@ internal object ManagerTypeCodeGenerator {
                 appendLine("    private var ${remainingField(timer)} = 0L")
                 appendLine("    private var ${periodField(timer)} = 0L")
             }
+            if (keys.isNotEmpty()) {
+                appendLine()
+                appendLine("    /**")
+                appendLine("     * Whether each key that a key pressed Event uses was down in the previous frame, so that the Event runs once per press.")
+                appendLine("     */")
+                keys.forEach { appendLine("    private var ${keyDownField(it)} = false") }
+            }
             if (startEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()
                 appendLine("    override fun onInitialize(kubriko: Kubriko) {")
@@ -104,15 +119,18 @@ internal object ManagerTypeCodeGenerator {
                 appendEvents(startEvents, depth = 2, scope = scope)
                 appendLine("    }")
             }
-            if (timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() }) {
+            if (runsEveryFrame || keys.isNotEmpty()) {
                 appendLine()
                 appendLine("    override fun onUpdate(deltaTimeInMilliseconds: Int) {")
                 appendLine("        $SCENE_EDITOR_GUARD")
-                timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
-                appendEvents(frameEvents, depth = 2, scope = scope)
+                appendKeyPolling(keyEvents, keys, scope)
+                if (runsEveryFrame) {
+                    appendLine("        if (!$STATE_MANAGER_FIELD.isRunning.value) return")
+                    timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
+                    appendEvents(frameEvents, depth = 2, scope = scope)
+                }
                 appendLine("    }")
             }
-            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope, guard = SCENE_EDITOR_GUARD)
             if (texts.isNotEmpty()) appendTexts(definition.texts, texts)
             if (texts.any { ".$NUMBER_TEXT_FUNCTION()" in it } || generatedBlocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) }) {
                 appendLine()
@@ -133,19 +151,33 @@ internal object ManagerTypeCodeGenerator {
         appendLine("object $WIRING_NAME {")
         appendLine()
         appendLine("    /**")
-        appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, for Kubriko.newInstance.")
+        appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, and the one that loads Scenes, for Kubriko.newInstance.")
         appendLine("     *")
-        appendLine("     * @param isInSceneEditor True in the Scene editor, where their Events don't run.")
+        appendLine("     * @param isInSceneEditor True in the Scene editor, where their Events don't run and no Scene is loaded.")
+        appendLine("     * @param firstScene The name of the Scene loaded when the game starts, or null to load none.")
         appendLine("     */")
-        if (managerTypeNames.isEmpty()) {
-            appendLine("    fun createManagers(@Suppress(\"UNUSED_PARAMETER\") isInSceneEditor: Boolean = false): List<Manager> = emptyList()")
-        } else {
-            appendLine("    fun createManagers(isInSceneEditor: Boolean = false): List<Manager> = listOf(")
-            managerTypeNames.sorted().forEach { appendLine("        $it(isInSceneEditor),") }
-            appendLine("    )")
-        }
+        appendLine("    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> = listOf(")
+        appendLine("        ${ScenesCodeGenerator.SCENES_NAME}(firstScene, isInSceneEditor),")
+        managerTypeNames.sorted().forEach { appendLine("        $it(isInSceneEditor),") }
+        appendLine("    )")
         appendLine("}")
     })
+
+    /**
+     * Runs the key pressed Events of each of [keys] once when it goes down. Kubriko only tells Actors about key presses, so
+     * a Manager polls the keys instead, before the pause check, so that a key can resume the game.
+     */
+    private fun StringBuilder.appendKeyPolling(keyEvents: List<EventDefinition>, keys: List<KeyChoice>, scope: BlockScope) = keys.forEach { key ->
+        val field = keyDownField(key)
+        appendLine("        if (keyboardInputManager.isKeyPressed(Key.${key.composeKeyName}) != $field) {")
+        appendLine("            $field = !$field")
+        appendLine("            if ($field) {")
+        appendEvents(keyEvents.filter { it.key == key }, depth = 4, scope = scope)
+        appendLine("            }")
+        appendLine("        }")
+    }
+
+    private fun keyDownField(key: KeyChoice) = "isKey${key.composeKeyName}Down"
 
     private fun StringBuilder.appendTexts(definitions: List<ScreenTextDefinition>, texts: List<String>) {
         appendLine()

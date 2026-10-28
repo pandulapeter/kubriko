@@ -29,6 +29,8 @@ class ProjectUpgraderTest {
     private val settingsFile = File(directory, ".kubriko/project.json")
     private val newGame = File(packageDirectory, "Game.kt").readText()
     private val newEntryPoint = File(packageDirectory, "GameEntryPoint.kt").readText()
+    private val sceneLoaderFile = File(packageDirectory, "SceneLoader.kt")
+    private val oldSceneLoader = TemplateRenderer.renderContent(checkNotNull(TemplateFiles.readResource("upgrades/SceneLoader-2.kt.template")), mapOf("PACKAGE" to "com.example.mygame"))
 
     @AfterTest
     fun tearDown() {
@@ -37,18 +39,29 @@ class ProjectUpgraderTest {
 
     /**
      * The project as the template made it before Manager types: `Game.kt` and `GameEntryPoint.kt` without
-     * `KubrikoWiring`, and no template version.
+     * `KubrikoWiring`, the template's `SceneLoader.kt`, and no template version.
      */
-    private fun makeItOld() {
-        File(packageDirectory, "Game.kt").writeText(OLD_GAME)
+    private fun makeItOld(game: String = OLD_GAME) {
+        File(packageDirectory, "Game.kt").writeText(game)
         File(packageDirectory, "GameEntryPoint.kt").writeText(OLD_ENTRY_POINT)
+        sceneLoaderFile.writeText(oldSceneLoader)
         settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "extra": true }""")
+    }
+
+    /**
+     * The project as version 2 of the template made it: Manager types wired, but Scenes loaded by its own `SceneLoader`.
+     */
+    private fun makeItVersion2() {
+        makeItOld(game = OLD_GAME.replace(SCENE_LOADER_LINE, "            *KubrikoWiring.createManagers().toTypedArray(),\n$SCENE_LOADER_LINE").replace(KUBRIKO_IMPORT, "$KUBRIKO_IMPORT\n$WIRING_IMPORT"))
+        File(packageDirectory, "GameEntryPoint.kt").writeText(newEntryPoint)
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 2 }""")
     }
 
     @Test
     fun aNewProjectIsUpToDate() {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 2")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 3")
+        assertFalse(sceneLoaderFile.exists())
     }
 
     @Test
@@ -61,35 +74,69 @@ class ProjectUpgraderTest {
     fun upgradingAnOldProjectMakesItsFilesWhatTheTemplateMakesNow() {
         makeItOld()
         val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
-        assertEquals(listOf("src/commonMain/kotlin/com/example/mygame/Game.kt", "src/commonMain/kotlin/com/example/mygame/GameEntryPoint.kt"), upgrade.changes.map { it.path })
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", "$PACKAGE_PATH/GameEntryPoint.kt", "$PACKAGE_PATH/SceneLoader.kt"), upgrade.changes.map { it.path })
+        assertNull(upgrade.changes.last().after)
         assertEquals(emptyList(), upgrade.byHand)
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
         assertEquals(newEntryPoint, File(packageDirectory, "GameEntryPoint.kt").readText())
+        assertFalse(sceneLoaderFile.exists())
         val settings = settingsFile.readText()
-        assertContains(settings, "\"templateVersion\": 2")
+        assertContains(settings, "\"templateVersion\": 3")
         assertContains(settings, "\"extra\": true")
     }
 
     @Test
+    fun upgradingAVersion2ProjectHandsTheFirstSceneToTheGeneratedManagers() {
+        makeItVersion2()
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", "$PACKAGE_PATH/SceneLoader.kt"), upgrade.changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
+        assertFalse(sceneLoaderFile.exists())
+        assertContains(settingsFile.readText(), "\"templateVersion\": 3")
+    }
+
+    @Test
+    fun aSceneLoaderChangedByHandIsKept() {
+        makeItVersion2()
+        sceneLoaderFile.writeText(oldSceneLoader + "\n// Mine.\n")
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertContains(sceneLoaderFile.readText(), "// Mine.")
+    }
+
+    @Test
     fun filesThatChangedTooMuchAreLeftToTheUser() {
-        makeItOld()
-        File(packageDirectory, "Game.kt").writeText(OLD_GAME.replace("            SceneLoader(scenePath = \"files/scenes/main.json\"),\n", ""))
+        makeItOld(game = OLD_GAME.replace("$SCENE_LOADER_LINE\n", ""))
         val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).apply())
-        assertEquals(listOf("src/commonMain/kotlin/com/example/mygame/Game.kt"), upgrade.byHand)
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt"), upgrade.byHand)
+        assertEquals(emptyList(), upgrade.changes, "SceneLoader.kt stays while Game.kt may still use it")
         assertEquals(newEntryPoint, File(packageDirectory, "GameEntryPoint.kt").readText())
         assertFalse("templateVersion" in settingsFile.readText())
     }
 
     @Test
+    fun aSceneLoaderOutsideTheScenesFolderOrOnSeveralLinesIsLeftToTheUser() {
+        listOf(
+            "    SceneLoader(scenePath = \"files/levels/main.json\"),",
+            "    SceneLoader(\n        scenePath = \"files/scenes/main.json\",\n    ),",
+            "    SceneLoader(scenePath = path),",
+        ).forEach { sceneLoader ->
+            assertNull(ProjectUpgrader.withScenesLoadedByWiring("fun x() = Kubriko.newInstance(\n$sceneLoader\n)", "import c"), sceneLoader)
+        }
+    }
+
+    @Test
     fun filesUpgradedByHandCountAsDone() {
         makeItOld()
-        File(packageDirectory, "Game.kt").writeText(newGame.replace("SceneLoader(", "MyOwnLoader("))
+        File(packageDirectory, "Game.kt").writeText(newGame)
         File(packageDirectory, "GameEntryPoint.kt").delete()
-        assertEquals(listOf("src/commonMain/kotlin/com/example/mygame/GameEntryPoint.kt"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).byHand)
+        assertEquals(listOf("$PACKAGE_PATH/GameEntryPoint.kt"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).byHand)
         File(packageDirectory, "GameEntryPoint.kt").writeText(newEntryPoint)
+        sceneLoaderFile.delete()
         ProjectUpgrader(directory).recordVersionIfUpToDate()
-        assertContains(settingsFile.readText(), "\"templateVersion\": 2")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 3")
     }
 
     @Test
@@ -98,18 +145,19 @@ class ProjectUpgraderTest {
     }
 
     @Test
-    fun theImportGoesAfterTheLastOneOrUnderThePackage() {
-        assertEquals(
-            "package a\n\nimport b\nimport c\n\nfun x() = Kubriko.newInstance(\n    *KubrikoWiring.createManagers().toTypedArray(),\n    SceneLoader(),\n)",
-            ProjectUpgrader.withManagersCreated("package a\n\nimport b\n\nfun x() = Kubriko.newInstance(\n    SceneLoader(),\n)", "import c"),
-        )
-        assertEquals(
-            "package a\n\nimport c\n\nfun x() = Kubriko.newInstance(\n    *KubrikoWiring.createManagers().toTypedArray(),\n    SceneLoader(),\n)",
-            ProjectUpgrader.withManagersCreated("package a\n\nfun x() = Kubriko.newInstance(\n    SceneLoader(),\n)", "import c"),
-        )
+    fun theImportGoesAfterTheLastOneOrUnderThePackageUnlessItIsThere() {
+        val newInstance = "fun x() = Kubriko.newInstance(\n    *KubrikoWiring.createManagers(firstScene = \"level-1\").toTypedArray(),\n)"
+        val sceneLoader = "fun x() = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/level-1.json\"),\n)"
+        assertEquals("package a\n\nimport b\nimport c\n\n$newInstance", ProjectUpgrader.withScenesLoadedByWiring("package a\n\nimport b\n\n$sceneLoader", "import c"))
+        assertEquals("package a\n\nimport c\n\n$newInstance", ProjectUpgrader.withScenesLoadedByWiring("package a\n\n$sceneLoader", "import c"))
+        assertEquals("package a\n\nimport c\n\n$newInstance", ProjectUpgrader.withScenesLoadedByWiring("package a\n\nimport c\n\n$sceneLoader", "import c"))
     }
 
     companion object {
+        private const val PACKAGE_PATH = "src/commonMain/kotlin/com/example/mygame"
+        private const val SCENE_LOADER_LINE = "            SceneLoader(scenePath = \"files/scenes/main.json\"),"
+        private const val KUBRIKO_IMPORT = "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
+        private const val WIRING_IMPORT = "import com.example.mygame.generated.KubrikoWiring"
         private val OLD_GAME = """
             |package com.example.mygame
             |

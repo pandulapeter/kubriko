@@ -29,7 +29,7 @@ class BlockTypeNamingTest {
 
     @Test
     fun namesTheGeneratedCodeAlreadyUsesAreReserved() {
-        listOf("GeneratedActorTypes", "State", "Color").forEach {
+        listOf("GeneratedActorTypes", "GeneratedScenes", "StateManager", "State", "Color").forEach {
             assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }

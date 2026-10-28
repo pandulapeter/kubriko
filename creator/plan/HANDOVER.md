@@ -12,23 +12,29 @@
 The state between sessions: where the last one stopped, what to do next, and what was never checked by hand. Each session rewrites it
 before it ends. What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
-## State (as of 209bbe1f, not pushed since a957441b)
+## State (not pushed since a957441b)
 
-- **Manager types exist:** game-wide Properties, Events, and texts on screen, built like Actor types. Actors and other Managers use their
-  Properties through the Blocks' `manager` and `{Game.score}` placeholders. `KubrikoWiring` creates them.
-- **Template upgrades exist:** older projects get a notice and a diff dialog that adds the `KubrikoWiring` calls to `Game.kt` and
-  `GameEntryPoint.kt`.
-- **Checked live** on a scratch Breakout copy: a Brick hit raised "Score: 20" on screen. All unit tests and the integration test pass.
+- **Scene Blocks exist:** go to a Scene, restart the Scene, and pause / resume / toggle, through the generated `GeneratedScenes`
+  Manager and `StateManager`. Template version 3 hands the first Scene to `KubrikoWiring.createManagers(firstScene = …)` and deletes
+  the template's `SceneLoader.kt`; the upgrade can now delete files.
+- **Fixed on the way:** a Manager type's key pressed Events never ran (Kubriko's keyboard plugin only tells Actors), so Manager types
+  now poll their keys in `onUpdate`. A key tapped and released within one frame is missed; a plugin change that tells Managers too
+  would fix that, but changes a published library's behavior, so it needs the user's OK.
+- **Checked live** on a scratch Breakout copy (version 2): the upgrade proposed exactly Game.kt plus deleting SceneLoader.kt, Enter
+  went to `level-2`, W froze and resumed the game, and S restarted the Scene. All unit tests and the integration test pass.
 - **AI work is paused** by the user's choice: only fix bugs in what exists.
 
 ## Next
 
-1. The Scene Blocks (`02-blocks.md` → Next additions): go to another Scene, restart, pause, and Scene settings.
+1. Scene settings (`02-blocks.md` → Next additions): size, background, camera start, and music as a `Unique` `Editable` Actor, and a
+   condition for whether the game is paused.
 2. Kotlin UI for Manager types (`02-blocks.md` → Game UI).
 3. Audio, sprites, and the rest of `02-blocks.md`.
 
 ## Never checked by hand
 
+- The go to a Scene card's Scene menu (the pause card was seen in a screenshot), and the upgrade dialog's "deleted" file row.
+- A paused game in the embedded Scene editor (its Managers' Events don't run there, so it should be unaffected).
 - The "score of Game" Property menu in an Actor's Block.
 - A Scene whose Actors use a Manager, in the embedded Scene editor (`createCustomManagers`, `isInSceneEditor`).
 - The Manager type, text, and upgrade tools from a real AI session.

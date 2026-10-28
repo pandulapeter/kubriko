@@ -24,6 +24,6 @@ internal object TemplateFiles {
 
     internal val ProjectTemplate.root get() = "templates/$id"
 
-    private fun readResource(name: String) = TemplateFiles::class.java.classLoader.getResourceAsStream(name)?.use { it.readBytes().decodeToString() }
+    internal fun readResource(name: String) = TemplateFiles::class.java.classLoader.getResourceAsStream(name)?.use { it.readBytes().decodeToString() }
         ?: error("$name is missing from the app's resources.")
 }

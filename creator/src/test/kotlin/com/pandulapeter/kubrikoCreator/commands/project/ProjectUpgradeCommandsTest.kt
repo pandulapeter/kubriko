@@ -39,7 +39,7 @@ class ProjectUpgradeCommandsTest {
         File(root, ".kubriko").mkdirs()
         File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
         game.parentFile.mkdirs()
-        game.writeText("package com.example.game\n\nimport a.B\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(),\n)\n")
+        game.writeText("package com.example.game\n\nimport a.B\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
         entryPoint.writeText("package com.example.game\n\nclass GameEntryPoint : CreatorEntryPoint {\n\n    override fun createSerializationManager() = GameSerialization.createSerializationManager()\n}\n")
     }
 
@@ -51,7 +51,7 @@ class ProjectUpgradeCommandsTest {
         assertEquals("true", upgrade.getValue("isNeeded").jsonPrimitive.content)
         val changes = upgrade.getValue("changes") as JsonArray
         assertEquals(listOf("src/commonMain/kotlin/com/example/game/Game.kt", "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"), changes.map { it.jsonObject.getValue("path").jsonPrimitive.content })
-        assertContains(changes[0].jsonObject.getValue("after").jsonPrimitive.content, "    *KubrikoWiring.createManagers().toTypedArray(),\n    SceneLoader(),")
+        assertContains(changes[0].jsonObject.getValue("after").jsonPrimitive.content, "    *KubrikoWiring.createManagers(firstScene = \"main\").toTypedArray(),\n)")
         assertEquals("""{"name":"game","usesBlockBuiltActorTypes":true,"actorTypes":[],"managerTypes":[],"scenes":[],"needsUpgrade":true}""", assertIs<CommandOutcome.Success>(GetProjectOverview.read(context, NoInput)).result.toString())
     }
 
@@ -64,7 +64,7 @@ class ProjectUpgradeCommandsTest {
         assertNull(Invocation(UpgradeProject, NoInput).apply(context).inverse)
         assertContains(game.readText(), "import com.example.game.generated.KubrikoWiring\n")
         assertContains(entryPoint.readText(), "    override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)\n")
-        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 2")
+        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 3")
         assertEquals(1, upgradedCount)
         assertEquals(Rejection(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).validate(context))
     }

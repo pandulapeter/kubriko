@@ -14,6 +14,9 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandli
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.blockLines
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventLines
@@ -59,6 +62,8 @@ internal object ActorTypeCodeGenerator {
         val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
         val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
         val usedManagers = scope.managersUsedBy(generatedBlocks)
+        val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks)
+        val usesPause = BlockCodeGenerator.usesPause(generatedBlocks)
         val traits = listOfNotNull(
             "Visible",
             "Dynamic",
@@ -83,6 +88,7 @@ internal object ActorTypeCodeGenerator {
             if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log } }) add("com.pandulapeter.kubriko.logger.Logger")
             if (collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }) add("com.pandulapeter.kubriko.types.SceneUnit")
             if (usesKeyHeld) addAll(KEYBOARD_MANAGER_IMPORTS)
+            if (usesPause) add(STATE_MANAGER_IMPORT)
             if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
             if (generatedBlocks.any { it is BlockDefinition.MoveTowardsNearest && it.actorType in knownActorTypeNames }) {
                 add("com.pandulapeter.kubriko.helpers.extensions.distanceTo")
@@ -116,6 +122,8 @@ internal object ActorTypeCodeGenerator {
             appendLine("    private lateinit var actorManager: ActorManager")
             appendLine("    private lateinit var viewportManager: ViewportManager")
             if (usesKeyHeld) appendLine("    private lateinit var keyboardInputManager: KeyboardInputManager")
+            if (usesPause) appendLine("    private lateinit var $STATE_MANAGER_FIELD: StateManager")
+            if (usesScenes) appendLine("    private lateinit var $SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}")
             usedManagers.forEach { appendLine("    private lateinit var ${scope.managerField(it)}: $it") }
             timers.forEach { timer ->
                 appendLine()
@@ -130,6 +138,8 @@ internal object ActorTypeCodeGenerator {
             appendLine("        actorManager = kubriko.get()")
             appendLine("        viewportManager = kubriko.get()")
             if (usesKeyHeld) appendLine("        keyboardInputManager = kubriko.get()")
+            if (usesPause) appendLine("        $STATE_MANAGER_FIELD = kubriko.get()")
+            if (usesScenes) appendLine("        $SCENES_FIELD = kubriko.get()")
             usedManagers.forEach { appendLine("        ${scope.managerField(it)} = kubriko.get()") }
             appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, scope = scope)
             appendLine("    }")

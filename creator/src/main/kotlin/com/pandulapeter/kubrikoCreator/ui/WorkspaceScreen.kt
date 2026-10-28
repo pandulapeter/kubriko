@@ -52,6 +52,7 @@ import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
+import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
@@ -204,7 +205,9 @@ internal fun WorkspaceScreen(
                 BlockTypeEditor(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     definition = selectedBlockType,
-                    scope = remember(selectedBlockType, blockTypes) { BlockScope.of(selectedBlockType, blockTypes) },
+                    scope = remember(selectedBlockType, blockTypes, resources) {
+                        BlockScope.of(selectedBlockType, blockTypes, resources[ResourceGroup.SCENES].orEmpty().map { it.file.nameWithoutExtension }.distinct().sorted())
+                    },
                     isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
                     onCommand = { controller.commands.dispatch(it) },
                     highlight = latestAiStep?.highlightIn(selectedBlockType.name),
