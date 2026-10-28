@@ -30,6 +30,7 @@ import kubriko.creator.generated.resources.block_remove_other
 import kubriko.creator.generated.resources.block_remove_self
 import kubriko.creator.generated.resources.block_repeat
 import kubriko.creator.generated.resources.block_restart_scene
+import kubriko.creator.generated.resources.block_run_parent_event
 import kubriko.creator.generated.resources.block_set_number
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
@@ -51,6 +52,7 @@ internal enum class BlockKind(
     SET_VELOCITY(Res.string.block_set_velocity, { BlockDefinition.SetVelocity(x = 200f, y = 0f) }, needsActor = true),
     ADD_TO_VELOCITY(Res.string.block_add_to_velocity, { BlockDefinition.AddToVelocity(x = 50f, y = 0f) }, needsActor = true),
     STOP(Res.string.block_stop, { BlockDefinition.Stop }, needsActor = true),
+    RUN_PARENT_EVENT(Res.string.block_run_parent_event, { BlockDefinition.RunParentEvent }, needsActor = true),
     JUMP_TO(Res.string.block_jump_to, { BlockDefinition.JumpTo() }, needsActor = true),
     BOUNCE_OFF_EDGE(Res.string.block_bounce_off_edge, { BlockDefinition.BounceOffEdge }, needsActor = true),
     REMOVE_SELF(Res.string.block_remove_self, { BlockDefinition.RemoveSelf }, needsActor = true),
@@ -95,6 +97,7 @@ internal enum class BlockKind(
             is BlockDefinition.SetVelocity -> SET_VELOCITY
             is BlockDefinition.AddToVelocity -> ADD_TO_VELOCITY
             BlockDefinition.Stop -> STOP
+            BlockDefinition.RunParentEvent -> RUN_PARENT_EVENT
             is BlockDefinition.JumpTo -> JUMP_TO
             BlockDefinition.BounceOffEdge -> BOUNCE_OFF_EDGE
             BlockDefinition.RemoveSelf -> REMOVE_SELF

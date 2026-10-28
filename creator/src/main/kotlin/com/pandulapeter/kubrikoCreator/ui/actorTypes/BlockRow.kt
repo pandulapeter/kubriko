@@ -238,7 +238,7 @@ private fun InlineParameters(
         onValueChange = { onBlockChange(block.copy(message = it)) },
         placeholder = stringResource(Res.string.block_parameter_message),
     )
-    BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
+    BlockDefinition.Stop, BlockDefinition.RunParentEvent, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
     BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene, BlockDefinition.StopMusic -> Unit
 }
 
@@ -289,6 +289,7 @@ private val kindsWithoutParameters = setOf(
     BlockKind.REMOVE_OTHER,
     BlockKind.ELSE,
     BlockKind.END,
+    BlockKind.RUN_PARENT_EVENT,
     BlockKind.KOTLIN,
     BlockKind.RESTART_SCENE,
     BlockKind.STOP_MUSIC,

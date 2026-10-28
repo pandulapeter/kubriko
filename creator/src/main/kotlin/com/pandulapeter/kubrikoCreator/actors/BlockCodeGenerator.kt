@@ -136,6 +136,7 @@ internal object BlockCodeGenerator {
         is BlockDefinition.SetVelocity -> listOf("velocity = ${offsetLiteral(block.x, block.y)}")
         is BlockDefinition.AddToVelocity -> listOf("velocity += ${offsetLiteral(block.x, block.y)}")
         BlockDefinition.Stop -> listOf("velocity = SceneOffset.Zero")
+        BlockDefinition.RunParentEvent -> listOf(scope.parentEventCall ?: "// Only an Actor type with a parent runs its parent's Event.")
         is BlockDefinition.JumpTo -> listOf("body.position = ${offsetLiteral(block.x, block.y)}")
         BlockDefinition.BounceOffEdge -> if (eventType == EventType.EDGE_TOUCHED) {
             listOf(
@@ -178,13 +179,14 @@ internal object BlockCodeGenerator {
             listOf("// Choose an Actor type for this Block.")
         }
         is BlockDefinition.MoveTowardsNearest -> if (block.actorType in scope.actorTypeNames) {
+            val actorClass = scope.classOf(block.actorType)
             listOf(
                 "run {",
                 "    val actors = actorManager.allActors.value",
-                "    var nearest: ${block.actorType}? = null",
+                "    var nearest: $actorClass? = null",
                 "    for (index in actors.indices) {",
-                "        val candidate = actors[index] as? ${block.actorType} ?: continue",
-                "        if (${if (block.actorType == scope.typeName) "candidate !== this && " else ""}(nearest == null || body.position.distanceTo(candidate.body.position) < body.position.distanceTo(nearest.body.position))) {",
+                "        val candidate = actors[index] as? $actorClass ?: continue",
+                "        if (${if (block.actorType == scope.typeName || block.actorType in scope.ancestorNames) "candidate !== this && " else ""}(nearest == null || body.position.distanceTo(candidate.body.position) < body.position.distanceTo(nearest.body.position))) {",
                 "            nearest = candidate",
                 "        }",
                 "    }",

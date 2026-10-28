@@ -79,6 +79,7 @@
     <string name="error_type_name_taken">There's already an Actor type or Manager type with that name.</string>
     <string name="block_set_velocity">Set velocity</string>
     <string name="block_add_to_velocity">Add to velocity</string>
+    <string name="block_run_parent_event">Run the parent's Event</string>
     <string name="block_stop">Stop</string>
     <string name="block_jump_to">Jump to position</string>
     <string name="block_bounce_off_edge">Bounce off the edge</string>

@@ -89,6 +89,7 @@ internal class BlockTypeStore private constructor(
                             knownActorTypeNames = actorTypeNames,
                             managerTypes = managerTypes,
                             collidableActorTypeNames = pluginManagers.collidableActorTypeNames,
+                            actorTypes = definitions.filterIsInstance<ActorTypeDefinition>(),
                         )
                         is ManagerTypeDefinition -> ManagerTypeCodeGenerator.generateManagerType(definition, settings.packageName, actorTypeNames, managerTypes)
                     },

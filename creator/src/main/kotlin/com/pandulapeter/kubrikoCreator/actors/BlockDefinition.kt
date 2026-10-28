@@ -43,6 +43,11 @@ internal sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("runParentEvent")
+    @Description("Runs the Blocks of the parent Actor type's Event that this Event replaces (GameMaker's event_inherited), here. Only in an Actor type with a parent.")
+    data object RunParentEvent : BlockDefinition
+
+    @Serializable
     @SerialName("stop")
     @Description("Sets the velocity of the Actor to zero.")
     data object Stop : BlockDefinition

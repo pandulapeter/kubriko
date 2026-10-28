@@ -130,6 +130,7 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.IF, BlockKind.ELSE -> Res.drawable.ic_condition
         BlockKind.REPEAT -> Res.drawable.ic_loop
         BlockKind.END -> Res.drawable.ic_end
+        BlockKind.RUN_PARENT_EVENT -> Res.drawable.ic_actor_type
         BlockKind.LOG -> Res.drawable.ic_console
         BlockKind.KOTLIN -> Res.drawable.ic_code
     }

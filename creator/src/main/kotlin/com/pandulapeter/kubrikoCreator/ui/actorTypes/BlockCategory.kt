@@ -55,7 +55,7 @@ internal enum class BlockCategory(
     ),
     ACTORS(Res.string.block_category_actors, Res.drawable.ic_actor_type, listOf(BlockKind.ADD_ACTOR, BlockKind.REMOVE_SELF, BlockKind.REMOVE_OTHER)),
     PROPERTIES(Res.string.block_category_properties, Res.drawable.ic_property, listOf(BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER, BlockKind.SET_TEXT, BlockKind.SET_TOGGLE)),
-    FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END)),
+    FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END, BlockKind.RUN_PARENT_EVENT)),
     TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),
     SCENES(Res.string.block_category_scenes, Res.drawable.ic_scene, listOf(BlockKind.GO_TO_SCENE, BlockKind.RESTART_SCENE, BlockKind.PAUSE_GAME)),
     AUDIO(Res.string.block_category_audio, Res.drawable.ic_sound, listOf(BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC, BlockKind.STOP_MUSIC)),

@@ -18,6 +18,9 @@ package com.pandulapeter.kubrikoCreator.actors
  * @param sceneNames Every Scene of the project, or null where they aren't known (the generated code loads Scenes by
  *   name, and reports a missing one while the game runs).
  * @param audioFiles The sounds and music of the project, or null where they aren't known.
+ * @param baseClassNames The Actor types with children, whose Actors (and their children's) are instances of a base class.
+ * @param ancestorNames The Actor type's ancestors, its parent first.
+ * @param parentEventCall How the code of the Event being generated runs its parent's Event, or null where there is none.
  */
 internal data class BlockScope(
     val typeName: String,
@@ -27,7 +30,15 @@ internal data class BlockScope(
     val managerTypes: List<ManagerTypeDefinition> = emptyList(),
     val sceneNames: List<String>? = null,
     val audioFiles: AudioFiles? = null,
+    val baseClassNames: Set<String> = emptySet(),
+    val ancestorNames: List<String> = emptyList(),
+    val parentEventCall: String? = null,
 ) {
+    /**
+     * The class Actors of [actorType] are instances of, its children's too: its base class if it has children.
+     */
+    fun classOf(actorType: String) = if (actorType in baseClassNames) actorType + BlockTypeNaming.BASE_SUFFIX else actorType
+
     /**
      * The Properties of [manager], or of the type itself if it is null (or names the Manager type being generated), or
      * null if there is no such Manager type.
@@ -78,14 +89,20 @@ internal data class BlockScope(
             types: List<BlockTypeDefinition>,
             sceneNames: List<String>? = null,
             audioFiles: AudioFiles? = null,
-        ) = BlockScope(
-            typeName = definition.name,
-            kind = definition.kind,
-            properties = definition.properties,
-            actorTypeNames = types.filterIsInstance<ActorTypeDefinition>().map { it.name },
-            managerTypes = types.filterIsInstance<ManagerTypeDefinition>(),
-            sceneNames = sceneNames,
-            audioFiles = audioFiles,
-        )
+        ): BlockScope {
+            val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
+            val family = ActorTypeFamily(actorTypes)
+            return BlockScope(
+                typeName = definition.name,
+                kind = definition.kind,
+                properties = if (definition is ActorTypeDefinition) family.propertiesOf(definition.name).ifEmpty { definition.properties } else definition.properties,
+                actorTypeNames = actorTypes.map { it.name },
+                managerTypes = types.filterIsInstance<ManagerTypeDefinition>(),
+                sceneNames = sceneNames,
+                audioFiles = audioFiles,
+                baseClassNames = actorTypes.map { it.name }.filterTo(mutableSetOf(), family::hasChildren),
+                ancestorNames = family.ancestorsOf(definition.name),
+            )
+        }
     }
 }

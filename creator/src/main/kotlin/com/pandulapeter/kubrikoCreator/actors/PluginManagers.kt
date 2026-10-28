@@ -38,10 +38,12 @@ internal data class PluginManagers(
         fun of(definitions: List<BlockTypeDefinition>, sceneMusic: Set<String> = emptySet()): PluginManagers {
             val actorTypes = definitions.filterIsInstance<ActorTypeDefinition>()
             val actorTypeNames = actorTypes.mapTo(mutableSetOf()) { it.name }
+            val family = ActorTypeFamily(actorTypes)
+            // A parent stands for its children, and children inherit their parent's Events.
             val collidableActorTypeNames = actorTypes.flatMapTo(mutableSetOf()) { definition ->
-                definition.events
+                family.eventsOf(definition.name)
                     .filter { it.type == EventType.COLLISION && it.otherActorType in actorTypeNames }
-                    .flatMap { listOf(definition.name, it.otherActorType!!) }
+                    .flatMap { listOf(definition.name) + family.familyOf(it.otherActorType!!) }
             }
             val usesKeyboard = definitions.any { definition ->
                 definition.events.any { event ->

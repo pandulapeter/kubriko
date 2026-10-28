@@ -69,7 +69,7 @@ class ProjectTemplateIntegrationTest {
                         directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->
                             ImageIO.write(BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB), "png", image)
                         }
-                        listOf(everyBlockInEveryEvent, everyManager, hud).forEach(store::save)
+                        (listOf(everyBlockInEveryEvent, everyManager, hud) + family).forEach(store::save)
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
                         listOf("audioPlayback", "collision", "keyboardInput", "sprites").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
                         assertCompiles(connection, directory, "${template.id} with every Block")
@@ -217,6 +217,34 @@ class ProjectTemplateIntegrationTest {
         sprite = "drawable/every-block.png",
         properties = properties + PropertyDefinition.Number("everyManager"),
         events = everyEvent(everyBlock),
+    )
+
+    /**
+     * Three generations of Actor types: every Event in each (so every hook is overridden, running the parent's Event
+     * first), a new Property and a changed initial value in the child, collisions with the family by its parent, and
+     * a sprite in the grandchild.
+     */
+    private val family = listOf(
+        ActorTypeDefinition(
+            name = "EveryParent",
+            properties = properties,
+            events = everyEvent(everyBlock),
+        ),
+        ActorTypeDefinition(
+            name = "EveryChild",
+            parent = "EveryParent",
+            shape = ActorShape.RECTANGLE,
+            properties = listOf(properties.first(), PropertyDefinition.Number("extra", initialValue = 2f)),
+            events = everyEvent(listOf(BlockDefinition.RunParentEvent) + everyBlock + BlockDefinition.MoveTowardsNearest("EveryParent", speed = 10f)) +
+                EventDefinition(EventType.COLLISION, otherActorType = "EveryParent", blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.RemoveOther)),
+        ),
+        ActorTypeDefinition(
+            name = "EveryGrandchild",
+            parent = "EveryChild",
+            sprite = "drawable/every-block.png",
+            properties = listOf(PropertyDefinition.Toggle("isLast")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.Stop, BlockDefinition.SetToggle("isLast", value = true)))),
+        ),
     )
 
     /**
