@@ -32,18 +32,16 @@ internal object MoveActor : WriteCommand<MoveActor.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorIndex) ?: when {
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId) ?: when {
         !input.x.isFinite() || !input.y.isFinite() -> Rejection(Res.string.error_command_number_invalid)
-        SceneDocument.positionOf(context.readScene(input.scene)[input.actorIndex].state) == null -> Rejection(Res.string.error_command_scene_actor_without_position, input.actorIndex.toString())
+        SceneDocument.positionOf(context.readScene(input.scene).requireActor(input.actorId).state) == null -> Rejection(Res.string.error_command_scene_actor_without_position, input.actorId)
         else -> null
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val actors = context.readScene(input.scene)
-        val actor = actors[input.actorIndex]
-        val (x, y) = checkNotNull(SceneDocument.positionOf(actor.state))
-        val moved = actor.copy(state = checkNotNull(SceneDocument.withPosition(actor.state, input.x, input.y)))
-        context.writeScene(input.scene, actors.mapIndexed { index, it -> if (index == input.actorIndex) moved else it })
+        val (x, y) = checkNotNull(SceneDocument.positionOf(actors.requireActor(input.actorId).state))
+        context.writeScene(input.scene, actors.withActorChanged(input.actorId) { it.copy(state = checkNotNull(SceneDocument.withPosition(it.state, input.x, input.y))) })
         return Applied(inverse = Invocation(MoveActor, input.copy(x = x, y = y)))
     }
 
@@ -51,8 +49,8 @@ internal object MoveActor : WriteCommand<MoveActor.Input> {
     data class Input(
         @Description("The name of the Scene: its file name without .json.")
         @SerialName("scene") val scene: String,
-        @Description("The index of the Actor in the Scene's Actor list, starting from 0.")
-        @SerialName("actorIndex") val actorIndex: Int,
+        @Description("The ID of the Actor in the Scene, as read_scene returns it.")
+        @SerialName("actorId") val actorId: String,
         @Description("The new horizontal position, in scene units.")
         @SerialName("x") val x: Float,
         @Description("The new vertical position, in scene units, positive downwards.")

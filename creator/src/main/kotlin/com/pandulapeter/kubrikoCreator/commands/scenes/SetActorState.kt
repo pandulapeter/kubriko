@@ -32,13 +32,13 @@ internal object SetActorState : WriteCommand<SetActorState.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorIndex)
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId)
         ?: if (SceneDocument.stateObject(input.state) == null) Rejection(Res.string.error_command_scene_content_invalid) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val actors = context.readScene(input.scene)
-        val previous = actors[input.actorIndex]
-        context.writeScene(input.scene, actors.mapIndexed { index, actor -> if (index == input.actorIndex) actor.copy(state = input.state) else actor })
+        val previous = actors.requireActor(input.actorId)
+        context.writeScene(input.scene, actors.withActorChanged(input.actorId) { it.copy(state = input.state) })
         return Applied(inverse = Invocation(SetActorState, input.copy(state = previous.state)))
     }
 
@@ -46,8 +46,8 @@ internal object SetActorState : WriteCommand<SetActorState.Input> {
     data class Input(
         @Description("The name of the Scene: its file name without .json.")
         @SerialName("scene") val scene: String,
-        @Description("The index of the Actor in the Scene's Actor list, starting from 0.")
-        @SerialName("actorIndex") val actorIndex: Int,
+        @Description("The ID of the Actor in the Scene, as read_scene returns it.")
+        @SerialName("actorId") val actorId: String,
         @Description("The new saved state of the Actor, as a JSON object in a string.")
         @SerialName("state") val state: String,
     )

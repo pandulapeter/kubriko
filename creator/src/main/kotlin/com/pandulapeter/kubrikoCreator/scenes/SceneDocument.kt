@@ -17,20 +17,54 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.put
+import kotlin.random.Random
 
 /**
  * Reads and edits Scene files without loading the project's classes: a Scene is a list of type IDs with JSON states,
- * and every Actor with a body keeps its position in `body.position`.
+ * and every Actor with a body keeps its position in `body.position`. Every Actor has an ID ([SceneActorEntry.id]), and
+ * files are written with one Actor per line, so that they diff and merge by Actor.
  */
 internal object SceneDocument {
 
     private val json = Json { ignoreUnknownKeys = true }
+    private const val INDEX_ID_PREFIX = "i"
+    private const val NEW_ID_PREFIX = "a"
+    private const val NEW_ID_LENGTH = 6
+    private const val ID_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
+    private val idPattern = Regex("[A-Za-z0-9_-]+")
     private val entries = ListSerializer(SceneActorEntry.serializer())
 
     /**
+     * The Actors of the Scene file [content]. One without an ID, or with the ID of an earlier one, gets one from its
+     * index (`i3`), which the same file always gives it, until a write keeps it.
+     *
      * @throws SerializationException If [content] isn't a Scene.
      */
-    fun parse(content: String): List<SceneActorEntry> = json.decodeFromString(entries, content)
+    fun parse(content: String): List<SceneActorEntry> {
+        val parsed = json.decodeFromString(entries, content)
+        val ids = HashSet<String>(parsed.size * 2)
+        return parsed.mapIndexed { index, entry ->
+            var id = entry.id.takeIf { it.isNotEmpty() && it !in ids } ?: "$INDEX_ID_PREFIX$index"
+            while (id in ids) id += "_"
+            ids += id
+            if (id == entry.id) entry else entry.copy(id = id)
+        }
+    }
+
+    /**
+     * An ID that none of [existing] has: short, and unlike those [parse] gives from an index.
+     */
+    fun newId(existing: Collection<String>, random: Random = Random.Default): String {
+        while (true) {
+            val id = NEW_ID_PREFIX + (1..NEW_ID_LENGTH).map { ID_CHARACTERS[random.nextInt(ID_CHARACTERS.length)] }.joinToString("")
+            if (id !in existing) return id
+        }
+    }
+
+    /**
+     * Whether [id] can be an Actor's ID: letters, numbers, dashes, and underscores.
+     */
+    fun isValidId(id: String) = idPattern.matches(id)
 
     fun isValid(content: String) = try {
         parse(content).all { stateObject(it.state) != null }
@@ -40,7 +74,11 @@ internal object SceneDocument {
         false
     }
 
-    fun format(actors: List<SceneActorEntry>) = json.encodeToString(entries, actors)
+    fun format(actors: List<SceneActorEntry>) = if (actors.isEmpty()) {
+        "[]"
+    } else {
+        actors.joinToString(separator = ",\n", prefix = "[\n", postfix = "\n]\n") { json.encodeToString(SceneActorEntry.serializer(), it) }
+    }
 
     /**
      * The position stored in [state], or null if the Actor has none.

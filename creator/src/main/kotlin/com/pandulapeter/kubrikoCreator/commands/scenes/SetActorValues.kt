@@ -43,8 +43,8 @@ internal object SetActorValues : WriteCommand<SetActorValues.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorIndex) ?: run {
-        val actor = context.readScene(input.scene)[input.actorIndex]
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId) ?: run {
+        val actor = context.readScene(input.scene).requireActor(input.actorId)
         val definition = context.blockTypes?.get(actor.typeId) as? ActorTypeDefinition
         val numbers = listOfNotNull(input.x, input.y, input.width, input.height, input.rotation, input.scaleHorizontal, input.scaleVertical)
         when {
@@ -63,7 +63,7 @@ internal object SetActorValues : WriteCommand<SetActorValues.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val actors = context.readScene(input.scene)
-        val previous = actors[input.actorIndex]
+        val previous = actors.requireActor(input.actorId)
         val state = checkNotNull(
             ActorStateEdits.withChanges(
                 previous.state,
@@ -80,12 +80,12 @@ internal object SetActorValues : WriteCommand<SetActorValues.Input> {
                 ),
             ),
         )
-        context.writeScene(input.scene, actors.mapIndexed { index, actor -> if (index == input.actorIndex) actor.copy(state = state) else actor })
-        return Applied(inverse = Invocation(SetActorState, SetActorState.Input(input.scene, input.actorIndex, previous.state)))
+        context.writeScene(input.scene, actors.withActorChanged(input.actorId) { it.copy(state = state) })
+        return Applied(inverse = Invocation(SetActorState, SetActorState.Input(input.scene, input.actorId, previous.state)))
     }
 
     override fun mergeKey(input: Input) = listOf(
-        input.scene, input.actorIndex, input.x != null, input.y != null, input.width != null, input.height != null, input.rotation != null,
+        input.scene, input.actorId, input.x != null, input.y != null, input.width != null, input.height != null, input.rotation != null,
         input.scaleHorizontal != null, input.scaleVertical != null, input.color != null, input.properties.map { it.name },
     )
 
@@ -93,8 +93,8 @@ internal object SetActorValues : WriteCommand<SetActorValues.Input> {
     data class Input(
         @Description("The name of the Scene: its file name without .json.")
         @SerialName("scene") val scene: String,
-        @Description("The index of the Actor in the Scene's Actor list, starting from 0.")
-        @SerialName("actorIndex") val actorIndex: Int,
+        @Description("The ID of the Actor in the Scene, as read_scene returns it.")
+        @SerialName("actorId") val actorId: String,
         @Description("The new horizontal position, in scene units.")
         @SerialName("x") val x: Float? = null,
         @Description("The new vertical position, in scene units, positive downwards.")

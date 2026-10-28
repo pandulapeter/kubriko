@@ -23,26 +23,27 @@ import kubriko.creator.generated.resources.command_remove_actor
 
 internal object RemoveActor : WriteCommand<RemoveActor.Input> {
     override val name = "remove_actor"
-    override val description = "Removes an Actor from a Scene. The Actors after it move one index down."
+    override val description = "Removes an Actor from a Scene."
     override val title = Res.string.command_remove_actor
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorIndex)
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val actors = context.readScene(input.scene)
-        val removed = actors[input.actorIndex]
-        context.writeScene(input.scene, actors.filterIndexed { index, _ -> index != input.actorIndex })
-        return Applied(inverse = Invocation(RestoreActor, RestoreActor.Input(input.scene, input.actorIndex, removed.typeId, removed.state)))
+        val index = actors.indexOfFirst { it.id == input.actorId }
+        val removed = actors[index]
+        context.writeScene(input.scene, actors.filterIndexed { actorIndex, _ -> actorIndex != index })
+        return Applied(inverse = Invocation(RestoreActor, RestoreActor.Input(input.scene, index, removed.typeId, removed.state, removed.id)))
     }
 
     @Serializable
     data class Input(
         @Description("The name of the Scene: its file name without .json.")
         @SerialName("scene") val scene: String,
-        @Description("The index of the Actor in the Scene's Actor list, starting from 0.")
-        @SerialName("actorIndex") val actorIndex: Int,
+        @Description("The ID of the Actor in the Scene, as read_scene returns it.")
+        @SerialName("actorId") val actorId: String,
     )
 }

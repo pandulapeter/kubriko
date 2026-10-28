@@ -20,10 +20,32 @@ class SceneDocumentTest {
     private val scene = """[{"typeId":"Ball","state":"{\"body\":{\"position\":{\"x\":-200.0,\"y\":-100.0},\"size\":{\"width\":80.0,\"height\":80.0}},\"color\":-44929713012998144}"}]"""
 
     @Test
-    fun scenesAreReadAndWrittenAsKubrikoWritesThem() {
+    fun scenesAreReadAsKubrikoWritesThemAndWrittenOneActorPerLineWithIds() {
         val actors = SceneDocument.parse(scene)
-        assertEquals(listOf(SceneActorEntry("Ball", ballState)), actors)
-        assertEquals(scene, SceneDocument.format(actors))
+        assertEquals(listOf(SceneActorEntry("Ball", ballState, "i0")), actors)
+        val formatted = SceneDocument.format(actors + SceneActorEntry("Wall", "{}", "a1"))
+        assertEquals(
+            "[\n" + scene.removePrefix("[").removeSuffix("]").removeSuffix("}") + ""","id":"i0"},""" + "\n" + """{"typeId":"Wall","state":"{}","id":"a1"}""" + "\n]\n",
+            formatted,
+        )
+        assertEquals(actors + SceneActorEntry("Wall", "{}", "a1"), SceneDocument.parse(formatted))
+        assertEquals("[]", SceneDocument.format(emptyList()))
+    }
+
+    @Test
+    fun actorsWithoutAnIdOrWithATakenOneGetOneFromTheirIndex() {
+        val actors = SceneDocument.parse("""[{"typeId":"A","state":"{}","id":"i2"},{"typeId":"B","state":"{}"},{"typeId":"C","state":"{}","id":"i2"},{"typeId":"D","state":"{}","id":"i2"}]""")
+        assertEquals(listOf("i2", "i1", "i2_", "i3"), actors.map { it.id })
+    }
+
+    @Test
+    fun newIdsAreShortValidAndNotTaken() {
+        val id = SceneDocument.newId(listOf("a"), kotlin.random.Random(1))
+        assertTrue(id.startsWith("a") && id.length == 7 && SceneDocument.isValidId(id))
+        val taken = SceneDocument.newId(emptyList(), kotlin.random.Random(2))
+        assertFalse(SceneDocument.newId(listOf(taken), kotlin.random.Random(2)) == taken)
+        assertFalse(SceneDocument.isValidId("a b"))
+        assertFalse(SceneDocument.isValidId(""))
     }
 
     @Test

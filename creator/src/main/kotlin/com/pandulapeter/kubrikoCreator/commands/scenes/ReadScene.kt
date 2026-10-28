@@ -28,7 +28,7 @@ import kubriko.creator.generated.resources.command_read_scene
 internal object ReadScene : ReadCommand<ReadScene.Input> {
     override val name = "read_scene"
     override val description = "Reads the Actors of a Scene, in order: the type ID of each one (the name of its Actor type), its position when it has one, " +
-        "and its whole saved state. Actors are addressed by their index in this list. content is the raw Scene file."
+        "and its whole saved state. Actors are addressed by their actorId. content is the raw Scene file."
     override val inputSerializer = Input.serializer()
     override val title = Res.string.command_read_scene
 
@@ -40,9 +40,9 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
         CommandOutcome.Success(
             buildJsonObject {
                 putJsonArray("actors") {
-                    actors.forEachIndexed { index, actor ->
+                    actors.forEach { actor ->
                         addJsonObject {
-                            put("actorIndex", index)
+                            put("actorId", actor.id)
                             put("typeId", actor.typeId)
                             SceneDocument.positionOf(actor.state)?.let { (x, y) ->
                                 put("x", x)

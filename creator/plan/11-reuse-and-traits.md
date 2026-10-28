@@ -28,7 +28,10 @@ Bat), cycles are rejected.
 - **A parent stands for its children:** a collision Event with Enemy fires for any Enemy's child, moveTowardsNearest Enemy and (later)
   counting Enemies include children, and Blocks that read another Actor's Property (`other.hp`) work for every child. addActor of a
   parent creates the parent itself, which an "only a parent" toggle forbids (such a type is also left out of placing).
-- **Generated code:** each type stays one flat, self-contained class (the parent's Properties and Events generated into it), not a Kotlin
+- **Generated code (provisional; the user dislikes faking inheritance and accepted it only for now):** before building it, try real
+  Kotlin inheritance once more (an `open` parent class whose `State` the child's extends or embeds, with `Editable<T>` on the
+  concrete classes only), and use the flattened form below only if that can't be made to serialize and load cleanly. Flattened, each
+  type stays one flat, self-contained class (the parent's Properties and Events generated into it), not a Kotlin
   `open class` hierarchy, which `Editable<T>` and the serializable `State` make awkward. Every type with children also gets an interface
   (`EnemyFamily`, a reserved suffix) that the type and all its descendants implement, declaring the shared Properties; collision
   `collidableTypes`, `is` checks, and lookups use it. Kubriko's collision matching uses `KClass.isInstance`, so interfaces work; check

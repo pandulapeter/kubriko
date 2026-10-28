@@ -13,31 +13,12 @@ Creator has to hold up for games the size GameMaker made: hundreds of Actor type
 project. Nothing a user builds is capped in number. This file covers the data and the editor; compile times are `10-fast-iteration.md`,
 reuse is `11-reuse-and-traits.md`, and finding things is `12-resource-organization.md`.
 
-**Order:** the two Scene file changes first (stable IDs, one Actor per line), since every Scene written before them is one more to
-convert; then incremental Scene editing, then the rest.
+Scene Actors have stable IDs and Scene files hold one Actor per line (`../CLAUDE.md` → Commands → Scenes). Left from that: an
+ordering command (`move_actor_order`, to the front or back of the list, which decides the order Actors are added in), a user-facing
+name per Actor once Identifiable is a Trait (`11-reuse-and-traits.md`; the ID stays internal and stable when the name changes), and
+showing a git merge conflict in a Scene by Actor (`03-git.md`).
 
-## Stable Actor IDs
-
-Scene Actors are addressed by their index today, which shifts when an earlier Actor is removed, so an undo step or an AI call can land
-on the wrong Actor once two edits interleave.
-
-- Every Scene entry gets an `id` next to `typeId` and `state` (`{"id":"a7","typeId":"Brick","state":"…"}`). Kubriko's
-  `SerializationManager` reads entries with `ignoreUnknownKeys`, so games and released Kubriko versions load these files unchanged;
-  no library change. IDs are short, unique within the Scene, and never reused (a counter kept per Scene in the file's entries).
-- Creator adds IDs to a Scene's entries the first time a command writes it (one write, shown in the console), and to new entries always.
-- Commands, undo steps, the selection, and the AI tools take the ID (`actorId`); the index stays only for ordering (`move_actor_order`,
-  bringing an Actor to the front or back of the list).
-- Later, with Identifiable as a Trait (`11-reuse-and-traits.md`), a user-facing name per Actor that Blocks can refer to; the ID stays
-  internal and stable even when the name changes.
-
-## Scene files that merge
-
-`SceneDocument.format` writes a Scene as one line, so any two edits conflict and diffs are unreadable.
-
-- One Actor per line, in a stable key order, ending with a newline: still a JSON array, so games read it as before.
-- Existing Scenes are rewritten in the new layout only when a command changes them (never on open), so opening a project doesn't
-  change its files.
-- With IDs, a git merge conflict in a Scene becomes a per-Actor conflict that `03-git.md`'s conflict view can show by Actor.
+**Order:** incremental Scene editing first, then the rest.
 
 ## Incremental Scene editing
 

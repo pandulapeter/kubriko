@@ -14,6 +14,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
 
+- **Scene Actors have IDs and Scene files one Actor per line** (2026-10-28): every Scene command, the AI tools, and the Scene editor
+  address Actors by ID; existing Scenes get IDs when a command next writes them. Not seen in the running app yet (unit-tested).
 - **Creator's own Scene editor** (2026-10-28) replaced the embedded library one (`tools/scene-editor`) and the session window: the Scene is drawn by the
   project's classes in Creator's pane, Actors are selected, moved, and removed, and Actor types are dragged in from the sidebar, all
   through commands (so undo and the AI share them). Seen working on the scratch Breakout: moving the Ball, dropping a Brick,
@@ -44,8 +46,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The file format changes, before projects grow (in this order): stable Scene Actor IDs and one Actor per line
-   (`09-large-projects.md`), folders for Actor types, Manager types, and Scenes with Scene names as paths (`12-resource-organization.md`),
+1. The file format changes, before projects grow (in this order): folders for Actor types, Manager types, and Scenes with Scene names
+   as paths (`12-resource-organization.md`),
    and parent Actor types (`11-reuse-and-traits.md`). Then incremental Scene editing, functions, Traits, search, and compile times; the
    user wants every item in those four plans done, with nothing capped in number.
 2. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).

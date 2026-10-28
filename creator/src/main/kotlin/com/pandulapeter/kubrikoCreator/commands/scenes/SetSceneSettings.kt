@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -45,7 +46,7 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
         listOfNotNull(input.x, input.y, input.width, input.height, input.cameraX, input.cameraY).any { !it.isFinite() } -> Rejection(Res.string.error_command_number_invalid)
         listOfNotNull(input.width, input.height).any { it <= 0f } -> Rejection(Res.string.error_command_size_invalid)
         !input.music.isNullOrEmpty() && context.audioFiles()?.music?.contains(input.music) == false -> Rejection(Res.string.error_command_music_missing, input.music)
-        else -> null
+        else -> input.actorId?.let { validateNewActorId(it, context.readScene(input.scene)) }
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
@@ -63,10 +64,10 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
             cameraY = input.cameraY,
             music = input.music,
         )
-        val settings = SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, state)
+        val settings = SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, state, actors.getOrNull(index)?.id ?: input.actorId ?: SceneDocument.newId(actors.map { it.id }))
         if (previous == null) {
             context.writeScene(input.scene, actors + settings)
-            return Applied(inverse = Invocation(RemoveActor, RemoveActor.Input(input.scene, actors.size)))
+            return Applied(inverse = Invocation(RemoveActor, RemoveActor.Input(input.scene, settings.id)))
         }
         context.writeScene(input.scene, actors.mapIndexed { actorIndex, actor -> if (actorIndex == index) settings else actor })
         val values = SceneSettingsState.read(previous)
@@ -113,5 +114,7 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
         @SerialName("cameraY") val cameraY: Float? = null,
         @Description(MUSIC_DESCRIPTION + " It plays when the Scene starts, unless it is the music playing already. An empty text for none, which keeps the music of the Scene before playing.")
         @SerialName("music") val music: String? = null,
+        @Description("The ID the Scene settings get when the Scene has none yet. Left out, they get a new one.")
+        @SerialName("actorId") val actorId: String? = null,
     )
 }

@@ -384,8 +384,10 @@
     <string name="error_command_music_missing">There's no music at %1$s. Music is an .mp3 or .ogg file in the files folder of composeResources.</string>
     <string name="error_command_scene_invalid">%1$s isn't a valid Scene file.</string>
     <string name="error_command_scene_content_invalid">That isn't valid Scene content.</string>
-    <string name="error_command_scene_actor_missing">%1$s has no Actor at index %2$s.</string>
-    <string name="error_command_scene_actor_without_position">The Actor at index %1$s has no position.</string>
+    <string name="error_command_scene_actor_missing">%1$s has no Actor with the ID %2$s.</string>
+    <string name="error_command_actor_id_invalid">%1$s can't be an Actor's ID. Use letters, numbers, dashes, and underscores.</string>
+    <string name="error_command_actor_id_taken">Another Actor in the Scene has the ID %1$s.</string>
+    <string name="error_command_scene_actor_without_position">The Actor %1$s has no position.</string>
     <string name="error_command_scene_actor_not_block_built">%1$s isn't a block-built Actor type, so it has no color or Properties to set.</string>
     <string name="error_command_actor_property_missing">%1$s has no Property called %2$s.</string>
     <string name="error_command_property_value_invalid">Give %1$s one value, of the kind the Property is.</string>

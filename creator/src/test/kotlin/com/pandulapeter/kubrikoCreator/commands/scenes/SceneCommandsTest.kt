@@ -27,6 +27,8 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_command_actor_id_invalid
+import kubriko.creator.generated.resources.error_command_actor_id_taken
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_index_invalid
 import kubriko.creator.generated.resources.error_command_music_missing
@@ -45,8 +47,8 @@ import kotlin.test.assertNull
 
 class SceneCommandsTest {
     private val ball = ActorTypeDefinition(name = "Ball", width = 30f, height = 40f)
-    private val wall = SceneActorEntry("Wall", """{"body":{"position":{"x":1.0,"y":2.0}}}""")
-    private val music = SceneActorEntry("Music", """{"volume":1.0}""")
+    private val wall = SceneActorEntry("Wall", """{"body":{"position":{"x":1.0,"y":2.0}}}""", "wall")
+    private val music = SceneActorEntry("Music", """{"volume":1.0}""", "music")
     private val changedScenes = mutableListOf<String>()
 
     @OptIn(EditorMutation::class)
@@ -86,9 +88,12 @@ class SceneCommandsTest {
     @Test
     fun blockBuiltActorsArePlacedAtTheirActorTypesSize() = runTest {
         val context = context(wall)
-        val actors = context.assertRoundTrip(Invocation(PlaceActor, PlaceActor.Input("main", "Ball", 5f, 6f))) { context.main() }!!
-        assertEquals(listOf(wall, SceneActorEntry("Ball", SceneDocument.blockBuiltState(5f, 6f, 30f, 40f))), actors)
-        assertEquals(2, PlaceActor.apply(context, PlaceActor.Input("main", "Ball", 0f, 0f)).result.jsonObject.getValue("actorIndex").jsonPrimitive.int)
+        val actors = context.assertRoundTrip(Invocation(PlaceActor, PlaceActor.Input("main", "Ball", 5f, 6f, actorId = "ball"))) { context.main() }!!
+        assertEquals(listOf(wall, SceneActorEntry("Ball", SceneDocument.blockBuiltState(5f, 6f, 30f, 40f), "ball")), actors)
+        val newId = PlaceActor.apply(context, PlaceActor.Input("main", "Ball", 0f, 0f)).result.jsonObject.getValue("actorId").jsonPrimitive.content
+        assertEquals(listOf("wall", "ball", newId), context.main()!!.map { it.id })
+        assertEquals(Rejection(Res.string.error_command_actor_id_taken, "wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "wall")))
+        assertEquals(Rejection(Res.string.error_command_actor_id_invalid, "a b"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "a b")))
         assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Wall", 0f, 0f)))
         assertEquals(Rejection(Res.string.error_command_number_invalid), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", Float.NaN, 0f)))
         assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), PlaceActor.validate(context, PlaceActor.Input("other", "Ball", 0f, 0f)))
@@ -97,22 +102,23 @@ class SceneCommandsTest {
     @Test
     fun actorsAreMovedAndRemovedAndComeBackWithTheirWholeState() = runTest {
         val context = context(wall, music)
-        val moved = context.assertRoundTrip(Invocation(MoveActor, MoveActor.Input("main", 0, 10f, 20f))) { context.main() }!!
+        val moved = context.assertRoundTrip(Invocation(MoveActor, MoveActor.Input("main", "wall", 10f, 20f))) { context.main() }!!
         assertEquals(10f to 20f, SceneDocument.positionOf(moved[0].state))
-        assertEquals(listOf(moved[0]), context.assertRoundTrip(Invocation(RemoveActor, RemoveActor.Input("main", 1))) { context.main() })
-        assertEquals(listOf(music, moved[0]), context.assertRoundTrip(Invocation(RestoreActor, RestoreActor.Input("main", 0, music.typeId, music.state))) { context.main() })
+        assertEquals(listOf(moved[0]), context.assertRoundTrip(Invocation(RemoveActor, RemoveActor.Input("main", "music"))) { context.main() })
+        assertEquals(listOf(music, moved[0]), context.assertRoundTrip(Invocation(RestoreActor, RestoreActor.Input("main", 0, music.typeId, music.state, "music"))) { context.main() })
     }
 
     @Test
     fun actorChangesAreValidated() = runTest {
         val context = context(wall, music)
-        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "2"), RemoveActor.validate(context, RemoveActor.Input("main", 2)))
-        assertEquals(Rejection(Res.string.error_command_scene_actor_without_position, "1"), MoveActor.validate(context, MoveActor.Input("main", 1, 0f, 0f)))
+        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "ghost"), RemoveActor.validate(context, RemoveActor.Input("main", "ghost")))
+        assertEquals(Rejection(Res.string.error_command_scene_actor_without_position, "music"), MoveActor.validate(context, MoveActor.Input("main", "music", 0f, 0f)))
+        assertEquals(Rejection(Res.string.error_command_actor_id_taken, "wall"), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "{}", "wall")))
         assertEquals(Rejection(Res.string.error_command_index_invalid, "3"), RestoreActor.validate(context, RestoreActor.Input("main", 3, "Wall", "{}")))
         assertEquals(Rejection(Res.string.error_command_scene_content_invalid), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "[]")))
         @OptIn(EditorMutation::class)
         context.scenes.write("main", "broken")
-        assertEquals(Rejection(Res.string.error_command_scene_invalid, "main"), RemoveActor.validate(context, RemoveActor.Input("main", 0)))
+        assertEquals(Rejection(Res.string.error_command_scene_invalid, "main"), RemoveActor.validate(context, RemoveActor.Input("main", "wall")))
     }
 
     @Test

@@ -17,9 +17,12 @@ import kotlinx.serialization.Serializable
  *
  * @param typeId Which Actor type it is: the name of a block-built Actor type, or the type ID a hand-written one registers.
  * @param state The Actor's saved state, as JSON.
+ * @param id What Kubriko Creator addresses the Actor by, unique within its Scene and kept for as long as the Actor is in it.
+ *   Kubriko's serialization ignores it, so games load the file unchanged. Empty only before [SceneDocument.parse] gives it one.
  */
 @Serializable
 internal data class SceneActorEntry(
     @SerialName("typeId") val typeId: String,
     @SerialName("state") val state: String,
+    @SerialName("id") val id: String = "",
 )

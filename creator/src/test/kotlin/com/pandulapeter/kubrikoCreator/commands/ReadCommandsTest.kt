@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.test.TestScope
@@ -109,10 +110,10 @@ class ReadCommandsTest {
         assertEquals(Json.parseToJsonElement("""[{"name":"broken","isValid":false},{"name":"main","actorCount":2}]"""), executor.read("list_scenes"))
         val read = executor.read("read_scene", buildJsonObject { put("scene", "main") }).jsonObject
         assertEquals(
-            Json.parseToJsonElement("""[{"actorIndex":0,"typeId":"Ball","x":1.0,"y":2.0,"state":"{\"body\":{\"position\":{\"x\":1.0,\"y\":2.0}}}"},{"actorIndex":1,"typeId":"Music","state":"{}"}]"""),
+            Json.parseToJsonElement("""[{"actorId":"i0","typeId":"Ball","x":1.0,"y":2.0,"state":"{\"body\":{\"position\":{\"x\":1.0,\"y\":2.0}}}"},{"actorId":"i1","typeId":"Music","state":"{}"}]"""),
             read.getValue("actors"),
         )
-        assertEquals(scene, read.getValue("content").jsonPrimitive.content)
+        assertEquals(SceneDocument.format(SceneDocument.parse(scene)), read.getValue("content").jsonPrimitive.content)
         assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_scene_missing, "other")), executor.call("read_scene", buildJsonObject { put("scene", "other") }))
     }
 
@@ -127,7 +128,7 @@ class ReadCommandsTest {
         val executor = executor(commandContext(ball, console = console))
         assertEquals(
             Json.parseToJsonElement(
-                """[{"kind":"error","text":"main has no Actor at index 3."},{"kind":"problem","text":"Unresolved reference: speed","location":"src/Ball.kt:3:5"},{"kind":"log","text":"Hello","source":"Game"}]""",
+                """[{"kind":"error","text":"main has no Actor with the ID 3."},{"kind":"problem","text":"Unresolved reference: speed","location":"src/Ball.kt:3:5"},{"kind":"log","text":"Hello","source":"Game"}]""",
             ),
             executor.read("read_console", buildJsonObject { put("limit", 3) }),
         )

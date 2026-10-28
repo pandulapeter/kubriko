@@ -41,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -86,7 +87,7 @@ internal fun SceneEditorPane(
     DisposableEffect(view) {
         onDispose { view.dispose() }
     }
-    var selectedIndex by remember(state.revision) { mutableStateOf<Int?>(null) }
+    var selectedId by remember(state.revision) { mutableStateOf<String?>(null) }
     SceneHeader(
         sceneName = state.scene.name,
         isOutdated = state.isOutdated,
@@ -97,9 +98,9 @@ internal fun SceneEditorPane(
         onClose = onClose,
     )
     HorizontalDivider()
-    val onRemove = { index: Int ->
-        selectedIndex = null
-        onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, index)))
+    val onRemove = { actorId: String ->
+        selectedId = null
+        onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, actorId)))
     }
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -108,14 +109,15 @@ internal fun SceneEditorPane(
             modifier = Modifier.weight(1f).fillMaxHeight(),
         view = view,
         content = state.content,
-        selectedIndex = selectedIndex,
-        onSelect = { selectedIndex = it },
-        onMove = { index, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, index, x, y))) },
+        selectedId = selectedId,
+        onSelect = { selectedId = it },
+        onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
         onRemove = onRemove,
         dragState = actorTypeDragState,
         onPlace = { actorTypeName, x, y ->
-            selectedIndex = view.entries.size
-            onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y)))
+            val actorId = SceneDocument.newId(view.entries.map { it.id })
+            selectedId = actorId
+            onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y, actorId)))
         },
     )
         VerticalDivider()
@@ -123,10 +125,10 @@ internal fun SceneEditorPane(
             modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
             view = view,
             sceneName = state.sceneName,
-            selectedIndex = selectedIndex,
+            selectedId = selectedId,
             actorTypes = actorTypes,
             music = music,
-            onSelect = { selectedIndex = it },
+            onSelect = { selectedId = it },
             onCommand = onCommand,
             onRemove = onRemove,
         )

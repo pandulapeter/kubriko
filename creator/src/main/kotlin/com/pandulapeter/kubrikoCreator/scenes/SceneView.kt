@@ -83,19 +83,25 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     }
 
     /**
-     * The index of the Actor drawn on top at [screenOffset], in the viewport's pixels.
+     * The ID of the Actor drawn on top at [screenOffset], in the viewport's pixels.
      */
-    fun actorIndexAt(screenOffset: Offset): Int? {
+    fun actorIdAt(screenOffset: Offset): String? {
         val position = toScene(screenOffset)
-        return SceneHitTest.pick(allBounds(), position.x.raw, position.y.raw)
+        return SceneHitTest.pick(allBounds(), position.x.raw, position.y.raw)?.let { entries[it].id }
     }
 
-    /**
-     * Whether the Actor at [index] is the Scene settings, which fill the Scene's bounds behind everything else.
-     */
-    fun isBackground(index: Int) = entries.getOrNull(index)?.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME
+    fun entryOf(id: String) = entries.firstOrNull { it.id == id }
 
-    fun boundsOf(index: Int) = actors.getOrNull(index)?.let { boundsOf(index, it, isBackground(index)) }
+    fun actorOf(id: String) = actors.getOrNull(entries.indexOfFirst { it.id == id })
+
+    /**
+     * Whether the Actor [id] is the Scene settings, which fill the Scene's bounds behind everything else.
+     */
+    fun isBackground(id: String) = entryOf(id)?.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME
+
+    fun boundsOf(id: String) = entries.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(::boundsAt)
+
+    private fun boundsAt(index: Int) = actors.getOrNull(index)?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME) }
 
     /**
      * Moves and zooms the camera to show the Scene's bounds, or without Scene settings, every Actor.
@@ -109,7 +115,7 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         viewportManager.setScaleFactor(framing.scaleFactor / adjustment)
     }
 
-    private fun allBounds() = actors.indices.mapNotNull(::boundsOf)
+    private fun allBounds() = actors.indices.mapNotNull(::boundsAt)
 
     fun toScene(screenOffset: Offset): SceneOffset = screenOffset.toSceneOffset(viewportManager)
 

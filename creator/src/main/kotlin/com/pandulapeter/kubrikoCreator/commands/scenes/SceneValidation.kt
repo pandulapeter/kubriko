@@ -16,6 +16,8 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_command_actor_id_invalid
+import kubriko.creator.generated.resources.error_command_actor_id_taken
 import kubriko.creator.generated.resources.error_command_scene_actor_missing
 import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_missing
@@ -25,8 +27,27 @@ internal fun CommandContext.validateScene(name: String): Rejection? {
     return if (SceneDocument.isValid(content)) null else Rejection(Res.string.error_command_scene_invalid, name)
 }
 
-internal fun CommandContext.validateSceneActor(sceneName: String, actorIndex: Int): Rejection? = validateScene(sceneName)
-    ?: if (actorIndex !in readScene(sceneName).indices) Rejection(Res.string.error_command_scene_actor_missing, sceneName, actorIndex.toString()) else null
+internal fun CommandContext.validateSceneActor(sceneName: String, actorId: String): Rejection? = validateScene(sceneName)
+    ?: if (readScene(sceneName).none { it.id == actorId }) Rejection(Res.string.error_command_scene_actor_missing, sceneName, actorId) else null
+
+/**
+ * Why [actorId] can't be the ID of a new Actor among [actors]: it isn't an ID, or another Actor has it.
+ */
+internal fun validateNewActorId(actorId: String, actors: List<SceneActorEntry>): Rejection? = when {
+    !SceneDocument.isValidId(actorId) -> Rejection(Res.string.error_command_actor_id_invalid, actorId)
+    actors.any { it.id == actorId } -> Rejection(Res.string.error_command_actor_id_taken, actorId)
+    else -> null
+}
+
+/**
+ * [this] Scene's Actors with the one called [actorId] changed by [change].
+ */
+internal fun List<SceneActorEntry>.withActorChanged(actorId: String, change: (SceneActorEntry) -> SceneActorEntry) = map { if (it.id == actorId) change(it) else it }
+
+/**
+ * The Actor called [actorId] in a Scene a command has validated it in.
+ */
+internal fun List<SceneActorEntry>.requireActor(actorId: String) = first { it.id == actorId }
 
 /**
  * The Actors of a Scene that the command has validated.

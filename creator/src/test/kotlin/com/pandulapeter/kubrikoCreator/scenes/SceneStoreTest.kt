@@ -74,7 +74,9 @@ class SceneStoreTest {
         store.write("two", """[{"typeId":"Wall","state":"{}"}]""")
         store.write("broken", "nope")
         assertEquals(listOf("one"), store.renameTypeId("Ball", "Puck"))
-        assertEquals("""[{"typeId":"Puck","state":"{}"},{"typeId":"Wall","state":"{}"}]""", store.read("one"))
+        // The Scene it changes keeps its Actors' IDs from then on, one Actor per line; the one it doesn't change stays as it was.
+        assertEquals("[\n" + """{"typeId":"Puck","state":"{}","id":"i0"},""" + "\n" + """{"typeId":"Wall","state":"{}","id":"i1"}""" + "\n]\n", store.read("one"))
+        assertEquals("""[{"typeId":"Wall","state":"{}"}]""", store.read("two"))
         assertEquals("nope", store.read("broken"))
     }
 }

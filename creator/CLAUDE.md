@@ -84,7 +84,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
 - **Enforced by tests** (`CommandRegistryTest`): every `EditorCommand` class is registered, tool names are snake_case, every
   part of every schema is described, and nothing outside `commands/` opts in to `@EditorMutation`, the `RequiresOptIn` marker on
   every controller and store function that changes the project. A new mutation is marked, so only a command can call it.
-- **Addressing:** Actor types, Manager types, and Scenes by name, Events, Blocks, texts, and Scene Actors by index. The Event, Block, and
+- **Addressing:** Actor types, Manager types, and Scenes by name, Events, Blocks, and texts by index, and Scene Actors by their ID. The Event, Block, and
   Property commands take either kind of type (their `actorType` input names an Actor type or a Manager type). `commands/CommandTesting.kt`
   (`assertRoundTrip`) checks that a command's inverse reverts it and the inverse of the inverse makes it again.
 - **Properties** (number, text, toggle) are values each Actor keeps: generated as `@Exposed` fields kept in `State`, so the
@@ -172,7 +172,12 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   for `createManagers(firstScene = …)` and deletes `SceneLoader.kt` if it is still the template's (`resources/upgrades` keeps that
   copy; one changed by hand stays). Version 4 drops the plugin Managers from `Game.kt` (and their imports, unless still used),
   since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. A change's `after` is null for a file it deletes.
-- **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`): Actors are `typeId` + JSON state, positions live in
+- **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`), written with one Actor per line so they diff and merge:
+  Actors are `typeId` + JSON state + `id`, which Kubriko's serialization ignores (it reads entries with `ignoreUnknownKeys`), so
+  games load the files unchanged. Parsing gives an Actor without an ID, or with an earlier one's, an ID from its index (`i3`), the
+  same every time until a write keeps it, so existing Scenes change only when a command writes them; new Actors get a short random
+  one (`SceneDocument.newId`), or the one `place_actor`, `restore_actor`, or new Scene settings are given (how the Scene editor
+  selects what it just placed, and how undoing a removal brings the same Actor back). Positions live in
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
   Actor type renames its Actors in every Scene. A command that changes the open Scene shows it again (or closes it if deleted); a
   changed Actor type marks it outdated, since its classes must be compiled again, but regenerating code for changed Scenes doesn't.

@@ -59,7 +59,7 @@ class ActorValueCommandsTest {
         val context = context()
         val input = SetActorValues.Input(
             scene = "main",
-            actorIndex = 0,
+            actorId = "i0",
             x = 5f,
             width = 60f,
             rotation = 90f,
@@ -81,45 +81,45 @@ class ActorValueCommandsTest {
     @Test
     fun aHandWrittenActorsWholeStateIsReplacedAndUndone() = runTest {
         val context = context()
-        val replaced = context.assertRoundTrip(Invocation(SetActorState, SetActorState.Input("main", 1, """{"tint":4}"""))) { context.state(1) }
+        val replaced = context.assertRoundTrip(Invocation(SetActorState, SetActorState.Input("main", "i1", """{"tint":4}"""))) { context.state(1) }
         assertEquals("""{"tint":4}""", replaced)
-        assertEquals(Rejection(Res.string.error_command_scene_content_invalid), context.rejection(SetActorState, SetActorState.Input("main", 1, "[]")))
+        assertEquals(Rejection(Res.string.error_command_scene_content_invalid), context.rejection(SetActorState, SetActorState.Input("main", "i1", "[]")))
         // A hand-written Actor's body can still be changed.
-        assertNull(context.rejection(SetActorValues, SetActorValues.Input("main", 1, x = 3f)))
+        assertNull(context.rejection(SetActorValues, SetActorValues.Input("main", "i1", x = 3f)))
     }
 
     @Test
     fun actorValuesAreValidated() = runTest {
         val context = context()
         fun rejection(input: SetActorValues.Input) = context.rejection(SetActorValues, input)
-        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "2"), rejection(SetActorValues.Input("main", 2, x = 1f)))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), rejection(SetActorValues.Input("main", 0, rotation = Float.NaN)))
-        assertEquals(Rejection(Res.string.error_command_size_invalid), rejection(SetActorValues.Input("main", 0, height = 0f)))
-        assertEquals(Rejection(Res.string.error_command_scene_actor_not_block_built, "Wall"), rejection(SetActorValues.Input("main", 1, color = 0xFF000000)))
+        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "i2"), rejection(SetActorValues.Input("main", "i2", x = 1f)))
+        assertEquals(Rejection(Res.string.error_command_number_invalid), rejection(SetActorValues.Input("main", "i0", rotation = Float.NaN)))
+        assertEquals(Rejection(Res.string.error_command_size_invalid), rejection(SetActorValues.Input("main", "i0", height = 0f)))
+        assertEquals(Rejection(Res.string.error_command_scene_actor_not_block_built, "Wall"), rejection(SetActorValues.Input("main", "i1", color = 0xFF000000)))
         assertEquals(
             Rejection(Res.string.error_command_actor_property_missing, "Brick", "lives"),
-            rejection(SetActorValues.Input("main", 0, properties = listOf(SetActorValues.PropertyValue("lives", number = 1f)))),
+            rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("lives", number = 1f)))),
         )
         assertEquals(
             Rejection(Res.string.error_command_property_value_invalid, "hits"),
-            rejection(SetActorValues.Input("main", 0, properties = listOf(SetActorValues.PropertyValue("hits", text = "3")))),
+            rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("hits", text = "3")))),
         )
         assertEquals(
             Rejection(Res.string.error_command_property_value_invalid, "label"),
-            rejection(SetActorValues.Input("main", 0, properties = listOf(SetActorValues.PropertyValue("label", text = "a", toggle = true)))),
+            rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("label", text = "a", toggle = true)))),
         )
-        assertNull(rejection(SetActorValues.Input("main", 0, properties = listOf(SetActorValues.PropertyValue("label", text = "gold")))))
+        assertNull(rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("label", text = "gold")))))
     }
 
     @Test
     fun typingIntoOneFieldIsOneUndoStep() {
         assertEquals(
-            SetActorValues.mergeKey(SetActorValues.Input("main", 0, x = 1f)),
-            SetActorValues.mergeKey(SetActorValues.Input("main", 0, x = 12f)),
+            SetActorValues.mergeKey(SetActorValues.Input("main", "i0", x = 1f)),
+            SetActorValues.mergeKey(SetActorValues.Input("main", "i0", x = 12f)),
         )
         assertEquals(
             false,
-            SetActorValues.mergeKey(SetActorValues.Input("main", 0, x = 1f)) == SetActorValues.mergeKey(SetActorValues.Input("main", 1, x = 1f)),
+            SetActorValues.mergeKey(SetActorValues.Input("main", "i0", x = 1f)) == SetActorValues.mergeKey(SetActorValues.Input("main", "i1", x = 1f)),
         )
     }
 }

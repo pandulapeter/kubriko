@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -50,22 +51,22 @@ import org.jetbrains.compose.resources.stringResource
 internal fun SceneInspector(
     view: SceneView,
     sceneName: String,
-    selectedIndex: Int?,
+    selectedId: String?,
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>,
-    onSelect: (Int?) -> Unit,
+    onSelect: (String?) -> Unit,
     onCommand: (Invocation<*>) -> Unit,
-    onRemove: (Int) -> Unit,
+    onRemove: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier.verticalScroll(rememberScrollState()),
 ) {
     // Read so that the inspector follows the Actors created from the Scene's content.
     view.loadRevision.collectAsState().value
-    val entry = selectedIndex?.let { view.entries.getOrNull(it) }
-    val actor = selectedIndex?.let { view.actors.getOrNull(it) }
+    val entry = selectedId?.let(view::entryOf)
+    val actor = selectedId?.let(view::actorOf)
     when {
-        selectedIndex == null || entry == null -> {
+        selectedId == null || entry == null -> {
             Text(
                 modifier = Modifier.padding(12.dp),
                 text = stringResource(Res.string.scene_inspector_hint),
@@ -75,21 +76,22 @@ internal fun SceneInspector(
             TextButton(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 onClick = {
-                    val settingsIndex = SceneSettingsState.indexIn(view.entries)
-                    if (settingsIndex >= 0) {
-                        onSelect(settingsIndex)
+                    val settings = view.entries.getOrNull(SceneSettingsState.indexIn(view.entries))
+                    if (settings != null) {
+                        onSelect(settings.id)
                     } else {
-                        onSelect(view.entries.size)
-                        onCommand(Invocation(SetSceneSettings, SetSceneSettings.Input(sceneName)))
+                        val actorId = SceneDocument.newId(view.entries.map { it.id })
+                        onSelect(actorId)
+                        onCommand(Invocation(SetSceneSettings, SetSceneSettings.Input(sceneName, actorId = actorId)))
                     }
                 },
             ) {
                 Text(stringResource(Res.string.scene_settings_title))
             }
         }
-        view.isBackground(selectedIndex) -> {
+        view.isBackground(selectedId) -> {
             PanelHeader(icon = Res.drawable.ic_scene, title = stringResource(Res.string.scene_settings_title)) {
-                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedIndex) })
+                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
             }
             SceneSettingsInspector(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
@@ -100,7 +102,7 @@ internal fun SceneInspector(
         }
         else -> {
             PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId) {
-                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedIndex) })
+                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
             }
             if (actor != null) {
                 ActorInspector(
@@ -108,7 +110,7 @@ internal fun SceneInspector(
                     body = ActorBodyValues.of(actor.body),
                     state = entry.state,
                     definition = actorTypes.firstOrNull { it.name == entry.typeId },
-                    onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedIndex).change())) },
+                    onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
                 )
             }
         }

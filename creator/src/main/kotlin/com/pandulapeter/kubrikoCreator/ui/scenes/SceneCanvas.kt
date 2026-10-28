@@ -67,10 +67,10 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneView
 internal fun SceneCanvas(
     view: SceneView,
     content: String,
-    selectedIndex: Int?,
-    onSelect: (Int?) -> Unit,
-    onMove: (index: Int, x: Float, y: Float) -> Unit,
-    onRemove: (Int) -> Unit,
+    selectedId: String?,
+    onSelect: (String?) -> Unit,
+    onMove: (actorId: String, x: Float, y: Float) -> Unit,
+    onRemove: (String) -> Unit,
     dragState: ActorTypeDragState,
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
     modifier: Modifier = Modifier,
@@ -86,7 +86,7 @@ internal fun SceneCanvas(
     val viewportSize by view.viewportManager.size.collectAsState()
     var dragRevision by remember { mutableIntStateOf(0) }
     val focusRequester = remember { FocusRequester() }
-    val currentSelectedIndex by rememberUpdatedState(selectedIndex)
+    val currentSelectedId by rememberUpdatedState(selectedId)
     val currentOnSelect by rememberUpdatedState(onSelect)
     val currentOnMove by rememberUpdatedState(onMove)
     val selectionColor = MaterialTheme.colorScheme.primary
@@ -105,9 +105,9 @@ internal fun SceneCanvas(
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
-                val index = currentSelectedIndex
-                if (event.type == KeyEventType.KeyDown && (event.key == Key.Delete || event.key == Key.Backspace) && index != null) {
-                    onRemove(index)
+                val id = currentSelectedId
+                if (event.type == KeyEventType.KeyDown && (event.key == Key.Delete || event.key == Key.Backspace) && id != null) {
+                    onRemove(id)
                     true
                 } else {
                     false
@@ -127,9 +127,9 @@ internal fun SceneCanvas(
                     val down = press.changes.firstOrNull { it.pressed && !it.previousPressed } ?: return@awaitEachGesture
                     focusRequester.requestFocus()
                     val isPrimary = press.buttons.isPrimaryPressed
-                    val pickedIndex = if (isPrimary) view.actorIndexAt(down.position) else null
-                    if (isPrimary) currentOnSelect(pickedIndex)
-                    val actor = pickedIndex?.takeIf { !view.isBackground(it) }?.let { view.actors.getOrNull(it) }
+                    val pickedId = if (isPrimary) view.actorIdAt(down.position) else null
+                    if (isPrimary) currentOnSelect(pickedId)
+                    val actor = pickedId?.takeIf { !view.isBackground(it) }?.let(view::actorOf)
                     val startPosition = actor?.body?.position ?: SceneOffset.Zero
                     var lastPosition = down.position
                     var isDragging = false
@@ -148,8 +148,8 @@ internal fun SceneCanvas(
                         lastPosition = change.position
                         change.consume()
                     }
-                    if (actor != null && isDragging && pickedIndex != null) {
-                        currentOnMove(pickedIndex, actor.body.position.x.raw, actor.body.position.y.raw)
+                    if (actor != null && isDragging && pickedId != null) {
+                        currentOnMove(pickedId, actor.body.position.x.raw, actor.body.position.y.raw)
                     }
                 }
             },
@@ -168,7 +168,7 @@ internal fun SceneCanvas(
             viewportSize
             dragRevision
             loadRevision
-            val bounds = selectedIndex?.let { view.boundsOf(it) } ?: return@Canvas
+            val bounds = selectedId?.let(view::boundsOf) ?: return@Canvas
             val topLeft = view.toScreen(SceneOffset(bounds.left.sceneUnit, bounds.top.sceneUnit))
             val bottomRight = view.toScreen(SceneOffset(bounds.right.sceneUnit, bounds.bottom.sceneUnit))
             drawRect(
