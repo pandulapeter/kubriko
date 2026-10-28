@@ -81,6 +81,14 @@ internal object ActorClassCode {
     }
 
     /**
+     * The type a family's base classes keep the collision mask as: its shape's own when every Actor type in the family has
+     * one shape, since [appendCollisionMaskUpdate] then sets that shape's members without checking.
+     */
+    fun maskTypeOf(shapes: Set<ActorShape>) = shapes.singleOrNull()?.let(::maskClassOf) ?: COLLISION_MASK
+
+    const val COLLISION_MASK = "CollisionMask"
+
+    /**
      * Turns the velocity away from the other Actor, on the axis they overlap less on, for the Bounce off it Block.
      *
      * @param visibility `private` for a type of its own, `protected` for a family's base class.

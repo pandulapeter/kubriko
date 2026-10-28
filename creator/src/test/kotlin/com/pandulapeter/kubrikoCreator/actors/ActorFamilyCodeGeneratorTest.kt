@@ -111,6 +111,24 @@ class ActorFamilyCodeGeneratorTest {
     }
 
     @Test
+    fun theBaseClassOfAFamilyOfOneShapeKeepsTheMaskAsThatShape() {
+        val paddle = ActorTypeDefinition(name = "Paddle", shape = ActorShape.RECTANGLE, events = listOf(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Stop))))
+        val brick = ActorTypeDefinition(name = "Brick", parent = "Paddle", shape = ActorShape.RECTANGLE)
+        val ball = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Paddle")))
+        val types = listOf(paddle, brick, ball)
+        val code = ActorTypeCodeGenerator.generateActorType(
+            definition = paddle,
+            packageName = "com.example.game",
+            knownActorTypeNames = types.map { it.name },
+            collidableActorTypeNames = PluginManagers.of(types).collidableActorTypeNames,
+            actorTypes = types,
+        )
+        assertContains(code, "    final override val collisionMask: BoxCollisionMask,\n")
+        assertContains(code, "        collisionMask.rotation = body.rotation\n")
+        assertFalse("import com.pandulapeter.kubriko.collision.mask.CollisionMask\n" in code, code)
+    }
+
+    @Test
     fun aTypeWithoutAParentHasNoParentEventToRun() {
         val loner = ActorTypeDefinition(name = "Loner", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent))))
         assertContains(ActorTypeCodeGenerator.generateActorType(loner, "com.example.game"), "// Only an Actor type with a parent runs its parent's Event.")

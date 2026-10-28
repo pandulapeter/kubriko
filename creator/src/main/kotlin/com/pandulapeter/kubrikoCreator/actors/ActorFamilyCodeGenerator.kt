@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.COLLISION_MASK
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.MOVEMENT_LINE
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.REMOVED_GUARD
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendAlwaysActive
@@ -17,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendCollisionMask
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendEdgeHandling
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.GENERATED_PACKAGE
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_DRAW_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendSavedState
@@ -70,7 +72,7 @@ internal object ActorFamilyCodeGenerator {
             member.events.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scopeOf(member)) } }
         }
         val imports = (features.imports + listOfNotNull(
-            "com.pandulapeter.kubriko.collision.mask.CollisionMask".takeIf { features.isCollidable },
+            "com.pandulapeter.kubriko.collision.mask.$COLLISION_MASK".takeIf { features.isCollidable && maskTypeOf(features.shapes) == COLLISION_MASK },
         )).sorted()
         return GeneratedFile.withHeader(" from .kubriko/actors/$name.json", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
@@ -115,7 +117,7 @@ internal object ActorFamilyCodeGenerator {
         appendLine("    final override val body: BoxBody,")
         appendLine("    color: Color,")
         properties.forEach { appendLine("    ${it.name}: ${PropertyKind.of(it).kotlinType},") }
-        if (features.isCollidable) appendLine("    final override val collisionMask: CollisionMask,")
+        if (features.isCollidable) appendLine("    final override val collisionMask: ${maskTypeOf(features.shapes)},")
         appendLine(") : ${traits.joinToString()} {")
         appendLine("    @set:Exposed(name = \"color\")")
         appendLine("    var color: Color = color")
@@ -231,7 +233,7 @@ internal object ActorFamilyCodeGenerator {
         appendLine("    body: BoxBody,")
         appendLine("    color: Color,")
         family.propertiesOf(definition.name).forEach { appendLine("    ${it.name}: ${PropertyKind.of(it).kotlinType},") }
-        if (features.isCollidable) appendLine("    collisionMask: CollisionMask,")
+        if (features.isCollidable) appendLine("    collisionMask: ${maskTypeOf(features.shapes)},")
         appendLine(") : ${baseNameOf(family.parentOf(definition.name)!!)}(")
         appendLine("    body = body,")
         appendLine("    color = color,")
