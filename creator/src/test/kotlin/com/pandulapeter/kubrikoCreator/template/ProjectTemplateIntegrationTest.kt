@@ -63,7 +63,7 @@ class ProjectTemplateIntegrationTest {
                 val buildFile = directory.resolve(KubrikoBuildFiles.BUILD_FILE)
                 assertFalse("libs.kubriko.collision" in buildFile.readText(), "${template.id}: a plugin nothing uses")
                 GradleProjectConnection(directory).use { connection ->
-                    assertEquals(":", ProjectInspector.inspect(connection).desktopModulePath, template.id)
+                    assertEquals(":", ProjectInspector.desktopModulePathOf(connection), template.id)
                     assertCompiles(connection, directory, "${template.id} as created")
                     BlockTypeStore.open(directory)?.let { store ->
                         directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->

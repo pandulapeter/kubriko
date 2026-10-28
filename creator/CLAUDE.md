@@ -31,6 +31,13 @@ lives in `plan/` (start with `plan/README.md`).
 
 ## Processes
 
+- **Opening** a project never waits for Gradle (`GradleWorkspaceOpener`): it only checks for a build or settings file and reads the
+  root project's name from the settings (`ProjectInspector`); the desktop module is asked from Gradle in the background (the
+  `GradleProject` model configures every task), and the first build waits for it, reporting a project without one in the console.
+  The Tooling API connection is made on first use. Each workspace runs in a scope of its own (a child of the app's), which
+  `close()` cancels once the pending writes are done (`BlockTypesController.awaitWrites`), and quitting waits for that; an
+  opening that is cancelled closes what it made. Builds of the classpath report their time in the console, and so does opening
+  a Scene.
 - **Creator** works on files and Gradle only. It drives the project's own build through the Gradle Tooling API (`gradle/GradleProjectConnection`)
   with `src/main/resources/kubriko-creator-session.init.gradle.kts`, which adds two tasks to every Compose desktop module without touching the
   project: `kubrikoCreatorSession` (runs the module's classpath plus `tool-creator-session` at the project's Kubriko version, in `play` or `edit`
@@ -55,8 +62,10 @@ lives in `plan/` (start with `plan/README.md`).
   couldn't be loaded (`SceneEditingState.Failed`, with Try again), rather than the pane just closing. Compose resources are read
   through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
   `SpriteManager` for one whose `imageLoader` (`ProjectSpriteLoader`) reads the sprite files from disk, matching resources by ID
-  (`drawable:<accessor>`, which is what Compose resources are equal by). Loaders are released a few seconds
-  after their editor leaves composition. Creator no longer starts `tool-creator-session` in Edit mode.
+  (`drawable:<accessor>`, which is what Compose resources are equal by). The loaded classes are kept when the Scene
+  closes (selecting an Actor type, or another Scene), so the next Scene opens without building, until a type or a source
+  changes (`markOutdated`), Reload, or the workspace closes; released classes go a few seconds after their editor leaves
+  composition. Creator no longer starts `tool-creator-session` in Edit mode.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
   and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
   after `com.pandulapeter.kubriko.` in imports and fully qualified names, generated code included; the engine and `tool-creator-api` always),
@@ -263,7 +272,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | Package | What it holds |
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
-| `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`). |
+| `project` | Project inspection (`ProjectInspector`: the build files and name, and the desktop module through `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`). |
 | `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `SpriteFiles`, `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |

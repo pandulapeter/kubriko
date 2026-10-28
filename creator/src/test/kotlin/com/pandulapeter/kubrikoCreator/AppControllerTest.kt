@@ -67,10 +67,10 @@ class AppControllerTest {
     )
 
     private fun workspace(scope: CoroutineScope) = WorkspaceController(
-        project = CreatorProject(rootDirectory = directory, name = "game", desktopModulePath = ":"),
+        project = CreatorProject(rootDirectory = directory, name = "game"),
         build = FakeProjectBuild().also(builds::add),
         sessionChannel = FakeSessionChannel(),
-        scope = scope,
+        parentScope = scope,
         scanResources = { emptyMap() },
     )
 

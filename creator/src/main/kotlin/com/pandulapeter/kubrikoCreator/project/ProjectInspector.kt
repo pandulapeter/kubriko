@@ -13,24 +13,32 @@ import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
 import org.gradle.tooling.model.GradleProject
+import java.io.File
 
 /**
- * Asks Gradle about a project's structure instead of guessing from its layout.
+ * What Kubriko Creator needs to know about a project's build. Opening a project only reads its files ([isGradleProject],
+ * [nameOf]); the desktop module is asked from Gradle in the background ([desktopModulePathOf]), since that configures
+ * every task of the build, and only builds need it.
  */
 internal object ProjectInspector {
 
-    fun inspect(connection: GradleProjectConnection): CreatorProject {
-        val root = connection.model<GradleProject>()
-        return CreatorProject(
-            rootDirectory = connection.rootDirectory,
-            name = root.name,
-            desktopModulePath = findDesktopModulePath(ModuleNode.from(root)),
-        )
-    }
+    private val buildFileNames = listOf("settings.gradle.kts", "settings.gradle", "build.gradle.kts", "build.gradle")
+    private val rootProjectNamePattern = Regex("""rootProject\.name\s*=\s*["']([^"']+)["']""")
+
+    fun isGradleProject(directory: File) = buildFileNames.any { File(directory, it).isFile }
 
     /**
-     * The first module, in Gradle's order, with a Compose desktop `run` task.
+     * The root project's name as the settings file sets it, or the folder's name, as Gradle defaults to.
      */
+    fun nameOf(directory: File) = listOf("settings.gradle.kts", "settings.gradle")
+        .firstNotNullOfOrNull { name -> File(directory, name).takeIf { it.isFile }?.readText()?.let { rootProjectNamePattern.find(it)?.groupValues?.get(1) } }
+        ?: directory.name
+
+    /**
+     * The Gradle path of the first module, in Gradle's order, with a Compose desktop `run` task.
+     */
+    fun desktopModulePathOf(connection: GradleProjectConnection) = findDesktopModulePath(ModuleNode.from(connection.model(GradleProject::class.java)))
+
     internal fun findDesktopModulePath(root: ModuleNode) = root.withDescendants().firstOrNull { "run" in it.taskNames }?.path
         ?: throw ProjectInspectionException(Res.string.error_no_desktop_module)
 }

@@ -12,7 +12,9 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
+import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
+import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -20,36 +22,36 @@ import com.pandulapeter.kubrikoCreator.session.SessionServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_not_a_gradle_project
 import java.io.File
 
 /**
- * Opens a workspace through the project's own Gradle build.
+ * Opens a workspace through the project's own Gradle build, without waiting for Gradle: only the project's files are
+ * read, and the desktop module is asked from Gradle in the background, for the first build to wait for if it must.
  */
 internal object GradleWorkspaceOpener : WorkspaceOpener {
 
-    override suspend fun open(directory: File, scope: CoroutineScope) = withContext(Dispatchers.IO) {
+    override suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController {
+        if (!withContext(Dispatchers.IO) { ProjectInspector.isGradleProject(directory) }) throw ProjectInspectionException(Res.string.error_not_a_gradle_project)
+        val project = withContext(Dispatchers.IO) { CreatorProject(rootDirectory = directory, name = ProjectInspector.nameOf(directory)) }
+        val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory) }
+        val configuration = CreatorConfiguration.load()
         val connection = GradleProjectConnection(directory)
-        try {
-            val blockTypeStore = BlockTypeStore.open(directory)
-            val configuration = CreatorConfiguration.load()
-            val buildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)
-            WorkspaceController(
-                project = ProjectInspector.inspect(connection),
-                build = connection,
-                sessionChannel = SessionServer(scope),
-                scope = scope,
-                scanResources = { ResourceScanner.scan(it, hiddenDirectory = blockTypeStore?.generatedPath) },
-                blockTypeRepository = blockTypeStore,
-                syncBuildFiles = buildFiles::sync,
-                creatorKubrikoVersion = configuration.kubrikoVersion,
-                generatedPath = blockTypeStore?.generatedPath,
-                startWatching = { onChange ->
-                    ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
-                },
-            )
-        } catch (exception: Exception) {
-            connection.close()
-            throw exception
-        }
+        return WorkspaceController(
+            project = project,
+            build = connection,
+            sessionChannel = SessionServer(scope),
+            parentScope = scope,
+            findDesktopModulePath = { ProjectInspector.desktopModulePathOf(connection) },
+            scanResources = { ResourceScanner.scan(it, hiddenDirectory = blockTypeStore?.generatedPath) },
+            blockTypeRepository = blockTypeStore,
+            syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
+            creatorKubrikoVersion = configuration.kubrikoVersion,
+            generatedPath = blockTypeStore?.generatedPath,
+            startWatching = { onChange ->
+                ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
+            },
+        )
     }
 }

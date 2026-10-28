@@ -95,7 +95,12 @@ internal class AppController(
         launchOperation {
             _screen.value = try {
                 val workspace = workspaceOpener.open(directory, scope)
-                _recentProjects.value = withContext(ioDispatcher) { recentProjectsStore.add(directory, workspace.project.name) }
+                try {
+                    _recentProjects.value = withContext(ioDispatcher) { recentProjectsStore.add(directory, workspace.project.name) }
+                } catch (exception: CancellationException) {
+                    workspace.close()
+                    throw exception
+                }
                 AppScreen.Workspace(workspace)
             } catch (exception: CancellationException) {
                 throw exception
@@ -117,9 +122,15 @@ internal class AppController(
         operationJob.start()
     }
 
-    fun closeProject() {
+    /**
+     * Closes the open project, if any.
+     *
+     * @return The job that finishes once its changes are written, which an app that is quitting waits for.
+     */
+    fun closeProject(): Job? {
         job?.cancel()
-        (_screen.value as? AppScreen.Workspace)?.controller?.close()
+        val closing = (_screen.value as? AppScreen.Workspace)?.controller?.close()
         _screen.value = AppScreen.Welcome()
+        return closing
     }
 }

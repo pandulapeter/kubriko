@@ -45,40 +45,60 @@ internal class SceneEditingController(
     private val report: (ConsoleEntry) -> Unit,
     private val createClasspathFile: () -> File = { File.createTempFile("kubriko-creator-classpath", ".txt").apply { deleteOnExit() } },
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
+    private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) {
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
     val state = _state.asStateFlow()
     private var job: Job? = null
     private var loadedEntryPoint: LoadedEntryPoint? = null
+    private var isLoadedEntryPointOutdated = false
     private var revision = 0
 
-    fun open(scene: ProjectResource) {
+    /**
+     * Shows [scene], built and loaded with the project's classes, or with the classes loaded for the Scene shown before
+     * when nothing changed since ([markOutdated]), so that going back to a Scene doesn't build again.
+     */
+    fun open(scene: ProjectResource) = open(scene, isRebuilding = false)
+
+    private fun open(scene: ProjectResource, isRebuilding: Boolean) {
         close()
+        if (isRebuilding || isLoadedEntryPointOutdated) releaseLoadedEntryPoint()
         _state.value = SceneEditingState.Preparing(scene)
+        val startTime = currentTimeMillis()
         job = scope.launch {
-            val classpathFile = createClasspathFile()
-            val isBuilt = runTask(
-                SessionInitScript.CLASSPATH_TASK_NAME,
-                mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
+            val loaded = loadedEntryPoint ?: (buildAndLoad(scene) ?: return@launch)
+            _state.value = SceneEditingState.Open(
+                scene = scene,
+                entryPoint = SpriteLoadingEntryPoint(loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
+                content = withContext(ioDispatcher) { readContent(scene.file) },
+                revision = ++revision,
             )
-            val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
-            when {
-                classpath == null -> _state.value = SceneEditingState.Failed(scene, Res.string.scene_build_failed)
-                classpath.kubrikoVersion != creatorKubrikoVersion -> _state.value = SceneEditingState.Unsupported(scene, classpath.kubrikoVersion)
-                else -> try {
-                    val loaded = withContext(ioDispatcher) { entryPointLoader.load(classpath) }
-                    loadedEntryPoint = loaded
-                    _state.value = SceneEditingState.Open(
-                        scene = scene,
-                        entryPoint = SpriteLoadingEntryPoint(loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
-                        content = withContext(ioDispatcher) { readContent(scene.file) },
-                        revision = ++revision,
-                    )
-                    report(ConsoleEntry.Status(Res.string.status_scene_opened))
-                } catch (exception: EntryPointLoadingException) {
-                    _state.value = SceneEditingState.Failed(scene, exception.reason)
-                    report(ConsoleEntry.Status(exception.reason, isError = true))
+            report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
+        }
+    }
+
+    /**
+     * Builds the project and loads its classes, keeping them for the next Scene, or shows why it couldn't.
+     */
+    private suspend fun buildAndLoad(scene: ProjectResource): LoadedEntryPoint? {
+        val classpathFile = createClasspathFile()
+        val isBuilt = runTask(
+            SessionInitScript.CLASSPATH_TASK_NAME,
+            mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
+        )
+        val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
+        return when {
+            classpath == null -> null.also { _state.value = SceneEditingState.Failed(scene, Res.string.scene_build_failed) }
+            classpath.kubrikoVersion != creatorKubrikoVersion -> null.also { _state.value = SceneEditingState.Unsupported(scene, classpath.kubrikoVersion) }
+            else -> try {
+                withContext(ioDispatcher) { entryPointLoader.load(classpath) }.also {
+                    loadedEntryPoint = it
+                    isLoadedEntryPointOutdated = false
                 }
+            } catch (exception: EntryPointLoadingException) {
+                _state.value = SceneEditingState.Failed(scene, exception.reason)
+                report(ConsoleEntry.Status(exception.reason, isError = true))
+                null
             }
         }
     }
@@ -88,18 +108,22 @@ internal class SceneEditingController(
      */
     fun reload() {
         when (val current = _state.value) {
-            is SceneEditingState.Open -> open(current.scene)
-            is SceneEditingState.Preparing -> open(current.scene)
-            is SceneEditingState.Unsupported -> open(current.scene)
-            is SceneEditingState.Failed -> open(current.scene)
+            is SceneEditingState.Open -> open(current.scene, isRebuilding = true)
+            is SceneEditingState.Preparing -> open(current.scene, isRebuilding = true)
+            is SceneEditingState.Unsupported -> open(current.scene, isRebuilding = true)
+            is SceneEditingState.Failed -> open(current.scene, isRebuilding = true)
             SceneEditingState.Closed -> Unit
         }
     }
 
     /**
-     * Notes that an Actor type changed, so the open Scene editor shows classes that are no longer current.
+     * Notes that an Actor type or a source changed: the open Scene shows that its classes are no longer current, and
+     * the next Scene opened builds the project again.
      */
-    fun markOutdated() = _state.update { if (it is SceneEditingState.Open) it.copy(isOutdated = true) else it }
+    fun markOutdated() {
+        isLoadedEntryPointOutdated = true
+        _state.update { if (it is SceneEditingState.Open) it.copy(isOutdated = true) else it }
+    }
 
     /**
      * Notes that commands changed the Scene files called [names]: the open Scene shows its new content if it is one of
@@ -128,10 +152,24 @@ internal class SceneEditingController(
         }
     }
 
+    /**
+     * Closes the Scene, keeping the project's classes loaded for the next one.
+     */
     fun close() {
         job?.cancel()
         job = null
         _state.value = SceneEditingState.Closed
+    }
+
+    /**
+     * Closes the Scene and releases the project's classes, when the workspace closes.
+     */
+    fun dispose() {
+        close()
+        releaseLoadedEntryPoint()
+    }
+
+    private fun releaseLoadedEntryPoint() {
         loadedEntryPoint?.let { loaded ->
             // The editor leaves composition on the next frame, and may still load classes while it is torn down.
             scope.launch {

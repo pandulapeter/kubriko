@@ -70,6 +70,7 @@ class SceneEditingControllerTest {
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         report = { reports += it },
         createClasspathFile = { File.createTempFile("classpath", ".txt", root) },
+        currentTimeMillis = { 1_500L * tasks.size },
     )
 
     @Test
@@ -84,7 +85,7 @@ class SceneEditingControllerTest {
         assertEquals(SessionInitScript.CLASSPATH_TASK_NAME, tasks.single().first)
         assertEquals("classpath", tasks.single().second["kubrikoCreatorMode"])
         assertEquals(listOf(File("/game/build/libs/game.jar")), loadedClasspaths.single().files)
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_scene_opened)), reports)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf("1.5"))), reports)
     }
 
     @Test
@@ -170,15 +171,44 @@ class SceneEditingControllerTest {
     }
 
     @Test
-    fun closingReleasesTheProjectsClassesOnceTheEditorIsGone() = runTest {
+    fun disposingReleasesTheProjectsClassesOnceTheEditorIsGone() = runTest {
         val controller = createController()
         controller.open(scene)
-        controller.close()
+        controller.dispose()
         assertEquals(SceneEditingState.Closed, controller.state.value)
         assertEquals(0, closedCount)
         advanceTimeBy(6_000)
         runCurrent()
         assertEquals(1, closedCount)
+    }
+
+    @Test
+    fun closingKeepsTheProjectsClassesSoTheNextSceneOpensWithoutBuilding() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        controller.close()
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(0, closedCount)
+        controller.open(scene)
+        assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals(1, tasks.size)
+        assertEquals(1, loadedClasspaths.size)
+    }
+
+    @Test
+    fun aChangeSinceTheClassesWereLoadedBuildsAgainAndReleasesTheOldOnes() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        controller.close()
+        controller.markOutdated()
+        controller.open(scene)
+        assertEquals(2, tasks.size)
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount)
+        controller.reload()
+        assertEquals(3, tasks.size, "reloading always builds again")
     }
 
     @Test
@@ -189,6 +219,7 @@ class SceneEditingControllerTest {
         assertEquals(otherScene, assertIs<SceneEditingState.Open>(controller.state.value).scene)
         advanceTimeBy(6_000)
         runCurrent()
-        assertEquals(1, closedCount)
+        assertEquals(0, closedCount, "both Scenes use the same classes")
+        assertEquals(1, tasks.size)
     }
 }

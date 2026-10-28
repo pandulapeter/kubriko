@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.window.TitleBarInsets
 import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar
 import com.pandulapeter.kubrikoCreator.window.rememberIsFullscreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_icon
 import org.jetbrains.compose.resources.painterResource
@@ -80,8 +81,11 @@ fun main(args: Array<String>) {
             state = windowState,
             onCloseRequest = {
                 mcp.close()
-                controller.closeProject()
-                exitApplication()
+                val closing = controller.closeProject()
+                scope.launch {
+                    closing?.join()
+                    exitApplication()
+                }
             },
             init = { window ->
                 titleBar = window.extendContentIntoTitleBar()

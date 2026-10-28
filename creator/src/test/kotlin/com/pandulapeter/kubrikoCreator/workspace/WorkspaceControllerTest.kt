@@ -18,13 +18,16 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
+import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -45,6 +48,7 @@ import kubriko.creator.generated.resources.error_game_command_failed
 import kubriko.creator.generated.resources.error_game_no_answer
 import kubriko.creator.generated.resources.error_game_not_running
 import kubriko.creator.generated.resources.error_game_unsupported
+import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.status_actor_type_not_saved
@@ -78,6 +82,8 @@ class WorkspaceControllerTest {
 
     private fun TestScope.createController(
         desktopModulePath: String = ":",
+        findDesktopModulePath: () -> String = { desktopModulePath },
+        ioDispatcher: CoroutineDispatcher? = null,
         scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = { emptyMap() },
         blockTypeRepository: FakeBlockTypeRepository? = null,
         startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
@@ -85,11 +91,12 @@ class WorkspaceControllerTest {
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
-            project = CreatorProject(rootDirectory = rootDirectory, name = "game", desktopModulePath = desktopModulePath),
+            project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
             build = build,
             sessionChannel = channel,
-            scope = CoroutineScope(backgroundScope.coroutineContext + dispatcher),
-            ioDispatcher = dispatcher,
+            parentScope = CoroutineScope(backgroundScope.coroutineContext + dispatcher),
+            ioDispatcher = ioDispatcher ?: dispatcher,
+            findDesktopModulePath = findDesktopModulePath,
             scanResources = scanResources,
             blockTypeRepository = blockTypeRepository,
             startWatching = startWatching,
@@ -127,6 +134,25 @@ class WorkspaceControllerTest {
         assertContains(arguments, "-PkubrikoCreatorMode=play")
         assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
         assertEquals(listOf(Res.string.status_building), controller.statuses)
+    }
+
+    @Test
+    fun aProjectWithoutADesktopModuleSaysWhyItCantBuild() = runTest {
+        val controller = createController(findDesktopModulePath = { throw ProjectInspectionException(Res.string.error_no_desktop_module) })
+        controller.play()
+        assertEquals(listOf(Res.string.status_building, Res.string.error_no_desktop_module), controller.statuses)
+        assertTrue(build.runs.isEmpty())
+    }
+
+    @Test
+    fun closingWritesWhatIsPendingBeforeTheBuildIsReleased() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createController(blockTypeRepository = repository, ioDispatcher = StandardTestDispatcher(testScheduler))
+        controller.close()
+        assertFalse(build.isClosed)
+        runCurrent()
+        assertEquals(listOf("regenerate"), repository.writes)
+        assertTrue(build.isClosed)
     }
 
     @Test

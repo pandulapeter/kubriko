@@ -120,7 +120,7 @@ class ReadCommandsTest {
     @Test
     fun theConsoleIsReadAsTextNewestLast() = runTest {
         val console = listOf(
-            ConsoleEntry.Status(Res.string.status_scene_opened),
+            ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf("1.5")),
             ConsoleEntry.Status(Res.string.error_command_scene_actor_missing, isError = true, arguments = listOf("main", "3")),
             ConsoleEntry.Problem("Unresolved reference: speed", "src/Ball.kt:3:5"),
             ConsoleEntry.Log("Hello", source = "Game", isImportant = false),
@@ -132,7 +132,7 @@ class ReadCommandsTest {
             ),
             executor.read("read_console", buildJsonObject { put("limit", 3) }),
         )
-        assertEquals("The Scene is open.", executor.read("read_console").jsonArray[0].jsonObject.getValue("text").jsonPrimitive.content)
+        assertEquals("The Scene is open, in 1.5 seconds.", executor.read("read_console").jsonArray[0].jsonObject.getValue("text").jsonPrimitive.content)
     }
 
     @Test

@@ -21,14 +21,16 @@ import java.io.File
 import kotlin.coroutines.resume
 
 /**
- * A long-lived connection to a project's Gradle build, through the Gradle Tooling API.
+ * A long-lived connection to a project's Gradle build, through the Gradle Tooling API, made on first use, so that
+ * creating one costs nothing.
  */
 internal class GradleProjectConnection(
     val rootDirectory: File,
 ) : ProjectBuild {
-    private val connection = GradleConnector.newConnector().forProjectDirectory(rootDirectory).connect()
+    private val lazyConnection = lazy { GradleConnector.newConnector().forProjectDirectory(rootDirectory).connect() }
+    private val connection by lazyConnection
 
-    inline fun <reified T> model(): T = connection.getModel(T::class.java)
+    fun <T> model(type: Class<T>): T = connection.getModel(type)
 
     override suspend fun run(
         taskPath: String,
@@ -57,7 +59,9 @@ internal class GradleProjectConnection(
         }
     }
 
-    override fun close() = connection.close()
+    override fun close() {
+        if (lazyConnection.isInitialized()) connection.close()
+    }
 
     private fun SingleProblemEvent.toBuildEvent(): GradleBuildEvent.Problem? {
         if (problem.definition.severity != Severity.ERROR) return null

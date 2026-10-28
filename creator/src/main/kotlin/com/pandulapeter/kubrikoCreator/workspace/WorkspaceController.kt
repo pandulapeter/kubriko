@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
+import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -39,18 +40,25 @@ import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_not_a_gradle_project
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
+import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_kubriko_libraries_added
 import kubriko.creator.generated.resources.status_kubriko_libraries_removed
 import kubriko.creator.generated.resources.status_kubriko_version_changed
@@ -66,8 +74,10 @@ internal class WorkspaceController(
     val project: CreatorProject,
     private val build: ProjectBuild,
     private val sessionChannel: SessionChannel,
-    private val scope: CoroutineScope,
+    private val parentScope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    findDesktopModulePath: () -> String = { ":" },
+    private val currentTimeMillis: () -> Long = System::currentTimeMillis,
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
@@ -77,7 +87,17 @@ internal class WorkspaceController(
     generatedPath: String? = null,
     openGitRepository: () -> GitRepository? = { JGitRepository.open(project.rootDirectory) },
     createGitRepository: (message: String) -> GitRepository = { JGitRepository.create(project.rootDirectory, it) },
-) : AutoCloseable {
+) {
+    /**
+     * Everything the workspace starts runs here, and stops when it is closed.
+     */
+    private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
+
+    /**
+     * The Gradle path of the module that runs the game on desktop, asked from Gradle in the background as soon as the
+     * workspace opens, since only builds need it.
+     */
+    private val desktopModulePath = scope.async(ioDispatcher) { findDesktopModulePath() }
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
     private val _sceneFolders = MutableStateFlow(emptySet<String>())
@@ -277,10 +297,22 @@ internal class WorkspaceController(
      */
     private suspend fun runCreatorTask(taskName: String, properties: Map<String, String>): Boolean {
         appendToConsole(ConsoleEntry.Status(Res.string.status_building))
+        val modulePath = try {
+            desktopModulePath.await()
+        } catch (exception: ProjectInspectionException) {
+            appendToConsole(ConsoleEntry.Status(exception.reason, isError = true))
+            return false
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            appendToConsole(ConsoleEntry.Status(Res.string.error_not_a_gradle_project, isError = true))
+            return false
+        }
+        val startTime = currentTimeMillis()
         val outputTail = ArrayDeque<String>()
         val hasReportedProblems = AtomicBoolean(false)
         val isSuccessful = build.run(
-            taskPath = if (project.desktopModulePath == ":") ":$taskName" else "${project.desktopModulePath}:$taskName",
+            taskPath = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName",
             arguments = listOf("--init-script", SessionInitScript.file.absolutePath, "--no-configuration-cache") + properties.map { (key, value) -> "-P$key=$value" },
             onEvent = { event ->
                 when (event) {
@@ -298,6 +330,9 @@ internal class WorkspaceController(
         if (!isSuccessful) {
             appendToConsole(ConsoleEntry.Status(Res.string.status_build_failed, isError = true))
             if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { appendToConsole(ConsoleEntry.BuildOutput(it)) }
+        }
+        if (isSuccessful && taskName == SessionInitScript.CLASSPATH_TASK_NAME) {
+            appendToConsole(ConsoleEntry.Status(Res.string.status_built, arguments = listOf(secondsSince(startTime))))
         }
         return isSuccessful
     }
@@ -324,12 +359,23 @@ internal class WorkspaceController(
         }
     }
 
-    override fun close() {
+    /**
+     * Stops everything the workspace runs, once the changes made so far are written.
+     *
+     * @return The job that finishes closing it, for an app that is quitting to wait for.
+     */
+    fun close(): Job {
         watching.close()
-        sceneEditing.close()
+        sceneEditing.dispose()
         sessions.close()
-        build.close()
+        return parentScope.launch {
+            blockTypes?.awaitWrites()
+            scope.cancel()
+            build.close()
+        }
     }
+
+    private fun secondsSince(startTime: Long) = ((currentTimeMillis() - startTime) / 100 / 10f).toString()
 
     private companion object {
         const val OUTPUT_TAIL_SIZE = 30

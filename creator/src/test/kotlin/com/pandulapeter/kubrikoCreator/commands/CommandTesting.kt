@@ -66,7 +66,7 @@ internal fun TestScope.commandContext(
     report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
 ) = CommandContext(
-    project = CreatorProject(rootDirectory = rootDirectory, name = "game", desktopModulePath = ":"),
+    project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
     console = MutableStateFlow(console),
     blockTypes = blockTypes,
     git = git,

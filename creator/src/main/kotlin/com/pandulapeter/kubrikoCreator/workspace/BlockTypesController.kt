@@ -23,12 +23,13 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The block-built Actor types and Manager types of a project that opted in to them, and the one being edited.
@@ -79,7 +80,7 @@ internal class BlockTypesController(
      */
     val folders = _folders.asStateFlow()
     private val writes = Mutex()
-    private val pendingWriteCount = AtomicInteger(0)
+    private val pendingWriteCount = MutableStateFlow(0)
 
     init {
         scope.launch {
@@ -89,6 +90,13 @@ internal class BlockTypesController(
         }
         // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away.
         write { repository.regenerateAll() }
+    }
+
+    /**
+     * Returns once every change made so far is written.
+     */
+    suspend fun awaitWrites() {
+        pendingWriteCount.first { it == 0 }
     }
 
     fun select(name: String?) {
@@ -185,11 +193,11 @@ internal class BlockTypesController(
      * of Creator's own changes is still being written, which the next change on disk is then checked against.
      */
     fun reloadFromDisk() {
-        if (pendingWriteCount.get() > 0) return
+        if (pendingWriteCount.value > 0) return
         scope.launch {
             val stored = withContext(ioDispatcher) { repository.load() }
             val storedFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
-            if (pendingWriteCount.get() == 0 && (stored != _types.value || storedFolders != emptyFolders)) {
+            if (pendingWriteCount.value == 0 && (stored != _types.value || storedFolders != emptyFolders)) {
                 emptyFolders = storedFolders
                 setTypes(stored)
                 if (_selectedName.value !in stored.map { it.name }) _selectedName.value = null
@@ -211,7 +219,7 @@ internal class BlockTypesController(
     private fun Map<BlockTypeKind, Set<String>>.withFolder(kind: BlockTypeKind, path: String) = this + (kind to get(kind).orEmpty() + path)
 
     private fun write(haveTypesChanged: Boolean = true, change: () -> Set<String>) {
-        pendingWriteCount.incrementAndGet()
+        pendingWriteCount.update { it + 1 }
         scope.launch {
             var buildFileChanges: KubrikoBuildFileChanges? = null
             val changedByHand = try {
@@ -225,7 +233,7 @@ internal class BlockTypesController(
                     }
                 }
             } finally {
-                pendingWriteCount.decrementAndGet()
+                pendingWriteCount.update { it - 1 }
             }
             if (changedByHand == null) {
                 onSaveFailed()

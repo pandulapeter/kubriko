@@ -68,6 +68,7 @@
     <string name="status_session_ended">Session ended.</string>
     <string name="status_session_stopped">Session stopped.</string>
     <string name="status_build_failed">The build failed.</string>
+    <string name="status_built">Built in %1$s seconds.</string>
     <string name="status_actor_type_not_saved">An Actor type couldn't be saved.</string>
     <string name="status_kubriko_version_changed">The project now uses Kubriko %1$s, the version of this Kubriko Creator, instead of %2$s.</string>
     <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes open in a window of their own.</string>
@@ -275,7 +276,7 @@
     <string name="action_expand_console">Show the console</string>
     <string name="recent_projects">Recent projects</string>
     <string name="action_forget_recent_project">Remove from the list</string>
-    <string name="status_scene_opened">The Scene is open.</string>
+    <string name="status_scene_opened">The Scene is open, in %1$s seconds.</string>
     <string name="error_entry_point_missing">The project has no CreatorEntryPoint, so its Scenes can't be edited.</string>
     <string name="error_entry_point_multiple">The project registers more than one CreatorEntryPoint.</string>
     <string name="error_entry_point_not_loaded">The project's CreatorEntryPoint couldn't be loaded.</string>

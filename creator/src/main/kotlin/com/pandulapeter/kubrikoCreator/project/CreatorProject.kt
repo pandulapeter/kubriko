@@ -16,10 +16,8 @@ import java.io.File
  *
  * @param rootDirectory The directory of the project's root Gradle build.
  * @param name The root project's name.
- * @param desktopModulePath The Gradle path of the module that runs the game on desktop (the one with a Compose `run` task).
  */
 internal data class CreatorProject(
     val rootDirectory: File,
     val name: String,
-    val desktopModulePath: String,
 )
