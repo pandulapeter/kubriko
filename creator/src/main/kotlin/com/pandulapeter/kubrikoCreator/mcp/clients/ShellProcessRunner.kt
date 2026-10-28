@@ -79,7 +79,7 @@ internal class ShellProcessRunner(
         /**
          * What shells print when they run interactively without a terminal, which isn't the program's output.
          */
-        val jobControlNotice = Regex("^(\\S+: )?(no job control in this shell|cannot set terminal process group.*|initialize_job_control.*)$")
+        val jobControlNotice = Regex("^(\\S+: )*(no job control in this shell|cannot set terminal process group.*|initialize_job_control.*|can't access tty; job control turned off)$")
 
         /**
          * The program [command] runs: its first word that doesn't set an environment variable or go past aliases.

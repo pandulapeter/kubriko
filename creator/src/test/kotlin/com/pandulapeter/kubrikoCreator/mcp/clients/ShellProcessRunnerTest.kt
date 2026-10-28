@@ -62,10 +62,26 @@ class ShellProcessRunnerTest {
             val runner = ShellProcessRunner(shell = "/bin/zsh", environment = mapOf("ZDOTDIR" to home.absolutePath))
             assertEquals("Use something else -c echo real", runner.run("sh", listOf("-c", "echo real")).output.lines().last())
             assertEquals("real", runner.run("command sh", listOf("-c", "echo real")).output.lines().last())
-            assertEquals("/bin/sh", runner.locate("command sh"))
+            assertSameFile("/bin/sh", runner.locate("command sh"))
             assertTrue(runner.exists("command sh"))
         } finally {
             home.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun theNoticesOfShellsWithoutATerminalAreLeftOut() {
+        if (isWindows) return
+        val folder = createTempDirectory().toFile()
+        try {
+            val dashLikeShell = File(folder, "sh").apply {
+                writeText("#!/bin/sh\necho \"sh: 0: can't access tty; job control turned off\" >&2\nexec /bin/sh \"\$@\"\n")
+                setExecutable(true)
+            }
+            val runner = ShellProcessRunner(shell = dashLikeShell.absolutePath)
+            assertEquals("personal", runner.run("PROFILE_NAME=personal sh", listOf("-c", "printf %s \"\$PROFILE_NAME\"")).output)
+        } finally {
+            folder.deleteRecursively()
         }
     }
 
@@ -81,7 +97,15 @@ class ShellProcessRunnerTest {
     @Test
     fun programsAreLocatedByTheirFullPath() {
         if (isWindows) return
-        assertEquals("/bin/sh", runner.locate("sh"))
+        assertSameFile("/bin/sh", runner.locate("sh"))
         assertNull(runner.locate("kubriko-creator-no-such-program"))
+    }
+
+    /**
+     * Where `/bin` links to `/usr/bin` (Ubuntu), the shell finds `/usr/bin/sh` first.
+     */
+    private fun assertSameFile(expected: String, actual: String?) {
+        assertTrue(actual != null && actual.startsWith("/"), "expected a full path, got $actual")
+        assertEquals(File(expected).canonicalPath, File(actual).canonicalPath)
     }
 }
