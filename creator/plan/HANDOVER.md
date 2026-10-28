@@ -41,12 +41,12 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - A paused game in the embedded Scene editor (its Managers' Events don't run there, so it should be unaffected).
 - The "score of Game" Property menu in an Actor's Block.
 - A Scene whose Actors use a Manager, in the embedded Scene editor (`createCustomManagers`, `isInSceneEditor`).
-- The Manager type, text, and upgrade tools from a real AI session.
+- The Manager type, text, and upgrade tools from a real AI session: ask for a score again ("stop the paddle on key release and show a
+  score"), and watch the activity view pace a burst of calls.
 - Connect for the plain "Claude Code" row in the Claude app, and for Claude Desktop from a real chat (writing its config needs the user).
 - Codex (out of quota until Nov 21, 2026), Cursor, Gemini CLI, Windows, and fish aliases with a real fish.
 - In the editor: the Event move buttons, the New Scene field, undo and redo, and Connect and Disconnect against a real config. Watch
   for a palette drag adding its Block twice.
-- Known wart: a screenshot right after `start_game` can be empty, because the Scene's Actors aren't loaded yet.
 
 ## Working with the live app
 

@@ -13,7 +13,6 @@
   `MetadataManager` metrics, pause, single-step through a `TickSource`, editing a property while paused. It needs the running `Kubriko`
   instances: add them to `CreatorEntryPoint` as a member with a default implementation (decided: through the entry point, not a new engine API).
 - **Panels in Creator:** Actors, Inspector, Logs, and a frame-time graph, next to Play.
-- **A screenshot of the running game** as a read tool for the AI (`01-ai-assistant.md`), so Claude can see what it built.
 - **Other targets:** Android through `adb reverse`, web through a WebSocket variant of the protocol.
 - **IntelliJ users** can add the agent to a debug build and attach Creator to a game they started themselves.
 

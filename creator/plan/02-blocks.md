@@ -23,7 +23,7 @@ case in the integration test's every-Block types (an Actor type and two Manager 
 A Manager's texts on screen suit a score or a lives counter, not menus, buttons, health bars, or layouts. Game UI grows from them in
 three steps, always generated into ordinary Compose (no runtime interpreter):
 
-1. **Kotlin UI (next, after the Scene Blocks):** a verbatim body for the Manager's `Composable`, like the Kotlin Block, with its
+1. **Kotlin UI (next):** a verbatim body for the Manager's `Composable`, like the Kotlin Block, with its
    Properties, the other Managers it uses, and `windowInsets` in scope. The escape hatch for advanced users, and real Compose.
 2. **UI elements (once a second UI need comes, such as a title screen with a Start button):** `texts` becomes a sealed `elements`
    tree (column, row, box, text, image, button, progress bar) that the editor builds visually, with a text as one kind of element so
@@ -34,7 +34,7 @@ three steps, always generated into ordinary Compose (no runtime interpreter):
 
 ## Next additions
 
-- **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist).
+- **More Properties:** color and Actor type reference Properties.
 - **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
 - **Audio:** play a sound, play or stop music (from the project's resources), and a Scene's music in its `SceneSettings`

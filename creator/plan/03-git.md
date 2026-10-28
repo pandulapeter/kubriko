@@ -13,7 +13,7 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
 
 - **Change markers** in the sidebar for new and changed Actor types, Scenes, and files.
 - **Restore** an Actor type or Scene from any commit in the history; show what a commit changed.
-- **Branches:** the current one in the toolbar already; create and switch from a menu. Merging is left to other tools at first.
+- **Branches:** create and switch from a menu. Merging is left to other tools at first.
 - **Checkpoints:** offer to commit before risky operations (Convert to code, deleting an Actor type, upgrading Kubriko, AI changes).
 - **Remotes:** publish to a new GitHub repository, push, and pull (fast-forward only, explaining when histories diverged), credentials in the OS
   keychain. A generated GitHub Actions workflow builds every platform (`05-export-and-distribution.md`).

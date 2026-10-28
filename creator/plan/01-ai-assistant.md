@@ -7,47 +7,22 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
 -->
-# AI assistant (next)
+# AI assistant
 
 Claude edits Kubriko games through the same validated operations the user has, so its work stays inside the editor's constraints by
-construction, shows up as readable Events and Blocks, and can be inspected, tweaked, or undone like any other change.
+construction, shows up as readable Events and Blocks, and can be inspected, tweaked, or undone like any other change. What exists (the
+commands, the MCP server, one-click setup, the game tools, and the activity view) is in `../CLAUDE.md`.
 
-The command layer it builds on exists (`../CLAUDE.md` → Commands): every editor change is a validated command with an
-inverse, undo and redo use them, and `CommandRegistry.editor.tools` is the tool list, with read tools (overview, Block catalog,
-Actor types, Scenes, console, version control) and action tools (build, play).
+## More for the MCP server
 
-## The MCP server: what's left
-
-The server, one-click setup for Claude Code, Codex, and Gemini CLI (one row per shell alias that runs them), the game tools, and the
-step-by-step view of the AI's work (activity bar, follow mode, highlights) exist (`../CLAUDE.md` → AI connection). Still to do:
-
-- **Real sessions so far** (October 2026, headless Claude Code with Opus 5.5 on a copy of the Breakout project; Codex not yet, its
-  account was out of quota): "make the Ball faster and log when the game starts, then play it" took 18 turns, 45 s, and $0.46, entirely
-  through the tools. The model read before writing, placed an invisible Actor to get a "game started" Event, and checked its work with
-  `start_game`, `press_keys`, `take_screenshot`, and `read_console`. "Also move with A and D, stop on key release, and show a score" took
-  42 turns, 3 minutes, and $1.06. A and D went through the tools; there were no Blocks for the rest then (key released, score,
-  on-screen text), so it hand-wrote a Manager and edited `Game.kt` with its own file tools, and said so. What it revealed was fixed:
-  the edge Event ran on every frame an Actor rested at the edge, the first key press after another app had taken the focus was lost, and
-  internal errors reached the model as a bare class name. The server's instructions now ask for every change to go through the tools,
-  using a Kotlin Block when no Block fits and otherwise saying what's missing; the same request then took 34 turns and $0.91 with no file
-  written by hand. It still read Kubriko's sources jars with its own shell to find the API for those Kotlin Blocks, so a read tool with
-  Kubriko's API (the root `CLAUDE.md`'s overview, or KDoc for a named class) would save turns. Still to do: a Codex run, watching the activity
-  view pace those bursts of calls in the window, and the score request again now that Manager types exist (only key released is
-  still missing): the Manager type, text, and upgrade tools haven't been used by a real session yet. The Gemini CLI commands come from its documentation and haven't been run yet.
-- Claude Desktop and Cursor are connected through their configuration files (`../CLAUDE.md` → AI connection). `mcp-remote` was tried
-  from a terminal against the server; still owed: clicking Connect for Claude Desktop and using the tools from a real chat (its log
-  is `~/Library/Logs/Claude/mcp-server-kubriko-creator.log`), Cursor at all (not installed here), and Windows, where the entry
-  runs plain `npx`.
-- A screenshot right after `start_game` can be empty: the window is open, but the Scene's Actors aren't added yet. Waiting
-  for the first frame that draws Actors (the session can ask the Kubriko instance through the entry point) would fix it.
-- The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the
-  running Kubriko instance, which is the debug agent's job (`04-debugger.md`); expose it as a tool once that exists.
-- Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows. fish's `alias name 'value'`
-  listing is read as its `alias.fish` prints it, but has never been tried with a real fish.
-- The activity view lights Scenes up only in the sidebar (opening one compiles the project), and numbers steps per run of
-  Kubriko Creator. Naming the client (from MCP's `clientInfo`) in the bar could help when two are connected.
-- Checked only through tests and screenshots, never by clicking: the Log Block's message field, the Event move buttons, the New
-  Scene field, undo and redo, and the Connect and Disconnect buttons against a real (non-scratch) Claude Code configuration.
+- **Kubriko's API as a read tool** (the root `CLAUDE.md`'s overview, or the KDoc of a named class): real sessions read Kubriko's sources
+  jars with their own shell to write Kotlin Blocks.
+- **A screenshot right after `start_game` can be empty:** the window is open, but the Scene's Actors aren't added yet. Waiting for the
+  first frame that draws Actors (the session can ask the Kubriko instance through the entry point) would fix it.
+- **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
+  (`04-debugger.md`) exists.
+- **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), numbering steps per project rather than
+  per run of Creator, and naming the client (from MCP's `clientInfo`) when two are connected.
 
 ## Next: in-app assistant panel
 
@@ -85,6 +60,6 @@ makes the requests.
 ## Testing
 
 - A small eval set of realistic requests ("make the Ball faster", "add a Paddle moved with A and D", "remove Bricks the Ball hits", and the
-  two real sessions above: "log when the game starts", "stop the paddle on key release and show a score") replayed
+  requests real sessions were given: "log when the game starts", "stop the paddle on key release and show a score") replayed
   against the tools with recorded model responses, so tool changes are checked without spending tokens; a live run is opt-in, like the
   template integration test.
