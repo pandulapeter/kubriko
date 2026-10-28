@@ -44,7 +44,7 @@ internal object PropertyNaming {
      */
     fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
         !namePattern.matches(name) -> Res.string.error_property_name_invalid
-        name in reservedNames || name.startsWith("isTouching") || name.startsWith("isKey") || generatedTimerField.matches(name) -> Res.string.error_property_name_reserved
+        name in reservedNames || name.startsWith("isTouching") || generatedTimerField.matches(name) -> Res.string.error_property_name_reserved
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_property_name_taken
         else -> null
     }

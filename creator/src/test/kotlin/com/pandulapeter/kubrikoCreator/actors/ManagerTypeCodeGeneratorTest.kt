@@ -38,8 +38,10 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
-    fun aManagerWithoutEventsHasNoLifecycleOverrides() {
+    fun aManagerWithoutEventsHasNoLifecycleOverridesOrLookups() {
         val code = generate(game)
+        assertFalse("ActorManager" in code)
+        assertFalse("ViewportManager" in code)
         assertFalse("onInitialize" in code)
         assertFalse("onUpdate" in code)
         assertFalse("Composable" in code)
@@ -56,7 +58,7 @@ class ManagerTypeCodeGeneratorTest {
             ),
         )
         assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n        // When the game starts\n        lives = 3f\n    }\n")
-        assertContains(code, "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor) return\n        if (!stateManager.isRunning.value) return\n        // Every frame\n        if (lives <= 0f) {\n            isOver = true\n        }\n    }\n")
+        assertContains(code, "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor || !stateManager.isRunning.value) return\n        // Every frame\n        if (lives <= 0f) {\n            isOver = true\n        }\n    }\n")
     }
 
     @Test
@@ -69,17 +71,10 @@ class ManagerTypeCodeGeneratorTest {
                 ),
             ),
         )
-        assertContains(code, ") : Manager() {\n")
-        assertFalse("KeyboardInputAware" in code)
-        assertContains(code, "    private val keyboardInputManager by manager<KeyboardInputManager>()\n")
-        assertContains(code, "    private var isKeySpacebarDown = false\n")
-        assertContains(
-            code,
-            "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor) return\n" +
-                "        if (keyboardInputManager.isKeyPressed(Key.Spacebar) != isKeySpacebarDown) {\n" +
-                "            isKeySpacebarDown = !isKeySpacebarDown\n            if (isKeySpacebarDown) {\n                timer2RemainingInMilliseconds = 500\n",
-        )
-        assertContains(code, "            }\n        }\n        if (!stateManager.isRunning.value) return\n        if (timer2RemainingInMilliseconds > 0) {\n")
+        assertContains(code, ") : Manager(), KeyboardInputAware {\n")
+        assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n        actorManager.add(this)\n    }\n")
+        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        when (key) {\n            Key.Spacebar -> {\n                timer2RemainingInMilliseconds = 500\n")
+        assertFalse("KeyboardInputManager" in code)
         assertContains(code, "        if (timer2RemainingInMilliseconds > 0) {\n")
         assertContains(code, "                score += 1f\n")
     }
@@ -137,10 +132,11 @@ class ManagerTypeCodeGeneratorTest {
         assertContains(wiring, "object KubrikoWiring {\n")
         assertContains(
             wiring,
-            "    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> = listOf(\n" +
-                "        GeneratedScenes(firstScene, isInSceneEditor),\n        Game(isInSceneEditor),\n        Level(isInSceneEditor),\n    )\n",
+            "    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> {\n" +
+                "        val managers = listOf<Manager>(\n            Game(isInSceneEditor),\n            Level(isInSceneEditor),\n        )\n" +
+                "        return listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers\n    }\n",
         )
-        assertContains(ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"), "listOf(\n        GeneratedScenes(firstScene, isInSceneEditor),\n    )\n")
+        assertContains(ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"), "        val managers = listOf<Manager>(\n        )\n")
     }
 
     @Test
@@ -154,7 +150,7 @@ class ManagerTypeCodeGeneratorTest {
             ),
         )
         assertContains(code, "import com.pandulapeter.kubriko.manager.StateManager\n")
-        assertContains(code, "    private val stateManager by manager<StateManager>()\n    private val generatedScenes by manager<GeneratedScenes>()\n")
+        assertContains(code, "    private val actorManager by manager<ActorManager>()\n    private val stateManager by manager<StateManager>()\n    private val generatedScenes by manager<GeneratedScenes>()\n")
         assertContains(code, "                generatedScenes.goTo(\"level-2\")\n                generatedScenes.restart()\n                // Choose a Scene for this Block.\n")
         assertContains(
             code,

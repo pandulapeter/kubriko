@@ -64,9 +64,23 @@ internal object ActorTypeCodeGenerator {
         val usedManagers = scope.managersUsedBy(generatedBlocks)
         val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks)
         val usesPause = BlockCodeGenerator.usesPause(generatedBlocks)
+        val usesKotlin = generatedBlocks.any { it is BlockDefinition.Kotlin }
+        val isDynamic = usesKotlin || edgeEvents.isNotEmpty() || timers.isNotEmpty() ||
+            definition.events.any { it.type == EventType.EVERY_FRAME && it.blocks.isNotEmpty() } || generatedBlocks.any { it.movesTheActor }
+        val usesActorManager = usesKotlin || generatedBlocks.any { it.needsActorManager(knownActorTypeNames) }
+        val usesViewportManager = usesKotlin || edgeEvents.isNotEmpty()
+        val usesStateManager = usesPause || keyEvents.isNotEmpty()
+        val lookups = listOfNotNull(
+            "actorManager: ActorManager".takeIf { usesActorManager },
+            "viewportManager: ViewportManager".takeIf { usesViewportManager },
+            "keyboardInputManager: KeyboardInputManager".takeIf { usesKeyHeld },
+            "$STATE_MANAGER_FIELD: StateManager".takeIf { usesStateManager },
+            "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}".takeIf { usesScenes },
+        ) + usedManagers.map { "${scope.managerField(it)}: $it" }
+        val addedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE }
         val traits = listOfNotNull(
             "Visible",
-            "Dynamic",
+            "Dynamic".takeIf { isDynamic },
             if (collisionEvents.isEmpty()) "Collidable" else "CollisionDetector",
             "Editable<$name>",
             "KeyboardInputAware".takeIf { keyEvents.isNotEmpty() },
@@ -88,7 +102,14 @@ internal object ActorTypeCodeGenerator {
             if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log } }) add("com.pandulapeter.kubriko.logger.Logger")
             if (collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }) add("com.pandulapeter.kubriko.types.SceneUnit")
             if (usesKeyHeld) addAll(KEYBOARD_MANAGER_IMPORTS)
-            if (usesPause) add(STATE_MANAGER_IMPORT)
+            if (usesStateManager) add(STATE_MANAGER_IMPORT)
+            if (isDynamic) add("com.pandulapeter.kubriko.actor.traits.Dynamic")
+            if (usesActorManager) add("com.pandulapeter.kubriko.manager.ActorManager")
+            if (usesViewportManager) add("com.pandulapeter.kubriko.manager.ViewportManager")
+            if (lookups.isNotEmpty()) addAll(listOf("com.pandulapeter.kubriko.Kubriko", "com.pandulapeter.kubriko.helpers.extensions.get"))
+            if (isDynamic || edgeEvents.isNotEmpty() || generatedBlocks.any { it is BlockDefinition.JumpTo || (it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames) }) {
+                add("com.pandulapeter.kubriko.types.SceneOffset")
+            }
             if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
             if (generatedBlocks.any { it is BlockDefinition.MoveTowardsNearest && it.actorType in knownActorTypeNames }) {
                 add("com.pandulapeter.kubriko.helpers.extensions.distanceTo")
@@ -105,11 +126,13 @@ internal object ActorTypeCodeGenerator {
             appendLine()
             appendLine("    @set:Exposed(name = \"color\")")
             appendLine("    var color: Color = state.color")
-            appendLine()
-            appendLine("    /**")
-            appendLine("     * In scene units per second: the Actor moves by this much every second.")
-            appendLine("     */")
-            appendLine("    var velocity = SceneOffset.Zero")
+            if (isDynamic) {
+                appendLine()
+                appendLine("    /**")
+                appendLine("     * In scene units per second: the Actor moves by this much every second.")
+                appendLine("     */")
+                appendLine("    var velocity = SceneOffset.Zero")
+            }
             definition.properties.forEach { property ->
                 appendLine()
                 appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
@@ -119,12 +142,7 @@ internal object ActorTypeCodeGenerator {
             if (collisionEvents.isNotEmpty()) {
                 appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted().joinToString { "$it::class" }})")
             }
-            appendLine("    private lateinit var actorManager: ActorManager")
-            appendLine("    private lateinit var viewportManager: ViewportManager")
-            if (usesKeyHeld) appendLine("    private lateinit var keyboardInputManager: KeyboardInputManager")
-            if (usesPause) appendLine("    private lateinit var $STATE_MANAGER_FIELD: StateManager")
-            if (usesScenes) appendLine("    private lateinit var $SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}")
-            usedManagers.forEach { appendLine("    private lateinit var ${scope.managerField(it)}: $it") }
+            lookups.forEach { appendLine("    private lateinit var $it") }
             timers.forEach { timer ->
                 appendLine()
                 appendLine("    /**")
@@ -133,25 +151,25 @@ internal object ActorTypeCodeGenerator {
                 appendLine("    private var ${remainingField(timer)} = 0L")
                 appendLine("    private var ${periodField(timer)} = 0L")
             }
-            appendLine()
-            appendLine("    override fun onAdded(kubriko: Kubriko) {")
-            appendLine("        actorManager = kubriko.get()")
-            appendLine("        viewportManager = kubriko.get()")
-            if (usesKeyHeld) appendLine("        keyboardInputManager = kubriko.get()")
-            if (usesPause) appendLine("        $STATE_MANAGER_FIELD = kubriko.get()")
-            if (usesScenes) appendLine("        $SCENES_FIELD = kubriko.get()")
-            usedManagers.forEach { appendLine("        ${scope.managerField(it)} = kubriko.get()") }
-            appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, scope = scope)
-            appendLine("    }")
-            appendLine()
-            appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
-            timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
-            appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, scope = scope)
-            appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
-            if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, scope)
-            appendLine("        collisionMask.position = body.position")
-            appendLine("    }")
-            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope)
+            if (lookups.isNotEmpty() || addedEvents.any { it.blocks.isNotEmpty() }) {
+                appendLine()
+                appendLine("    override fun onAdded(kubriko: Kubriko) {")
+                lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
+                appendEvents(addedEvents, depth = 2, scope = scope)
+                appendLine("    }")
+            }
+            if (isDynamic) {
+                appendLine()
+                appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
+                timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
+                appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, scope = scope)
+                appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
+                if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, scope)
+                appendLine("        collisionMask.position = body.position")
+                appendLine("    }")
+            }
+            // Kubriko keeps telling Actors about key presses while the game is paused.
+            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope, guard = "if (!$STATE_MANAGER_FIELD.isRunning.value) return")
             if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, scope)
             appendLine()
             appendLine(drawFunction(definition.shape))
@@ -242,13 +260,14 @@ internal object ActorTypeCodeGenerator {
         ActorShape.CIRCLE -> """
             |    override val collisionMask = CircleCollisionMask(
             |        initialPosition = body.position,
-            |        initialRadius = body.size.width / 2,
+            |        initialRadius = body.size.width * body.scale.horizontal / 2,
             |    )
         """.trimMargin()
         ActorShape.RECTANGLE -> """
             |    override val collisionMask = BoxCollisionMask(
             |        initialPosition = body.position,
-            |        initialSize = body.size,
+            |        initialSize = body.size * body.scale,
+            |        initialRotation = body.rotation,
             |    )
         """.trimMargin()
     }
@@ -272,21 +291,15 @@ internal object ActorTypeCodeGenerator {
     private val BASE_IMPORTS = listOf(
         "androidx.compose.ui.graphics.Color",
         "androidx.compose.ui.graphics.drawscope.DrawScope",
-        "com.pandulapeter.kubriko.Kubriko",
         "com.pandulapeter.kubriko.actor.body.BoxBody",
-        "com.pandulapeter.kubriko.actor.traits.Dynamic",
         "com.pandulapeter.kubriko.actor.traits.Visible",
-        "com.pandulapeter.kubriko.helpers.extensions.get",
         "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
-        "com.pandulapeter.kubriko.manager.ActorManager",
-        "com.pandulapeter.kubriko.manager.ViewportManager",
         "com.pandulapeter.kubriko.sceneEditor.Editable",
         "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
         "com.pandulapeter.kubriko.sceneEditor.Exposed",
         "com.pandulapeter.kubriko.serialization.Serializable",
         "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody",
         "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor",
-        "com.pandulapeter.kubriko.types.SceneOffset",
         "com.pandulapeter.kubriko.types.SceneSize",
         "kotlinx.serialization.SerialName",
         "kotlinx.serialization.json.Json",
@@ -301,4 +314,23 @@ internal object ActorTypeCodeGenerator {
         "androidx.compose.ui.input.key.Key",
         "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware",
     )
+
+    /**
+     * Whether [this] Block changes where the Actor is or how it moves, which only an Actor that updates every frame
+     * does. A Kotlin Block counts too, since it may.
+     */
+    private val BlockDefinition.movesTheActor
+        get() = when (this) {
+            is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, is BlockDefinition.JumpTo,
+            is BlockDefinition.MoveTowardsNearest, BlockDefinition.BounceOffEdge, BlockDefinition.BounceOffOther, is BlockDefinition.Kotlin -> true
+            is BlockDefinition.If -> condition is ConditionDefinition.Velocity
+            else -> false
+        }
+
+    private fun BlockDefinition.needsActorManager(knownActorTypeNames: Collection<String>) = when (this) {
+        BlockDefinition.RemoveSelf, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> true
+        is BlockDefinition.AddActor -> actorType in knownActorTypeNames
+        is BlockDefinition.MoveTowardsNearest -> actorType in knownActorTypeNames
+        else -> false
+    }
 }

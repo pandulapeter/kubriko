@@ -17,11 +17,12 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - **Scene Blocks exist:** go to a Scene, restart the Scene, and pause / resume / toggle, through the generated `GeneratedScenes`
   Manager and `StateManager`. Template version 3 hands the first Scene to `KubrikoWiring.createManagers(firstScene = …)` and deletes
   the template's `SceneLoader.kt`; the upgrade can now delete files.
-- **Fixed on the way:** a Manager type's key pressed Events never ran (Kubriko's keyboard plugin only tells Actors), so Manager types
-  now poll their keys in `onUpdate`. A key tapped and released within one frame is missed; a plugin change that tells Managers too
-  would fix that, but changes a published library's behavior, so it needs the user's OK.
+- **Generated code reviewed against the examples:** Manager types with key Events are `KeyboardInputAware` Actors (they had never
+  received keys), Actors' key Events don't run while paused, Actor types are `Dynamic` only when needed, collision masks follow the
+  body's scale and rotation, and only used Managers are looked up.
 - **Checked live** on a scratch Breakout copy (version 2): the upgrade proposed exactly Game.kt plus deleting SceneLoader.kt, Enter
-  went to `level-2`, W froze and resumed the game, and S restarted the Scene. All unit tests and the integration test pass.
+  went to `level-2`, W froze and resumed the game (and still worked after
+  each Scene change), and S restarted the Scene. All unit tests and the integration test pass.
 - **AI work is paused** by the user's choice: only fix bugs in what exists.
 
 ## Next

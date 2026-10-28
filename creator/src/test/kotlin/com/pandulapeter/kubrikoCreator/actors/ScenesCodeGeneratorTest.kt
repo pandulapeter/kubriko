@@ -27,8 +27,8 @@ class ScenesCodeGeneratorTest {
     }
 
     @Test
-    fun onlyLaterScenesRemoveTheActorsBeforeThem() {
-        assertContains(code, "if (!isFirst) actorManager.removeAll()\n            actorManager.add(actors)\n")
+    fun onlyLaterScenesRemoveTheActorsBeforeThemAndManagersThatAreActorsStay() {
+        assertContains(code, "if (!isFirst) {\n                actorManager.removeAll()\n                actorManager.add(managerActors)\n            }\n            actorManager.add(actors)\n")
         assertContains(code, "if (!isInSceneEditor && firstScene != null) load(firstScene, isFirst = true)")
         assertContains(code, "if (!isInSceneEditor) load(scene, isFirst = false)")
     }

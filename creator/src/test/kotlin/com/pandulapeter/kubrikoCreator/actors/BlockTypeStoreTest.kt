@@ -204,7 +204,7 @@ class BlockTypeStoreTest {
         store.delete("Game")
         assertFalse(File(root, ".kubriko/managers/Game.json").exists())
         assertFalse(File(generated, "Game.kt").exists())
-        assertContains(File(generated, "KubrikoWiring.kt").readText(), "        GeneratedScenes(firstScene, isInSceneEditor),\n    )\n")
+        assertContains(File(generated, "KubrikoWiring.kt").readText(), "        val managers = listOf<Manager>(\n        )\n")
     }
 
     @Test

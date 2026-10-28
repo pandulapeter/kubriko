@@ -65,9 +65,13 @@ internal object BlockCodeGenerator {
         appendLine("        }")
     }
 
-    internal fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, scope: BlockScope) {
+    /**
+     * @param guard A statement that runs before any of the Events, like an early return.
+     */
+    internal fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, scope: BlockScope, guard: String? = null) {
         appendLine()
         appendLine("    override fun onKeyPressed(key: Key) {")
+        guard?.let { appendLine("        $it") }
         appendLine("        when (key) {")
         keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
             appendLine("            Key.${key.composeKeyName} -> {")

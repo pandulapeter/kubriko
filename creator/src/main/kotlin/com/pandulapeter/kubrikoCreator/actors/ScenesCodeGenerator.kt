@@ -27,6 +27,7 @@ internal object ScenesCodeGenerator {
         appendLine()
         listOf(
             "com.pandulapeter.kubriko.Kubriko",
+            "com.pandulapeter.kubriko.actor.Actor",
             "com.pandulapeter.kubriko.logger.Logger",
             "com.pandulapeter.kubriko.manager.ActorManager",
             "com.pandulapeter.kubriko.manager.Manager",
@@ -46,10 +47,12 @@ internal object ScenesCodeGenerator {
             | *
             | * @param firstScene The name of the Scene loaded when the game starts, or null to load none.
             | * @param isInSceneEditor True in the Scene editor, which loads its Scenes itself.
+            | * @param managerActors The Managers that are Actors too, which every Scene keeps.
             | */
             |class $SCENES_NAME(
             |    private val firstScene: String? = null,
             |    private val isInSceneEditor: Boolean = false,
+            |    private val managerActors: List<Actor> = emptyList(),
             |) : Manager() {
             |    private val actorManager by manager<ActorManager>()
             |    private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
@@ -92,7 +95,10 @@ internal object ScenesCodeGenerator {
             |                return@launch
             |            }
             |            // The first Scene keeps what the Managers added when the game started.
-            |            if (!isFirst) actorManager.removeAll()
+            |            if (!isFirst) {
+            |                actorManager.removeAll()
+            |                actorManager.add(managerActors)
+            |            }
             |            actorManager.add(actors)
             |        }
             |    }

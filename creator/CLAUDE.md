@@ -80,9 +80,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   one of nine places, size, color). Both kinds are a `BlockTypeDefinition` and share one namespace, the edits (`BlockTypeEdits.kt`),
   the Block editor, and the commands; Blocks and conditions that need an Actor (`BlockKind.needsActor`, the velocity condition) and
   Actor-only Events are rejected in a Manager and hidden from its palette. Each one becomes a `Manager` subclass whose Properties are
-  Compose state (`mutableFloatStateOf` for numbers, so nothing boxes), whose texts are `BasicText`s in its `Composable`, whose key
-  pressed Events poll `isKeyPressed` in `onUpdate` (Kubriko only tells Actors about key presses; a Boolean per key, so a press runs
-  once and nothing allocates), and whose
+  Compose state (`mutableFloatStateOf` for numbers, so nothing boxes), whose texts are `BasicText`s in its `Composable`, which is
+  `KeyboardInputAware` and adds itself as an Actor when it has key pressed Events (as the examples' Managers do; `GeneratedScenes`
+  adds it back after each Scene's `removeAll`), and whose
   Events don't run in the Scene editor (`isInSceneEditor`), nor every frame while the game is paused. The generated
   `KubrikoWiring.createManagers(isInSceneEditor, firstScene)` creates all of them, plus `GeneratedScenes`; the template passes it to
   `Kubriko.newInstance` in `Game.kt` (with the first Scene) and to the Scene editor in `GameEntryPoint.kt`.
@@ -92,7 +92,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Managers added before it) and logs a Scene it can't read. Manager types keep their Properties. goToScene is rejected for a
   Scene that doesn't exist (`BlockScope.sceneNames`, known to commands and the editor but not to the generator) and generates a
   comment until one is chosen. pauseGame pauses, resumes, or toggles through `StateManager.updateIsRunning`; key presses still
-  arrive while paused, so a key can resume the game.
+  arrive while paused, so Actors' key pressed Events return early then (as Wallbreaker's `Ball` does) and Managers' still run, so a
+  Manager's key can resume the game.
 - **Reaching a Manager:** the Property Blocks and conditions have an optional `manager`, and Log Blocks and texts show `{Manager.name}`
   placeholders (`PropertyPlaceholders`). `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the
   editor's Property choices alike: an Actor looks the Managers it uses up in `onAdded` (a field named after the type, unless a
@@ -184,6 +185,9 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   uses yet and collapses Kotlin files, and New project keeps the package under More options.
 - Desktop-sized UI from the start: `ui/components` (`CompactTextField`, `IconActionButton` with tooltip, `PanelHeader`), vector icons in
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
+- Generated Kotlin reads like the examples' hand-written Kubriko code: an Actor type is `Dynamic` only when it moves or has work every
+  frame (a Kotlin Block counts), looks up only the Managers its Blocks use, and builds its collision mask with the body's scale and
+  rotation.
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
   `run { }` scope, Blocks outside their Event become comments) and follow the engine's no-allocation rules.
 - Nothing under `engine/`, `plugins/`, or `tools/` may depend on `creator`. Library changes Creator needs follow the public API rules (confirm first).
