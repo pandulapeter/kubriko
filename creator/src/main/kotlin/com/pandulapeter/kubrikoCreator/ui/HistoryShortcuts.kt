@@ -9,6 +9,14 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -17,6 +25,7 @@ import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
 
 /**
  * Whether this key event asks to undo (true), to redo (false), or for neither (null).
@@ -31,4 +40,17 @@ internal fun historyStep(key: Key, isShortcutPressed: Boolean, isShiftPressed: B
     key == Key.Z -> !isShiftPressed
     key == Key.Y && !isShiftPressed -> false
     else -> null
+}
+
+/**
+ * Makes the element hold the focus when the screen opens and whenever empty space in it is clicked, so that the undo
+ * and redo shortcuts reach it even when nothing inside it is focused.
+ */
+@Composable
+internal fun Modifier.historyShortcutTarget(): Modifier {
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(focusRequester) { focusRequester.requestFocus() }
+    return focusRequester(focusRequester)
+        .focusable()
+        .pointerInput(focusRequester) { detectTapGestures { focusRequester.requestFocus() } }
 }

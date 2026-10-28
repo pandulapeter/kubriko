@@ -53,7 +53,7 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
-import com.pandulapeter.kubrikoCreator.ui.BlockTypeDragState
+import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 
 /**
  * The Scene as the game draws it, with the selected Actor outlined. A click selects the Actor on top, dragging it moves
@@ -72,7 +72,7 @@ internal fun SceneCanvas(
     onSelect: (String?) -> Unit,
     onMove: (actorId: String, x: Float, y: Float) -> Unit,
     onRemove: (String) -> Unit,
-    dragState: BlockTypeDragState,
+    dragState: SidebarDragState,
     onPlace: (actorTypeName: String, x: Float, y: Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -96,7 +96,7 @@ internal fun SceneCanvas(
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
             .onGloballyPositioned { coordinates ->
                 val bounds = coordinates.boundsInRoot()
-                dragState.sceneTarget = BlockTypeDragState.SceneTarget(bounds) { actorTypeName, at ->
+                dragState.sceneTarget = SidebarDragState.SceneTarget(bounds) { actorTypeName, at ->
                     val position = view.toScene(at - bounds.topLeft)
                     currentOnPlace(actorTypeName, position.x.raw, position.y.raw)
                 }

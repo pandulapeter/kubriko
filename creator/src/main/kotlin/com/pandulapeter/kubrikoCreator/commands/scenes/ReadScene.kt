@@ -59,7 +59,7 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its file name without .json.")
+        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
         @SerialName("scene") val scene: String,
     )
 }

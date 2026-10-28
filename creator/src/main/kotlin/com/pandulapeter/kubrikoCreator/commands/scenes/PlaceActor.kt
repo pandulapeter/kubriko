@@ -55,7 +55,7 @@ internal object PlaceActor : WriteCommand<PlaceActor.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its file name without .json.")
+        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
         @SerialName("scene") val scene: String,
         @Description("The name of the block-built Actor type.")
         @SerialName("actorType") val actorType: String,

@@ -160,6 +160,16 @@ class SceneEditingControllerTest {
     }
 
     @Test
+    fun theOpenSceneFollowsItsRename() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        controller.onSceneRenamed("other", otherScene)
+        assertEquals(scene, assertIs<SceneEditingState.Open>(controller.state.value).scene)
+        controller.onSceneRenamed("main", otherScene)
+        assertEquals(otherScene, assertIs<SceneEditingState.Open>(controller.state.value).scene)
+    }
+
+    @Test
     fun closingReleasesTheProjectsClassesOnceTheEditorIsGone() = runTest {
         val controller = createController()
         controller.open(scene)

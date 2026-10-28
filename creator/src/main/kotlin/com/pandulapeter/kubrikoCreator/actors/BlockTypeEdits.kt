@@ -60,6 +60,13 @@ internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newN
 ).withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }
 
 /**
+ * Every goToScene Block that goes to the Scene [oldName] goes to [newName] instead.
+ */
+internal fun BlockTypeDefinition.withSceneRenamed(oldName: String, newName: String) = withBlocks { block ->
+    if (block is BlockDefinition.GoToScene && block.scene == oldName) block.copy(scene = newName) else block
+}
+
+/**
  * Every Block, text, and Kotlin code that uses the Manager type [oldName] (by its class, or, in another type, by the
  * field the generated code looks it up in) uses [newName] instead.
  */

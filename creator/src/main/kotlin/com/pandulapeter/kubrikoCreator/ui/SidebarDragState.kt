@@ -15,15 +15,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 
 /**
- * An Actor type or Manager type being dragged from the sidebar, in the window's root coordinates: into a folder of its
- * group (or onto the group's header, out of every folder), or for an Actor type, into the open Scene, which registers
- * itself as [sceneTarget].
+ * An Actor type, Manager type, or Scene being dragged in the sidebar, in the window's root coordinates: into a folder of
+ * its group (or onto the group's header, out of every folder), or for an Actor type, into the open Scene, which
+ * registers itself as [sceneTarget].
  */
 @Stable
-internal class BlockTypeDragState(
+internal class SidebarDragState(
     private val clock: () -> Long = System::nanoTime,
 ) {
     private var lastDragEndedAt = Long.MIN_VALUE / 2
@@ -33,7 +33,7 @@ internal class BlockTypeDragState(
      */
     data class Dragged(
         val name: String,
-        val kind: BlockTypeKind,
+        val group: FolderGroup,
         val folder: String,
     )
 
@@ -41,7 +41,7 @@ internal class BlockTypeDragState(
      * A folder row of the sidebar, or a group's header for an empty [path].
      */
     data class FolderKey(
-        val kind: BlockTypeKind,
+        val group: FolderGroup,
         val path: String,
     )
 
@@ -65,19 +65,19 @@ internal class BlockTypeDragState(
     val folderTargets = HashMap<FolderKey, Rect>()
 
     /**
-     * Moves the type called [name] to [folder].
+     * Moves the type or Scene called [name] of [group] to [folder].
      */
-    var onMoveToFolder: (name: String, folder: String) -> Unit = { _, _ -> }
+    var onMoveToFolder: (group: FolderGroup, name: String, folder: String) -> Unit = { _, _, _ -> }
 
-    val isOverScene get() = dragged?.kind == BlockTypeKind.ACTOR && sceneTarget?.bounds?.contains(pointer) == true
+    val isOverScene get() = dragged?.group == FolderGroup.ACTOR_TYPES && sceneTarget?.bounds?.contains(pointer) == true
 
     /**
-     * The folder the dragged type would move to if it were dropped now.
+     * The folder what is dragged would move to if it were dropped now.
      */
     val hoveredFolder: FolderKey?
         get() {
             val dragged = dragged ?: return null
-            return folderTargets.entries.firstOrNull { (key, bounds) -> key.kind == dragged.kind && bounds.contains(pointer) }?.key
+            return folderTargets.entries.firstOrNull { (key, bounds) -> key.group == dragged.group && bounds.contains(pointer) }?.key
         }
 
     fun start(dragged: Dragged, at: Offset) {
@@ -96,7 +96,7 @@ internal class BlockTypeDragState(
         cancel()
         when {
             scene != null -> scene.onDrop(dragged.name, pointer)
-            folder != null && folder != dragged.folder -> onMoveToFolder(dragged.name, folder)
+            folder != null && folder != dragged.folder -> onMoveToFolder(dragged.group, dragged.name, folder)
         }
     }
 

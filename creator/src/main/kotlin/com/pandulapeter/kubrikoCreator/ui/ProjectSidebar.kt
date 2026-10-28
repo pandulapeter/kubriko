@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -66,46 +67,42 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The project's contents: its Actor types and Manager types, then its files grouped by what they are. Clicking a Scene
- * edits it.
+ * The project's contents: its Actor types, Manager types, and Scenes as trees of folders, then its other files grouped
+ * by what they are. Clicking a type edits it, and clicking a Scene opens it.
  *
- * @param blockTypes The project's types, or null if it hasn't opted in to them.
- * @param dragState Where types are dragged to: folders, and the open Scene.
+ * @param folderGroups The groups with folders it shows (the type groups only for projects that opted in to them).
+ * @param dragState Where types and Scenes are dragged to: folders, and the open Scene.
  */
 @Composable
 internal fun ProjectSidebar(
     modifier: Modifier,
     resources: Map<ResourceGroup, List<ProjectResource>>,
-    blockTypes: BlockTypeTreeState?,
-    blockTypeActions: BlockTypeTreeActions,
-    dragState: BlockTypeDragState,
-    onSceneSelected: (ProjectResource) -> Unit,
-    onCreateScene: (String) -> StringResource?,
+    folderGroups: Map<FolderGroup, FolderTreeGroupState>,
+    folderActions: FolderTreeActions,
+    dragState: SidebarDragState,
     flashedName: String? = null,
     flashKey: Any? = null,
 ) {
-    var naming by remember { mutableStateOf<BlockTypeNaming?>(null) }
-    var collapsedFolders by remember { mutableStateOf(emptyMap<BlockTypeKind, Set<String>>()) }
-    var isCreatingScene by remember { mutableStateOf(false) }
+    var naming by remember { mutableStateOf<SidebarNaming?>(null) }
+    var collapsedFolders by remember { mutableStateOf(emptyMap<FolderGroup, Set<String>>()) }
     var collapsedGroups by remember { mutableStateOf(setOf(ResourceGroup.KOTLIN)) }
     LazyColumn(
         modifier = modifier,
     ) {
-        if (blockTypes != null) {
-            BlockTypeKind.entries.forEach { kind ->
-                blockTypeSection(
-                    kind = kind,
-                    state = blockTypes,
-                    actions = blockTypeActions,
-                    dragState = dragState,
-                    collapsed = collapsedFolders[kind].orEmpty(),
-                    onCollapsedChange = { collapsedFolders = collapsedFolders + (kind to it) },
-                    naming = naming,
-                    onNamingChange = { naming = it },
-                    flashedName = flashedName,
-                    flashKey = flashKey,
-                )
-            }
+        FolderGroup.entries.forEach { group ->
+            val state = folderGroups[group] ?: return@forEach
+            folderTreeSection(
+                group = group,
+                state = state,
+                actions = folderActions,
+                dragState = dragState,
+                collapsed = collapsedFolders[group].orEmpty(),
+                onCollapsedChange = { collapsedFolders = collapsedFolders + (group to it) },
+                naming = naming,
+                onNamingChange = { naming = it },
+                flashedName = flashedName,
+                flashKey = flashKey,
+            )
         }
         shownResourceGroups(resources).forEach { group ->
             val isCollapsed = group in collapsedGroups
@@ -115,13 +112,6 @@ internal fun ProjectSidebar(
                     icon = group.icon,
                     title = stringResource(group.title),
                 ) {
-                    if (group == ResourceGroup.SCENES) {
-                        IconActionButton(
-                            icon = Res.drawable.ic_add,
-                            label = Res.string.action_new_scene,
-                            onClick = { isCreatingScene = !isCreatingScene },
-                        )
-                    }
                     Icon(
                         modifier = Modifier.padding(end = 8.dp).size(16.dp).rotate(if (isCollapsed) -90f else 0f),
                         painter = painterResource(Res.drawable.ic_chevron),
@@ -131,17 +121,8 @@ internal fun ProjectSidebar(
                 }
             }
             if (isCollapsed) return@forEach
-            if (group == ResourceGroup.SCENES && isCreatingScene) {
-                item(key = "newScene") {
-                    NewNameField(
-                        placeholder = Res.string.new_scene_hint,
-                        onCreate = { name -> onCreateScene(name).also { if (it == null) isCreatingScene = false } },
-                        onCancel = { isCreatingScene = false },
-                    )
-                }
-            }
             val groupResources = resources[group].orEmpty()
-            if (groupResources.isEmpty() && !(group == ResourceGroup.SCENES && isCreatingScene)) {
+            if (groupResources.isEmpty()) {
                 item(key = "$group-empty") {
                     Text(
                         modifier = Modifier.padding(start = 36.dp, top = 2.dp, bottom = 6.dp),
@@ -155,10 +136,9 @@ internal fun ProjectSidebar(
                 items(groupResources, key = { it.relativePath }) { resource ->
                     SidebarItem(
                         icon = group.icon,
-                        text = if (group == ResourceGroup.SCENES) resource.file.nameWithoutExtension else resource.name,
+                        text = resource.name,
                         detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
-                        onClick = if (group == ResourceGroup.SCENES) ({ onSceneSelected(resource) }) else null,
-                        flashKey = flashKey?.takeIf { group == ResourceGroup.SCENES && resource.file.nameWithoutExtension == flashedName },
+                        onClick = null,
                     )
                 }
             }
@@ -176,9 +156,9 @@ private val ResourceGroup.icon
     }
 
 /**
- * The resource groups the sidebar lists: Scenes and Kotlin files always, and the kinds of asset nothing can use yet only
- * when the project has some.
+ * The resource groups the sidebar lists below the groups with folders (so not Scenes): Kotlin files always, and the
+ * kinds of asset nothing can use yet only when the project has some.
  */
 internal fun shownResourceGroups(resources: Map<ResourceGroup, List<ProjectResource>>) = ResourceGroup.entries.filter { group ->
-    group == ResourceGroup.SCENES || group == ResourceGroup.KOTLIN || resources[group].orEmpty().isNotEmpty()
+    group != ResourceGroup.SCENES && (group == ResourceGroup.KOTLIN || resources[group].orEmpty().isNotEmpty())
 }

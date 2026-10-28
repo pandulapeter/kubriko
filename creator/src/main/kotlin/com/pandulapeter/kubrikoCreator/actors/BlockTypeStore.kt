@@ -127,8 +127,8 @@ internal class BlockTypeStore private constructor(
      * The music of every Scene the game can load (those next to the source folder, in `composeResources`) that has some.
      */
     private fun sceneMusic() = File(File(rootDirectory, settings.sourceDirectory).parentFile, "composeResources/${ScenesCodeGenerator.SCENE_DIRECTORY}")
-        .listFiles { file -> file.extension == "json" }
-        .orEmpty()
+        .walkTopDown()
+        .filter { it.isFile && it.extension == "json" }
         .mapNotNullTo(mutableSetOf()) { SceneSettingsState.musicOf(it.readText()) }
 
     private fun definitionsDirectory(kind: BlockTypeKind) = File(rootDirectory, "$CREATOR_DIRECTORY/${definitionsFolder(kind)}")

@@ -44,7 +44,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
-import com.pandulapeter.kubrikoCreator.ui.BlockTypeDragState
+import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
@@ -74,7 +74,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun SceneEditorPane(
     state: SceneEditingState.Open,
     onCommand: (Invocation<*>) -> Unit,
-    actorTypeDragState: BlockTypeDragState,
+    actorTypeDragState: SidebarDragState,
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>,
     onReload: () -> Unit,

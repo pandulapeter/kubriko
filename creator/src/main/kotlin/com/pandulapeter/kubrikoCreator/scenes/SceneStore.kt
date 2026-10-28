@@ -16,8 +16,8 @@ import kotlinx.serialization.json.JsonObject
 import java.io.File
 
 /**
- * The Scene files of a project, by name (the file name without `.json`). Every call blocks, so callers that write run
- * them off the main thread.
+ * The Scene files of a project, by name: the file's path in the Scenes folder without `.json` (`levels/1-1`), since
+ * Scenes can be in folders. Every call blocks, so callers that write run them off the main thread.
  *
  * @param sceneResources The Scene files the last scan of the project found. Scenes created since then are found in the
  *   folder new Scenes go to.
@@ -29,13 +29,50 @@ internal class SceneStore(
     /**
      * Where new Scenes go: next to the existing ones, or where the project templates keep them.
      */
-    private val sceneDirectory get() = sceneResources().firstOrNull()?.file?.parentFile ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
+    private val sceneDirectory get() = sceneResources().firstNotNullOfOrNull { rootOf(it.file) } ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
 
-    fun names() = (sceneResources().map { it.file } + sceneDirectory.listFiles { file -> file.extension == EXTENSION }.orEmpty())
+    fun names() = (sceneResources().map { it.file } + sceneDirectory.walkTopDown().filter { it.extension == EXTENSION }.toList())
         .filter { it.isFile }
-        .map { it.nameWithoutExtension }
+        .map(::nameOf)
         .distinct()
         .sorted()
+
+    /**
+     * Every folder of the Scenes folder, as paths (`levels/forest`), empty ones too.
+     */
+    fun folders(): Set<String> = sceneDirectory.walkTopDown()
+        .filter { it.isDirectory && it != sceneDirectory }
+        .mapTo(sortedSetOf()) { it.relativeTo(sceneDirectory).invariantSeparatorsPath }
+
+    @EditorMutation
+    fun createFolder(path: String) {
+        File(sceneDirectory, path).mkdirs()
+    }
+
+    /**
+     * Deletes the folder at [path] if no Scene is in it any more.
+     */
+    @EditorMutation
+    fun deleteFolder(path: String) {
+        val folder = File(sceneDirectory, path)
+        if (folder.walkTopDown().none { it.isFile }) folder.deleteRecursively()
+    }
+
+    /**
+     * Moves the Scene [oldName] to [newName], into another folder if its path says so.
+     */
+    @EditorMutation
+    fun move(oldName: String, newName: String) {
+        val source = file(oldName) ?: return
+        val target = File(sceneDirectory, "$newName.$EXTENSION")
+        target.parentFile.mkdirs()
+        source.renameTo(target)
+    }
+
+    /**
+     * Where the Scene [name] is, or would be written to.
+     */
+    fun fileOf(name: String) = file(name) ?: File(sceneDirectory, "$name.$EXTENSION")
 
     fun exists(name: String) = file(name) != null
 
@@ -86,10 +123,22 @@ internal class SceneStore(
         true
     }
 
-    private fun file(name: String) = sceneResources().firstOrNull { it.file.nameWithoutExtension == name && it.file.isFile }?.file
+    private fun file(name: String) = sceneResources().firstOrNull { nameOf(it.file) == name && it.file.isFile }?.file
         ?: File(sceneDirectory, "$name.$EXTENSION").takeIf { it.isFile }
 
     companion object {
+
+        /**
+         * The name of the Scene in [file]: its path from the Scenes folder (`files/scenes` in `composeResources`) without
+         * `.json`, or its file name for one outside it.
+         */
+        fun nameOf(file: File) = rootOf(file)?.let { file.relativeTo(it).invariantSeparatorsPath.removeSuffix(".$EXTENSION") } ?: file.nameWithoutExtension
+
+        /**
+         * The Scenes folder [file] is in, if any.
+         */
+        private fun rootOf(file: File) = generateSequence(file.parentFile) { it.parentFile }.firstOrNull { it.name == "scenes" && it.parentFile?.name == "files" }
+
         const val DEFAULT_SCENE_DIRECTORY = "src/commonMain/composeResources/files/scenes"
         private const val EXTENSION = "json"
     }

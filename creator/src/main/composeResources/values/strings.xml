@@ -413,6 +413,8 @@
     <string name="command_set_scene_settings">Change Scene settings</string>
     <string name="command_remove_actor">Remove Actor</string>
     <string name="command_restore_actor">Restore Actor</string>
+    <string name="command_rename_scene">Rename Scene</string>
+    <string name="warning_scene_named_in_code">%1$s still names the Scene %2$s, which is now %3$s. Change it there by hand.</string>
     <string name="command_set_actor_values">Change Actor</string>
     <string name="command_set_actor_state">Change Actor state</string>
     <string name="action_new_scene">New Scene</string>

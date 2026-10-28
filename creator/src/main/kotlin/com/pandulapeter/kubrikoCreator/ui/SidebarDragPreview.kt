@@ -33,14 +33,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import org.jetbrains.compose.resources.painterResource
 
 /**
- * The type being dragged from the sidebar, following the pointer.
+ * What is being dragged from the sidebar, following the pointer.
  */
 @Composable
-internal fun BlockTypeDragPreview(state: BlockTypeDragState) {
+internal fun SidebarDragPreview(state: SidebarDragState) {
     val dragged = state.dragged ?: return
     var origin by remember { mutableStateOf(Offset.Zero) }
     Box(
@@ -57,7 +56,7 @@ internal fun BlockTypeDragPreview(state: BlockTypeDragState) {
         ) {
             Icon(
                 modifier = Modifier.size(16.dp),
-                painter = painterResource(dragged.kind.icon),
+                painter = painterResource(dragged.group.icon),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.tertiary,
             )

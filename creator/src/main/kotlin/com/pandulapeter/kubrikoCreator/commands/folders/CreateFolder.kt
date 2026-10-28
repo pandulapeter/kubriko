@@ -17,7 +17,6 @@ import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
@@ -26,7 +25,7 @@ import kubriko.creator.generated.resources.command_create_folder
 @OptIn(EditorMutation::class)
 internal object CreateFolder : WriteCommand<CreateFolder.Input> {
     override val name = "create_folder"
-    override val description = "Creates a folder in the sidebar for Actor types or Manager types, inside another one if the path has several names."
+    override val description = "Creates a folder in the sidebar for Actor types, Manager types, or Scenes, inside another one if the path has several names."
     override val title = Res.string.command_create_folder
     override val inputSerializer = Input.serializer()
 
@@ -35,7 +34,7 @@ internal object CreateFolder : WriteCommand<CreateFolder.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateNewFolder(input.group, input.path)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.requireBlockTypes.createFolder(input.group.kind, input.path)
+        context.createFolder(input.group, input.path)
         return Applied(inverse = Invocation(DeleteFolder, DeleteFolder.Input(input.group, input.path)))
     }
 

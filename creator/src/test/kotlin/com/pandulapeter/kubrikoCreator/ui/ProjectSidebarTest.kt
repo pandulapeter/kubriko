@@ -18,9 +18,9 @@ import kotlin.test.assertEquals
 class ProjectSidebarTest {
 
     @Test
-    fun kindsOfAssetsNothingUsesYetAreOnlyListedWhenTheProjectHasSome() {
-        assertEquals(listOf(ResourceGroup.SCENES, ResourceGroup.KOTLIN), shownResourceGroups(emptyMap()))
+    fun kindsOfAssetsNothingUsesYetAreOnlyListedWhenTheProjectHasSomeAndScenesAreLeftToTheirTree() {
+        assertEquals(listOf(ResourceGroup.KOTLIN), shownResourceGroups(emptyMap()))
         val sound = ProjectResource(ResourceGroup.SOUNDS, File("hit.wav"), "hit.wav")
-        assertEquals(listOf(ResourceGroup.SCENES, ResourceGroup.SOUNDS, ResourceGroup.KOTLIN), shownResourceGroups(mapOf(ResourceGroup.SOUNDS to listOf(sound))))
+        assertEquals(listOf(ResourceGroup.SOUNDS, ResourceGroup.KOTLIN), shownResourceGroups(mapOf(ResourceGroup.SOUNDS to listOf(sound))))
     }
 }

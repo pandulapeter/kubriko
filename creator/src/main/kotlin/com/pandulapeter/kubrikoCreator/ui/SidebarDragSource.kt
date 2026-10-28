@@ -22,11 +22,11 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 
 /**
- * Lets the element be dragged as the type [dragged] into a folder or the open Scene, reporting the pointer to [state] in
- * root coordinates.
+ * Lets the element be dragged as [dragged] into a folder or the open Scene, reporting the pointer to [state] in root
+ * coordinates.
  */
 @Composable
-internal fun Modifier.blockTypeDragSource(state: BlockTypeDragState, dragged: BlockTypeDragState.Dragged): Modifier {
+internal fun Modifier.sidebarDragSource(state: SidebarDragState, dragged: SidebarDragState.Dragged): Modifier {
     var origin by remember { mutableStateOf(Offset.Zero) }
     return onGloballyPositioned { origin = it.positionInRoot() }.pointerInput(state, dragged) {
         detectDragGestures(

@@ -57,6 +57,6 @@ internal sealed interface SceneEditingState {
         val revision: Int,
         val isOutdated: Boolean = false,
     ) : SceneEditingState {
-        val sceneName get() = scene.file.nameWithoutExtension
+        val sceneName get() = SceneStore.nameOf(scene.file)
     }
 }

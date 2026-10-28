@@ -54,7 +54,7 @@ internal object RestoreActor : WriteCommand<RestoreActor.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its file name without .json.")
+        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
         @SerialName("scene") val scene: String,
         @Description("Where the Actor goes in the Scene's Actor list, starting from 0, which decides the order Actors are added in.")
         @SerialName("actorIndex") val actorIndex: Int,

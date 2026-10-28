@@ -13,6 +13,10 @@ The sidebar is a flat list per group, which stops working past a few dozen Actor
 group and a search over all of them. Folders are plain files where the format allows it, so the project stays readable in IntelliJ
 and git (`README.md` → Principles 2).
 
+Folders for Actor types, Manager types, and Scenes exist, with Scene names as paths (`../CLAUDE.md` → Commands → Folders). Left below:
+virtual folders for sprites (once `.kubriko/sprites` exists), real folders shown for sounds and music, remembering expanded folders,
+and all of the search.
+
 ## Where folders live
 
 | Group | Folders are | Notes |
@@ -26,8 +30,8 @@ and git (`README.md` → Principles 2).
 ## The sidebar
 
 - A tree per group: folders first, then items, both sorted by name; expanded folders remembered per project in `.kubriko/local`.
-- Create, rename, and delete folders from a folder's menu (deleting moves its contents up, never deletes them); drag items and folders
-  into another folder of the same group. Every one of these is a command with its AI tool (`create_folder`, `move_to_folder`,
+- Create, rename, and delete folders from a folder's menu (only empty folders are deleted; moving a whole folder into another by
+  dragging is left); drag items into another folder of the same group. Every one of these is a command with its AI tool (`create_folder`, `move_to_folder`,
   `rename_folder`, `delete_folder`), undone like any other, and they move the files (a type's JSON and nothing else, since its
   generated Kotlin doesn't depend on the folder; a Scene's file, with every goToScene Block and Scene reference following the new path,
   as renames already do).
@@ -48,5 +52,4 @@ and git (`README.md` → Principles 2).
 
 ## Order
 
-The storage changes (folders for types and Scenes, and Scene names as paths) come first, before projects have many files. The filter
-field and quick open don't depend on folders and can land any time; find usages after them.
+The filter field and quick open next, then find usages; sprite folders with the sprite editor's files.

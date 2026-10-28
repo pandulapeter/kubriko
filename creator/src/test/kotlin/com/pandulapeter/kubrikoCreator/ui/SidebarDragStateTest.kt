@@ -11,25 +11,25 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class BlockTypeDragStateTest {
+class SidebarDragStateTest {
     private var now = 0L
     private val placed = mutableListOf<Pair<String, Offset>>()
     private val moved = mutableListOf<Pair<String, String>>()
-    private val ball = BlockTypeDragState.Dragged("Ball", BlockTypeKind.ACTOR, folder = "")
-    private val game = BlockTypeDragState.Dragged("Game", BlockTypeKind.MANAGER, folder = "rules")
-    private val state = BlockTypeDragState(clock = { now }).apply {
-        sceneTarget = BlockTypeDragState.SceneTarget(Rect(300f, 0f, 700f, 400f)) { name, at -> placed += name to at }
-        folderTargets[BlockTypeDragState.FolderKey(BlockTypeKind.ACTOR, "")] = Rect(0f, 0f, 260f, 30f)
-        folderTargets[BlockTypeDragState.FolderKey(BlockTypeKind.ACTOR, "toys")] = Rect(0f, 30f, 260f, 60f)
-        folderTargets[BlockTypeDragState.FolderKey(BlockTypeKind.MANAGER, "")] = Rect(0f, 100f, 260f, 130f)
-        onMoveToFolder = { name, folder -> moved += name to folder }
+    private val ball = SidebarDragState.Dragged("Ball", FolderGroup.ACTOR_TYPES, folder = "")
+    private val game = SidebarDragState.Dragged("Game", FolderGroup.MANAGER_TYPES, folder = "rules")
+    private val state = SidebarDragState(clock = { now }).apply {
+        sceneTarget = SidebarDragState.SceneTarget(Rect(300f, 0f, 700f, 400f)) { name, at -> placed += name to at }
+        folderTargets[SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "")] = Rect(0f, 0f, 260f, 30f)
+        folderTargets[SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "toys")] = Rect(0f, 30f, 260f, 60f)
+        folderTargets[SidebarDragState.FolderKey(FolderGroup.MANAGER_TYPES, "")] = Rect(0f, 100f, 260f, 130f)
+        onMoveToFolder = { _, name, folder -> moved += name to folder }
     }
 
     @Test
@@ -47,7 +47,7 @@ class BlockTypeDragStateTest {
     fun aTypeDroppedOnAFolderOfItsGroupMovesThere() {
         state.start(ball, Offset(10f, 200f))
         state.moveTo(Offset(10f, 40f))
-        assertEquals(BlockTypeDragState.FolderKey(BlockTypeKind.ACTOR, "toys"), state.hoveredFolder)
+        assertEquals(SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "toys"), state.hoveredFolder)
         state.end()
         state.start(game, Offset(10f, 200f))
         state.moveTo(Offset(10f, 40f))

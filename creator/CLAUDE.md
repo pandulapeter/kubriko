@@ -172,6 +172,17 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   for `createManagers(firstScene = …)` and deletes `SceneLoader.kt` if it is still the template's (`resources/upgrades` keeps that
   copy; one changed by hand stays). Version 4 drops the plugin Managers from `Game.kt` (and their imports, unless still used),
   since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. A change's `after` is null for a file it deletes.
+- **Folders** (`commands/folders`): Actor types, Manager types, and Scenes live in folders, which are real directories:
+  a type in `.kubriko/actors/enemies` (a type's `folder` is where its file is, kept out of the JSON; names stay unique across
+  folders, since generated code stays flat in one package), and `files/scenes/levels/1-1.json`, whose Scene is named by its path
+  (`levels/1-1`, `SceneStore.nameOf`; goToScene and every Scene command take that path). `create_folder`, `rename_folder` (moving
+  everything in it, Scenes through renames), and `delete_folder` (only an empty one, so undo is exact) take a group
+  (`FolderGroup`), `move_to_folder` moves a type, and `rename_scene` renames or moves a Scene: goToScene Blocks follow, the open
+  Scene follows, and the console names hand-written Kotlin that still names the old Scene (like the template's `Game.kt`). The
+  sidebar shows the three groups as trees (`folderTreeSection`, `folderTreeRows`): folders first, each with a menu (new folder,
+  rename, delete when empty), and types and Scenes dragged into a folder or onto the group's header (`SidebarDragState`, which
+  also carries Actor types into the open Scene). Scene folder names follow Scene name rules (no spaces). The workspace keeps the
+  focus when nothing in it is focused (`historyShortcutTarget`), so Cmd/Ctrl+Z always reaches the undo history.
 - **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`), written with one Actor per line so they diff and merge:
   Actors are `typeId` + JSON state + `id`, which Kubriko's serialization ignores (it reads entries with `ignoreUnknownKeys`), so
   games load the files unchanged. Parsing gives an Actor without an ID, or with an earlier one's, an ID from its index (`i3`), the

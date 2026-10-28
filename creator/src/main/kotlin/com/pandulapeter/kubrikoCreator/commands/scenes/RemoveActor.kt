@@ -41,7 +41,7 @@ internal object RemoveActor : WriteCommand<RemoveActor.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its file name without .json.")
+        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
         @SerialName("scene") val scene: String,
         @Description("The ID of the Actor in the Scene, as read_scene returns it.")
         @SerialName("actorId") val actorId: String,

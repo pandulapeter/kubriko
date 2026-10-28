@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -37,7 +38,7 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
-        !namePattern.matches(input.scene) -> Rejection(Res.string.error_scene_name_invalid)
+        !SceneNaming.isValid(input.scene) -> Rejection(Res.string.error_scene_name_invalid)
         context.scenes.names().any { it.equals(input.scene, ignoreCase = true) } -> Rejection(Res.string.error_scene_name_taken)
         !SceneDocument.isValid(input.content) -> Rejection(Res.string.error_command_scene_content_invalid)
         else -> null
@@ -49,11 +50,9 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
         return Applied(inverse = Invocation(DeleteScene, DeleteScene.Input(input.scene)))
     }
 
-    private val namePattern = Regex("[A-Za-z0-9][A-Za-z0-9_-]*")
-
     @Serializable
     data class Input(
-        @Description("The name of the new Scene: letters, numbers, dashes, and underscores. It becomes the file name, with .json added.")
+        @Description("The name of the new Scene: letters, numbers, dashes, and underscores, with folders before it separated by slashes (levels/1-1). It becomes the file's path, with .json added.")
         @SerialName("scene") val scene: String,
         @Description("The content of the Scene file, as read_scene returns it in its raw form. An empty Scene if left out.")
         @SerialName("content") val content: String = "[]",

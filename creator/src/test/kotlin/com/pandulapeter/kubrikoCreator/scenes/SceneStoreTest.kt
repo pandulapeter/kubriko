@@ -57,6 +57,27 @@ class SceneStoreTest {
     }
 
     @Test
+    fun scenesInFoldersAreNamedByTheirPathAndMoveBetweenFolders() {
+        levels.mkdirs()
+        val forest = File(levels, "levels/forest/1-1.json").apply { parentFile.mkdirs(); writeText("[]") }
+        val main = File(levels, "main.json").apply { writeText("[]") }
+        // Found through the scan, so the Scenes folder is the one above the nested Scene too.
+        scan(forest, main)
+        assertEquals(listOf("levels/forest/1-1", "main"), store.names())
+        assertEquals("levels/forest/1-1", SceneStore.nameOf(forest))
+        store.createFolder("levels/cave")
+        assertEquals(setOf("levels", "levels/cave", "levels/forest"), store.folders())
+        store.move("levels/forest/1-1", "levels/cave/1-1")
+        assertTrue(File(levels, "levels/cave/1-1.json").isFile)
+        scan(File(levels, "levels/cave/1-1.json"), main)
+        store.deleteFolder("levels/forest")
+        store.deleteFolder("levels/cave")
+        assertEquals(setOf("levels", "levels/cave"), store.folders())
+        store.write("levels/castle/boss", "[]")
+        assertEquals(listOf("levels/castle/boss", "levels/cave/1-1", "main"), store.names())
+    }
+
+    @Test
     fun deletedScenesAreGoneEvenBeforeTheNextScan() {
         levels.mkdirs()
         val main = File(levels, "main.json").apply { writeText("[]") }

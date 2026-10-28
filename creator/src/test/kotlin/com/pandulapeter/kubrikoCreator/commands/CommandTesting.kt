@@ -62,6 +62,8 @@ internal fun TestScope.commandContext(
     audioFiles: AudioFiles? = null,
     spriteFiles: SpriteFiles? = null,
     onScenesChanged: (Collection<String>) -> Unit = {},
+    onSceneRenamed: (String, String) -> Unit = { _, _ -> },
+    report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game", desktopModulePath = ":"),
@@ -74,6 +76,8 @@ internal fun TestScope.commandContext(
     audioFiles = { audioFiles },
     spriteFiles = { spriteFiles },
     onScenesChanged = onScenesChanged,
+    onSceneRenamed = onSceneRenamed,
+    report = report,
     onProjectUpgraded = onProjectUpgraded,
 )
 

@@ -117,6 +117,17 @@ internal class SceneEditingController(
         }
     }
 
+    /**
+     * Notes that a command moved the Scene [oldName] to [scene], which the open Scene follows if it was that one.
+     */
+    fun onSceneRenamed(oldName: String, scene: ProjectResource) = _state.update { state ->
+        when {
+            state is SceneEditingState.Open && state.sceneName == oldName -> state.copy(scene = scene)
+            state is SceneEditingState.Preparing && SceneStore.nameOf(state.scene.file) == oldName -> state.copy(scene = scene)
+            else -> state
+        }
+    }
+
     fun close() {
         job?.cancel()
         job = null

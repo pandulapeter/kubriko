@@ -80,6 +80,12 @@ internal class WorkspaceController(
 ) : AutoCloseable {
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
+    private val _sceneFolders = MutableStateFlow(emptySet<String>())
+
+    /**
+     * The folders of the Scenes folder, empty ones too.
+     */
+    val sceneFolders = _sceneFolders.asStateFlow()
     private val consoleLog = ConsoleLog()
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     val console = consoleLog.entries
@@ -90,6 +96,11 @@ internal class WorkspaceController(
         scope = scope,
     )
     val sessionState = sessions.state
+
+    /**
+     * The project's Scene files, by name.
+     */
+    val scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() }
 
     /**
      * The Scene shown in Kubriko Creator's own window. Declared before [blockTypes], whose changes it hears about.
@@ -182,7 +193,7 @@ internal class WorkspaceController(
             console = console,
             blockTypes = blockTypes,
             git = git,
-            scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() },
+            scenes = scenes,
             runner = WorkspaceRunner(sessions = sessions, runTask = ::runCreatorTask, console = consoleLog, ioDispatcher = ioDispatcher),
             ioDispatcher = ioDispatcher,
             audioFiles = { AudioFiles.of(_resources.value) },
@@ -192,6 +203,11 @@ internal class WorkspaceController(
                 sceneEditing.onScenesChanged(names)
                 blockTypes?.onScenesChanged()
             },
+            onSceneRenamed = { oldName, newName ->
+                val file = scenes.fileOf(newName)
+                sceneEditing.onSceneRenamed(oldName, ProjectResource(ResourceGroup.SCENES, file, file.relativeTo(project.rootDirectory).invariantSeparatorsPath))
+            },
+            report = ::appendToConsole,
             onProjectUpgraded = ::refreshProjectUpgrade,
         ),
         scope = scope,
@@ -243,6 +259,7 @@ internal class WorkspaceController(
     fun refreshResources() {
         scope.launch {
             _resources.value = withContext(ioDispatcher) { scanResources(project.rootDirectory) }
+            _sceneFolders.value = withContext(ioDispatcher) { scenes.folders() }
         }
     }
 

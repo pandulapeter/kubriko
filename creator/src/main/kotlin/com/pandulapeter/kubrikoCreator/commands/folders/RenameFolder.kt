@@ -18,7 +18,6 @@ import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
@@ -28,7 +27,8 @@ import kubriko.creator.generated.resources.error_folder_name_invalid
 @OptIn(EditorMutation::class)
 internal object RenameFolder : WriteCommand<RenameFolder.Input> {
     override val name = "rename_folder"
-    override val description = "Renames a folder of Actor types or Manager types, keeping everything in it (types and folders) where it is in it."
+    override val description = "Renames a folder of Actor types, Manager types, or Scenes, keeping everything in it where it is in it. A Scene's name " +
+        "is its path, so renaming its folder renames the Scene, and every goToScene Block follows."
     override val title = Res.string.command_rename_folder
     override val inputSerializer = Input.serializer()
 
@@ -40,12 +40,8 @@ internal object RenameFolder : WriteCommand<RenameFolder.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val blockTypes = context.requireBlockTypes
         val newPath = renamed(input)
-        fun moved(path: String) = newPath + path.removePrefix(input.path)
-        context.foldersOf(input.group).filter { FolderPaths.isWithin(it, input.path) }.forEach { blockTypes.createFolder(input.group.kind, moved(it)) }
-        blockTypes.types.value.filter { it.kind == input.group.kind && FolderPaths.isWithin(it.folder, input.path) }.forEach { blockTypes.put(it.withFolder(moved(it.folder))) }
-        blockTypes.deleteFolder(input.group.kind, input.path)
+        context.moveFolder(input.group, input.path, newPath)
         return Applied(inverse = Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path))))
     }
 

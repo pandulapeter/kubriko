@@ -32,8 +32,8 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -46,6 +46,7 @@ import kubriko.creator.generated.resources.action_folder_options
 import kubriko.creator.generated.resources.action_new_actor_type
 import kubriko.creator.generated.resources.action_new_folder
 import kubriko.creator.generated.resources.action_new_manager_type
+import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.action_rename_folder
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_chevron
@@ -53,145 +54,146 @@ import kubriko.creator.generated.resources.ic_create_new_folder
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_folder_open
 import kubriko.creator.generated.resources.ic_more
+import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_text
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_folder_hint
 import kubriko.creator.generated.resources.new_manager_type_hint
+import kubriko.creator.generated.resources.new_scene_hint
 import kubriko.creator.generated.resources.resource_group_actor_types
 import kubriko.creator.generated.resources.resource_group_manager_types
+import kubriko.creator.generated.resources.resource_group_scenes
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The Actor types and Manager types shown at the top of the sidebar, for projects that opted in to them.
+ * What a sidebar group with folders shows.
  *
- * @param actorTypes Each Actor type's name and folder.
- * @param folders Every folder of each kind of type.
+ * @param items The names of its types or Scenes, each with the folder it is in (empty for none).
+ * @param folders Every folder of the group, empty ones too.
+ * @param selectedName The item shown in the center, if it is one of these.
  */
-internal data class BlockTypeTreeState(
-    val actorTypes: List<Pair<String, String>>,
-    val managerTypes: List<Pair<String, String>>,
-    val folders: Map<BlockTypeKind, Set<String>>,
-    val selectedName: String?,
-) {
-    fun typesOf(kind: BlockTypeKind) = if (kind == BlockTypeKind.ACTOR) actorTypes else managerTypes
-}
-
-/**
- * What the sidebar's type groups do. The ones that return a [StringResource] say why a name can't be used, or null.
- */
-internal class BlockTypeTreeActions(
-    val onSelected: (String) -> Unit,
-    val onCreateType: (BlockTypeKind, String) -> StringResource?,
-    val onCreateFolder: (BlockTypeKind, path: String) -> StringResource?,
-    val onRenameFolder: (BlockTypeKind, path: String, newName: String) -> StringResource?,
-    val onDeleteFolder: (BlockTypeKind, path: String) -> Unit,
+internal data class FolderTreeGroupState(
+    val items: List<Pair<String, String>>,
+    val folders: Set<String>,
+    val selectedName: String? = null,
 )
 
 /**
- * A name being typed in a type group: a new type, a new folder (in [parent], empty for none), or a folder's new name.
+ * What the sidebar's groups with folders do. The ones that return a [StringResource] say why a name can't be used, or null.
  */
-internal sealed interface BlockTypeNaming {
-    val kind: BlockTypeKind
+internal class FolderTreeActions(
+    val onSelected: (FolderGroup, name: String) -> Unit,
+    val onCreateItem: (FolderGroup, name: String) -> StringResource?,
+    val onCreateFolder: (FolderGroup, path: String) -> StringResource?,
+    val onRenameFolder: (FolderGroup, path: String, newName: String) -> StringResource?,
+    val onDeleteFolder: (FolderGroup, path: String) -> Unit,
+)
 
-    data class NewType(override val kind: BlockTypeKind) : BlockTypeNaming
+/**
+ * A name being typed in a group of the sidebar: a new item, a new folder (in [parent], empty for none), or a folder's new name.
+ */
+internal sealed interface SidebarNaming {
+    val group: FolderGroup
 
-    data class NewFolder(override val kind: BlockTypeKind, val parent: String) : BlockTypeNaming
+    data class NewItem(override val group: FolderGroup) : SidebarNaming
 
-    data class RenamedFolder(override val kind: BlockTypeKind, val path: String) : BlockTypeNaming
+    data class NewFolder(override val group: FolderGroup, val parent: String) : SidebarNaming
+
+    data class RenamedFolder(override val group: FolderGroup, val path: String) : SidebarNaming
 }
 
 /**
- * The header of the Actor types or the Manager types, and their tree of folders and types. A type is dragged into a
- * folder (or onto the header, out of every folder) to move it, and an Actor type into the open Scene to place it.
+ * The header of a group and its tree of folders and items. An item is dragged into a folder (or onto the header, out of
+ * every folder) to move it, and an Actor type into the open Scene to place it.
  *
  * @param collapsed The folders whose contents are hidden.
  * @param naming What is being named in the sidebar, if anything.
  */
-internal fun LazyListScope.blockTypeSection(
-    kind: BlockTypeKind,
-    state: BlockTypeTreeState,
-    actions: BlockTypeTreeActions,
-    dragState: BlockTypeDragState,
+internal fun LazyListScope.folderTreeSection(
+    group: FolderGroup,
+    state: FolderTreeGroupState,
+    actions: FolderTreeActions,
+    dragState: SidebarDragState,
     collapsed: Set<String>,
     onCollapsedChange: (Set<String>) -> Unit,
-    naming: BlockTypeNaming?,
-    onNamingChange: (BlockTypeNaming?) -> Unit,
+    naming: SidebarNaming?,
+    onNamingChange: (SidebarNaming?) -> Unit,
     flashedName: String?,
     flashKey: Any?,
 ) {
-    item(key = "${kind.name}-header") {
+    item(key = "${group.name}-header") {
         PanelHeader(
-            modifier = Modifier.folderDropTarget(dragState, BlockTypeDragState.FolderKey(kind, "")),
-            icon = kind.icon,
-            title = stringResource(if (kind == BlockTypeKind.ACTOR) Res.string.resource_group_actor_types else Res.string.resource_group_manager_types),
+            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, "")),
+            icon = group.icon,
+            title = stringResource(group.title),
         ) {
             IconActionButton(
                 icon = Res.drawable.ic_create_new_folder,
                 label = Res.string.action_new_folder,
-                onClick = { onNamingChange(BlockTypeNaming.NewFolder(kind, "")) },
+                onClick = { onNamingChange(SidebarNaming.NewFolder(group, "")) },
             )
             IconActionButton(
                 icon = Res.drawable.ic_add,
-                label = if (kind == BlockTypeKind.ACTOR) Res.string.action_new_actor_type else Res.string.action_new_manager_type,
-                onClick = { onNamingChange(BlockTypeNaming.NewType(kind)) },
+                label = group.newItemLabel,
+                onClick = { onNamingChange(SidebarNaming.NewItem(group)) },
             )
         }
     }
-    if (naming == BlockTypeNaming.NewType(kind)) {
-        item(key = "${kind.name}-new") {
+    if (naming == SidebarNaming.NewItem(group)) {
+        item(key = "${group.name}-new") {
             NewNameField(
-                placeholder = if (kind == BlockTypeKind.ACTOR) Res.string.new_actor_type_hint else Res.string.new_manager_type_hint,
-                onCreate = { name -> actions.onCreateType(kind, name).also { if (it == null) onNamingChange(null) } },
+                placeholder = group.newItemHint,
+                onCreate = { name -> actions.onCreateItem(group, name).also { if (it == null) onNamingChange(null) } },
                 onCancel = { onNamingChange(null) },
             )
         }
     }
-    if (naming == BlockTypeNaming.NewFolder(kind, "")) {
-        item(key = "${kind.name}-new-folder") {
-            NewFolderField(kind, parent = "", depth = 0, actions, onNamingChange)
+    if (naming == SidebarNaming.NewFolder(group, "")) {
+        item(key = "${group.name}-new-folder") {
+            NewFolderField(group, parent = "", depth = 0, actions, onNamingChange)
         }
     }
-    items(folderTreeRows(state.typesOf(kind), state.folders[kind].orEmpty(), collapsed), key = { row -> "${kind.name}-$row" }) { row ->
+    items(folderTreeRows(state.items, state.folders, collapsed), key = { row -> "${group.name}-$row" }) { row ->
         when (row) {
-            is FolderTreeRow.Folder -> if (naming == BlockTypeNaming.RenamedFolder(kind, row.path)) {
+            is FolderTreeRow.Folder -> if (naming == SidebarNaming.RenamedFolder(group, row.path)) {
                 NewNameField(
                     placeholder = Res.string.new_folder_hint,
                     initialName = row.name,
                     indent = 24.dp + SIDEBAR_INDENT * row.depth,
-                    onCreate = { name -> actions.onRenameFolder(kind, row.path, name).also { if (it == null) onNamingChange(null) } },
+                    onCreate = { name -> actions.onRenameFolder(group, row.path, name).also { if (it == null) onNamingChange(null) } },
                     onCancel = { onNamingChange(null) },
                 )
             } else {
                 Column {
-                FolderRow(
-                    modifier = Modifier.folderDropTarget(dragState, BlockTypeDragState.FolderKey(kind, row.path)),
-                    row = row,
-                    onToggle = { onCollapsedChange(if (row.isExpanded) collapsed + row.path else collapsed - row.path) },
-                    onNewFolder = {
-                        onCollapsedChange(collapsed - row.path)
-                        onNamingChange(BlockTypeNaming.NewFolder(kind, row.path))
-                    },
-                    onRename = { onNamingChange(BlockTypeNaming.RenamedFolder(kind, row.path)) },
-                    onDelete = { actions.onDeleteFolder(kind, row.path) },
-                )
-                if (naming == BlockTypeNaming.NewFolder(kind, row.path)) {
-                    NewFolderField(kind, row.path, row.depth + 1, actions, onNamingChange)
-                }
+                    FolderRow(
+                        modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path)),
+                        row = row,
+                        onToggle = { onCollapsedChange(if (row.isExpanded) collapsed + row.path else collapsed - row.path) },
+                        onNewFolder = {
+                            onCollapsedChange(collapsed - row.path)
+                            onNamingChange(SidebarNaming.NewFolder(group, row.path))
+                        },
+                        onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
+                        onDelete = { actions.onDeleteFolder(group, row.path) },
+                    )
+                    if (naming == SidebarNaming.NewFolder(group, row.path)) {
+                        NewFolderField(group, row.path, row.depth + 1, actions, onNamingChange)
+                    }
                 }
             }
             is FolderTreeRow.Item -> SidebarItem(
-                modifier = Modifier.blockTypeDragSource(
+                modifier = Modifier.sidebarDragSource(
                     dragState,
-                    BlockTypeDragState.Dragged(row.name, kind, state.typesOf(kind).firstOrNull { it.first == row.name }?.second.orEmpty()),
+                    SidebarDragState.Dragged(row.name, group, state.items.firstOrNull { it.first == row.name }?.second.orEmpty()),
                 ),
-                icon = kind.icon,
-                text = row.name,
+                icon = group.icon,
+                text = FolderPaths.nameOf(row.name),
                 depth = row.depth,
                 isSelected = row.name == state.selectedName,
-                onClick = { if (!dragState.isClickAfterDrag) actions.onSelected(row.name) },
+                onClick = { if (!dragState.isClickAfterDrag) actions.onSelected(group, row.name) },
                 flashKey = flashKey?.takeIf { row.name == flashedName },
             )
         }
@@ -200,15 +202,15 @@ internal fun LazyListScope.blockTypeSection(
 
 @Composable
 private fun NewFolderField(
-    kind: BlockTypeKind,
+    group: FolderGroup,
     parent: String,
     depth: Int,
-    actions: BlockTypeTreeActions,
-    onNamingChange: (BlockTypeNaming?) -> Unit,
+    actions: FolderTreeActions,
+    onNamingChange: (SidebarNaming?) -> Unit,
 ) = NewNameField(
     placeholder = Res.string.new_folder_hint,
     indent = 24.dp + SIDEBAR_INDENT * depth,
-    onCreate = { name -> actions.onCreateFolder(kind, FolderPaths.child(parent, name)).also { if (it == null) onNamingChange(null) } },
+    onCreate = { name -> actions.onCreateFolder(group, FolderPaths.child(parent, name)).also { if (it == null) onNamingChange(null) } },
     onCancel = { onNamingChange(null) },
 )
 
@@ -271,13 +273,40 @@ private enum class FolderOption(val title: StringResource, val icon: DrawableRes
 }
 
 /**
- * Makes the element where a dragged type of [key]'s kind moves to [key]'s folder, highlighted while one is over it.
+ * Makes the element where something dragged of [key]'s group moves to [key]'s folder, highlighted while it is over it.
  */
 @Composable
-private fun Modifier.folderDropTarget(dragState: BlockTypeDragState, key: BlockTypeDragState.FolderKey): Modifier {
+private fun Modifier.folderDropTarget(dragState: SidebarDragState, key: SidebarDragState.FolderKey): Modifier {
     DisposableEffect(dragState, key) {
         onDispose { dragState.folderTargets.remove(key) }
     }
     return onGloballyPositioned { dragState.folderTargets[key] = it.boundsInRoot() }
         .then(if (dragState.hoveredFolder == key) Modifier.background(MaterialTheme.colorScheme.primaryContainer) else Modifier)
 }
+
+internal val FolderGroup.icon
+    get() = when (this) {
+        FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).icon
+        FolderGroup.SCENES -> Res.drawable.ic_scene
+    }
+
+private val FolderGroup.title
+    get() = when (this) {
+        FolderGroup.ACTOR_TYPES -> Res.string.resource_group_actor_types
+        FolderGroup.MANAGER_TYPES -> Res.string.resource_group_manager_types
+        FolderGroup.SCENES -> Res.string.resource_group_scenes
+    }
+
+private val FolderGroup.newItemLabel
+    get() = when (this) {
+        FolderGroup.ACTOR_TYPES -> Res.string.action_new_actor_type
+        FolderGroup.MANAGER_TYPES -> Res.string.action_new_manager_type
+        FolderGroup.SCENES -> Res.string.action_new_scene
+    }
+
+private val FolderGroup.newItemHint
+    get() = when (this) {
+        FolderGroup.ACTOR_TYPES -> Res.string.new_actor_type_hint
+        FolderGroup.MANAGER_TYPES -> Res.string.new_manager_type_hint
+        FolderGroup.SCENES -> Res.string.new_scene_hint
+    }
