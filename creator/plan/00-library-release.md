@@ -28,10 +28,10 @@ projects resolve Kubriko from Maven Central. What Creator needs from the librari
 Each one changes the libraries, so each is offered only to sessions whose protocol version has it:
 
 - the template upgrade that makes `GameEntryPoint` report the game's Kubriko instances (`getRunningInstances`, which `start_game` waits on);
-- the debug agent, `tools/debug-overlay`, and deprecating the debug menu (`04-debugger.md`);
+- the debug agent, `tools/debug-overlay`, and deprecating the debug menu (`10-debugger.md`);
 - Managers' Properties per Scene (Creator's Scene editor is its own now, so its other plans need no library change)
-  (`02-blocks.md` → Scene editor);
-- hot reload in the session process (`10-fast-iteration.md`) and the asset editor extension point (`07-later.md`).
+  (`06-blocks.md` → Scene editor);
+- hot reload in the session process (`02-fast-iteration.md`) and the asset editor extension point (`13-later.md`).
 
 Blocks, Manager types, templates, git, the AI assistant, and export are Creator-only (generated code uses existing plugins) and don't wait
 for any of this.

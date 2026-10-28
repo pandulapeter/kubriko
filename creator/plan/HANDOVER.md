@@ -19,7 +19,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   three-generation family for desktop and web; seen working: choosing Brick as GoldBrick's parent in the editor, and the scratch
   Breakout compiling with `GoldBrick : BrickBase` and Ball colliding with `BrickBase`. The editor's inherited rows and their
   replace button were only built and unit-tested, not seen.
-- **Plans for scaling** (`09` to `12`): the user wants every item in them done, with nothing capped in number.
+- **Plans for scaling** (`01` to `05`): the user wants every item in them done, with nothing capped in number, on a stable, scalable
+  foundation first (2026-10-28: "the top priority now is to create a stable, scalable foundation").
 - **`:creator:run` always uses local libraries** (`settings.gradle.kts`); the first version of that didn't take effect (fixed in
   b05e09d83), which moved the scratch Breakout to plain `0.8.1` once more: an opened project recovers on its own.
 - **Folders** (2026-10-28) for Actor types, Manager types, and Scenes, with Scene names as paths and `rename_scene`. Seen working:
@@ -57,18 +58,14 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. Search (`12-resource-organization.md` → Search): the sidebar filter field, quick open, find usages, search in Blocks, and the
-   `search_project` and `find_usages` tools.
-2. Incremental Scene editing (`09-large-projects.md`), then the rest of that file: regenerating only affected types, paged and batch
-   AI tools, the watcher per folder.
-3. The rest of "No caps" (`09-large-projects.md`): named Timers instead of 1 to 8, every key instead of 10, virtualized lists.
-4. Functions, then the Traits section, then "More for bigger games" (`11-reuse-and-traits.md`), and the parent leftovers listed there.
-5. `10-fast-iteration.md`, measured first.
-6. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).
-7. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
-   `08-sprite-editor.md` plans), then the sprite editor itself, then the rest of `02-blocks.md`. Plugins come and go with the Blocks
-   that use them, as audio's and sprites' do (`PluginManagers`, `KubrikoWiring`); not in a template upgrade.
-8. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
+The plans were renumbered on 2026-10-28 into the order they are worked on (`README.md` → Roadmap), after a review found that the
+foundation under the command layer doesn't scale and that generated games had real bugs. Work through `01-foundation.md` step by
+step, committing each part:
+
+1. Generated games (`01-foundation.md` → 1), with `Logger.log` in `tools/logger` (a library change without API changes).
+2. Workspace lifecycle and opening (→ 2).
+3. The benchmark (→ 3), then one project in memory (→ 4), Scene editing in place (→ 5), and the editor's UI (→ 6).
+4. Then `02-fast-iteration.md`, and the rest in file order. Search, the next item before, is now `04-resource-organization.md`.
 
 ## Never checked by hand
 

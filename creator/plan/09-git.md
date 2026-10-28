@@ -16,6 +16,6 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
 - **Branches:** create and switch from a menu. Merging is left to other tools at first.
 - **Checkpoints:** offer to commit before risky operations (Convert to code, deleting an Actor type, upgrading Kubriko, AI changes).
 - **Remotes:** publish to a new GitHub repository, push, and pull (fast-forward only, explaining when histories diverged), credentials in the OS
-  keychain. A generated GitHub Actions workflow builds every platform (`05-export-and-distribution.md`).
+  keychain. A generated GitHub Actions workflow builds every platform (`11-export-and-distribution.md`).
 - **Conflicts:** never write conflict markers into Creator's JSON; stop before changing anything and explain which files clash.
 - Projects inside a larger repository (not at its root) are currently left to other tools; decide whether to support them.

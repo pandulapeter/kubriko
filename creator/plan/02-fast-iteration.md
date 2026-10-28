@@ -9,10 +9,12 @@
 -->
 # Fast iteration
 
-The edit-and-see loop is the product. Today, opening a Scene compiles the whole project through Gradle (tens of seconds, more as the
-project grows), and any Actor type change marks the open Scene outdated until it is compiled again; playing the game is a full build
-and launch. Measure first: a benchmark project (the Breakout, and a generated one with 200 Actor types and 5,000-Actor Scenes) and the
-time of each step, kept in the integration test's output, so every change here is a measured one.
+The edit-and-see loop is the product, and what decides whether a beginner prefers Creator to writing code. Today, opening a Scene
+runs a Gradle build, and any Actor type change marks the open Scene outdated until it is built again; playing the game is a full
+build and launch. On Breakout these builds take about a second with a warm daemon and five with a cold one, so the cost is mostly
+in waiting at all: steps 4 and 5 remove the wait from the editor entirely. Measure first, with the benchmark project of
+`01-foundation.md` and the console timings it adds, so every change here is a measured one. This comes right after the foundation,
+before more features.
 
 ## Steps, cheapest first
 
@@ -31,7 +33,7 @@ time of each step, kept in the integration test's output, so every change here i
    so the Scene editor can show a changed type's Actors from its definition right away (a preview Actor drawn by Creator) while the
    compile runs, then swap in the real classes. Hand-written types keep their last compiled look until then.
 6. **Hot reload in the game:** Compose Hot Reload in the play session, so Block and Kotlin changes apply to a running game without
-   a restart (moved here from `07-later.md`). Generated code is shaped for it: no static state that a reload would lose.
+   a restart (moved here from `13-later.md`). Generated code is shaped for it: no static state that a reload would lose.
 
 ## Playing
 
