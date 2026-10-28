@@ -9,7 +9,11 @@
  */
 package com.pandulapeter.kubriko.creatorSession.protocol
 
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * Encoding of the [SessionMessage]s and [SessionCommand]s exchanged between a session process and Kubriko Creator.
@@ -17,14 +21,19 @@ import kotlinx.serialization.json.Json
  * The session connects to Kubriko Creator over TCP on localhost, on the port passed in the [PORT_PROPERTY] system
  * property, and writes one encoded message per line. Kubriko Creator writes commands back on the same connection, one
  * per line.
+ *
+ * Sessions run at the game's own Kubriko version, so a session can be older or newer than Kubriko Creator. The protocol only
+ * ever grows: messages and commands are added, never changed or removed, each side skips the lines it can't decode, and a
+ * session answers a command it doesn't know with a [SessionMessage.CommandFailed]. Both sides use only what the lower of
+ * their two [VERSION]s has.
  */
 object SessionProtocol {
 
     /**
-     * The protocol version this module speaks. Raised whenever a change would make an older Kubriko Creator misread
-     * the messages.
+     * The protocol version this module speaks. Raised with every message or command added, so that it tells the other
+     * side which ones exist.
      */
-    const val VERSION = 2
+    const val VERSION = 3
 
     /**
      * The system property that holds the localhost port Kubriko Creator listens on. Without it, the session runs
@@ -55,4 +64,15 @@ object SessionProtocol {
      * Decodes a single line written by [encodeCommand].
      */
     fun decodeCommand(line: String) = json.decodeFromString(SessionCommand.serializer(), line)
+
+    /**
+     * The [SessionCommand.id] of a line written by [encodeCommand], also for commands [decodeCommand] doesn't know, or null.
+     */
+    internal fun decodeCommandId(line: String) = try {
+        json.parseToJsonElement(line).jsonObject["id"]?.jsonPrimitive?.intOrNull
+    } catch (_: SerializationException) {
+        null
+    } catch (_: IllegalArgumentException) {
+        null
+    }
 }

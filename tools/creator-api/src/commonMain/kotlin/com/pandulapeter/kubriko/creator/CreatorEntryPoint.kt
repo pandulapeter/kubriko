@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.creator
 
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
@@ -41,4 +42,15 @@ interface CreatorEntryPoint {
      * on every call. Returns no Managers by default.
      */
     fun createCustomManagers(): List<Manager> = emptyList()
+
+    /**
+     * The [Kubriko] instances the game is running while Kubriko Creator plays it, so that Creator can tell when the game has
+     * drawn its first Scene (before taking a screenshot of it, for example).
+     *
+     * Kubriko Creator creates an instance of this class of its own, in the game's process, so an implementation reads the
+     * instances from wherever the game keeps them (a top-level property, for example). It is called from a background thread,
+     * at any time while the game is played, also before the game has created its instances (return an empty list then), and
+     * never in the Scene editor. Returns null by default, meaning that the game doesn't report its instances.
+     */
+    fun getRunningInstances(): List<Kubriko>? = null
 }

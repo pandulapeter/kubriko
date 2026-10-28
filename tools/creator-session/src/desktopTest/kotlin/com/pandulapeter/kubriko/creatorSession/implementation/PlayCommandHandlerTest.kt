@@ -93,4 +93,29 @@ class PlayCommandHandlerTest {
         assertEquals(SessionMessage.CommandFailed(3, "The game has no window yet."), handler.carryOut(SessionCommand.CaptureScreen(3, 800)))
         assertEquals(SessionMessage.CommandFailed(4, "The game has no window yet."), handler.carryOut(SessionCommand.BringToFront(4)))
     }
+
+    @Test
+    fun drawnActorsAreWaitedForAndGivenTimeToReachTheScreen() {
+        var checks = 0
+        val handler = PlayCommandHandler(send = {}, findWindow = { null }, sleep = { sleeps += it }, hasActorsInView = { ++checks == 3 })
+        assertEquals(SessionMessage.CommandDone(1), handler.carryOut(SessionCommand.AwaitActorsDrawn(1, 5000)))
+        assertEquals(listOf(20L, 20L, 100L), sleeps)
+    }
+
+    @Test
+    fun actorsThatAreNeverDrawnAreReportedAfterTheTimeout() {
+        val handler = PlayCommandHandler(send = {}, findWindow = { null }, sleep = { sleeps += it }, hasActorsInView = { false })
+        assertEquals(SessionMessage.CommandFailed(1, "The game drew no Actors within 200 ms."), handler.carryOut(SessionCommand.AwaitActorsDrawn(1, 200)))
+        assertEquals(200L, sleeps.sum())
+    }
+
+    @Test
+    fun gamesThatDontReportTheirInstancesAreNotWaitedFor() {
+        val handler = PlayCommandHandler(send = {}, findWindow = { null }, sleep = { sleeps += it }, hasActorsInView = { null })
+        assertEquals(
+            SessionMessage.CommandFailed(1, "The game's CreatorEntryPoint doesn't report its Kubriko instances."),
+            handler.carryOut(SessionCommand.AwaitActorsDrawn(1, 5000)),
+        )
+        assertEquals(emptyList(), sleeps)
+    }
 }

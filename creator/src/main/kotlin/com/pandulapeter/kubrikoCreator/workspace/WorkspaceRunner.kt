@@ -58,7 +58,15 @@ internal class WorkspaceRunner(
     }
 
     override suspend fun startGame() = recordConsole {
-        startAndAwait().also { hasStarted -> if (hasStarted) sessions.request(ANSWER_TIMEOUT, SessionCommand::BringToFront) }
+        startAndAwait().also { hasStarted ->
+            if (hasStarted) {
+                sessions.request(ANSWER_TIMEOUT, create = SessionCommand::BringToFront)
+                // So that a screenshot taken right away shows the first Scene; a game that can't tell starts all the same.
+                sessions.request(ACTORS_TIMEOUT + ANSWER_TIMEOUT, SessionController.AWAIT_ACTORS_DRAWN_PROTOCOL_VERSION) { id ->
+                    SessionCommand.AwaitActorsDrawn(id, ACTORS_TIMEOUT)
+                }
+            }
+        }
     }
 
     override suspend fun stopGame() = recordConsole { stopAndAwait() }
@@ -82,7 +90,7 @@ internal class WorkspaceRunner(
      */
     private suspend fun step(action: suspend (GameAnswer) -> GameAnswer): GameStep {
         val (answer, console) = this.console.record {
-            when (val focused = sessions.request(ANSWER_TIMEOUT, SessionCommand::BringToFront)) {
+            when (val focused = sessions.request(ANSWER_TIMEOUT, create = SessionCommand::BringToFront)) {
                 is GameAnswer.Answered -> if (focused.message is SessionMessage.CommandFailed) focused else action(focused)
                 GameAnswer.NotPlaying, GameAnswer.Unsupported, GameAnswer.NoAnswer -> focused
             }
@@ -133,6 +141,7 @@ internal class WorkspaceRunner(
 
     private companion object {
         const val ANSWER_TIMEOUT = 10_000L
+        const val ACTORS_TIMEOUT = 5_000L
         const val SCREENSHOT_WIDTH = 1280
     }
 }

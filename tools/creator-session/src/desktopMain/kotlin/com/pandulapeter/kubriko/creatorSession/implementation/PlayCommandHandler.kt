@@ -9,8 +9,12 @@
  */
 package com.pandulapeter.kubriko.creatorSession.implementation
 
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.manager.ActorManager
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Rect
@@ -25,6 +29,8 @@ import java.awt.Toolkit
 import java.awt.Window
 import java.awt.event.KeyEvent
 import java.util.Base64
+import java.util.ServiceConfigurationError
+import java.util.ServiceLoader
 import java.util.concurrent.Executors
 
 /**
@@ -39,6 +45,7 @@ internal class PlayCommandHandler(
     private val send: (SessionMessage) -> Unit,
     private val findWindow: () -> Window? = ::findGameWindow,
     private val sleep: (Long) -> Unit = Thread::sleep,
+    private val hasActorsInView: () -> Boolean? = ::hasEntryPointsActorsInView,
 ) {
     private val worker = Executors.newSingleThreadExecutor { runnable -> Thread(runnable, "kubriko-creator-commands").apply { isDaemon = true } }
 
@@ -69,6 +76,15 @@ internal class PlayCommandHandler(
                     id = command.id,
                     png = Base64.getEncoder().encodeToString(onEventThread { capture(window, command.maximumWidth) }),
                 )
+            }
+            is SessionCommand.AwaitActorsDrawn -> {
+                val isDrawing = hasActorsInView() ?: throw CommandException("The game's CreatorEntryPoint doesn't report its Kubriko instances.")
+                if (!isDrawing && poll(command.timeoutInMilliseconds) { true.takeIf { hasActorsInView() == true } } == null) throw CommandException(
+                    "The game drew no Actors within ${command.timeoutInMilliseconds} ms.",
+                )
+                // Actors are culled into view on a tick, and drawn on a frame after it.
+                sleep(DRAW_SETTLE_TIME_IN_MILLISECONDS)
+                SessionMessage.CommandDone(command.id)
             }
         }
     } catch (exception: CommandException) {
@@ -160,6 +176,7 @@ internal class PlayCommandHandler(
         private const val FOCUS_TIMEOUT_IN_MILLISECONDS = 2000L
         private const val POLL_INTERVAL_IN_MILLISECONDS = 20L
         private const val FOCUS_SETTLE_TIME_IN_MILLISECONDS = 100L
+        private const val DRAW_SETTLE_TIME_IN_MILLISECONDS = 100L
 
         /**
          * The code of the `java.awt.event.KeyEvent` key called `VK_[name]`, or null if there is none.
@@ -168,6 +185,26 @@ internal class PlayCommandHandler(
             KeyEvent::class.java.getField("VK_${name.uppercase()}").getInt(null)
         } catch (_: NoSuchFieldException) {
             null
+        }
+
+        private val entryPoint by lazy {
+            try {
+                ServiceLoader.load(CreatorEntryPoint::class.java).toList().singleOrNull()
+            } catch (_: ServiceConfigurationError) {
+                null
+            }
+        }
+
+        /**
+         * Whether a Kubriko instance the game's [CreatorEntryPoint] reports has Actors within its viewport, or null if it
+         * reports none.
+         */
+        private fun hasEntryPointsActorsInView() = entryPoint?.getRunningInstances()?.any { it.hasActorsInView() }
+
+        private fun Kubriko.hasActorsInView() = try {
+            get<ActorManager>().visibleActorsWithinViewport.value.isNotEmpty()
+        } catch (_: IllegalStateException) {
+            false
         }
 
         private fun findGameWindow() = Window.getWindows().filter { it.isShowing }.maxByOrNull { it.width * it.height }

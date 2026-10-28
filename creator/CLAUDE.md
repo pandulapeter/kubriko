@@ -155,12 +155,14 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - **The panel** (toolbar → AI connection): a Connect / Disconnect / Install row per client, the on/off switch, the address
   with the token for other MCP clients, Advanced (port, token, commands), and the call log.
 - **Playing the game:** `start_game`, `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
-  session protocol 2 (`SessionCommand`s Creator sends back on the session's connection, answered by id): keys go to the AWT event
+  `SessionCommand`s Creator sends back on the session's connection, answered by id: keys go to the AWT event
   listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), and every step first
   brings the window to the front, since Kubriko pauses unfocused games, and waits up to two seconds for the focus to arrive
   (keys aren't pressed without it; `press_keys` fails instead). Unexpected exceptions in a tool are `isError` results that name
-  the exception. Sessions of protocol 1 (older Kubriko) still run; the
-  game tools say the version is too old.
+  the exception. `start_game` also waits (up to five seconds) until the game has drawn Actors, so a screenshot right after it isn't
+  empty; that needs protocol 3 and an entry point that reports its Kubriko instances (`getRunningInstances`), and is skipped otherwise.
+  Sessions of any protocol version run, using what the lower of the two versions has (`SessionController.request` takes the
+  version a command needs); for protocol 1 (older Kubriko) the game tools say the version is too old.
 - **Showing the AI's work:** every command has a `title` and a `target` (`CommandTarget`: an Actor type with an optional Event
   and Block index, a Scene, version control, or the game), asked before and after it runs. `CommandExecutor.aiSteps` records each
   AI tool call as a running, then finished (or rejected) `AiStep`. The workspace shows them in `AiActivityBar` (step number, the

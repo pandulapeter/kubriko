@@ -9,7 +9,8 @@
 -->
 # Kubriko Creator tool - API
 This module defines `CreatorEntryPoint`, the opt-in contract through which a game hands Kubriko Creator what it cannot discover on its own: the
-`SerializationManager` that knows the game's placeable Actor types, and the Managers those Actors need.
+`SerializationManager` that knows the game's placeable Actor types, the Managers those Actors need, and the Kubriko instances the game is running.
+New members always come with default implementations, so an implementation written for an older version keeps working.
 
 Kubriko Creator generates the implementation and its service registration for the projects it manages. Projects that are never opened in Kubriko
 Creator do not need this dependency.

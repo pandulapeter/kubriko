@@ -34,7 +34,10 @@ fun main(args: Array<String>) {
         when (arguments) {
             is SessionArguments.Edit -> EditSession.run(arguments)
             is SessionArguments.Play -> {
-                connection.listen(PlayCommandHandler(connection::send)::handle)
+                connection.listen(
+                    onCommand = PlayCommandHandler(connection::send)::handle,
+                    onUnknownCommand = { id -> connection.send(SessionMessage.CommandFailed(id, UNKNOWN_COMMAND_MESSAGE)) },
+                )
                 PlaySession.run(arguments)
             }
         }
@@ -49,3 +52,5 @@ fun main(args: Array<String>) {
     connection.close()
     if (failure != null) exitProcess(1)
 }
+
+private const val UNKNOWN_COMMAND_MESSAGE = "The game's Kubriko version is too old for this command; a newer one adds it."

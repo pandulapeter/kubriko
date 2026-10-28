@@ -96,8 +96,8 @@ internal class SessionController(
     }
 
     private fun onMessage(message: SessionMessage) = when (message) {
-        is SessionMessage.Hello -> if (message.protocolVersion in SUPPORTED_PROTOCOL_VERSIONS) {
-            protocolVersion = message.protocolVersion
+        is SessionMessage.Hello -> if (message.protocolVersion >= MINIMUM_PROTOCOL_VERSION) {
+            protocolVersion = minOf(message.protocolVersion, SessionProtocol.VERSION)
             _state.value = SessionState.Running(message.mode)
             console.append(ConsoleEntry.Status(Res.string.status_session_started))
         } else {
@@ -115,21 +115,31 @@ internal class SessionController(
         is SessionMessage.CommandDone, is SessionMessage.Screenshot, is SessionMessage.CommandFailed -> Unit
     }
 
-    private companion object {
-        val SUPPORTED_PROTOCOL_VERSIONS = 1..SessionProtocol.VERSION
+    companion object {
+        private const val MINIMUM_PROTOCOL_VERSION = 1
 
         /**
          * The first protocol version whose sessions take [SessionCommand]s.
          */
-        const val COMMANDS_PROTOCOL_VERSION = 2
+        private const val COMMANDS_PROTOCOL_VERSION = 2
+
+        /**
+         * The first protocol version whose sessions take [SessionCommand.AwaitActorsDrawn].
+         */
+        const val AWAIT_ACTORS_DRAWN_PROTOCOL_VERSION = 3
     }
 
     /**
-     * Sends the command [create] makes with a new ID to the running game, and waits for its answer.
+     * Sends the command [create] makes with a new ID to the running game, and waits for its answer. Sessions older than
+     * [minimumProtocolVersion] don't take the command, and get [GameAnswer.Unsupported] instead.
      */
-    suspend fun request(timeoutInMilliseconds: Long, create: (id: Int) -> SessionCommand): GameAnswer {
+    suspend fun request(
+        timeoutInMilliseconds: Long,
+        minimumProtocolVersion: Int = COMMANDS_PROTOCOL_VERSION,
+        create: (id: Int) -> SessionCommand,
+    ): GameAnswer {
         if (_state.value != SessionState.Running(SessionMode.PLAY)) return GameAnswer.NotPlaying
-        if (protocolVersion < COMMANDS_PROTOCOL_VERSION) return GameAnswer.Unsupported
+        if (protocolVersion < maxOf(minimumProtocolVersion, COMMANDS_PROTOCOL_VERSION)) return GameAnswer.Unsupported
         val command = create(commandIds.incrementAndGet())
         return coroutineScope {
             val answer = async(start = CoroutineStart.UNDISPATCHED) { channel.messages.first { it.answers(command.id) } }

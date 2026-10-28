@@ -59,4 +59,16 @@ sealed interface SessionCommand {
         override val id: Int,
         val maximumWidth: Int,
     ) : SessionCommand
+
+    /**
+     * Waits until one of the Kubriko instances the game's `CreatorEntryPoint` reports has Actors within its viewport, and
+     * they have been drawn, for at most [timeoutInMilliseconds]. Fails right away for a game whose entry point doesn't report
+     * its instances. Added in protocol version 3.
+     */
+    @Serializable
+    @SerialName("awaitActorsDrawn")
+    data class AwaitActorsDrawn(
+        override val id: Int,
+        val timeoutInMilliseconds: Long,
+    ) : SessionCommand
 }

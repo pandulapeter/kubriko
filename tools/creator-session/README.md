@@ -16,7 +16,10 @@ Gradle init script, at the game's Kubriko version, so games never declare it.
 
 Either way, the session connects to Kubriko Creator on the localhost port given in the `kubriko.creator.port` system property and streams the
 game's log entries to it, one JSON message per line. In play mode it also carries out the commands Kubriko Creator sends back on that connection
-(`SessionCommand`, protocol version 2): pressing keys, capturing the game's window, and bringing it to the front.
+(`SessionCommand`): pressing keys, capturing the game's window, bringing it to the front, and waiting until the game has drawn its first Actors.
+
+The protocol only grows, so a session can be older or newer than Kubriko Creator: each side skips what it doesn't know, a command the session
+doesn't know is answered with a failure, and both use only what the lower of their `SessionProtocol.VERSION`s has.
 
 ## Public artifact
 The artifact for this module has the following ID:

@@ -33,24 +33,20 @@ the project upgrades to, whenever it lands. This release can't make that go away
 
 ## Before the release
 
-1. **Protocol compatibility.** Protocol 1 sessions already run, with the game tools saying the version is too old. Turn that one case
-   into a rule: `Hello` carries the session's capabilities (or Creator maps each protocol version to them), every feature checks them,
-   and a session newer than Creator is handled on purpose rather than refused by accident. Includes the session protocol's version
-   negotiation from `07-later.md`. This is the one item the release must not go without.
-2. **A first-frame signal** from Play sessions, so a screenshot right after `start_game` isn't empty (the session asks the Kubriko
-   instance through the entry point whether Actors are drawn). Small, and it is protocol work best done alongside 1.
-3. **The running Kubriko instances on `CreatorEntryPoint`** (decided in `04-debugger.md`: a member with a default implementation). Cheap,
-   and it lets the debug agent come later as session-only code.
-4. **Embedded Scene editing across patch versions:** decide whether Creator may embed a project whose Kubriko version differs only in the
+Done: protocol 3 (the protocol only grows, unknown commands are answered with a failure, Creator runs sessions of any version),
+`AwaitActorsDrawn` (used by `start_game`), and `CreatorEntryPoint.getRunningInstances`. The templates' `GameEntryPoint` doesn't
+report the game's instances yet: a template upgrade (Creator-only, after the release) keeps them where it can read them.
+
+1. **Embedded Scene editing across patch versions:** decide whether Creator may embed a project whose Kubriko version differs only in the
    patch number, which then has to keep `scene-editor-api` and `creator-api` binary compatible within a minor version. Without it, every
    Creator release built on a newer Kubriko stops embedding Scenes of projects on this one.
-5. **Release steps:** the tests, the `release-notes` skill, the publish workflow, then in Creator: the bundled `kubrikoVersion`, the
+2. **Release steps:** the tests, the `release-notes` skill, the publish workflow, then in Creator: the bundled `kubrikoVersion`, the
    templates, the integration test's default `KUBRIKO_CREATOR_VERSION`, the Breakout reference project, and `../CLAUDE.md` (Building)
    and `HANDOVER.md` switch to the released version. `creator.localKubriko` stays, for work that changes the libraries.
 
 ## Not in this release
 
-Each one changes the libraries, so each will ride a later release, gated by the capabilities from item 1:
+Each one changes the libraries, so each will ride a later release, offered only to sessions whose protocol version has it:
 
 - the debug agent, `tools/debug-overlay`, and deprecating the debug menu (`04-debugger.md`);
 - Scene editor commands from Creator, Managers' Properties per Scene, multi-select, layers, thumbnails, and Creator's look

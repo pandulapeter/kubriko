@@ -23,7 +23,7 @@ sealed interface SessionMessage {
     /**
      * The first message of every session.
      *
-     * @param protocolVersion The [SessionProtocol.VERSION] the session speaks; Kubriko Creator refuses versions it does not know.
+     * @param protocolVersion The [SessionProtocol.VERSION] the session speaks, which tells Kubriko Creator which commands it takes.
      * @param mode The mode the session was started in.
      */
     @Serializable

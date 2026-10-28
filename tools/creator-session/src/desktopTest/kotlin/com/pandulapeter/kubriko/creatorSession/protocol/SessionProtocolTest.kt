@@ -37,11 +37,19 @@ class SessionProtocolTest {
             SessionCommand.BringToFront(id = 1),
             SessionCommand.PressKeys(id = 2, keys = listOf("LEFT", "SPACE"), durationInMilliseconds = 250),
             SessionCommand.CaptureScreen(id = 3, maximumWidth = 1280),
+            SessionCommand.AwaitActorsDrawn(id = 4, timeoutInMilliseconds = 5000),
         ).forEach { command ->
             val line = SessionProtocol.encodeCommand(command)
             assertFalse('\n' in line)
             assertEquals(command, SessionProtocol.decodeCommand(line))
         }
+    }
+
+    @Test
+    fun theIdsOfCommandsFromNewerVersionsCanStillBeRead() {
+        assertEquals(7, SessionProtocol.decodeCommandId("""{"type":"addedLater","id":7}"""))
+        assertEquals(null, SessionProtocol.decodeCommandId("""{"type":"addedLater"}"""))
+        assertEquals(null, SessionProtocol.decodeCommandId("not json"))
     }
 
     @Test

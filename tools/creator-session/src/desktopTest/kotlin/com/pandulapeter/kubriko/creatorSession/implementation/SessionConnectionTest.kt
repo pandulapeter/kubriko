@@ -39,19 +39,23 @@ class SessionConnectionTest {
     }
 
     @Test
-    fun commandsAreReadLineByLineSkippingUnknownOnes() = ServerSocket(0, 0, InetAddress.getLoopbackAddress()).use { server ->
+    fun commandsAreReadLineByLineWithUnknownOnesReportedByIdAndOtherLinesSkipped() = ServerSocket(0, 0, InetAddress.getLoopbackAddress()).use { server ->
         val received = LinkedBlockingQueue<SessionCommand>()
+        val unknownIds = LinkedBlockingQueue<Int>()
         SessionConnection.open(server.localPort).use { connection ->
             server.accept().use { socket ->
-                connection.listen(received::add)
+                connection.listen(received::add, unknownIds::add)
                 socket.getOutputStream().bufferedWriter().apply {
                     write(SessionProtocol.encodeCommand(SessionCommand.PressKeys(1, listOf("LEFT"), 100)) + "\n")
                     write("""{"type":"addedLater","id":2}""" + "\n")
+                    write("not json\n")
                     write(SessionProtocol.encodeCommand(SessionCommand.CaptureScreen(3, 800)) + "\n")
                     flush()
                 }
                 assertEquals(SessionCommand.PressKeys(1, listOf("LEFT"), 100), received.poll(5, TimeUnit.SECONDS))
                 assertEquals(SessionCommand.CaptureScreen(3, 800), received.poll(5, TimeUnit.SECONDS))
+                assertEquals(2, unknownIds.poll(5, TimeUnit.SECONDS))
+                assertEquals(null, unknownIds.poll(100, TimeUnit.MILLISECONDS))
             }
         }
     }

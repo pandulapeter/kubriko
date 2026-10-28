@@ -42,10 +42,10 @@ internal class SessionConnection private constructor(
     }
 
     /**
-     * Reads the commands Kubriko Creator sends, on a background thread, until the connection ends. Lines that aren't
-     * commands this version knows are skipped.
+     * Reads the commands Kubriko Creator sends, on a background thread, until the connection ends. Commands this version
+     * doesn't know go to [onUnknownCommand] with their ID, other lines are skipped.
      */
-    fun listen(onCommand: (SessionCommand) -> Unit) {
+    fun listen(onCommand: (SessionCommand) -> Unit, onUnknownCommand: (id: Int) -> Unit = {}) {
         val reader = socket?.getInputStream()?.bufferedReader(Charsets.UTF_8) ?: return
         Thread({
             while (true) {
@@ -61,7 +61,11 @@ internal class SessionConnection private constructor(
                 } catch (_: IllegalArgumentException) {
                     null
                 }
-                command?.let(onCommand)
+                if (command == null) {
+                    SessionProtocol.decodeCommandId(line)?.let(onUnknownCommand)
+                } else {
+                    onCommand(command)
+                }
             }
         }, "kubriko-creator-connection").apply { isDaemon = true }.start()
     }

@@ -156,10 +156,18 @@ class WorkspaceControllerTest {
     }
 
     @Test
-    fun aHelloInAnUnknownProtocolStopsTheSession() = runTest {
+    fun aHelloInANewerProtocolStillRunsTheSession() = runTest {
         val controller = createController()
         controller.play()
         channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION + 1, mode = SessionMode.PLAY))
+        assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
+    }
+
+    @Test
+    fun aHelloInAnInvalidProtocolStopsTheSession() = runTest {
+        val controller = createController()
+        controller.play()
+        channel.receive(SessionMessage.Hello(protocolVersion = 0, mode = SessionMode.PLAY))
         assertTrue(build.currentRun.isCancelled)
         assertEquals(SessionState.Idle, controller.sessionState.value)
         assertContains(controller.console.value, ConsoleEntry.Status(Res.string.status_unsupported_protocol, isError = true))
@@ -326,6 +334,7 @@ class WorkspaceControllerTest {
         assertEquals(listOf("LEFT", "SPACE"), channel.sent.filterIsInstance<SessionCommand.PressKeys>().single().keys)
         assertEquals(200L, channel.sent.filterIsInstance<SessionCommand.PressKeys>().single().durationInMilliseconds)
         assertIs<SessionCommand.BringToFront>(channel.sent[channel.sent.indexOfFirst { it is SessionCommand.PressKeys } - 1])
+        assertEquals(5_000L, channel.sent.filterIsInstance<SessionCommand.AwaitActorsDrawn>().single().timeoutInMilliseconds)
         channel.answer = { command ->
             when (command) {
                 is SessionCommand.CaptureScreen -> SessionMessage.Screenshot(command.id, java.util.Base64.getEncoder().encodeToString(byteArrayOf(1, 2, 3)))
