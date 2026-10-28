@@ -60,28 +60,31 @@ Every change costs over a second of whole-project work, even a move in a Scene (
 quick changes queue one each. Targets: a single change under 100 ms until written, quick changes coalesced into one write,
 and main-thread work under 16 ms at 5,000 Actors.
 
+After step 4 so far (2026-10-29, warm JVM):
+
+| Step | Main thread | Until written |
+|---|---|---|
+| Open the project | 0.3 ms | 322 ms |
+| Add a Block to an Actor type | 1.3 ms | 140 ms |
+| 10 quick changes to one type | 16 ms | 262 ms |
+| Move an Actor (50 / 1,000 / 5,000 Actors) | 1 / 6 / 16 ms | 26 / 36 / 45 ms |
+| Undo that move | 9 ms | 41 ms |
+| One watcher pass | - | 14 ms |
+
+The biggest cut was `ActorTypeFamily`, which rebuilt a map of every type for every type (quadratic, and made several times per
+generated type): 1.1 s to 85 ms for 200 types. Not measured yet: the Scene editor's own work after a change (step 5).
+
 ## 4. One project in memory
 
-- **`ProjectModel`** holds the open project: block types (as `BlockTypesController` does today), Scenes as parsed
-  documents (`SceneDocumentState`: entries in order and by ID, parsed once, on first use, off the main thread), the
-  Scene index (names, folders, the music of each), and the resource index. Commands validate and apply against it
-  without touching the disk; the stores become loaders and writers only.
-- **Writes are coalesced and delayed:** a `ProjectWriter` keeps the latest content per file, writes after a short quiet
-  period (and at most a few times a second while typing), in change order, and is flushed before every build, play,
-  git operation, and close. A failed write is reported and retried with the next change.
-- **Creator ignores its own writes:** the writer records what it wrote (path, length, modification time); the watcher
-  reports changed paths instead of areas, and a path that matches Creator's own last write is dropped. A real outside
-  change reloads only the files it names.
-- **Code generation from memory:** generation reads the in-memory definitions and Scene music instead of reloading
-  them, and compares against a cache of the generated files' text (read once when the project opens, then kept by the
-  writer) instead of reading every file. Hand edits are still detected, by reading only the file about to be written.
-  Regenerating every type's text stays as long as the benchmark shows it's cheap (it's pure CPU, off the main thread);
-  a dependency index regenerates only affected types if it isn't.
-- **Build file sync only when it can change:** the Kubriko libraries a project uses change only when the plugins the
-  generated code needs change, or a hand-written source changes; each source file's imported libraries are cached by
-  its length and modification time.
-- **Text fields stay instant** (in-memory changes show before anything is written), and typing merges into one undo
-  step, as today.
+Done (`../CLAUDE.md`): type changes are written in batches 100 ms after the last one, regenerated from the types in memory
+with a cache of the generated files (a run with the same types and Scene music does nothing), Scenes are kept parsed while
+their files are unchanged, the build file sync reads only changed sources, the watcher ignores Creator's own writes, and builds,
+git commands, and closing wait for pending writes. Left:
+
+- A dependency index (regenerate only the types a change affects) if 85 ms for 200 types grows with bigger projects; measured
+  first (`03-large-projects.md` → Measured, not assumed).
+- The first command on a Scene that isn't cached yet parses it on the main thread (about 30 ms at 5,000 Actors): opening a
+  Scene in the editor should fill the cache in the background.
 
 ## 5. Scene editing in place
 

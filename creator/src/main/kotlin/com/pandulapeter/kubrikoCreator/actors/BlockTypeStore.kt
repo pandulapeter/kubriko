@@ -85,12 +85,22 @@ internal class BlockTypeStore private constructor(
      */
     private val changedByHand = HashSet<String>()
 
+    /**
+     * What the last [regenerate] generated from, and what it found, so that regenerating from the same types and Scene
+     * music (after a Scene change, for example) does nothing.
+     */
+    private var lastGeneration: Pair<List<BlockTypeDefinition>, Set<String>>? = null
+
     override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): Set<String> {
+        val sceneMusic = sceneMusic()
+        val typeNames = definitions.mapTo(HashSet()) { it.name }
+        if (overwriting.isEmpty() && lastGeneration == definitions to sceneMusic && generatedFilesAreAsLeft()) return changedByHand.filterTo(HashSet()) { it in typeNames }
+        lastGeneration = definitions to sceneMusic
         val actorTypes = definitions.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
         val actorTypeNames = actorTypes.map { it.name }
         val managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
-        val pluginManagers = PluginManagers.of(definitions, sceneMusic())
+        val pluginManagers = PluginManagers.of(definitions, sceneMusic)
         generatedDirectory.mkdirs()
         definitions.forEach { definition ->
             writeUnlessChangedByHand(
@@ -118,8 +128,15 @@ internal class BlockTypeStore private constructor(
             AudioCodeGenerator.AUDIO_NAME,
             if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music) else null,
         )
-        val typeNames = definitions.mapTo(HashSet()) { it.name }
         return changedByHand.filterTo(HashSet()) { it in typeNames }
+    }
+
+    /**
+     * Whether every generated file this store knows is still as it left it.
+     */
+    private fun generatedFilesAreAsLeft() = generatedTexts.all { (name, known) ->
+        val file = generatedFile(name)
+        known.length == file.length() && known.lastModified == file.lastModified()
     }
 
     /**
