@@ -130,7 +130,7 @@ class CreatorBenchmarkTest {
         report("Undo the move in the largest Scene (until written)", mainTime, System.nanoTime() - totalStart)
 
         totalStart = System.nanoTime()
-        ProjectWatcher.fingerprint(directory, store.generatedPath)
+        ProjectWatcher.snapshot(directory, store.generatedPath)
         report("One pass of the file watcher", 0L, System.nanoTime() - totalStart)
         withContext(main) { controller.close() }.join()
     }

@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -79,6 +80,7 @@ internal class WorkspaceController(
     findDesktopModulePath: () -> String = { ":" },
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
     writeDelayInMilliseconds: Long = 0,
+    ownWrites: OwnWrites = OwnWrites(),
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
@@ -121,7 +123,7 @@ internal class WorkspaceController(
     /**
      * The project's Scene files, by name.
      */
-    val scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() }
+    val scenes = SceneStore(project.rootDirectory, ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
 
     /**
      * The Scene shown in Kubriko Creator's own window. Declared before [blockTypes], whose changes it hears about.

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -22,6 +23,7 @@ import java.io.File
 internal class BlockTypeStore private constructor(
     private val rootDirectory: File,
     private val settings: CreatorProjectSettings,
+    private val ownWrites: OwnWrites,
 ) : BlockTypeRepository {
     /**
      * Where the generated classes are written, relative to the project root.
@@ -57,13 +59,14 @@ internal class BlockTypeStore private constructor(
         }
         val file = File(definitionsDirectory(definition.kind), "${definition.folder}/${definition.name}.json".removePrefix("/"))
         // A type moved to another folder leaves its old file behind otherwise.
-        definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file }.forEach(File::delete)
+        definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file }.forEach { it.delete(); ownWrites.record(it) }
         file.parentFile.mkdirs()
         file.writeText(text + "\n")
+        ownWrites.record(file)
     }
 
     override fun delete(name: String) {
-        BlockTypeKind.entries.forEach { kind -> definitionFiles(kind).filter { it.nameWithoutExtension == name }.forEach(File::delete) }
+        BlockTypeKind.entries.forEach { kind -> definitionFiles(kind).filter { it.nameWithoutExtension == name }.forEach { it.delete(); ownWrites.record(it) } }
         generatedFile(name).delete()
         generatedTexts.remove(name)
         changedByHand.remove(name)
@@ -199,8 +202,8 @@ internal class BlockTypeStore private constructor(
         /**
          * The store of the project in [rootDirectory], or null if the project hasn't opted in to block-built Actor types.
          */
-        fun open(rootDirectory: File) = File(rootDirectory, SETTINGS_FILE).takeIf { it.isFile }?.let { settingsFile ->
-            BlockTypeStore(rootDirectory, json.decodeFromString(CreatorProjectSettings.serializer(), settingsFile.readText()))
+        fun open(rootDirectory: File, ownWrites: OwnWrites = OwnWrites()) = File(rootDirectory, SETTINGS_FILE).takeIf { it.isFile }?.let { settingsFile ->
+            BlockTypeStore(rootDirectory, json.decodeFromString(CreatorProjectSettings.serializer(), settingsFile.readText()), ownWrites)
         }
     }
 }

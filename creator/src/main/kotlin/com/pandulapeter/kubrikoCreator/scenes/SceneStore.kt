@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
@@ -27,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 internal class SceneStore(
     private val rootDirectory: File,
+    private val ownWrites: OwnWrites = OwnWrites(),
     private val sceneResources: () -> List<ProjectResource>,
 ) {
     /**
@@ -70,6 +72,8 @@ internal class SceneStore(
         val target = File(sceneDirectory, "$newName.$EXTENSION")
         target.parentFile.mkdirs()
         source.renameTo(target)
+        ownWrites.record(source)
+        ownWrites.record(target)
     }
 
     /**
@@ -104,6 +108,7 @@ internal class SceneStore(
         val file = file(name) ?: File(sceneDirectory, "$name.$EXTENSION")
         file.parentFile.mkdirs()
         file.writeText(content)
+        ownWrites.record(file)
         cache[file] = CachedScene(content, file.length(), file.lastModified(), actors)
     }
 
@@ -135,7 +140,10 @@ internal class SceneStore(
 
     @EditorMutation
     fun delete(name: String) {
-        file(name)?.delete()
+        file(name)?.let { file ->
+            file.delete()
+            ownWrites.record(file)
+        }
     }
 
     /**

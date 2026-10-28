@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
@@ -35,7 +36,8 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
     override suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController {
         if (!withContext(Dispatchers.IO) { ProjectInspector.isGradleProject(directory) }) throw ProjectInspectionException(Res.string.error_not_a_gradle_project)
         val project = withContext(Dispatchers.IO) { CreatorProject(rootDirectory = directory, name = ProjectInspector.nameOf(directory)) }
-        val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory) }
+        val ownWrites = OwnWrites()
+        val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory, ownWrites) }
         val configuration = CreatorConfiguration.load()
         val connection = GradleProjectConnection(directory)
         return WorkspaceController(
@@ -50,8 +52,9 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
             creatorKubrikoVersion = configuration.kubrikoVersion,
             generatedPath = blockTypeStore?.generatedPath,
             writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
+            ownWrites = ownWrites,
             startWatching = { onChange ->
-                ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
+                ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO, ownWrites = ownWrites).start(onChange)
             },
         )
     }

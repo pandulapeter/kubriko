@@ -19,9 +19,9 @@ import java.io.File
 
 /**
  * Notices files changing in a project, so that edits made in IntelliJ, or by git, show up in Kubriko Creator. It
- * compares a fingerprint of every file's path, size, and modification time once per [intervalInMilliseconds], which
- * is cheap for a game's few hundred files and works the same on every platform (unlike the JDK's file watching,
- * which polls slowly on macOS anyway).
+ * compares every file's length and modification time once per [intervalInMilliseconds], which is cheap for a game's
+ * files and works the same on every platform (unlike the JDK's file watching, which polls slowly on macOS anyway).
+ * Files that are as Kubriko Creator itself left them ([ownWrites]) don't count as changed.
  *
  * @param hiddenDirectory Creator's own generated code, relative to [rootDirectory], whose changes are left out.
  */
@@ -31,15 +31,16 @@ internal class ProjectWatcher(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val intervalInMilliseconds: Long = 1_000,
+    private val ownWrites: OwnWrites = OwnWrites(),
 ) {
 
     fun start(onChange: (Set<ProjectChange>) -> Unit): AutoCloseable {
         val job = scope.launch {
-            var previous = withContext(ioDispatcher) { fingerprint(rootDirectory, hiddenDirectory) }
+            var previous = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory) }
             while (isActive) {
                 delay(intervalInMilliseconds)
-                val current = withContext(ioDispatcher) { fingerprint(rootDirectory, hiddenDirectory) }
-                val changes = ProjectChange.entries.filter { current[it] != previous[it] }.toSet()
+                val current = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory) }
+                val changes = changedAreas(previous, current) { path, stamp -> ownWrites.isOwn(File(rootDirectory, path), stamp) }
                 previous = current
                 if (changes.isNotEmpty()) onChange(changes)
             }
@@ -51,19 +52,37 @@ internal class ProjectWatcher(
         private val ignoredDirectoryNames = setOf("build", ".gradle", ".git", ".idea", ".kotlin", "kotlin-js-store", "node_modules")
 
         /**
-         * A value per area that changes whenever a file in it is added, removed, resized, or modified.
+         * The stamp of every file in an area, by its path relative to [rootDirectory].
          */
-        internal fun fingerprint(rootDirectory: File, hiddenDirectory: String?): Map<ProjectChange, Int> {
-            val hashes = ProjectChange.entries.associateWith { 1 }.toMutableMap()
+        internal fun snapshot(rootDirectory: File, hiddenDirectory: String?): Map<String, FileStamp> {
+            val stamps = HashMap<String, FileStamp>()
             rootDirectory.walkTopDown()
                 .onEnter { it == rootDirectory || (it.name !in ignoredDirectoryNames && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
                 .filter { it.isFile }
                 .forEach { file ->
                     val path = file.relativeTo(rootDirectory).invariantSeparatorsPath
-                    val area = areaOf(path) ?: return@forEach
-                    hashes[area] = 31 * (31 * (31 * hashes.getValue(area) + path.hashCode()) + file.lastModified().hashCode()) + file.length().hashCode()
+                    if (areaOf(path) != null) stamps[path] = FileStamp(file.length(), file.lastModified())
                 }
-            return hashes
+            return stamps
+        }
+
+        /**
+         * The areas with a file that was added, removed, resized, or modified between [previous] and [current], other
+         * than those [isOwn] says Kubriko Creator changed itself.
+         */
+        internal fun changedAreas(
+            previous: Map<String, FileStamp>,
+            current: Map<String, FileStamp>,
+            isOwn: (path: String, stamp: FileStamp) -> Boolean = { _, _ -> false },
+        ): Set<ProjectChange> {
+            val changes = HashSet<ProjectChange>()
+            fun check(path: String) {
+                val stamp = current[path] ?: FileStamp.MISSING
+                if (stamp != (previous[path] ?: FileStamp.MISSING) && !isOwn(path, stamp)) areaOf(path)?.let(changes::add)
+            }
+            current.keys.forEach(::check)
+            previous.keys.forEach { if (it !in current) check(it) }
+            return changes
         }
 
         internal fun areaOf(path: String) = when {

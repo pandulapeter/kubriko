@@ -20,7 +20,6 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -47,23 +46,37 @@ class ProjectWatcherTest {
     }
 
     @Test
-    fun onlyTheAreaThatChangedGetsANewFingerprint() {
+    fun onlyTheAreaThatChangedIsReported() {
         write(".kubriko/actors/Ball.json", "{}")
         write("src/commonMain/kotlin/game/Game.kt", "fun main() = Unit")
-        val before = ProjectWatcher.fingerprint(root, generated)
+        val before = ProjectWatcher.snapshot(root, generated)
         write("src/commonMain/kotlin/game/Game.kt", "fun main() = println()")
-        val after = ProjectWatcher.fingerprint(root, generated)
-        assertNotEquals(before[ProjectChange.SOURCES], after[ProjectChange.SOURCES])
-        assertEquals(before[ProjectChange.BLOCK_TYPE_DEFINITIONS], after[ProjectChange.BLOCK_TYPE_DEFINITIONS])
+        assertEquals(setOf(ProjectChange.SOURCES), ProjectWatcher.changedAreas(before, ProjectWatcher.snapshot(root, generated)))
+        File(root, ".kubriko/actors/Ball.json").delete()
+        assertEquals(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS), ProjectWatcher.changedAreas(before, ProjectWatcher.snapshot(root, generated)) - ProjectChange.SOURCES)
+    }
+
+    @Test
+    fun filesAsCreatorLeftThemDoNotCountAsChanged() {
+        val ownWrites = OwnWrites()
+        val scene = write("src/commonMain/composeResources/files/scenes/main.json", "[]")
+        val before = ProjectWatcher.snapshot(root, generated)
+        scene.writeText("[ ]")
+        ownWrites.record(scene)
+        val isOwn = { path: String, stamp: FileStamp -> ownWrites.isOwn(File(root, path), stamp) }
+        assertEquals(emptySet(), ProjectWatcher.changedAreas(before, ProjectWatcher.snapshot(root, generated), isOwn))
+        scene.writeText("[  ]")
+        scene.setLastModified(scene.lastModified() + 2_000)
+        assertEquals(setOf(ProjectChange.SCENES), ProjectWatcher.changedAreas(before, ProjectWatcher.snapshot(root, generated), isOwn))
     }
 
     @Test
     fun creatorsOwnGeneratedCodeAndBuildOutputsAreIgnored() {
         write("src/commonMain/kotlin/game/Game.kt")
-        val before = ProjectWatcher.fingerprint(root, generated)
+        val before = ProjectWatcher.snapshot(root, generated)
         write("$generated/Ball.kt", "class Ball")
         write("build/classes/Game.class", "binary")
-        assertEquals(before, ProjectWatcher.fingerprint(root, generated))
+        assertEquals(before, ProjectWatcher.snapshot(root, generated))
     }
 
     @Test
