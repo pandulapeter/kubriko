@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
+import com.pandulapeter.kubrikoCreator.actors.MUSIC_DESCRIPTION
 import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -24,6 +25,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_scene_settings
+import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_size_invalid
 
@@ -31,7 +33,8 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
     override val name = "set_scene_settings"
     override val description = "Changes the settings of a Scene, kept by its ${SceneSettingsCodeGenerator.SETTINGS_NAME} Actor, which this adds " +
         "at the end of the Scene's Actor list if it has none. Its bounds are where edge Events happen (instead of the edges of the " +
-        "screen) and are filled with the background color; the camera starts at the camera start when the Scene does. Positions " +
+        "screen) and are filled with the background color; the camera starts at the camera start, and the music plays, when the " +
+        "Scene does. Positions " +
         "are in scene units, with y growing downwards. Values left out stay as they are."
     override val title = Res.string.command_set_scene_settings
     override val inputSerializer = Input.serializer()
@@ -41,6 +44,7 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateScene(input.scene) ?: when {
         listOfNotNull(input.x, input.y, input.width, input.height, input.cameraX, input.cameraY).any { !it.isFinite() } -> Rejection(Res.string.error_command_number_invalid)
         listOfNotNull(input.width, input.height).any { it <= 0f } -> Rejection(Res.string.error_command_size_invalid)
+        !input.music.isNullOrEmpty() && context.audioFiles()?.music?.contains(input.music) == false -> Rejection(Res.string.error_command_music_missing, input.music)
         else -> null
     }
 
@@ -57,6 +61,7 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
             backgroundColor = input.backgroundColor,
             cameraX = input.cameraX,
             cameraY = input.cameraY,
+            music = input.music,
         )
         val settings = SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, state)
         if (previous == null) {
@@ -77,6 +82,7 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
                     backgroundColor = input.backgroundColor?.let { values.backgroundColor },
                     cameraX = input.cameraX?.let { values.cameraX },
                     cameraY = input.cameraY?.let { values.cameraY },
+                    music = input.music?.let { values.music },
                 ),
             ),
         )
@@ -84,6 +90,7 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
 
     override fun mergeKey(input: Input) = listOf(
         input.scene, input.x != null, input.y != null, input.width != null, input.height != null, input.backgroundColor != null, input.cameraX != null, input.cameraY != null,
+        input.music != null,
     )
 
     @Serializable
@@ -104,5 +111,7 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
         @SerialName("cameraX") val cameraX: Float? = null,
         @Description("Where the camera's center starts vertically, in scene units, positive downwards.")
         @SerialName("cameraY") val cameraY: Float? = null,
+        @Description(MUSIC_DESCRIPTION + " It plays when the Scene starts, unless it is the music playing already. An empty text for none, which keeps the music of the Scene before playing.")
+        @SerialName("music") val music: String? = null,
     )
 }

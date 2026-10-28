@@ -108,6 +108,12 @@
     <string name="block_pause_action_pause">Pause</string>
     <string name="block_pause_action_resume">Resume</string>
     <string name="block_pause_action_toggle">Pause or resume</string>
+    <string name="block_play_sound">Play a sound</string>
+    <string name="block_play_music">Play music</string>
+    <string name="block_stop_music">Stop the music</string>
+    <string name="block_sound_choose">Choose a sound</string>
+    <string name="block_music_choose">Choose music</string>
+    <string name="block_parameter_looping">Looping</string>
     <string name="timer_name">Timer %1$d</string>
     <string name="event_timer_finished">When a Timer finishes</string>
     <string name="command_set_event_timer">Change Timer</string>
@@ -119,6 +125,7 @@
     <string name="block_category_flow">Flow</string>
     <string name="block_category_timers">Timers</string>
     <string name="block_category_scenes">Scenes and game</string>
+    <string name="block_category_audio">Sound and music</string>
     <string name="block_category_code">Console and code</string>
     <string name="block_palette_drag_hint">Click a Block to add it at the end, or drag it to where it should go.</string>
     <string name="action_drag_block">Drag to move</string>
@@ -344,6 +351,8 @@
     <string name="command_commit">Commit</string>
     <string name="command_discard_changes">Discard changes</string>
     <string name="error_command_scene_missing">There's no Scene called %1$s.</string>
+    <string name="error_command_sound_missing">There's no sound at %1$s. Sounds are .wav files in the files folder of composeResources.</string>
+    <string name="error_command_music_missing">There's no music at %1$s. Music is an .mp3 or .ogg file in the files folder of composeResources.</string>
     <string name="error_command_scene_invalid">%1$s isn't a valid Scene file.</string>
     <string name="error_command_scene_content_invalid">That isn't valid Scene content.</string>
     <string name="error_command_scene_actor_missing">%1$s has no Actor at index %2$s.</string>

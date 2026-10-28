@@ -17,6 +17,7 @@ package com.pandulapeter.kubrikoCreator.actors
  * @param managerTypes Every Manager type of the project.
  * @param sceneNames Every Scene of the project, or null where they aren't known (the generated code loads Scenes by
  *   name, and reports a missing one while the game runs).
+ * @param audioFiles The sounds and music of the project, or null where they aren't known.
  */
 internal data class BlockScope(
     val typeName: String,
@@ -25,6 +26,7 @@ internal data class BlockScope(
     val actorTypeNames: List<String> = listOf(typeName),
     val managerTypes: List<ManagerTypeDefinition> = emptyList(),
     val sceneNames: List<String>? = null,
+    val audioFiles: AudioFiles? = null,
 ) {
     /**
      * The Properties of [manager], or of the type itself if it is null (or names the Manager type being generated), or
@@ -69,15 +71,21 @@ internal data class BlockScope(
     companion object {
 
         /**
-         * The scope of [definition] in a project with [types] and [sceneNames].
+         * The scope of [definition] in a project with [types], [sceneNames], and [audioFiles].
          */
-        fun of(definition: BlockTypeDefinition, types: List<BlockTypeDefinition>, sceneNames: List<String>? = null) = BlockScope(
+        fun of(
+            definition: BlockTypeDefinition,
+            types: List<BlockTypeDefinition>,
+            sceneNames: List<String>? = null,
+            audioFiles: AudioFiles? = null,
+        ) = BlockScope(
             typeName = definition.name,
             kind = definition.kind,
             properties = definition.properties,
             actorTypeNames = types.filterIsInstance<ActorTypeDefinition>().map { it.name },
             managerTypes = types.filterIsInstance<ManagerTypeDefinition>(),
             sceneNames = sceneNames,
+            audioFiles = audioFiles,
         )
     }
 }

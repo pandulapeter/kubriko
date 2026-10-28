@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -28,6 +29,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_index_invalid
+import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_scene_actor_missing
 import kubriko.creator.generated.resources.error_command_scene_actor_without_position
@@ -48,7 +50,7 @@ class SceneCommandsTest {
     private val changedScenes = mutableListOf<String>()
 
     @OptIn(EditorMutation::class)
-    private fun TestScope.context(vararg actors: SceneActorEntry) = commandContext(ball, onScenesChanged = { changedScenes += it }).apply {
+    private fun TestScope.context(vararg actors: SceneActorEntry, audioFiles: AudioFiles? = null) = commandContext(ball, audioFiles = audioFiles, onScenesChanged = { changedScenes += it }).apply {
         scenes.write("main", SceneDocument.format(actors.toList()))
     }
 
@@ -136,6 +138,19 @@ class SceneCommandsTest {
         assertEquals(Rejection(Res.string.error_command_number_invalid), SetSceneSettings.validate(context, SetSceneSettings.Input("main", cameraX = Float.POSITIVE_INFINITY)))
         assertEquals(Rejection(Res.string.error_command_size_invalid), SetSceneSettings.validate(context, SetSceneSettings.Input("main", width = 0f)))
         assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), SetSceneSettings.validate(context, SetSceneSettings.Input("other")))
+    }
+
+    @Test
+    fun aScenesMusicIsSetAndClearedAndMustExist() = runTest {
+        val context = context(wall, audioFiles = AudioFiles(music = listOf("files/music/theme.mp3")))
+        val actors = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", music = "files/music/theme.mp3"))) { context.main() }!!
+        assertEquals("files/music/theme.mp3", SceneSettingsState.read(actors[1].state).music)
+        val cleared = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", music = ""))) { context.main() }!!
+        assertEquals("", SceneSettingsState.read(cleared[1].state).music)
+        assertEquals(
+            Rejection(Res.string.error_command_music_missing, "files/music/ghost.mp3"),
+            SetSceneSettings.validate(context, SetSceneSettings.Input("main", music = "files/music/ghost.mp3")),
+        )
     }
 
     @Test

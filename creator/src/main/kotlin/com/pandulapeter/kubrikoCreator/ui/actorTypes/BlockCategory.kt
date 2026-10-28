@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_category_actors
+import kubriko.creator.generated.resources.block_category_audio
 import kubriko.creator.generated.resources.block_category_code
 import kubriko.creator.generated.resources.block_category_flow
 import kubriko.creator.generated.resources.block_category_movement
@@ -25,6 +26,7 @@ import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_condition
 import kubriko.creator.generated.resources.ic_property
 import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_timer
 import kubriko.creator.generated.resources.ic_velocity
 import org.jetbrains.compose.resources.DrawableResource
@@ -56,6 +58,7 @@ internal enum class BlockCategory(
     FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END)),
     TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),
     SCENES(Res.string.block_category_scenes, Res.drawable.ic_scene, listOf(BlockKind.GO_TO_SCENE, BlockKind.RESTART_SCENE, BlockKind.PAUSE_GAME)),
+    AUDIO(Res.string.block_category_audio, Res.drawable.ic_sound, listOf(BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC, BlockKind.STOP_MUSIC)),
     CODE(Res.string.block_category_code, Res.drawable.ic_code, listOf(BlockKind.LOG, BlockKind.KOTLIN));
 
     companion object {

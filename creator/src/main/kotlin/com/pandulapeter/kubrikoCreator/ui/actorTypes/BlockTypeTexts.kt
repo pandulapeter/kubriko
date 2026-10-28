@@ -42,6 +42,8 @@ import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.ic_loop
 import kubriko.creator.generated.resources.ic_manager_type
 import kubriko.creator.generated.resources.ic_move_towards
+import kubriko.creator.generated.resources.ic_music
+import kubriko.creator.generated.resources.ic_music_off
 import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_open_with
 import kubriko.creator.generated.resources.ic_pause
@@ -49,6 +51,7 @@ import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_refresh
 import kubriko.creator.generated.resources.ic_remove_other
 import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.ic_text
 import kubriko.creator.generated.resources.ic_timer
@@ -121,6 +124,9 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.GO_TO_SCENE -> Res.drawable.ic_scene
         BlockKind.RESTART_SCENE -> Res.drawable.ic_refresh
         BlockKind.PAUSE_GAME -> Res.drawable.ic_pause
+        BlockKind.PLAY_SOUND -> Res.drawable.ic_sound
+        BlockKind.PLAY_MUSIC -> Res.drawable.ic_music
+        BlockKind.STOP_MUSIC -> Res.drawable.ic_music_off
         BlockKind.IF, BlockKind.ELSE -> Res.drawable.ic_condition
         BlockKind.REPEAT -> Res.drawable.ic_loop
         BlockKind.END -> Res.drawable.ic_end

@@ -221,6 +221,57 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun theAudioManagerIsWrittenWhileTheGamePlaysAudioAndRemovedAfterwards() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val audio = File(generated, "GeneratedAudio.kt")
+        store.save(ball)
+        assertFalse(audio.exists())
+        val hit = ball.copy(events = ball.events + EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.PlaySound("files/sounds/hit.wav"))))
+        store.save(hit)
+        assertEquals(AudioCodeGenerator.generate("com.example.game", setOf("files/sounds/hit.wav"), emptySet()), audio.readText())
+        assertContains(File(generated, "KubrikoWiring.kt").readText(), "SoundManager.newInstance()")
+        store.save(ball)
+        assertFalse(audio.exists())
+        assertFalse("SoundManager" in File(generated, "KubrikoWiring.kt").readText())
+    }
+
+    @Test
+    fun aSceneWithMusicMakesTheGamePlayAudio() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val scenes = File(root, "src/commonMain/composeResources/files/scenes").apply { mkdirs() }
+        File(scenes, "main.json").writeText("""[{"typeId":"SceneSettings","state":"{\"music\":\"files/music/theme.mp3\"}"}]""")
+        File(scenes, "broken.json").writeText("not a Scene")
+        store.save(ball)
+        assertContains(File(generated, "GeneratedAudio.kt").readText(), "            \"files/music/theme.mp3\",\n")
+        File(scenes, "main.json").writeText("""[{"typeId":"SceneSettings","state":"{\"music\":\"\"}"}]""")
+        store.regenerateAll()
+        assertFalse(File(generated, "GeneratedAudio.kt").exists())
+    }
+
+    @Test
+    fun anAudioManagerChangedByHandIsKept() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball.copy(events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.StopMusic)))))
+        File(generated, "GeneratedAudio.kt").appendText("// Mine\n")
+        store.save(ball)
+        assertContains(File(generated, "GeneratedAudio.kt").readText(), "// Mine")
+    }
+
+    @Test
+    fun regeneratingLeavesUnchangedFilesAlone() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball)
+        val file = File(generated, "Ball.kt")
+        file.setLastModified(1_000_000L)
+        store.regenerateAll()
+        assertEquals(1_000_000L, file.lastModified())
+    }
+
+    @Test
     fun aWiringChangedByHandIsLeftAlone() {
         optIn()
         val store = BlockTypeStore.open(root)!!

@@ -17,7 +17,7 @@ has a file of its own, so a session only needs the one it works on.
 ## Roadmap, in order
 
 0. [Library releases](00-library-release.md) - 0.8.0 shipped Creator's library side; how later library changes reach projects.
-1. [Blocks, Actor types, and Manager types](02-blocks.md) - next: audio, sprites, and the rest of the Block
+1. [Blocks, Actor types, and Manager types](02-blocks.md) - next: sprites, and the rest of the Block
    set, UI elements, the Paddle game template, Convert to code, and more drag and drop. The editor comes before more AI work.
 2. [Sprite editor](08-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
    GameMaker 6.1's; it follows sprites as an Actor type's appearance.

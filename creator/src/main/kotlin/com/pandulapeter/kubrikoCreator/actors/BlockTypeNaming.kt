@@ -27,6 +27,8 @@ internal object BlockTypeNaming {
         ManagerTypeCodeGenerator.WIRING_NAME,
         ScenesCodeGenerator.SCENES_NAME,
         SceneSettingsCodeGenerator.SETTINGS_NAME,
+        AudioCodeGenerator.AUDIO_NAME,
+        "MusicManager", "SoundManager",
         "State", "Color", "Key", "Kubriko", "SceneOffset", "SceneSize", "Manager", "ActorManager", "ViewportManager", "StateManager", "Logger", "Random",
         "Box", "BasicText", "Composable", "Modifier", "Alignment", "TextStyle", "WindowInsets",
     )

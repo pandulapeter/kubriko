@@ -98,7 +98,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Events don't run in the Scene editor (`isInSceneEditor`), nor every frame while the game is paused. The generated
   `KubrikoWiring.createManagers(isInSceneEditor, firstScene)` creates all of them, plus `GeneratedScenes` and the plugin Managers the
   game uses (`PluginManagers`: `CollisionManager` when a collision Event involves an Actor type, `KeyboardInputManager` for key Events
-  and held-key conditions; not in the Scene editor, which has its own); the template passes it to `Kubriko.newInstance` in `Game.kt`
+  and held-key conditions, `MusicManager` and `SoundManager` when the game plays audio; not in the Scene editor, which has its own); the template passes it to `Kubriko.newInstance` in `Game.kt`
   (with the first Scene) and to the Scene editor in `GameEntryPoint.kt`.
 - **Scenes and pausing** in Blocks: goToScene and restartScene go through the generated `GeneratedScenes` Manager
   (`ScenesCodeGenerator`, written into every project), which reads `files/scenes/<name>.json` from the project's resources in
@@ -108,11 +108,24 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   comment until one is chosen. pauseGame pauses, resumes, or toggles through `StateManager.updateIsRunning`; key presses still
   arrive while paused, so Actors' key pressed Events return early then (as Wallbreaker's `Ball` does) and Managers' still run, so a
   Manager's key can resume the game.
+- **Audio** in Blocks: playSound, playMusic (looping or once), and stopMusic, with files named by their path from `composeResources`
+  (`files/sounds/hit.wav`, as `Res.getUri` takes it; `AudioFiles` lists the project's, only those under `files`, and a Block naming
+  one that doesn't exist is rejected, an unchosen one generates a comment). They go through the generated `GeneratedAudio` Manager
+  (`AudioCodeGenerator`), written (and in `KubrikoWiring`, with the plugin's Managers) only while the game plays audio
+  (`PluginManagers.usesAudio`: an audio Block, or a Scene whose settings have music), and deleted otherwise, so the audio plugin
+  comes and goes with it. It looks the URIs of every file it plays up once and preloads them, plays nothing in the Scene editor,
+  starts music on the next frame (the music player only exists once the viewport is composed), stops the previous music for
+  new music, and resumes the music when the game is focused again, since `MusicManager` pauses it but doesn't resume it. Because a
+  Scene's music decides whether the game plays audio, `BlockTypeStore` reads the music of every Scene in
+  `composeResources/files/scenes` next to the source folder, and Scene changes (on disk or by a command) regenerate the code;
+  regenerating leaves a file whose content didn't change untouched.
 - **Scene settings** are an Actor, not a separate file: the generated `SceneSettings` (`SceneSettingsCodeGenerator`,
   written into every project and always in `GeneratedActorTypes`) is `Unique`, `Editable`, and placed like any other Actor. Its body
   is the Scene's bounds, which it fills with its background color behind every other Actor (`drawingOrder` at the maximum) and which
   edge Events use instead of the screen's edges (through `GeneratedScenes.settings`, which it sets while it is in the Scene); a
-  Scene without one keeps the screen's edges. Its camera start moves the camera when it is added, except in the Scene editor. The
+  Scene without one keeps the screen's edges. Its camera start moves the camera when it is added, except in the Scene editor, and
+  its music (a path, empty for none) plays when the Scene starts, unless it is the music playing already; a Scene without music
+  leaves the music alone. The
   view stays `Dynamic`, so a window of another size shows more or less around the bounds. `set_scene_settings` changes it (adding one
   at the end of the Scene if it has none), editing its state as JSON (`SceneSettingsState`; colors are saved as Compose's packed
   value); otherwise it is placed and edited in the Scene editor, from its palette and inspector.
@@ -188,7 +201,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
 | `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`). |
-| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), and `SceneSettingsCodeGenerator` (`SceneSettings`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
+| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |

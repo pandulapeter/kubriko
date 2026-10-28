@@ -512,6 +512,35 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun audioBlocksLookUpTheGeneratedAudioWhenTheyPlaySomething() {
+        assertFalse("generatedAudio" in generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound(), BlockDefinition.PlayMusic()))))
+        val code = generate(
+            EventDefinition(
+                EventType.COLLISION,
+                otherActorType = "Player",
+                blocks = listOf(
+                    BlockDefinition.PlaySound("files/sounds/hit.wav"),
+                    BlockDefinition.PlayMusic("files/music/theme.mp3"),
+                    BlockDefinition.PlayMusic("files/music/win.mp3", isLooping = false),
+                    BlockDefinition.StopMusic,
+                    BlockDefinition.PlaySound(),
+                ),
+            ),
+        )
+        assertContains(code, "    private lateinit var generatedAudio: GeneratedAudio\n")
+        assertContains(code, "        generatedAudio = kubriko.get()\n")
+        assertContains(
+            code,
+            "                    generatedAudio.playSound(\"files/sounds/hit.wav\")\n" +
+                "                    generatedAudio.playMusic(\"files/music/theme.mp3\")\n" +
+                "                    generatedAudio.playMusic(\"files/music/win.mp3\", isLooping = false)\n" +
+                "                    generatedAudio.stopMusic()\n" +
+                "                    // Choose a sound for this Block.\n",
+        )
+        assertFalse("audioPlayback" in code)
+    }
+
+    @Test
     fun pauseBlocksLookUpTheStateManager() {
         val code = generate(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.ENTER, blocks = listOf(BlockDefinition.PauseGame(PauseAction.PAUSE))))
         assertContains(code, "import com.pandulapeter.kubriko.manager.StateManager\n")

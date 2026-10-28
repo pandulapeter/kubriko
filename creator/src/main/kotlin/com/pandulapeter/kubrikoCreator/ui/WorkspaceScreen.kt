@@ -39,6 +39,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -206,7 +207,12 @@ internal fun WorkspaceScreen(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     definition = selectedBlockType,
                     scope = remember(selectedBlockType, blockTypes, resources) {
-                        BlockScope.of(selectedBlockType, blockTypes, resources[ResourceGroup.SCENES].orEmpty().map { it.file.nameWithoutExtension }.distinct().sorted())
+                        BlockScope.of(
+                            definition = selectedBlockType,
+                            types = blockTypes,
+                            sceneNames = resources[ResourceGroup.SCENES].orEmpty().map { it.file.nameWithoutExtension }.distinct().sorted(),
+                            audioFiles = AudioFiles.of(resources),
+                        )
                     },
                     isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
                     onCommand = { controller.commands.dispatch(it) },

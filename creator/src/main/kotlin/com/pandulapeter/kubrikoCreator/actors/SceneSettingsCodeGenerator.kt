@@ -13,14 +13,15 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.unitLiteral
 
 /**
- * The Actor that holds a Scene's settings: its bounds (the Actor's body), background color, and where the camera
- * starts. Generated into every project and placed like any other Actor, at most one per Scene.
+ * The Actor that holds a Scene's settings: its bounds (the Actor's body), background color, where the camera
+ * starts, and its music. Generated into every project and placed like any other Actor, at most one per Scene.
  */
 internal object SceneSettingsCodeGenerator {
 
     const val SETTINGS_NAME = "SceneSettings"
     const val BACKGROUND_COLOR_KEY = "backgroundColor"
     const val CAMERA_START_KEY = "cameraStart"
+    const val MUSIC_KEY = "music"
 
     /**
      * The background of a Scene whose settings don't name one.
@@ -64,7 +65,7 @@ internal object SceneSettingsCodeGenerator {
             |/**
             | * The settings of a Scene. Its body is the Scene's bounds, which edge Events use instead of the edges of the screen,
             | * and which it fills with the background color, behind every other Actor. When the Scene starts, the camera moves
-            | * to [$CAMERA_START_KEY].
+            | * to [$CAMERA_START_KEY], and its [$MUSIC_KEY] plays, if it has some and the game plays audio.
             | */
             |class $SETTINGS_NAME private constructor(state: State) : Visible, Unique, Editable<$SETTINGS_NAME> {
             |    override val body = state.body
@@ -75,6 +76,12 @@ internal object SceneSettingsCodeGenerator {
             |
             |    @set:Exposed(name = "$CAMERA_START_KEY")
             |    var $CAMERA_START_KEY: SceneOffset = state.$CAMERA_START_KEY
+            |
+            |    /**
+            |     * The music file, by its path from `composeResources` (like `files/music/theme.mp3`), or empty for none.
+            |     */
+            |    @set:Exposed(name = "$MUSIC_KEY")
+            |    var $MUSIC_KEY: String = state.$MUSIC_KEY
             |
             |    private lateinit var generatedScenes: ${ScenesCodeGenerator.SCENES_NAME}
             |
@@ -107,6 +114,7 @@ internal object SceneSettingsCodeGenerator {
             |        body = body,
             |        $BACKGROUND_COLOR_KEY = $BACKGROUND_COLOR_KEY,
             |        $CAMERA_START_KEY = $CAMERA_START_KEY,
+            |        $MUSIC_KEY = $MUSIC_KEY,
             |    )
             |
             |    @kotlinx.serialization.Serializable
@@ -114,6 +122,7 @@ internal object SceneSettingsCodeGenerator {
             |        @SerialName("body") val body: SerializableBoxBody = BoxBody(),
             |        @SerialName("$BACKGROUND_COLOR_KEY") val $BACKGROUND_COLOR_KEY: SerializableColor = Color(${colorLiteral(DEFAULT_BACKGROUND_COLOR)}),
             |        @SerialName("$CAMERA_START_KEY") val $CAMERA_START_KEY: SerializableSceneOffset = SceneOffset.Zero,
+            |        @SerialName("$MUSIC_KEY") val $MUSIC_KEY: String = "",
             |    ) : Serializable.State<$SETTINGS_NAME> {
             |
             |        override fun restore() = $SETTINGS_NAME(this)

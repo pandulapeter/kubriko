@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
@@ -36,6 +37,7 @@ import kubriko.creator.generated.resources.error_command_block_not_allowed
 import kubriko.creator.generated.resources.error_command_event_missing
 import kubriko.creator.generated.resources.error_command_index_invalid
 import kubriko.creator.generated.resources.error_command_key_not_allowed
+import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_not_changed_by_hand
 import kubriko.creator.generated.resources.error_command_number_invalid
@@ -43,6 +45,7 @@ import kubriko.creator.generated.resources.error_command_other_actor_type_not_al
 import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_size_invalid
+import kubriko.creator.generated.resources.error_command_sound_missing
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_not_allowed
 import kubriko.creator.generated.resources.error_property_name_taken
@@ -174,6 +177,18 @@ class ActorTypeCommandsTest {
         assertEquals(listOf(BlockDefinition.SetVelocity(3f, 4f), jump), context.assertRoundTrip(Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(3f, 4f)))) { context.ball() }!!.events[0].blocks)
         assertEquals(listOf(jump, BlockDefinition.SetVelocity(3f, 4f)), context.assertRoundTrip(Invocation(MoveBlock, MoveBlock.Input("Ball", 0, 0, 1))) { context.ball() }!!.events[0].blocks)
         assertEquals(listOf(BlockDefinition.SetVelocity(3f, 4f)), context.assertRoundTrip(Invocation(RemoveBlock, RemoveBlock.Input("Ball", 0, 0))) { context.ball() }!!.events[0].blocks)
+    }
+
+    @Test
+    fun audioBlocksMayLeaveTheirFileUnchosenButNotNameOneThatDoesNotExist() = runTest {
+        val context = commandContext(ball, wall, audioFiles = AudioFiles(sounds = listOf("files/sounds/hit.wav"), music = listOf("files/music/theme.mp3")))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound())))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/hit.wav"))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlayMusic("files/music/theme.mp3", isLooping = false))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopMusic)))
+        assertEquals(Rejection(Res.string.error_command_sound_missing, "files/music/theme.mp3"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/music/theme.mp3"))))
+        assertEquals(Rejection(Res.string.error_command_music_missing, "files/sounds/hit.wav"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.PlayMusic("files/sounds/hit.wav"))))
+        assertNull(commandContext(ball).rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/unknown.wav"))))
     }
 
     @Test

@@ -35,8 +35,8 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **More Properties:** color and Actor type reference Properties.
 - **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
-- **Audio:** play a sound, play or stop music (from the project's resources), and a Scene's music in its `SceneSettings`. The audio
-  plugin comes and goes with the generated code that uses it, and its Managers go into `PluginManagers` and `KubrikoWiring`.
+- **More audio:** volume, sounds and music as Properties (so one Block plays the sound an Actor keeps), and adding sound and music
+  files from Creator (today they are copied into `composeResources/files` by hand).
 - **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (through
   `ViewportManager.setAspectRatioMode`).
 - **Camera:** follow an Actor, shake, zoom.
@@ -55,8 +55,8 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 
 ## Templates
 
-- **Paddle game:** the Getting started tutorial's game rebuilt from Blocks, including score and sounds; possible once audio exists (the
-  score and its text come from a Manager type). It doubles as the beginner reference project.
+- **Paddle game:** the Getting started tutorial's game rebuilt from Blocks, including score and sounds (the score and its text come from
+  a Manager type, the sounds from the audio Blocks). It doubles as the beginner reference project.
 - **Platformer** and **top-down** starters (physics or collision, keyboard and gamepad input).
 
 ## Scene editor (in `tools/scene-editor`)

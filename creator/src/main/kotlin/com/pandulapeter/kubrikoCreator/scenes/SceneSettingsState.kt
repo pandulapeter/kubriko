@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -29,6 +30,7 @@ internal object SceneSettingsState {
      * @param x The horizontal center of the Scene's bounds.
      * @param y The vertical center of the Scene's bounds.
      * @param backgroundColor As `0xAARRGGBB`.
+     * @param music By its path from `composeResources`, or empty for none.
      */
     data class Values(
         val x: Float = 0f,
@@ -38,12 +40,24 @@ internal object SceneSettingsState {
         val backgroundColor: Long = SceneSettingsCodeGenerator.DEFAULT_BACKGROUND_COLOR,
         val cameraX: Float = 0f,
         val cameraY: Float = 0f,
+        val music: String = "",
     )
 
     /**
      * The index of the first Scene settings among [actors], or -1 if the Scene has none.
      */
     fun indexIn(actors: List<SceneActorEntry>) = actors.indexOfFirst { it.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME }
+
+    /**
+     * The music of the Scene file [content], or null if it has none (or isn't a Scene).
+     */
+    fun musicOf(content: String) = try {
+        SceneDocument.parse(content).let { actors -> actors.getOrNull(indexIn(actors)) }?.let { read(it.state).music }?.ifEmpty { null }
+    } catch (_: SerializationException) {
+        null
+    } catch (_: IllegalArgumentException) {
+        null
+    }
 
     fun read(state: String): Values {
         val stateObject = SceneDocument.stateObject(state) ?: return Values()
@@ -60,6 +74,7 @@ internal object SceneSettingsState {
             backgroundColor = (stateObject[SceneSettingsCodeGenerator.BACKGROUND_COLOR_KEY] as? JsonPrimitive)?.longOrNull?.let(::argbOf) ?: defaults.backgroundColor,
             cameraX = camera.numberAt("x") ?: defaults.cameraX,
             cameraY = camera.numberAt("y") ?: defaults.cameraY,
+            music = (stateObject[SceneSettingsCodeGenerator.MUSIC_KEY] as? JsonPrimitive)?.takeIf { it.isString }?.content ?: defaults.music,
         )
     }
 
@@ -76,6 +91,7 @@ internal object SceneSettingsState {
         backgroundColor: Long? = null,
         cameraX: Float? = null,
         cameraY: Float? = null,
+        music: String? = null,
     ): String {
         val values = read(state)
         val stateObject = SceneDocument.stateObject(state) ?: JsonObject(emptyMap())
@@ -94,6 +110,7 @@ internal object SceneSettingsState {
         changed["body"] = JsonObject(body)
         backgroundColor?.let { changed[SceneSettingsCodeGenerator.BACKGROUND_COLOR_KEY] = JsonPrimitive(packedColorOf(it)) }
         if (cameraX != null || cameraY != null) changed[SceneSettingsCodeGenerator.CAMERA_START_KEY] = point(cameraX ?: values.cameraX, cameraY ?: values.cameraY)
+        music?.let { changed[SceneSettingsCodeGenerator.MUSIC_KEY] = JsonPrimitive(it) }
         return JsonObject(changed).toString()
     }
 

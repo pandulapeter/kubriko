@@ -200,6 +200,24 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
+    fun audioBlocksUseTheGeneratedAudio() {
+        val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.PlayMusic("files/music/theme.mp3"), BlockDefinition.PlayMusic())))))
+        assertContains(code, "    private val generatedAudio by manager<GeneratedAudio>()\n")
+        assertContains(code, "        generatedAudio.playMusic(\"files/music/theme.mp3\")\n        // Choose music for this Block.\n")
+        assertFalse("GeneratedAudio" in generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.PlaySound()))))))
+    }
+
+    @Test
+    fun theWiringCreatesTheAudioManagersOnlyForAGameThatPlaysAudio() {
+        val wiring = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesAudio = true))
+        assertContains(wiring, "import com.pandulapeter.kubriko.audioPlayback.MusicManager\nimport com.pandulapeter.kubriko.audioPlayback.SoundManager\n")
+        assertContains(wiring, "            listOf<Manager>(\n                MusicManager.newInstance(),\n                SoundManager.newInstance(),\n            )\n")
+        assertContains(wiring, "listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()), GeneratedAudio(isInSceneEditor)) + managers\n")
+        val withoutAudio = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesKeyboard = true))
+        assertFalse("audioPlayback" in withoutAudio || "GeneratedAudio" in withoutAudio)
+    }
+
+    @Test
     fun aPausedConditionInAKeyEventUsesTheStateManager() {
         val code = generate(
             game.copy(

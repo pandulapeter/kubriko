@@ -28,4 +28,22 @@ class PluginManagersTest {
         assertTrue(PluginManagers.of(listOf(paddle.copy(events = listOf(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.A))))).usesKeyboard)
         assertFalse(PluginManagers.of(listOf(paddle.copy(events = listOf(EventDefinition(EventType.KEY_PRESSED))))).usesKeyboard)
     }
+
+    @Test
+    fun audioIsUsedByTheBlocksThatPlayOrStopItAndByTheScenesThatHaveMusic() {
+        val blocks = listOf(
+            BlockDefinition.PlaySound("files/sounds/hit.wav"),
+            BlockDefinition.PlaySound(),
+            BlockDefinition.PlayMusic("files/music/theme.mp3"),
+            BlockDefinition.PlayMusic(),
+        )
+        val game = ManagerTypeDefinition(name = "Game", events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = blocks)))
+        val audio = PluginManagers.of(listOf(game), sceneMusic = setOf("files/music/level.mp3"))
+        assertTrue(audio.usesAudio)
+        assertEquals(setOf("files/sounds/hit.wav"), audio.sounds)
+        assertEquals(setOf("files/music/level.mp3", "files/music/theme.mp3"), audio.music)
+        assertFalse(PluginManagers.of(listOf(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.PlaySound())))))).usesAudio)
+        assertTrue(PluginManagers.of(listOf(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.StopMusic)))))).usesAudio)
+        assertTrue(PluginManagers.of(emptyList(), sceneMusic = setOf("files/music/level.mp3")).usesAudio)
+    }
 }

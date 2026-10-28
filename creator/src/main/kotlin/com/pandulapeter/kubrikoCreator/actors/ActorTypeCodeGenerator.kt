@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.INDENT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
@@ -80,6 +81,7 @@ internal object ActorTypeCodeGenerator {
             "keyboardInputManager: KeyboardInputManager".takeIf { usesKeyHeld },
             "$STATE_MANAGER_FIELD: StateManager".takeIf { usesStateManager },
             "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}".takeIf { usesScenes },
+            "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}".takeIf { BlockCodeGenerator.usesAudio(generatedBlocks) },
         ) + usedManagers.map { "${scope.managerField(it)}: $it" }
         val addedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE }
         val traits = listOfNotNull(

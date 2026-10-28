@@ -479,6 +479,22 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun changedScenesRegenerateTheCodeSinceTheirMusicDecidesWhetherTheGamePlaysAudio() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            val repository = FakeBlockTypeRepository()
+            val controller = createController(blockTypeRepository = repository, rootDirectory = root)
+            repository.writes.clear()
+            controller.onProjectChanged(setOf(ProjectChange.SCENES))
+            assertEquals(listOf("regenerate"), repository.writes)
+            assertNull(controller.createScene("level2"))
+            assertEquals(listOf("regenerate", "regenerate"), repository.writes)
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun changedDefinitionsAreReloaded() = runTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository)

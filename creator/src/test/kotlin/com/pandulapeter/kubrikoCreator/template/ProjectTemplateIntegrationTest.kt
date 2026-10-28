@@ -65,7 +65,7 @@ class ProjectTemplateIntegrationTest {
                     BlockTypeStore.open(directory)?.let { store ->
                         listOf(everyBlockInEveryEvent, everyManager, hud).forEach(store::save)
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
-                        listOf("collision", "keyboardInput").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
+                        listOf("audioPlayback", "collision", "keyboardInput").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
                         assertCompiles(connection, directory, "${template.id} with every Block")
                     }
                 }
@@ -154,6 +154,13 @@ class ProjectTemplateIntegrationTest {
         BlockDefinition.PauseGame(PauseAction.PAUSE),
         BlockDefinition.PauseGame(PauseAction.RESUME),
         BlockDefinition.PauseGame(PauseAction.TOGGLE),
+        BlockDefinition.PlaySound("files/sounds/hit.wav"),
+        BlockDefinition.PlaySound("files/sounds/say \"\$hi\".wav"),
+        BlockDefinition.PlaySound(),
+        BlockDefinition.PlayMusic("files/music/theme.mp3"),
+        BlockDefinition.PlayMusic("files/music/win.mp3", isLooping = false),
+        BlockDefinition.PlayMusic(),
+        BlockDefinition.StopMusic,
     )
 
     /**

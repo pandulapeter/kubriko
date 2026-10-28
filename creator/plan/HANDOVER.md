@@ -12,7 +12,12 @@
 The state between sessions: where the last one stopped, what to do next, and what was never checked by hand. Each session rewrites it
 before it ends. What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
-## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
+## State (committed on main but not pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
+
+- **Audio exists** (2026-10-28): playSound, playMusic, and stopMusic Blocks (palette tab "Sound and music"), a Scene's music in
+  `SceneSettings` (`set_scene_settings` takes `music`), and the generated `GeneratedAudio` Manager, written only while something plays
+  audio. Scene changes now regenerate the code, since a Scene's music decides that. The palette's category tabs wrap now; an Actor
+  type's last tab was already cut off before.
 
 - **Kubriko 0.8.0 is released.** `00-library-release.md` is now the policy for later releases.
 - **Projects follow Creator's Kubriko version and code** (`project/KubrikoBuildFiles`, after every regeneration, so also on open and on
@@ -25,13 +30,19 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`. Their plugins now come and go with the Blocks that use them;
-   their Managers belong in `PluginManagers` and `KubrikoWiring`, not in a template upgrade. Sprites as an appearance come before the
-   sprite editor (`08-sprite-editor.md`), which is next after them.
+1. Sprites as an Actor type's appearance, then the rest of `02-blocks.md`. Their plugins come and go with the Blocks that use them,
+   as audio's does (`PluginManagers`, `KubrikoWiring`, a generated Manager written only when used); not in a template upgrade. The
+   sprite editor (`08-sprite-editor.md`) is next after sprites.
 2. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
 3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
+
+- Hearing the audio: the scratch Breakout played with a playMusic Block in a Manager's gameStarted Event and a playSound Block in a
+  collision Event, and ran without errors, but nobody listened. Also: music pausing and resuming with the window's focus, a non-looping
+  music played again after it ended, a Scene's music set from the embedded Scene editor's inspector (a plain text field: the path), and
+  going between Scenes with the same and different music. Web audio with `Res.getUri` paths.
+- The audio Blocks' file choices with no sounds or music in the project (the menu is empty, with no hint how to add files).
 
 - The dependency sync and the version 4 upgrade on the real Breakout copy (it is on `0.7.5-creator` and template version 3): opening it
   should raise it to Creator's version, offer the upgrade, and after the upgrade drop nothing it uses. Then remove the last collision

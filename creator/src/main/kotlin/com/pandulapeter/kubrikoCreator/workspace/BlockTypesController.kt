@@ -130,6 +130,12 @@ internal class BlockTypesController(
     fun discardChangesMadeByHand(name: String) = write { repository.regenerateAll(overwriting = setOf(name)) }
 
     /**
+     * Brings the generated code in line with the project's Scenes after they changed, since a Scene's music decides
+     * whether the game plays audio.
+     */
+    fun onScenesChanged() = write { repository.regenerateAll() }
+
+    /**
      * Reads the definitions again after they changed outside Kubriko Creator (in IntelliJ, or through git), unless one
      * of Creator's own changes is still being written, which the next change on disk is then checked against.
      */

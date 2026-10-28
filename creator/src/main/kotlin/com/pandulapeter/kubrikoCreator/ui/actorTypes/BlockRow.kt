@@ -43,7 +43,9 @@ import kubriko.creator.generated.resources.action_drag_block
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.block_else_stray
 import kubriko.creator.generated.resources.block_end_stray
+import kubriko.creator.generated.resources.block_music_choose
 import kubriko.creator.generated.resources.block_parameter_code
+import kubriko.creator.generated.resources.block_parameter_looping
 import kubriko.creator.generated.resources.block_parameter_message
 import kubriko.creator.generated.resources.block_parameter_relative
 import kubriko.creator.generated.resources.block_parameter_repeating
@@ -52,6 +54,7 @@ import kubriko.creator.generated.resources.block_parameter_speed
 import kubriko.creator.generated.resources.block_parameter_times
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
+import kubriko.creator.generated.resources.block_sound_choose
 import kubriko.creator.generated.resources.block_velocity_unit
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_drag_handle
@@ -198,6 +201,21 @@ private fun InlineParameters(
     }
     is BlockDefinition.StopTimer -> TimerChoice(block.timer) { onBlockChange(block.copy(timer = it)) }
     is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames.orEmpty()) { onBlockChange(block.copy(scene = it)) }
+    is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds.orEmpty(), Res.string.block_sound_choose) { onBlockChange(block.copy(sound = it)) }
+    is BlockDefinition.PlayMusic -> Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AudioFileChoice(block.music, scope.audioFiles?.music.orEmpty(), Res.string.block_music_choose) { onBlockChange(block.copy(music = it)) }
+        Text(
+            text = stringResource(Res.string.block_parameter_looping),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Switch(
+            checked = block.isLooping,
+            onCheckedChange = { onBlockChange(block.copy(isLooping = it)) },
+        )
+    }
     is BlockDefinition.PauseGame -> MenuButton(
         label = stringResource(block.action.title),
         options = PauseAction.entries,
@@ -221,7 +239,7 @@ private fun InlineParameters(
         placeholder = stringResource(Res.string.block_parameter_message),
     )
     BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
-    BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene -> Unit
+    BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene, BlockDefinition.StopMusic -> Unit
 }
 
 @Composable
@@ -273,4 +291,5 @@ private val kindsWithoutParameters = setOf(
     BlockKind.END,
     BlockKind.KOTLIN,
     BlockKind.RESTART_SCENE,
+    BlockKind.STOP_MUSIC,
 )

@@ -13,6 +13,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class SceneSettingsStateTest {
 
@@ -44,5 +45,15 @@ class SceneSettingsStateTest {
         assertEquals("""{"x":15.0,"y":10.0}""", body.getValue("pivot").toString())
         assertEquals("0.0", body.getValue("rotation").toString())
         assertEquals("true", Json.parseToJsonElement(after).jsonObject.getValue("other").toString())
+    }
+
+    @Test
+    fun aScenesMusicIsReadFromItsFile() {
+        val settings = SceneActorEntry("SceneSettings", SceneSettingsState.withChanges(music = "files/music/theme.mp3"))
+        assertEquals("files/music/theme.mp3", SceneSettingsState.read(settings.state).music)
+        assertEquals("files/music/theme.mp3", SceneSettingsState.musicOf(SceneDocument.format(listOf(SceneActorEntry("Ball", "{}"), settings))))
+        assertNull(SceneSettingsState.musicOf(SceneDocument.format(listOf(SceneActorEntry("SceneSettings", SceneSettingsState.withChanges(music = ""))))))
+        assertNull(SceneSettingsState.musicOf(SceneDocument.format(listOf(SceneActorEntry("Ball", "{}")))))
+        assertNull(SceneSettingsState.musicOf("not a Scene"))
     }
 }

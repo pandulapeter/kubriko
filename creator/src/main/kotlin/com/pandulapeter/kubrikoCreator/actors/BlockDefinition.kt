@@ -191,6 +191,29 @@ internal sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("playSound")
+    @Description("Plays a sound effect once. Several sounds, and the same sound several times, can play at once.")
+    data class PlaySound(
+        @Description(SOUND_DESCRIPTION)
+        @SerialName("sound") val sound: String = "",
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("playMusic")
+    @Description("Plays music instead of the music that plays now (if it is the same music, it keeps playing). It pauses while the game's window isn't focused, and goes on when it is again.")
+    data class PlayMusic(
+        @Description(MUSIC_DESCRIPTION)
+        @SerialName("music") val music: String = "",
+        @Description("True to start it again each time it ends, false to play it once.")
+        @SerialName("isLooping") val isLooping: Boolean = true,
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("stopMusic")
+    @Description("Stops the music that plays, whether a playMusic Block or the Scene settings started it.")
+    data object StopMusic : BlockDefinition
+
+    @Serializable
     @SerialName("if")
     @Description("Runs the Blocks after it, up to the matching else or end Block, only when its condition is true. An if Block without an end runs to the end of the Event.")
     data class If(
@@ -234,6 +257,8 @@ internal sealed interface BlockDefinition {
 }
 
 private const val PROPERTY_DESCRIPTION = "The name of one of the Properties of this kind, of the type itself or of the Manager type in manager."
+internal const val SOUND_DESCRIPTION = "The sound: a .wav file in the project's composeResources, as its path from there, like files/sounds/hit.wav."
+internal const val MUSIC_DESCRIPTION = "The music: an .mp3 file in the project's composeResources, as its path from there, like files/music/theme.mp3."
 internal const val MANAGER_DESCRIPTION = "The Manager type whose Property it uses. Left out for a Property of the type itself."
 
 /**
@@ -320,3 +345,13 @@ internal fun BlockDefinition.withPropertyReference(manager: String?, name: Strin
     }
     else -> this
 }
+
+/**
+ * The sound or music file [this] Block plays, if it is one of those and one is chosen.
+ */
+internal val BlockDefinition.audioFile
+    get() = when (this) {
+        is BlockDefinition.PlaySound -> sound
+        is BlockDefinition.PlayMusic -> music
+        else -> null
+    }?.ifEmpty { null }

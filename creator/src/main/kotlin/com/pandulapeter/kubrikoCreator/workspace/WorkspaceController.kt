@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -178,9 +179,11 @@ internal class WorkspaceController(
             scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() },
             runner = WorkspaceRunner(sessions = sessions, runTask = ::runCreatorTask, console = consoleLog, ioDispatcher = ioDispatcher),
             ioDispatcher = ioDispatcher,
+            audioFiles = { AudioFiles.of(_resources.value) },
             onScenesChanged = { names ->
                 refreshResources()
                 sceneEditing.onScenesChanged(names)
+                blockTypes?.onScenesChanged()
             },
             onProjectUpgraded = ::refreshProjectUpgrade,
         ),
@@ -213,6 +216,7 @@ internal class WorkspaceController(
             sceneEditing.markOutdated()
             refreshProjectUpgrade()
         }
+        if (ProjectChange.SCENES in changes) blockTypes?.onScenesChanged()
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) refreshResources()
         git.refresh()
     }

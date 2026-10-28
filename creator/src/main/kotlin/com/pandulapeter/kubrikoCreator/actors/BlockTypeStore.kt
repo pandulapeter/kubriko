@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -57,14 +58,14 @@ internal class BlockTypeStore private constructor(
         val definitions = load()
         val actorTypeNames = definitions.filterIsInstance<ActorTypeDefinition>().map { it.name }
         val managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
-        val pluginManagers = PluginManagers.of(definitions)
+        val pluginManagers = PluginManagers.of(definitions, sceneMusic())
         generatedDirectory.mkdirs()
         val changedByHand = definitions.mapNotNull { definition ->
             val file = generatedFile(definition.name)
             if (definition.name !in overwriting && file.isFile && !GeneratedFile.isUnchanged(file.readText())) {
                 definition.name
             } else {
-                file.writeText(
+                file.writeIfChanged(
                     when (definition) {
                         is ActorTypeDefinition -> ActorTypeCodeGenerator.generateActorType(
                             definition = definition,
@@ -83,13 +84,36 @@ internal class BlockTypeStore private constructor(
         writeUnlessChangedByHand(ScenesCodeGenerator.SCENES_NAME, ScenesCodeGenerator.generate(settings.packageName))
         writeUnlessChangedByHand(SceneSettingsCodeGenerator.SETTINGS_NAME, SceneSettingsCodeGenerator.generate(settings.packageName))
         writeUnlessChangedByHand(ManagerTypeCodeGenerator.WIRING_NAME, ManagerTypeCodeGenerator.generateWiring(managerTypes.map { it.name }, settings.packageName, pluginManagers))
+        writeUnlessChangedByHand(
+            AudioCodeGenerator.AUDIO_NAME,
+            if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music) else null,
+        )
         return changedByHand
     }
 
-    private fun writeUnlessChangedByHand(name: String, text: String) {
+    /**
+     * Writes the generated file [name], or deletes it if [text] is null, unless it was changed by hand.
+     */
+    private fun writeUnlessChangedByHand(name: String, text: String?) {
         val file = generatedFile(name)
-        if (!file.isFile || GeneratedFile.isUnchanged(file.readText())) file.writeText(text)
+        if (file.isFile && !GeneratedFile.isUnchanged(file.readText())) return
+        if (text == null) file.delete() else file.writeIfChanged(text)
     }
+
+    /**
+     * Leaves a file with the same content alone, so that regenerating doesn't touch what didn't change.
+     */
+    private fun File.writeIfChanged(text: String) {
+        if (!isFile || readText() != text) writeText(text)
+    }
+
+    /**
+     * The music of every Scene the game can load (those next to the source folder, in `composeResources`) that has some.
+     */
+    private fun sceneMusic() = File(File(rootDirectory, settings.sourceDirectory).parentFile, "composeResources/${ScenesCodeGenerator.SCENE_DIRECTORY}")
+        .listFiles { file -> file.extension == "json" }
+        .orEmpty()
+        .mapNotNullTo(mutableSetOf()) { SceneSettingsState.musicOf(it.readText()) }
 
     private fun definitionsDirectory(kind: BlockTypeKind) = File(rootDirectory, "$CREATOR_DIRECTORY/${definitionsFolder(kind)}")
 

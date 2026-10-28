@@ -45,5 +45,8 @@ class SceneSettingsCodeGeneratorTest {
         assertContains(code, "    @set:Exposed(name = \"cameraStart\")\n    var cameraStart: SceneOffset = state.cameraStart\n")
         assertContains(code, "        @SerialName(\"backgroundColor\") val backgroundColor: SerializableColor = Color(0xFF202124),\n")
         assertContains(code, "        @SerialName(\"cameraStart\") val cameraStart: SerializableSceneOffset = SceneOffset.Zero,\n")
+        assertContains(code, "    @set:Exposed(name = \"music\")\n    var music: String = state.music\n")
+        assertContains(code, "        @SerialName(\"music\") val music: String = \"\",\n")
+        assertContains(code, "        music = music,\n    )\n")
     }
 }

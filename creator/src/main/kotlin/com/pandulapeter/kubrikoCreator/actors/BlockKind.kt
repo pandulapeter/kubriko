@@ -24,6 +24,8 @@ import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
 import kubriko.creator.generated.resources.block_move_towards_nearest
 import kubriko.creator.generated.resources.block_pause_game
+import kubriko.creator.generated.resources.block_play_music
+import kubriko.creator.generated.resources.block_play_sound
 import kubriko.creator.generated.resources.block_remove_other
 import kubriko.creator.generated.resources.block_remove_self
 import kubriko.creator.generated.resources.block_repeat
@@ -34,6 +36,7 @@ import kubriko.creator.generated.resources.block_set_toggle
 import kubriko.creator.generated.resources.block_set_velocity
 import kubriko.creator.generated.resources.block_start_timer
 import kubriko.creator.generated.resources.block_stop
+import kubriko.creator.generated.resources.block_stop_music
 import kubriko.creator.generated.resources.block_stop_timer
 import org.jetbrains.compose.resources.StringResource
 
@@ -64,6 +67,9 @@ internal enum class BlockKind(
     GO_TO_SCENE(Res.string.block_go_to_scene, { BlockDefinition.GoToScene() }),
     RESTART_SCENE(Res.string.block_restart_scene, { BlockDefinition.RestartScene }),
     PAUSE_GAME(Res.string.block_pause_game, { BlockDefinition.PauseGame() }),
+    PLAY_SOUND(Res.string.block_play_sound, { BlockDefinition.PlaySound() }),
+    PLAY_MUSIC(Res.string.block_play_music, { BlockDefinition.PlayMusic() }),
+    STOP_MUSIC(Res.string.block_stop_music, { BlockDefinition.StopMusic }),
     IF(Res.string.block_if, { BlockDefinition.If() }),
     ELSE(Res.string.block_else, { BlockDefinition.Else }),
     REPEAT(Res.string.block_repeat, { BlockDefinition.Repeat() }),
@@ -105,6 +111,9 @@ internal enum class BlockKind(
             is BlockDefinition.GoToScene -> GO_TO_SCENE
             BlockDefinition.RestartScene -> RESTART_SCENE
             is BlockDefinition.PauseGame -> PAUSE_GAME
+            is BlockDefinition.PlaySound -> PLAY_SOUND
+            is BlockDefinition.PlayMusic -> PLAY_MUSIC
+            BlockDefinition.StopMusic -> STOP_MUSIC
             is BlockDefinition.If -> IF
             BlockDefinition.Else -> ELSE
             is BlockDefinition.Repeat -> REPEAT

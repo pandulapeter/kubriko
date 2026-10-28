@@ -20,6 +20,7 @@ internal object BlockCodeGenerator {
     const val INDENT = "    "
     const val NUMBER_TEXT_FUNCTION = "asText"
     const val SCENES_FIELD = "generatedScenes"
+    const val AUDIO_FIELD = "generatedAudio"
     const val STATE_MANAGER_FIELD = "stateManager"
     const val STATE_MANAGER_IMPORT = "com.pandulapeter.kubriko.manager.StateManager"
 
@@ -32,6 +33,12 @@ internal object BlockCodeGenerator {
      * Whether any of [blocks] pauses or resumes the game, or checks whether it is paused, through `StateManager`.
      */
     fun usesPause(blocks: List<BlockDefinition>) = blocks.any { it is BlockDefinition.PauseGame || (it as? BlockDefinition.If)?.condition is ConditionDefinition.Paused }
+
+    /**
+     * Whether any of [blocks] plays a sound or music, or stops the music, through the generated
+     * [AudioCodeGenerator.AUDIO_NAME] Manager.
+     */
+    fun usesAudio(blocks: List<BlockDefinition>) = blocks.any { it.audioFile != null || it == BlockDefinition.StopMusic }
 
     internal fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, scope: BlockScope) {
         val lines = events.flatMap { event -> eventLines(event.blocks, event.type, scope) }
@@ -203,6 +210,13 @@ internal object BlockCodeGenerator {
                 PauseAction.TOGGLE -> "!$STATE_MANAGER_FIELD.isRunning.value"
             } + ")",
         )
+        is BlockDefinition.PlaySound -> if (block.sound.isNotEmpty()) listOf("$AUDIO_FIELD.playSound(${stringLiteral(block.sound)})") else listOf("// Choose a sound for this Block.")
+        is BlockDefinition.PlayMusic -> if (block.music.isNotEmpty()) {
+            listOf("$AUDIO_FIELD.playMusic(${stringLiteral(block.music)}${if (block.isLooping) "" else ", isLooping = false"})")
+        } else {
+            listOf("// Choose music for this Block.")
+        }
+        BlockDefinition.StopMusic -> listOf("$AUDIO_FIELD.stopMusic()")
         is BlockDefinition.If -> listOf("if (${conditionExpression(block.condition, scope)}) {")
         is BlockDefinition.Repeat -> listOf("repeat(${block.times.coerceAtLeast(0)}) {")
         BlockDefinition.Else, BlockDefinition.End -> emptyList()

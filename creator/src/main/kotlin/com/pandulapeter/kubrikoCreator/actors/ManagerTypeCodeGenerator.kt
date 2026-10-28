@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
@@ -106,6 +107,7 @@ internal object ManagerTypeCodeGenerator {
             if (usesKeyHeld) appendLine("    private val keyboardInputManager by manager<KeyboardInputManager>()")
             if (usesStateManager) appendLine("    private val $STATE_MANAGER_FIELD by manager<StateManager>()")
             if (usesScenes) appendLine("    private val $SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()")
+            if (BlockCodeGenerator.usesAudio(generatedBlocks)) appendLine("    private val $AUDIO_FIELD by manager<${AudioCodeGenerator.AUDIO_NAME}>()")
             usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
             timers.forEach { timer ->
                 appendLine()
@@ -155,10 +157,14 @@ internal object ManagerTypeCodeGenerator {
         val pluginManagerNames = listOfNotNull(
             "CollisionManager".takeIf { pluginManagers.usesCollisions },
             "KeyboardInputManager".takeIf { pluginManagers.usesKeyboard },
+            "MusicManager".takeIf { pluginManagers.usesAudio },
+            "SoundManager".takeIf { pluginManagers.usesAudio },
         )
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
         appendLine("import com.pandulapeter.kubriko.actor.Actor")
+        if (pluginManagers.usesAudio) appendLine("import com.pandulapeter.kubriko.audioPlayback.MusicManager")
+        if (pluginManagers.usesAudio) appendLine("import com.pandulapeter.kubriko.audioPlayback.SoundManager")
         if (pluginManagers.usesCollisions) appendLine("import com.pandulapeter.kubriko.collision.CollisionManager")
         if (pluginManagers.usesKeyboard) appendLine("import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
         appendLine("import com.pandulapeter.kubriko.manager.Manager")
@@ -169,8 +175,8 @@ internal object ManagerTypeCodeGenerator {
         appendLine("object $WIRING_NAME {")
         appendLine()
         appendLine("    /**")
-        appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, the one that loads Scenes, and those of the plugins")
-        appendLine("     * the game uses, for Kubriko.newInstance.")
+        appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, the one that loads Scenes (and the one that plays")
+        appendLine("     * sounds and music, if the game does), and those of the plugins the game uses, for Kubriko.newInstance.")
         appendLine("     *")
         appendLine("     * @param isInSceneEditor True in the Scene editor, where their Events don't run, no Scene is loaded, and the plugins'")
         appendLine("     *   Managers are left to the editor.")
@@ -180,7 +186,8 @@ internal object ManagerTypeCodeGenerator {
         appendLine("        val managers = listOf<Manager>(")
         managerTypeNames.sorted().forEach { appendLine("            $it(isInSceneEditor),") }
         appendLine("        )")
-        val scenes = "listOf(${ScenesCodeGenerator.SCENES_NAME}(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()))"
+        val scenes = "listOf(${ScenesCodeGenerator.SCENES_NAME}(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())" +
+            (if (pluginManagers.usesAudio) ", ${AudioCodeGenerator.AUDIO_NAME}(isInSceneEditor)" else "") + ")"
         if (pluginManagerNames.isEmpty()) {
             appendLine("        return $scenes + managers")
         } else {
