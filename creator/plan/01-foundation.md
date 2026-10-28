@@ -36,28 +36,29 @@ Done (`../CLAUDE.md` → Conventions specific to Creator), except:
 
 ## 2. Workspace lifecycle and opening
 
-- **A scope per workspace:** everything a workspace launches runs in a child scope of the app's, cancelled by
-  `close()`, so pending writes, git refreshes, and the watcher never outlive it. Closing flushes pending writes first.
-- **Opening is cancellable without leaks:** an open that is cancelled closes what it created (the Gradle connection,
-  the session server, the watcher).
-- **Opening never waits for Gradle.** The desktop module's path is the only thing the `GradleProject` model is fetched
-  for, and that model configures every task of every project. It is remembered in `.kubriko/local/workspace.json`
-  (git-ignored) and checked in the background; a project opened for the first time uses `:` or the module the template
-  names, and the check corrects it before the first build needs it. The Tooling API connection opens in the
-  background too.
-- **Scene classes stay loaded:** selecting an Actor type no longer closes the Scene editor's loaded classes; they are
-  dropped only when they are outdated (a type or source changed) or the workspace closes, so going back to a Scene
-  doesn't build again.
-- **Timings in the console** (in debug builds, or with a setting): how long opening, each build, and each Scene load
-  took, so slowness reported by users comes with numbers.
+Done (`../CLAUDE.md` → Processes): opening reads files only, each workspace has its own scope and writes pending changes before
+closing, Scene classes stay loaded between Scenes, and builds and Scene openings are timed in the console. Seen working on
+the scratch Breakout: the workspace showing within seconds of `:creator:run`, the Scene open in 5.3 s cold, then in 0.0 s
+after selecting an Actor type and going back.
 
 ## 3. Benchmark
 
-Before the data flow changes, a generated benchmark project (`KUBRIKO_CREATOR_BENCHMARK=true`, like the integration
-test): 200 Actor types with Events and Blocks of every kind, 20 Manager types, and Scenes of 50, 1,000, and 5,000
-Actors. It times opening (without Gradle), a type edit through the command layer until its code is written, a Scene
-edit until it is written, an undo, and a watcher pass, and prints them. Every later step reports its numbers against
-it; targets: a single edit under 16 ms of main-thread work and under 100 ms until written, at 5,000 Actors.
+Exists (`benchmark/CreatorBenchmarkTest`, `KUBRIKO_CREATOR_BENCHMARK=true`): 200 Actor types in families of ten, 20 Manager types,
+and Scenes of 50, 1,000, and 5,000 Actors, timed without Gradle. Baseline on 2026-10-28 (M-series Mac), main thread / until
+written:
+
+| Step | Main thread | Until written |
+|---|---|---|
+| Open the project | 104 ms | 1,716 ms |
+| Add a Block to an Actor type | 8 ms | 1,332 ms |
+| 10 quick changes to one type | 16 ms | 12,696 ms |
+| Move an Actor (50 / 1,000 / 5,000 Actors) | 2 / 4 / 16 ms | 1,260 ms each |
+| Undo that move | 15 ms | 1,270 ms |
+| One watcher pass | - | 9 ms |
+
+Every change costs over a second of whole-project work, even a move in a Scene (which regenerates for the Scenes' music), and
+quick changes queue one each. Targets: a single change under 100 ms until written, quick changes coalesced into one write,
+and main-thread work under 16 ms at 5,000 Actors.
 
 ## 4. One project in memory
 
