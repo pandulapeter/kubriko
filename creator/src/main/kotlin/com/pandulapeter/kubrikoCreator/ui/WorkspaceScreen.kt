@@ -64,12 +64,13 @@ import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
 import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragPreview
 import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragState
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
-import com.pandulapeter.kubrikoCreator.ui.scenes.SceneUnsupportedNotice
+import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.project_upgrade_commit_message
 import kubriko.creator.generated.resources.scene_preparing
+import kubriko.creator.generated.resources.scene_unsupported
 import kubriko.creator.generated.resources.workspace_hint
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -206,12 +207,18 @@ internal fun WorkspaceScreen(
                         onReload = controller.sceneEditing::reload,
                         onClose = controller.sceneEditing::close,
                     )
-                    is SceneEditingState.Unsupported -> SceneUnsupportedNotice(
+                    is SceneEditingState.Unsupported -> SceneNotice(
                         modifier = centerModifier,
                         sceneName = state.scene.name,
-                        projectKubrikoVersion = state.projectKubrikoVersion,
-                        creatorKubrikoVersion = controller.creatorKubrikoVersion,
+                        message = stringResource(Res.string.scene_unsupported, controller.creatorKubrikoVersion, state.projectKubrikoVersion),
                         onClose = controller.sceneEditing::close,
+                    )
+                    is SceneEditingState.Failed -> SceneNotice(
+                        modifier = centerModifier,
+                        sceneName = state.scene.name,
+                        message = stringResource(state.reason),
+                        onClose = controller.sceneEditing::close,
+                        onTryAgain = controller.sceneEditing::reload,
                     )
                     is SceneEditingState.Preparing -> Box(centerModifier) {
                         ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))

@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.scene_build_failed
 import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
 import java.io.IOException
@@ -62,7 +63,7 @@ internal class SceneEditingController(
             )
             val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
             when {
-                classpath == null -> _state.value = SceneEditingState.Closed
+                classpath == null -> _state.value = SceneEditingState.Failed(scene, Res.string.scene_build_failed)
                 classpath.kubrikoVersion != creatorKubrikoVersion -> _state.value = SceneEditingState.Unsupported(scene, classpath.kubrikoVersion)
                 else -> try {
                     val loaded = withContext(ioDispatcher) { entryPointLoader.load(classpath) }
@@ -75,7 +76,7 @@ internal class SceneEditingController(
                     )
                     report(ConsoleEntry.Status(Res.string.status_scene_opened))
                 } catch (exception: EntryPointLoadingException) {
-                    _state.value = SceneEditingState.Closed
+                    _state.value = SceneEditingState.Failed(scene, exception.reason)
                     report(ConsoleEntry.Status(exception.reason, isError = true))
                 }
             }
@@ -90,6 +91,7 @@ internal class SceneEditingController(
             is SceneEditingState.Open -> open(current.scene)
             is SceneEditingState.Preparing -> open(current.scene)
             is SceneEditingState.Unsupported -> open(current.scene)
+            is SceneEditingState.Failed -> open(current.scene)
             SceneEditingState.Closed -> Unit
         }
     }

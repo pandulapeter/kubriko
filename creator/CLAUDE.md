@@ -50,7 +50,8 @@ lives in `plan/` (start with `plan/README.md`).
   state has none), set through `set_actor_values`; the Scene settings through `set_scene_settings`; with nothing selected, a hint
   and a way to the Scene settings (added if the Scene has none). Every change is a command, so it
   is undone like any other, and the file is read again and the Actors created anew after each. A project on another Kubriko version
-  gets a notice instead (`SceneEditingState.Unsupported`). Compose resources are read
+  gets a notice instead (`SceneEditingState.Unsupported`), and so does a Scene whose project didn't build or whose entry point
+  couldn't be loaded (`SceneEditingState.Failed`, with Try again), rather than the pane just closing. Compose resources are read
   through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
   `SpriteManager` for one whose `imageLoader` (`ProjectSpriteLoader`) reads the sprite files from disk, matching resources by ID
   (`drawable:<accessor>`, which is what Compose resources are equal by). Loaders are released a few seconds

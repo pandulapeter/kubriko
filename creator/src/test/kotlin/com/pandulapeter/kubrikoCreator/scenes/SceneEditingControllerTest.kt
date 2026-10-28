@@ -23,6 +23,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
+import kubriko.creator.generated.resources.scene_build_failed
 import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -103,12 +104,15 @@ class SceneEditingControllerTest {
     }
 
     @Test
-    fun aFailedBuildLeavesTheSceneClosed() = runTest {
+    fun aFailedBuildSaysSoUntilItIsTriedAgain() = runTest {
         isBuildSuccessful = false
         val controller = createController()
         controller.open(scene)
-        assertEquals(SceneEditingState.Closed, controller.state.value)
+        assertEquals(SceneEditingState.Failed(scene, Res.string.scene_build_failed), controller.state.value)
         assertTrue(loadedClasspaths.isEmpty())
+        isBuildSuccessful = true
+        controller.reload()
+        assertIs<SceneEditingState.Open>(controller.state.value)
     }
 
     @Test
@@ -116,7 +120,7 @@ class SceneEditingControllerTest {
         loader = EntryPointLoader { throw EntryPointLoadingException(Res.string.error_entry_point_missing) }
         val controller = createController()
         controller.open(scene)
-        assertEquals(SceneEditingState.Closed, controller.state.value)
+        assertEquals(SceneEditingState.Failed(scene, Res.string.error_entry_point_missing), controller.state.value)
         assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.error_entry_point_missing, isError = true)), reports)
     }
 

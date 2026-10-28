@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.scenes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -26,21 +27,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
+import kubriko.creator.generated.resources.action_try_again
 import kubriko.creator.generated.resources.ic_warning
-import kubriko.creator.generated.resources.scene_unsupported
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Says why a Scene can't be edited: the project's Kubriko version isn't Creator's, so its Actors can't be drawn here.
+ * Says why a Scene can't be shown in place of it, offering to try again when that may help.
  */
 @Composable
-internal fun SceneUnsupportedNotice(
+internal fun SceneNotice(
     sceneName: String,
-    projectKubrikoVersion: String,
-    creatorKubrikoVersion: String,
+    message: String,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    onTryAgain: (() -> Unit)? = null,
 ) = Box(
     modifier = modifier.padding(32.dp),
     contentAlignment = Alignment.Center,
@@ -61,13 +62,20 @@ internal fun SceneUnsupportedNotice(
         )
         Text(
             modifier = Modifier.widthIn(max = 420.dp),
-            text = stringResource(Res.string.scene_unsupported, creatorKubrikoVersion, projectKubrikoVersion),
+            text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        TextButton(onClick = onClose) {
-            Text(stringResource(Res.string.action_close_scene))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (onTryAgain != null) {
+                TextButton(onClick = onTryAgain) {
+                    Text(stringResource(Res.string.action_try_again))
+                }
+            }
+            TextButton(onClick = onClose) {
+                Text(stringResource(Res.string.action_close_scene))
+            }
         }
     }
 }

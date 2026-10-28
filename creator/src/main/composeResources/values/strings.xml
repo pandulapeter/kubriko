@@ -288,6 +288,8 @@
     <string name="scene_settings_music_none">None</string>
     <string name="action_zoom_out">Zoom out</string>
     <string name="action_zoom_to_fit">Show the whole Scene</string>
+    <string name="scene_build_failed">The project didn't build, so this Scene can't be shown. The console says what went wrong.</string>
+    <string name="action_try_again">Try again</string>
     <string name="scene_unsupported">Kubriko Creator can only edit the Scenes of projects on its own Kubriko version, %1$s. This project uses %2$s.</string>
     <string name="action_close_scene">Close the Scene</string>
     <string name="actor_type_changed_by_hand">%1$s.kt was changed outside Kubriko Creator, so Creator stopped updating it. Changes made here won't reach the game until those edits are discarded.</string>
