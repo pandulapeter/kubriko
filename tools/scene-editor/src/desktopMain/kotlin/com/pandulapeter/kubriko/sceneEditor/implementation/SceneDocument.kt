@@ -126,6 +126,24 @@ internal class SceneDocument(
         addActors(listOf(actor))
     }
 
+    /**
+     * Replaces [actor] with one deserialized from its serialized state, exactly as the game would load it, so that what
+     * the actor derives from that state when it is created (a collision mask built from its size, for example) follows
+     * the editor's changes. The new actor keeps the old one's place and id, so undo and the selection still find it.
+     *
+     * @return The new actor, or [actor] itself if it isn't part of the scene or doesn't come back as exactly one actor.
+     */
+    fun rebuildSceneActor(actor: Editable<*>): Editable<*> {
+        val index = sceneActors.indexOfFirst { it === actor }
+        if (index < 0) return actor
+        val rebuiltActor = deserialize(serialize(listOf(actor))).singleOrNull() ?: return actor
+        sceneActors[index] = rebuiltActor
+        sceneActorIds[rebuiltActor] = sceneActorIds.remove(actor)
+        removeActors(listOf(actor))
+        addActors(listOf(rebuiltActor))
+        return rebuiltActor
+    }
+
     fun removeSceneActor(actor: Editable<*>) {
         sceneActors.remove(actor)
         sceneActorIds.remove(actor)

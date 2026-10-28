@@ -199,6 +199,7 @@ private fun SceneViewport(
                     getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                     onLeftClick = editorController::onLeftClick,
                     onRightClick = editorController::onRightClick,
+                    onActorDragFinished = editorController::onActorDragFinished,
                 )
                 .handleMouseMove(
                     onMouseMove = editorController::onMouseMove,

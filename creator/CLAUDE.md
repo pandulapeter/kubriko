@@ -187,7 +187,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
 - Generated Kotlin reads like the examples' hand-written Kubriko code: an Actor type is `Dynamic` only when it moves or has work every
   frame (a Kotlin Block counts), looks up only the Managers its Blocks use, and builds its collision mask with the body's scale and
-  rotation.
+  rotation, centered on the body wherever its pivot is (the Scene editor creates an edited Actor again from its state, so the mask
+  follows a new size too).
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
   `run { }` scope, Blocks outside their Event become comments) and follow the engine's no-allocation rules.
 - Nothing under `engine/`, `plugins/`, or `tools/` may depend on `creator`. Library changes Creator needs follow the public API rules (confirm first).

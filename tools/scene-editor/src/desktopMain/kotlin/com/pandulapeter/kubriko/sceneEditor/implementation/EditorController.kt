@@ -143,6 +143,7 @@ internal class EditorController(
         viewportManager = viewportManager,
     )
     private var focusedTextInputCount = 0
+    private var isSelectedActorEdited = false
     val snapMode = combine(
         userPreferences.snapX,
         userPreferences.snapY,
@@ -227,12 +228,15 @@ internal class EditorController(
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
     fun selectActor(actor: Editable<*>) {
+        val previouslySelectedActor = selectedActor.value
+        val finishedActor = finishEditingSelectedActor()
         sceneDocument.clearPendingPropertyEdit()
-        selection.toggleActor(actor)
+        selection.toggleActor(if (actor === previouslySelectedActor && finishedActor != null) finishedActor else actor)
     }
 
     fun removeSelectedActor() {
         val actor = selectedActor.value ?: return
+        isSelectedActorEdited = false
         sceneDocument.recordSnapshot()
         sceneDocument.removeSceneActor(actor)
         sceneDocument.markSceneAsModified()
@@ -249,7 +253,27 @@ internal class EditorController(
 
     fun notifySelectedActorUpdate() {
         sceneDocument.markSceneAsModified()
+        isSelectedActorEdited = true
         selection.notifySelectedActorUpdate()
+    }
+
+    fun onActorDragFinished() {
+        finishEditingSelectedActor()
+    }
+
+    /**
+     * The editor changes the selected actor in place, but an actor may derive more from its state when it is created
+     * (a collision mask from its size, a physics body from its shape), so an edited actor is created again from its
+     * state once the edit is over: when a drag ends, or the selection moves on. Not after every change, which would
+     * replace the actor under a text field that is being typed into.
+     *
+     * @return The selected actor afterwards.
+     */
+    private fun finishEditingSelectedActor(): Editable<*>? {
+        val actor = selectedActor.value ?: return null
+        if (!isSelectedActorEdited) return actor
+        isSelectedActorEdited = false
+        return sceneDocument.rebuildSceneActor(actor).also(selection::setSelectedActor)
     }
 
     fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = userPreferences.colorEditorMode.update { colorEditorMode }
@@ -267,13 +291,20 @@ internal class EditorController(
     fun isTypeUnique(typeId: String) = serializationManager.getMetadata(typeId)?.type?.isSubclassOf(Unique::class) == true
 
     fun deselectSelectedActor() {
+        finishEditingSelectedActor()
         sceneDocument.clearPendingPropertyEdit()
         selection.setSelectedActor(null)
     }
 
-    fun onUndo() = sceneDocument.undo(selectedActor.value, selection::setSelectedActor)
+    fun onUndo() {
+        isSelectedActorEdited = false
+        sceneDocument.undo(selectedActor.value, selection::setSelectedActor)
+    }
 
-    fun onRedo() = sceneDocument.redo(selectedActor.value, selection::setSelectedActor)
+    fun onRedo() {
+        isSelectedActorEdited = false
+        sceneDocument.redo(selectedActor.value, selection::setSelectedActor)
+    }
 
     fun onBeforePropertyChange(editKey: Any) = sceneDocument.onBeforePropertyChange(editKey)
 
@@ -283,6 +314,7 @@ internal class EditorController(
         cameraAnimator.cancel()
         viewportManager.setCameraPosition(SceneOffset.Zero)
         sceneFiles.resetFileName()
+        isSelectedActorEdited = false
         selection.setSelectedActor(null)
         sceneDocument.clearSceneActors()
         sceneDocument.onSceneReplaced()
@@ -290,6 +322,7 @@ internal class EditorController(
 
     fun loadMap(path: String) = sceneFiles.loadMap(path) { actors ->
         sceneDocument.replaceSceneActors(actors)
+        isSelectedActorEdited = false
         selection.setSelectedActor(null)
         sceneDocument.onSceneReplaced()
     }

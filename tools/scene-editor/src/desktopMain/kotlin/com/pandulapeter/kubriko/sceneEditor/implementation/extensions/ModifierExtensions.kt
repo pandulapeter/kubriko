@@ -36,6 +36,7 @@ internal fun Modifier.handleMouseClick(
     getMouseSceneOffset: () -> SceneOffset,
     onLeftClick: (Offset) -> Unit,
     onRightClick: (Offset) -> Unit,
+    onActorDragFinished: () -> Unit,
 ): Modifier = onPointerEvent(PointerEventType.Press) { event ->
     when (event.button) {
         PointerButton.Primary -> getSelectedActor()?.let { selectedActor ->
@@ -57,7 +58,9 @@ internal fun Modifier.handleMouseClick(
     when (event.button) {
         PointerButton.Primary -> {
             dragState.startOffset = null
-            if (!dragState.isDragging) {
+            if (dragState.isDragging) {
+                onActorDragFinished()
+            } else {
                 event.changes.first().position.let(onLeftClick)
             }
             dragState.isDragging = false

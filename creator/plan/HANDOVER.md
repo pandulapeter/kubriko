@@ -34,6 +34,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Never checked by hand
 
+- The Scene editor creating an edited Actor again when a drag ends or the selection moves on (unit-tested in `SceneDocumentTest`;
+  watch the debug overlay's collision mask follow a resize, and that undo still selects the right Actor).
 - The go to a Scene card's Scene menu (the pause card was seen in a screenshot), and the upgrade dialog's "deleted" file row.
 - A paused game in the embedded Scene editor (its Managers' Events don't run there, so it should be unaffected).
 - The "score of Game" Property menu in an Actor's Block.

@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
@@ -80,6 +81,31 @@ class SceneDocumentTest {
         assertTrue(document.canUndo.value)
         document.undo(selectedActor = null) {}
         assertFalse(document.canUndo.value)
+    }
+
+    @Test
+    fun aRebuiltActorComesFromItsSerializedStateAndKeepsItsPlaceAndId() {
+        val first = PlainActor("a")
+        val second = PlainActor("b")
+        document.replaceSceneActors(listOf(first, second))
+        document.recordSnapshot()
+        val rebuilt = document.rebuildSceneActor(first)
+        assertNotSame(first, rebuilt)
+        assertEquals("a", (rebuilt as Named).name)
+        assertSame(first, removedActors.last())
+        assertSame(rebuilt, addedActors.last())
+        assertEquals("a,b", document.serializeScene())
+        var restoredSelection: Editable<*>? = null
+        document.undo(selectedActor = rebuilt) { restoredSelection = it }
+        assertEquals("a", (restoredSelection as Named).name)
+    }
+
+    @Test
+    fun anActorOutsideTheSceneIsNotRebuilt() {
+        document.replaceSceneActors(listOf(PlainActor("a")))
+        val outsider = PlainActor("b")
+        assertSame(outsider, document.rebuildSceneActor(outsider))
+        assertEquals("a", document.serializeScene())
     }
 
     private interface Named {

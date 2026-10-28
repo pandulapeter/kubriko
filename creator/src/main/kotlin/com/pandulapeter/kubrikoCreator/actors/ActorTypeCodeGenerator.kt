@@ -138,6 +138,11 @@ internal object ActorTypeCodeGenerator {
                 appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
                 appendLine("    var ${property.name}: ${PropertyKind.of(property).kotlinType} = state.${property.name}")
             }
+            appendLine()
+            appendLine("    /**")
+            appendLine("     * The middle of the Actor in the Scene, wherever its pivot is, which is where its collision mask goes.")
+            appendLine("     */")
+            appendLine("    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")
             appendLine(collisionMask(definition.shape))
             if (collisionEvents.isNotEmpty()) {
                 appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted().joinToString { "$it::class" }})")
@@ -165,7 +170,7 @@ internal object ActorTypeCodeGenerator {
                 appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, scope = scope)
                 appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
                 if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, scope)
-                appendLine("        collisionMask.position = body.position")
+                appendLine("        collisionMask.position = bodyCenter")
                 appendLine("    }")
             }
             // Kubriko keeps telling Actors about key presses while the game is paused.
@@ -259,13 +264,13 @@ internal object ActorTypeCodeGenerator {
     private fun collisionMask(shape: ActorShape) = when (shape) {
         ActorShape.CIRCLE -> """
             |    override val collisionMask = CircleCollisionMask(
-            |        initialPosition = body.position,
+            |        initialPosition = bodyCenter,
             |        initialRadius = body.size.width * body.scale.horizontal / 2,
             |    )
         """.trimMargin()
         ActorShape.RECTANGLE -> """
             |    override val collisionMask = BoxCollisionMask(
-            |        initialPosition = body.position,
+            |        initialPosition = bodyCenter,
             |        initialSize = body.size * body.scale,
             |        initialRotation = body.rotation,
             |    )

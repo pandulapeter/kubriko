@@ -192,7 +192,9 @@ class ActorTypeCodeGeneratorTest {
         assertFalse("CircleCollisionMask" in rectangle)
         val moving = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(1f, 0f))))
         val update = moving.substringAfter("override fun update(").substringBefore("\n    }")
-        assertTrue(update.trimEnd().endsWith("collisionMask.position = body.position"), update)
+        assertTrue(update.trimEnd().endsWith("collisionMask.position = bodyCenter"), update)
+        assertContains(circle, "    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }\n")
+        assertContains(circle, "        initialPosition = bodyCenter,\n")
     }
 
     @Test

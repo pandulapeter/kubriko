@@ -26,7 +26,7 @@ internal object PropertyNaming {
     private val reservedNames = setOf(
         "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object",
         "package", "return", "super", "this", "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while",
-        "actorManager", "body", "bottomRight", "collidableTypes", "collidables", "collisionMask", "color", "deltaTimeInMilliseconds",
+        "actorManager", "body", "bodyCenter", "bottomRight", "collidableTypes", "collidables", "collisionMask", "color", "deltaTimeInMilliseconds",
         "drawingOrder", "generatedScenes", "halfSize", "index", "isAlwaysActive", "keyboardInputManager", "isVisible", "key", "kubriko", "layerIndex", "metadata", "other",
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
     )
