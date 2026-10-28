@@ -27,13 +27,25 @@ internal sealed interface SceneEditingState {
     ) : SceneEditingState
 
     /**
+     * The project's Kubriko version isn't Creator's, so its classes can't be drawn in Creator's window.
+     */
+    data class Unsupported(
+        val scene: ProjectResource,
+        val projectKubrikoVersion: String,
+    ) : SceneEditingState
+
+    /**
+     * @param content The Scene file's content, read again whenever a command changes it.
      * @param revision Changes every time the Scene is (re)opened, so that the editor starts over.
      * @param isOutdated Whether an Actor type changed since the project's classes were loaded, which a reload picks up.
      */
     data class Open(
         val scene: ProjectResource,
         val entryPoint: CreatorEntryPoint,
+        val content: String,
         val revision: Int,
         val isOutdated: Boolean = false,
-    ) : SceneEditingState
+    ) : SceneEditingState {
+        val sceneName get() = scene.file.nameWithoutExtension
+    }
 }

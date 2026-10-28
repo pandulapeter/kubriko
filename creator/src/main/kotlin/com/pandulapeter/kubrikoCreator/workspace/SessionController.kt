@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
-import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineScope
@@ -60,26 +59,14 @@ internal class SessionController(
         }
     }
 
-    fun start(mode: SessionMode, scene: ProjectResource?) {
+    fun play() {
         job?.cancel()
         job = scope.launch {
-            _state.value = SessionState.Starting(mode)
+            _state.value = SessionState.Starting(SessionMode.PLAY)
             try {
                 val isSuccessful = runTask(
                     SessionInitScript.SESSION_TASK_NAME,
-                    buildMap {
-                        put("kubrikoCreatorPort", channel.port.toString())
-                        when (mode) {
-                            SessionMode.PLAY -> put("kubrikoCreatorMode", "play")
-                            SessionMode.EDIT -> {
-                                put("kubrikoCreatorMode", "edit")
-                                scene?.let {
-                                    put("kubrikoCreatorSceneFolder", it.file.parentFile.absolutePath)
-                                    put("kubrikoCreatorSceneFile", it.name)
-                                }
-                            }
-                        }
-                    },
+                    mapOf("kubrikoCreatorPort" to channel.port.toString(), "kubrikoCreatorMode" to "play"),
                 )
                 if (isSuccessful) console.append(ConsoleEntry.Status(Res.string.status_session_ended))
             } finally {

@@ -60,8 +60,10 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
   a Manager type, the sounds from the audio Blocks). It doubles as the beginner reference project.
 - **Platformer** and **top-down** starters (physics or collision, keyboard and gamepad input).
 
-## Scene editor (in `tools/scene-editor`)
+## Scene editor (Creator's own, `ui/scenes`)
 
-Library changes, so each reaches projects only with a later Kubriko release (`00-library-release.md`).
-Taking commands from Creator (open, save, select, place) so the AI and Creator's own palette can drive it; an Actor type palette with sprite
-thumbnails; layer filtering and locking; multi-select; Creator's look (it still has its own).
+Selecting, moving, removing, and placing from the sidebar exist (`../CLAUDE.md` → Processes → Scene editing). Next: an inspector beside the
+canvas for the selected Actor (its Properties, color, size, rotation, and scale, through a command that sets values in its state; generic
+editors for hand-written types' states), the Scene settings in it (bounds, background, camera start, music), resize and rotate handles,
+snapping to a grid, keyboard nudging, duplicating, placing hand-written Actor types (their default state through their metadata), sprite
+thumbnails in the sidebar while dragging, multi-select, and layer filtering and locking. None of it needs a library change.

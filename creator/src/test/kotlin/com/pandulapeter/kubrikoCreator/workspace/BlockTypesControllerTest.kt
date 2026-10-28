@@ -36,6 +36,7 @@ class BlockTypesControllerTest {
     private val ball = ActorTypeDefinition(name = "Ball")
     private val wall = ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE)
     private var savedCount = 0
+    private val savedTypeChanges = mutableListOf<Boolean>()
     private var failedCount = 0
 
     private fun TestScope.createController(
@@ -47,7 +48,10 @@ class BlockTypesControllerTest {
         repository = repository,
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         ioDispatcher = ioDispatcher,
-        onSaved = { savedCount++ },
+        onSaved = {
+            savedCount++
+            savedTypeChanges += it
+        },
         onSaveFailed = { failedCount++ },
         syncBuildFiles = syncBuildFiles,
         onBuildFilesSynced = onBuildFilesSynced,
@@ -68,6 +72,14 @@ class BlockTypesControllerTest {
         repository.isFailing = true
         controller.put(ball.copy(width = 5f))
         assertEquals(2, syncCount)
+    }
+
+    @Test
+    fun regeneratingForChangedScenesSaysTheTypesDidNotChange() = runTest {
+        val controller = createController(FakeBlockTypeRepository(listOf(wall)))
+        controller.put(ball)
+        controller.onScenesChanged()
+        assertEquals(listOf(true, false), savedTypeChanges.takeLast(2))
     }
 
     @Test

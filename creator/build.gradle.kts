@@ -31,7 +31,6 @@ dependencies {
     implementation(projects.plugins.sprites)
     implementation(projects.tools.creatorApi)
     implementation(projects.tools.creatorSession)
-    implementation(projects.tools.sceneEditor)
     implementation(projects.tools.uiComponents)
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.resources)

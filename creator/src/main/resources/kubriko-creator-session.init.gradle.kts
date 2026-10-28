@@ -14,10 +14,8 @@
 gradle.projectsEvaluated {
     val properties = gradle.startParameter.projectProperties
     // Included builds (such as build-logic) run this script too, without Kubriko Creator's properties.
-    val mode = properties["kubrikoCreatorMode"] ?: return@projectsEvaluated
+    if (properties["kubrikoCreatorMode"] == null) return@projectsEvaluated
     val port = properties["kubrikoCreatorPort"]
-    val sceneFolder = properties["kubrikoCreatorSceneFolder"]
-    val sceneFile = properties["kubrikoCreatorSceneFile"]
     val classpathFile = properties["kubrikoCreatorClasspathFile"]
     allprojects {
         val run = tasks.findByName("run") as? JavaExec ?: return@allprojects
@@ -51,10 +49,7 @@ gradle.projectsEvaluated {
             jvmArgs(run.jvmArgs ?: emptyList<String>())
             workingDir = run.workingDir
             if (port != null) systemProperty("kubriko.creator.port", port)
-            when (mode) {
-                "edit" -> args(listOfNotNull("edit", sceneFolder ?: throw GradleException("Edit mode needs kubrikoCreatorSceneFolder."), sceneFile))
-                else -> args("play", run.mainClass.get())
-            }
+            args("play", run.mainClass.get())
         }
     }
 }

@@ -136,22 +136,11 @@ class WorkspaceControllerTest {
     }
 
     @Test
-    fun editingASceneRunsTheSessionTaskWithTheScenesFolderAndFile() = runTest {
-        val controller = createController()
-        controller.editSceneInWindow(scene)
-        val arguments = build.currentRun.arguments
-        assertContains(arguments, "-PkubrikoCreatorMode=edit")
-        assertContains(arguments, "-PkubrikoCreatorSceneFolder=${scene.file.parentFile.absolutePath}")
-        assertContains(arguments, "-PkubrikoCreatorSceneFile=level.json")
-        assertEquals(SessionState.Starting(SessionMode.EDIT), controller.sessionState.value)
-    }
-
-    @Test
     fun aHelloInTheCurrentProtocolMarksTheSessionAsRunning() = runTest {
         val controller = createController()
-        controller.editSceneInWindow(scene)
-        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.EDIT))
-        assertEquals(SessionState.Running(SessionMode.EDIT), controller.sessionState.value)
+        controller.play()
+        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
+        assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
         assertEquals(Res.string.status_session_started, controller.statuses.last())
     }
 
@@ -377,10 +366,10 @@ class WorkspaceControllerTest {
     fun startingASessionReplacesTheRunningOne() = runTest {
         val controller = createController()
         controller.play()
-        controller.editSceneInWindow(scene)
+        controller.play()
         assertTrue(build.runs.first().isCancelled)
         assertFalse(build.currentRun.isCancelled)
-        assertEquals(SessionState.Starting(SessionMode.EDIT), controller.sessionState.value)
+        assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
     }
 
     @Test

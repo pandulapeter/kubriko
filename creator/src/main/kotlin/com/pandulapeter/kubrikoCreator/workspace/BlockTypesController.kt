@@ -33,12 +33,15 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * Changes show up immediately; writing them (and regenerating their code) happens in the background, one at a time
  * and in order. After each write, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code.
+ *
+ * @param onSaved Called after each write, with whether the types changed, rather than only the Scenes they were
+ *   regenerated for.
  */
 internal class BlockTypesController(
     private val repository: BlockTypeRepository,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
-    private val onSaved: () -> Unit,
+    private val onSaved: (haveTypesChanged: Boolean) -> Unit,
     private val onSaveFailed: () -> Unit,
     private val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
@@ -133,7 +136,7 @@ internal class BlockTypesController(
      * Brings the generated code in line with the project's Scenes after they changed, since a Scene's music decides
      * whether the game plays audio.
      */
-    fun onScenesChanged() = write { repository.regenerateAll() }
+    fun onScenesChanged() = write(haveTypesChanged = false) { repository.regenerateAll() }
 
     /**
      * Reads the definitions again after they changed outside Kubriko Creator (in IntelliJ, or through git), unless one
@@ -158,7 +161,7 @@ internal class BlockTypesController(
         _managerTypes.value = sorted.filterIsInstance<ManagerTypeDefinition>()
     }
 
-    private fun write(change: () -> Set<String>) {
+    private fun write(haveTypesChanged: Boolean = true, change: () -> Set<String>) {
         pendingWriteCount.incrementAndGet()
         scope.launch {
             var buildFileChanges: KubrikoBuildFileChanges? = null
@@ -180,7 +183,7 @@ internal class BlockTypesController(
             } else {
                 _changedByHand.value = changedByHand
                 buildFileChanges?.let(onBuildFilesSynced)
-                onSaved()
+                onSaved(haveTypesChanged)
             }
         }
     }

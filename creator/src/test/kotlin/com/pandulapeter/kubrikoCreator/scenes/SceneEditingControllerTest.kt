@@ -23,7 +23,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
-import kubriko.creator.generated.resources.status_scene_in_separate_window
 import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -47,7 +46,6 @@ class SceneEditingControllerTest {
     private val tasks = mutableListOf<Pair<String, Map<String, String>>>()
     private val loadedClasspaths = mutableListOf<ProjectClasspath>()
     private var closedCount = 0
-    private val sessionWindows = mutableListOf<ProjectResource>()
     private val reports = mutableListOf<ConsoleEntry>()
     private var loader = EntryPointLoader { classpath ->
         loadedClasspaths += classpath
@@ -69,7 +67,6 @@ class SceneEditingControllerTest {
         entryPointLoader = { loader.load(it) },
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
-        openInSessionWindow = { sessionWindows += it },
         report = { reports += it },
         createClasspathFile = { File.createTempFile("classpath", ".txt", root) },
     )
@@ -96,13 +93,12 @@ class SceneEditingControllerTest {
     }
 
     @Test
-    fun aSceneOfAProjectOnAnotherVersionOpensInASessionWindow() = runTest {
+    fun aSceneOfAProjectOnAnotherVersionCantBeEdited() = runTest {
         projectVersion = "0.9.0"
         val controller = createController()
         controller.open(scene)
-        assertEquals(SceneEditingState.Closed, controller.state.value)
-        assertEquals(listOf(scene), sessionWindows)
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_scene_in_separate_window)), reports)
+        assertEquals(SceneEditingState.Unsupported(scene, "0.9.0"), controller.state.value)
+        assertTrue(reports.isEmpty())
         assertTrue(loadedClasspaths.isEmpty())
     }
 
@@ -113,7 +109,6 @@ class SceneEditingControllerTest {
         controller.open(scene)
         assertEquals(SceneEditingState.Closed, controller.state.value)
         assertTrue(loadedClasspaths.isEmpty())
-        assertTrue(sessionWindows.isEmpty())
     }
 
     @Test
@@ -142,15 +137,19 @@ class SceneEditingControllerTest {
     }
 
     @Test
-    fun theOpenSceneIsOutdatedWhenItsFileChangesAndClosedWhenItIsDeleted() = runTest {
+    fun theOpenSceneShowsItsFileAgainWhenItChangesAndClosesWhenItIsDeleted() = runTest {
         val controller = createController()
         scene.file.parentFile.mkdirs()
         scene.file.writeText("[]")
         controller.open(scene)
+        assertEquals("[]", assertIs<SceneEditingState.Open>(controller.state.value).content)
+        scene.file.writeText("[{}]")
         controller.onScenesChanged(listOf("other"))
-        assertEquals(false, assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
+        assertEquals("[]", assertIs<SceneEditingState.Open>(controller.state.value).content)
         controller.onScenesChanged(listOf("main"))
-        assertTrue(assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
+        val changed = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals("[{}]", changed.content)
+        assertEquals(false, changed.isOutdated)
         scene.file.delete()
         controller.onScenesChanged(listOf("main"))
         assertEquals(SceneEditingState.Closed, controller.state.value)

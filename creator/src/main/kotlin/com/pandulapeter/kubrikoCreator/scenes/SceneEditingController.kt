@@ -22,15 +22,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_scene_in_separate_window
 import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
 import java.io.IOException
 
 /**
  * Opens Scenes in Kubriko Creator's own window: compiles the project, loads its classes next to Creator's, and hands
- * the project's entry point to the Scene editor. A project on another Kubriko version can't share Creator's classes,
- * so its Scenes open in a session window instead ([openInSessionWindow]).
+ * the project's entry point and the Scene's content to the Scene editor. A project on another Kubriko version can't
+ * share Creator's classes, so its Scenes can't be edited ([SceneEditingState.Unsupported]).
  *
  * @param runTask Runs one of the init script's tasks with the given properties, reporting problems in the console.
  * @param spriteFiles The project's sprite files by the name of their resource accessor, which the Scene editor reads
@@ -42,7 +41,6 @@ internal class SceneEditingController(
     private val entryPointLoader: EntryPointLoader,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
-    private val openInSessionWindow: (ProjectResource) -> Unit,
     private val report: (ConsoleEntry) -> Unit,
     private val createClasspathFile: () -> File = { File.createTempFile("kubriko-creator-classpath", ".txt").apply { deleteOnExit() } },
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
@@ -65,17 +63,14 @@ internal class SceneEditingController(
             val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
             when {
                 classpath == null -> _state.value = SceneEditingState.Closed
-                classpath.kubrikoVersion != creatorKubrikoVersion -> {
-                    _state.value = SceneEditingState.Closed
-                    report(ConsoleEntry.Status(Res.string.status_scene_in_separate_window))
-                    openInSessionWindow(scene)
-                }
+                classpath.kubrikoVersion != creatorKubrikoVersion -> _state.value = SceneEditingState.Unsupported(scene, classpath.kubrikoVersion)
                 else -> try {
                     val loaded = withContext(ioDispatcher) { entryPointLoader.load(classpath) }
                     loadedEntryPoint = loaded
                     _state.value = SceneEditingState.Open(
                         scene = scene,
                         entryPoint = SpriteLoadingEntryPoint(loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
+                        content = withContext(ioDispatcher) { readContent(scene.file) },
                         revision = ++revision,
                     )
                     report(ConsoleEntry.Status(Res.string.status_scene_opened))
@@ -94,6 +89,7 @@ internal class SceneEditingController(
         when (val current = _state.value) {
             is SceneEditingState.Open -> open(current.scene)
             is SceneEditingState.Preparing -> open(current.scene)
+            is SceneEditingState.Unsupported -> open(current.scene)
             SceneEditingState.Closed -> Unit
         }
     }
@@ -104,14 +100,17 @@ internal class SceneEditingController(
     fun markOutdated() = _state.update { if (it is SceneEditingState.Open) it.copy(isOutdated = true) else it }
 
     /**
-     * Notes that commands changed the Scene files called [names]: the open Scene is outdated if it is one of them,
-     * and closed if it was deleted.
+     * Notes that commands changed the Scene files called [names]: the open Scene shows its new content if it is one of
+     * them, and is closed if it was deleted.
      */
     fun onScenesChanged(names: Collection<String>) {
-        val scene = (_state.value as? SceneEditingState.Open)?.scene ?: return
+        val open = _state.value as? SceneEditingState.Open ?: return
         when {
-            scene.file.nameWithoutExtension !in names -> Unit
-            scene.file.isFile -> markOutdated()
+            open.sceneName !in names -> Unit
+            open.scene.file.isFile -> scope.launch {
+                val content = withContext(ioDispatcher) { readContent(open.scene.file) }
+                _state.update { if (it is SceneEditingState.Open && it.revision == open.revision) it.copy(content = content) else it }
+            }
             else -> close()
         }
     }
@@ -128,6 +127,12 @@ internal class SceneEditingController(
             }
         }
         loadedEntryPoint = null
+    }
+
+    private fun readContent(file: File) = try {
+        file.readText()
+    } catch (_: IOException) {
+        ""
     }
 
     private fun readClasspath(file: File) = try {

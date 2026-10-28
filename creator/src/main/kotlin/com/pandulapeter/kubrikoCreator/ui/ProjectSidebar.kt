@@ -41,6 +41,8 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
+import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragState
+import com.pandulapeter.kubrikoCreator.ui.scenes.actorTypeDragSource
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_collapse_group
 import kubriko.creator.generated.resources.action_expand_group
@@ -77,6 +79,8 @@ internal data class BlockTypeTreeState(
 /**
  * The project's contents: its Actor types and Manager types, then its files grouped by what they are. Clicking a Scene
  * edits it.
+ *
+ * @param actorTypeDragState Where Actor types are dragged to while a Scene is open, or null while none is.
  */
 @Composable
 internal fun ProjectSidebar(
@@ -88,6 +92,7 @@ internal fun ProjectSidebar(
     onCreateActorType: (String) -> StringResource?,
     onCreateManagerType: (String) -> StringResource?,
     onCreateScene: (String) -> StringResource?,
+    actorTypeDragState: ActorTypeDragState? = null,
     flashedName: String? = null,
     flashKey: Any? = null,
 ) {
@@ -107,6 +112,7 @@ internal fun ProjectSidebar(
                 onCreatingChange = { isCreatingActorType = it },
                 onCreate = onCreateActorType,
                 onSelected = onBlockTypeSelected,
+                dragState = actorTypeDragState,
                 flashedName = flashedName,
                 flashKey = flashKey,
             )
@@ -194,6 +200,7 @@ private fun LazyListScope.blockTypeSection(
     onSelected: (String) -> Unit,
     flashedName: String?,
     flashKey: Any?,
+    dragState: ActorTypeDragState? = null,
 ) {
     item(key = "${kind.name}-header") {
         PanelHeader(
@@ -218,10 +225,11 @@ private fun LazyListScope.blockTypeSection(
     }
     items(names, key = { "${kind.name}-$it" }) { name ->
         SidebarItem(
+            modifier = if (dragState == null) Modifier else Modifier.actorTypeDragSource(dragState, name),
             icon = kind.icon,
             text = name,
             isSelected = name == selectedName,
-            onClick = { onSelected(name) },
+            onClick = { if (dragState?.isClickAfterDrag != true) onSelected(name) },
             flashKey = flashKey?.takeIf { name == flashedName },
         )
     }
@@ -235,8 +243,9 @@ private fun SidebarItem(
     isSelected: Boolean = false,
     detail: String? = null,
     flashKey: Any? = null,
+    modifier: Modifier = Modifier,
 ) = Row(
-    modifier = Modifier
+    modifier = modifier
         .fillMaxWidth()
         .height(28.dp)
         .then(if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)

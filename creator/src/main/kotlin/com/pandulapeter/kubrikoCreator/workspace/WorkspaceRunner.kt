@@ -11,7 +11,6 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
-import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
@@ -114,7 +113,7 @@ internal class WorkspaceRunner(
      */
     private suspend fun startAndAwait(): Boolean {
         stopAndAwait()
-        sessions.start(SessionMode.PLAY, scene = null)
+        sessions.play()
         val session = checkNotNull(sessions.job)
         return merge(
             sessions.state.filterIsInstance<SessionState.Running>().map { true },

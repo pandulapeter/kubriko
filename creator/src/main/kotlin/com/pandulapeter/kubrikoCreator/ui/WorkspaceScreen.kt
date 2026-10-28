@@ -61,7 +61,10 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
+import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragPreview
+import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragState
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
+import com.pandulapeter.kubrikoCreator.ui.scenes.SceneUnsupportedNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_actor_type
@@ -103,6 +106,7 @@ internal fun WorkspaceScreen(
     var isFollowingAi by remember { mutableStateOf(true) }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
     var isUpgradeNoticeDismissed by remember { mutableStateOf(false) }
+    val actorTypeDragState = remember { ActorTypeDragState() }
     var isReviewingUpgrade by remember { mutableStateOf(false) }
     val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)
     if (projectUpgrade != null && isReviewingUpgrade) {
@@ -125,146 +129,157 @@ internal fun WorkspaceScreen(
             blockTypesController.select(name)
         }
     }
-    Column(
-        modifier = Modifier.fillMaxSize().onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> if (isUndo) controller.commands.undo() else controller.commands.redo() } != null },
+    Box(
+        modifier = Modifier.fillMaxSize(),
     ) {
-        WorkspaceToolbar(
-            sessionState = sessionState,
-            history = history,
-            onUndo = controller.commands::undo,
-            onRedo = controller.commands::redo,
-            branch = (gitState as? GitState.Ready)?.branch,
-            isAiConnected = mcpState is McpServerState.Running,
-            openPanel = openPanel,
-            onPanelToggled = { panel ->
-                openPanel = panel.takeIf { it != openPanel }
-                if (openPanel == SidePanel.VERSION_CONTROL) controller.git.refresh()
-            },
-            onPlay = controller::play,
-            onStop = controller::stopSession,
-            onRefresh = controller::refreshResources,
-            onCloseProject = onCloseProject,
-        )
-        HorizontalDivider()
-        AiActivityBar(
-            steps = aiSteps,
-            isFollowing = isFollowingAi,
-            onFollowingChange = { isFollowingAi = it },
-            onClick = { openPanel = SidePanel.AI_CONNECTION },
-        )
-        if (projectUpgrade != null && !isUpgradeNoticeDismissed) {
-            ProjectUpgradeNotice(
-                onReview = { isReviewingUpgrade = true },
-                onDismiss = { isUpgradeNoticeDismissed = true },
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().weight(1f),
+        Column(
+            modifier = Modifier.fillMaxSize().onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> if (isUndo) controller.commands.undo() else controller.commands.redo() } != null },
         ) {
-            ProjectSidebar(
-                modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                resources = resources,
-                blockTypes = blockTypesController?.let {
-                    BlockTypeTreeState(
-                        actorTypeNames = blockTypes.filterIsInstance<ActorTypeDefinition>().map { it.name },
-                        managerTypeNames = blockTypes.filterIsInstance<ManagerTypeDefinition>().map { it.name },
-                        selectedName = selectedBlockTypeName,
-                    )
+            WorkspaceToolbar(
+                sessionState = sessionState,
+                history = history,
+                onUndo = controller.commands::undo,
+                onRedo = controller.commands::redo,
+                branch = (gitState as? GitState.Ready)?.branch,
+                isAiConnected = mcpState is McpServerState.Running,
+                openPanel = openPanel,
+                onPanelToggled = { panel ->
+                    openPanel = panel.takeIf { it != openPanel }
+                    if (openPanel == SidePanel.VERSION_CONTROL) controller.git.refresh()
                 },
-                onSceneSelected = { scene ->
-                    blockTypesController?.select(null)
-                    controller.sceneEditing.open(scene)
-                },
-                onBlockTypeSelected = {
-                    controller.sceneEditing.close()
-                    blockTypesController?.select(it)
-                },
-                onCreateActorType = { name -> controller.createActorType(name) },
-                onCreateManagerType = { name -> controller.createManagerType(name) },
-                onCreateScene = { name -> controller.createScene(name) },
-                flashedName = latestAiStep?.sidebarName(),
-                flashKey = latestAiStep?.flashKey,
+                onPlay = controller::play,
+                onStop = controller::stopSession,
+                onRefresh = controller::refreshResources,
+                onCloseProject = onCloseProject,
             )
-            VerticalDivider()
-            val centerModifier = Modifier.weight(1f).fillMaxHeight()
-            when (val state = sceneEditing) {
-                is SceneEditingState.Open -> SceneEditorPane(
-                    modifier = centerModifier,
-                    state = state,
-                    onReload = controller.sceneEditing::reload,
-                    onOpenInWindow = {
-                        controller.sceneEditing.close()
-                        controller.editSceneInWindow(state.scene)
-                    },
-                    onClose = controller.sceneEditing::close,
+            HorizontalDivider()
+            AiActivityBar(
+                steps = aiSteps,
+                isFollowing = isFollowingAi,
+                onFollowingChange = { isFollowingAi = it },
+                onClick = { openPanel = SidePanel.AI_CONNECTION },
+            )
+            if (projectUpgrade != null && !isUpgradeNoticeDismissed) {
+                ProjectUpgradeNotice(
+                    onReview = { isReviewingUpgrade = true },
+                    onDismiss = { isUpgradeNoticeDismissed = true },
                 )
-                is SceneEditingState.Preparing -> Box(centerModifier) {
-                    ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
-                }
-                SceneEditingState.Closed -> Unit
             }
-            if (sceneEditing == SceneEditingState.Closed && blockTypesController != null && selectedBlockType != null) {
-                BlockTypeEditor(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    definition = selectedBlockType,
-                    scope = remember(selectedBlockType, blockTypes, resources) {
-                        BlockScope.of(
-                            definition = selectedBlockType,
-                            types = blockTypes,
-                            sceneNames = resources[ResourceGroup.SCENES].orEmpty().map { it.file.nameWithoutExtension }.distinct().sorted(),
-                            audioFiles = AudioFiles.of(resources),
+            Row(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+            ) {
+                ProjectSidebar(
+                    modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    resources = resources,
+                    blockTypes = blockTypesController?.let {
+                        BlockTypeTreeState(
+                            actorTypeNames = blockTypes.filterIsInstance<ActorTypeDefinition>().map { it.name },
+                            managerTypeNames = blockTypes.filterIsInstance<ManagerTypeDefinition>().map { it.name },
+                            selectedName = selectedBlockTypeName,
                         )
                     },
-                    sprites = remember(resources) { SpriteFiles.of(resources).paths },
-                    isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
-                    onCommand = { controller.commands.dispatch(it) },
-                    highlight = latestAiStep?.highlightIn(selectedBlockType.name),
+                    onSceneSelected = { scene ->
+                        blockTypesController?.select(null)
+                        controller.sceneEditing.open(scene)
+                    },
+                    onBlockTypeSelected = {
+                        controller.sceneEditing.close()
+                        blockTypesController?.select(it)
+                    },
+                    onCreateActorType = { name -> controller.createActorType(name) },
+                    onCreateManagerType = { name -> controller.createManagerType(name) },
+                    onCreateScene = { name -> controller.createScene(name) },
+                    actorTypeDragState = actorTypeDragState.takeIf { sceneEditing is SceneEditingState.Open },
+                    flashedName = latestAiStep?.sidebarName(),
+                    flashKey = latestAiStep?.flashKey,
                 )
-            } else if (sceneEditing == SceneEditingState.Closed) {
-                WorkspaceHint(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-            }
-            if (openPanel == SidePanel.AI_CONNECTION) {
                 VerticalDivider()
-                AiConnectionPanel(
-                    modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                    settings = mcp.settings.collectAsState().value,
-                    state = mcpState,
-                    clientSetups = aiClients.setups.collectAsState().value,
-                    configFileClients = AiConfigFileClient.entries,
-                    clientStatuses = aiClients.statuses.collectAsState().value,
-                    calls = mcp.calls.collectAsState().value,
-                    onEnabledChange = mcp::setEnabled,
-                    onRefreshClients = aiClients::refresh,
-                    onConnect = aiClients::connect,
-                    onDisconnect = aiClients::disconnect,
-                    onConnectConfigFile = aiClients::connectConfigFile,
-                    onDisconnectConfigFile = aiClients::disconnectConfigFile,
-                    onPortChange = mcp::setPort,
-                    onRegenerateToken = mcp::regenerateToken,
-                    onCommandChange = aiClients::setCommand,
-                )
+                val centerModifier = Modifier.weight(1f).fillMaxHeight()
+                when (val state = sceneEditing) {
+                    is SceneEditingState.Open -> SceneEditorPane(
+                        modifier = centerModifier,
+                        state = state,
+                        onCommand = { controller.commands.dispatch(it) },
+                        actorTypeDragState = actorTypeDragState,
+                        onReload = controller.sceneEditing::reload,
+                        onClose = controller.sceneEditing::close,
+                    )
+                    is SceneEditingState.Unsupported -> SceneUnsupportedNotice(
+                        modifier = centerModifier,
+                        sceneName = state.scene.name,
+                        projectKubrikoVersion = state.projectKubrikoVersion,
+                        creatorKubrikoVersion = controller.creatorKubrikoVersion,
+                        onClose = controller.sceneEditing::close,
+                    )
+                    is SceneEditingState.Preparing -> Box(centerModifier) {
+                        ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
+                    }
+                    SceneEditingState.Closed -> Unit
+                }
+                if (sceneEditing == SceneEditingState.Closed && blockTypesController != null && selectedBlockType != null) {
+                    BlockTypeEditor(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        definition = selectedBlockType,
+                        scope = remember(selectedBlockType, blockTypes, resources) {
+                            BlockScope.of(
+                                definition = selectedBlockType,
+                                types = blockTypes,
+                                sceneNames = resources[ResourceGroup.SCENES].orEmpty().map { it.file.nameWithoutExtension }.distinct().sorted(),
+                                audioFiles = AudioFiles.of(resources),
+                            )
+                        },
+                        sprites = remember(resources) { SpriteFiles.of(resources).paths },
+                        isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
+                        onCommand = { controller.commands.dispatch(it) },
+                        highlight = latestAiStep?.highlightIn(selectedBlockType.name),
+                    )
+                } else if (sceneEditing == SceneEditingState.Closed) {
+                    WorkspaceHint(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                    )
+                }
+                if (openPanel == SidePanel.AI_CONNECTION) {
+                    VerticalDivider()
+                    AiConnectionPanel(
+                        modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                        settings = mcp.settings.collectAsState().value,
+                        state = mcpState,
+                        clientSetups = aiClients.setups.collectAsState().value,
+                        configFileClients = AiConfigFileClient.entries,
+                        clientStatuses = aiClients.statuses.collectAsState().value,
+                        calls = mcp.calls.collectAsState().value,
+                        onEnabledChange = mcp::setEnabled,
+                        onRefreshClients = aiClients::refresh,
+                        onConnect = aiClients::connect,
+                        onDisconnect = aiClients::disconnect,
+                        onConnectConfigFile = aiClients::connectConfigFile,
+                        onDisconnectConfigFile = aiClients::disconnectConfigFile,
+                        onPortChange = mcp::setPort,
+                        onRegenerateToken = mcp::regenerateToken,
+                        onCommandChange = aiClients::setCommand,
+                    )
+                }
+                if (openPanel == SidePanel.VERSION_CONTROL) {
+                    VerticalDivider()
+                    GitPanel(
+                        modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                        state = gitState,
+                        onRefresh = controller.git::refresh,
+                        onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },
+                        onCommit = { message -> controller.commands.dispatch(Invocation(Commit, Commit.Input(message))) },
+                        onDiscard = { change -> controller.commands.dispatch(Invocation(DiscardChanges, DiscardChanges.Input(change.paths))) },
+                    )
+                }
             }
-            if (openPanel == SidePanel.VERSION_CONTROL) {
-                VerticalDivider()
-                GitPanel(
-                    modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                    state = gitState,
-                    onRefresh = controller.git::refresh,
-                    onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },
-                    onCommit = { message -> controller.commands.dispatch(Invocation(Commit, Commit.Input(message))) },
-                    onDiscard = { change -> controller.commands.dispatch(Invocation(DiscardChanges, DiscardChanges.Input(change.paths))) },
-                )
-            }
+            HorizontalDivider()
+            Console(
+                entries = console,
+                isExpanded = isConsoleExpanded,
+                onExpandedChange = { isConsoleExpanded = it },
+                onClear = controller::clearConsole,
+            )
         }
-        HorizontalDivider()
-        Console(
-            entries = console,
-            isExpanded = isConsoleExpanded,
-            onExpandedChange = { isConsoleExpanded = it },
-            onClear = controller::clearConsole,
-        )
+        ActorTypeDragPreview(actorTypeDragState)
     }
 }
 

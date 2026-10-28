@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
-import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
@@ -72,7 +71,7 @@ internal class WorkspaceController(
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
-    creatorKubrikoVersion: String = "",
+    val creatorKubrikoVersion: String = "",
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
     startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
     generatedPath: String? = null,
@@ -101,7 +100,6 @@ internal class WorkspaceController(
         entryPointLoader = entryPointLoader,
         scope = scope,
         ioDispatcher = ioDispatcher,
-        openInSessionWindow = ::editSceneInWindow,
         report = ::appendToConsole,
         spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
     )
@@ -114,9 +112,9 @@ internal class WorkspaceController(
             repository = repository,
             scope = scope,
             ioDispatcher = ioDispatcher,
-            onSaved = {
+            onSaved = { haveTypesChanged ->
                 refreshResources()
-                sceneEditing.markOutdated()
+                if (haveTypesChanged) sceneEditing.markOutdated()
             },
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
             syncBuildFiles = syncBuildFiles,
@@ -242,12 +240,7 @@ internal class WorkspaceController(
         }
     }
 
-    fun play() = sessions.start(SessionMode.PLAY, scene = null)
-
-    /**
-     * Edits [scene] in a session window of its own, rather than in Kubriko Creator's ([sceneEditing]).
-     */
-    fun editSceneInWindow(scene: ProjectResource) = sessions.start(SessionMode.EDIT, scene)
+    fun play() = sessions.play()
 
     fun stopSession() = sessions.stop()
 

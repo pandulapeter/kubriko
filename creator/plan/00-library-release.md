@@ -29,7 +29,7 @@ Each one changes the libraries, so each is offered only to sessions whose protoc
 
 - the template upgrade that makes `GameEntryPoint` report the game's Kubriko instances (`getRunningInstances`, which `start_game` waits on);
 - the debug agent, `tools/debug-overlay`, and deprecating the debug menu (`04-debugger.md`);
-- Scene editor commands from Creator, Managers' Properties per Scene, multi-select, layers, thumbnails, and Creator's look
+- Managers' Properties per Scene (Creator's Scene editor is its own now, so its other plans need no library change)
   (`02-blocks.md` → Scene editor);
 - hot reload in the session process and the asset editor extension point (`07-later.md`).
 

@@ -35,13 +35,22 @@ lives in `plan/` (start with `plan/README.md`).
   project: `kubrikoCreatorSession` (runs the module's classpath plus `tool-creator-session` at the project's Kubriko version, in `play` or `edit`
   mode, reporting back over a versioned JSON-lines protocol on a localhost port, `SessionServer`) and `kubrikoCreatorClasspath` (compiles and
   writes the Kubriko version and runtime classpath to a file).
-- **Embedded Scene editing** (`scenes/`): when the project's Kubriko version equals Creator's, Creator loads the project's classes into a class
+- **Scene editing** (`scenes/`, `ui/scenes/`): Creator's own Scene editor, never a window of its own and not the library's
+  `tools/scene-editor`. When the project's Kubriko version equals Creator's, Creator loads the project's classes into a class
   loader whose parent is its own (Kubriko, Compose, and Kotlin shared; project jars copied first so rebuilds can replace them), finds the
-  project's `CreatorEntryPoint` through `ServiceLoader`, and draws `SceneEditor.Content` in its center pane. Compose resources are read
+  project's `CreatorEntryPoint` through `ServiceLoader`, and `SceneView` creates the Scene's Actors from the file's states with the
+  project's `SerializationManager` and Managers in a Kubriko instance of its own that never runs (one Actor per entry, so indices
+  match the file), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). A click selects the Actor on top (`SceneHitTest`:
+  lowest drawing order, then the later one; the Scene settings only where nothing else is), dragging it moves it live and dispatches
+  `move_actor` when let go, dragging elsewhere or scrolling pans, Ctrl/Cmd+scroll and the header zoom (`SceneFraming` shows the
+  Scene settings' bounds, or every Actor), Delete or Backspace dispatches `remove_actor`, and an Actor type dragged from the sidebar
+  (`ActorTypeDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). Every change is a command, so it
+  is undone like any other, and the file is read again and the Actors created anew after each. A project on another Kubriko version
+  gets a notice instead (`SceneEditingState.Unsupported`). Compose resources are read
   through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
   `SpriteManager` for one whose `imageLoader` (`ProjectSpriteLoader`) reads the sprite files from disk, matching resources by ID
   (`drawable:<accessor>`, which is what Compose resources are equal by). Loaders are released a few seconds
-  after their editor leaves composition. Otherwise the Scene opens in a session window.
+  after their editor leaves composition. Creator no longer starts `tool-creator-session` in Edit mode.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
   and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
   after `com.pandulapeter.kubriko.` in imports and fully qualified names, generated code included; the engine and `tool-creator-api` always),
@@ -159,8 +168,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. A change's `after` is null for a file it deletes.
 - **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`): Actors are `typeId` + JSON state, positions live in
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
-  Actor type renames its Actors in every Scene. A command that changes the open Scene marks it outdated (or closes it if deleted).
-  Changes made inside the embedded Scene editor are the library tool's own and don't go through commands.
+  Actor type renames its Actors in every Scene. A command that changes the open Scene shows it again (or closes it if deleted); a
+  changed Actor type marks it outdated, since its classes must be compiled again, but regenerating code for changed Scenes doesn't.
 
 ## AI connection (MCP)
 
@@ -218,11 +227,11 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
+| `scenes` | `SceneEditingController`, `SceneView`, `SceneHitTest`, `SceneFraming`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |
-| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/components` | Compose UI. `BlockTypeEditor` follows GameMaker's object window: appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette. |
+| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/components` | Compose UI (`ui/scenes`: the Scene editor's pane, canvas, and the sidebar drag). `BlockTypeEditor` follows GameMaker's object window: appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette. |
 | `window` | JetBrains Runtime title bar the content extends under, and the 0.85 interface scale (both from the user's Campfire app). |
 
 ## Conventions specific to Creator

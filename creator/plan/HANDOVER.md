@@ -14,12 +14,17 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
 
+- **Creator's own Scene editor** (2026-10-28) replaced the embedded library one (`tools/scene-editor`) and the session window: the Scene is drawn by the
+  project's classes in Creator's pane, Actors are selected, moved, and removed, and Actor types are dragged in from the sidebar, all
+  through commands (so undo and the AI share them). Seen working on the scratch Breakout: moving the Ball, dropping a Brick,
+  selecting, Backspace, and Cmd+Z. There is no inspector yet, so Properties, sizes, and Scene settings can't be edited in Creator
+  (only through `set_scene_settings`); that is next.
 - **Static sprites exist** (2026-10-28): an Actor type's `sprite` (`set_appearance`, the appearance column's Sprite menu) draws an
   image from `composeResources/drawable` instead of the shape, which stays the collision mask's; choosing one sizes the type to the
   image. `SpriteManager` is created in `KubrikoWiring` (also in the Scene editor) only while some type has a sprite. **Library
   change for 0.8.1:** a new `SpriteManager.newInstance(imageLoader, …)` overload (the old one is untouched, so binary compatible),
-  which Creator's embedded Scene editor uses to read sprites from the project's files (`SpriteLoadingEntryPoint`). Seen working on
-  the scratch Breakout: the appearance column, the Ball sprite in the embedded Scene editor, and in the played game.
+  which Creator's Scene editor uses to read sprites from the project's files (`SpriteLoadingEntryPoint`). Seen working on
+  the scratch Breakout: the appearance column, the Ball sprite in the Scene editor, and in the played game.
 - **Audio exists** (2026-10-28): playSound, playMusic, and stopMusic Blocks (palette tab "Sound and music"), a Scene's music in
   `SceneSettings` (`set_scene_settings` takes `music`), and the generated `GeneratedAudio` Manager, written only while something plays
   audio. Scene changes now regenerate the code, since a Scene's music decides that. The palette's category tabs wrap now; an Actor
@@ -40,13 +45,18 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
+1. The Scene editor's inspector and the rest of `02-blocks.md` → Scene editor (Properties, size, rotation, Scene settings, handles,
+   snapping); until then, Scene settings and per-Actor Property values can't be edited from the UI at all.
+2. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
    `08-sprite-editor.md` plans), then the sprite editor itself, then the rest of `02-blocks.md`. Plugins come and go with the Blocks
    that use them, as audio's and sprites' do (`PluginManagers`, `KubrikoWiring`); not in a template upgrade.
-2. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
 3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
+
+- The Scene editor: a hand-written Actor type in a Scene (drawn, selectable, movable), an Actor without a `BoxBody`, zoom to fit
+  with and without Scene settings, the middle-button pan, scroll pan on a mouse wheel, dropping onto a zoomed-out view, the version
+  notice, and the outdated notice after an Actor type change followed by Reload.
 
 - Sprites: a non-square or translucent image, a `.webp` or `.jpg` (its size isn't read when ImageIO can't, so the size stays), deleting
   the image while an Actor type uses it (the game should build and draw nothing), and undo and redo of choosing a sprite from the UI.
@@ -55,8 +65,7 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 - Hearing the audio: the scratch Breakout played with a playMusic Block in a Manager's gameStarted Event and a playSound Block in a
   collision Event, and ran without errors, but nobody listened. Also: music pausing and resuming with the window's focus, a non-looping
-  music played again after it ended, a Scene's music set from the embedded Scene editor's inspector (a plain text field: the path), and
-  going between Scenes with the same and different music. Web audio with `Res.getUri` paths.
+  music played again after it ended, and going between Scenes with the same and different music. Web audio with `Res.getUri` paths.
 - The audio Blocks' file choices with no sounds or music in the project (the menu is empty, with no hint how to add files).
 
 - The dependency sync and the version 4 upgrade on the real Breakout copy (it is on `0.7.5-creator` and template version 3): opening it
@@ -67,15 +76,12 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - A rename following Kotlin code from the UI (unit-tested in `BlockTypeEditsTest` and `KotlinIdentifiersTest`). Adding a Property
   named like another Manager type's field (`lives` beside a `Lives` type) moves that field to `livesManager`, and Kotlin code isn't
   updated for that.
-- Placing and editing `SceneSettings` from the embedded Scene editor's palette and inspector (the color and `SceneOffset` editors),
-  and that its camera start doesn't move the editor's camera. `set_scene_settings` from a real AI session.
+- That a Scene's camera start doesn't move the Scene editor's camera. `set_scene_settings` from a real AI session.
 - A ball bouncing exactly at the bounds' edge, and going to another Scene with different (or no) settings.
-- The Scene editor creating an edited Actor again when a drag ends or the selection moves on (unit-tested in `SceneDocumentTest`;
-  watch the debug overlay's collision mask follow a resize, and that undo still selects the right Actor).
 - The go to a Scene card's Scene menu (the pause card was seen in a screenshot).
-- A paused game in the embedded Scene editor (its Managers' Events don't run there, so it should be unaffected).
+- A paused game in the Scene editor (its Managers' Events don't run there, so it should be unaffected).
 - The "score of Game" Property menu in an Actor's Block.
-- A Scene whose Actors use a Manager, in the embedded Scene editor (`createCustomManagers`, `isInSceneEditor`).
+- A Scene whose Actors use a Manager, in the Scene editor (`createCustomManagers`, `isInSceneEditor`).
 - The Manager type, text, and upgrade tools from a real AI session: ask for a score again ("stop the paddle on key release and show a
   score"), and watch the activity view pace a burst of calls.
 - Connect for the plain "Claude Code" row in the Claude app, and for Claude Desktop from a real chat (writing its config needs the user).
