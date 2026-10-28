@@ -80,9 +80,12 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   one of nine places, size, color). Both kinds are a `BlockTypeDefinition` and share one namespace, the edits (`BlockTypeEdits.kt`),
   the Block editor, and the commands; Blocks and conditions that need an Actor (`BlockKind.needsActor`, the velocity condition) and
   Actor-only Events are rejected in a Manager and hidden from its palette. Each one becomes a `Manager` subclass whose Properties are
-  Compose state (`mutableFloatStateOf` for numbers, so nothing boxes), whose texts are `BasicText`s in its `Composable`, which is
+  Compose state (`mutableFloatStateOf` for numbers, so nothing boxes), whose texts are `BasicText`s in its `Composable`, followed by
+  its Kotlin UI (`kotlinUi`, `set_kotlin_ui`, edited in a dialog): verbatim Compose statements whose leading import lines become the
+  file's imports (`KotlinUi`), with other Manager types, `actorManager`, `viewportManager`, and `stateManager` looked up only when
+  the code names them, and which, like a Kotlin Block, doesn't follow renames. The Manager is
   `KeyboardInputAware` and adds itself as an Actor when it has key pressed Events (as the examples' Managers do; `GeneratedScenes`
-  adds it back after each Scene's `removeAll`), and whose
+  adds it back after each Scene's `removeAll`). Its
   Events don't run in the Scene editor (`isInSceneEditor`), nor every frame while the game is paused. The generated
   `KubrikoWiring.createManagers(isInSceneEditor, firstScene)` creates all of them, plus `GeneratedScenes`; the template passes it to
   `Kubriko.newInstance` in `Game.kt` (with the first Scene) and to the Scene editor in `GameEntryPoint.kt`.

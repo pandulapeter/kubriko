@@ -130,6 +130,15 @@ class ManagerTypeCommandsTest {
     }
 
     @Test
+    fun theKotlinUiIsSetTypedAsOneStepAndUndone() = runTest {
+        val context = commandContext(brick, game)
+        assertEquals("Column {}", context.assertRoundTrip(Invocation(SetKotlinUi, SetKotlinUi.Input("Game", "Column {}"))) { context.game()!!.kotlinUi })
+        assertEquals(SetKotlinUi.mergeKey(SetKotlinUi.Input("Game", "a")), SetKotlinUi.mergeKey(SetKotlinUi.Input("Game", "ab")))
+        assertNull(context.assertRoundTrip(Invocation(SetKotlinUi, SetKotlinUi.Input("Game", "  \n"))) { context.game()!!.kotlinUi })
+        assertEquals(Rejection(Res.string.error_command_manager_type_missing, "Brick"), Invocation(SetKotlinUi, SetKotlinUi.Input("Brick", "")).validate(context))
+    }
+
+    @Test
     fun managerTypesAreListedAndRead() = runTest {
         val context = commandContext(brick, game)
         val list = assertIs<CommandOutcome.Success>(ListManagerTypes.read(context, NoInput)).result as JsonArray

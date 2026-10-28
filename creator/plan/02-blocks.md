@@ -20,16 +20,14 @@ case in the integration test's every-Block types (an Actor type and two Manager 
 
 ## Game UI
 
-A Manager's texts on screen suit a score or a lives counter, not menus, buttons, health bars, or layouts. Game UI grows from them in
-three steps, always generated into ordinary Compose (no runtime interpreter):
+A Manager's texts on screen suit a score or a lives counter, and its Kotlin UI is the escape hatch for anything else. Game UI grows
+from them in two more steps, always generated into ordinary Compose (no runtime interpreter):
 
-1. **Kotlin UI (next):** a verbatim body for the Manager's `Composable`, like the Kotlin Block, with its
-   Properties, the other Managers it uses, and `windowInsets` in scope. The escape hatch for advanced users, and real Compose.
-2. **UI elements (once a second UI need comes, such as a title screen with a Start button):** `texts` becomes a sealed `elements`
+1. **UI elements (once a second UI need comes, such as a title screen with a Start button):** `texts` becomes a sealed `elements`
    tree (column, row, box, text, image, button, progress bar) that the editor builds visually, with a text as one kind of element so
    existing files still load. Buttons run a new Manager Event, "When a button is clicked", so UI behavior stays Events and Blocks.
    Worth doing before many projects depend on the flat `texts` list.
-3. **Hand-written Composables:** a Manager shows a `@Composable` from the project's own code, chosen by name, so a project that
+2. **Hand-written Composables:** a Manager shows a `@Composable` from the project's own code, chosen by name, so a project that
    outgrows Creator's UI keeps it in its own files.
 
 ## Next additions

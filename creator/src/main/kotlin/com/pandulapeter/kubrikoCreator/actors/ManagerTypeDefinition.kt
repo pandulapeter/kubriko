@@ -28,6 +28,8 @@ internal data class ManagerTypeDefinition(
     @SerialName("events") override val events: List<EventDefinition> = emptyList(),
     @Description("The texts it shows on top of the game, like the score, in order.")
     @SerialName("texts") val texts: List<ScreenTextDefinition> = emptyList(),
+    @Description("Compose code drawn on top of the game after the texts, for UI the texts can't express. See set_kotlin_ui for what is in scope.")
+    @SerialName("kotlinUi") val kotlinUi: String? = null,
 ) : BlockTypeDefinition {
     override val kind get() = BlockTypeKind.MANAGER
 

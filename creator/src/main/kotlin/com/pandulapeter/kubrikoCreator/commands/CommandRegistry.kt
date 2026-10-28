@@ -46,6 +46,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.ListManagerTypes
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.ReadManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectUpgrade
@@ -121,6 +122,7 @@ internal class CommandRegistry(
                 AddText,
                 EditText,
                 RemoveText,
+                SetKotlinUi,
                 AddEvent,
                 RemoveEvent,
                 MoveEvent,

@@ -33,6 +33,8 @@ internal object ManagerTypeCodeGenerator {
 
     const val WIRING_NAME = "KubrikoWiring"
     private const val SCENE_EDITOR_GUARD = "if (isInSceneEditor) return"
+    private const val ACTOR_MANAGER_FIELD = "actorManager"
+    private const val VIEWPORT_MANAGER_FIELD = "viewportManager"
 
     /**
      * @param knownActorTypeNames Every Actor type of the project, which the Blocks may add.
@@ -57,17 +59,20 @@ internal object ManagerTypeCodeGenerator {
         val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
         val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
         val texts = definition.texts.map { templateLiteral(it.text, scope) }
-        val usedManagers = scope.managersUsedBy(generatedBlocks, definition.texts.map { it.text })
+        val kotlinUi = KotlinUi.of(definition.kotlinUi)
+        val usedManagers = (scope.managersUsedBy(generatedBlocks, definition.texts.map { it.text }) + scope.managersNamedIn(kotlinUi)).distinct().sorted()
         val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks)
         val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() }
         val usesKotlin = generatedBlocks.any { it is BlockDefinition.Kotlin }
-        val usesActorManager = keyEvents.isNotEmpty() || usesKotlin || generatedBlocks.any { it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames }
-        val usesStateManager = runsEveryFrame || BlockCodeGenerator.usesPause(generatedBlocks)
+        val usesActorManager = keyEvents.isNotEmpty() || usesKotlin || generatedBlocks.any { it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames } ||
+            kotlinUi?.names(ACTOR_MANAGER_FIELD) == true
+        val usesViewportManager = usesKotlin || kotlinUi?.names(VIEWPORT_MANAGER_FIELD) == true
+        val usesStateManager = runsEveryFrame || BlockCodeGenerator.usesPause(generatedBlocks) || kotlinUi?.names(STATE_MANAGER_FIELD) == true
         val imports = buildSet {
             add("com.pandulapeter.kubriko.manager.Manager")
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) add("com.pandulapeter.kubriko.Kubriko")
             if (usesActorManager) add("com.pandulapeter.kubriko.manager.ActorManager")
-            if (usesKotlin) add("com.pandulapeter.kubriko.manager.ViewportManager")
+            if (usesViewportManager) add("com.pandulapeter.kubriko.manager.ViewportManager")
             if (keyEvents.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
             if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
             if (definition.properties.any { it !is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableStateOf")
@@ -78,6 +83,8 @@ internal object ManagerTypeCodeGenerator {
             if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
             if (generatedBlocks.any { it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames }) addAll(listOf("com.pandulapeter.kubriko.helpers.extensions.sceneUnit", "com.pandulapeter.kubriko.types.SceneOffset"))
             if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
+            if (texts.isNotEmpty() || kotlinUi != null) addAll(COMPOSABLE_IMPORTS)
+            kotlinUi?.imports?.let(::addAll)
         }.sorted()
         return GeneratedFile.withHeader(" from .kubriko/managers/$name.json", buildString {
             appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
@@ -94,8 +101,8 @@ internal object ManagerTypeCodeGenerator {
                 appendLine("    var ${property.name} by ${if (property is PropertyDefinition.Number) "mutableFloatStateOf" else "mutableStateOf"}(${initialValueLiteral(property)})")
             }
             if (definition.properties.isNotEmpty()) appendLine()
-            if (usesActorManager) appendLine("    private val actorManager by manager<ActorManager>()")
-            if (usesKotlin) appendLine("    private val viewportManager by manager<ViewportManager>()")
+            if (usesActorManager) appendLine("    private val $ACTOR_MANAGER_FIELD by manager<ActorManager>()")
+            if (usesViewportManager) appendLine("    private val $VIEWPORT_MANAGER_FIELD by manager<ViewportManager>()")
             if (usesKeyHeld) appendLine("    private val keyboardInputManager by manager<KeyboardInputManager>()")
             if (usesStateManager) appendLine("    private val $STATE_MANAGER_FIELD by manager<StateManager>()")
             if (usesScenes) appendLine("    private val $SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()")
@@ -127,7 +134,7 @@ internal object ManagerTypeCodeGenerator {
             }
             // Unlike an Actor's, these run while the game is paused, so that a key can resume it.
             if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope)
-            if (texts.isNotEmpty()) appendTexts(definition.texts, texts)
+            if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts, kotlinUi)
             if (texts.any { ".$NUMBER_TEXT_FUNCTION()" in it } || generatedBlocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) }) {
                 appendLine()
                 appendLine("    private fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
@@ -162,32 +169,41 @@ internal object ManagerTypeCodeGenerator {
         appendLine("}")
     })
 
-    private fun StringBuilder.appendTexts(definitions: List<ScreenTextDefinition>, texts: List<String>) {
+    /**
+     * The Manager's `Composable`: its texts, then its Kotlin UI, which is drawn on top of them.
+     */
+    private fun StringBuilder.appendComposable(definitions: List<ScreenTextDefinition>, texts: List<String>, kotlinUi: KotlinUi?) {
         appendLine()
         appendLine("    @Composable")
         appendLine("    override fun Composable(windowInsets: WindowInsets) {")
-        appendLine("        Box(")
-        appendLine("            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),")
-        appendLine("        ) {")
-        definitions.forEachIndexed { index, definition ->
-            appendLine("            BasicText(")
-            appendLine("                modifier = Modifier.align(Alignment.${definition.position.alignment}),")
-            appendLine("                text = ${texts[index]},")
-            appendLine("                style = TextStyle(color = Color(${colorLiteral(definition.color)}), fontSize = ${floatLiteral(definition.size.coerceAtLeast(1f))}.sp),")
-            appendLine("            )")
+        if (texts.isNotEmpty()) {
+            appendLine("        Box(")
+            appendLine("            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),")
+            appendLine("        ) {")
+            definitions.forEachIndexed { index, definition ->
+                appendLine("            BasicText(")
+                appendLine("                modifier = Modifier.align(Alignment.${definition.position.alignment}),")
+                appendLine("                text = ${texts[index]},")
+                appendLine("                style = TextStyle(color = Color(${colorLiteral(definition.color)}), fontSize = ${floatLiteral(definition.size.coerceAtLeast(1f))}.sp),")
+                appendLine("            )")
+            }
+            appendLine("        }")
         }
-        appendLine("        }")
+        kotlinUi?.statements?.forEach { appendLine(if (it.isEmpty()) it else "        $it") }
         appendLine("    }")
     }
 
+    private val COMPOSABLE_IMPORTS = listOf(
+        "androidx.compose.foundation.layout.WindowInsets",
+        "androidx.compose.runtime.Composable",
+    )
+
     private val TEXT_IMPORTS = listOf(
         "androidx.compose.foundation.layout.Box",
-        "androidx.compose.foundation.layout.WindowInsets",
         "androidx.compose.foundation.layout.fillMaxSize",
         "androidx.compose.foundation.layout.padding",
         "androidx.compose.foundation.layout.windowInsetsPadding",
         "androidx.compose.foundation.text.BasicText",
-        "androidx.compose.runtime.Composable",
         "androidx.compose.ui.Alignment",
         "androidx.compose.ui.Modifier",
         "androidx.compose.ui.graphics.Color",

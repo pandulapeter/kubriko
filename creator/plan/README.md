@@ -16,7 +16,7 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-1. [Blocks, Actor types, and Manager types](02-blocks.md) - next: Kotlin UI for Managers, then audio, sprites, and the rest of the Block
+1. [Blocks, Actor types, and Manager types](02-blocks.md) - next: audio, sprites, and the rest of the Block
    set, UI elements, the Paddle game template, Convert to code, and more drag and drop. The editor comes before more AI work.
 2. [AI assistant](01-ai-assistant.md) - more for the MCP server, then the in-app panel with the user's API key, which waits until the editor
    does more. **Every new editor feature lands with its command, its AI tool, and their tests.**

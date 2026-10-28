@@ -165,6 +165,12 @@
     <string name="manager_type_text">Text</string>
     <string name="manager_type_text_size">Size</string>
     <string name="action_add_text">Add text</string>
+    <string name="manager_type_kotlin_ui">Kotlin UI</string>
+    <string name="manager_type_kotlin_ui_empty">Compose code drawn on top of the game, for menus, bars, and layouts the texts can't show.</string>
+    <string name="manager_type_kotlin_ui_title">Kotlin UI of %1$s</string>
+    <string name="manager_type_kotlin_ui_hint">The body of the Manager's Composable, drawn after its texts. Start with import lines for what it uses. In scope: windowInsets, this Manager's Properties (the UI follows them), the other Manager types by name with a lowercase first letter, actorManager, viewportManager, and stateManager.</string>
+    <string name="action_edit_kotlin_ui">Edit the Kotlin UI</string>
+    <string name="action_done">Done</string>
     <string name="screen_position_top_left">Top left</string>
     <string name="screen_position_top">Top</string>
     <string name="screen_position_top_right">Top right</string>
@@ -306,6 +312,7 @@
     <string name="command_add_text">Add text</string>
     <string name="command_edit_text">Edit text</string>
     <string name="command_remove_text">Remove text</string>
+    <string name="command_set_kotlin_ui">Edit Kotlin UI</string>
     <string name="command_set_appearance">Change appearance</string>
     <string name="command_add_event">Add Event</string>
     <string name="command_remove_event">Remove Event</string>

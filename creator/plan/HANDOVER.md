@@ -14,24 +14,24 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## State (not pushed since a957441b)
 
-- **Scene settings exist** as the generated `SceneSettings` Actor (bounds, background color, camera start), with
-  `set_scene_settings`. The user chose bounds only: the view stays `Dynamic`, and edge Events use the bounds when a Scene has
-  them. Music waits for the Audio Blocks.
-- **The if Block can check whether the game is paused.**
-- **Checked live** on a scratch Breakout copy (template version 2, regenerated): the background fills the bounds behind every
-  Actor, the camera start shifts the view, and the ball stays within the bounds (frames 0.4 s apart, so no bounce was caught exactly
-  at an edge). Unit tests and the integration test pass (the integration test is quick with warm Gradle daemons, and a deliberately
-  broken `SceneSettings` made it fail, so it does compile).
+- **Manager types have a Kotlin UI:** verbatim Compose statements after the texts in the generated `Composable`, edited in a dialog
+  from the "Kotlin UI" section under the texts, and by `set_kotlin_ui`. Leading import lines become the file's imports; other
+  Manager types, `actorManager`, `viewportManager`, and `stateManager` are looked up only when the code names them.
+- **Checked live** on a scratch Breakout copy: the section's preview, the dialog with the code (it soft-wraps long lines), and the
+  regenerated Manager. Not played. The integration test compiles a Kotlin UI using all of the above, and a broken one fails it.
+- **Scene settings** (previous session) and the paused condition are in, see `../CLAUDE.md`.
 - **AI work is paused** by the user's choice: only fix bugs in what exists.
 
 ## Next
 
-1. Kotlin UI for Manager types (`02-blocks.md` → Game UI).
-2. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`.
-3. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
+1. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`.
+2. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
+3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
 
+- Typing in the Kotlin UI dialog (each keystroke is a `set_kotlin_ui`, merged into one undo step), and a game with a Kotlin UI
+  actually played (the generated code compiles; nobody has seen it draw).
 - Placing and editing `SceneSettings` from the embedded Scene editor's palette and inspector (the color and `SceneOffset` editors),
   and that its camera start doesn't move the editor's camera. `set_scene_settings` from a real AI session.
 - A ball bouncing exactly at the bounds' edge, and going to another Scene with different (or no) settings.

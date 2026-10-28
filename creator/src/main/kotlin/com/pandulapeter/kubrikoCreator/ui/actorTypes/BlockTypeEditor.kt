@@ -69,6 +69,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
@@ -83,7 +84,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Edits a block-built Actor type or Manager type in GameMaker's arrangement: its appearance (or, for a Manager type,
- * the texts it shows) and Properties, the column of its Events, the Blocks of the selected Event in the order they run,
+ * the texts and Kotlin UI it shows) and Properties, the column of its Events, the Blocks of the selected Event in the order they run,
  * and the palette of Blocks to add.
  *
  * @param scope What its Blocks can refer to.
@@ -164,6 +165,12 @@ internal fun BlockTypeEditor(
                         onAdded = { onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition(text = "{${definition.properties.firstOrNull()?.name ?: "score"}}")))) },
                         onChanged = { index, text -> onCommand(Invocation(EditText, EditText.Input(name, index, text))) },
                         onRemoved = { index -> onCommand(Invocation(RemoveText, RemoveText.Input(name, index))) },
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                    KotlinUiSection(
+                        managerTypeName = name,
+                        code = definition.kotlinUi,
+                        onCodeChange = { onCommand(Invocation(SetKotlinUi, SetKotlinUi.Input(name, it))) },
                     )
                 }
             }

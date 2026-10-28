@@ -177,5 +177,16 @@ class ProjectTemplateIntegrationTest {
         properties = properties,
         events = everyEvent(everyManagerBlock),
         texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()),
+        kotlinUi = """
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.foundation.layout.windowInsetsPadding
+            import androidx.compose.foundation.text.BasicText
+            import androidx.compose.ui.Modifier
+
+            Column(modifier = Modifier.windowInsetsPadding(windowInsets)) {
+                if (!stateManager.isRunning.value && !isInSceneEditor) BasicText("Paused: ${'$'}title")
+                BasicText("${'$'}{everyManager.score + score} ${'$'}{actorManager.allActors.value.size} ${'$'}{viewportManager.size.value}")
+            }
+        """.trimIndent(),
     )
 }

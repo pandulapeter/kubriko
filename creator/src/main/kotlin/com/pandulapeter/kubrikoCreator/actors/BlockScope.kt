@@ -53,6 +53,11 @@ internal data class BlockScope(
         ).filterNot { isOwn(it) }.distinct().sorted()
 
     /**
+     * The other Manager types that [kotlinUi] names by their field, which the generated class has to look up.
+     */
+    fun managersNamedIn(kotlinUi: KotlinUi?) = kotlinUi?.let { ui -> managerTypes.map { it.name }.filter { !isOwn(it) && ui.names(managerField(it)) } }.orEmpty()
+
+    /**
      * Whether the placeholder names a Property that exists, of any kind.
      */
     fun hasProperty(placeholder: PropertyPlaceholders.Placeholder) = propertyOf(placeholder) != null

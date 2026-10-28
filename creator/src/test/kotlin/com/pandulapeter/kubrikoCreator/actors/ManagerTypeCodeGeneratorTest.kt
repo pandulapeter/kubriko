@@ -126,6 +126,33 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
+    fun theKotlinUiIsTheComposableBodyWithItsImportsAndTheManagersItNames() {
+        val level = ManagerTypeDefinition("Level", properties = listOf(PropertyDefinition.Number("number")))
+        val hud = ManagerTypeDefinition("Hud")
+        val code = generate(
+            game.copy(kotlinUi = "import androidx.compose.foundation.layout.Column\nColumn {\n    if (!stateManager.isRunning.value) BasicText(\"\${level.number}\")\n}\n"),
+            managerTypes = listOf(game, level, hud),
+        )
+        assertContains(code, "    @Composable\n    override fun Composable(windowInsets: WindowInsets) {\n        Column {\n            if (!stateManager.isRunning.value) BasicText(\"\${level.number}\")\n        }\n    }\n")
+        assertContains(code, "import androidx.compose.foundation.layout.Column\n")
+        assertContains(code, "import androidx.compose.foundation.layout.WindowInsets\n")
+        assertContains(code, "    private val stateManager by manager<StateManager>()\n    private val level by manager<Level>()\n")
+        assertFalse("manager<Hud>" in code)
+        assertFalse("ActorManager" in code)
+        assertFalse("ViewportManager" in code)
+        assertFalse("BasicText\n" in code)
+        assertFalse("Box(" in code)
+    }
+
+    @Test
+    fun theKotlinUiIsDrawnAfterTheTexts() {
+        val code = generate(game.copy(texts = listOf(ScreenTextDefinition("{score}")), kotlinUi = "viewportManager.size.value\nactorManager.allActors.value"))
+        assertContains(code, "            )\n        }\n        viewportManager.size.value\n        actorManager.allActors.value\n    }\n")
+        assertContains(code, "    private val actorManager by manager<ActorManager>()\n    private val viewportManager by manager<ViewportManager>()\n")
+        assertEquals(1, code.lines().count { it == "import androidx.compose.runtime.Composable" })
+    }
+
+    @Test
     fun theWiringCreatesEveryManagerInNameOrder() {
         val wiring = ManagerTypeCodeGenerator.generateWiring(listOf("Level", "Game"), "com.example.game")
         assertTrue(GeneratedFile.isUnchanged(wiring))
