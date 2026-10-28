@@ -15,10 +15,11 @@ lives in `plan/` (start with `plan/README.md`).
 
 ## Running and testing
 
-- Run against this repository's libraries: the `[Desktop] Kubriko Creator` run configuration, or `./gradlew publishDesktopPublicationToMavenLocal
-  publishWasmJsPublicationToMavenLocal publishKotlinMultiplatformPublicationToMavenLocal :creator:run -Pcreator.localKubriko=true`.
-  `creator.localKubriko` publishes the libraries to Maven Local as `<library.version>-creator` (so they never shadow a real release) and bundles
-  that version and `mavenLocal()` into `creator.properties`, so new projects use them. Without it, projects use the released version.
+- Run against this repository's libraries: `./gradlew :creator:run`, however it is started (the `[Desktop] Kubriko Creator` run
+  configuration spells it out). `settings.gradle.kts` turns on `creator.localKubriko` for any build that runs `:creator:run` and puts the
+  three Maven Local publish tasks first. `creator.localKubriko` publishes the libraries to Maven Local as `<library.version>-creator` (so
+  they never shadow a real release) and bundles that version and `mavenLocal()` into `creator.properties`, so projects use them. Packaged
+  builds, and `:creator:run -Pcreator.localKubriko=false`, bundle the released version instead.
 - `./gradlew :creator:test` runs the unit tests (also in the `Tests` workflow). `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<version>`
   additionally generates every template for real and compiles it, plus an Actor type and two Manager types using every Event and Block (and
   each other's Properties), for desktop and web, and resolves the desktop runtime classpath as playing does (compiling alone misses a

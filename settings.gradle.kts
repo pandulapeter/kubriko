@@ -9,6 +9,21 @@
 */
 rootProject.name = "Kubriko"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+// Kubriko Creator run from this repository always uses this repository's libraries, published to Maven Local first, so
+// that the projects it opens never point at a Kubriko version that isn't released yet (creator/CLAUDE.md). An explicit
+// -Pcreator.localKubriko=false runs it against the released libraries instead.
+gradle.startParameter.let { startParameter ->
+    val creatorRunTasks = setOf(":creator:run", "creator:run")
+    if (startParameter.taskNames.none { it in creatorRunTasks } || startParameter.projectProperties["creator.localKubriko"] == "false") return@let
+    val publishTasks = listOf(
+        "publishDesktopPublicationToMavenLocal",
+        "publishWasmJsPublicationToMavenLocal",
+        "publishKotlinMultiplatformPublicationToMavenLocal",
+    )
+    startParameter.setTaskNames(publishTasks + startParameter.taskNames.filter { it !in publishTasks })
+    startParameter.projectProperties = startParameter.projectProperties + ("creator.localKubriko" to "true")
+}
 pluginManagement {
     repositories {
         google()

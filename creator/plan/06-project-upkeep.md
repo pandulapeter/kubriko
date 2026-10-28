@@ -18,7 +18,8 @@ are needed. The plugins a project depends on, and the plugin Managers it creates
 
 Opted-in projects follow Creator's own Kubriko version. Left: a link to the release notes of the versions a raise skipped, suggesting a
 Creator update for a project on a newer version than Creator's, and refusing to raise a project to a version that isn't published (a
-Creator built from `main` after a version bump, without `creator.localKubriko`, would otherwise break the project's build).
+packaged Creator built from `main` after a version bump would otherwise break the project's build; `:creator:run` always uses local
+libraries now).
 
 ## Kubriko dependencies
 
