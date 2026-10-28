@@ -57,7 +57,15 @@
     <string name="action_apply_upgrade">Apply changes</string>
     <string name="action_commit_first">Commit first</string>
     <string name="action_not_now">Not now</string>
-    <string name="workspace_hint">Select an Actor type or a Manager type to edit what it does, or create a new one with the + button. Click a Scene to place Actors in it, and Play to run the game.</string>
+    <string name="workspace_hint_title">Lights, camera, action!</string>
+    <string name="workspace_hint_subtitle">Think of your game as a film. Pick something on the left to work on, or make something new with its + button.</string>
+    <string name="workspace_hint_cast_title">The cast</string>
+    <string name="workspace_hint_cast">Actor types are the characters of your game. Each one plays its role: Events say when it acts, and Blocks say what it does.</string>
+    <string name="workspace_hint_crew_title">The crew</string>
+    <string name="workspace_hint_crew">Managers work behind the scenes for the whole game: they keep the score, show texts on the screen, and react to keys.</string>
+    <string name="workspace_hint_scenes_title">The scenes</string>
+    <string name="workspace_hint_scenes">Scenes are where the story happens. Open one and drag your Actor types in to set the stage.</string>
+    <string name="workspace_hint_play">Press Play whenever you want to see your game in action.</string>
     <string name="session_starting">Building…</string>
     <string name="session_playing">Playing</string>
     <string name="session_editing">Editing a Scene</string>
@@ -231,7 +239,9 @@
     <string name="color_picker_opacity">Opacity</string>
     <string name="actor_type_width">Width</string>
     <string name="actor_type_sprite">Sprite</string>
-    <string name="actor_type_parent">Parent</string>
+    <string name="actor_type_parent">Based on</string>
+    <string name="actor_type_children">Base of</string>
+    <string name="actor_type_children_more">%1$d more</string>
     <string name="actor_type_parent_none">None</string>
     <string name="actor_type_inherited_events">From the parent</string>
     <string name="actor_type_inherited_property">%1$s (%2$s, from the parent)</string>
@@ -240,7 +250,6 @@
     <string name="actor_type_sprites_empty">Put .png images right in the drawable folder of composeResources to draw Actors as sprites.</string>
     <string name="actor_type_collision_shape">Collision shape</string>
     <string name="actor_type_height">Height</string>
-    <string name="actor_type_regenerated">Kubriko Creator keeps its Kotlin code up to date.</string>
     <string name="event_game_started">When the game starts</string>
     <string name="event_added_to_scene">When added to the Scene</string>
     <string name="event_every_frame">Every frame</string>
@@ -267,6 +276,9 @@
     <string name="action_new_actor_type">New Actor type</string>
     <string name="action_new_folder">New folder</string>
     <string name="action_rename_folder">Rename</string>
+    <string name="action_rename_actor_type">Rename Actor type</string>
+    <string name="action_rename_manager_type">Rename Manager type</string>
+    <string name="action_rename">Rename</string>
     <string name="action_delete_folder">Delete folder</string>
     <string name="action_folder_options">Folder options</string>
     <string name="new_folder_hint">Folder name</string>

@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.accentEdge
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_drag_block
@@ -82,8 +83,9 @@ internal fun BlockRow(
         .alpha(if ((dragState.dragged as? DraggedBlock.Existing)?.index == index) 0.4f else 1f)
         .clip(MaterialTheme.shapes.small)
         .background(if (nesting.role == BlockNesting.Role.PLAIN) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
+        .accentEdge(BlockKind.of(block).category.accent.color)
         .background(rememberFlashColor(flashKey))
-        .padding(start = 4.dp, top = 2.dp, bottom = 6.dp),
+        .padding(start = 8.dp, top = 2.dp, bottom = 6.dp),
     verticalArrangement = Arrangement.spacedBy(2.dp),
 ) {
     val kind = BlockKind.of(block)
@@ -101,7 +103,7 @@ internal fun BlockRow(
             modifier = Modifier.size(16.dp),
             painter = painterResource(kind.icon),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.tertiary,
+            tint = kind.category.accent.color,
         )
         Text(
             modifier = Modifier.weight(1f),

@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
@@ -90,7 +91,7 @@ internal fun SceneInspector(
             }
         }
         view.isBackground(selectedId) -> {
-            PanelHeader(icon = Res.drawable.ic_scene, title = stringResource(Res.string.scene_settings_title)) {
+            PanelHeader(icon = Res.drawable.ic_scene, title = stringResource(Res.string.scene_settings_title), accent = Accent.SCENE) {
                 IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
             }
             SceneSettingsInspector(
@@ -101,7 +102,7 @@ internal fun SceneInspector(
             )
         }
         else -> {
-            PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId) {
+            PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId, accent = Accent.CAST) {
                 IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
             }
             if (actor != null) {

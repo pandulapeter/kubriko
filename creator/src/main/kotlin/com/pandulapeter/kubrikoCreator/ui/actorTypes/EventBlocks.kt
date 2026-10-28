@@ -41,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_blocks_empty
 import kubriko.creator.generated.resources.event_none_selected
@@ -84,7 +85,7 @@ internal fun EventBlocks(
             modifier = Modifier.size(16.dp),
             painter = painterResource(event.type.icon),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = Accent.EVENT.color,
         )
         Text(
             text = stringResource(event.type.title),

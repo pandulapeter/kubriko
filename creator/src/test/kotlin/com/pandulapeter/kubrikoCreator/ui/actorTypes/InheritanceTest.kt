@@ -35,6 +35,7 @@ class InheritanceTest {
                 properties = listOf(PropertyDefinition.Text("cry")),
                 events = listOf(EventDefinition(EventType.ADDED_TO_SCENE)),
                 parentChoices = listOf("Enemy"),
+                children = listOf("Vampire"),
             ),
             Inheritance.of(bat, types),
         )
@@ -45,5 +46,12 @@ class InheritanceTest {
         assertEquals(emptyList(), Inheritance.of(enemy, types).parentChoices)
         assertEquals(listOf("Enemy", "Bat"), Inheritance.of(vampire, types).parentChoices)
         assertEquals(Inheritance(), Inheritance.of(game, types))
+    }
+
+    @Test
+    fun onlyDirectChildrenAreListedInAlphabeticalOrder() {
+        val ghost = ActorTypeDefinition(name = "Ghost", parent = "Enemy")
+        assertEquals(listOf("Bat", "Ghost"), Inheritance.of(enemy, types + ghost).children)
+        assertEquals(emptyList(), Inheritance.of(vampire, types).children)
     }
 }

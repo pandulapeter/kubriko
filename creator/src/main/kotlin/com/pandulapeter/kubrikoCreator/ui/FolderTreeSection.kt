@@ -35,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.MenuIconButton
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.accent
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
@@ -47,11 +49,13 @@ import kubriko.creator.generated.resources.action_new_actor_type
 import kubriko.creator.generated.resources.action_new_folder
 import kubriko.creator.generated.resources.action_new_manager_type
 import kubriko.creator.generated.resources.action_new_scene
+import kubriko.creator.generated.resources.action_rename
 import kubriko.creator.generated.resources.action_rename_folder
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_create_new_folder
 import kubriko.creator.generated.resources.ic_delete
+import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_folder_open
 import kubriko.creator.generated.resources.ic_more
 import kubriko.creator.generated.resources.ic_scene
@@ -129,6 +133,7 @@ internal fun LazyListScope.folderTreeSection(
             modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, "")),
             icon = group.icon,
             title = stringResource(group.title),
+            accent = group.accent,
         ) {
             IconActionButton(
                 icon = Res.drawable.ic_create_new_folder,
@@ -163,6 +168,7 @@ internal fun LazyListScope.folderTreeSection(
                     placeholder = Res.string.new_folder_hint,
                     initialName = row.name,
                     indent = 24.dp + SIDEBAR_INDENT * row.depth,
+                    confirmLabel = Res.string.action_rename,
                     onCreate = { name -> actions.onRenameFolder(group, row.path, name).also { if (it == null) onNamingChange(null) } },
                     onCancel = { onNamingChange(null) },
                 )
@@ -190,6 +196,7 @@ internal fun LazyListScope.folderTreeSection(
                     SidebarDragState.Dragged(row.name, group, state.items.firstOrNull { it.first == row.name }?.second.orEmpty()),
                 ),
                 icon = group.icon,
+                accent = group.accent,
                 text = FolderPaths.nameOf(row.name),
                 depth = row.depth,
                 isSelected = row.name == state.selectedName,
@@ -268,7 +275,7 @@ private fun FolderRow(
 
 private enum class FolderOption(val title: StringResource, val icon: DrawableResource) {
     NEW_FOLDER(Res.string.action_new_folder, Res.drawable.ic_create_new_folder),
-    RENAME(Res.string.action_rename_folder, Res.drawable.ic_text),
+    RENAME(Res.string.action_rename_folder, Res.drawable.ic_edit),
     DELETE(Res.string.action_delete_folder, Res.drawable.ic_delete),
 }
 
@@ -288,6 +295,12 @@ internal val FolderGroup.icon
     get() = when (this) {
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).icon
         FolderGroup.SCENES -> Res.drawable.ic_scene
+    }
+
+internal val FolderGroup.accent
+    get() = when (this) {
+        FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).accent
+        FolderGroup.SCENES -> Accent.SCENE
     }
 
 private val FolderGroup.title

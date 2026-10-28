@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,13 +17,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,10 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
@@ -46,9 +39,11 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
@@ -68,12 +63,9 @@ import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.project_upgrade_commit_message
 import kubriko.creator.generated.resources.scene_preparing
 import kubriko.creator.generated.resources.scene_unsupported
-import kubriko.creator.generated.resources.workspace_hint
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -240,6 +232,15 @@ internal fun WorkspaceScreen(
                     inheritance = remember(selectedBlockType, blockTypes) { Inheritance.of(selectedBlockType, blockTypes) },
                         isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
                         onCommand = { controller.commands.dispatch(it) },
+                        onRename = { newName ->
+                            controller.dispatchIfValid(
+                                when (selectedBlockType) {
+                                    is ActorTypeDefinition -> Invocation(RenameActorType, RenameActorType.Input(selectedBlockType.name, newName))
+                                    is ManagerTypeDefinition -> Invocation(RenameManagerType, RenameManagerType.Input(selectedBlockType.name, newName))
+                                },
+                            )
+                        },
+                        onTypeSelected = blockTypesController::select,
                         highlight = latestAiStep?.highlightIn(selectedBlockType.name),
                     )
                 } else if (sceneEditing == SceneEditingState.Closed) {
@@ -287,32 +288,5 @@ internal fun WorkspaceScreen(
             )
         }
         SidebarDragPreview(sidebarDragState)
-    }
-}
-
-@Composable
-private fun WorkspaceHint(
-    modifier: Modifier,
-) = Box(
-    modifier = modifier.padding(32.dp),
-    contentAlignment = Alignment.Center,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(
-            modifier = Modifier.size(40.dp),
-            painter = painterResource(Res.drawable.ic_actor_type),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            modifier = Modifier.widthIn(max = 420.dp),
-            text = stringResource(Res.string.workspace_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
     }
 }

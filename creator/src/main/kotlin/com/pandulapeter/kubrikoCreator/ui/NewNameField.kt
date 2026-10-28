@@ -48,6 +48,7 @@ import org.jetbrains.compose.resources.stringResource
  * cancels, and a rejected name shows why.
  *
  * @param initialName The name it starts with, for renaming.
+ * @param confirmLabel What its confirming button is called.
  * @param indent How far it is from the start, to line up with the rows around it.
  */
 @Composable
@@ -57,6 +58,7 @@ internal fun NewNameField(
     onCancel: () -> Unit,
     initialName: String = "",
     indent: Dp = 24.dp,
+    confirmLabel: StringResource = Res.string.action_add,
 ) = Column(
     modifier = Modifier.fillMaxWidth().padding(start = indent, end = 4.dp, bottom = 4.dp),
 ) {
@@ -91,7 +93,7 @@ internal fun NewNameField(
         )
         IconActionButton(
             icon = Res.drawable.ic_check,
-            label = Res.string.action_add,
+            label = confirmLabel,
             onClick = create,
             isEnabled = name.isNotBlank(),
         )

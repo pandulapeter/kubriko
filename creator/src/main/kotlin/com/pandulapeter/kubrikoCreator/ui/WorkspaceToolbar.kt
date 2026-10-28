@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -29,9 +30,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kubriko.creator.generated.resources.Res
@@ -83,6 +86,7 @@ internal fun WorkspaceToolbar(
     if (sessionState == SessionState.Idle) {
         Button(
             contentPadding = ToolbarButtonPadding,
+            colors = ButtonDefaults.buttonColors(containerColor = Accent.ACTION.color, contentColor = Color.White),
             onClick = onPlay,
         ) {
             ButtonContent(Res.drawable.ic_play, Res.string.action_play)
@@ -90,6 +94,10 @@ internal fun WorkspaceToolbar(
     } else {
         FilledTonalButton(
             contentPadding = ToolbarButtonPadding,
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            ),
             onClick = onStop,
         ) {
             ButtonContent(Res.drawable.ic_stop, Res.string.action_stop)

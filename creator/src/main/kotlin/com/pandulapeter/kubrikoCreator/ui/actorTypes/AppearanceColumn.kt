@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_appearance
@@ -31,40 +32,34 @@ import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_shape_circle
 import kubriko.creator.generated.resources.actor_type_shape_rectangle
 import kubriko.creator.generated.resources.actor_type_width
+import kubriko.creator.generated.resources.ic_palette
 import kubriko.creator.generated.resources.ic_sprite
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * How an Actor type looks: its sprite, or its shape and color, and the size it is placed with. With a sprite, the
- * shape is only its collision mask's. Its parent is chosen here too.
+ * shape is only its collision mask's.
  *
  * @param sprites The images it can be drawn as, by their path from `composeResources`.
- * @param parentChoices The Actor types it can inherit from (not itself, nor one that inherits from it).
  */
 @Composable
 internal fun AppearanceColumn(
     definition: ActorTypeDefinition,
     sprites: List<String>,
-    parentChoices: List<String>,
-    onParentChange: (String?) -> Unit,
     onChange: (SetAppearance.Input) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
 ) {
     PanelHeader(
-        icon = Res.drawable.ic_sprite,
+        icon = Res.drawable.ic_palette,
+        accent = Accent.CAST,
         title = stringResource(Res.string.actor_type_appearance),
     )
     Column(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        ParentChoice(
-            parent = definition.parent,
-            choices = parentChoices,
-            onParentChange = onParentChange,
-        )
         SpriteChoice(
             sprite = definition.sprite,
             sprites = sprites,

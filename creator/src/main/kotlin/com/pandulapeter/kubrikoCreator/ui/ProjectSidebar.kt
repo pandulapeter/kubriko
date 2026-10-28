@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
@@ -111,6 +112,7 @@ internal fun ProjectSidebar(
                     modifier = Modifier.clickable { collapsedGroups = if (isCollapsed) collapsedGroups - group else collapsedGroups + group },
                     icon = group.icon,
                     title = stringResource(group.title),
+                    accent = Accent.CODE,
                 ) {
                     Icon(
                         modifier = Modifier.padding(end = 8.dp).size(16.dp).rotate(if (isCollapsed) -90f else 0f),
@@ -136,6 +138,7 @@ internal fun ProjectSidebar(
                 items(groupResources, key = { it.relativePath }) { resource ->
                     SidebarItem(
                         icon = group.icon,
+                        accent = Accent.CODE,
                         text = resource.name,
                         detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
                         onClick = null,

@@ -45,6 +45,8 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
@@ -150,11 +152,9 @@ private fun SceneHeader(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    Icon(
-        modifier = Modifier.size(16.dp),
-        painter = painterResource(Res.drawable.ic_scene),
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.primary,
+    AccentIcon(
+        icon = Res.drawable.ic_scene,
+        accent = Accent.SCENE,
     )
     Text(
         text = sceneName,

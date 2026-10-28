@@ -39,11 +39,13 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.components.accentEdge
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_palette
 import kubriko.creator.generated.resources.block_palette_drag_hint
 import kubriko.creator.generated.resources.block_palette_hint
 import kubriko.creator.generated.resources.ic_add
+import kubriko.creator.generated.resources.ic_block
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -62,7 +64,7 @@ internal fun BlockPalette(
 ) {
     var requestedCategory by rememberSaveable { mutableStateOf(BlockCategory.MOVEMENT) }
     PanelHeader(
-        icon = Res.drawable.ic_add,
+        icon = Res.drawable.ic_block,
         title = stringResource(Res.string.block_palette),
     )
     if (eventType == null) {
@@ -85,7 +87,7 @@ internal fun BlockPalette(
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 2.dp),
         text = stringResource(category.title),
         style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
+        color = category.accent.color,
     )
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -118,17 +120,18 @@ private fun CategoryTabs(
     categories.forEach { category ->
         val isSelected = category == selected
         IconActionButton(
-            modifier = Modifier.clip(MaterialTheme.shapes.small).background(if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent),
+            modifier = Modifier.clip(MaterialTheme.shapes.small).background(if (isSelected) category.accent.container else Color.Transparent),
             icon = category.icon,
             label = category.title,
             onClick = { onSelected(category) },
-            tint = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = if (isSelected) category.accent.color else category.accent.color.copy(alpha = 0.6f),
         )
     }
 }
 
 /**
- * A Block of the palette: a click adds it at the end of the selected Event, a drag puts it where it is dropped.
+ * A Block of the palette, a chip in its category's color like the card it becomes: a click adds it at the end of the
+ * selected Event, a drag puts it where it is dropped.
  */
 @Composable
 private fun PaletteEntry(
@@ -138,10 +141,14 @@ private fun PaletteEntry(
 ) = Row(
     modifier = Modifier
         .fillMaxWidth()
+        .padding(horizontal = 8.dp, vertical = 2.dp)
+        .clip(MaterialTheme.shapes.small)
+        .background(kind.category.accent.container)
+        .accentEdge(kind.category.accent.color)
         .heightIn(min = 32.dp)
         .blockDragSource(dragState) { DraggedBlock.New(kind) }
         .clickable(onClick = onClick)
-        .padding(horizontal = 12.dp),
+        .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
@@ -149,7 +156,7 @@ private fun PaletteEntry(
         modifier = Modifier.size(16.dp),
         painter = painterResource(kind.icon),
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.tertiary,
+        tint = kind.category.accent.color,
     )
     Text(
         text = stringResource(kind.title),

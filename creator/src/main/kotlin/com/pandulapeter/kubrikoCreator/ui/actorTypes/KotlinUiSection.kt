@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.KotlinUi
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
@@ -51,6 +52,7 @@ internal fun KotlinUiSection(
     var isEditing by remember(managerTypeName) { mutableStateOf(false) }
     PanelHeader(
         icon = Res.drawable.ic_code,
+        accent = Accent.CODE,
         title = stringResource(Res.string.manager_type_kotlin_ui),
     ) {
         IconActionButton(

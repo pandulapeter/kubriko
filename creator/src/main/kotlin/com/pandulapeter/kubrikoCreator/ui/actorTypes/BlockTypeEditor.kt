@@ -72,15 +72,16 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
+import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_manager_type
 import kubriko.creator.generated.resources.actor_type_properties_empty
-import kubriko.creator.generated.resources.actor_type_regenerated
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.manager_type_properties_empty
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -101,6 +102,8 @@ internal fun BlockTypeEditor(
     inheritance: Inheritance,
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>) -> Unit,
+    onRename: (String) -> StringResource?,
+    onTypeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
 ) = Box(
@@ -126,9 +129,13 @@ internal fun BlockTypeEditor(
         )
     }
     Column {
-        Header(
-            flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
+        BlockTypeHeader(
             definition = definition,
+            inheritance = inheritance,
+            flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
+            onRename = onRename,
+            onParentChange = { onCommand(Invocation(SetParent, SetParent.Input(name, it))) },
+            onTypeSelected = onTypeSelected,
             onDelete = {
                 when (definition) {
                     is ActorTypeDefinition -> onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name)))
@@ -154,8 +161,6 @@ internal fun BlockTypeEditor(
                     AppearanceColumn(
                         definition = definition,
                         sprites = sprites,
-                        parentChoices = inheritance.parentChoices,
-                        onParentChange = { onCommand(Invocation(SetParent, SetParent.Input(name, it))) },
                         onChange = { onCommand(Invocation(SetAppearance, it)) },
                     )
                     HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
@@ -236,42 +241,6 @@ internal fun BlockTypeEditor(
     DragPreview(dragState)
 }
 
-@Composable
-private fun Header(
-    flashKey: Any?,
-    definition: BlockTypeDefinition,
-    onDelete: () -> Unit,
-) = Row(
-    modifier = Modifier.fillMaxWidth().background(rememberFlashColor(flashKey)).padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-    horizontalArrangement = Arrangement.spacedBy(10.dp),
-    verticalAlignment = Alignment.CenterVertically,
-) {
-    Icon(
-        modifier = Modifier.size(20.dp),
-        painter = painterResource(definition.kind.icon),
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.primary,
-    )
-    Column(
-        modifier = Modifier.weight(1f),
-    ) {
-        Text(
-            text = definition.name,
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Text(
-            text = stringResource(Res.string.actor_type_regenerated),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    IconActionButton(
-        icon = Res.drawable.ic_delete,
-        label = if (definition is ManagerTypeDefinition) Res.string.action_delete_manager_type else Res.string.action_delete_actor_type,
-        onClick = onDelete,
-    )
-}
-
 /**
  * The Block being dragged, following the pointer.
  */
@@ -295,7 +264,7 @@ private fun DragPreview(dragState: BlockDragState) {
                 modifier = Modifier.size(16.dp),
                 painter = painterResource(dragged.kind.icon),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.tertiary,
+                tint = dragged.kind.category.accent.color,
             )
             Text(
                 text = stringResource(dragged.kind.title),

@@ -17,12 +17,13 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 
 /**
  * What a type's editor shows about inheritance: the Properties and Events an Actor type gets from its parent (those it
- * doesn't replace), and the Actor types it can have as a parent.
+ * doesn't replace), the Actor types it can have as a parent, and the ones that have it as theirs.
  */
 internal data class Inheritance(
     val properties: List<PropertyDefinition> = emptyList(),
     val events: List<EventDefinition> = emptyList(),
     val parentChoices: List<String> = emptyList(),
+    val children: List<String> = emptyList(),
 ) {
     companion object {
 
@@ -39,6 +40,7 @@ internal data class Inheritance(
                 properties = family.propertiesOf(definition.name).filter { it.name !in ownNames },
                 events = with(ActorTypeFamily) { inheritedEvents.filter { inherited -> definition.events.none { it.replaces(inherited) } } },
                 parentChoices = actorTypes.map { it.name }.filter { it != definition.name && it !in family.descendantsOf(definition.name) },
+                children = actorTypes.filter { it.parent == definition.name }.map { it.name }.sorted(),
             )
         }
     }

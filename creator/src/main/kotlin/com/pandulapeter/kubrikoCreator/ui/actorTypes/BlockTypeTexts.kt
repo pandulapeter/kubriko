@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_pause_action_pause
 import kubriko.creator.generated.resources.block_pause_action_resume
@@ -180,4 +181,10 @@ internal val BlockTypeKind.icon: DrawableResource
     get() = when (this) {
         BlockTypeKind.ACTOR -> Res.drawable.ic_actor_type
         BlockTypeKind.MANAGER -> Res.drawable.ic_manager_type
+    }
+
+internal val BlockTypeKind.accent
+    get() = when (this) {
+        BlockTypeKind.ACTOR -> Accent.CAST
+        BlockTypeKind.MANAGER -> Accent.CREW
     }

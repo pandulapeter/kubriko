@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
@@ -46,6 +47,7 @@ import kubriko.creator.generated.resources.actor_type_inherited_events
 import kubriko.creator.generated.resources.event_collision_choose
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
+import kubriko.creator.generated.resources.ic_event
 import kubriko.creator.generated.resources.ic_loop
 import kubriko.creator.generated.resources.ic_move_down
 import kubriko.creator.generated.resources.ic_move_up
@@ -73,8 +75,9 @@ internal fun EventList(
     modifier = modifier,
 ) {
     PanelHeader(
-        icon = Res.drawable.ic_loop,
+        icon = Res.drawable.ic_event,
         title = stringResource(Res.string.actor_type_events),
+        accent = Accent.EVENT,
     ) {
         MenuIconButton(
             icon = Res.drawable.ic_add,
@@ -184,7 +187,7 @@ private fun EventListItem(
     modifier = Modifier
         .fillMaxWidth()
         .heightIn(min = 36.dp)
-        .then(if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
+        .then(if (isSelected) Modifier.background(Accent.EVENT.container) else Modifier)
         .background(rememberFlashColor(flashKey))
         .clickable(onClick = onClick)
         .padding(start = 12.dp, end = 4.dp),
@@ -195,7 +198,7 @@ private fun EventListItem(
         modifier = Modifier.size(16.dp),
         painter = painterResource(event.type.icon),
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.primary,
+        tint = Accent.EVENT.color,
     )
     Column(
         modifier = Modifier.weight(1f).padding(vertical = 4.dp),

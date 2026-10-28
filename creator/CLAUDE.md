@@ -285,7 +285,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |
-| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/components` | Compose UI (`ui/scenes`: the Scene editor's pane, canvas, and the sidebar drag). `BlockTypeEditor` follows GameMaker's object window: appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette. |
+| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/components` | Compose UI (`ui/scenes`: the Scene editor's pane, canvas, and the sidebar drag). `BlockTypeEditor` follows GameMaker's object window: a one-line header (`BlockTypeHeader`: the name, renamed in place through `rename_actor_type` / `rename_manager_type`, and for an Actor type the type it is based on and the ones based on it, which open on a click), appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette. |
 | `window` | JetBrains Runtime title bar the content extends under, and the 0.85 interface scale (both from the user's Campfire app). |
 
 ## Conventions specific to Creator
@@ -304,6 +304,12 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   ported from Tesselar's model editor, with its logic in `ColorPickerValue` and `HsvColor`, and `checkerboard()` behind what is
   translucent; every color field's swatch opens it, and hex codes are `#RRGGBB` or `#AARRGGBB`), vector icons in
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
+- **Friendly, and told as a film:** Actor types are the cast (theater masks), Manager types the crew (a director's chair), and
+  Scenes the scenes being shot (a clapperboard), never scenery. Each kind of thing keeps one `Accent` (`ui/components`, with a
+  light and a dark shade) everywhere it shows: the cast, the crew, the Scenes, Events, and every Block category, whose Blocks
+  are colored chips in the palette and cards with an `accentEdge` in the Event. `AccentIcon` (an icon on a tile of its
+  accent's wash) marks headers, `PanelHeader` and `SidebarItem` take an `accent`, Play is green, and the empty workspace
+  (`WorkspaceHint`) introduces the cast, the crew, and the scenes.
 - Generated Kotlin reads like the examples' hand-written Kubriko code: an Actor type is `Dynamic` only when it moves or has work every
   frame (a Kotlin Block counts), looks up only the Managers its Blocks use, is `Collidable` only when a collision Event (its own or another
   type's) involves it, and builds its collision mask with the body's scale and rotation, centered on the body wherever its pivot is (the Scene editor creates an edited Actor again from its state, so the mask

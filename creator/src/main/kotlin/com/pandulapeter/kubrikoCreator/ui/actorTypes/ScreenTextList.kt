@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -54,6 +55,7 @@ internal fun ScreenTextList(
 ) {
     PanelHeader(
         icon = Res.drawable.ic_text,
+        accent = Accent.CREW,
         title = stringResource(Res.string.manager_type_texts),
     ) {
         IconActionButton(

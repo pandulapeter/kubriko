@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -67,6 +68,7 @@ internal fun PropertyList(
 ) {
     PanelHeader(
         icon = Res.drawable.ic_property,
+        accent = Accent.PROPERTIES,
         title = stringResource(Res.string.actor_type_properties),
     ) {
         MenuIconButton(

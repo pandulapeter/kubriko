@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_category_actors
 import kubriko.creator.generated.resources.block_category_audio
@@ -38,11 +39,13 @@ import org.jetbrains.compose.resources.StringResource
 internal enum class BlockCategory(
     val title: StringResource,
     val icon: DrawableResource,
+    val accent: Accent,
     val kinds: List<BlockKind>,
 ) {
     MOVEMENT(
         Res.string.block_category_movement,
         Res.drawable.ic_velocity,
+        Accent.MOVEMENT,
         listOf(
             BlockKind.SET_VELOCITY,
             BlockKind.ADD_TO_VELOCITY,
@@ -53,13 +56,13 @@ internal enum class BlockCategory(
             BlockKind.BOUNCE_OFF_OTHER,
         ),
     ),
-    ACTORS(Res.string.block_category_actors, Res.drawable.ic_actor_type, listOf(BlockKind.ADD_ACTOR, BlockKind.REMOVE_SELF, BlockKind.REMOVE_OTHER)),
-    PROPERTIES(Res.string.block_category_properties, Res.drawable.ic_property, listOf(BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER, BlockKind.SET_TEXT, BlockKind.SET_TOGGLE)),
-    FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END, BlockKind.RUN_PARENT_EVENT)),
-    TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),
-    SCENES(Res.string.block_category_scenes, Res.drawable.ic_scene, listOf(BlockKind.GO_TO_SCENE, BlockKind.RESTART_SCENE, BlockKind.PAUSE_GAME)),
-    AUDIO(Res.string.block_category_audio, Res.drawable.ic_sound, listOf(BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC, BlockKind.STOP_MUSIC)),
-    CODE(Res.string.block_category_code, Res.drawable.ic_code, listOf(BlockKind.LOG, BlockKind.KOTLIN));
+    ACTORS(Res.string.block_category_actors, Res.drawable.ic_actor_type, Accent.CAST, listOf(BlockKind.ADD_ACTOR, BlockKind.REMOVE_SELF, BlockKind.REMOVE_OTHER)),
+    PROPERTIES(Res.string.block_category_properties, Res.drawable.ic_property, Accent.PROPERTIES, listOf(BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER, BlockKind.SET_TEXT, BlockKind.SET_TOGGLE)),
+    FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, Accent.FLOW, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END, BlockKind.RUN_PARENT_EVENT)),
+    TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, Accent.TIMERS, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),
+    SCENES(Res.string.block_category_scenes, Res.drawable.ic_scene, Accent.SCENE, listOf(BlockKind.GO_TO_SCENE, BlockKind.RESTART_SCENE, BlockKind.PAUSE_GAME)),
+    AUDIO(Res.string.block_category_audio, Res.drawable.ic_sound, Accent.AUDIO, listOf(BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC, BlockKind.STOP_MUSIC)),
+    CODE(Res.string.block_category_code, Res.drawable.ic_code, Accent.CODE, listOf(BlockKind.LOG, BlockKind.KOTLIN));
 
     companion object {
 
@@ -70,3 +73,8 @@ internal enum class BlockCategory(
         fun availableIn(eventType: EventType, typeKind: BlockTypeKind) = entries.filter { category -> category.kinds.any { it.isAvailableIn(eventType, typeKind) } }
     }
 }
+
+/**
+ * The palette category this Block is in, whose [BlockCategory.accent] it is drawn with.
+ */
+internal val BlockKind.category get() = BlockCategory.entries.first { this in it.kinds }
