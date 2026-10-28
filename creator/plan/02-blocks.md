@@ -40,7 +40,8 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (through
   `ViewportManager.setAspectRatioMode`).
 - **Camera:** follow an Actor, shake, zoom.
-- **Appearance:** sprites and sprite sheets (with animation settings) instead of shapes; layer and drawing order.
+- **Appearance:** sprites and sprite sheets (with animation settings) instead of shapes, drawn in the sprite editor
+  (`08-sprite-editor.md`); layer and drawing order.
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
   Scene bounds (as opposed to touching the edge).
 - **More drag and drop:** reordering Events the same way, dragging a Block into another Event, and scrolling the Block list while

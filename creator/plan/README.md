@@ -19,14 +19,16 @@ has a file of its own, so a session only needs the one it works on.
 0. [Library releases](00-library-release.md) - 0.8.0 shipped Creator's library side; how later library changes reach projects.
 1. [Blocks, Actor types, and Manager types](02-blocks.md) - next: audio, sprites, and the rest of the Block
    set, UI elements, the Paddle game template, Convert to code, and more drag and drop. The editor comes before more AI work.
-2. [AI assistant](01-ai-assistant.md) - more for the MCP server, then the in-app panel with the user's API key, which waits until the editor
+2. [Sprite editor](08-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
+   GameMaker 6.1's; it follows sprites as an Actor type's appearance.
+3. [AI assistant](01-ai-assistant.md) - more for the MCP server, then the in-app panel with the user's API key, which waits until the editor
    does more. **Every new editor feature lands with its command, its AI tool, and their tests.**
-3. [Version control](03-git.md) - sidebar change markers, restoring old versions, branches, remotes.
-4. [Debugger](04-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
-5. [Export and distribution](05-export-and-distribution.md) - signed Android builds, desktop installers, web export, iOS, the JDK download,
+4. [Version control](03-git.md) - sidebar change markers, restoring old versions, branches, remotes.
+5. [Debugger](04-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
+6. [Export and distribution](05-export-and-distribution.md) - signed Android builds, desktop installers, web export, iOS, the JDK download,
    Creator's own installers.
-6. [Project upkeep](06-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
-7. [Later](07-later.md) - code editor, hot reload, language server, asset editor extension point.
+7. [Project upkeep](06-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
+8. [Later](07-later.md) - code editor, hot reload, language server, asset editor extension point.
 
 ## Vision
 

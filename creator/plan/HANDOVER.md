@@ -26,7 +26,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 ## Next
 
 1. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`. Their plugins now come and go with the Blocks that use them;
-   their Managers belong in `PluginManagers` and `KubrikoWiring`, not in a template upgrade.
+   their Managers belong in `PluginManagers` and `KubrikoWiring`, not in a template upgrade. Sprites as an appearance come before the
+   sprite editor (`08-sprite-editor.md`), which is next after them.
 2. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
 3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
