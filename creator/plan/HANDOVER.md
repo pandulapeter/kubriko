@@ -17,8 +17,11 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - **Manager types have a Kotlin UI:** verbatim Compose statements after the texts in the generated `Composable`, edited in a dialog
   from the "Kotlin UI" section under the texts, and by `set_kotlin_ui`. Leading import lines become the file's imports; other
   Manager types, `actorManager`, `viewportManager`, and `stateManager` are looked up only when the code names them.
-- **Checked live** on a scratch Breakout copy: the section's preview, the dialog with the code (it soft-wraps long lines), and the
-  regenerated Manager. Not played. The integration test compiles a Kotlin UI using all of the above, and a broken one fails it.
+- **Kotlin Blocks and Kotlin UI follow renames** of Actor types, Manager types, and Properties (`KotlinIdentifiers`), and code
+  fields scroll sideways instead of wrapping.
+- **Checked live** on a scratch Breakout copy: the section's preview, the dialog, typing in it (saved as typed, one Cmd+Z undoes it
+  all), the template upgrade dialog (its "deleted" file row too), and playing: the Kotlin UI draws over the texts and shows its
+  text only while the game is paused. StateFlows must be read with `collectAsState()` there, which the tool and the dialog say.
 - **Scene settings** (previous session) and the paused condition are in, see `../CLAUDE.md`.
 - **AI work is paused** by the user's choice: only fix bugs in what exists.
 
@@ -30,14 +33,15 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Never checked by hand
 
-- Typing in the Kotlin UI dialog (each keystroke is a `set_kotlin_ui`, merged into one undo step), and a game with a Kotlin UI
-  actually played (the generated code compiles; nobody has seen it draw).
+- A rename following Kotlin code from the UI (unit-tested in `BlockTypeEditsTest` and `KotlinIdentifiersTest`). Adding a Property
+  named like another Manager type's field (`lives` beside a `Lives` type) moves that field to `livesManager`, and Kotlin code isn't
+  updated for that.
 - Placing and editing `SceneSettings` from the embedded Scene editor's palette and inspector (the color and `SceneOffset` editors),
   and that its camera start doesn't move the editor's camera. `set_scene_settings` from a real AI session.
 - A ball bouncing exactly at the bounds' edge, and going to another Scene with different (or no) settings.
 - The Scene editor creating an edited Actor again when a drag ends or the selection moves on (unit-tested in `SceneDocumentTest`;
   watch the debug overlay's collision mask follow a resize, and that undo still selects the right Actor).
-- The go to a Scene card's Scene menu (the pause card was seen in a screenshot), and the upgrade dialog's "deleted" file row.
+- The go to a Scene card's Scene menu (the pause card was seen in a screenshot).
 - A paused game in the embedded Scene editor (its Managers' Events don't run there, so it should be unaffected).
 - The "score of Game" Property menu in an Actor's Block.
 - A Scene whose Actors use a Manager, in the embedded Scene editor (`createCustomManagers`, `isInSceneEditor`).

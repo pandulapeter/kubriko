@@ -48,7 +48,7 @@ internal fun BlockTypeDefinition.withBlockMoved(eventIndex: Int, blockIndex: Int
 }
 
 /**
- * Every collision Event and Block that names [oldName] names [newName] instead.
+ * Every collision Event, Block, and Kotlin code that names [oldName] names [newName] instead.
  */
 internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newName: String) = withEvents(
     events.map { event ->
@@ -57,19 +57,27 @@ internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newN
             blocks = event.blocks.map { it.withActorTypeRenamed(oldName, newName) },
         )
     },
-)
+).withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }
 
 /**
- * Every Block and text that uses a Property of the Manager type [oldName] uses that of [newName] instead.
+ * Every Block, text, and Kotlin code that uses the Manager type [oldName] (by its class, or, in another type, by the
+ * field the generated code looks it up in) uses [newName] instead.
  */
 internal fun BlockTypeDefinition.withManagerRenamed(oldName: String, newName: String) = withBlocks { it.withManagerRenamed(oldName, newName) }
     .withTexts { PropertyPlaceholders.withManagerRenamed(it, oldName, newName) }
+    .withKotlinCode { code ->
+        KotlinIdentifiers.withRenamed(code, oldName, newName).let { renamed ->
+            if (name == oldName) renamed else KotlinIdentifiers.withRenamed(renamed, scope.managerField(oldName), scope.managerField(newName))
+        }
+    }
 
 /**
- * Every Block and text that uses the Property [oldName] of the Manager type [manager] uses [newName] instead.
+ * Every Block, text, and Kotlin code of another type that uses the Property [oldName] of the Manager type [manager]
+ * uses [newName] instead. The Manager type's own code follows through [withPropertyReplaced].
  */
 internal fun BlockTypeDefinition.withManagerPropertyRenamed(manager: String, oldName: String, newName: String) = withBlocks { it.withPropertyRenamed(oldName, newName, manager) }
     .withTexts { PropertyPlaceholders.withPropertyRenamed(it, manager, oldName, newName) }
+    .withKotlinCode { if (name == manager) it else KotlinIdentifiers.withRenamed(it, oldName, newName, receiver = scope.managerField(manager)) }
 
 internal fun BlockTypeDefinition.withPropertyInserted(index: Int, property: PropertyDefinition) = withProperties(
     properties.toMutableList().apply { add(index.coerceIn(0, size), property) },
@@ -78,14 +86,16 @@ internal fun BlockTypeDefinition.withPropertyInserted(index: Int, property: Prop
 internal fun BlockTypeDefinition.withPropertyRemoved(name: String) = withProperties(properties.filter { it.name != name })
 
 /**
- * The Property called [name] replaced by [property]. If that renames it, the Blocks that change it (and Log Blocks and
- * texts that show it) follow.
+ * The Property called [name] replaced by [property]. If that renames it, the Blocks that change it (and Log Blocks,
+ * texts, and Kotlin code that use it) follow.
  */
 internal fun BlockTypeDefinition.withPropertyReplaced(name: String, property: PropertyDefinition) = withProperties(properties.map { if (it.name == name) property else it }).let { replaced ->
     if (property.name == name) {
         replaced
     } else {
-        replaced.withBlocks { it.withPropertyRenamed(name, property.name) }.withTexts { PropertyPlaceholders.withPropertyRenamed(it, null, name, property.name) }
+        replaced.withBlocks { it.withPropertyRenamed(name, property.name) }
+            .withTexts { PropertyPlaceholders.withPropertyRenamed(it, null, name, property.name) }
+            .withKotlinCode { KotlinIdentifiers.withRenamed(it, name, property.name) }
     }
 }
 
@@ -116,5 +126,17 @@ private fun BlockTypeDefinition.withTexts(change: (String) -> String) = when (th
     is ManagerTypeDefinition -> copy(texts = texts.map { it.copy(text = change(it.text)) })
     is ActorTypeDefinition -> this
 }
+
+/**
+ * The code of its Kotlin Blocks and, for a Manager type, its Kotlin UI changed by [change].
+ */
+private fun BlockTypeDefinition.withKotlinCode(change: (String) -> String) = withBlocks { if (it is BlockDefinition.Kotlin) it.copy(code = change(it.code)) else it }.let { changed ->
+    when (changed) {
+        is ManagerTypeDefinition -> changed.copy(kotlinUi = changed.kotlinUi?.let(change))
+        is ActorTypeDefinition -> changed
+    }
+}
+
+private val BlockTypeDefinition.scope get() = BlockScope(name, kind, properties)
 
 private fun <T> List<T>.moved(index: Int, targetIndex: Int) = toMutableList().apply { add(targetIndex.coerceIn(indices), removeAt(index)) }

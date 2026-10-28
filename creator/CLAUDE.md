@@ -83,7 +83,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Compose state (`mutableFloatStateOf` for numbers, so nothing boxes), whose texts are `BasicText`s in its `Composable`, followed by
   its Kotlin UI (`kotlinUi`, `set_kotlin_ui`, edited in a dialog): verbatim Compose statements whose leading import lines become the
   file's imports (`KotlinUi`), with other Manager types, `actorManager`, `viewportManager`, and `stateManager` looked up only when
-  the code names them, and which, like a Kotlin Block, doesn't follow renames. The Manager is
+  the code names them. The Manager is
   `KeyboardInputAware` and adds itself as an Actor when it has key pressed Events (as the examples' Managers do; `GeneratedScenes`
   adds it back after each Scene's `removeAll`). Its
   Events don't run in the Scene editor (`isInSceneEditor`), nor every frame while the game is paused. The generated
@@ -106,7 +106,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   at the end of the Scene if it has none), editing its state as JSON (`SceneSettingsState`; colors are saved as Compose's packed
   value); otherwise it is placed and edited in the Scene editor, from its palette and inspector.
 - **Reaching a Manager:** the Property Blocks and conditions have an optional `manager`, and Log Blocks and texts show `{Manager.name}`
-  placeholders (`PropertyPlaceholders`). `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the
+  placeholders (`PropertyPlaceholders`). Kotlin Blocks and Kotlin UI follow renames too (`KotlinIdentifiers`: identifiers outside
+  strings and comments, string templates included; an own Property bare or after `this.`, another Manager's after its field, type names
+  bare), though, knowing no grammar, a local variable of the same name is renamed with them. `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the
   editor's Property choices alike: an Actor looks the Managers it uses up in `onAdded` (a field named after the type, unless a
   Property has that name), a Manager through `manager<T>()`, and a Manager naming itself means its own Properties. Renaming a
   Manager type or one of its Properties follows every Block, placeholder, and text of every type.
@@ -194,7 +196,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   (`BlockDragState`: an in-window drag, dropped through `add_block` / `move_block`), each Block is a card indented by its
   section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing
   uses yet and collapses Kotlin files, and New project keeps the package under More options.
-- Desktop-sized UI from the start: `ui/components` (`CompactTextField`, `IconActionButton` with tooltip, `PanelHeader`), vector icons in
+- Desktop-sized UI from the start: `ui/components` (`CompactTextField`, which scrolls code sideways instead of wrapping it, `IconActionButton` with tooltip, `PanelHeader`), vector icons in
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
 - Generated Kotlin reads like the examples' hand-written Kubriko code: an Actor type is `Dynamic` only when it moves or has work every
   frame (a Kotlin Block counts), looks up only the Managers its Blocks use, and builds its collision mask with the body's scale and

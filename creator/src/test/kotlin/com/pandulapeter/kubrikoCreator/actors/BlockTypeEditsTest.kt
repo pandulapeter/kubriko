@@ -118,6 +118,36 @@ class BlockTypeEditsTest {
     }
 
     @Test
+    fun kotlinCodeFollowsRenamedTypes() {
+        val hud = ManagerTypeDefinition(
+            name = "Hud",
+            properties = listOf(PropertyDefinition.Number("match")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("if (actor is Ball) game.score = 0f")))),
+            kotlinUi = "BasicText(\"Game: \${game.score}\")\nval x: Game = game",
+        )
+        val renamed = hud.withManagerRenamed("Game", "Match").withOtherActorTypeRenamed("Ball", "Puck") as ManagerTypeDefinition
+        assertEquals(BlockDefinition.Kotlin("if (actor is Puck) matchManager.score = 0f"), renamed.events.single().blocks.single())
+        assertEquals("BasicText(\"Game: \${matchManager.score}\")\nval x: Match = matchManager", renamed.kotlinUi)
+        val game = ManagerTypeDefinition("Game", kotlinUi = "val game: Game = this")
+        assertEquals("val game: Match = this", (game.withManagerRenamed("Game", "Match") as ManagerTypeDefinition).kotlinUi)
+    }
+
+    @Test
+    fun kotlinCodeFollowsRenamedProperties() {
+        val game = ManagerTypeDefinition(
+            name = "Game",
+            properties = listOf(PropertyDefinition.Number("score")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("score += hud.score")))),
+            kotlinUi = "BasicText(\"\$score\")",
+        )
+        val renamed = game.withPropertyReplaced("score", PropertyDefinition.Number("points")).withManagerPropertyRenamed("Game", "score", "points") as ManagerTypeDefinition
+        assertEquals(BlockDefinition.Kotlin("points += hud.score"), renamed.events.single().blocks.single())
+        assertEquals("BasicText(\"\$points\")", renamed.kotlinUi)
+        val hud = ManagerTypeDefinition("Hud", properties = listOf(PropertyDefinition.Number("score")), kotlinUi = "BasicText(\"\${game.score} \$score\")")
+        assertEquals("BasicText(\"\${game.points} \$score\")", (hud.withManagerPropertyRenamed("Game", "score", "points") as ManagerTypeDefinition).kotlinUi)
+    }
+
+    @Test
     fun textsAreInsertedReplacedAndRemoved() {
         val game = ManagerTypeDefinition("Game")
         val withTexts = game.withTextInserted(0, ScreenTextDefinition("B")).withTextInserted(0, ScreenTextDefinition("A"))
