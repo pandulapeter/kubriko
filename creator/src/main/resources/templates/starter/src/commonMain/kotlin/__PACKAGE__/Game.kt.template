@@ -6,8 +6,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.collision.CollisionManager
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import {{PACKAGE}}.generated.KubrikoWiring
 
 /**
@@ -20,8 +18,6 @@ fun Game(
     val kubriko = remember {
         Kubriko.newInstance(
             GameSerialization.createSerializationManager(),
-            CollisionManager.newInstance(),
-            KeyboardInputManager.newInstance(),
             *KubrikoWiring.createManagers(firstScene = "main").toTypedArray(),
         )
     }

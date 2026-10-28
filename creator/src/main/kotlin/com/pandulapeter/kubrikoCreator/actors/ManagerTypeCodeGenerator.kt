@@ -143,10 +143,24 @@ internal object ManagerTypeCodeGenerator {
         })
     }
 
-    fun generateWiring(managerTypeNames: List<String>, packageName: String) = GeneratedFile.withHeader("", buildString {
+    /**
+     * @param pluginManagers Which of the plugins' Managers the game needs, which are created here too, so that `Game.kt`
+     *   doesn't name a plugin the game doesn't use.
+     */
+    fun generateWiring(
+        managerTypeNames: List<String>,
+        packageName: String,
+        pluginManagers: PluginManagers = PluginManagers(),
+    ) = GeneratedFile.withHeader("", buildString {
+        val pluginManagerNames = listOfNotNull(
+            "CollisionManager".takeIf { pluginManagers.usesCollisions },
+            "KeyboardInputManager".takeIf { pluginManagers.usesKeyboard },
+        )
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
         appendLine("import com.pandulapeter.kubriko.actor.Actor")
+        if (pluginManagers.usesCollisions) appendLine("import com.pandulapeter.kubriko.collision.CollisionManager")
+        if (pluginManagers.usesKeyboard) appendLine("import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
         appendLine("import com.pandulapeter.kubriko.manager.Manager")
         appendLine()
         appendLine("/**")
@@ -155,16 +169,30 @@ internal object ManagerTypeCodeGenerator {
         appendLine("object $WIRING_NAME {")
         appendLine()
         appendLine("    /**")
-        appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, and the one that loads Scenes, for Kubriko.newInstance.")
+        appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, the one that loads Scenes, and those of the plugins")
+        appendLine("     * the game uses, for Kubriko.newInstance.")
         appendLine("     *")
-        appendLine("     * @param isInSceneEditor True in the Scene editor, where their Events don't run and no Scene is loaded.")
+        appendLine("     * @param isInSceneEditor True in the Scene editor, where their Events don't run, no Scene is loaded, and the plugins'")
+        appendLine("     *   Managers are left to the editor.")
         appendLine("     * @param firstScene The name of the Scene loaded when the game starts, or null to load none.")
         appendLine("     */")
         appendLine("    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> {")
         appendLine("        val managers = listOf<Manager>(")
         managerTypeNames.sorted().forEach { appendLine("            $it(isInSceneEditor),") }
         appendLine("        )")
-        appendLine("        return listOf(${ScenesCodeGenerator.SCENES_NAME}(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers")
+        val scenes = "listOf(${ScenesCodeGenerator.SCENES_NAME}(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()))"
+        if (pluginManagerNames.isEmpty()) {
+            appendLine("        return $scenes + managers")
+        } else {
+            appendLine("        val pluginManagers = if (isInSceneEditor) {")
+            appendLine("            emptyList()")
+            appendLine("        } else {")
+            appendLine("            listOf<Manager>(")
+            pluginManagerNames.forEach { appendLine("                $it.newInstance(),") }
+            appendLine("            )")
+            appendLine("        }")
+            appendLine("        return pluginManagers + $scenes + managers")
+        }
         appendLine("    }")
         appendLine("}")
     })

@@ -164,6 +164,20 @@ class ManagerTypeCodeGeneratorTest {
                 "        return listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers\n    }\n",
         )
         assertContains(ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"), "        val managers = listOf<Manager>(\n        )\n")
+        assertFalse("CollisionManager" in wiring || "KeyboardInputManager" in wiring)
+    }
+
+    @Test
+    fun theWiringCreatesThePluginManagersTheGameUsesOutsideTheSceneEditor() {
+        val wiring = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(setOf("Ball"), usesKeyboard = true))
+        assertContains(wiring, "import com.pandulapeter.kubriko.collision.CollisionManager\nimport com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager\n")
+        assertContains(
+            wiring,
+            "        val pluginManagers = if (isInSceneEditor) {\n            emptyList()\n        } else {\n            listOf<Manager>(\n" +
+                "                CollisionManager.newInstance(),\n                KeyboardInputManager.newInstance(),\n            )\n        }\n" +
+                "        return pluginManagers + listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers\n",
+        )
+        assertFalse("CollisionManager" in ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesKeyboard = true)))
     }
 
     @Test

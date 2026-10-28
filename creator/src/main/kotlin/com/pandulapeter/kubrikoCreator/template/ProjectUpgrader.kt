@@ -29,9 +29,11 @@ import java.io.File
  * Version 2 passes the generated Manager types to Kubriko and to the Scene editor (`GameEntryPoint.kt`). Version 3 lets
  * the generated `GeneratedScenes` load the first Scene, so that Blocks can load others: `Game.kt` hands
  * `KubrikoWiring.createManagers` the Scene its `SceneLoader` loaded instead, and `SceneLoader.kt` is deleted if it is
- * still the template's. A file is only changed when it still looks like the template's (one `Kubriko.newInstance` with a
- * one-line `SceneLoader` in it, one `createSerializationManager`); a file that already does what the version needs counts
- * as done, whoever changed it, and so does a `SceneLoader.kt` changed by hand, which is left alone.
+ * still the template's. Version 4 leaves the plugins' Managers to `KubrikoWiring`, which creates only those the game uses,
+ * so that the project only depends on the plugins it uses: `Game.kt` stops creating them. A file is only changed when it
+ * still looks like the template's (one `Kubriko.newInstance` with a one-line `SceneLoader` in it, one-line plugin
+ * Managers, one `createSerializationManager`); a file that already does what the version needs counts as done, whoever
+ * changed it, and so does a `SceneLoader.kt` changed by hand, which is left alone.
  */
 internal class ProjectUpgrader(
     private val rootDirectory: File,
@@ -54,7 +56,7 @@ internal class ProjectUpgrader(
             if (text != null && changed != null) changes += ProposedFileChange(path, text, changed) else byHand += path
             return changed != null
         }
-        val isGameUpgraded = propose("$packagePath/$GAME_FILE", ::loadsScenesThroughWiring) { withScenesLoadedByWiring(it, wiringImport) }
+        val isGameUpgraded = propose("$packagePath/$GAME_FILE", ::isGameUpToDate) { upgradedGame(it, wiringImport) }
         propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it }) { withManagersHandedToTheSceneEditor(it, wiringImport) }
         val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
         read(sceneLoaderPath)?.takeIf { isGameUpgraded && it.trimEnd() == templateSceneLoader(packageName)?.trimEnd() }?.let { text ->
@@ -101,13 +103,44 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 3
+        const val CURRENT_VERSION = 4
         private const val GAME_FILE = "Game.kt"
         private const val ENTRY_POINT_FILE = "GameEntryPoint.kt"
         private const val SCENE_LOADER_FILE = "SceneLoader.kt"
         private const val SCENE_LOADER_TEMPLATE = "upgrades/SceneLoader-2.kt.template"
         private val json = Json { prettyPrint = true }
         private val scenePathPattern = Regex("\"${ScenesCodeGenerator.SCENE_DIRECTORY}/([^\"/]+)\\.json\"")
+        private val pluginManagerImports = mapOf(
+            "CollisionManager" to "import com.pandulapeter.kubriko.collision.CollisionManager",
+            "KeyboardInputManager" to "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager",
+        )
+
+        /**
+         * Whether [text] (a `Game.kt`) is what the current template version needs.
+         */
+        internal fun isGameUpToDate(text: String) = loadsScenesThroughWiring(text) && createsNoPluginManagers(text)
+
+        /**
+         * [text] (a `Game.kt`) brought up to the current template version, or null if it doesn't look like the template's.
+         */
+        internal fun upgradedGame(text: String, wiringImport: String): String? {
+            val withScenes = if (loadsScenesThroughWiring(text)) text else withScenesLoadedByWiring(text, wiringImport) ?: return null
+            return withoutPluginManagers(withScenes)
+        }
+
+        /**
+         * [text] (a `Game.kt`) without the plugin Managers it creates (and their imports), which `KubrikoWiring` creates
+         * when the game uses them, or null if it creates them in a way that doesn't look like the template's.
+         */
+        internal fun withoutPluginManagers(text: String): String? {
+            val withoutManagers = text.lines().filterNot { line -> pluginManagerImports.keys.any { line.trim() == "$it.newInstance()," } }
+            val withoutImports = withoutManagers.filterNot { line ->
+                pluginManagerImports.any { (name, import) -> line.trim() == import && withoutManagers.none { name in it && !it.startsWith("import ") } }
+            }
+            return withoutImports.joinToString("\n").takeIf(::createsNoPluginManagers)
+        }
+
+        private fun createsNoPluginManagers(text: String) = pluginManagerImports.keys.none { "$it.newInstance(" in text }
 
         /**
          * Whether [text] (a `Game.kt`) passes the generated Managers to Kubriko without a `SceneLoader` of its own.

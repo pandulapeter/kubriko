@@ -41,12 +41,14 @@ internal object ActorTypeCodeGenerator {
      * @param knownActorTypeNames Every Actor type of the project: collision Events with any other Actor type (one that
      *   was deleted, or not chosen yet) are left out, so that the generated code always compiles.
      * @param managerTypes Every Manager type of the project, whose Properties the Blocks may use.
+     * @param collidableActorTypeNames The Actor types that get a collision mask ([PluginManagers.collidableActorTypeNames]).
      */
     fun generateActorType(
         definition: ActorTypeDefinition,
         packageName: String,
         knownActorTypeNames: Collection<String> = listOf(definition.name),
         managerTypes: List<ManagerTypeDefinition> = emptyList(),
+        collidableActorTypeNames: Set<String> = emptySet(),
     ): String {
         val name = definition.name
         val scope = BlockScope(name, BlockTypeKind.ACTOR, definition.properties, knownActorTypeNames.toList(), managerTypes)
@@ -54,6 +56,7 @@ internal object ActorTypeCodeGenerator {
         val edgeEvents = definition.events.filter { it.type == EventType.EDGE_TOUCHED }
         val collisionEvents = definition.events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
         val timerEvents = definition.events.filter { it.type == EventType.TIMER_FINISHED && it.timer in TIMER_NUMBERS }
+        val isCollidable = collisionEvents.isNotEmpty() || name in collidableActorTypeNames
         val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents + timerEvents
         val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerNumber } }).filter { it in TIMER_NUMBERS }.distinct().sorted()
         val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
@@ -82,19 +85,21 @@ internal object ActorTypeCodeGenerator {
         val traits = listOfNotNull(
             "Visible",
             "Dynamic".takeIf { isDynamic },
-            if (collisionEvents.isEmpty()) "Collidable" else "CollisionDetector",
+            if (collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { isCollidable },
             "Editable<$name>",
             "KeyboardInputAware".takeIf { keyEvents.isNotEmpty() },
         )
         val imports = buildSet {
             addAll(BASE_IMPORTS)
-            add("com.pandulapeter.kubriko.collision.Collidable")
-            add(
-                when (definition.shape) {
-                    ActorShape.CIRCLE -> "com.pandulapeter.kubriko.collision.mask.CircleCollisionMask"
-                    ActorShape.RECTANGLE -> "com.pandulapeter.kubriko.collision.mask.BoxCollisionMask"
-                },
-            )
+            if (isCollidable) {
+                add("com.pandulapeter.kubriko.collision.Collidable")
+                add(
+                    when (definition.shape) {
+                        ActorShape.CIRCLE -> "com.pandulapeter.kubriko.collision.mask.CircleCollisionMask"
+                        ActorShape.RECTANGLE -> "com.pandulapeter.kubriko.collision.mask.BoxCollisionMask"
+                    },
+                )
+            }
             if (collisionEvents.isNotEmpty()) add("com.pandulapeter.kubriko.collision.CollisionDetector")
             if (collisionEvents.isNotEmpty()) add("kotlin.reflect.KClass")
             if (keyEvents.isNotEmpty()) addAll(KEYBOARD_IMPORTS)
@@ -139,12 +144,14 @@ internal object ActorTypeCodeGenerator {
                 appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
                 appendLine("    var ${property.name}: ${PropertyKind.of(property).kotlinType} = state.${property.name}")
             }
-            appendLine()
-            appendLine("    /**")
-            appendLine("     * The middle of the Actor in the Scene, wherever its pivot is, which is where its collision mask goes.")
-            appendLine("     */")
-            appendLine("    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")
-            appendLine(collisionMask(definition.shape))
+            if (isCollidable) {
+                appendLine()
+                appendLine("    /**")
+                appendLine("     * The middle of the Actor in the Scene, wherever its pivot is, which is where its collision mask goes.")
+                appendLine("     */")
+                appendLine("    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")
+                appendLine(collisionMask(definition.shape))
+            }
             if (collisionEvents.isNotEmpty()) {
                 appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted().joinToString { "$it::class" }})")
             }
@@ -171,7 +178,7 @@ internal object ActorTypeCodeGenerator {
                 appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, scope = scope)
                 appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
                 if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, scope)
-                appendLine("        collisionMask.position = bodyCenter")
+                if (isCollidable) appendLine("        collisionMask.position = bodyCenter")
                 appendLine("    }")
             }
             // Kubriko keeps telling Actors about key presses while the game is paused.

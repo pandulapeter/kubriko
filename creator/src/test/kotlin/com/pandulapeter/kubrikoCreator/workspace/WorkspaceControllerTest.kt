@@ -502,7 +502,7 @@ class WorkspaceControllerTest {
             File(root, "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt").writeText("// Uses KubrikoWiring.\n")
             controller.onProjectChanged(setOf(ProjectChange.SOURCES))
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
-            assertTrue("\"templateVersion\": 3" in File(root, ".kubriko/project.json").readText())
+            assertTrue("\"templateVersion\": 4" in File(root, ".kubriko/project.json").readText())
         } finally {
             root.deleteRecursively()
         }

@@ -60,7 +60,7 @@ class ProjectUpgraderTest {
     @Test
     fun aNewProjectIsUpToDate() {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 3")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
         assertFalse(sceneLoaderFile.exists())
     }
 
@@ -82,7 +82,7 @@ class ProjectUpgraderTest {
         assertEquals(newEntryPoint, File(packageDirectory, "GameEntryPoint.kt").readText())
         assertFalse(sceneLoaderFile.exists())
         val settings = settingsFile.readText()
-        assertContains(settings, "\"templateVersion\": 3")
+        assertContains(settings, "\"templateVersion\": 4")
         assertContains(settings, "\"extra\": true")
     }
 
@@ -94,7 +94,29 @@ class ProjectUpgraderTest {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
         assertFalse(sceneLoaderFile.exists())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 3")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
+    }
+
+    @Test
+    fun upgradingAVersion3ProjectLeavesThePluginManagersToTheGeneratedWiring() {
+        val version3Game = newGame
+            .replace(KUBRIKO_IMPORT_LINE, "$KUBRIKO_IMPORT_LINE\n$COLLISION_IMPORT\n$KUBRIKO_IMPORT")
+            .replace(SERIALIZATION_LINE, "$SERIALIZATION_LINE\n            CollisionManager.newInstance(),\n            KeyboardInputManager.newInstance(),")
+        File(packageDirectory, "Game.kt").writeText(version3Game)
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 3 }""")
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt"), upgrade.changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
+        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
+    }
+
+    @Test
+    fun pluginManagersCreatedDifferentlyAreLeftToTheUserAndImportsStillInUseStay() {
+        val configured = "package a\n\n$KUBRIKO_IMPORT\n\nval k = Kubriko.newInstance(\n    KeyboardInputManager.newInstance(isEnabled = false),\n)"
+        assertNull(ProjectUpgrader.withoutPluginManagers(configured))
+        val stillUsed = "package a\n\n$KUBRIKO_IMPORT\n\nval k = Kubriko.newInstance(\n    KeyboardInputManager.newInstance(),\n)\nval m = kubriko.get<KeyboardInputManager>()"
+        assertEquals("package a\n\n$KUBRIKO_IMPORT\n\nval k = Kubriko.newInstance(\n)\nval m = kubriko.get<KeyboardInputManager>()", ProjectUpgrader.withoutPluginManagers(stillUsed))
     }
 
     @Test
@@ -136,7 +158,7 @@ class ProjectUpgraderTest {
         File(packageDirectory, "GameEntryPoint.kt").writeText(newEntryPoint)
         sceneLoaderFile.delete()
         ProjectUpgrader(directory).recordVersionIfUpToDate()
-        assertContains(settingsFile.readText(), "\"templateVersion\": 3")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 4")
     }
 
     @Test
@@ -158,6 +180,9 @@ class ProjectUpgraderTest {
         private const val SCENE_LOADER_LINE = "            SceneLoader(scenePath = \"files/scenes/main.json\"),"
         private const val KUBRIKO_IMPORT = "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
         private const val WIRING_IMPORT = "import com.example.mygame.generated.KubrikoWiring"
+        private const val KUBRIKO_IMPORT_LINE = "import com.pandulapeter.kubriko.KubrikoViewport"
+        private const val COLLISION_IMPORT = "import com.pandulapeter.kubriko.collision.CollisionManager"
+        private const val SERIALIZATION_LINE = "            GameSerialization.createSerializationManager(),"
         private val OLD_GAME = """
             |package com.example.mygame
             |

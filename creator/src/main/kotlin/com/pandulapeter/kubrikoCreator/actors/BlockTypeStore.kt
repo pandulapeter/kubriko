@@ -57,6 +57,7 @@ internal class BlockTypeStore private constructor(
         val definitions = load()
         val actorTypeNames = definitions.filterIsInstance<ActorTypeDefinition>().map { it.name }
         val managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
+        val pluginManagers = PluginManagers.of(definitions)
         generatedDirectory.mkdirs()
         val changedByHand = definitions.mapNotNull { definition ->
             val file = generatedFile(definition.name)
@@ -65,7 +66,13 @@ internal class BlockTypeStore private constructor(
             } else {
                 file.writeText(
                     when (definition) {
-                        is ActorTypeDefinition -> ActorTypeCodeGenerator.generateActorType(definition, settings.packageName, actorTypeNames, managerTypes)
+                        is ActorTypeDefinition -> ActorTypeCodeGenerator.generateActorType(
+                            definition = definition,
+                            packageName = settings.packageName,
+                            knownActorTypeNames = actorTypeNames,
+                            managerTypes = managerTypes,
+                            collidableActorTypeNames = pluginManagers.collidableActorTypeNames,
+                        )
                         is ManagerTypeDefinition -> ManagerTypeCodeGenerator.generateManagerType(definition, settings.packageName, actorTypeNames, managerTypes)
                     },
                 )
@@ -75,7 +82,7 @@ internal class BlockTypeStore private constructor(
         writeUnlessChangedByHand(ActorTypeCodeGenerator.REGISTRY_NAME, ActorTypeCodeGenerator.generateRegistry(actorTypeNames, settings.packageName))
         writeUnlessChangedByHand(ScenesCodeGenerator.SCENES_NAME, ScenesCodeGenerator.generate(settings.packageName))
         writeUnlessChangedByHand(SceneSettingsCodeGenerator.SETTINGS_NAME, SceneSettingsCodeGenerator.generate(settings.packageName))
-        writeUnlessChangedByHand(ManagerTypeCodeGenerator.WIRING_NAME, ManagerTypeCodeGenerator.generateWiring(managerTypes.map { it.name }, settings.packageName))
+        writeUnlessChangedByHand(ManagerTypeCodeGenerator.WIRING_NAME, ManagerTypeCodeGenerator.generateWiring(managerTypes.map { it.name }, settings.packageName, pluginManagers))
         return changedByHand
     }
 

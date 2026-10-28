@@ -64,7 +64,7 @@ class ProjectUpgradeCommandsTest {
         assertNull(Invocation(UpgradeProject, NoInput).apply(context).inverse)
         assertContains(game.readText(), "import com.example.game.generated.KubrikoWiring\n")
         assertContains(entryPoint.readText(), "    override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)\n")
-        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 3")
+        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 4")
         assertEquals(1, upgradedCount)
         assertEquals(Rejection(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).validate(context))
     }
