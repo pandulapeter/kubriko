@@ -67,7 +67,11 @@ internal class GradleProjectConnection(
         if (problem.definition.severity != Severity.ERROR) return null
         val location = problem.originLocations.filterIsInstance<LineInFileLocation>().firstOrNull()
         return GradleBuildEvent.Problem(
-            message = problem.contextualLabel?.contextualLabel ?: problem.definition.id.displayName,
+            message = problemMessageOf(
+                details = problem.details?.details,
+                contextualLabel = problem.contextualLabel?.contextualLabel,
+                displayName = problem.definition.id.displayName,
+            ),
             file = location?.path?.let(::File),
             line = location?.line,
             column = location?.column,
