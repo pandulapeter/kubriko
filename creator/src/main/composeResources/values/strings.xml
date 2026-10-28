@@ -37,6 +37,7 @@
     <string name="error_project_folder_not_empty">That folder already exists and isn't empty.</string>
     <string name="error_project_not_created">Kubriko Creator couldn't create the project.</string>
     <string name="welcome_subtitle">Make games with Kubriko: build Actor types from Events and Blocks, place them in Scenes, and play.</string>
+    <string name="prototype_banner">Early prototype – not ready for serious use.</string>
     <string name="opening_project">Opening %1$s…</string>
     <string name="error_not_a_gradle_project">Kubriko Creator couldn't open this folder as a Gradle project.</string>
     <string name="error_no_desktop_module">None of this project's modules can run on desktop.</string>

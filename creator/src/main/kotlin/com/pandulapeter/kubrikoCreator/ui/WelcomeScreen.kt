@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -53,6 +54,32 @@ internal fun WelcomeScreen(
     val pickerTitle = stringResource(Res.string.choose_project_folder)
     Column(
         modifier = Modifier.fillMaxSize(),
+    ) {
+        PrototypeBanner()
+        WelcomeContent(
+            modifier = Modifier.weight(1f),
+            error = error,
+            recentProjects = recentProjects,
+            onNewProject = onNewProject,
+            onOpenProject = onOpenProject,
+            onPickFolder = { pickFolder(pickerTitle)?.let(onOpenProject) },
+            onForgetRecentProject = onForgetRecentProject,
+        )
+    }
+}
+
+@Composable
+private fun WelcomeContent(
+    error: StringResource?,
+    recentProjects: List<RecentProject>,
+    onNewProject: () -> Unit,
+    onOpenProject: (File) -> Unit,
+    onPickFolder: () -> Unit,
+    onForgetRecentProject: (RecentProject) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -77,7 +104,7 @@ internal fun WelcomeScreen(
             Button(onClick = onNewProject) {
                 ButtonLabel(Res.drawable.ic_create_new_folder, Res.string.action_new_project)
             }
-            OutlinedButton(onClick = { pickFolder(pickerTitle)?.let(onOpenProject) }) {
+            OutlinedButton(onClick = onPickFolder) {
                 ButtonLabel(Res.drawable.ic_folder_open, Res.string.action_open_project)
             }
         }
