@@ -16,8 +16,7 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-0. [The groundwork release](00-library-release.md) - the next Kubriko release ships Creator's library side, so nothing needs local
-   library builds any more: protocol compatibility first, then a few small API additions. Not a usable Creator.
+0. [Library releases](00-library-release.md) - 0.8.0 shipped Creator's library side; how later library changes reach projects.
 1. [Blocks, Actor types, and Manager types](02-blocks.md) - next: audio, sprites, and the rest of the Block
    set, UI elements, the Paddle game template, Convert to code, and more drag and drop. The editor comes before more AI work.
 2. [AI assistant](01-ai-assistant.md) - more for the MCP server, then the in-app panel with the user's API key, which waits until the editor
@@ -59,6 +58,7 @@ compatibility or a copy of its look, icons, or action set; running Creator itsel
 | `composeResources/files/scenes/*.json` | Shared | Sidebar refreshes. |
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene offers to reload. |
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff (`06-project-upkeep.md`). |
+| The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
 | `.kubriko/local/` | Creator | Git-ignored. |
 
 ## Terminology
@@ -86,8 +86,8 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
 
 ## Open questions
 
-1. The oldest Kubriko version Creator supports (sessions work from 0.7.4; Scene editing and Actor types need the groundwork release,
-   `00-library-release.md`).
+1. The oldest Kubriko version Creator supports for projects that aren't opted in (sessions work from 0.7.4; opted-in projects are raised to
+   Creator's own version, `00-library-release.md`).
 2. Whether the Showcase should become editable in Creator.
 3. Whether web export should offer one-click hosting.
 4. Whether Creator may run the user's own Claude Code for its assistant panel, so subscription users need no API key. Calling the API with

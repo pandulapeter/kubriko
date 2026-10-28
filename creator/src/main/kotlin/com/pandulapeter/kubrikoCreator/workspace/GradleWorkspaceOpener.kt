@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -30,6 +31,8 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
         val connection = GradleProjectConnection(directory)
         try {
             val blockTypeStore = BlockTypeStore.open(directory)
+            val configuration = CreatorConfiguration.load()
+            val buildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)
             WorkspaceController(
                 project = ProjectInspector.inspect(connection),
                 build = connection,
@@ -37,7 +40,8 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
                 scope = scope,
                 scanResources = { ResourceScanner.scan(it, hiddenDirectory = blockTypeStore?.generatedPath) },
                 blockTypeRepository = blockTypeStore,
-                creatorKubrikoVersion = CreatorConfiguration.load().kubrikoVersion,
+                syncBuildFiles = buildFiles::sync,
+                creatorKubrikoVersion = configuration.kubrikoVersion,
                 generatedPath = blockTypeStore?.generatedPath,
                 startWatching = { onChange ->
                     ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)

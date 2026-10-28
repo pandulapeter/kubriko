@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -49,6 +50,10 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
+import kubriko.creator.generated.resources.status_kubriko_libraries_added
+import kubriko.creator.generated.resources.status_kubriko_libraries_removed
+import kubriko.creator.generated.resources.status_kubriko_version_changed
+import kubriko.creator.generated.resources.status_kubriko_version_newer
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -64,6 +69,7 @@ internal class WorkspaceController(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
     private val blockTypeRepository: BlockTypeRepository? = null,
+    syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     creatorKubrikoVersion: String = "",
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
     startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
@@ -74,6 +80,7 @@ internal class WorkspaceController(
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
     private val consoleLog = ConsoleLog()
+    private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     val console = consoleLog.entries
     private val sessions = SessionController(
         channel = sessionChannel,
@@ -109,6 +116,8 @@ internal class WorkspaceController(
                 sceneEditing.markOutdated()
             },
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
+            syncBuildFiles = syncBuildFiles,
+            onBuildFilesSynced = ::reportBuildFileChanges,
         )
     }
 
@@ -278,6 +287,19 @@ internal class WorkspaceController(
     )
 
     private fun appendToConsole(entry: ConsoleEntry) = consoleLog.append(entry)
+
+    private fun reportBuildFileChanges(changes: KubrikoBuildFileChanges) {
+        changes.previousVersion?.let { appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_version_changed, arguments = listOf(changes.version, it))) }
+        if (changes.isNewerThanCreator && !hasReportedNewerKubrikoVersion.getAndSet(true)) {
+            appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_version_newer, arguments = listOf(changes.version)))
+        }
+        if (changes.addedArtifacts.isNotEmpty()) {
+            appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_libraries_added, arguments = listOf(changes.addedArtifacts.joinToString())))
+        }
+        if (changes.removedArtifacts.isNotEmpty()) {
+            appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_libraries_removed, arguments = listOf(changes.removedArtifacts.joinToString())))
+        }
+    }
 
     override fun close() {
         watching.close()

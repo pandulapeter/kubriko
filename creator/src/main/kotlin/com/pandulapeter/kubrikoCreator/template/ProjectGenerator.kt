@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.template
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_project_not_created
@@ -21,7 +22,8 @@ import java.io.IOException
 
 /**
  * Creates a project from a [ProjectTemplate]: renders its files into the new project's folder, generates the code of its
- * block-built Actor types, adds the Gradle wrapper, and commits it all into a new git repository.
+ * block-built Actor types (and makes its build depend on the Kubriko libraries that code uses), adds the Gradle wrapper,
+ * and commits it all into a new git repository.
  */
 internal class ProjectGenerator(
     private val configuration: CreatorConfiguration,
@@ -48,6 +50,7 @@ internal class ProjectGenerator(
                 }
             }
             BlockTypeStore.open(directory)?.regenerateAll()
+            KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
             wrapperInstaller.install(directory, configuration.gradleVersion)
             if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
         } catch (exception: IOException) {
@@ -67,11 +70,10 @@ internal class ProjectGenerator(
         "KUBRIKO_VERSION" to configuration.kubrikoVersion,
         "KOTLIN_VERSION" to configuration.kotlinVersion,
         "COMPOSE_VERSION" to configuration.composeVersion,
-        "EXTRA_REPOSITORIES" to if (configuration.useMavenLocal) MAVEN_LOCAL_REPOSITORY else "",
+        "EXTRA_REPOSITORIES" to if (configuration.useMavenLocal) KubrikoBuildFiles.MAVEN_LOCAL_REPOSITORY else "",
     )
 
     internal companion object {
         const val FIRST_COMMIT_MESSAGE = "Created with Kubriko Creator."
-        const val MAVEN_LOCAL_REPOSITORY = "        mavenLocal {\n            content { includeGroup(\"io.github.pandulapeter.kubriko\") }\n        }\n"
     }
 }

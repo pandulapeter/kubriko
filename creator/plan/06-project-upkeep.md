@@ -11,12 +11,13 @@
 
 ## Template drift
 
-Upgrades for build files (a plugin a newer Creator needs, as collisions did, and the audio plugin will), and moving more out of hand-owned
-files into generated ones (the Managers and Plugins from project settings, a Scene registry), so that fewer upgrades are needed.
+Moving more out of hand-owned files into generated ones (the Managers from project settings, a Scene registry), so that fewer upgrades
+are needed. The plugins a project depends on, and the plugin Managers it creates, already follow its code (`../CLAUDE.md`).
 
 ## Kubriko versions
 
-Creator supports a declared range of Kubriko versions. Raising a project's version is an explicit action showing the release notes, never silent.
+Opted-in projects follow Creator's own Kubriko version. Left: a link to the release notes of the versions a raise skipped, and suggesting a
+Creator update for a project on a newer version than Creator's.
 
 ## Existing projects
 

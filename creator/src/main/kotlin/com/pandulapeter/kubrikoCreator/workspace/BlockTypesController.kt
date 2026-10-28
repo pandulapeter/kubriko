@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * The block-built Actor types and Manager types of a project that opted in to them, and the one being edited.
  *
  * Changes show up immediately; writing them (and regenerating their code) happens in the background, one at a time
- * and in order.
+ * and in order. After each write, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code.
  */
 internal class BlockTypesController(
     private val repository: BlockTypeRepository,
@@ -39,6 +40,8 @@ internal class BlockTypesController(
     private val ioDispatcher: CoroutineDispatcher,
     private val onSaved: () -> Unit,
     private val onSaveFailed: () -> Unit,
+    private val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
+    private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
 ) {
     private val _types = MutableStateFlow(emptyList<BlockTypeDefinition>())
 
@@ -152,11 +155,12 @@ internal class BlockTypesController(
     private fun write(change: () -> Set<String>) {
         pendingWriteCount.incrementAndGet()
         scope.launch {
+            var buildFileChanges: KubrikoBuildFileChanges? = null
             val changedByHand = try {
                 writes.withLock {
                     withContext(ioDispatcher) {
                         try {
-                            change()
+                            change().also { buildFileChanges = syncBuildFiles() }
                         } catch (_: IOException) {
                             null
                         }
@@ -169,6 +173,7 @@ internal class BlockTypesController(
                 onSaveFailed()
             } else {
                 _changedByHand.value = changedByHand
+                buildFileChanges?.let(onBuildFilesSynced)
                 onSaved()
             }
         }

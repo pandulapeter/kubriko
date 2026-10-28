@@ -26,11 +26,15 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -53,22 +57,33 @@ class ProjectTemplateIntegrationTest {
                     NewProjectRequest(name = "Integration Game", packageName = "com.example.integration", parentDirectory = parentDirectory, template = template),
                 )
                 assertTrue(directory.resolve("gradlew").canExecute(), "${template.id}: gradlew")
-                BlockTypeStore.open(directory)?.let { store -> listOf(everyBlockInEveryEvent, everyManager, hud).forEach(store::save) }
+                val buildFile = directory.resolve(KubrikoBuildFiles.BUILD_FILE)
+                assertFalse("libs.kubriko.collision" in buildFile.readText(), "${template.id}: a plugin nothing uses")
                 GradleProjectConnection(directory).use { connection ->
                     assertEquals(":", ProjectInspector.inspect(connection).desktopModulePath, template.id)
-                    listOf("desktop" to "compileKotlinDesktop", "wasmJs" to "compileKotlinWasmJs").forEach { (target, task) ->
-                        val output = StringBuilder()
-                        val isSuccessful = runBlocking {
-                            connection.run(taskPath = task, arguments = emptyList(), onEvent = { output.appendLine(it.toString()) })
-                        }
-                        assertTrue(isSuccessful, "${template.id} doesn't compile for $target:\n$output")
-                        val classes = directory.resolve("build/classes/kotlin/$target/main")
-                        assertTrue(classes.walkTopDown().any { it.isFile }, "${template.id}: nothing was compiled for $target")
+                    assertCompiles(connection, directory, "${template.id} as created")
+                    BlockTypeStore.open(directory)?.let { store ->
+                        listOf(everyBlockInEveryEvent, everyManager, hud).forEach(store::save)
+                        KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
+                        listOf("collision", "keyboardInput").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
+                        assertCompiles(connection, directory, "${template.id} with every Block")
                     }
                 }
             } finally {
                 parentDirectory.deleteRecursively()
             }
+        }
+    }
+
+    private fun assertCompiles(connection: GradleProjectConnection, directory: File, description: String) {
+        listOf("desktop" to "compileKotlinDesktop", "wasmJs" to "compileKotlinWasmJs").forEach { (target, task) ->
+            val output = StringBuilder()
+            val isSuccessful = runBlocking {
+                connection.run(taskPath = task, arguments = emptyList(), onEvent = { output.appendLine(it.toString()) })
+            }
+            assertTrue(isSuccessful, "$description doesn't compile for $target:\n$output")
+            val classes = directory.resolve("build/classes/kotlin/$target/main")
+            assertTrue(classes.walkTopDown().any { it.isFile }, "$description: nothing was compiled for $target")
         }
     }
 

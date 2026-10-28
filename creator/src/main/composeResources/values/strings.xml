@@ -69,6 +69,10 @@
     <string name="status_session_stopped">Session stopped.</string>
     <string name="status_build_failed">The build failed.</string>
     <string name="status_actor_type_not_saved">An Actor type couldn't be saved.</string>
+    <string name="status_kubriko_version_changed">The project now uses Kubriko %1$s, the version of this Kubriko Creator, instead of %2$s.</string>
+    <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes open in a window of their own.</string>
+    <string name="status_kubriko_libraries_added">The project now depends on %1$s, which its code uses.</string>
+    <string name="status_kubriko_libraries_removed">The project no longer depends on %1$s, which nothing uses.</string>
     <string name="status_unsupported_protocol">This version of Kubriko Creator doesn't support the project's Kubriko version.</string>
     <string name="error_type_name_invalid">Start with an uppercase letter, and use only letters and numbers, like Player or Enemy2.</string>
     <string name="error_type_name_reserved">That name is used by Kubriko itself. Pick another one.</string>

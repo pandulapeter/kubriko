@@ -38,6 +38,15 @@ lives in `plan/` (start with `plan/README.md`).
   loader whose parent is its own (Kubriko, Compose, and Kotlin shared; project jars copied first so rebuilds can replace them), finds the
   project's `CreatorEntryPoint` through `ServiceLoader`, and draws `SceneEditor.Content` in its center pane. Loaders are released a few seconds
   after their editor leaves composition. Otherwise the Scene opens in a session window.
+- **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
+  and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
+  after `com.pandulapeter.kubriko.` in imports and fully qualified names, generated code included; the engine and `tool-creator-api` always),
+  adding `kubriko-<name>` catalog entries and `implementation(libs.kubriko.<name>)` lines in sorted order and removing unused ones (a
+  catalog entry stays while anything else in the build file refers to it; libraries it doesn't know, like the debug menu, are never
+  touched). It also raises the catalog's `kubriko` version to Creator's own (one newer than Creator's is kept and reported once), and adds
+  or removes its Maven Local block in `settings.gradle.kts` with `useMavenLocal`. The edits are line-based (`VersionCatalog`,
+  `BuildScript`) and leave every other line alone; files without the template's shape (a `kubriko` version, a `commonMain.dependencies`
+  block) are left alone entirely. Changes are reported in the console. Projects that aren't opted in are never changed.
 
 ## Commands
 
@@ -87,8 +96,10 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   `KeyboardInputAware` and adds itself as an Actor when it has key pressed Events (as the examples' Managers do; `GeneratedScenes`
   adds it back after each Scene's `removeAll`). Its
   Events don't run in the Scene editor (`isInSceneEditor`), nor every frame while the game is paused. The generated
-  `KubrikoWiring.createManagers(isInSceneEditor, firstScene)` creates all of them, plus `GeneratedScenes`; the template passes it to
-  `Kubriko.newInstance` in `Game.kt` (with the first Scene) and to the Scene editor in `GameEntryPoint.kt`.
+  `KubrikoWiring.createManagers(isInSceneEditor, firstScene)` creates all of them, plus `GeneratedScenes` and the plugin Managers the
+  game uses (`PluginManagers`: `CollisionManager` when a collision Event involves an Actor type, `KeyboardInputManager` for key Events
+  and held-key conditions; not in the Scene editor, which has its own); the template passes it to `Kubriko.newInstance` in `Game.kt`
+  (with the first Scene) and to the Scene editor in `GameEntryPoint.kt`.
 - **Scenes and pausing** in Blocks: goToScene and restartScene go through the generated `GeneratedScenes` Manager
   (`ScenesCodeGenerator`, written into every project), which reads `files/scenes/<name>.json` from the project's resources in
   the background, then removes every Actor and adds the Scene's (the first Scene, loaded when the game starts, keeps what the
@@ -118,7 +129,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   still looks like the template's. Files changed too much are listed with what to add by hand, and a file that already uses
   `KubrikoWiring` counts as done, however it got there. Version 2 is the Manager wiring; version 3 drops the template's `SceneLoader`
   for `createManagers(firstScene = …)` and deletes `SceneLoader.kt` if it is still the template's (`resources/upgrades` keeps that
-  copy; one changed by hand stays). A change's `after` is null for a file it deletes.
+  copy; one changed by hand stays). Version 4 drops the plugin Managers from `Game.kt` (and their imports, unless still used),
+  since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. A change's `after` is null for a file it deletes.
 - **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`): Actors are `typeId` + JSON state, positions live in
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
   Actor type renames its Actors in every Scene. A command that changes the open Scene marks it outdated (or closes it if deleted).
@@ -175,8 +187,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | Package | What it holds |
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
-| `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code). |
-| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `ScenesCodeGenerator` (`GeneratedScenes`), and `SceneSettingsCodeGenerator` (`SceneSettings`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
+| `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`). |
+| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), and `SceneSettingsCodeGenerator` (`SceneSettings`), `GeneratedFile` (checksummed header), `BlockTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
@@ -201,8 +213,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - Desktop-sized UI from the start: `ui/components` (`CompactTextField`, which scrolls code sideways instead of wrapping it, `IconActionButton` with tooltip, `PanelHeader`), vector icons in
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
 - Generated Kotlin reads like the examples' hand-written Kubriko code: an Actor type is `Dynamic` only when it moves or has work every
-  frame (a Kotlin Block counts), looks up only the Managers its Blocks use, and builds its collision mask with the body's scale and
-  rotation, centered on the body wherever its pivot is (the Scene editor creates an edited Actor again from its state, so the mask
+  frame (a Kotlin Block counts), looks up only the Managers its Blocks use, is `Collidable` only when a collision Event (its own or another
+  type's) involves it, and builds its collision mask with the body's scale and rotation, centered on the body wherever its pivot is (the Scene editor creates an edited Actor again from its state, so the mask
   follows a new size too).
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
   `run { }` scope, Blocks outside their Event become comments) and follow the engine's no-allocation rules.

@@ -12,29 +12,31 @@
 The state between sessions: where the last one stopped, what to do next, and what was never checked by hand. Each session rewrites it
 before it ends. What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
-## State (not pushed since a957441b)
+## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
 
-- **Manager types have a Kotlin UI:** verbatim Compose statements after the texts in the generated `Composable`, edited in a dialog
-  from the "Kotlin UI" section under the texts, and by `set_kotlin_ui`. Leading import lines become the file's imports; other
-  Manager types, `actorManager`, `viewportManager`, and `stateManager` are looked up only when the code names them.
-- **Kotlin Blocks and Kotlin UI follow renames** of Actor types, Manager types, and Properties (`KotlinIdentifiers`), and code
-  fields scroll sideways instead of wrapping.
-- **Checked live** on a scratch Breakout copy: the section's preview, the dialog, typing in it (saved as typed, one Cmd+Z undoes it
-  all), the template upgrade dialog (its "deleted" file row too), and playing: the Kotlin UI draws over the texts and shows its
-  text only while the game is paused. StateFlows must be read with `collectAsState()` there, which the tool and the dialog say.
-- **Scene settings** (previous session) and the paused condition are in, see `../CLAUDE.md`.
+- **Kubriko 0.8.0 is released.** `00-library-release.md` is now the policy for later releases.
+- **Projects follow Creator's Kubriko version and code** (`project/KubrikoBuildFiles`, after every regeneration, so also on open and on
+  creation): the catalog's `kubriko` version is raised to Creator's own (a newer one is kept), Creator's Maven Local block follows
+  `useMavenLocal`, and the `kubriko-*` libraries are exactly the ones the sources name. Changes go to the console.
+- **Plugin Managers moved into generated code:** `KubrikoWiring` creates `CollisionManager` and `KeyboardInputManager` only when some type
+  needs them (`PluginManagers`), Actor types are `Collidable` only when a collision Event involves them, and template version 4 drops the
+  two Managers from `Game.kt`. The starter template no longer depends on the collision or keyboard plugins.
 - **AI work is paused** by the user's choice: only fix bugs in what exists.
 
 ## Next
 
-1. The groundwork release (`00-library-release.md`): the release itself (0.8.0). Embedding across patch versions is Creator-only
-   and can wait; so can the template upgrade that makes `GameEntryPoint` report the game's Kubriko instances.
-2. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`.
-3. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
-4. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
+1. Audio (with a Scene's music), sprites, and the rest of `02-blocks.md`. Their plugins now come and go with the Blocks that use them;
+   their Managers belong in `PluginManagers` and `KubrikoWiring`, not in a template upgrade.
+2. Scene settings in Creator: a panel beside the Scene editor (today only the embedded editor and `set_scene_settings` edit them).
+3. UI elements (`02-blocks.md` → Game UI), once a second UI need comes.
 
 ## Never checked by hand
 
+- The dependency sync and the version 4 upgrade on the real Breakout copy (it is on `0.7.5-creator` and template version 3): opening it
+  should raise it to Creator's version, offer the upgrade, and after the upgrade drop nothing it uses. Then remove the last collision
+  Event and watch `plugin-collision` leave the build, and undo it.
+- A project whose sources import a plugin by hand (say physics) keeping it; a dependency added by hand before any code uses it is removed
+  on the next regeneration, which the user may not expect.
 - A rename following Kotlin code from the UI (unit-tested in `BlockTypeEditsTest` and `KotlinIdentifiersTest`). Adding a Property
   named like another Manager type's field (`lives` beside a `Lives` type) moves that field to `livesManager`, and Kotlin code isn't
   updated for that.
@@ -61,4 +63,4 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 - Test on a scratch copy of `~/Projects/breakout` (it has the user's uncommitted work), opened with `:creator:run --args=<dir>`.
   The real one was opened with unfinished code once, and still shows the upgrade notice: leave it to the user.
 - Never recompile `:creator` while `:creator:run` is up, and restart it with the publish tasks after `tools/creator-session` changes.
-- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.0-creator ./gradlew :creator:test --rerun`.
+- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.0 ./gradlew :creator:test --rerun`.

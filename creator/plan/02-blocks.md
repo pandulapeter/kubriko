@@ -60,6 +60,6 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 
 ## Scene editor (in `tools/scene-editor`)
 
-Library changes, so each reaches projects only with a Kubriko release after the groundwork one (`00-library-release.md`).
+Library changes, so each reaches projects only with a later Kubriko release (`00-library-release.md`).
 Taking commands from Creator (open, save, select, place) so the AI and Creator's own palette can drive it; an Actor type palette with sprite
 thumbnails; layer filtering and locking; multi-select; Creator's look (it still has its own).

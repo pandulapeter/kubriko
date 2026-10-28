@@ -5,10 +5,8 @@ kubriko = "{{KUBRIKO_VERSION}}"
 
 [libraries]
 compose-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose-multiplatform" }
-kubriko-collision = { group = "io.github.pandulapeter.kubriko", name = "plugin-collision", version.ref = "kubriko" }
 kubriko-creatorApi = { group = "io.github.pandulapeter.kubriko", name = "tool-creator-api", version.ref = "kubriko" }
 kubriko-engine = { group = "io.github.pandulapeter.kubriko", name = "engine", version.ref = "kubriko" }
-kubriko-keyboardInput = { group = "io.github.pandulapeter.kubriko", name = "plugin-keyboard-input", version.ref = "kubriko" }
 kubriko-serialization = { group = "io.github.pandulapeter.kubriko", name = "plugin-serialization", version.ref = "kubriko" }
 
 [plugins]

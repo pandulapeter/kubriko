@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,13 +41,34 @@ class BlockTypesControllerTest {
     private fun TestScope.createController(
         repository: FakeBlockTypeRepository,
         ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
+        syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
+        onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
     ) = BlockTypesController(
         repository = repository,
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         ioDispatcher = ioDispatcher,
         onSaved = { savedCount++ },
         onSaveFailed = { failedCount++ },
+        syncBuildFiles = syncBuildFiles,
+        onBuildFilesSynced = onBuildFilesSynced,
     )
+
+    @Test
+    fun theBuildFilesAreSyncedAfterEveryWriteButNotAfterAFailedOne() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(wall))
+        val synced = mutableListOf<KubrikoBuildFileChanges>()
+        var syncCount = 0
+        val controller = createController(
+            repository = repository,
+            syncBuildFiles = { KubrikoBuildFileChanges(version = "1.0.${syncCount++}") },
+            onBuildFilesSynced = { synced += it },
+        )
+        controller.put(ball)
+        assertEquals(listOf("1.0.0", "1.0.1"), synced.map { it.version })
+        repository.isFailing = true
+        controller.put(ball.copy(width = 5f))
+        assertEquals(2, syncCount)
+    }
 
     @Test
     fun theStoredActorTypesAreLoadedWhenOpened() = runTest {
