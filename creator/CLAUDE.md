@@ -65,7 +65,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   (loading ignores them, and undo brings them back), and adding drops a leftover value of another kind, which wouldn't load.
   A Property's kind can't change.
 - **Flow** stays in each Event's flat Block list, as GameMaker's actions do: if (with a condition: a Property, a key held,
-  the velocity, or a chance), else, repeat, and end Blocks mark sections, so every Block keeps its plain index. `BlockNesting`
+  the velocity, a chance, or whether the game is paused), else, repeat, and end Blocks mark sections, so every Block keeps its plain index. `BlockNesting`
   works out each Block's depth for the editor's indentation and the generator alike; an if or repeat without an end runs to
   the end of the Event, and an else or end that belongs to no section shows a warning and generates a comment.
 - **Timers** 1 to 8 per Actor, like GameMaker's alarms: the startTimer (seconds, once or repeating) and stopTimer Blocks, and a

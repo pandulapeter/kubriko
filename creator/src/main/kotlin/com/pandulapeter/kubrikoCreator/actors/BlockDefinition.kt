@@ -249,7 +249,7 @@ internal val BlockDefinition.propertyReference: PropertyReference?
             is ConditionDefinition.Number -> PropertyReference(condition.property, PropertyKind.NUMBER, condition.manager)
             is ConditionDefinition.Text -> PropertyReference(condition.property, PropertyKind.TEXT, condition.manager)
             is ConditionDefinition.Toggle -> PropertyReference(condition.property, PropertyKind.TOGGLE, condition.manager)
-            is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance -> null
+            is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> null
         }
         else -> null
     }
@@ -316,7 +316,7 @@ internal fun BlockDefinition.withPropertyReference(manager: String?, name: Strin
         is ConditionDefinition.Number -> copy(condition = condition.copy(manager = manager, property = name))
         is ConditionDefinition.Text -> copy(condition = condition.copy(manager = manager, property = name))
         is ConditionDefinition.Toggle -> copy(condition = condition.copy(manager = manager, property = name))
-        is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance -> this
+        is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> this
     }
     else -> this
 }

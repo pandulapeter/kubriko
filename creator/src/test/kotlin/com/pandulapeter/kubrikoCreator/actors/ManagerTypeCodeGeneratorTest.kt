@@ -159,6 +159,23 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
+    fun aPausedConditionInAKeyEventUsesTheStateManager() {
+        val code = generate(
+            game.copy(
+                events = listOf(
+                    EventDefinition(
+                        EventType.KEY_PRESSED,
+                        key = KeyChoice.ENTER,
+                        blocks = listOf(BlockDefinition.If(ConditionDefinition.Paused(isPaused = false)), BlockDefinition.PauseGame(PauseAction.PAUSE), BlockDefinition.End),
+                    ),
+                ),
+            ),
+        )
+        assertContains(code, "    private val stateManager by manager<StateManager>()\n")
+        assertContains(code, "                if (stateManager.isRunning.value) {\n                    stateManager.updateIsRunning(false)\n                }\n")
+    }
+
+    @Test
     fun aManagerWithoutUpdatesOrPauseBlocksDoesNotLookUpTheStateManager() {
         val code = generate(game.copy(events = listOf(EventDefinition(EventType.GAME_STARTED, blocks = listOf(BlockDefinition.GoToScene())))))
         assertFalse("StateManager" in code)

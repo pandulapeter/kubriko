@@ -136,6 +136,7 @@
     <string name="condition_key_held">A key</string>
     <string name="condition_velocity">The velocity</string>
     <string name="condition_chance">By chance</string>
+    <string name="condition_paused">The game</string>
     <string name="condition_comparison_less">is less than</string>
     <string name="condition_comparison_less_or_equal">is at most</string>
     <string name="condition_comparison_greater_or_equal">is at least</string>
@@ -146,6 +147,8 @@
     <string name="condition_is_off">is off</string>
     <string name="condition_is_held">is held</string>
     <string name="condition_is_not_held">isn't held</string>
+    <string name="condition_is_paused">is paused</string>
+    <string name="condition_is_not_paused">isn't paused</string>
     <string name="condition_axis_horizontal">horizontal</string>
     <string name="condition_axis_vertical">vertical</string>
     <string name="condition_percent">Percent</string>

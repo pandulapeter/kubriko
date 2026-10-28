@@ -89,4 +89,12 @@ internal sealed interface ConditionDefinition {
         @Description("How likely it is to be true, in percent, from 0 to 100.")
         @SerialName("percent") val percent: Float = 50f,
     ) : ConditionDefinition
+
+    @Serializable
+    @SerialName("paused")
+    @Description("Checks whether the game is paused by a pause Block. Most useful in a Manager type's key pressed Events, which still run while it is.")
+    data class Paused(
+        @Description("True to check that the game is paused, false to check that it isn't.")
+        @SerialName("isPaused") val isPaused: Boolean = true,
+    ) : ConditionDefinition
 }

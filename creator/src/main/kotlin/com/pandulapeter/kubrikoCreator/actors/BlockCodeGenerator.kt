@@ -28,7 +28,10 @@ internal object BlockCodeGenerator {
      */
     fun usesScenes(blocks: List<BlockDefinition>) = blocks.any { (it is BlockDefinition.GoToScene && it.scene.isNotEmpty()) || it == BlockDefinition.RestartScene }
 
-    fun usesPause(blocks: List<BlockDefinition>) = blocks.any { it is BlockDefinition.PauseGame }
+    /**
+     * Whether any of [blocks] pauses or resumes the game, or checks whether it is paused, through `StateManager`.
+     */
+    fun usesPause(blocks: List<BlockDefinition>) = blocks.any { it is BlockDefinition.PauseGame || (it as? BlockDefinition.If)?.condition is ConditionDefinition.Paused }
 
     internal fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, scope: BlockScope) {
         val lines = events.flatMap { event -> eventLines(event.blocks, event.type, scope) }
@@ -227,6 +230,7 @@ internal object BlockCodeGenerator {
             is ConditionDefinition.KeyHeld -> (if (condition.isHeld) "" else "!") + "keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"
             is ConditionDefinition.Velocity -> "velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${unitLiteral(condition.value)}"
             is ConditionDefinition.Chance -> "Random.nextFloat() * 100f < ${floatLiteral(condition.percent)}"
+            is ConditionDefinition.Paused -> (if (condition.isPaused) "!" else "") + "$STATE_MANAGER_FIELD.isRunning.value"
         }
     }
 

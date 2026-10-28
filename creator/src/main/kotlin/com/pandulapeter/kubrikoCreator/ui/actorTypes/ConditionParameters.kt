@@ -39,8 +39,10 @@ import kubriko.creator.generated.resources.condition_is
 import kubriko.creator.generated.resources.condition_is_held
 import kubriko.creator.generated.resources.condition_is_not
 import kubriko.creator.generated.resources.condition_is_not_held
+import kubriko.creator.generated.resources.condition_is_not_paused
 import kubriko.creator.generated.resources.condition_is_off
 import kubriko.creator.generated.resources.condition_is_on
+import kubriko.creator.generated.resources.condition_is_paused
 import kubriko.creator.generated.resources.condition_percent
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -120,6 +122,7 @@ internal fun ConditionParameters(
             value = condition.percent,
             onValueChange = { if (it in 0f..100f) onConditionChange(condition.copy(percent = it)) },
         )
+        is ConditionDefinition.Paused -> YesNoChoice(condition.isPaused, Res.string.condition_is_paused, Res.string.condition_is_not_paused) { onConditionChange(condition.copy(isPaused = it)) }
     }
 }
 

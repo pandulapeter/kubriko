@@ -13,6 +13,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.condition_chance
 import kubriko.creator.generated.resources.condition_key_held
 import kubriko.creator.generated.resources.condition_number
+import kubriko.creator.generated.resources.condition_paused
 import kubriko.creator.generated.resources.condition_text
 import kubriko.creator.generated.resources.condition_toggle
 import kubriko.creator.generated.resources.condition_velocity
@@ -31,7 +32,8 @@ internal enum class ConditionKind(
     TOGGLE(Res.string.condition_toggle, { ConditionDefinition.Toggle() }),
     KEY_HELD(Res.string.condition_key_held, { ConditionDefinition.KeyHeld() }),
     VELOCITY(Res.string.condition_velocity, { ConditionDefinition.Velocity() }, needsActor = true),
-    CHANCE(Res.string.condition_chance, { ConditionDefinition.Chance() });
+    CHANCE(Res.string.condition_chance, { ConditionDefinition.Chance() }),
+    PAUSED(Res.string.condition_paused, { ConditionDefinition.Paused() });
 
     fun isAvailableIn(kind: BlockTypeKind) = !needsActor || kind == BlockTypeKind.ACTOR
 
@@ -44,6 +46,7 @@ internal enum class ConditionKind(
             is ConditionDefinition.KeyHeld -> KEY_HELD
             is ConditionDefinition.Velocity -> VELOCITY
             is ConditionDefinition.Chance -> CHANCE
+            is ConditionDefinition.Paused -> PAUSED
         }
     }
 }

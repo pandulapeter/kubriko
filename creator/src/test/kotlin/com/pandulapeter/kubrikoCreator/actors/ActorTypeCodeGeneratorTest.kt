@@ -349,6 +349,8 @@ class ActorTypeCodeGeneratorTest {
         assertEquals("if (keyboardInputManager.isKeyPressed(Key.Spacebar)) {", line(ConditionDefinition.KeyHeld(KeyChoice.SPACE)))
         assertEquals("if (!keyboardInputManager.isKeyPressed(Key.A)) {", line(ConditionDefinition.KeyHeld(KeyChoice.A, isHeld = false)))
         assertEquals("if (velocity.x == 0f.sceneUnit) {", line(ConditionDefinition.Velocity(comparison = Comparison.EQUAL)))
+        assertEquals("if (!stateManager.isRunning.value) {", line(ConditionDefinition.Paused()))
+        assertEquals("if (stateManager.isRunning.value) {", line(ConditionDefinition.Paused(isPaused = false)))
         assertEquals("if (false) {", line(ConditionDefinition.Number()))
         assertEquals("if (false) {", line(ConditionDefinition.Toggle("score")))
     }
@@ -364,6 +366,14 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "import androidx.compose.ui.input.key.Key\n")
         assertContains(code, "import kotlin.random.Random\n")
         assertFalse("KeyboardInputAware" in code)
+    }
+
+    @Test
+    fun aPausedConditionGetsTheStateManager() {
+        val code = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.If(ConditionDefinition.Paused()), BlockDefinition.End)))
+        assertContains(code, "    private lateinit var stateManager: StateManager\n")
+        assertContains(code, "        stateManager = kubriko.get()\n")
+        assertContains(code, "import com.pandulapeter.kubriko.manager.StateManager\n")
     }
 
     @Test

@@ -115,6 +115,7 @@ class ProjectTemplateIntegrationTest {
         BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.SPACE, isHeld = false)),
         BlockDefinition.If(ConditionDefinition.Velocity(Axis.VERTICAL, Comparison.NOT_EQUAL, -1.5f)),
         BlockDefinition.If(ConditionDefinition.Chance(12.5f)),
+        BlockDefinition.If(ConditionDefinition.Paused(isPaused = false)),
         BlockDefinition.If(ConditionDefinition.Number("missing")),
         BlockDefinition.Stop,
         BlockDefinition.Else,

@@ -177,7 +177,7 @@ private val BlockDefinition.areNumbersFinite
             is ConditionDefinition.Number -> condition.value.isFinite()
             is ConditionDefinition.Velocity -> condition.value.isFinite()
             is ConditionDefinition.Chance -> condition.percent.isFinite() && condition.percent in 0f..100f
-            is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld -> true
+            is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld, is ConditionDefinition.Paused -> true
         }
         is BlockDefinition.Repeat -> times >= 0
         is BlockDefinition.StartTimer -> seconds.isFinite() && seconds >= 0f
