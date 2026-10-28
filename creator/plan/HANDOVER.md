@@ -22,8 +22,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   benchmark, batched type writes, generation from memory with caches, `ActorTypeFamily` no longer quadratic, Scenes cached
   in `SceneStore`, a watcher that ignores Creator's own writes, `ScenePatch` in the Scene editor, and a narrower workspace
   recomposition. A type change at 200 types went from 1.3 s to 0.14 s, a Scene edit at 5,000 Actors from 1.26 s to 45 ms.
-- **`tools/logger` change left uncommitted for the user's review:** `Logger.log` builds its list once instead of three times
-  (no API change). Everything else is committed.
+- **`Logger.log`** (`tools/logger`, db2184aaa) builds its list once instead of three times, with no API change: a library
+  change for 0.8.1.
 - **Parent Actor types** (2026-10-28), generated as real Kotlin inheritance (`<Name>Base` classes with Event hooks), with the
   runParentEvent Block, and the editor's parent menu and greyed inherited Properties and Events. The integration test builds a
   three-generation family for desktop and web; seen working: choosing Brick as GoldBrick's parent in the editor, and the scratch

@@ -27,8 +27,6 @@ Each step lands with its tests, and steps 3 to 6 are measured against the benchm
 
 Done (`../CLAUDE.md` → Conventions specific to Creator), except:
 
-- `Logger.log` copies the log list once instead of three times (`tools/logger`, a library change without API changes): in the
-  working tree, waiting for the user's review.
 - A box mask keeps the size it was built with; when Blocks that change an Actor's size or scale arrive (`06-blocks.md`), the
   generated code builds a new mask when the size changes.
 - Dynamic Actors are always active now; a per-type "Sleep while far off screen" choice for big levels comes with
