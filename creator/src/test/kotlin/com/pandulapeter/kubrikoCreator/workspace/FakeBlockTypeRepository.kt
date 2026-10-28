@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import java.io.IOException
 
@@ -35,6 +36,20 @@ internal class FakeBlockTypeRepository(
         if (isFailing) throw IOException("Disk full.")
         writes += if (overwriting.isEmpty()) "regenerate" else "regenerate overwriting ${overwriting.sorted().joinToString()}"
         return changedByHand - overwriting
+    }
+
+    val folders = mutableMapOf<BlockTypeKind, MutableSet<String>>()
+
+    override fun folders(kind: BlockTypeKind): Set<String> = folders[kind].orEmpty()
+
+    override fun createFolder(kind: BlockTypeKind, path: String) {
+        writes += "create folder $path"
+        folders.getOrPut(kind) { mutableSetOf() } += path
+    }
+
+    override fun deleteFolder(kind: BlockTypeKind, path: String) {
+        writes += "delete folder $path"
+        folders[kind]?.removeAll { it == path || it.startsWith("$path/") }
     }
 
     override fun delete(name: String): Set<String> {

@@ -23,7 +23,15 @@ internal sealed interface BlockTypeDefinition {
     val events: List<EventDefinition>
     val kind: BlockTypeKind
 
+    /**
+     * The folder it is in, as a path of folder names (`enemies/flying`), empty for none. Kept as where its definition
+     * file is, not in the file.
+     */
+    val folder: String
+
     fun withName(name: String): BlockTypeDefinition
+
+    fun withFolder(folder: String): BlockTypeDefinition
 
     fun withProperties(properties: List<PropertyDefinition>): BlockTypeDefinition
 

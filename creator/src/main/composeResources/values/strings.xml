@@ -391,6 +391,14 @@
     <string name="error_command_scene_actor_not_block_built">%1$s isn't a block-built Actor type, so it has no color or Properties to set.</string>
     <string name="error_command_actor_property_missing">%1$s has no Property called %2$s.</string>
     <string name="error_command_property_value_invalid">Give %1$s one value, of the kind the Property is.</string>
+    <string name="error_folder_exists">There's already a folder called %1$s.</string>
+    <string name="error_folder_missing">There's no folder called %1$s.</string>
+    <string name="error_folder_not_empty">%1$s isn't empty. Move what's in it out first.</string>
+    <string name="command_create_folder">New folder</string>
+    <string name="command_rename_folder">Rename folder</string>
+    <string name="command_delete_folder">Delete folder</string>
+    <string name="command_move_to_folder">Move to folder</string>
+    <string name="error_folder_name_invalid">Start a folder's name with a letter or a number, then use letters, numbers, spaces, dashes, and underscores.</string>
     <string name="error_scene_name_invalid">Use only letters, numbers, dashes, and underscores, like level-1.</string>
     <string name="error_scene_name_taken">There's already a Scene with that name.</string>
     <string name="command_create_scene">Create Scene</string>

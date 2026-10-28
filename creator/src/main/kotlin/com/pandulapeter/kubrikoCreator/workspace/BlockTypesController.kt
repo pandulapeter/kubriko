@@ -11,10 +11,12 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
+import com.pandulapeter.kubrikoCreator.actors.withParents
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CoroutineDispatcher
@@ -65,12 +67,25 @@ internal class BlockTypesController(
      * therefore stopped updating until those changes are discarded ([discardChangesMadeByHand]).
      */
     val changedByHand = _changedByHand.asStateFlow()
+
+    /**
+     * The folders that exist without a type in them, by the kind of type they hold.
+     */
+    private var emptyFolders = emptyMap<BlockTypeKind, Set<String>>()
+    private val _folders = MutableStateFlow(emptyMap<BlockTypeKind, Set<String>>())
+
+    /**
+     * Every folder of each kind of type, as paths (`enemies/flying`), parents included: those types are in, and empty ones.
+     */
+    val folders = _folders.asStateFlow()
     private val writes = Mutex()
     private val pendingWriteCount = AtomicInteger(0)
 
     init {
         scope.launch {
-            setTypes(withContext(ioDispatcher) { repository.load() })
+            val types = withContext(ioDispatcher) { repository.load() }
+            emptyFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
+            setTypes(types)
         }
         // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away.
         write { repository.regenerateAll() }
@@ -94,8 +109,35 @@ internal class BlockTypesController(
      */
     @EditorMutation
     fun put(definition: BlockTypeDefinition) {
+        // A type moved out of a folder leaves the folder behind, empty or not.
+        get(definition.name)?.takeIf { it.folder.isNotEmpty() && it.folder != definition.folder }?.let { previous ->
+            emptyFolders = emptyFolders.withFolder(previous.kind, previous.folder)
+        }
         setTypes(_types.value.filter { it.name != definition.name } + definition)
         write { repository.save(definition) }
+    }
+
+    @EditorMutation
+    fun createFolder(kind: BlockTypeKind, path: String) {
+        emptyFolders = emptyFolders.withFolder(kind, path)
+        setTypes(_types.value)
+        write(haveTypesChanged = false) {
+            repository.createFolder(kind, path)
+            _changedByHand.value
+        }
+    }
+
+    /**
+     * Deletes the folder at [path], which must hold no types (in it or in its folders).
+     */
+    @EditorMutation
+    fun deleteFolder(kind: BlockTypeKind, path: String) {
+        emptyFolders = emptyFolders + (kind to emptyFolders[kind].orEmpty().filterTo(mutableSetOf()) { it != path && !it.startsWith("$path/") })
+        setTypes(_types.value)
+        write(haveTypesChanged = false) {
+            repository.deleteFolder(kind, path)
+            _changedByHand.value
+        }
     }
 
     @EditorMutation
@@ -146,7 +188,9 @@ internal class BlockTypesController(
         if (pendingWriteCount.get() > 0) return
         scope.launch {
             val stored = withContext(ioDispatcher) { repository.load() }
-            if (pendingWriteCount.get() == 0 && stored != _types.value) {
+            val storedFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
+            if (pendingWriteCount.get() == 0 && (stored != _types.value || storedFolders != emptyFolders)) {
+                emptyFolders = storedFolders
                 setTypes(stored)
                 if (_selectedName.value !in stored.map { it.name }) _selectedName.value = null
                 write { repository.regenerateAll() }
@@ -159,7 +203,12 @@ internal class BlockTypesController(
         _types.value = sorted
         _actorTypes.value = sorted.filterIsInstance<ActorTypeDefinition>()
         _managerTypes.value = sorted.filterIsInstance<ManagerTypeDefinition>()
+        _folders.value = BlockTypeKind.entries.associateWith { kind ->
+            sorted.filter { it.kind == kind && it.folder.isNotEmpty() }.fold(emptyFolders[kind].orEmpty().withParents()) { folders, type -> folders + setOf(type.folder).withParents() }
+        }
     }
+
+    private fun Map<BlockTypeKind, Set<String>>.withFolder(kind: BlockTypeKind, path: String) = this + (kind to get(kind).orEmpty() + path)
 
     private fun write(haveTypesChanged: Boolean = true, change: () -> Set<String>) {
         pendingWriteCount.incrementAndGet()

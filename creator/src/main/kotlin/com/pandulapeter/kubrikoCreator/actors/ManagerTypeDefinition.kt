@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors
 import com.pandulapeter.kubrikoCreator.commands.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * A block-built Manager type, as stored in `.kubriko/managers/<name>.json`: game-wide state and rules, like the score
@@ -30,10 +31,13 @@ internal data class ManagerTypeDefinition(
     @SerialName("texts") val texts: List<ScreenTextDefinition> = emptyList(),
     @Description("Compose code drawn on top of the game after the texts, for UI the texts can't express. See set_kotlin_ui for what is in scope.")
     @SerialName("kotlinUi") val kotlinUi: String? = null,
+    @Transient override val folder: String = "",
 ) : BlockTypeDefinition {
     override val kind get() = BlockTypeKind.MANAGER
 
     override fun withName(name: String) = copy(name = name)
+
+    override fun withFolder(folder: String) = copy(folder = folder)
 
     override fun withProperties(properties: List<PropertyDefinition>) = copy(properties = properties)
 

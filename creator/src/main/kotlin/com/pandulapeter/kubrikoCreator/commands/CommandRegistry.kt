@@ -30,6 +30,10 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
+import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.game.PressKeys
 import com.pandulapeter.kubrikoCreator.commands.game.StartGame
 import com.pandulapeter.kubrikoCreator.commands.game.StopGame
@@ -139,6 +143,10 @@ internal class CommandRegistry(
                 EditProperty,
                 RemoveProperty,
                 DiscardChangesMadeByHand,
+                CreateFolder,
+                RenameFolder,
+                DeleteFolder,
+                MoveToFolder,
                 CreateScene,
                 DeleteScene,
                 PlaceActor,

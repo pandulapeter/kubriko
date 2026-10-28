@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors
 import com.pandulapeter.kubrikoCreator.commands.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * A block-built Actor type, as stored in `.kubriko/actors/<name>.json`. Kubriko Creator generates a Kotlin class from it.
@@ -38,10 +39,13 @@ internal data class ActorTypeDefinition(
     @SerialName("properties") override val properties: List<PropertyDefinition> = emptyList(),
     @Description("The Events its Actors react to, in order. Each runs its Blocks in order.")
     @SerialName("events") override val events: List<EventDefinition> = emptyList(),
+    @Transient override val folder: String = "",
 ) : BlockTypeDefinition {
     override val kind get() = BlockTypeKind.ACTOR
 
     override fun withName(name: String) = copy(name = name)
+
+    override fun withFolder(folder: String) = copy(folder = folder)
 
     override fun withProperties(properties: List<PropertyDefinition>) = copy(properties = properties)
 

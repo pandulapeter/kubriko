@@ -33,4 +33,16 @@ internal interface BlockTypeRepository {
      * @return The types whose generated code was changed by hand, and so wasn't updated.
      */
     fun regenerateAll(overwriting: Set<String> = emptySet()): Set<String>
+
+    /**
+     * Every folder that holds types of [kind], or held them, as paths (`enemies/flying`), parents included.
+     */
+    fun folders(kind: BlockTypeKind): Set<String>
+
+    fun createFolder(kind: BlockTypeKind, path: String)
+
+    /**
+     * Deletes the folder at [path] if nothing is in it any more.
+     */
+    fun deleteFolder(kind: BlockTypeKind, path: String)
 }

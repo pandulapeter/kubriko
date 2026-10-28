@@ -30,26 +30,42 @@ internal class BlockTypeStore private constructor(
     private val generatedDirectory get() = File(rootDirectory, generatedPath)
 
     override fun load(): List<BlockTypeDefinition> = (
-        definitionFiles(BlockTypeKind.ACTOR).map { json.decodeFromString(ActorTypeDefinition.serializer(), it.readText()) } +
-            definitionFiles(BlockTypeKind.MANAGER).map { json.decodeFromString(ManagerTypeDefinition.serializer(), it.readText()) }
+        definitionFiles(BlockTypeKind.ACTOR).map { json.decodeFromString(ActorTypeDefinition.serializer(), it.readText()).withFolder(folderOf(BlockTypeKind.ACTOR, it)) } +
+            definitionFiles(BlockTypeKind.MANAGER).map { json.decodeFromString(ManagerTypeDefinition.serializer(), it.readText()).withFolder(folderOf(BlockTypeKind.MANAGER, it)) }
         ).sortedBy { it.name }
+
+    override fun folders(kind: BlockTypeKind): Set<String> = definitionsDirectory(kind).walkTopDown()
+        .filter { it.isDirectory && it != definitionsDirectory(kind) }
+        .mapTo(sortedSetOf()) { it.relativeTo(definitionsDirectory(kind)).invariantSeparatorsPath }
+
+    override fun createFolder(kind: BlockTypeKind, path: String) {
+        File(definitionsDirectory(kind), path).mkdirs()
+    }
+
+    override fun deleteFolder(kind: BlockTypeKind, path: String) {
+        val folder = File(definitionsDirectory(kind), path)
+        if (folder.walkTopDown().none { it.isFile }) folder.deleteRecursively()
+    }
 
     /**
      * Writes [definition] and regenerates the code of every type, since types refer to each other (in collision Events,
      * and through the Properties of Manager types).
      */
     override fun save(definition: BlockTypeDefinition): Set<String> {
-        definitionsDirectory(definition.kind).mkdirs()
         val text = when (definition) {
             is ActorTypeDefinition -> json.encodeToString(ActorTypeDefinition.serializer(), definition)
             is ManagerTypeDefinition -> json.encodeToString(ManagerTypeDefinition.serializer(), definition)
         }
-        definitionFile(definition.kind, definition.name).writeText(text + "\n")
+        val file = File(definitionsDirectory(definition.kind), "${definition.folder}/${definition.name}.json".removePrefix("/"))
+        // A type moved to another folder leaves its old file behind otherwise.
+        definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file }.forEach(File::delete)
+        file.parentFile.mkdirs()
+        file.writeText(text + "\n")
         return regenerateAll()
     }
 
     override fun delete(name: String): Set<String> {
-        BlockTypeKind.entries.forEach { definitionFile(it, name).delete() }
+        BlockTypeKind.entries.forEach { kind -> definitionFiles(kind).filter { it.nameWithoutExtension == name }.forEach(File::delete) }
         generatedFile(name).delete()
         return regenerateAll()
     }
@@ -117,9 +133,9 @@ internal class BlockTypeStore private constructor(
 
     private fun definitionsDirectory(kind: BlockTypeKind) = File(rootDirectory, "$CREATOR_DIRECTORY/${definitionsFolder(kind)}")
 
-    private fun definitionFiles(kind: BlockTypeKind) = definitionsDirectory(kind).listFiles { file -> file.extension == "json" }.orEmpty().toList()
+    private fun definitionFiles(kind: BlockTypeKind) = definitionsDirectory(kind).walkTopDown().filter { it.isFile && it.extension == "json" }.toList()
 
-    private fun definitionFile(kind: BlockTypeKind, name: String) = File(definitionsDirectory(kind), "$name.json")
+    private fun folderOf(kind: BlockTypeKind, file: File) = file.parentFile.relativeTo(definitionsDirectory(kind)).invariantSeparatorsPath
 
     private fun generatedFile(name: String) = File(generatedDirectory, "$name.kt")
 

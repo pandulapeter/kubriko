@@ -54,6 +54,27 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun typesLiveInFoldersAndMovingOneLeavesNoCopyBehind() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball.withFolder("toys/round"))
+        assertTrue(File(root, ".kubriko/actors/toys/round/Ball.json").isFile)
+        assertEquals(listOf(ball.withFolder("toys/round")), store.load())
+        assertEquals(setOf("toys", "toys/round"), store.folders(BlockTypeKind.ACTOR))
+        store.save(ball.withFolder("toys"))
+        assertFalse(File(root, ".kubriko/actors/toys/round/Ball.json").exists())
+        assertEquals(listOf(ball.withFolder("toys")), store.load())
+        store.createFolder(BlockTypeKind.MANAGER, "rules")
+        assertEquals(setOf("rules"), store.folders(BlockTypeKind.MANAGER))
+        // A folder with a type in it stays; an empty one goes, with its empty folders.
+        store.deleteFolder(BlockTypeKind.ACTOR, "toys")
+        assertEquals(setOf("toys", "toys/round"), store.folders(BlockTypeKind.ACTOR))
+        store.delete("Ball")
+        store.deleteFolder(BlockTypeKind.ACTOR, "toys")
+        assertEquals(emptySet(), store.folders(BlockTypeKind.ACTOR))
+    }
+
+    @Test
     fun savedDefinitionsLoadBackSortedByName() {
         optIn()
         val store = BlockTypeStore.open(root)!!
