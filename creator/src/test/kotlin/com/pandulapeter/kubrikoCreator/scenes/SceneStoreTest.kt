@@ -100,4 +100,21 @@ class SceneStoreTest {
         assertEquals("""[{"typeId":"Wall","state":"{}"}]""", store.read("two"))
         assertEquals("nope", store.read("broken"))
     }
+
+    @Test
+    fun aSceneIsParsedOnceUntilItsFileChangesElsewhere() {
+        val actors = listOf(SceneActorEntry("Ball", SceneDocument.blockBuiltState(1f, 2f, 3f, 4f), "a"))
+        store.write("main", actors)
+        assertTrue(store.actors("main") === actors, "what was written is kept, not parsed again")
+        assertTrue(store.isValid("main"))
+        val file = File(root, "${SceneStore.DEFAULT_SCENE_DIRECTORY}/main.json")
+        file.writeText(SceneDocument.format(actors + SceneActorEntry("Ball", SceneDocument.blockBuiltState(5f, 6f, 3f, 4f), "b")))
+        file.setLastModified(file.lastModified() + 2_000)
+        assertEquals(listOf("a", "b"), store.actors("main")?.map { it.id })
+        file.writeText("not a Scene")
+        file.setLastModified(file.lastModified() + 4_000)
+        assertNull(store.actors("main"))
+        assertFalse(store.isValid("main"))
+        assertFalse(store.isValid("missing"))
+    }
 }

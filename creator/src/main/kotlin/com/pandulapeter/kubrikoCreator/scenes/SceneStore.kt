@@ -14,10 +14,13 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The Scene files of a project, by name: the file's path in the Scenes folder without `.json` (`levels/1-1`), since
- * Scenes can be in folders. Every call blocks, so callers that write run them off the main thread.
+ * Scenes can be in folders. Calls that write block, so callers run them off the main thread. Each Scene is kept parsed
+ * in memory while its file has the length and modification time it was read or written with, so that commands check
+ * and change a large Scene without reading it again; a file changed elsewhere is read again the next time it is asked for.
  *
  * @param sceneResources The Scene files the last scan of the project found. Scenes created since then are found in the
  *   folder new Scenes go to.
@@ -76,13 +79,58 @@ internal class SceneStore(
 
     fun exists(name: String) = file(name) != null
 
-    fun read(name: String) = file(name)?.readText()
+    fun read(name: String) = cached(name)?.text
+
+    /**
+     * The Actors of the Scene [name], or null if it doesn't exist or isn't a Scene file.
+     */
+    fun actors(name: String) = cached(name)?.actors
+
+    /**
+     * Whether the Scene [name] exists, and Kubriko can read every Actor in it.
+     */
+    fun isValid(name: String) = cached(name)?.isValid == true
 
     @EditorMutation
-    fun write(name: String, content: String) {
+    fun write(name: String, content: String) = write(name, content, actors = null)
+
+    /**
+     * Writes [actors] as the Scene [name], keeping them as they are for the next command instead of parsing them again.
+     */
+    @EditorMutation
+    fun write(name: String, actors: List<SceneActorEntry>) = write(name, SceneDocument.format(actors), actors)
+
+    private fun write(name: String, content: String, actors: List<SceneActorEntry>?) {
         val file = file(name) ?: File(sceneDirectory, "$name.$EXTENSION")
         file.parentFile.mkdirs()
         file.writeText(content)
+        cache[file] = CachedScene(content, file.length(), file.lastModified(), actors)
+    }
+
+    private val cache = ConcurrentHashMap<File, CachedScene>()
+
+    private fun cached(name: String): CachedScene? {
+        val file = file(name) ?: return null
+        val length = file.length()
+        val lastModified = file.lastModified()
+        return cache[file]?.takeIf { it.length == length && it.lastModified == lastModified }
+            ?: CachedScene(file.readText(), length, lastModified).also { cache[file] = it }
+    }
+
+    /**
+     * A Scene file's [text] as it was read or written, parsed once, when first needed (unless [knownActors] are given).
+     */
+    private class CachedScene(val text: String, val length: Long, val lastModified: Long, knownActors: List<SceneActorEntry>? = null) {
+        val actors by lazy {
+            knownActors ?: try {
+                SceneDocument.parse(text)
+            } catch (_: SerializationException) {
+                null
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+        }
+        val isValid by lazy { actors?.let(SceneDocument::isValid) == true }
     }
 
     @EditorMutation
@@ -111,15 +159,10 @@ internal class SceneStore(
 
     @EditorMutation
     private fun changeActors(change: (SceneActorEntry) -> SceneActorEntry) = names().filter { name ->
-        val content = read(name) ?: return@filter false
-        val actors = try {
-            SceneDocument.parse(content)
-        } catch (_: SerializationException) {
-            return@filter false
-        }
+        val actors = actors(name) ?: return@filter false
         val changed = actors.map(change)
         if (changed == actors) return@filter false
-        write(name, SceneDocument.format(changed))
+        write(name, changed)
         true
     }
 

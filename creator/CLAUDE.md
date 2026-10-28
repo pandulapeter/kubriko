@@ -208,7 +208,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   rename, delete when empty), and types and Scenes dragged into a folder or onto the group's header (`SidebarDragState`, which
   also carries Actor types into the open Scene). Scene folder names follow Scene name rules (no spaces). The workspace keeps the
   focus when nothing in it is focused (`historyShortcutTarget`), so Cmd/Ctrl+Z always reaches the undo history.
-- **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`), written with one Actor per line so they diff and merge:
+- **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`), written with one Actor per line so they diff and merge,
+  and kept parsed in memory while the file's length and modification time are the ones it was read or written with:
   Actors are `typeId` + JSON state + `id`, which Kubriko's serialization ignores (it reads entries with `ignoreUnknownKeys`), so
   games load the files unchanged. Parsing gives an Actor without an ID, or with an earlier one's, an ID from its index (`i3`), the
   same every time until a write keeps it, so existing Scenes change only when a command writes them; new Actors get a short random

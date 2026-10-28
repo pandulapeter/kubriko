@@ -67,12 +67,17 @@ internal object SceneDocument {
     fun isValidId(id: String) = idPattern.matches(id)
 
     fun isValid(content: String) = try {
-        parse(content).all { stateObject(it.state) != null }
+        isValid(parse(content))
     } catch (_: SerializationException) {
         false
     } catch (_: IllegalArgumentException) {
         false
     }
+
+    /**
+     * Whether every one of [actors] has a state Kubriko can read.
+     */
+    fun isValid(actors: List<SceneActorEntry>) = actors.all { stateObject(it.state) != null }
 
     fun format(actors: List<SceneActorEntry>) = if (actors.isEmpty()) {
         "[]"

@@ -22,9 +22,10 @@ import kubriko.creator.generated.resources.error_command_scene_actor_missing
 import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_missing
 
-internal fun CommandContext.validateScene(name: String): Rejection? {
-    val content = scenes.read(name) ?: return Rejection(Res.string.error_command_scene_missing, name)
-    return if (SceneDocument.isValid(content)) null else Rejection(Res.string.error_command_scene_invalid, name)
+internal fun CommandContext.validateScene(name: String): Rejection? = when {
+    !scenes.exists(name) -> Rejection(Res.string.error_command_scene_missing, name)
+    scenes.isValid(name) -> null
+    else -> Rejection(Res.string.error_command_scene_invalid, name)
 }
 
 internal fun CommandContext.validateSceneActor(sceneName: String, actorId: String): Rejection? = validateScene(sceneName)
@@ -52,10 +53,10 @@ internal fun List<SceneActorEntry>.requireActor(actorId: String) = first { it.id
 /**
  * The Actors of a Scene that the command has validated.
  */
-internal fun CommandContext.readScene(name: String) = SceneDocument.parse(checkNotNull(scenes.read(name)))
+internal fun CommandContext.readScene(name: String) = checkNotNull(scenes.actors(name))
 
 @OptIn(EditorMutation::class)
 internal suspend fun CommandContext.writeScene(name: String, actors: List<SceneActorEntry>) {
-    withContext(ioDispatcher) { scenes.write(name, SceneDocument.format(actors)) }
+    withContext(ioDispatcher) { scenes.write(name, actors) }
     onScenesChanged(listOf(name))
 }
