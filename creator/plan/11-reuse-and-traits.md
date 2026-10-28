@@ -28,14 +28,17 @@ Bat), cycles are rejected.
 - **A parent stands for its children:** a collision Event with Enemy fires for any Enemy's child, moveTowardsNearest Enemy and (later)
   counting Enemies include children, and Blocks that read another Actor's Property (`other.hp`) work for every child. addActor of a
   parent creates the parent itself, which an "only a parent" toggle forbids (such a type is also left out of placing).
-- **Generated code (provisional; the user dislikes faking inheritance and accepted it only for now):** before building it, try real
-  Kotlin inheritance once more (an `open` parent class whose `State` the child's extends or embeds, with `Editable<T>` on the
-  concrete classes only), and use the flattened form below only if that can't be made to serialize and load cleanly. Flattened, each
-  type stays one flat, self-contained class (the parent's Properties and Events generated into it), not a Kotlin
-  `open class` hierarchy, which `Editable<T>` and the serializable `State` make awkward. Every type with children also gets an interface
-  (`EnemyFamily`, a reserved suffix) that the type and all its descendants implement, declaring the shared Properties; collision
-  `collidableTypes`, `is` checks, and lookups use it. Kubriko's collision matching uses `KClass.isInstance`, so interfaces work; check
-  that it holds on Wasm before relying on it.
+- **Generated code: real Kotlin inheritance.** Kubriko registers a saveable type as `T : Editable<T>`, and a subclass can't implement
+  `Editable` again for itself, so a type with children is generated as two classes: an abstract `EnemyBase` with everything the
+  family does (its Properties as fields, the Manager lookups, the update loop, timers, collision and key dispatch), each Event an
+  `open` hook (`onEveryFrame()`, `onCollisionWith(other: Wall)`, `onKeyPressed(key)`, ...), and a final `Enemy : EnemyBase(...),
+  Editable<Enemy>` that only keeps the state (`State`, `save`, `metadata`), the drawing, and the collision mask. A child is
+  `Bat : EnemyBase(...), Editable<Bat>` (or `FlyingEnemyBase : EnemyBase` and `Bat : FlyingEnemyBase` when it has children itself)
+  that overrides the hooks of the Events it defines; "Run the parent's Event" is the `super` call. The root base implements every
+  Trait and declares every hook any type in the family needs, so subclasses only override; the drawing, the collision mask (passed
+  to the base's constructor, so a child may have another shape), and the State stay per concrete class. `is EnemyBase` stands for
+  the family in collision `collidableTypes`, `is` checks, and lookups. Types without children stay one class, as now. `Base` is a
+  reserved suffix for type names.
 - **Editing:** the Actor type editor shows inherited Properties and Events greyed, with "override" and "back to the parent's"; renaming or
   deleting a parent follows its children (deleting asks whether to copy what they inherit into them).
 - **Scenes** are unaffected: every Actor names its concrete type.
