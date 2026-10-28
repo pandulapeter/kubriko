@@ -100,10 +100,12 @@ editing); seen working on the scratch Breakout (dragging the Ball, then undo). L
 
 ## 6. The editor's own UI
 
-- **Narrow state:** the workspace screen collects only what it lays out; the sidebar, editor, console, and Scene pane
-  each collect their own flows, and derivations (folder trees, Scene name lists, filtered type lists) are remembered
-  from their inputs, so a console line or a key press recomposes only what shows it.
-- **The console** is a ring buffer with a version counter instead of a list copied on every line.
-- **Lazy lists** for Events, Blocks, Properties, the palette, and git changes, which are scrolled `Column`s today.
-- **AI tool calls** run their commands on the main thread only for the part that touches UI state; reads and writes
-  happen in the background like the UI's.
+Done: the console collects its own entries (`WorkspaceConsole`), so a line the game logs no longer recomposes the workspace;
+the workspace remembers its folder trees, Scene names, and Actor type list; and `folderTreeRows` groups by folder once instead
+of scanning every folder and item for each folder. Left:
+
+- **Lazy lists** for Events, Blocks, Properties, the palette, and git changes, which are scrolled `Column`s today. The Block
+  list's drag and drop finds its drop targets from laid-out cards (`BlockDragState`), so it needs targets that work for cards
+  that aren't composed before it can be lazy; seen in the running app before it is called done.
+- The other screen-wide collections (`aiSteps`, `history`, `gitState`) move into what shows them, as the console's did.
+- The console's list is copied on every line (up to 2,000 entries, microseconds); a ring buffer if a busy game shows it.

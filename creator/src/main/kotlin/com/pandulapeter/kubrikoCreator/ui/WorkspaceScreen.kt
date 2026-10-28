@@ -87,7 +87,6 @@ internal fun WorkspaceScreen(
     onCloseProject: () -> Unit,
 ) {
     val resources by controller.resources.collectAsState()
-    val console by controller.console.collectAsState()
     val sessionState by controller.sessionState.collectAsState()
     val blockTypesController = controller.blockTypes
     val blockTypes = blockTypesController?.types?.collectAsState()?.value.orEmpty()
@@ -95,10 +94,6 @@ internal fun WorkspaceScreen(
     val selectedBlockType = blockTypes.firstOrNull { it.name == selectedBlockTypeName }
     val blockTypesChangedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
-    var isConsoleExpanded by remember { mutableStateOf(false) }
-    LaunchedEffect(console.lastOrNull()) {
-        if (console.lastOrNull()?.opensConsole == true) isConsoleExpanded = true
-    }
     var openPanel by remember { mutableStateOf<SidePanel?>(null) }
     val mcpState by mcp.state.collectAsState()
     val gitState by controller.git.state.collectAsState()
@@ -112,6 +107,19 @@ internal fun WorkspaceScreen(
     val folderTreeActions = rememberFolderTreeActions(controller)
     val blockTypeFolders = blockTypesController?.folders?.collectAsState()?.value.orEmpty()
     val sceneFolders by controller.sceneFolders.collectAsState()
+    val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
+    val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
+    val openSceneName = (sceneEditing as? SceneEditingState.Open)?.sceneName
+    val folderGroups = remember(blockTypes, blockTypeFolders, selectedBlockTypeName, sceneNames, sceneFolders, openSceneName, blockTypesController) {
+        folderTreeGroups(
+            types = blockTypes.takeIf { blockTypesController != null },
+            typeFolders = blockTypeFolders,
+            selectedTypeName = selectedBlockTypeName,
+            sceneNames = sceneNames,
+            sceneFolders = sceneFolders,
+            openSceneName = openSceneName,
+        )
+    }
     var isReviewingUpgrade by remember { mutableStateOf(false) }
     val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)
     if (projectUpgrade != null && isReviewingUpgrade) {
@@ -179,14 +187,7 @@ internal fun WorkspaceScreen(
                 ProjectSidebar(
                     modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                     resources = resources,
-                    folderGroups = folderTreeGroups(
-                        types = blockTypes.takeIf { blockTypesController != null },
-                        typeFolders = blockTypeFolders,
-                        selectedTypeName = selectedBlockTypeName,
-                        sceneNames = resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted(),
-                        sceneFolders = sceneFolders,
-                        openSceneName = (sceneEditing as? SceneEditingState.Open)?.sceneName,
-                    ),
+                    folderGroups = folderGroups,
                     folderActions = folderTreeActions,
                     dragState = sidebarDragState,
                     flashedName = latestAiStep?.sidebarName(),
@@ -200,7 +201,7 @@ internal fun WorkspaceScreen(
                         state = state,
                         onCommand = { controller.commands.dispatch(it) },
                         actorTypeDragState = sidebarDragState,
-                        actorTypes = blockTypes.filterIsInstance<ActorTypeDefinition>(),
+                        actorTypes = actorTypes,
                         music = remember(resources) { AudioFiles.of(resources).music },
                         onReload = controller.sceneEditing::reload,
                         onClose = controller.sceneEditing::close,
@@ -231,7 +232,7 @@ internal fun WorkspaceScreen(
                             BlockScope.of(
                                 definition = selectedBlockType,
                                 types = blockTypes,
-                                sceneNames = resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted(),
+                                sceneNames = sceneNames,
                                 audioFiles = AudioFiles.of(resources),
                             )
                         },
@@ -280,10 +281,8 @@ internal fun WorkspaceScreen(
                 }
             }
             HorizontalDivider()
-            Console(
-                entries = console,
-                isExpanded = isConsoleExpanded,
-                onExpandedChange = { isConsoleExpanded = it },
+            WorkspaceConsole(
+                entries = controller.console,
                 onClear = controller::clearConsole,
             )
         }

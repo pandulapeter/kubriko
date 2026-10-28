@@ -42,16 +42,21 @@ internal sealed interface FolderTreeRow {
  * at every level, folders first, then items, each sorted by name, and nothing inside a folder in [collapsed].
  */
 internal fun folderTreeRows(items: List<Pair<String, String>>, folders: Set<String>, collapsed: Set<String>): List<FolderTreeRow> {
-    val allFolders = (folders + items.mapNotNull { (_, folder) -> folder.ifEmpty { null } }).withParents()
+    val allFolders = (folders + items.mapNotNull { (_, folder) -> folder.ifEmpty { null } }).withParents().filterTo(HashSet()) { it.isNotEmpty() }
+    val foldersByParent = allFolders.groupBy(FolderPaths::parentOf).mapValues { (_, children) -> children.sortedBy { it.lowercase() } }
+    val itemsByFolder = items.groupBy({ (_, folder) -> folder }, { (name, _) -> name }).mapValues { (_, names) -> names.sortedBy { it.lowercase() } }
+    // A folder holds something when an item is in it, or it has a folder of its own.
+    val nonEmptyFolders = HashSet<String>()
+    itemsByFolder.keys.forEach { folder -> var current = folder; while (current.isNotEmpty() && nonEmptyFolders.add(current)) current = FolderPaths.parentOf(current) }
+    allFolders.forEach { folder -> FolderPaths.parentOf(folder).takeIf { it.isNotEmpty() }?.let(nonEmptyFolders::add) }
     val rows = mutableListOf<FolderTreeRow>()
     fun addLevel(parent: String, depth: Int) {
-        allFolders.filter { it.isNotEmpty() && FolderPaths.parentOf(it) == parent }.sortedBy { it.lowercase() }.forEach { folder ->
+        foldersByParent[parent].orEmpty().forEach { folder ->
             val isExpanded = folder !in collapsed
-            val isEmpty = items.none { (_, itemFolder) -> FolderPaths.isWithin(itemFolder, folder) } && allFolders.none { it != folder && FolderPaths.isWithin(it, folder) }
-            rows += FolderTreeRow.Folder(folder, depth, isExpanded, isEmpty)
+            rows += FolderTreeRow.Folder(folder, depth, isExpanded, isEmpty = folder !in nonEmptyFolders)
             if (isExpanded) addLevel(folder, depth + 1)
         }
-        items.filter { (_, folder) -> folder == parent }.sortedBy { (name, _) -> name.lowercase() }.forEach { (name, _) -> rows += FolderTreeRow.Item(name, depth) }
+        itemsByFolder[parent].orEmpty().forEach { name -> rows += FolderTreeRow.Item(name, depth) }
     }
     addLevel(parent = "", depth = 0)
     return rows
