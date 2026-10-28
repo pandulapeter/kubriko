@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
+import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -67,6 +68,7 @@ class ProjectTemplateIntegrationTest {
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
                         listOf("audioPlayback", "collision", "keyboardInput").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
                         assertCompiles(connection, directory, "${template.id} with every Block")
+                        assertRuntimeClasspathResolves(connection, "${template.id} with every Block")
                     }
                 }
             } finally {
@@ -84,6 +86,33 @@ class ProjectTemplateIntegrationTest {
             assertTrue(isSuccessful, "$description doesn't compile for $target:\n$output")
             val classes = directory.resolve("build/classes/kotlin/$target/main")
             assertTrue(classes.walkTopDown().any { it.isFile }, "$description: nothing was compiled for $target")
+        }
+    }
+
+    /**
+     * Resolves the desktop runtime classpath the way Kubriko Creator does before playing, which compiling alone doesn't:
+     * a library missing from the project's repositories only shows up here.
+     */
+    private fun assertRuntimeClasspathResolves(connection: GradleProjectConnection, description: String) {
+        val classpathFile = File.createTempFile("kubriko-creator-classpath", ".txt")
+        try {
+            val output = StringBuilder()
+            val isSuccessful = runBlocking {
+                connection.run(
+                    taskPath = ":${SessionInitScript.CLASSPATH_TASK_NAME}",
+                    arguments = listOf(
+                        "--init-script",
+                        SessionInitScript.file.absolutePath,
+                        "--no-configuration-cache",
+                        "-PkubrikoCreatorMode=classpath",
+                        "-PkubrikoCreatorClasspathFile=${classpathFile.absolutePath}",
+                    ),
+                    onEvent = { output.appendLine(it.toString()) },
+                )
+            }
+            assertTrue(isSuccessful, "$description: the desktop runtime classpath doesn't resolve:\n$output")
+        } finally {
+            classpathFile.delete()
         }
     }
 

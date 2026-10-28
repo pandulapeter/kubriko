@@ -21,7 +21,8 @@ lives in `plan/` (start with `plan/README.md`).
   that version and `mavenLocal()` into `creator.properties`, so new projects use them. Without it, projects use the released version.
 - `./gradlew :creator:test` runs the unit tests (also in the `Tests` workflow). `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<version>`
   additionally generates every template for real and compiles it, plus an Actor type and two Manager types using every Event and Block (and
-  each other's Properties), for desktop and web.
+  each other's Properties), for desktop and web, and resolves the desktop runtime classpath as playing does (compiling alone misses a
+  library whose repository is missing).
 - **Every change ships with solid unit tests**: controllers against fakes (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`,
   `FakeGitRepository`), file code against real temporary folders, git against real temporary repositories (JGit needs no installed git),
   sockets over real localhost connections. `StringResourcesTest` fails on any string or icon nothing uses, and on escaped apostrophes.
@@ -44,7 +45,8 @@ lives in `plan/` (start with `plan/README.md`).
   adding `kubriko-<name>` catalog entries and `implementation(libs.kubriko.<name>)` lines in sorted order and removing unused ones (a
   catalog entry stays while anything else in the build file refers to it; libraries it doesn't know, like the debug menu, are never
   touched). It also raises the catalog's `kubriko` version to Creator's own (one newer than Creator's is kept and reported once), and adds
-  or removes its Maven Local block in `settings.gradle.kts` with `useMavenLocal`. The edits are line-based (`VersionCatalog`,
+  or removes its Maven Local block in `settings.gradle.kts` with `useMavenLocal`, and a JitPack block (limited to
+  `com.github.umjammer`) with the audio plugin, whose desktop library needs JLayer from there. The edits are line-based (`VersionCatalog`,
   `BuildScript`) and leave every other line alone; files without the template's shape (a `kubriko` version, a `commonMain.dependencies`
   block) are left alone entirely. Changes are reported in the console. Projects that aren't opted in are never changed.
 

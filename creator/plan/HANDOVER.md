@@ -18,6 +18,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   `SceneSettings` (`set_scene_settings` takes `music`), and the generated `GeneratedAudio` Manager, written only while something plays
   audio. Scene changes now regenerate the code, since a Scene's music decides that. The palette's category tabs wrap now; an Actor
   type's last tab was already cut off before.
+- **The audio plugin brings a JitPack block** into `settings.gradle.kts` (JLayer, which its desktop library needs); the integration
+  test now resolves the desktop runtime classpath, which is where a missing repository shows.
 
 - **Kubriko 0.8.0 is released.** `00-library-release.md` is now the policy for later releases.
 - **Projects follow Creator's Kubriko version and code** (`project/KubrikoBuildFiles`, after every regeneration, so also on open and on

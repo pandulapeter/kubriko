@@ -119,6 +119,21 @@ class KubrikoBuildFilesTest {
     }
 
     @Test
+    fun theAudioPluginBringsJitPackForItsMp3DecoderAndTakesItAlongWhenItGoes() {
+        val audio = source("GeneratedAudio.kt", "import com.pandulapeter.kubriko.audioPlayback.MusicManager\n")
+        sync(version = "0.9.0-creator", useMavenLocal = true)
+        assertContains(
+            settings.readText(),
+            "    repositories {\n${KubrikoBuildFiles.MAVEN_LOCAL_REPOSITORY}        google()\n        mavenCentral()\n${KubrikoBuildFiles.JITPACK_REPOSITORY}    }\n",
+        )
+        sync(version = "0.9.0-creator", useMavenLocal = true)
+        assertEquals(1, settings.readText().split("jitpack").size - 1)
+        audio.delete()
+        sync(version = "0.9.0")
+        assertEquals(SETTINGS, settings.readText())
+    }
+
+    @Test
     fun filesThatDoNotLookLikeTheTemplatesAreLeftAlone() {
         build.writeText(BUILD.replace("commonMain.dependencies {", "dependencies {"))
         source("Ball.kt", "import com.pandulapeter.kubriko.physics.RigidBody\n")

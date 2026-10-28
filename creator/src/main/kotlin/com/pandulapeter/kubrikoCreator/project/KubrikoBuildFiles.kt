@@ -17,7 +17,7 @@ import java.io.File
  * keyboard plugin), at the version Kubriko Creator itself was built with, which embedded Scene editing needs.
  *
  * Only the Kubriko entries of `gradle/libs.versions.toml`, the lines of `build.gradle.kts` that add them, and Kubriko
- * Creator's own Maven Local block in `settings.gradle.kts` change; a project whose files don't have that shape is left
+ * Creator's own repository blocks in `settings.gradle.kts` (Maven Local, and JitPack for the audio plugin) change; a project whose files don't have that shape is left
  * alone. A project on a newer Kubriko version than Kubriko Creator's keeps it.
  *
  * @param useMavenLocal Whether [kubrikoVersion] is a development build in Maven Local, which the project's settings
@@ -51,7 +51,10 @@ internal class KubrikoBuildFiles(
         )
         write(BUILD_FILE, buildText, changedBuild)
         write(CATALOG_FILE, catalogText, changedCatalog)
-        if (version == kubrikoVersion) read(SETTINGS_FILE)?.let { settings -> write(SETTINGS_FILE, settings, withMavenLocal(settings, useMavenLocal)) }
+        read(SETTINGS_FILE)?.let { settings ->
+            val withMavenLocal = if (version == kubrikoVersion) withRepository(settings, MAVEN_LOCAL_REPOSITORY, useMavenLocal, isFirst = true) else settings
+            write(SETTINGS_FILE, settings, withRepository(withMavenLocal, JITPACK_REPOSITORY, KubrikoArtifact.AUDIO_PLAYBACK in used, isFirst = false))
+        }
         return KubrikoBuildFileChanges(
             addedArtifacts = added.map { it.artifactId }.sorted(),
             removedArtifacts = removed.filter { !BuildScript.refersTo(changedBuild, accessors.getValue(it)) }.map { it.artifactId }.sorted(),
@@ -83,6 +86,11 @@ internal class KubrikoBuildFiles(
         const val MAVEN_LOCAL_REPOSITORY = "        mavenLocal {\n            content { includeGroup(\"io.github.pandulapeter.kubriko\") }\n        }\n"
 
         /**
+         * The repository block that the audio plugin's desktop library needs, for the MP3 decoder it depends on.
+         */
+        const val JITPACK_REPOSITORY = "        maven(\"https://jitpack.io\") {\n            content { includeGroup(\"com.github.umjammer\") }\n        }\n"
+
+        /**
          * Compares the numbers of two versions, ignoring what follows a dash (`0.8.1-creator` equals `0.8.1`).
          */
         internal fun compareVersions(first: String, second: String): Int {
@@ -97,23 +105,26 @@ internal class KubrikoBuildFiles(
         }
 
         /**
-         * [settings] (a `settings.gradle.kts`) with [MAVEN_LOCAL_REPOSITORY] as the first repository of its dependency
-         * resolution, or without it.
+         * [settings] (a `settings.gradle.kts`) with the repository [block] as the first (or last) repository of its
+         * dependency resolution, or without it.
          */
-        internal fun withMavenLocal(settings: String, isIncluded: Boolean): String {
-            val hasIt = MAVEN_LOCAL_REPOSITORY in settings
+        internal fun withRepository(settings: String, block: String, isIncluded: Boolean, isFirst: Boolean): String {
+            val hasIt = block in settings
             return when {
                 isIncluded && !hasIt -> {
                     val lines = settings.lines()
                     val management = lines.indexOfFirst { it.trimStart().startsWith("dependencyResolutionManagement") }
                     val repositories = (management + 1 until lines.size).firstOrNull { lines[it].trim() == "repositories {" }
-                    if (management < 0 || repositories == null) {
+                    val indent = repositories?.let { lines[it].takeWhile(Char::isWhitespace) }
+                    val end = repositories?.let { (it + 1 until lines.size).firstOrNull { index -> lines[index] == "$indent}" } }
+                    val insertion = if (isFirst) repositories?.plus(1) else end
+                    if (management < 0 || insertion == null) {
                         settings
                     } else {
-                        (lines.take(repositories + 1) + MAVEN_LOCAL_REPOSITORY.trimEnd('\n') + lines.drop(repositories + 1)).joinToString("\n")
+                        (lines.take(insertion) + block.trimEnd('\n') + lines.drop(insertion)).joinToString("\n")
                     }
                 }
-                !isIncluded && hasIt -> settings.replace(MAVEN_LOCAL_REPOSITORY, "")
+                !isIncluded && hasIt -> settings.replace(block, "")
                 else -> settings
             }
         }
