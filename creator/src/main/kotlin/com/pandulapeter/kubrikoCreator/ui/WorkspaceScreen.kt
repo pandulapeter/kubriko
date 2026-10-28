@@ -41,10 +41,16 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
@@ -61,8 +67,6 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
-import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragPreview
-import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragState
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
@@ -107,7 +111,24 @@ internal fun WorkspaceScreen(
     var isFollowingAi by remember { mutableStateOf(true) }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
     var isUpgradeNoticeDismissed by remember { mutableStateOf(false) }
-    val actorTypeDragState = remember { ActorTypeDragState() }
+    val blockTypeDragState = remember(controller) {
+        BlockTypeDragState().apply {
+            onMoveToFolder = { name, folder -> controller.commands.dispatch(Invocation(MoveToFolder, MoveToFolder.Input(name, folder))) }
+        }
+    }
+    val blockTypeFolders = blockTypesController?.folders?.collectAsState()?.value.orEmpty()
+    val blockTypeActions = remember(controller) {
+        BlockTypeTreeActions(
+            onSelected = { name ->
+                controller.sceneEditing.close()
+                controller.blockTypes?.select(name)
+            },
+            onCreateType = { kind, name -> if (kind == BlockTypeKind.ACTOR) controller.createActorType(name) else controller.createManagerType(name) },
+            onCreateFolder = { kind, path -> controller.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.of(kind), path))) },
+            onRenameFolder = { kind, path, newName -> controller.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.of(kind), path, newName))) },
+            onDeleteFolder = { kind, path -> controller.commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.of(kind), path))) },
+        )
+    }
     var isReviewingUpgrade by remember { mutableStateOf(false) }
     val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)
     if (projectUpgrade != null && isReviewingUpgrade) {
@@ -174,23 +195,19 @@ internal fun WorkspaceScreen(
                     resources = resources,
                     blockTypes = blockTypesController?.let {
                         BlockTypeTreeState(
-                            actorTypeNames = blockTypes.filterIsInstance<ActorTypeDefinition>().map { it.name },
-                            managerTypeNames = blockTypes.filterIsInstance<ManagerTypeDefinition>().map { it.name },
+                            actorTypes = blockTypes.filterIsInstance<ActorTypeDefinition>().map { it.name to it.folder },
+                            managerTypes = blockTypes.filterIsInstance<ManagerTypeDefinition>().map { it.name to it.folder },
+                            folders = blockTypeFolders,
                             selectedName = selectedBlockTypeName,
                         )
                     },
+                    blockTypeActions = blockTypeActions,
+                    dragState = blockTypeDragState,
                     onSceneSelected = { scene ->
                         blockTypesController?.select(null)
                         controller.sceneEditing.open(scene)
                     },
-                    onBlockTypeSelected = {
-                        controller.sceneEditing.close()
-                        blockTypesController?.select(it)
-                    },
-                    onCreateActorType = { name -> controller.createActorType(name) },
-                    onCreateManagerType = { name -> controller.createManagerType(name) },
                     onCreateScene = { name -> controller.createScene(name) },
-                    actorTypeDragState = actorTypeDragState.takeIf { sceneEditing is SceneEditingState.Open },
                     flashedName = latestAiStep?.sidebarName(),
                     flashKey = latestAiStep?.flashKey,
                 )
@@ -201,7 +218,7 @@ internal fun WorkspaceScreen(
                         modifier = centerModifier,
                         state = state,
                         onCommand = { controller.commands.dispatch(it) },
-                        actorTypeDragState = actorTypeDragState,
+                        actorTypeDragState = blockTypeDragState,
                         actorTypes = blockTypes.filterIsInstance<ActorTypeDefinition>(),
                         music = remember(resources) { AudioFiles.of(resources).music },
                         onReload = controller.sceneEditing::reload,
@@ -288,7 +305,7 @@ internal fun WorkspaceScreen(
                 onClear = controller::clearConsole,
             )
         }
-        ActorTypeDragPreview(actorTypeDragState)
+        BlockTypeDragPreview(blockTypeDragState)
     }
 }
 

@@ -31,6 +31,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -43,17 +44,23 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Names and creates something new (an Actor type, a Scene): Enter creates it, Escape cancels, and a rejected name shows why.
+ * Names something new (an Actor type, a Scene, a folder), or names something again: Enter creates or renames it, Escape
+ * cancels, and a rejected name shows why.
+ *
+ * @param initialName The name it starts with, for renaming.
+ * @param indent How far it is from the start, to line up with the rows around it.
  */
 @Composable
 internal fun NewNameField(
     placeholder: StringResource,
     onCreate: (String) -> StringResource?,
     onCancel: () -> Unit,
+    initialName: String = "",
+    indent: Dp = 24.dp,
 ) = Column(
-    modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 4.dp, bottom = 4.dp),
+    modifier = Modifier.fillMaxWidth().padding(start = indent, end = 4.dp, bottom = 4.dp),
 ) {
-    var name by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(initialName) }
     var error by remember { mutableStateOf<StringResource?>(null) }
     val focusRequester = remember { FocusRequester() }
     val create = { if (name.isNotBlank()) error = onCreate(name.trim()) }

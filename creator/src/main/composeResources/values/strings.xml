@@ -258,6 +258,11 @@
     <string name="key_s">S</string>
     <string name="key_d">D</string>
     <string name="action_new_actor_type">New Actor type</string>
+    <string name="action_new_folder">New folder</string>
+    <string name="action_rename_folder">Rename</string>
+    <string name="action_delete_folder">Delete folder</string>
+    <string name="action_folder_options">Folder options</string>
+    <string name="new_folder_hint">Folder name</string>
     <string name="action_new_manager_type">New Manager type</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_collapse_console">Hide the console</string>

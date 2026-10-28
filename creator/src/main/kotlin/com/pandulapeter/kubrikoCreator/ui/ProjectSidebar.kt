@@ -41,8 +41,6 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
-import com.pandulapeter.kubrikoCreator.ui.scenes.ActorTypeDragState
-import com.pandulapeter.kubrikoCreator.ui.scenes.actorTypeDragSource
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_collapse_group
 import kubriko.creator.generated.resources.action_expand_group
@@ -68,65 +66,46 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The Actor types and Manager types shown at the top of the sidebar, for projects that opted in to them.
- */
-internal data class BlockTypeTreeState(
-    val actorTypeNames: List<String>,
-    val managerTypeNames: List<String>,
-    val selectedName: String?,
-)
-
-/**
  * The project's contents: its Actor types and Manager types, then its files grouped by what they are. Clicking a Scene
  * edits it.
  *
- * @param actorTypeDragState Where Actor types are dragged to while a Scene is open, or null while none is.
+ * @param blockTypes The project's types, or null if it hasn't opted in to them.
+ * @param dragState Where types are dragged to: folders, and the open Scene.
  */
 @Composable
 internal fun ProjectSidebar(
     modifier: Modifier,
     resources: Map<ResourceGroup, List<ProjectResource>>,
     blockTypes: BlockTypeTreeState?,
+    blockTypeActions: BlockTypeTreeActions,
+    dragState: BlockTypeDragState,
     onSceneSelected: (ProjectResource) -> Unit,
-    onBlockTypeSelected: (String) -> Unit,
-    onCreateActorType: (String) -> StringResource?,
-    onCreateManagerType: (String) -> StringResource?,
     onCreateScene: (String) -> StringResource?,
-    actorTypeDragState: ActorTypeDragState? = null,
     flashedName: String? = null,
     flashKey: Any? = null,
 ) {
-    var isCreatingActorType by remember { mutableStateOf(false) }
-    var isCreatingManagerType by remember { mutableStateOf(false) }
+    var naming by remember { mutableStateOf<BlockTypeNaming?>(null) }
+    var collapsedFolders by remember { mutableStateOf(emptyMap<BlockTypeKind, Set<String>>()) }
     var isCreatingScene by remember { mutableStateOf(false) }
     var collapsedGroups by remember { mutableStateOf(setOf(ResourceGroup.KOTLIN)) }
     LazyColumn(
         modifier = modifier,
     ) {
         if (blockTypes != null) {
-            blockTypeSection(
-                kind = BlockTypeKind.ACTOR,
-                names = blockTypes.actorTypeNames,
-                selectedName = blockTypes.selectedName,
-                isCreating = isCreatingActorType,
-                onCreatingChange = { isCreatingActorType = it },
-                onCreate = onCreateActorType,
-                onSelected = onBlockTypeSelected,
-                dragState = actorTypeDragState,
-                flashedName = flashedName,
-                flashKey = flashKey,
-            )
-            blockTypeSection(
-                kind = BlockTypeKind.MANAGER,
-                names = blockTypes.managerTypeNames,
-                selectedName = blockTypes.selectedName,
-                isCreating = isCreatingManagerType,
-                onCreatingChange = { isCreatingManagerType = it },
-                onCreate = onCreateManagerType,
-                onSelected = onBlockTypeSelected,
-                flashedName = flashedName,
-                flashKey = flashKey,
-            )
+            BlockTypeKind.entries.forEach { kind ->
+                blockTypeSection(
+                    kind = kind,
+                    state = blockTypes,
+                    actions = blockTypeActions,
+                    dragState = dragState,
+                    collapsed = collapsedFolders[kind].orEmpty(),
+                    onCollapsedChange = { collapsedFolders = collapsedFolders + (kind to it) },
+                    naming = naming,
+                    onNamingChange = { naming = it },
+                    flashedName = flashedName,
+                    flashKey = flashKey,
+                )
+            }
         }
         shownResourceGroups(resources).forEach { group ->
             val isCollapsed = group in collapsedGroups
@@ -184,98 +163,6 @@ internal fun ProjectSidebar(
                 }
             }
         }
-    }
-}
-
-/**
- * The header of the Actor types or the Manager types, the field that names a new one, and the list of them.
- */
-private fun LazyListScope.blockTypeSection(
-    kind: BlockTypeKind,
-    names: List<String>,
-    selectedName: String?,
-    isCreating: Boolean,
-    onCreatingChange: (Boolean) -> Unit,
-    onCreate: (String) -> StringResource?,
-    onSelected: (String) -> Unit,
-    flashedName: String?,
-    flashKey: Any?,
-    dragState: ActorTypeDragState? = null,
-) {
-    item(key = "${kind.name}-header") {
-        PanelHeader(
-            icon = kind.icon,
-            title = stringResource(if (kind == BlockTypeKind.ACTOR) Res.string.resource_group_actor_types else Res.string.resource_group_manager_types),
-        ) {
-            IconActionButton(
-                icon = Res.drawable.ic_add,
-                label = if (kind == BlockTypeKind.ACTOR) Res.string.action_new_actor_type else Res.string.action_new_manager_type,
-                onClick = { onCreatingChange(!isCreating) },
-            )
-        }
-    }
-    if (isCreating) {
-        item(key = "${kind.name}-new") {
-            NewNameField(
-                placeholder = if (kind == BlockTypeKind.ACTOR) Res.string.new_actor_type_hint else Res.string.new_manager_type_hint,
-                onCreate = { name -> onCreate(name).also { if (it == null) onCreatingChange(false) } },
-                onCancel = { onCreatingChange(false) },
-            )
-        }
-    }
-    items(names, key = { "${kind.name}-$it" }) { name ->
-        SidebarItem(
-            modifier = if (dragState == null) Modifier else Modifier.actorTypeDragSource(dragState, name),
-            icon = kind.icon,
-            text = name,
-            isSelected = name == selectedName,
-            onClick = { if (dragState?.isClickAfterDrag != true) onSelected(name) },
-            flashKey = flashKey?.takeIf { name == flashedName },
-        )
-    }
-}
-
-@Composable
-private fun SidebarItem(
-    icon: DrawableResource,
-    text: String,
-    onClick: (() -> Unit)?,
-    isSelected: Boolean = false,
-    detail: String? = null,
-    flashKey: Any? = null,
-    modifier: Modifier = Modifier,
-) = Row(
-    modifier = modifier
-        .fillMaxWidth()
-        .height(28.dp)
-        .then(if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
-        .background(rememberFlashColor(flashKey))
-        .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
-        .padding(start = 28.dp, end = 12.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-) {
-    val color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-    Icon(
-        modifier = Modifier.size(14.dp),
-        painter = painterResource(icon),
-        contentDescription = null,
-        tint = color.copy(alpha = 0.7f),
-    )
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyMedium,
-        color = color,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
-    if (detail != null) {
-        Text(
-            text = detail,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-        )
     }
 }
 

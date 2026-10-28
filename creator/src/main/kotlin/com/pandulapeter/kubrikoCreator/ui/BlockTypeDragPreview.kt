@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.ui.scenes
+package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,15 +33,14 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.ic_actor_type
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import org.jetbrains.compose.resources.painterResource
 
 /**
- * The Actor type being dragged from the sidebar, following the pointer.
+ * The type being dragged from the sidebar, following the pointer.
  */
 @Composable
-internal fun ActorTypeDragPreview(state: ActorTypeDragState) {
+internal fun BlockTypeDragPreview(state: BlockTypeDragState) {
     val dragged = state.dragged ?: return
     var origin by remember { mutableStateOf(Offset.Zero) }
     Box(
@@ -58,12 +57,12 @@ internal fun ActorTypeDragPreview(state: ActorTypeDragState) {
         ) {
             Icon(
                 modifier = Modifier.size(16.dp),
-                painter = painterResource(Res.drawable.ic_actor_type),
+                painter = painterResource(dragged.kind.icon),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.tertiary,
             )
             Text(
-                text = dragged,
+                text = dragged.name,
                 style = MaterialTheme.typography.bodyMedium,
             )
         }

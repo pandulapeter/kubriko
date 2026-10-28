@@ -151,8 +151,14 @@ internal class WorkspaceController(
      *
      * @return Why [name] can't be used, or null if the Scene is being created.
      */
-    fun createScene(name: String): StringResource? {
-        val invocation = Invocation(CreateScene, CreateScene.Input(name))
+    fun createScene(name: String) = dispatchIfValid(Invocation(CreateScene, CreateScene.Input(name)))
+
+    /**
+     * Applies [invocation] unless it is rejected.
+     *
+     * @return Why it was rejected, or null if it is being applied.
+     */
+    fun dispatchIfValid(invocation: Invocation<*>): StringResource? {
         commands.validate(invocation)?.let { return it.reason }
         commands.dispatch(invocation)
         return null
