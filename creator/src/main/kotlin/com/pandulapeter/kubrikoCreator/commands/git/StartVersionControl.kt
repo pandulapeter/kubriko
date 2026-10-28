@@ -36,5 +36,8 @@ internal object StartVersionControl : WriteCommand<NoInput> {
         GitState.Loading, is GitState.Ready -> Rejection(Res.string.error_command_already_under_version_control)
     }
 
-    override suspend fun apply(context: CommandContext, input: NoInput) = if (context.git.startVersionControl()) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
+    override suspend fun apply(context: CommandContext, input: NoInput): Applied {
+        context.awaitWrites()
+        return if (context.git.startVersionControl()) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
+    }
 }

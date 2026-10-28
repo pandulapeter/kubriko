@@ -145,6 +145,17 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun aBuildWaitsForTheChangesThatAreStillBeingWritten() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createController(blockTypeRepository = repository, ioDispatcher = StandardTestDispatcher(testScheduler))
+        controller.play()
+        assertTrue(build.runs.isEmpty())
+        runCurrent()
+        assertEquals(listOf("regenerate"), repository.writes)
+        assertEquals(1, build.runs.size)
+    }
+
+    @Test
     fun closingWritesWhatIsPendingBeforeTheBuildIsReleased() = runTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository, ioDispatcher = StandardTestDispatcher(testScheduler))

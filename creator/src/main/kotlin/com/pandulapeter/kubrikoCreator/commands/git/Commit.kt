@@ -44,7 +44,10 @@ internal object Commit : WriteCommand<Commit.Input> {
         }
     }
 
-    override suspend fun apply(context: CommandContext, input: Input) = if (context.git.commit(input.message)) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
+    override suspend fun apply(context: CommandContext, input: Input): Applied {
+        context.awaitWrites()
+        return if (context.git.commit(input.message)) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
+    }
 
     @Serializable
     data class Input(

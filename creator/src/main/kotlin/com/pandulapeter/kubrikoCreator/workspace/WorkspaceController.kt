@@ -301,6 +301,7 @@ internal class WorkspaceController(
      */
     private suspend fun runCreatorTask(taskName: String, properties: Map<String, String>): Boolean {
         appendToConsole(ConsoleEntry.Status(Res.string.status_building))
+        blockTypes?.awaitWrites()
         val modulePath = try {
             desktopModulePath.await()
         } catch (exception: ProjectInspectionException) {

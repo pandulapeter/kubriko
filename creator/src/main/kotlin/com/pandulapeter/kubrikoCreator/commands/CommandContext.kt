@@ -44,4 +44,12 @@ internal class CommandContext(
     val onSceneRenamed: (oldName: String, newName: String) -> Unit = { _, _ -> },
     val report: (ConsoleEntry) -> Unit = {},
     val onProjectUpgraded: () -> Unit = {},
-)
+) {
+
+    /**
+     * Returns once every change made so far is on disk, for what reads the files (git, and builds).
+     */
+    suspend fun awaitWrites() {
+        blockTypes?.awaitWrites()
+    }
+}
