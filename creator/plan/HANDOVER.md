@@ -77,8 +77,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Never checked by hand
 
-- Foundation (2026-10-29): playing the scratch Breakout with the new generated code (the integration test compiled every Block,
-  and the Scene editor compiled the scratch copy, but no game ran); a Log Block's line reaching the console in a play session
+- Foundation (2026-10-29), seen working: playing the scratch Breakout with the new generated code (bounces, Bricks removed, no
+  errors), dragging the Ball in the Scene editor and undoing it, and going back to a Scene without building. Not seen: a Log Block's line reaching the console in a play session
   after the version 5 upgrade; quitting with a change made less than 100 ms before (it should be written); the Scene editor
   after an inspector edit (a replaced Actor) and after placing and removing Actors (`ScenePatch` add and remove); a Scene
   changed by git while open; and the version 5 upgrade's diff on the real Breakout copy.
