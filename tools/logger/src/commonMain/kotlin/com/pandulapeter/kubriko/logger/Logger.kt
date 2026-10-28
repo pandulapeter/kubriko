@@ -117,7 +117,13 @@ object Logger {
             importance = importance,
         )
         _latestEntry.tryEmit(entry)
-        _logs.update { (listOf(entry) + it).take(entryLimit) }
+        _logs.update { entries ->
+            val keptCount = minOf(entries.size, entryLimit - 1)
+            if (keptCount < 0) emptyList() else ArrayList<Entry>(keptCount + 1).apply {
+                add(entry)
+                addAll(entries.subList(0, keptCount))
+            }
+        }
     }
 
     /**
