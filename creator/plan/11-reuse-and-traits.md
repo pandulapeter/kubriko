@@ -19,6 +19,11 @@ the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter
 
 ## Parent Actor types
 
+Exist (`../CLAUDE.md` → Commands → Parent Actor types), as real Kotlin inheritance. Left: the "only a parent" toggle (a type never
+placed and never created by addActor), changing an inherited Property's initial value from the editor (today it takes adding a
+Property of the same name), a child inheriting its parent's appearance until it sets its own (today it always has its own), and
+imports per file rather than per family. What follows is the original plan, kept for those details.
+
 An Actor type can name a parent (`parent` in its JSON), like GameMaker's parent objects. Chains are allowed (Enemy → FlyingEnemy →
 Bat), cycles are rejected.
 

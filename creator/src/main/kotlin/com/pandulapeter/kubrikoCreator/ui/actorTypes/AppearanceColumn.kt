@@ -36,14 +36,17 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * How an Actor type looks: its sprite, or its shape and color, and the size it is placed with. With a sprite, the
- * shape is only its collision mask's.
+ * shape is only its collision mask's. Its parent is chosen here too.
  *
  * @param sprites The images it can be drawn as, by their path from `composeResources`.
+ * @param parentChoices The Actor types it can inherit from (not itself, nor one that inherits from it).
  */
 @Composable
 internal fun AppearanceColumn(
     definition: ActorTypeDefinition,
     sprites: List<String>,
+    parentChoices: List<String>,
+    onParentChange: (String?) -> Unit,
     onChange: (SetAppearance.Input) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
@@ -57,6 +60,11 @@ internal fun AppearanceColumn(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        ParentChoice(
+            parent = definition.parent,
+            choices = parentChoices,
+            onParentChange = onParentChange,
+        )
         SpriteChoice(
             sprite = definition.sprite,
             sprites = sprites,

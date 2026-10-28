@@ -230,6 +230,11 @@
     <string name="color_picker_opacity">Opacity</string>
     <string name="actor_type_width">Width</string>
     <string name="actor_type_sprite">Sprite</string>
+    <string name="actor_type_parent">Parent</string>
+    <string name="actor_type_parent_none">None</string>
+    <string name="actor_type_inherited_events">From the parent</string>
+    <string name="actor_type_inherited_property">%1$s (%2$s, from the parent)</string>
+    <string name="action_override_event">Replace with an Event of its own</string>
     <string name="actor_type_sprite_none">None: draw the shape</string>
     <string name="actor_type_sprites_empty">Put .png images right in the drawable folder of composeResources to draw Actors as sprites.</string>
     <string name="actor_type_collision_shape">Collision shape</string>

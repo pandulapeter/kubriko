@@ -50,6 +50,13 @@ class ParentCommandsTest {
     }
 
     @Test
+    fun aChildOnlyGivesAnInheritedPropertyAnotherInitialValue() = runTest {
+        val context = commandContext(enemy, bat)
+        assertEquals(null, AddProperty.validate(context, AddProperty.Input("Bat", PropertyDefinition.Number("hp", initialValue = 5f))))
+        assertEquals(Rejection(Res.string.error_command_parent_property_kind, "hp", "Enemy"), AddProperty.validate(context, AddProperty.Input("Bat", PropertyDefinition.Text("hp"))))
+    }
+
+    @Test
     fun namesEndingLikeABaseClassAreReserved() {
         assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate("EnemyBase", emptyList()))
         assertEquals(null, BlockTypeNaming.validate("Baseball", emptyList()))

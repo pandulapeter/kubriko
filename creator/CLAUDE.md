@@ -172,6 +172,20 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   for `createManagers(firstScene = …)` and deletes `SceneLoader.kt` if it is still the template's (`resources/upgrades` keeps that
   copy; one changed by hand stays). Version 4 drops the plugin Managers from `Game.kt` (and their imports, unless still used),
   since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. A change's `after` is null for a file it deletes.
+- **Parent Actor types** (`ActorTypeFamily`, `set_parent`): an Actor type may name a `parent`, like GameMaker's parent objects
+  (cycles and a parent named nowhere count as none). A child gets its ancestors' Properties (one of its own with the same name
+  and kind only changes the initial value; another kind is rejected) and Events (one of its own of the same kind, key, other
+  Actor type, or Timer replaces the parent's; the runParentEvent Block runs the parent's there), and a parent stands for its
+  children in collision Events and moveTowardsNearest. Its editor shows the parent menu, the inherited Properties, and the
+  inherited Events greyed, each with a button that adds its own replacement (starting with runParentEvent). A parent with
+  children can't be deleted; renames follow. Names ending in `Base` are reserved. **Generated as real Kotlin inheritance**
+  (`ActorFamilyCodeGenerator`): the topmost type of a family gets an abstract `<Name>Base` with everything the family needs
+  (`ActorTypeFeatures` over the whole family: fields, lookups, Timers, update, key and collision dispatch) and each Event as an
+  `open` hook (`onEveryFrame()`, `onCollisionWithWall(other: Wall)`, ...) holding its own code; a type with a parent and children
+  gets a base class of its own that overrides its Events' hooks; and every type gets a final class that keeps its state, draws
+  itself, and passes its collision mask to the base (so a child may have another shape). Kubriko registers saveable types as
+  `T : Editable<T>`, which a subclass can't implement again, hence the split. Other types name a family by its base class
+  (`BlockScope.classOf`). Imports cover the whole family, so some may go unused in one file.
 - **Folders** (`commands/folders`): Actor types, Manager types, and Scenes live in folders, which are real directories:
   a type in `.kubriko/actors/enemies` (a type's `folder` is where its file is, kept out of the JSON; names stay unique across
   folders, since generated code stays flat in one package), and `files/scenes/levels/1-1.json`, whose Scene is named by its path

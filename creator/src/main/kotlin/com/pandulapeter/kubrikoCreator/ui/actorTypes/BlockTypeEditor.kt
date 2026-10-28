@@ -44,6 +44,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -65,6 +66,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
@@ -89,12 +91,14 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param scope What its Blocks can refer to.
  * @param sprites The images an Actor type can be drawn as, by their path from `composeResources`.
+ * @param inheritance What an Actor type gets from its parent, and the parents it can have.
  */
 @Composable
 internal fun BlockTypeEditor(
     definition: BlockTypeDefinition,
     scope: BlockScope,
     sprites: List<String>,
+    inheritance: Inheritance,
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>) -> Unit,
     modifier: Modifier = Modifier,
@@ -150,12 +154,15 @@ internal fun BlockTypeEditor(
                     AppearanceColumn(
                         definition = definition,
                         sprites = sprites,
+                        parentChoices = inheritance.parentChoices,
+                        onParentChange = { onCommand(Invocation(SetParent, SetParent.Input(name, it))) },
                         onChange = { onCommand(Invocation(SetAppearance, it)) },
                     )
                     HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
                 }
                 PropertyList(
                     properties = definition.properties,
+                    inheritedProperties = inheritance.properties,
                     emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
                     onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
                     onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
@@ -182,6 +189,11 @@ internal fun BlockTypeEditor(
                 modifier = Modifier.width(260.dp).fillMaxHeight(),
                 typeKind = definition.kind,
                 events = definition.events,
+                inheritedEvents = inheritance.events,
+                onOverride = { event ->
+                    onCommand(Invocation(AddEvent, AddEvent.Input(name, event.type, event.key, event.otherActorType, event.timer, listOf(BlockDefinition.RunParentEvent))))
+                    requestedEventIndex = definition.events.size
+                },
                 selectedIndex = eventIndex,
                 onSelected = { requestedEventIndex = it },
                 onAdded = { type ->

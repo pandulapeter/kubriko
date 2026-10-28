@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -20,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
@@ -42,6 +44,7 @@ import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
+import kubriko.creator.generated.resources.error_command_parent_property_kind
 import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_scene_missing
@@ -194,3 +197,14 @@ private val BlockDefinition.areNumbersFinite
         is BlockDefinition.Log, is BlockDefinition.Kotlin, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
         is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic -> true
     }
+
+/**
+ * Why the Actor type [actorType] can't have [property]: one of its ancestors has a Property of that name of another
+ * kind. One of the same kind only gives it another initial value.
+ */
+internal fun CommandContext.validateInheritedKind(actorType: String, property: PropertyDefinition): Rejection? {
+    val family = ActorTypeFamily(requireBlockTypes.actorTypes.value)
+    val parent = family.parentOf(actorType) ?: return null
+    val inherited = family.propertiesOf(parent).firstOrNull { it.name == property.name } ?: return null
+    return if (PropertyKind.of(inherited) == PropertyKind.of(property)) null else Rejection(Res.string.error_command_parent_property_kind, property.name, parent)
+}

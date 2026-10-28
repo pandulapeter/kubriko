@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_property
 import kubriko.creator.generated.resources.action_remove
+import kubriko.creator.generated.resources.actor_type_inherited_property
 import kubriko.creator.generated.resources.actor_type_properties
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
@@ -60,6 +61,7 @@ internal fun PropertyList(
     onChanged: (name: String, PropertyDefinition) -> Unit,
     onRemoved: (name: String) -> Unit,
     modifier: Modifier = Modifier,
+    inheritedProperties: List<PropertyDefinition> = emptyList(),
 ) = Column(
     modifier = modifier,
 ) {
@@ -73,14 +75,21 @@ internal fun PropertyList(
             options = PropertyKind.entries,
             optionText = { stringResource(it.title) },
             optionIcon = { it.icon },
-            onSelected = { kind -> onAdded(kind.create(PropertyNaming.freeName(kind.defaultName, properties.map { it.name }))) },
+            onSelected = { kind -> onAdded(kind.create(PropertyNaming.freeName(kind.defaultName, (properties + inheritedProperties).map { it.name }))) },
         )
     }
     Column(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (properties.isEmpty()) {
+        inheritedProperties.forEach { property ->
+            Text(
+                text = stringResource(Res.string.actor_type_inherited_property, property.name, stringResource(PropertyKind.of(property).title)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (properties.isEmpty() && inheritedProperties.isEmpty()) {
             Text(
                 text = stringResource(emptyHint),
                 style = MaterialTheme.typography.bodySmall,

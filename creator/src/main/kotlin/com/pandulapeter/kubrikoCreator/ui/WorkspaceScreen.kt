@@ -60,6 +60,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
@@ -235,6 +236,7 @@ internal fun WorkspaceScreen(
                             )
                         },
                         sprites = remember(resources) { SpriteFiles.of(resources).paths },
+                    inheritance = remember(selectedBlockType, blockTypes) { Inheritance.of(selectedBlockType, blockTypes) },
                         isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
                         onCommand = { controller.commands.dispatch(it) },
                         highlight = latestAiStep?.highlightIn(selectedBlockType.name),

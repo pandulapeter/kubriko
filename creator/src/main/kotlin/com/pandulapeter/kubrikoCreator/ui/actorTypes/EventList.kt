@@ -38,9 +38,11 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_event
 import kubriko.creator.generated.resources.action_move_down
 import kubriko.creator.generated.resources.action_move_up
+import kubriko.creator.generated.resources.action_override_event
 import kubriko.creator.generated.resources.action_remove_event
 import kubriko.creator.generated.resources.actor_type_events
 import kubriko.creator.generated.resources.actor_type_events_empty
+import kubriko.creator.generated.resources.actor_type_inherited_events
 import kubriko.creator.generated.resources.event_collision_choose
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
@@ -65,6 +67,8 @@ internal fun EventList(
     onRemoved: (Int) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
+    inheritedEvents: List<EventDefinition> = emptyList(),
+    onOverride: (EventDefinition) -> Unit = {},
 ) = Column(
     modifier = modifier,
 ) {
@@ -105,7 +109,64 @@ internal fun EventList(
                 flashKey = highlight?.key?.takeIf { highlight.eventIndex == index && highlight.blockIndex == null },
             )
         }
+        if (inheritedEvents.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 2.dp),
+                text = stringResource(Res.string.actor_type_inherited_events),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            inheritedEvents.forEach { event -> InheritedEventItem(event = event, onOverride = { onOverride(event) }) }
+        }
     }
+}
+
+/**
+ * An Event the Actor type gets from its parent, which it can replace with one of its own.
+ */
+@Composable
+private fun InheritedEventItem(
+    event: EventDefinition,
+    onOverride: () -> Unit,
+) = Row(
+    modifier = Modifier
+        .fillMaxWidth()
+        .heightIn(min = 36.dp)
+        .padding(start = 12.dp, end = 4.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Icon(
+        modifier = Modifier.size(16.dp),
+        painter = painterResource(event.type.icon),
+        contentDescription = null,
+        tint = color,
+    )
+    Column(
+        modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+    ) {
+        Text(
+            text = stringResource(event.type.title),
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        event.detail()?.let { detail ->
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = color,
+                maxLines = 1,
+            )
+        }
+    }
+    IconActionButton(
+        icon = Res.drawable.ic_add,
+        label = Res.string.action_override_event,
+        onClick = onOverride,
+    )
 }
 
 @Composable

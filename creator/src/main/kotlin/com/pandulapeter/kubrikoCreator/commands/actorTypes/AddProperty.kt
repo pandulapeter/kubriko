@@ -38,6 +38,7 @@ internal object AddProperty : WriteCommand<AddProperty.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType)
         ?: validateProperty(input.property, context.requireType(input.actorType).properties)
+        ?: context.validateInheritedKind(input.actorType, input.property)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)

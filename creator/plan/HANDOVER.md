@@ -14,6 +14,11 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## State (everything pushed; `library.version` is 0.8.1 on main, unreleased; 0.8.0 is on Maven Central)
 
+- **Parent Actor types** (2026-10-28), generated as real Kotlin inheritance (`<Name>Base` classes with Event hooks). The
+  integration test builds a three-generation family for desktop and web; seen working: choosing Brick as GoldBrick's parent in the
+  editor, and the scratch Breakout compiling with `GoldBrick : BrickBase` and Ball colliding with `BrickBase`.
+- **`:creator:run` always uses local libraries** (`settings.gradle.kts`); the first version of that didn't take effect (fixed in
+  b05e09d83), which moved the scratch Breakout to plain `0.8.1` once more: an opened project recovers on its own.
 - **Folders** (2026-10-28) for Actor types, Manager types, and Scenes, with Scene names as paths and `rename_scene`. Seen working:
   creating folders, dragging Brick into one and Ball back with Cmd+Z from empty space, and moving `main` into `levels` (with the
   console naming `Game.kt`).
@@ -49,8 +54,9 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The last file format change before projects grow: parent Actor types (`11-reuse-and-traits.md`), trying real Kotlin inheritance
-   first. Then incremental Scene editing, functions, Traits, search, and compile times; the
+1. Search (`12-resource-organization.md`: the sidebar filter, quick open, find usages), then incremental Scene editing
+   (`09-large-projects.md`), functions and Traits (`11-reuse-and-traits.md`), the rest of "No caps" (named Timers, every key), and
+   `10-fast-iteration.md`. Then incremental Scene editing, functions, Traits, search, and compile times; the
    user wants every item in those four plans done, with nothing capped in number.
 2. The rest of `02-blocks.md` → Scene editor (handles, snapping, nudging, duplicating, hand-written types' values).
 3. Sprite sheets and animation (`02-blocks.md` → Appearance; the frame settings in `.kubriko/sprites/<name>.json`, as
