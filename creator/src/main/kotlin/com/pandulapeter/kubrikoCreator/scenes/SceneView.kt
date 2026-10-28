@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.scenes
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
@@ -25,15 +26,17 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 
 /**
  * A Scene drawn by the project's own Actor classes, in a Kubriko instance of Kubriko Creator's that never runs the game:
  * its Actors are created from the Scene's states as the game creates them, and are only ever moved while they are
- * dragged. Changes go through commands, which change the file, which is [load]ed again.
+ * dragged. Changes go through commands, which change the file, which is [load]ed again, changing only what changed.
  */
 internal class SceneView(entryPoint: CreatorEntryPoint) {
     private val serializationManager = entryPoint.createSerializationManager()
@@ -68,18 +71,57 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     private val _loadRevision = MutableStateFlow(0)
     val loadRevision = _loadRevision.asStateFlow()
 
-    fun load(content: String) {
-        entries = try {
-            SceneDocument.parse(content)
-        } catch (_: SerializationException) {
-            emptyList()
-        } catch (_: IllegalArgumentException) {
-            emptyList()
+    /**
+     * Shows the Scene [content]: parsed, and its new and changed Actors created, off the main thread. Only what changed
+     * since the last [load] changes in the Kubriko instance ([ScenePatch]): a moved Actor is moved, a changed one is
+     * created again (so it is drawn after others of its drawing order until the Scene is opened again), and the rest
+     * stay, unless their order changed, which creates the whole Scene again.
+     */
+    suspend fun load(content: String) {
+        val next = withContext(Dispatchers.Default) { parseOrEmpty(content) }
+        val patch = ScenePatch.between(entries, next)
+        if (patch == null) {
+            val created = withContext(Dispatchers.Default) { next.map(::createActor) }
+            entries = next
+            actors = created
+            actorManager.removeAll()
+            actorManager.add(created.filterNotNull())
+        } else {
+            apply(patch, next)
         }
-        actors = entries.map(::createActor)
-        actorManager.removeAll()
-        actorManager.add(actors.filterNotNull())
         _loadRevision.update { it + 1 }
+    }
+
+    private suspend fun apply(patch: ScenePatch, next: List<SceneActorEntry>) {
+        val created = withContext(Dispatchers.Default) {
+            next.indices.filter { patch.actions[it] is ScenePatch.Action.Replace || patch.actions[it] == ScenePatch.Action.Add }.associateWith { createActor(next[it]) }
+        }
+        val removed = ArrayList<Actor>()
+        val added = ArrayList<Actor>()
+        val nextActors = next.indices.map { index ->
+            when (val action = patch.actions[index]) {
+                is ScenePatch.Action.Keep -> actors[action.previousIndex]
+                is ScenePatch.Action.Move -> actors[action.previousIndex]?.also { it.body.position = SceneOffset(action.x.sceneUnit, action.y.sceneUnit) }
+                is ScenePatch.Action.Replace -> {
+                    actors[action.previousIndex]?.let(removed::add)
+                    created[index]?.also(added::add)
+                }
+                ScenePatch.Action.Add -> created[index]?.also(added::add)
+            }
+        }
+        patch.removedIndices.forEach { index -> actors[index]?.let(removed::add) }
+        entries = next
+        actors = nextActors
+        if (removed.isNotEmpty()) actorManager.remove(removed)
+        if (added.isNotEmpty()) actorManager.add(added)
+    }
+
+    private fun parseOrEmpty(content: String) = try {
+        SceneDocument.parse(content)
+    } catch (_: SerializationException) {
+        emptyList()
+    } catch (_: IllegalArgumentException) {
+        emptyList()
     }
 
     /**

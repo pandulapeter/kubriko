@@ -94,6 +94,17 @@ internal object SceneDocument {
     }
 
     /**
+     * Whether [next] is [previous] with only its position changed (also when the two are written differently).
+     */
+    fun isOnlyMoved(previous: String, next: String): Boolean {
+        val previousObject = stateObject(previous) ?: return false
+        val nextObject = stateObject(next) ?: return false
+        val previousBody = previousObject.objectAt("body") ?: return false
+        val nextBody = nextObject.objectAt("body") ?: return false
+        return previousObject - "body" == nextObject - "body" && previousBody - "position" == nextBody - "position"
+    }
+
+    /**
      * [state] with its position replaced, or null if the Actor has no body.
      */
     fun withPosition(state: String, x: Float, y: Float): String? {

@@ -88,14 +88,15 @@ git commands, and closing wait for pending writes. Left:
 
 ## 5. Scene editing in place
 
-- Scene commands change the `SceneDocumentState` and publish what changed (`SceneChange`: Actors added, removed, or
-  changed by ID, or the whole Scene for an outside change).
-- `SceneView` applies changes: it creates only the changed Actor from its new state and swaps it in `ActorManager`, adds
-  and removes only the affected ones, and reloads everything only for a whole-Scene change. Actors are created off the
-  main thread where the project's classes allow it.
-- **Picking** goes through a uniform grid of Actor bounds, updated with the changes, so a click doesn't walk every Actor
-  or allocate their bounds.
-- Undo keeps the changed Actor's state, never the file (already true for most Scene commands; checked for all).
+`SceneView` applies a `ScenePatch` after each change instead of creating every Actor again (`../CLAUDE.md` → Scene
+editing); seen working on the scratch Breakout (dragging the Ball, then undo). Left:
+
+- **Picking** goes through a uniform grid of Actor bounds, updated with the patches, so a click doesn't walk every Actor or
+  allocate their bounds (`SceneView.allBounds`).
+- A changed Actor is created again, so it moves after the others of its drawing order until the Scene is opened again; Actor
+  types could take a new state in place (an `Editable` reloading itself) if that shows.
+- The editor still gets the new Scene as text from the file; the commands could hand it their parsed entries
+  (`SceneStore.actors`) instead, which also fills the cache when a Scene opens (`01` → 4, left).
 
 ## 6. The editor's own UI
 

@@ -57,7 +57,10 @@ lives in `plan/` (start with `plan/README.md`).
   Actor, so defaults its state leaves out show), and for block-built types its color and Property values (the type's where the
   state has none), set through `set_actor_values`; the Scene settings through `set_scene_settings`; with nothing selected, a hint
   and a way to the Scene settings (added if the Scene has none). Every change is a command, so it
-  is undone like any other, and the file is read again and the Actors created anew after each. A project on another Kubriko version
+  is undone like any other, and after each the file is read again and `SceneView.load` applies only what changed
+  (`ScenePatch`: unchanged Actors stay, one whose state differs only in position is moved, a changed one is created again,
+  new ones at the end are added, removed ones go; a new order creates the whole Scene again), parsing and creating Actors
+  off the main thread. A project on another Kubriko version
   gets a notice instead (`SceneEditingState.Unsupported`), and so does a Scene whose project didn't build or whose entry point
   couldn't be loaded (`SceneEditingState.Failed`, with Try again), rather than the pane just closing. Compose resources are read
   through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
