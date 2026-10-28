@@ -10,11 +10,13 @@
 package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,7 +29,8 @@ import androidx.compose.ui.unit.dp
 
 /**
  * A desktop-sized text field: one line high, with an optional [label] inside it on the left and an optional
- * [placeholder] while it is empty. [isError] draws its outline in the error color.
+ * [placeholder] while it is empty. [isError] draws its outline in the error color. Multiple lines wrap, unless
+ * [isWrapping] is false, as for code, when they scroll sideways instead.
  */
 @Composable
 internal fun CompactTextField(
@@ -38,6 +41,7 @@ internal fun CompactTextField(
     placeholder: String? = null,
     isError: Boolean = false,
     isSingleLine: Boolean = true,
+    isWrapping: Boolean = true,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -64,7 +68,7 @@ internal fun CompactTextField(
                         color = colors.onSurfaceVariant,
                     )
                 }
-                Box(Modifier.weight(1f)) {
+                Box(if (isWrapping) Modifier.weight(1f) else Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
                     if (value.isEmpty() && placeholder != null) {
                         Text(
                             text = placeholder,

@@ -129,6 +129,7 @@ internal fun BlockRow(
             onValueChange = { onBlockChange(block.copy(code = it)) },
             placeholder = stringResource(Res.string.block_parameter_code),
             isSingleLine = false,
+            isWrapping = false,
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
         )
     }

@@ -168,7 +168,7 @@
     <string name="manager_type_kotlin_ui">Kotlin UI</string>
     <string name="manager_type_kotlin_ui_empty">Compose code drawn on top of the game, for menus, bars, and layouts the texts can't show.</string>
     <string name="manager_type_kotlin_ui_title">Kotlin UI of %1$s</string>
-    <string name="manager_type_kotlin_ui_hint">The body of the Manager's Composable, drawn after its texts. Start with import lines for what it uses. In scope: windowInsets, this Manager's Properties (the UI follows them), the other Manager types by name with a lowercase first letter, actorManager, viewportManager, and stateManager.</string>
+    <string name="manager_type_kotlin_ui_hint">The body of the Manager's Composable, drawn after its texts. Start with import lines for what it uses. In scope: windowInsets, this Manager's Properties (the UI follows them), the other Manager types by name with a lowercase first letter, actorManager, viewportManager, and stateManager (read their StateFlows with collectAsState()).</string>
     <string name="action_edit_kotlin_ui">Edit the Kotlin UI</string>
     <string name="action_done">Done</string>
     <string name="screen_position_top_left">Top left</string>

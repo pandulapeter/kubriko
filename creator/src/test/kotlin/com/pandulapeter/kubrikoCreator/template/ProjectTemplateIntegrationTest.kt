@@ -181,11 +181,12 @@ class ProjectTemplateIntegrationTest {
             import androidx.compose.foundation.layout.Column
             import androidx.compose.foundation.layout.windowInsetsPadding
             import androidx.compose.foundation.text.BasicText
+            import androidx.compose.runtime.collectAsState
             import androidx.compose.ui.Modifier
 
             Column(modifier = Modifier.windowInsetsPadding(windowInsets)) {
-                if (!stateManager.isRunning.value && !isInSceneEditor) BasicText("Paused: ${'$'}title")
-                BasicText("${'$'}{everyManager.score + score} ${'$'}{actorManager.allActors.value.size} ${'$'}{viewportManager.size.value}")
+                if (!stateManager.isRunning.collectAsState().value && !isInSceneEditor) BasicText("Paused: ${'$'}title")
+                BasicText("${'$'}{everyManager.score + score} ${'$'}{actorManager.allActors.collectAsState().value.size} ${'$'}{viewportManager.size.collectAsState().value}")
             }
         """.trimIndent(),
     )

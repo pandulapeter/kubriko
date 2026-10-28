@@ -63,6 +63,7 @@ internal fun KotlinUiDialog(
                 value = code,
                 onValueChange = onCodeChange,
                 isSingleLine = false,
+                isWrapping = false,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
             )
         }
