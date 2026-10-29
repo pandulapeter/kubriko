@@ -14,5 +14,3 @@
 - **Asset editor extension point:** a project or plugin registers an editor for its own resource type, running with the project's classes
   (Tesselar's model and region editors would be the first; both are already desktop modules in Tesselar, see `11-project-upkeep.md`).
   A library change, so it waits for a release.
-- **Library version range:** which Kubriko versions Creator supports for projects that aren't opted in (opted-in ones use Creator's own,
-  `../CLAUDE.md` → Conventions).

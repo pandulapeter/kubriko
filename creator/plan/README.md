@@ -67,10 +67,11 @@ compatibility or a copy of its look, icons, or action set; running Creator itsel
 
 | Path | Owner | When changed elsewhere |
 |---|---|---|
-| `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json`, `.kubriko/project.json` | Creator | Reloaded within a second; code regenerated. |
+| `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json` | Creator | Reloaded within a second; code regenerated. |
+| `.kubriko/project.json` | Creator | Read when the project opens. |
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
 | `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes. |
-| Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene offers to reload. |
+| Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff (`11-project-upkeep.md`). |
 | The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
 | `.kubriko/local/` | Creator | Git-ignored. |
@@ -87,7 +88,7 @@ compatibility or a copy of its look, icons, or action set; running Creator itsel
 | Manager type | A class extending `Manager`: game-wide state and logic | Global variables, or a controller object |
 | Property | An `@Exposed` property (or a Manager's `var`) | Variable |
 | Scene | A serialized JSON scene file | Room |
-| Timer | `Timer` | Alarm |
+| Timer | Two `Long` fields counting down | Alarm |
 
 Our own names, icons, and wording throughout; "inspired by GameMaker" is a factual credit, not branding.
 

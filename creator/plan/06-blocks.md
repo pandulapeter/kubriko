@@ -37,17 +37,17 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
   live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
 - **More audio:** volume, sounds and music as Properties (so one Block plays the sound an Actor keeps), and adding sound and music
   files from Creator (today they are copied into `composeResources/files` by hand).
-- **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (through
-  `ViewportManager.setAspectRatioMode`).
+- **Scene settings in the game:** an option that fits the game's view to the Scene's bounds (through
+  `ViewportManager.setAspectRatioMode`); the Scene editor's inspector already edits the settings.
 - **Camera:** follow an Actor, shake, zoom.
 - **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when
   the size changes.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
   editor (`07-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
   column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`05-reuse-and-traits.md`).
-- **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
-  Scene bounds (as opposed to touching the edge).
-- **More drag and drop:** reordering Events the same way, and dragging a Block into another Event.
+- **More Events:** removed from the Scene, key released and held, left the
+  Scene bounds (as opposed to touching the edge). Pointer and gamepad Events come with their Traits (`05-reuse-and-traits.md`).
+- **More drag and drop:** dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
 ## Convert to code
