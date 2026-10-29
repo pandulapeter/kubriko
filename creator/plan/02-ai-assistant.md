@@ -74,14 +74,13 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    keychain and passed as `ANTHROPIC_API_KEY` in the agent's environment only; other agents read their own variables. Creator never
    sees or stores Claude.ai credentials, and never passes `--hide-claude-auth` or otherwise hides a sign-in method (the terms forbid
    restricting Claude Code's).
-5. **Tools:** `session/new` hands the agent Creator's `McpToolServer` in `mcpServers`, at a path per conversation
-   (`/mcp/conversations/<id>`) with a token of its own, so each `AiStep` knows its conversation and closing a conversation turns its
-   tools off. For Claude, `_meta.claudeCode.options.disallowedTools` removes `Bash`, `Write`, `Edit`, and `NotebookEdit` (Principle
-   6: the AI does what the user can, through the same commands); reading stays allowed until the Kubriko API read tool replaces its use
-   for Kotlin Blocks. Other agents have no portable switch, so their `session/request_permission` for edits and commands is rejected
-   by default, with the user able to allow it.
-6. **System prompt:** Kubriko's concepts, Creator's terminology, and the generated Block catalog, appended (ACP `systemPrompt`, `append`)
-   so the agent keeps its own prompt; agents without the capability get it as the first prompt's leading text.
+5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): each `AiStep` knowing its conversation, so the panel's tool call
+   cards tie into it; reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
+   have no portable switch, so their `session/request_permission` for edits and commands is rejected by default (`PermissionHandler.Reject`),
+   with the user able to allow it. Picking the Claude Code configuration: this Mac's logins live behind aliases (`claude-personal` sets
+   `CLAUDE_CONFIG_DIR`), so the panel should offer the setups `ShellAliases` finds, passing their `CLAUDE_CONFIG_DIR` to the agent.
+6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
+   as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
 7. **The panel:** conversations per project; `agent_message_chunk`s streamed as Markdown, thoughts collapsed; `tool_call` cards titled
    from `CommandTarget`, which tie into the activity view's following and flashing; `plan` updates as a checklist; permission requests
    inline (Allow once, Always, Reject); `available_commands_update` as slash command completion; session config options (model, mode,
@@ -94,10 +93,9 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 
 **Order:** first, right after `01-large-projects.md`:
 
-1. Claude Agent on an existing Claude Code login, with Creator's tools per conversation and the system prompt (5, 6), from a
-   registry entry built in rather than fetched.
-2. The panel (7), without resuming or attachments, holding the agent for Creator's lifetime (1).
-3. The sign-in methods and the API key (4).
+1. The panel (7), without resuming or attachments, holding the `Assistant` for Creator's lifetime (1), with the Claude Code
+   configuration to use (5).
+2. The sign-in methods and the API key (4).
 
 Then alongside `04` to `07`: the registry, the Node.js download, and other agents (2, 3); resuming and attachments; Keep and
 Undo (8); usage (9); and the MCP server items above.

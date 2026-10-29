@@ -14,8 +14,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
-import java.security.SecureRandom
-import java.util.Base64
 
 /**
  * Keeps [McpSettings] in [file]. A missing or unreadable file means the defaults with a new random token.
@@ -55,7 +53,5 @@ internal class McpSettingsStore(
     companion object {
 
         fun default() = McpSettingsStore(File(settingsDirectory(), "mcp.json"))
-
-        private fun randomToken() = ByteArray(32).also(SecureRandom()::nextBytes).let { Base64.getUrlEncoder().withoutPadding().encodeToString(it) }
     }
 }

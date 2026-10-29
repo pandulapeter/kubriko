@@ -58,15 +58,15 @@ class McpToolServerTest {
 
     private suspend fun TestScope.start(executor: CommandExecutor?): Int = start { executor }
 
-    private suspend fun TestScope.start(executor: () -> CommandExecutor?): Int {
+    private suspend fun TestScope.start(token: String? = this@McpToolServerTest.token, executor: () -> CommandExecutor?): Int {
         val started = McpToolServer(executor = executor, callDispatcher = Dispatchers.Default, version = "1.0.0")
         server = started
         return withContext(Dispatchers.IO) { started.start(port = 0, token = token) }
     }
 
-    private suspend fun <T> connected(port: Int, block: suspend Client.() -> T): T = withContext(Dispatchers.IO) {
+    private suspend fun <T> connected(port: Int, path: String = "/mcp", token: String = this.token, block: suspend Client.() -> T): T = withContext(Dispatchers.IO) {
         val client = Client(Implementation(name = "test", version = "1.0.0"))
-        client.connect(StreamableHttpClientTransport(httpClient, "http://127.0.0.1:$port/mcp") { header(HttpHeaders.Authorization, "Bearer $token") })
+        client.connect(StreamableHttpClientTransport(httpClient, "http://127.0.0.1:$port$path") { header(HttpHeaders.Authorization, "Bearer $token") })
         try {
             client.block()
         } finally {
@@ -194,5 +194,37 @@ class McpToolServerTest {
         server!!.stop()
         assertNull(runCatching { connected(port) { listTools() } }.getOrNull())
         assertEquals(port, withContext(Dispatchers.IO) { server!!.start(port = port, token = token) })
+    }
+
+    private suspend fun status(port: Int, path: String, token: String) = withContext(Dispatchers.IO) {
+        httpClient.post("http://127.0.0.1:$port$path") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody("""{"jsonrpc":"2.0","id":1,"method":"tools/list"}""")
+        }.status
+    }
+
+    @Test
+    fun conversationsReachTheToolsOnlyWithTheirOwnTokenUntilClosed() = runTest {
+        val port = start(executor = null)
+        val first = server!!.openConversation()
+        val second = server!!.openConversation()
+        assertEquals("/mcp/conversations/${first.id}", first.path)
+        assertEquals(CommandRegistry.editor.tools.size, connected(port, first.path, first.token) { listTools().tools.size })
+        assertEquals(HttpStatusCode.Unauthorized, status(port, first.path, second.token))
+        assertEquals(HttpStatusCode.Unauthorized, status(port, first.path, token))
+        assertEquals(HttpStatusCode.Unauthorized, status(port, "/mcp", first.token))
+        server!!.closeConversation(first.id)
+        assertEquals(HttpStatusCode.Unauthorized, status(port, first.path, first.token))
+        assertEquals(CommandRegistry.editor.tools.size, connected(port, second.path, second.token) { listTools().tools.size })
+    }
+
+    @Test
+    fun withoutATokenOnlyConversationsAreServed() = runTest {
+        val port = start(token = null, executor = { null })
+        val conversation = server!!.openConversation()
+        assertEquals(HttpStatusCode.Unauthorized, status(port, "/mcp", ""))
+        val result = connected(port, conversation.path, conversation.token) { callTool("list_scenes", emptyMap()) }
+        assertEquals("No project is open in Kubriko Creator.", (result.content.single() as TextContent).text)
     }
 }

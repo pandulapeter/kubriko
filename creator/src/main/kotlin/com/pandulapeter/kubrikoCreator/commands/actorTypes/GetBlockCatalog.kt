@@ -38,7 +38,7 @@ internal object GetBlockCatalog : ReadCommand<NoInput> {
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(catalog)
 
     @OptIn(ExperimentalSerializationApi::class)
-    private val catalog by lazy {
+    val catalog by lazy {
         val eventDescriptor = EventType.serializer().descriptor
         val blockDescriptors = BlockDefinition.serializer().descriptor.getElementDescriptor(1).elementDescriptors.associateBy { it.serialName }
         buildJsonObject {

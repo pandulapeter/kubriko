@@ -19,6 +19,7 @@ import io.ktor.server.application.call
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.request.path
 import io.ktor.server.response.respond
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
@@ -53,11 +54,16 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.security.MessageDigest
 import java.util.Base64
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Serves the command registry as MCP tools over Streamable HTTP on localhost, so that AI clients (Claude Code, for
  * example) can work on the open project with the same validated commands the user has. Every request needs the
  * token, as a bearer token or, for clients that can't send headers, as the [TOKEN_PARAMETER] query parameter.
+ *
+ * The assistant's conversations each reach the tools at an address of their own ([openConversation]), with a token of
+ * their own that stops working once the conversation is closed.
  *
  * @param executor The command executor of the open project, or null if none is open.
  * @param callDispatcher Where tool calls run: the main thread, which the command history is confined to.
@@ -75,29 +81,46 @@ internal class McpToolServer(
      */
     val calls = _calls.asStateFlow()
     private var server: EmbeddedServer<*, *>? = null
+    private val conversationTokens = ConcurrentHashMap<String, ByteArray>()
+
+    /**
+     * An address of the tools for one conversation of the assistant.
+     *
+     * @param path Where the conversation reaches the tools, on the server's port.
+     */
+    data class Conversation(
+        val id: String,
+        val path: String,
+        val token: String,
+    )
 
     /**
      * Starts serving on [port] (0 picks a free one), replacing the server that ran before.
      *
+     * @param token What outside clients need at [PATH], or null if only the assistant's conversations are served.
      * @return The port the server listens on.
      * @throws java.io.IOException If the port can't be used.
      */
-    suspend fun start(port: Int, token: String): Int {
+    suspend fun start(port: Int, token: String?): Int {
         stop()
         // Binding first keeps a taken port from failing inside the engine's own coroutines, which only report it as uncaught.
         if (port != 0) ServerSocket(port, 1, InetAddress.getByName(HOST)).close()
-        val expectedAuthorization = "Bearer $token".toByteArray()
-        val expectedToken = token.toByteArray()
+        val expectedToken = token?.toByteArray()
         val started = embeddedServer(CIO, host = HOST, port = port) {
             intercept(ApplicationCallPipeline.Plugins) {
-                val authorization = call.request.headers[HttpHeaders.Authorization].orEmpty().toByteArray()
-                val queryToken = call.request.queryParameters[TOKEN_PARAMETER].orEmpty().toByteArray()
-                if (!MessageDigest.isEqual(authorization, expectedAuthorization) && !MessageDigest.isEqual(queryToken, expectedToken)) {
+                val path = call.request.path()
+                val expected = if (path.startsWith("$CONVERSATIONS_PATH/")) {
+                    conversationTokens[path.removePrefix("$CONVERSATIONS_PATH/").substringBefore('/')]
+                } else {
+                    expectedToken
+                }
+                if (expected == null || !isAuthorized(call.request.headers[HttpHeaders.Authorization], call.request.queryParameters[TOKEN_PARAMETER], expected)) {
                     call.respond(HttpStatusCode.Unauthorized)
                     finish()
                 }
             }
-            mcpStreamableHttp(path = PATH) { createServer() }
+            if (token != null) mcpStreamableHttp(path = PATH) { createServer() }
+            mcpStreamableHttp(path = "$CONVERSATIONS_PATH/{$CONVERSATION_PARAMETER}") { createServer() }
         }
         server = started
         try {
@@ -115,6 +138,27 @@ internal class McpToolServer(
         server?.stop(gracePeriodMillis = 0, timeoutMillis = 1_000)
         server = null
     }
+
+    /**
+     * Opens an address of the tools for one conversation of the assistant, valid until [closeConversation].
+     */
+    fun openConversation(): Conversation {
+        val id = UUID.randomUUID().toString()
+        val token = randomToken()
+        conversationTokens[id] = token.toByteArray()
+        return Conversation(id = id, path = "$CONVERSATIONS_PATH/$id", token = token)
+    }
+
+    /**
+     * Turns the tools of the conversation with [id] off.
+     */
+    fun closeConversation(id: String) {
+        conversationTokens.remove(id)
+    }
+
+    private fun isAuthorized(authorization: String?, queryToken: String?, expectedToken: ByteArray) =
+        MessageDigest.isEqual(authorization.orEmpty().toByteArray(), "Bearer ".toByteArray() + expectedToken) ||
+            MessageDigest.isEqual(queryToken.orEmpty().toByteArray(), expectedToken)
 
     private fun createServer() = Server(
         serverInfo = Implementation(name = SERVER_NAME, version = version),
@@ -164,10 +208,12 @@ internal class McpToolServer(
     companion object {
         const val HOST = "127.0.0.1"
         const val PATH = "/mcp"
+        const val CONVERSATIONS_PATH = "$PATH/conversations"
+        private const val CONVERSATION_PARAMETER = "conversation"
         const val TOKEN_PARAMETER = "token"
         const val SERVER_NAME = "kubriko-creator"
         private const val LOG_SIZE = 200
-        private val INSTRUCTIONS = """
+        val INSTRUCTIONS = """
             Kubriko Creator edits games made with Kubriko, a 2D game engine for Kotlin. Actor types are built from Events
             (when something happens) and Blocks (what happens then), and Kubriko Creator generates Kotlin from them.
             Scenes place Actors of those types. Start with get_project_overview and get_block_catalog. Every change shows

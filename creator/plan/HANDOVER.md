@@ -23,11 +23,18 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-The first four steps of `02-ai-assistant.md` → Order, together with the five "First" items of its Context for large games, then the
-files in order, with the rest of `02-ai-assistant.md` alongside them. What is left in `01-large-projects.md` waits for other plans
-(Traits, UI elements, git) or for the benchmarks.
+`02-ai-assistant.md` → Order: the panel, then the sign-in methods, together with the five "First" items of its Context for large
+games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. The ACP client and the Claude Agent behind it
+(`Assistant`) exist, unit-tested against a fake agent, but nothing in the app creates them yet. What is left in
+`01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
+
+**The assistant (built and unit-tested on 2026-10-29, never run against the real agent)**
+- `ClaudeAgentLiveTest` against the real `claude-acp`: the auto mode classifier refused to run it on the personal login. Run
+  `KUBRIKO_CREATOR_CLAUDE_AGENT=true KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR=~/.claude-personal ./gradlew :creator:test --tests
+  "*ClaudeAgentLiveTest*" --rerun` (one short request): it should call `list_scenes` once through the per-conversation address, end
+  its turn, and not create `created.txt` (Bash disallowed). Its first run downloads the adapter through npx.
 
 **Large projects (built and unit-tested on 2026-10-29, not yet seen in the app)**
 - The paged `read_scene` (summary, type, rectangle), `list_actor_types` by folder, and the batch tools (`place_actors`,
