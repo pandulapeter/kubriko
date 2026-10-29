@@ -106,6 +106,7 @@ private fun ScreenContent(
         )
         is AppScreen.Opening -> ProgressScreen(
             text = stringResource(Res.string.opening_project, screen.directory.name),
+            onCancel = onCloseProject,
         )
         is AppScreen.Workspace -> WorkspaceScreen(
             controller = screen.controller,
