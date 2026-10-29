@@ -23,10 +23,21 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`01-large-projects.md` (caps first), then the first four steps of `02-ai-assistant.md` → Order together with the five "First" items
+`01-large-projects.md` → AI tools at scale (its caps, the ordering command, and the Scene list panel are done), then the first four steps of `02-ai-assistant.md` → Order together with the five "First" items
 of its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them.
 
 ## To check by hand
+
+**Large projects (built and unit-tested on 2026-10-29, not yet seen in the app)**
+- The Timer menu in a timerFinished Event's header and in the Timer Blocks: choosing, New Timer… typed in place (a bad name shows
+  why), Rename this Timer… following through a family, and an old project's numbered Timers showing as `timer1`.
+- The key picker (`KeyChoiceButton`): its popup's search, the list scrolling through all 296 keys, choosing by pressing a key
+  (Shift, F-keys, the numpad), and an old project's `left`/`space` keys loading.
+- The Scene editor's Actors button and list (filtering, selecting, centering, following a canvas selection), and the
+  inspector's send-to-back and bring-to-front buttons.
+- Getting there: the live check stopped on a Gradle 9.7.1 daemon started from a sandboxed shell, which can't run `uname`, so
+  Creator's project model fails with "couldn't open this folder as a Gradle project". Start Creator after `./gradlew --stop` in
+  the scratch copy (outside the sandbox).
 
 Each of these is built and unit-tested, but wasn't seen in the running app.
 
