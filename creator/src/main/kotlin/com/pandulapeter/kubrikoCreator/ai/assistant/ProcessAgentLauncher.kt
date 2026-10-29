@@ -38,11 +38,15 @@ internal class ProcessAgentLauncher(
         override suspend fun awaitExit() = runInterruptible { process.waitFor() }
 
         override fun stop() {
+            // npx runs the agent, which runs claude, and neither a forced kill nor Windows passes the signal on.
+            val descendants = process.descendants().toList()
+            descendants.forEach { it.destroy() }
             process.destroy()
             if (!process.waitFor(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
                 process.destroyForcibly()
                 process.waitFor()
             }
+            descendants.forEach { it.destroyForcibly() }
         }
     }
 
