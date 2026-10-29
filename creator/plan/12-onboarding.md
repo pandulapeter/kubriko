@@ -68,9 +68,7 @@ What someone who knows neither Kotlin nor Gradle meets when something goes wrong
   `AppController` can cancel both; a first project waiting minutes for Gradle's download leaves only quitting. Direction: a Cancel
   button that calls `closeProject`, which already cleans up after itself.
 - **Messages in code words.** Rejections name Events by their IDs (`error_command_event_not_allowed`, `error_command_key_not_allowed`: "an Actor type can't have a gameStarted
-  one", "Only keyPressed Events have a key"), though the editor calls them "When the game starts"; a type name ending in `Base`
-  (`Database`, `MoonBase`) is refused as "used by Kubriko itself"; `error_property_name_taken` says "This Actor type" in a
-  Manager type and doesn't say case is ignored; a Timer named `class` is told to start with a lowercase letter; and project names
+  one", "Only keyPressed Events have a key"), though the editor calls them "When the game starts"; a Timer named `class` is told to start with a lowercase letter; and project names
   with accents (`Kalandjáték`) are refused for not using "only letters". Direction: the editor's Event titles in user-facing
   rejections (the AI gets both), and one message per actual reason.
 - **The git panel** clears the commit message even when the commit fails (`ui/git/GitPanel.kt`), and puts the commit form below
