@@ -41,6 +41,8 @@ The files are numbered in the order they are worked on.
 12. [Onboarding](12-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
 13. [Later](13-later.md) - code editor, language server, asset editor extension point.
+14. [Stability](14-stability.md) - broken and hand-edited files, crash-safe writes, format versions, undo history that can't be
+    replayed, and process and lifecycle leaks (see its open question about doing it sooner).
 
 ## Vision
 
