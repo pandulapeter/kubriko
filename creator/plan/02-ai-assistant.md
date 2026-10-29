@@ -167,6 +167,35 @@ OpenCode or goose. Creator keeps only the keys and addresses the user gives it, 
 up here, as Claude Code's are above (OpenAI's for Codex with a ChatGPT login, Google's for Gemini CLI, GitHub's for Copilot), and its
 name and icon follow that vendor's trademark rules.
 
+## Holding up
+
+What the panel and the MCP server get wrong today, found in review; each goes in before more agents are added.
+
+- **Windows never finds Node.js.** `ShellProcessRunner.locate` returns null on Windows (`mcp/clients/ShellProcessRunner.kt`), which
+  `AiConfigFileClient` falls back from, but `AssistantController.assistant()` turns into `NodeMissingException`, so every chat on
+  Windows asks for Node.js even when it is installed. Direction: resolve programs with `where` on Windows (finding `npx.cmd`), and
+  start `.cmd` agents through `cmd /c` with their descendants stopped (`ProcessAgentLauncher.stop` already stops them).
+- **An agent that dies mid-turn ends it without a word.** The SDK fails a pending request with its own `CancellationException`
+  when the agent's streams close (`AcpAgent` notes it), and `AssistantChat.prompt`, `setConfigOption`, and
+  `AssistantController.signIn` rethrow every `CancellationException`, so the turn just stops: no failure, no turn end in the
+  transcript. Direction: rethrow only when the caller's own coroutine was cancelled (`currentCoroutineContext().isActive`, as
+  `AcpAgent.connect` checks), otherwise record `CONVERSATION_LOST` or `PROMPT_FAILED`; a `FakeAgent` that exits mid-turn tests it.
+- **Restarting the MCP server can race.** `McpController.apply` cancels the previous job without joining it, so a quick toggle or a
+  port change right after enabling runs the old `start` and the new `stop`/`start` at once on two IO threads over the unsynchronized
+  `McpToolServer.server`, and a start cancelled inside `startSuspend` throws before stopping what it started. The port then shows as
+  taken. Direction: `cancelAndJoin` the previous job inside the new one, and stop before rethrowing in `start`'s catch.
+- **Streaming long replies is quadratic.** Each chunk copies the transcript list and the whole message string
+  (`appending` in `AssistantTranscript.kt`), and `MarkdownText` parses the whole message again on the main thread; a 20 KB reply in 2,000
+  chunks copies and parses about 20 MB. The list (`AssistantTranscriptList`) also jumps to the end on every chunk, so nothing can be
+  reread while a reply streams, and its items have no keys. Direction: keep the streaming message as chunks, publish a throttled
+  snapshot, parse only the last Markdown block again, follow the end only while the list was at its end, and key the items.
+- **The call log lays out every result.** `McpToolServer` keeps each call's full arguments and result (a whole project overview), and
+  the AI connection panel shows the 200 entries in a scrolling `Column`, measuring every full string on each new call. Direction:
+  keep a short preview in the log entry and show it in a `LazyColumn`.
+- **Error details are dropped or raw.** `AGENT_NOT_STARTED` ignores the standard error line it is given
+  (`ui/assistant/AssistantTranscriptList.kt`), `PROMPT_FAILED` shows the JSON-RPC message as it is, and `AiClientRow` the client's raw
+  output. Direction: a plain lead sentence per failure, with the details under it.
+
 ## Context for large games
 
 Creator holds a structured model of the game (Actor types, Events, Blocks, Manager types, and Scenes) from which the generated Kotlin
