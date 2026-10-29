@@ -64,6 +64,7 @@ import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_game_failed
+import kubriko.creator.generated.resources.status_game_not_started
 import kubriko.creator.generated.resources.status_game_reloaded
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_session_ended
@@ -71,6 +72,7 @@ import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
 import kubriko.creator.generated.resources.status_unsupported_protocol
 import java.io.File
+import java.io.IOException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -266,6 +268,21 @@ class WorkspaceControllerTest {
             exit.complete(GameProcess.Exit(1, listOf("Exception in thread \"main\"")))
             assertEquals(Res.string.status_game_failed, controller.statuses.last())
             assertEquals(ConsoleEntry.BuildOutput("Exception in thread \"main\""), controller.console.value.last())
+            assertEquals(SessionState.Idle, controller.sessionState.value)
+        } finally {
+            playClasspathFile.delete()
+        }
+    }
+
+    @Test
+    fun aGameThatCantBeStartedSaysWhyInTheConsole() = runTest {
+        val playClasspathFile = SessionInitScript.playClasspathFileOf(rootDirectory)
+        try {
+            val controller = createController(runGame = { _, _ -> throw IOException("Cannot run program \"/java\"") })
+            controller.play()
+            playClasspathFile.writeText("kubrikoVersion=1.0.0\nlaunch.java=/java\nlaunch.mainClass=M\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
+            build.currentRun.finish(isSuccessful = true)
+            assertEquals(Res.string.status_game_not_started, controller.statuses.last())
             assertEquals(SessionState.Idle, controller.sessionState.value)
         } finally {
             playClasspathFile.delete()

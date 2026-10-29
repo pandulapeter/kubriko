@@ -78,6 +78,7 @@
     <string name="status_session_stopped">Session stopped.</string>
     <string name="status_play_from_scene_needs_upgrade">This project's files are older than playing from a Scene needs, so the game may start with its first Scene instead of %1$s. Upgrading the project fixes that.</string>
     <string name="status_game_failed">The game stopped with an error (exit code %1$s). The last lines it printed:</string>
+    <string name="status_game_not_started">The game couldn't be started: %1$s</string>
     <string name="status_game_reloaded">Changes applied to the running game in %1$s seconds.</string>
     <string name="status_game_restarting">The game starts again, since %1$s changed in a way the running game can't take in, such as a new Property.</string>
     <string name="status_game_reload_failed">The changes couldn't be applied to the running game, so it starts again.</string>

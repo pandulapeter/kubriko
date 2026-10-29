@@ -31,10 +31,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_game_failed
+import kubriko.creator.generated.resources.status_game_not_started
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
 import kubriko.creator.generated.resources.status_unsupported_protocol
+import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -95,6 +97,8 @@ internal class SessionController(
                     GameLaunchPreparation.Failed -> false
                 }
                 if (isSuccessful) console.append(ConsoleEntry.Status(Res.string.status_session_ended))
+            } catch (exception: IOException) {
+                console.append(ConsoleEntry.Status(Res.string.status_game_not_started, isError = true, arguments = listOf(exception.message ?: exception.toString())))
             } finally {
                 _state.value = SessionState.Idle
             }
