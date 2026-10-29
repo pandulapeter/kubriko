@@ -196,7 +196,7 @@ class AcpAgentTest {
         conversation.prompt(text("hello"))
         assertReceived(listOf("Hi", " there"), messages)
         assertFalse(conversation.isLost.value)
-        assertEquals(listOf("Fake agent started."), agent.errorOutput.value)
+        agent.errorOutput.await { it == listOf("Fake agent started.") }
     }
 
     @Test

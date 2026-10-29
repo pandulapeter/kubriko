@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.FakeProcessRunner
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -180,10 +181,10 @@ class AssistantControllerTest {
         val first = controller.startChat()
         first.state.first { it == ChatState.Ready }
         assertNull(commands.single().environment["ANTHROPIC_API_KEY"])
-        var isKept = false
-        onMain { controller.setApiKey(" sk-ant-key ") { isKept = true } }
-        controller.hasApiKey.first { it }
-        assertTrue(isKept)
+        val isKept = CompletableDeferred<Unit>()
+        onMain { controller.setApiKey(" sk-ant-key ") { isKept.complete(Unit) } }
+        isKept.await()
+        assertTrue(controller.hasApiKey.value)
         assertEquals("sk-ant-key", secrets.secrets.values.single())
         controller.currentChat.first { it != null && it !== first }!!.state.first { it == ChatState.Ready }
         assertEquals(2, commands.size)

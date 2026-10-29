@@ -67,7 +67,6 @@ class AssistantChatTest {
 
     private suspend fun AssistantChat.sendAndWait(text: String) {
         withContext(mainThread) { send(text) }
-        isBusy.first { it }
         isBusy.first { !it }
     }
 
@@ -179,7 +178,6 @@ class AssistantChatTest {
         assertEquals(TranscriptItem.Failure(FailureReason.AUTH_REQUIRED), chat.transcript.value.items.last())
         isSignedIn.set(true)
         withContext(mainThread) { chat.resendAfterSignIn() }
-        chat.isBusy.first { it }
         chat.isBusy.first { !it }
         assertEquals(listOf(TranscriptItem.UserMessage("hello"), TranscriptItem.AgentMessage("Hi there")), chat.transcript.value.items)
         assertEquals(listOf("hello", "hello"), launcher.agents.single().prompts)
