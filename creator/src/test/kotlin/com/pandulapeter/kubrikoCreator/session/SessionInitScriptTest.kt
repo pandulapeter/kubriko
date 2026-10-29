@@ -11,8 +11,10 @@ package com.pandulapeter.kubrikoCreator.session
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class SessionInitScriptTest {
@@ -40,7 +42,6 @@ class SessionInitScriptTest {
             listOf(
                 "--init-script",
                 SessionInitScript.file.absolutePath,
-                "--no-configuration-cache",
                 "--rerun-tasks",
                 "-Pa=1",
                 "-Pb=two words",
@@ -48,6 +49,14 @@ class SessionInitScriptTest {
             ),
             SessionInitScript.gradleArguments(mapOf("a" to "1", "b" to "two words"), CompilationMode(isCommonCodeIncremental = false, isClean = true)),
         )
+    }
+
+    @Test
+    fun theScriptAndTheClasspathFileKeepTheirPathsSoGradleReusesTheConfigurationCache() {
+        assertTrue(SessionInitScript.file.name.matches(Regex("session-[0-9a-f]{16}\\.init\\.gradle\\.kts")))
+        val project = File("/projects/game")
+        assertEquals(SessionInitScript.classpathFileOf(project), SessionInitScript.classpathFileOf(File("/projects/other/../game")))
+        assertNotEquals(SessionInitScript.classpathFileOf(project), SessionInitScript.classpathFileOf(File("/projects/other")))
     }
 
     @Test

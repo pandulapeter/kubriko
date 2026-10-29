@@ -41,6 +41,8 @@ import java.io.IOException
  *   builds, so that the [SceneStore] it reads from has the Scene parsed for the first command on it.
  * @param spriteFiles The project's sprite files by the name of their resource accessor, which the Scene editor reads
  *   itself ([SpriteLoadingEntryPoint]).
+ * @param classpathFile Where the classpath task writes the project's classpath, the same file for every build
+ *   ([SessionInitScript.classpathFileOf]).
  * @param requestCleanBuild Makes the next build compile everything from scratch, for when the classes may not match the
  *   sources: on Reload, and when they couldn't be loaded.
  */
@@ -52,7 +54,7 @@ internal class SceneEditingController(
     private val ioDispatcher: CoroutineDispatcher,
     private val report: (ConsoleEntry) -> Unit,
     private val readScene: (ProjectResource) -> List<SceneActorEntry>,
-    private val createClasspathFile: () -> File = { File.createTempFile("kubriko-creator-classpath", ".txt").apply { deleteOnExit() } },
+    private val classpathFile: File,
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
     private val requestCleanBuild: () -> Unit = {},
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
@@ -122,7 +124,6 @@ internal class SceneEditingController(
      * Builds the project and loads its classes, or says why it couldn't.
      */
     private suspend fun buildAndLoad(): LoadResult {
-        val classpathFile = createClasspathFile()
         val isBuilt = runTask(
             SessionInitScript.CLASSPATH_TASK_NAME,
             mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),

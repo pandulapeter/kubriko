@@ -68,9 +68,15 @@ What it shows:
    Gradle stopped it, so none of them starts a second daemon. One does still: a Scene opened while the game plays, since the play
    session holds its daemon for as long as the game runs (Playing, below, would end that by launching the game from the
    classpath). Not a benchmark row: the benchmark runs Gradle directly, and this changes when the build runs, not how long.
-2. **Configuration cache and parallel builds in projects:** `org.gradle.configuration-cache=true` and `org.gradle.caching=true` in
-   the template's `gradle.properties` (a template upgrade), and the init script made configuration-cache compatible (it passes
-   `--no-configuration-cache` today).
+2. **Configuration cache in projects. Done** (2026-10-29): the template's `gradle.properties` turns on
+   `org.gradle.configuration-cache` (`org.gradle.caching` was on already), template version 6 adds both to existing projects,
+   Creator no longer passes `--no-configuration-cache`, and the init script works with it (the Kubriko version is read while
+   configuring). Gradle fingerprints every `-P` value and the init scripts' paths, so the classpath file and the script keep
+   theirs between builds and launches. Measured at 200 types, without and with the cache: a warm build 138 to 91 ms, a Block
+   added to a leaf type 653 to 530 ms, a Property 600 to 520 ms, one Actor moved 401 to 297 ms, the next build after Reload
+   125 to 62 ms; cold builds and Reload are compile time, unchanged. Play builds configure again once per workspace opened,
+   since the session's port is chosen then. `org.gradle.parallel` is left out: the template is one Gradle project, which it
+   wouldn't speed up.
 3. **Compile only what's needed:** the classpath task compiles the desktop target only (measured: it runs no web or other
    target's tasks), but it packs `desktopJar` every time. A type change takes about 0.7 s at 200 types since common code
    compiles incrementally (see Measuring the build).

@@ -145,6 +145,7 @@ internal class WorkspaceController(
         creatorKubrikoVersion = creatorKubrikoVersion,
         runTask = ::runCreatorTask,
         entryPointLoader = entryPointLoader,
+        classpathFile = SessionInitScript.classpathFileOf(project.rootDirectory),
         scope = scope,
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,

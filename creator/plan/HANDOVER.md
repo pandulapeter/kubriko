@@ -78,11 +78,16 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`, steps 2 to 5 (step 1, keeping Gradle warm, is done), each measured with
-   `CreatorBuildBenchmarkTest` (a row each).
+1. The rest of `02-fast-iteration.md`, steps 3 to 5 (steps 1 and 2, keeping Gradle warm and the configuration cache, are
+   done), each measured with `CreatorBuildBenchmarkTest` (a row each).
 2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- The configuration cache (2026-10-29, template version 6), seen working: two classpath builds of the scratch Breakout with
+  the cache on (the second reused it, 717 to 286 ms) and the play task storing an entry, both from the command line; the
+  integration test and the benchmark build with it. Not seen: a game played from Creator with it on, the version 6 upgrade's
+  diff in the dialog, and Creator's own console after a build that reused the cache.
 
 - Keeping Gradle warm (2026-10-29), seen working: opening the scratch Breakout built it with nothing clicked ("Built in 2.9
   seconds." in the console). Not seen (Android Studio covered Creator's window, so nothing was clicked): opening `main` right

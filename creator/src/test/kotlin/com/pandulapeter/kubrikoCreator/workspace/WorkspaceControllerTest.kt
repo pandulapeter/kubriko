@@ -129,7 +129,6 @@ class WorkspaceControllerTest {
         val arguments = build.currentRun.arguments
         assertEquals(SessionInitScript.file.absolutePath, arguments[arguments.indexOf("--init-script") + 1])
         assertTrue(File(arguments[arguments.indexOf("--init-script") + 1]).isFile)
-        assertContains(arguments, "--no-configuration-cache")
         assertContains(arguments, "-PkubrikoCreatorPort=${channel.port}")
         assertContains(arguments, "-PkubrikoCreatorMode=play")
         assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
@@ -571,6 +570,7 @@ class WorkspaceControllerTest {
         try {
             File(root, ".kubriko").mkdirs()
             File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
+            File(root, "gradle.properties").writeText("org.gradle.caching=true\norg.gradle.configuration-cache=true\n")
             val game = File(root, "src/commonMain/kotlin/com/example/game/Game.kt").apply { parentFile.mkdirs() }
             game.writeText("package com.example.game\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
             File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled.\n")
@@ -581,7 +581,7 @@ class WorkspaceControllerTest {
             File(root, "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt").writeText("// Uses KubrikoWiring.\n")
             controller.onProjectChanged(setOf(ProjectChange.SOURCES))
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
-            assertTrue("\"templateVersion\": 5" in File(root, ".kubriko/project.json").readText())
+            assertTrue("\"templateVersion\": 6" in File(root, ".kubriko/project.json").readText())
         } finally {
             root.deleteRecursively()
         }

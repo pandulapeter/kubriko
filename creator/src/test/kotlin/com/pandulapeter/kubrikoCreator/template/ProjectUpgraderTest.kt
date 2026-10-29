@@ -63,7 +63,7 @@ class ProjectUpgraderTest {
     @Test
     fun aNewProjectIsUpToDate() {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
         assertFalse(sceneLoaderFile.exists())
     }
 
@@ -86,7 +86,7 @@ class ProjectUpgraderTest {
         assertEquals(newMain, mainFile.readText())
         assertFalse(sceneLoaderFile.exists())
         val settings = settingsFile.readText()
-        assertContains(settings, "\"templateVersion\": 5")
+        assertContains(settings, "\"templateVersion\": 6")
         assertContains(settings, "\"extra\": true")
     }
 
@@ -98,7 +98,7 @@ class ProjectUpgraderTest {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
         assertFalse(sceneLoaderFile.exists())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
     }
 
     @Test
@@ -113,7 +113,7 @@ class ProjectUpgraderTest {
         assertEquals(listOf("$PACKAGE_PATH/Game.kt", MAIN_PATH), upgrade.changes.map { it.path })
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
     }
 
     @Test
@@ -124,6 +124,25 @@ class ProjectUpgraderTest {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newMain, mainFile.readText())
         assertContains(newMain, "KubrikoWiring.isLoggingEnabled = System.getProperty(\"kubriko.creator.logging\").toBoolean()")
+    }
+
+    @Test
+    fun upgradingAVersion5ProjectTurnsGradlesCachesOn() {
+        val properties = File(directory, "gradle.properties")
+        val newProperties = properties.readText()
+        assertContains(newProperties, "org.gradle.configuration-cache=true\n")
+        properties.writeText(newProperties.replace("org.gradle.configuration-cache=true\n", "").replace("org.gradle.caching=true\n", "org.gradle.caching = false\n\n"))
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 5 }""")
+        assertEquals(listOf("gradle.properties"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newProperties.replace("org.gradle.caching=true", "org.gradle.caching = false"), properties.readText(), "a cache turned off by hand stays off")
+    }
+
+    @Test
+    fun cachesAreAddedToAnyPropertiesFile() {
+        assertEquals("org.gradle.configuration-cache=true\norg.gradle.caching=true\n", ProjectUpgrader.withCaches(""))
+        assertEquals("a=1\norg.gradle.configuration-cache:false\norg.gradle.caching=true\n", ProjectUpgrader.withCaches("a=1\norg.gradle.configuration-cache:false\n"))
+        assertEquals("org.gradle.cachingX=1\norg.gradle.configuration-cache=true\norg.gradle.caching=true\n", ProjectUpgrader.withCaches("org.gradle.cachingX=1"))
     }
 
     @Test
@@ -180,7 +199,7 @@ class ProjectUpgraderTest {
         mainFile.writeText(newMain)
         sceneLoaderFile.delete()
         ProjectUpgrader(directory).recordVersionIfUpToDate()
-        assertContains(settingsFile.readText(), "\"templateVersion\": 5")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
     }
 
     @Test

@@ -10,7 +10,7 @@
 // Kubriko Creator passes this script to the project's build, without touching the project's files. It adds two tasks to every Compose
 // desktop application module: kubrikoCreatorSession runs the module's own classpath plus tool-creator-session at the module's Kubriko
 // version, and kubrikoCreatorClasspath compiles the module and writes its Kubriko version and runtime classpath to a file, for Kubriko
-// Creator to load the project's classes itself.
+// Creator to load the project's classes itself. Nothing here keeps the configuration cache from being used.
 gradle.projectsEvaluated {
     val properties = gradle.startParameter.projectProperties
     // Included builds (such as build-logic) run this script too, without Kubriko Creator's properties.
@@ -35,10 +35,11 @@ gradle.projectsEvaluated {
         tasks.register("kubrikoCreatorClasspath") {
             group = "kubriko creator"
             val classpath = run.classpath
+            val version = kubrikoVersion(runtime)
             inputs.files(classpath)
             doLast {
                 val file = File(classpathFile ?: throw GradleException("kubrikoCreatorClasspath needs kubrikoCreatorClasspathFile."))
-                file.writeText((listOf("kubrikoVersion=${kubrikoVersion(runtime)}") + classpath.files.map { it.absolutePath }).joinToString("\n"))
+                file.writeText((listOf("kubrikoVersion=$version") + classpath.files.map { it.absolutePath }).joinToString("\n"))
             }
         }
         tasks.register<JavaExec>("kubrikoCreatorSession") {

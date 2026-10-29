@@ -38,6 +38,7 @@ class ProjectUpgradeCommandsTest {
     private fun oldProject() {
         File(root, ".kubriko").mkdirs()
         File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
+        File(root, "gradle.properties").writeText("org.gradle.caching=true\norg.gradle.configuration-cache=true\n")
         game.parentFile.mkdirs()
         game.writeText("package com.example.game\n\nimport a.B\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
         File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled.\n")
@@ -65,7 +66,7 @@ class ProjectUpgradeCommandsTest {
         assertNull(Invocation(UpgradeProject, NoInput).apply(context).inverse)
         assertContains(game.readText(), "import com.example.game.generated.KubrikoWiring\n")
         assertContains(entryPoint.readText(), "    override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)\n")
-        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 5")
+        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 6")
         assertEquals(1, upgradedCount)
         assertEquals(Rejection(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).validate(context))
     }

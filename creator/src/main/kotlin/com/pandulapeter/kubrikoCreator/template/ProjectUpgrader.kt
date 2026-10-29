@@ -32,7 +32,9 @@ import java.io.File
  * still the template's. Version 4 leaves the plugins' Managers to `KubrikoWiring`, which creates only those the game uses,
  * so that the project only depends on the plugins it uses: `Game.kt` stops creating them. Version 5 lets play sessions turn
  * the Log Blocks on, which released games leave off: the desktop `Main.kt` sets `KubrikoWiring.isLoggingEnabled` from a system
- * property before the application starts. A file is only changed when it
+ * property before the application starts. Version 6 turns Gradle's configuration cache and build cache on in
+ * `gradle.properties` (a property set already, to any value, is kept; a missing file is created), so that Kubriko Creator's builds skip configuring
+ * the project when nothing changed. A file is only changed when it
  * still looks like the template's (one `Kubriko.newInstance` with a one-line `SceneLoader` in it, one-line plugin
  * Managers, one `createSerializationManager`); a file that already does what the version needs counts as done, whoever
  * changed it, and so does a `SceneLoader.kt` changed by hand, which is left alone.
@@ -62,6 +64,8 @@ internal class ProjectUpgrader(
         propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it }) { withManagersHandedToTheSceneEditor(it, wiringImport) }
         val desktopPackagePath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}"
         propose("$desktopPackagePath/$MAIN_FILE", ::turnsLoggingOn) { withLoggingTurnedOn(it, wiringImport) }
+        val properties = read(GRADLE_PROPERTIES_FILE).orEmpty()
+        if (!setsCaches(properties)) changes += ProposedFileChange(GRADLE_PROPERTIES_FILE, properties, withCaches(properties))
         val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
         read(sceneLoaderPath)?.takeIf { isGameUpgraded && it.trimEnd() == templateSceneLoader(packageName)?.trimEnd() }?.let { text ->
             changes += ProposedFileChange(sceneLoaderPath, text, after = null)
@@ -80,7 +84,7 @@ internal class ProjectUpgrader(
         if (upgrade is TemplateUpgrade.Needed) {
             upgrade.changes.forEach { change ->
                 val file = File(rootDirectory, change.path)
-                if (file.readText() == change.before) {
+                if ((if (file.isFile) file.readText() else "") == change.before) {
                     if (change.after == null) file.delete() else file.writeText(change.after)
                 }
             }
@@ -107,7 +111,9 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 5
+        const val CURRENT_VERSION = 6
+        private const val GRADLE_PROPERTIES_FILE = "gradle.properties"
+        private val cacheProperties = listOf("org.gradle.configuration-cache", "org.gradle.caching")
         private const val GAME_FILE = "Game.kt"
         private const val MAIN_FILE = "Main.kt"
         private const val APPLICATION_MAIN = "fun main() = application {"
@@ -196,6 +202,16 @@ internal class ProjectUpgrader(
             }
             return withImport(withOverride, wiringImport)
         }
+
+        private fun setsCaches(text: String) = cacheProperties.none { text.lacksProperty(it) }
+
+        /**
+         * [text] (a `gradle.properties`) with the caches it doesn't set turned on.
+         */
+        internal fun withCaches(text: String) = (text.lines().dropLastWhile { it.isBlank() } + cacheProperties.filter { text.lacksProperty(it) }.map { "$it=true" })
+            .joinToString("\n", postfix = "\n")
+
+        private fun String.lacksProperty(key: String) = lines().none { line -> line.trimStart().startsWith(key) && line.trimStart().removePrefix(key).trimStart().let { it.startsWith("=") || it.startsWith(":") } }
 
         private fun turnsLoggingOn(text: String) = LOGGING_SWITCH in text
 

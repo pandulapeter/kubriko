@@ -50,7 +50,10 @@ lives in `plan/` (start with `plan/README.md`).
   with `src/main/resources/kubriko-creator-session.init.gradle.kts`, which adds two tasks to every Compose desktop module without touching the
   project: `kubrikoCreatorSession` (runs the module's classpath plus `tool-creator-session` at the project's Kubriko version, in `play` or `edit`
   mode, reporting back over a versioned JSON-lines protocol on a localhost port, `SessionServer`) and `kubrikoCreatorClasspath` (compiles and
-  writes the Kubriko version and runtime classpath to a file). Every build's arguments come from `SessionInitScript.gradleArguments`, and how it
+  writes the Kubriko version and runtime classpath to a file). Every build's arguments come from `SessionInitScript.gradleArguments`; the script and the classpath file keep their paths
+  (`kubriko-creator` in the temporary folder: the script named after its content, the classpath file after the project's path),
+  since Gradle reuses a configuration cache only for the same init scripts and `-P` values, and the script works with the
+  configuration cache, which projects turn on themselves (template version 6). How it
   compiles from `IncrementalCompilationPolicy`: common code compiles incrementally through Kotlin's internal
   `kotlin.internal.incremental.enableUnsafeOptimizationsForMultiplatform` (KT-62686: otherwise any change to `commonMain`, where generated code
   lives, compiles everything again), except in projects whose sources declare an `expect` (`ExpectDeclarations`), and the build after a failed
@@ -202,7 +205,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   copy; one changed by hand stays). Version 4 drops the plugin Managers from `Game.kt` (and their imports, unless still used),
   since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. Version 5 has the desktop `Main.kt`
   set `KubrikoWiring.isLoggingEnabled` from the `kubriko.creator.logging` system property, which only the play session sets (the
-  init script), so Log Blocks (`if (KubrikoWiring.isLoggingEnabled) Logger.log(...)`) cost nothing in a released game. A change's `after` is null for a file it deletes.
+  init script), so Log Blocks (`if (KubrikoWiring.isLoggingEnabled) Logger.log(...)`) cost nothing in a released game. Version 6 turns Gradle's
+  configuration cache and build cache on in `gradle.properties` (keeping a property set to any value already, and creating
+  the file if there is none). A change's `after` is null for a file it deletes.
 - **Parent Actor types** (`ActorTypeFamily`, `set_parent`): an Actor type may name a `parent`, like GameMaker's parent objects
   (cycles and a parent named nowhere count as none). A child gets its ancestors' Properties (one of its own with the same name
   and kind only changes the initial value; another kind is rejected) and Events (one of its own of the same kind, key, other

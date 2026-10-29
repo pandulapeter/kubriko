@@ -81,7 +81,7 @@ class SceneEditingControllerTest {
             sceneReads += resource
             if (resource.file.isFile) SceneDocument.parse(resource.file.readText()) else emptyList()
         },
-        createClasspathFile = { File.createTempFile("classpath", ".txt", root) },
+        classpathFile = File(root, "classpath.txt"),
         currentTimeMillis = { 1_500L * tasks.size },
         requestCleanBuild = { cleanBuildRequests++ },
     )
