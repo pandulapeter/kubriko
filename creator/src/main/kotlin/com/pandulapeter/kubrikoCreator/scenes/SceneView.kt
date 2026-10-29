@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.body.BoxBody
@@ -32,6 +34,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import org.jetbrains.skia.Image
+import java.io.File
 
 /**
  * A Scene drawn by the project's own Actor classes, in a Kubriko instance of Kubriko Creator's that never runs the game:
@@ -70,6 +74,12 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     private var indicesById: Map<String, Int> = emptyMap()
 
     /**
+     * The looks of the Actor types whose Actors are drawn by Creator ([PreviewActor]) until their classes are compiled.
+     */
+    private var previews: Map<String, ActorTypeLook> = emptyMap()
+    private val previewSprites = HashMap<File, ImageBitmap?>()
+
+    /**
      * The Actors' bounds for picking, built again on the first pick after a change that added, removed, or reordered
      * Actors, and updated in place for one that only moved or changed some.
      */
@@ -86,10 +96,13 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
      * Shows the Scene's [next] Actors, its new and changed ones created off the main thread. Only what changed
      * since the last [load] changes in the Kubriko instance ([ScenePatch]): a moved Actor is moved, a changed one is
      * created again (so it is drawn after others of its drawing order until the Scene is opened again), and the rest
-     * stay, unless their order changed, which creates the whole Scene again.
+     * stay, unless their order changed, which creates the whole Scene again. The Actors of the types in [previews] are
+     * drawn from those looks instead of their classes, and are created again when their type's look changes.
      */
-    suspend fun load(next: List<SceneActorEntry>) {
-        val patch = ScenePatch.between(entries, next)
+    suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews) {
+        val previous = this.previews
+        this.previews = previews
+        val patch = ScenePatch.between(entries, next) { entry -> previous[entry.typeId] != previews[entry.typeId] }
         if (patch == null) {
             val created = withContext(Dispatchers.Default) { next.map(::createActor) }
             entries = next
@@ -193,12 +206,22 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
 
     fun dispose() = kubriko.dispose()
 
-    private fun createActor(entry: SceneActorEntry): Editable<*>? = try {
+    private fun createActor(entry: SceneActorEntry): Editable<*>? = previews[entry.typeId]?.let { look ->
+        PreviewActor(entry.state, look, look.spriteFile?.let { file -> synchronized(previewSprites) { previewSprites.getOrPut(file) { readSprite(file) } } })
+    } ?: try {
         serializationManager.deserializeActors(SceneDocument.format(listOf(entry))).firstOrNull()
     } catch (_: Exception) {
         null
     } catch (_: LinkageError) {
         // Classes compiled from older sources than the ones they use; Reload compiles them all again.
+        null
+    }
+
+    private fun readSprite(file: File) = try {
+        Image.makeFromEncoded(file.readBytes()).toComposeImageBitmap()
+    } catch (_: Exception) {
+        null
+    } catch (_: LinkageError) {
         null
     }
 

@@ -78,11 +78,18 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`: step 5 (steps 1 to 4 are done), each measured with `CreatorBuildBenchmarkTest` (a
-   row each).
+1. See step 5's previews in the app (below), then the rest of `02-fast-iteration.md`: step 6 (hot reload in the game)
+   and Playing.
 2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Previews of changed Actor types (2026-10-29, step 5): only unit-tested. Open the scratch Breakout's `main`, change
+  Brick's shape to circle on disk (or in the editor), and watch for unclipped circles (the preview) before the clipped
+  ones of the compiled class; also a color change of a type whose Actors keep no color of their own, a new type dropped
+  into the Scene before any build, a sprite type, and dragging and inspecting a previewed Actor. The first attempt in the
+  app showed no preview, which led to the fix that records looks only after the writes (a build at opening had recorded
+  none); it wasn't seen again, since the Scene couldn't be opened without clicking over the user's window.
 
 - Warming Kotlin's compile daemon (2026-10-29, `kubrikoCreatorWarmUp`), seen working: opening the scratch Breakout ran it
   right after the classes loaded (a fresh Kotlin daemon started, nothing in the console), the first change after that built

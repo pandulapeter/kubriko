@@ -107,7 +107,13 @@ What it shows:
    compile daemon. Starting that daemon at open belongs to step 1, and is done (above).
 5. **Draw what doesn't need the project's classes:** block-built Actor types are known without compiling (shape, color, size, sprite),
    so the Scene editor can show a changed type's Actors from its definition right away (a preview Actor drawn by Creator) while the
-   compile runs, then swap in the real classes. Hand-written types keep their last compiled look until then.
+   compile runs, then swap in the real classes. Hand-written types keep their last compiled look until then. **Done**
+   (2026-10-29, not yet seen in the app): every build knows the looks (`ActorTypeLook`: shape, color, size, sprite file) of
+   the types it compiled, taken once the changes are written; the open Scene's `previews` are the types whose look changed
+   since the shown classes were built, or that are new, updated as soon as a type changes in memory; and `SceneView` draws
+   their Actors as `PreviewActor`s (Creator's own, from the Actor's saved state and the look, selected and moved like the
+   real ones) until classes built with those looks are swapped in. A new type dropped into the Scene shows right away too.
+   Behavior that isn't the look (Properties shown differently, a parent's drawing) waits for the classes, as before.
 6. **Hot reload in the game:** Compose Hot Reload in the play session, so Block and Kotlin changes apply to a running game without
    a restart (moved here from `14-later.md`). Generated code is shaped for it: no static state that a reload would lose.
 

@@ -97,7 +97,13 @@ lives in `plan/` (start with `plan/README.md`).
   the new classes are swapped in when they are ready, and a change during that build builds once more after it, rather than
   cancelling it. The editor's new `SceneView` creates its Actors while the old one is still shown and then takes over its
   camera (`rememberSceneView`, `SceneCamera`), and the selection is kept per Scene, so a swap only changes the Actors. A
-  failed build keeps the old classes and says so in the header, with Reload, until a build works. Creator no longer starts `tool-creator-session` in Edit mode.
+  failed build keeps the old classes and says so in the header, with Reload, until a build works. Until newer classes are
+  swapped in, the Actors of block-built types whose look (`ActorTypeLook`: shape, color, size, sprite) changed since the
+  shown classes were built, or that are new, are drawn by Creator itself from that look and their saved state
+  (`SceneEditingState.Open.previews`, `PreviewActor`): every build records the looks it compiled once the changes are
+  written, and the previews follow the types in memory (`onActorTypesChanged`), so a change shows before it is even
+  written. The Scene editor's instance ticks without the focus (`shouldPauseOnFocusLoss = false`), since a Scene swapped
+  in while Creator is in the background would otherwise draw nothing until it is focused. Creator no longer starts `tool-creator-session` in Edit mode.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
   and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
   after `com.pandulapeter.kubriko.` in imports and fully qualified names, generated code included; the engine and `tool-creator-api` always),
@@ -313,7 +319,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits; writes queued as `PendingWrite`s and written in batches, 100 ms after the last change, a type saved several times written once, then one regeneration and build file sync per batch; `awaitWrites`, which builds, git commands (`CommandContext.awaitWrites`), and closing wait for; reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `SceneView`, `SceneHitTest` and `SceneBoundsGrid`, `ScenePatch`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
+| `scenes` | `SceneEditingController`, `SceneView`, `ActorTypeLook` and `PreviewActor`, `SceneHitTest` and `SceneBoundsGrid`, `ScenePatch`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |

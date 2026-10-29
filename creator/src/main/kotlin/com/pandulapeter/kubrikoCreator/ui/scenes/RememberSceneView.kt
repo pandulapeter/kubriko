@@ -32,7 +32,7 @@ internal fun rememberSceneView(state: SceneEditingState.Open): SceneView {
     val next = remember(state.revision) { SceneView(state.entryPoint) }
     LaunchedEffect(next) {
         shown?.let { previous ->
-            next.load(state.actors)
+            next.load(state.actors, state.previews)
             next.camera = previous.camera
         }
         shown = next

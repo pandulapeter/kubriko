@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.float
@@ -25,6 +26,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
@@ -82,6 +85,31 @@ class SceneViewTest {
         assertEquals("b", pickAt(3f, 3f))
         view.load(listOf(box("b", 5f, 5f), box("a", 0f, 0f)))
         assertEquals("a", pickAt(3f, 3f))
+    }
+
+    @Test
+    fun actorsOfPreviewedTypesAreDrawnFromTheirLookUntilThePreviewEnds() = runTest {
+        val look = ActorTypeLook(ActorShape.CIRCLE, color = 0xFF112233, width = 50f, height = 50f)
+        view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f)))
+        val real = view.actorOf("b")
+        view.load(view.entries, previews = mapOf(TYPE_ID to look))
+        val preview = assertIs<PreviewActor>(view.actorOf("a"))
+        assertEquals(SceneSize(SIZE.sceneUnit, SIZE.sceneUnit), preview.body.size)
+        assertEquals("b", pickAt(100f, 0f), "previews are picked like the Actors they stand for")
+        view.load(listOf(box("a", 0f, 0f), box("b", 300f, 0f)))
+        assertIs<PreviewActor>(view.actorOf("b"), "a later load keeps the previews")
+        view.load(view.entries, previews = mapOf(TYPE_ID to look.copy(shape = ActorShape.RECTANGLE)))
+        assertNotSame(preview, view.actorOf("a"), "a changed look creates the previews again")
+        view.load(view.entries, previews = emptyMap())
+        assertIs<Box>(view.actorOf("a"))
+        assertNotSame(real, view.actorOf("b"))
+    }
+
+    @Test
+    fun anActorOfATypeWithoutClassesYetIsDrawnFromItsLook() = runTest {
+        val look = ActorTypeLook(ActorShape.RECTANGLE, color = 0xFF112233, width = 50f, height = 30f)
+        view.load(listOf(SceneActorEntry("New", SceneDocument.blockBuiltState(10f, 20f, 50f, 30f), "n")), previews = mapOf("New" to look))
+        assertEquals("n", pickAt(10f, 20f))
     }
 
     private fun pickAt(x: Float, y: Float) = view.actorIdAt(view.toScreen(SceneOffset(x.sceneUnit, y.sceneUnit)))

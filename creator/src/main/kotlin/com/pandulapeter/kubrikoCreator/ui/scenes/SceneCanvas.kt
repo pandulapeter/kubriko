@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
@@ -63,12 +64,14 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
  * sidebar is placed where it is dropped ([onPlace], in scene units).
  *
  * @param actors The Scene's Actors, which [view] loads again whenever they change.
+ * @param previews The looks of the Actor types whose Actors [view] draws itself until they are compiled.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun SceneCanvas(
     view: SceneView,
     actors: List<SceneActorEntry>,
+    previews: Map<String, ActorTypeLook>,
     selectedId: String?,
     onSelect: (String?) -> Unit,
     onMove: (actorId: String, x: Float, y: Float) -> Unit,
@@ -81,7 +84,7 @@ internal fun SceneCanvas(
     DisposableEffect(dragState) {
         onDispose { dragState.sceneTarget = null }
     }
-    LaunchedEffect(view, actors) { view.load(actors) }
+    LaunchedEffect(view, actors, previews) { view.load(actors, previews) }
     val loadRevision by view.loadRevision.collectAsState()
     val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
     val scaleFactor by view.viewportManager.scaleFactor.collectAsState()

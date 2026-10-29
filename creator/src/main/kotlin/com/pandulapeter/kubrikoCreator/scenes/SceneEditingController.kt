@@ -46,6 +46,10 @@ import java.io.IOException
  * @param requestCleanBuild Makes the next build compile everything from scratch, for when the classes may not match the
  *   sources: on Reload, and when they couldn't be loaded.
  * @param warmUpCompiler Gets the compiler ready for the first change, once [prepare] has loaded the classes.
+ * @param actorTypeLooks The looks of the block-built Actor types as they are now, whose changes the open Scene shows
+ *   before they are compiled ([SceneEditingState.Open.previews], kept current by [onActorTypesChanged]).
+ * @param awaitWrites Returns once the Actor types are loaded and their changes written, so that a build knows which
+ *   looks it compiles.
  */
 internal class SceneEditingController(
     private val creatorKubrikoVersion: String,
@@ -59,6 +63,8 @@ internal class SceneEditingController(
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
     private val requestCleanBuild: () -> Unit = {},
     private val warmUpCompiler: suspend () -> Unit = {},
+    private val actorTypeLooks: () -> Map<String, ActorTypeLook> = { emptyMap() },
+    private val awaitWrites: suspend () -> Unit = {},
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) {
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
@@ -76,6 +82,11 @@ internal class SceneEditingController(
      * The classes the open Scene is drawn with, which are kept until it shows others, even once [loading] has newer ones.
      */
     private var shown: Deferred<LoadResult>? = null
+
+    /**
+     * The looks of the Actor types that the classes of [shown] were built from.
+     */
+    private var shownLooks: Map<String, ActorTypeLook> = emptyMap()
     private var isLoadingOutdated = false
     private var revision = 0
 
@@ -108,6 +119,7 @@ internal class SceneEditingController(
                     entryPoint = show(loading, result),
                     actors = actors.await(),
                     revision = ++revision,
+                    previews = currentPreviews(),
                 ).also {
                     report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
                 }
@@ -133,6 +145,7 @@ internal class SceneEditingController(
     private fun show(deferred: Deferred<LoadResult>, loaded: LoadResult.Loaded): SpriteLoadingEntryPoint {
         shown?.takeIf { it !== deferred && it !== loading }?.let(::release)
         shown = deferred
+        shownLooks = loaded.looks
         return SpriteLoadingEntryPoint(loaded.loaded.entryPoint, ProjectSpriteLoader(spriteFiles()))
     }
 
@@ -150,7 +163,13 @@ internal class SceneEditingController(
                 val result = deferred.await()
                 val open = _state.value as? SceneEditingState.Open ?: break
                 if (result is LoadResult.Loaded) {
-                    _state.value = open.copy(entryPoint = show(deferred, result), revision = ++revision, isOutdated = false, isUpdating = isLoadingOutdated)
+                    _state.value = open.copy(
+                        entryPoint = show(deferred, result),
+                        revision = ++revision,
+                        previews = currentPreviews(),
+                        isOutdated = false,
+                        isUpdating = isLoadingOutdated,
+                    )
                 } else {
                     forget(deferred)
                     _state.value = open.copy(isOutdated = true, isUpdating = false)
@@ -158,6 +177,13 @@ internal class SceneEditingController(
             }
         }
     }
+
+    private fun currentPreviews() = ActorTypeLook.previewsOf(actorTypeLooks(), shownLooks)
+
+    /**
+     * Notes that the Actor types changed in memory, which the open Scene previews right away, before they are written.
+     */
+    fun onActorTypesChanged() = _state.update { if (it is SceneEditingState.Open) it.copy(previews = currentPreviews()) else it }
 
     /**
      * Drops a result that isn't a loaded entry point once a Scene showed it, so the next Scene builds again.
@@ -170,6 +196,8 @@ internal class SceneEditingController(
      * Builds the project and loads its classes, or says why it couldn't.
      */
     private suspend fun buildAndLoad(): LoadResult {
+        awaitWrites()
+        val looks = actorTypeLooks()
         val isBuilt = runTask(
             SessionInitScript.CLASSPATH_TASK_NAME,
             mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
@@ -179,7 +207,7 @@ internal class SceneEditingController(
             classpath == null -> LoadResult.Failed(Res.string.scene_build_failed)
             classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(classpath.kubrikoVersion)
             else -> try {
-                LoadResult.Loaded(withContext(ioDispatcher) { entryPointLoader.load(classpath) })
+                LoadResult.Loaded(withContext(ioDispatcher) { entryPointLoader.load(classpath) }, looks)
             } catch (exception: EntryPointLoadingException) {
                 if (exception.cause != null) requestCleanBuild()
                 report(ConsoleEntry.Status(exception.reason, isError = true))
@@ -288,7 +316,13 @@ internal class SceneEditingController(
 }
 
 private sealed interface LoadResult {
-    data class Loaded(val loaded: LoadedEntryPoint) : LoadResult
+    /**
+     * @param looks The looks of the Actor types when the build started, which the classes draw.
+     */
+    data class Loaded(
+        val loaded: LoadedEntryPoint,
+        val looks: Map<String, ActorTypeLook>,
+    ) : LoadResult
 
     data class Failed(val reason: StringResource) : LoadResult
 

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
@@ -54,6 +55,10 @@ class SceneEditingControllerTest {
     private var buildGate: CompletableDeferred<Unit>? = null
     private var cleanBuildRequests = 0
     private var warmUpCount = 0
+    private val ballLook = ActorTypeLook(ActorShape.CIRCLE, color = 0xFFFFFFFF, width = 20f, height = 20f)
+    private val brickLook = ActorTypeLook(ActorShape.RECTANGLE, color = 0xFFE0605A, width = 100f, height = 36f)
+    private var actorTypeLooks = mapOf("Ball" to ballLook, "Brick" to brickLook)
+    private var writesGate: CompletableDeferred<Unit>? = null
     private val ball = SceneActorEntry("Ball", "{}", "a")
     private val brick = SceneActorEntry("Brick", "{}", "b")
     private var loader = EntryPointLoader { classpath ->
@@ -86,6 +91,8 @@ class SceneEditingControllerTest {
         currentTimeMillis = { 1_500L * tasks.size },
         requestCleanBuild = { cleanBuildRequests++ },
         warmUpCompiler = { warmUpCount++ },
+        actorTypeLooks = { actorTypeLooks },
+        awaitWrites = { writesGate?.await() },
     )
 
     @Test
@@ -279,6 +286,42 @@ class SceneEditingControllerTest {
         controller.close()
         controller.open(otherScene)
         assertEquals(2, tasks.size, "the new classes are kept for the next Scene")
+    }
+
+    @Test
+    fun actorTypesChangedSinceTheClassesWereBuiltArePreviewedUntilNewerClassesAreSwappedIn() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        assertEquals(emptyMap(), assertIs<SceneEditingState.Open>(controller.state.value).previews)
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val circleBrick = brickLook.copy(shape = ActorShape.CIRCLE)
+        val wall = brickLook.copy(width = 20f)
+        actorTypeLooks = mapOf("Ball" to ballLook, "Brick" to circleBrick, "Wall" to wall)
+        controller.onActorTypesChanged()
+        assertEquals(mapOf("Brick" to circleBrick, "Wall" to wall), assertIs<SceneEditingState.Open>(controller.state.value).previews)
+        controller.markOutdated()
+        val greenBrick = circleBrick.copy(color = 0xFF00FF00)
+        actorTypeLooks = mapOf("Ball" to ballLook, "Brick" to greenBrick, "Wall" to wall)
+        controller.markOutdated()
+        val second = CompletableDeferred<Unit>().also { buildGate = it }
+        gate.complete(Unit)
+        val swapped = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertTrue(swapped.isUpdating)
+        assertEquals(mapOf("Brick" to greenBrick), swapped.previews, "what changed after the build started is still previewed")
+        second.complete(Unit)
+        assertEquals(emptyMap(), assertIs<SceneEditingState.Open>(controller.state.value).previews)
+        assertEquals(3, tasks.size)
+    }
+
+    @Test
+    fun aBuildKnowsTheLooksItCompilesOnlyOnceTheTypesAreWritten() = runTest {
+        val gate = CompletableDeferred<Unit>().also { writesGate = it }
+        actorTypeLooks = emptyMap()
+        val controller = createController()
+        controller.open(scene)
+        actorTypeLooks = mapOf("Ball" to ballLook, "Brick" to brickLook)
+        gate.complete(Unit)
+        assertEquals(emptyMap(), assertIs<SceneEditingState.Open>(controller.state.value).previews)
     }
 
     @Test

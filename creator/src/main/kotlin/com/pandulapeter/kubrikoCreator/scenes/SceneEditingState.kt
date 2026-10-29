@@ -51,6 +51,8 @@ internal sealed interface SceneEditingState {
      *   the editor creates its Actors again.
      * @param isOutdated Whether the classes couldn't be built again after a change, so they are older than the sources.
      * @param isUpdating Whether newer classes are being built, which the Scene swaps to when they are ready.
+     * @param previews The looks of the block-built Actor types that changed since the classes were built (or are new),
+     *   whose Actors the editor draws from them until newer classes are swapped in.
      */
     data class Open(
         val scene: ProjectResource,
@@ -59,6 +61,7 @@ internal sealed interface SceneEditingState {
         val revision: Int,
         val isOutdated: Boolean = false,
         val isUpdating: Boolean = false,
+        val previews: Map<String, ActorTypeLook> = emptyMap(),
     ) : SceneEditingState {
         val sceneName get() = SceneStore.nameOf(scene.file)
     }

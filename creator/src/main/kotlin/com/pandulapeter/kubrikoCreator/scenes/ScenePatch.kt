@@ -46,8 +46,15 @@ internal class ScenePatch(
         /**
          * The patch from [previous] to [next], or null if the Actors that stay changed their order, or new ones came
          * before old ones, which only creating the Scene again keeps in the order Kubriko draws and picks them in.
+         *
+         * @param isRecreated Whether the Actor of an entry that stays is created again even if its state didn't change,
+         *   because what it is created as did.
          */
-        fun between(previous: List<SceneActorEntry>, next: List<SceneActorEntry>): ScenePatch? {
+        fun between(
+            previous: List<SceneActorEntry>,
+            next: List<SceneActorEntry>,
+            isRecreated: (SceneActorEntry) -> Boolean = { false },
+        ): ScenePatch? {
             val previousIndices = HashMap<String, Int>(previous.size * 2)
             previous.forEachIndexed { index, entry -> previousIndices[entry.id] = index }
             var lastPreviousIndex = -1
@@ -62,6 +69,7 @@ internal class ScenePatch(
                 lastPreviousIndex = previousIndex
                 val old = previous[previousIndex]
                 when {
+                    isRecreated(entry) -> Action.Replace(previousIndex)
                     old == entry -> Action.Keep(previousIndex)
                     old.typeId == entry.typeId && SceneDocument.isOnlyMoved(old.state, entry.state) ->
                         SceneDocument.positionOf(entry.state)?.let { (x, y) -> Action.Move(previousIndex, x, y) } ?: Action.Replace(previousIndex)

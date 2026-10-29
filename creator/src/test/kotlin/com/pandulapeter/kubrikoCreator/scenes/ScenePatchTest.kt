@@ -43,6 +43,12 @@ class ScenePatchTest {
     }
 
     @Test
+    fun anActorThatIsCreatedAsSomethingElseNowIsCreatedAgainEvenIfUnchanged() {
+        val patch = ScenePatch.between(scene, listOf(actor("a"), actor("b", x = 5f), actor("c", typeId = "Wall"))) { it.id != "c" }!!
+        assertEquals(listOf(Action.Replace(0), Action.Replace(1), Action.Replace(2)), patch.actions)
+    }
+
+    @Test
     fun aNewOrderCreatesTheSceneAgain() {
         assertNull(ScenePatch.between(scene, listOf(actor("b"), actor("a"), actor("c"))))
         assertNull(ScenePatch.between(scene, listOf(actor("d"), actor("a"), actor("b"), actor("c"))))

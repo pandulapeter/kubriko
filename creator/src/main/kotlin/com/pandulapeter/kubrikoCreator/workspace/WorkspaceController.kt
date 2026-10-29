@@ -35,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
+import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
@@ -53,6 +54,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -153,12 +155,14 @@ internal class WorkspaceController(
         spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
         requestCleanBuild = incrementalCompilation::requestCleanBuild,
         warmUpCompiler = ::warmUpCompiler,
+        actorTypeLooks = { ActorTypeLook.of(blockTypes?.actorTypes?.value.orEmpty(), SpriteFiles.of(_resources.value).files) },
+        awaitWrites = { blockTypes?.awaitWrites() },
     )
 
     /**
      * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
      */
-    val blockTypes = blockTypeRepository?.let { repository ->
+    val blockTypes: BlockTypesController? = blockTypeRepository?.let { repository ->
         BlockTypesController(
             repository = repository,
             scope = scope,
@@ -269,6 +273,11 @@ internal class WorkspaceController(
     init {
         refreshResources()
         refreshProjectUpgrade()
+        blockTypes?.let { types ->
+            scope.launch {
+                combine(types.actorTypes, _resources) { _, _ -> }.collect { sceneEditing.onActorTypesChanged() }
+            }
+        }
     }
 
     /**
