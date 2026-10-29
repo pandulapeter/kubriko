@@ -9,8 +9,8 @@
  */
 // Kubriko Creator passes this script to the project's build, without touching the project's files. It adds two tasks to every Compose
 // desktop application module: kubrikoCreatorSession runs the module's own classpath plus tool-creator-session at the module's Kubriko
-// version, and kubrikoCreatorClasspath compiles the module and writes its Kubriko version and runtime classpath to a file, for Kubriko
-// Creator to load the project's classes itself. Nothing here keeps the configuration cache from being used.
+// version, and kubrikoCreatorClasspath compiles the module and writes its Kubriko version and runtime classpath (with the module's
+// own output folders in place of its jar) to a file, for Kubriko Creator to load the project's classes itself. Nothing here keeps the configuration cache from being used.
 gradle.projectsEvaluated {
     val properties = gradle.startParameter.projectProperties
     // Included builds (such as build-logic) run this script too, without Kubriko Creator's properties.
@@ -32,14 +32,32 @@ gradle.projectsEvaluated {
                 add(project.dependencies.create("io.github.pandulapeter.kubriko:tool-creator-session:${kubrikoVersion(runtime)}"))
             }
         }
+        // The classpath task hands Kubriko Creator the folders the module's jar is packed from, so that it isn't packed on every build.
+        val jar = tasks.findByName(runtime.name.removeSuffix("RuntimeClasspath").let { if (it.isEmpty()) "jar" else "${it}Jar" }) as? Jar
         tasks.register("kubrikoCreatorClasspath") {
             group = "kubriko creator"
-            val classpath = run.classpath
             val version = kubrikoVersion(runtime)
-            inputs.files(classpath)
+            val isPackedJarOnly = jar != null && run.classpath.minus(runtime).files == setOf(jar.archiveFile.get().asFile)
+            val classpath = if (isPackedJarOnly) runtime else run.classpath
+            val packedFiles = if (isPackedJarOnly) jar.source else files()
+            val movedFiles = layout.buildDirectory.dir("kubrikoCreator/moved").get().asFile
+            inputs.files(classpath, packedFiles)
             doLast {
+                val folders = linkedSetOf<File>()
+                movedFiles.deleteRecursively()
+                packedFiles.asFileTree.visit(Action<FileVisitDetails> {
+                    if (!isDirectory) {
+                        val path = relativePath.pathString
+                        if (file.invariantSeparatorsPath.endsWith("/$path")) {
+                            folders += File(file.invariantSeparatorsPath.removeSuffix("/$path"))
+                        } else {
+                            file.copyTo(File(movedFiles, path), overwrite = true)
+                            folders += movedFiles
+                        }
+                    }
+                })
                 val file = File(classpathFile ?: throw GradleException("kubrikoCreatorClasspath needs kubrikoCreatorClasspathFile."))
-                file.writeText((listOf("kubrikoVersion=$version") + classpath.files.map { it.absolutePath }).joinToString("\n"))
+                file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath }).joinToString("\n"))
             }
         }
         tasks.register<JavaExec>("kubrikoCreatorSession") {

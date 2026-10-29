@@ -78,11 +78,16 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`, steps 3 to 5 (steps 1 and 2, keeping Gradle warm and the configuration cache, are
-   done), each measured with `CreatorBuildBenchmarkTest` (a row each).
+1. The rest of `02-fast-iteration.md`, steps 4 and 5 (steps 1 to 3, keeping Gradle warm, the configuration cache, and
+   skipping the jar, are done), each measured with `CreatorBuildBenchmarkTest` (a row each).
 2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Class folders instead of the jar (2026-10-29): the benchmark loads them and creates a 1,000-Actor Scene from them, and the
+  scratch Breakout's classpath lists the three folders with no jar built; seen in the app: opening the scratch Breakout's
+  `main` from them. Not seen: a sprite and a Scene's music still found, and a Scene kept open (outdated) while a type
+  change is built.
 
 - The configuration cache (2026-10-29, template version 6), seen working: two classpath builds of the scratch Breakout with
   the cache on (the second reused it, 717 to 286 ms) and the play task storing an entry, both from the command line; the
@@ -90,8 +95,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   diff in the dialog, and Creator's own console after a build that reused the cache.
 
 - Keeping Gradle warm (2026-10-29), seen working: opening the scratch Breakout built it with nothing clicked ("Built in 2.9
-  seconds." in the console). Not seen (Android Studio covered Creator's window, so nothing was clicked): opening `main` right
-  after that without a build, opening a Scene while that build still runs (it should wait for it, not build twice), Play
+  seconds." in the console), and on a later launch, opening `main` right after it without a build ("The Scene is open, in
+  0.0 seconds."). Not seen: opening a Scene while that build still runs (it should wait for it, not build twice), Play
   pressed during it (it should start once the build ends), and a project whose build fails on open (the console shows the
   problems right away, and the first Scene shows the failure without building again).
 

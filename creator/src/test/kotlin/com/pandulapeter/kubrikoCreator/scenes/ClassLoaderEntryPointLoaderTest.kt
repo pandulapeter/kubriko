@@ -73,11 +73,33 @@ class ClassLoaderEntryPointLoaderTest {
     }
 
     @Test
-    fun onlyJarsTheProjectBuildsAreCopied() {
+    fun onlyJarsAndFoldersTheProjectBuildsAreCopied() {
         fun jar(path: String) = File(root, path).apply { parentFile.mkdirs(); writeText("") }
-        assertTrue(ClassLoaderEntryPointLoader.isProjectJar(jar("game/build/libs/game-desktop.jar")))
-        assertFalse(ClassLoaderEntryPointLoader.isProjectJar(jar(".gradle/caches/modules-2/files-2.1/engine.jar")))
-        assertFalse(ClassLoaderEntryPointLoader.isProjectJar(jar(".m2/repository/io/github/engine.jar")))
-        assertFalse(ClassLoaderEntryPointLoader.isProjectJar(File(root, "game/build/classes").apply { mkdirs() }))
+        assertTrue(ClassLoaderEntryPointLoader.isProjectOutput(jar("game/build/libs/game-desktop.jar")))
+        assertTrue(ClassLoaderEntryPointLoader.isProjectOutput(File(root, "game/build/classes").apply { mkdirs() }))
+        assertFalse(ClassLoaderEntryPointLoader.isProjectOutput(jar(".gradle/caches/modules-2/files-2.1/engine.jar")))
+        assertFalse(ClassLoaderEntryPointLoader.isProjectOutput(jar(".m2/repository/io/github/engine.jar")))
+        assertFalse(ClassLoaderEntryPointLoader.isProjectOutput(jar("game/build/libs/notes.txt")))
+    }
+
+    @Test
+    fun aRebuiltFolderDoesntChangeTheClassesLoadedFromItButItsResourcesStayReadable() {
+        val classes = File(root, "game/build/classes").apply { mkdirs() }
+        val probePath = SnapshotProbe::class.java.name.replace('.', '/') + ".class"
+        val classFile = File(classes, probePath).apply {
+            parentFile.mkdirs()
+            writeBytes(checkNotNull(SnapshotProbe::class.java.classLoader.getResourceAsStream(probePath)).use { it.readBytes() })
+        }
+        val resource = File(classes, "files/scene.json").apply { parentFile.mkdirs(); writeText("{}") }
+        val copies = File(root, "copies").apply { mkdirs() }
+        ClassLoaderEntryPointLoader.classLoaderOf(listOf(classes), copies, parent = ClassLoader.getPlatformClassLoader()).use { classLoader ->
+            classFile.writeText("rebuilt into something that isn't a class")
+            resource.writeText("{ }")
+            assertEquals(classLoader, classLoader.loadClass(SnapshotProbe::class.java.name).classLoader)
+            assertEquals("{ }", classLoader.getResource("files/scene.json")!!.readText())
+            assertTrue(copies.list().orEmpty().isEmpty(), "folders aren't copied")
+        }
     }
 }
+
+class SnapshotProbe

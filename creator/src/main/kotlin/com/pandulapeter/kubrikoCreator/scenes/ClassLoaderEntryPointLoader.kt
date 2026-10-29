@@ -15,7 +15,6 @@ import kubriko.creator.generated.resources.error_entry_point_missing
 import kubriko.creator.generated.resources.error_entry_point_multiple
 import kubriko.creator.generated.resources.error_entry_point_not_loaded
 import java.io.File
-import java.net.URLClassLoader
 import java.util.ServiceConfigurationError
 import java.util.ServiceLoader
 import kotlin.io.path.createTempDirectory
@@ -26,17 +25,15 @@ import kotlin.io.path.createTempDirectory
  * is what lets Creator draw the project's Actors in its own window, and why it only works when the project uses the
  * Kubriko version Creator was built with.
  *
- * The project's own jars are copied before they are loaded, so that the next build can replace them while these
- * classes are still in use (Windows can't overwrite a jar that is open).
+ * The project's own jars are copied, and the class files of its own folders read, before they are loaded, so that the
+ * next build can replace them while these classes are still in use (Windows can't overwrite a jar that is open, and a
+ * class loaded later from a rebuilt folder wouldn't match the ones loaded before; [ProjectClassLoader]).
  */
 internal object ClassLoaderEntryPointLoader : EntryPointLoader {
 
     override fun load(classpath: ProjectClasspath): LoadedEntryPoint {
         val copies = createTempDirectory("kubriko-creator-classes").toFile().apply { deleteOnExit() }
-        val classLoader = URLClassLoader(
-            classpath.files.map { file -> (if (isProjectJar(file)) file.copyTo(File(copies, "${copies.list().orEmpty().size}-${file.name}")) else file).toURI().toURL() }.toTypedArray(),
-            ClassLoaderEntryPointLoader::class.java.classLoader,
-        )
+        val classLoader = classLoaderOf(classpath.files, copies)
         try {
             val entryPoints = ServiceLoader.load(CreatorEntryPoint::class.java, classLoader).toList()
             val entryPoint = when (entryPoints.size) {
@@ -64,10 +61,30 @@ internal object ClassLoaderEntryPointLoader : EntryPointLoader {
     }
 
     /**
-     * Whether [file] is built by the project (rather than downloaded into Gradle's or Maven's caches), and so may be
-     * replaced by the next build.
+     * A class loader for [files] over [parent], with the project's jars copied into [copies] and the class files of
+     * its folders read first.
      */
-    internal fun isProjectJar(file: File) = file.isFile && file.extension == "jar" && file.invariantSeparatorsPath.let { path ->
+    internal fun classLoaderOf(
+        files: List<File>,
+        copies: File,
+        parent: ClassLoader = ClassLoaderEntryPointLoader::class.java.classLoader,
+    ) = ProjectClassLoader(
+        urls = files.map { file ->
+            if (isProjectOutput(file) && file.isFile) file.copyTo(File(copies, "${copies.list().orEmpty().size}-${file.name}")) else file
+        }.map { it.toURI().toURL() }.toTypedArray(),
+        classFiles = files.filter { isProjectOutput(it) && it.isDirectory }.reversed().fold(emptyMap()) { classFiles, folder -> classFiles + classFilesOf(folder) },
+        parent = parent,
+    )
+
+    private fun classFilesOf(folder: File) = folder.walkTopDown()
+        .filter { it.isFile && it.extension == "class" }
+        .associate { it.relativeTo(folder).invariantSeparatorsPath.removeSuffix(".class").replace('/', '.') to it.readBytes() }
+
+    /**
+     * Whether [file] is a jar or a folder built by the project (rather than downloaded into Gradle's or Maven's caches),
+     * and so may be replaced by the next build.
+     */
+    internal fun isProjectOutput(file: File) = (file.isDirectory || (file.isFile && file.extension == "jar")) && file.invariantSeparatorsPath.let { path ->
         "/.gradle/caches/" !in path && "/.m2/repository/" !in path
     }
 }

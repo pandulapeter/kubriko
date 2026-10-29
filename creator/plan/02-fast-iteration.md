@@ -77,9 +77,13 @@ What it shows:
    125 to 62 ms; cold builds and Reload are compile time, unchanged. Play builds configure again once per workspace opened,
    since the session's port is chosen then. `org.gradle.parallel` is left out: the template is one Gradle project, which it
    wouldn't speed up.
-3. **Compile only what's needed:** the classpath task compiles the desktop target only (measured: it runs no web or other
-   target's tasks), but it packs `desktopJar` every time. A type change takes about 0.7 s at 200 types since common code
-   compiles incrementally (see Measuring the build).
+3. **Compile only what's needed. Done** (2026-10-29): the classpath task compiles the desktop target only, and no longer packs
+   `desktopJar`: it hands Creator the folders the jar is packed from (the jar task's `source`; a file the jar would put elsewhere
+   is copied to a folder of its own), and Creator reads their class files into memory when it loads them (`ProjectClassLoader`),
+   which is what copying the jar did, so a rebuild can't mix two versions of a class. Measured at 200 types (two runs):
+   a Block or Property added to a leaf type 530 to about 295 ms, to the base of a family 550 to 300 ms, one Actor moved 297 to
+   90 ms; loading the classes went from 12 to 67 ms, so a Scene opened after a change gains about 180 ms. Play builds still
+   pack the jar, which the game's own process needs no more than the editor does (Playing, below).
 4. **Reload without reopening:** after a type change, compile in the background and swap the Scene editor to the new classes when the
    build finishes (new class loader, `SceneView` created again from the open Scene, camera and selection kept), instead of an
    "outdated" notice and a manual reload. The notice stays only while a build is failing.
