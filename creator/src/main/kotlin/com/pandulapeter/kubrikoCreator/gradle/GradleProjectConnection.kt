@@ -13,6 +13,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ResultHandler
@@ -58,6 +60,11 @@ internal class GradleProjectConnection(
                 }
 
                 override fun onFailure(failure: GradleConnectionException) {
+                    // A failed build has printed why, but Gradle failing to start (offline, an unusable JDK) prints nothing.
+                    if (failure !is BuildException && failure !is BuildCancelledException) {
+                        val cause = generateSequence<Throwable>(failure) { it.cause }.last()
+                        onEvent(GradleBuildEvent.Output(cause.message ?: cause.toString(), isError = true))
+                    }
                     outcome.complete(false)
                 }
             })
