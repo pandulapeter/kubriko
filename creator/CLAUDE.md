@@ -35,7 +35,7 @@ lives in `plan/` (start with `plan/README.md`).
 ## Processes
 
 - **Opening** a project never waits for Gradle (`GradleWorkspaceOpener`): it only checks for a build or settings file and reads the
-  root project's name from the settings (`ProjectInspector`); the desktop module is asked from Gradle in the background (the
+  root project's name from the settings (`ProjectInspector`); the desktop module is asked from Gradle in the background (`DesktopModuleLookup`, asked again after a failure; the
   `GradleProject` model configures every task), and the first build waits for it, reporting a project without one in the console.
   The Tooling API connection is made on first use, which is right away: the workspace builds the classpath and loads the
   project's classes in the background as soon as it opens (`SceneEditingController.prepare`), so the Gradle daemon is warm
