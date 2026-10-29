@@ -162,7 +162,7 @@ class AcpAgentTest {
         val cancelling = agent.newConversation(workingDirectory, permissions = { _, _ -> RequestPermissionOutcome.Cancelled })
         val cancelled = messagesOf(cancelling)
         cancelling.prompt(text("edit"))
-        assertEquals(listOf("cancelled"), cancelled)
+        assertReceived(listOf("cancelled"), cancelled)
     }
 
     @Test

@@ -33,10 +33,12 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -105,6 +107,7 @@ internal class AcpAgent(
         val scope: CoroutineScope,
         val client: Client,
         val info: AgentInfo,
+        val errorReader: Job,
         val startedAt: TimeMark,
     )
 
@@ -222,8 +225,13 @@ internal class AcpAgent(
                 exit.onAwait { null }
             }
         } catch (exception: CancellationException) {
-            withContext(NonCancellable) { shutDown(connectionScope, channel) }
-            throw exception
+            // The SDK fails a request with a CancellationException of its own when the process closes its streams.
+            if (currentCoroutineContext().isActive) {
+                null
+            } else {
+                withContext(NonCancellable) { shutDown(connectionScope, channel) }
+                throw exception
+            }
         } catch (exception: Exception) {
             null
         }
@@ -237,7 +245,7 @@ internal class AcpAgent(
         }
         exit.cancel()
         _signInMethods.value = SignInMethod.of(info.authMethods, command)
-        return Connection(channel, connectionScope, client, info, timeSource.markNow())
+        return Connection(channel, connectionScope, client, info, errorReader, timeSource.markNow())
     }
 
     /**
@@ -263,6 +271,7 @@ internal class AcpAgent(
     private suspend fun onExit(connection: Connection, exitCode: Int) = lifecycle.withLock {
         if (this.connection !== connection) return@withLock
         this.connection = null
+        withTimeoutOrNull(EXIT_WAIT) { connection.errorReader.join() }
         shutDown(connection.scope, connection.channel)
         if (isClosed) return@withLock
         crashesInARow = if (connection.startedAt.elapsedNow() < STABLE_UPTIME) crashesInARow + 1 else 1
