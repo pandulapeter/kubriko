@@ -186,6 +186,9 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         serializationManager.deserializeActors(SceneDocument.format(listOf(entry))).firstOrNull()
     } catch (_: Exception) {
         null
+    } catch (_: LinkageError) {
+        // Classes compiled from older sources than the ones they use; Reload compiles them all again.
+        null
     }
 
     companion object {

@@ -24,6 +24,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
+import kubriko.creator.generated.resources.error_entry_point_not_loaded
 import kubriko.creator.generated.resources.scene_build_failed
 import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
@@ -51,6 +52,7 @@ class SceneEditingControllerTest {
     private val reports = mutableListOf<ConsoleEntry>()
     private val sceneReads = mutableListOf<ProjectResource>()
     private var buildGate: CompletableDeferred<Unit>? = null
+    private var cleanBuildRequests = 0
     private val ball = SceneActorEntry("Ball", "{}", "a")
     private val brick = SceneActorEntry("Brick", "{}", "b")
     private var loader = EntryPointLoader { classpath ->
@@ -81,6 +83,7 @@ class SceneEditingControllerTest {
         },
         createClasspathFile = { File.createTempFile("classpath", ".txt", root) },
         currentTimeMillis = { 1_500L * tasks.size },
+        requestCleanBuild = { cleanBuildRequests++ },
     )
 
     @Test
@@ -133,6 +136,32 @@ class SceneEditingControllerTest {
         controller.open(scene)
         assertEquals(SceneEditingState.Failed(scene, Res.string.error_entry_point_missing), controller.state.value)
         assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.error_entry_point_missing, isError = true)), reports)
+    }
+
+    @Test
+    fun classesThatCantBeLoadedAreCompiledAgainFromScratch() = runTest {
+        loader = EntryPointLoader { throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, NoSuchMethodError()) }
+        createController().open(scene)
+        assertEquals(1, cleanBuildRequests)
+    }
+
+    @Test
+    fun aMissingEntryPointDoesntCompileEverythingAgain() = runTest {
+        loader = EntryPointLoader { throw EntryPointLoadingException(Res.string.error_entry_point_missing) }
+        createController().open(scene)
+        assertEquals(0, cleanBuildRequests)
+    }
+
+    @Test
+    fun reloadCompilesEverythingAgainButOpeningDoesnt() = runTest {
+        val controller = createController()
+        controller.reload()
+        controller.open(scene)
+        controller.markOutdated()
+        controller.open(otherScene)
+        assertEquals(0, cleanBuildRequests)
+        controller.reload()
+        assertEquals(1, cleanBuildRequests)
     }
 
     @Test

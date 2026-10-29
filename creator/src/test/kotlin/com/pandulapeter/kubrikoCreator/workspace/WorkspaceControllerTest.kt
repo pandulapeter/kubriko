@@ -137,6 +137,31 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun commonCodeCompilesIncrementallyUnlessTheProjectDeclaresExpectsAndAFailedBuildIsFollowedByACleanOne() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            val controller = createController(rootDirectory = root)
+            val property = "-P${SessionInitScript.INCREMENTAL_COMMON_CODE_PROPERTY}"
+            controller.play()
+            assertContains(build.currentRun.arguments, "$property=true")
+            assertFalse("--rerun-tasks" in build.currentRun.arguments)
+            build.currentRun.finish(isSuccessful = false)
+            controller.play()
+            assertContains(build.currentRun.arguments, "$property=true")
+            assertContains(build.currentRun.arguments, "--rerun-tasks")
+            build.currentRun.finish(isSuccessful = true)
+            controller.play()
+            assertFalse("--rerun-tasks" in build.currentRun.arguments)
+            build.currentRun.finish(isSuccessful = true)
+            root.resolve("src/commonMain/kotlin/Platform.kt").apply { parentFile.mkdirs() }.writeText("expect fun name(): String\n")
+            controller.play()
+            assertContains(build.currentRun.arguments, "$property=false")
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun aProjectWithoutADesktopModuleSaysWhyItCantBuild() = runTest {
         val controller = createController(findDesktopModulePath = { throw ProjectInspectionException(Res.string.error_no_desktop_module) })
         controller.play()

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
+import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import java.io.File
 
 /**
@@ -32,8 +33,15 @@ internal object SessionInitScript {
     }
 
     /**
-     * The arguments that run one of the script's tasks with Kubriko Creator's [properties].
+     * The Kotlin property that makes common code compile incrementally ([com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy]).
      */
-    fun gradleArguments(properties: Map<String, String>) =
-        listOf("--init-script", file.absolutePath, "--no-configuration-cache") + properties.map { (key, value) -> "-P$key=$value" }
+    const val INCREMENTAL_COMMON_CODE_PROPERTY = "kotlin.internal.incremental.enableUnsafeOptimizationsForMultiplatform"
+
+    /**
+     * The arguments that run one of the script's tasks with Kubriko Creator's [properties], compiling as [mode] says.
+     */
+    fun gradleArguments(properties: Map<String, String>, mode: CompilationMode) =
+        listOf("--init-script", file.absolutePath, "--no-configuration-cache") +
+            (if (mode.isClean) listOf("--rerun-tasks") else emptyList()) +
+            (properties + (INCREMENTAL_COMMON_CODE_PROPERTY to mode.isCommonCodeIncremental.toString())).map { (key, value) -> "-P$key=$value" }
 }

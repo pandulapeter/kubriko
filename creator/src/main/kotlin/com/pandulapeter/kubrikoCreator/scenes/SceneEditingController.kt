@@ -38,6 +38,8 @@ import java.io.IOException
  *   builds, so that the [SceneStore] it reads from has the Scene parsed for the first command on it.
  * @param spriteFiles The project's sprite files by the name of their resource accessor, which the Scene editor reads
  *   itself ([SpriteLoadingEntryPoint]).
+ * @param requestCleanBuild Makes the next build compile everything from scratch, for when the classes may not match the
+ *   sources: on Reload, and when they couldn't be loaded.
  */
 internal class SceneEditingController(
     private val creatorKubrikoVersion: String,
@@ -49,6 +51,7 @@ internal class SceneEditingController(
     private val readScene: (ProjectResource) -> List<SceneActorEntry>,
     private val createClasspathFile: () -> File = { File.createTempFile("kubriko-creator-classpath", ".txt").apply { deleteOnExit() } },
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
+    private val requestCleanBuild: () -> Unit = {},
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) {
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
@@ -101,6 +104,7 @@ internal class SceneEditingController(
                     isLoadedEntryPointOutdated = false
                 }
             } catch (exception: EntryPointLoadingException) {
+                if (exception.cause != null) requestCleanBuild()
                 _state.value = SceneEditingState.Failed(scene, exception.reason)
                 report(ConsoleEntry.Status(exception.reason, isError = true))
                 null
@@ -109,9 +113,10 @@ internal class SceneEditingController(
     }
 
     /**
-     * Opens the current Scene again, with the project's classes compiled and loaded anew.
+     * Opens the current Scene again, with the project's classes compiled from scratch and loaded anew.
      */
     fun reload() {
+        if (_state.value != SceneEditingState.Closed) requestCleanBuild()
         when (val current = _state.value) {
             is SceneEditingState.Open -> open(current.scene, isRebuilding = true)
             is SceneEditingState.Preparing -> open(current.scene, isRebuilding = true)

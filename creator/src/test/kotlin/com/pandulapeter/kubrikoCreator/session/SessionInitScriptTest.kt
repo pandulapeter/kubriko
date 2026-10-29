@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.session
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -36,8 +37,16 @@ class SessionInitScriptTest {
     @Test
     fun theArgumentsPassTheScriptAndEveryPropertyAsAProjectProperty() {
         assertEquals(
-            listOf("--init-script", SessionInitScript.file.absolutePath, "--no-configuration-cache", "-Pa=1", "-Pb=two words"),
-            SessionInitScript.gradleArguments(mapOf("a" to "1", "b" to "two words")),
+            listOf(
+                "--init-script",
+                SessionInitScript.file.absolutePath,
+                "--no-configuration-cache",
+                "--rerun-tasks",
+                "-Pa=1",
+                "-Pb=two words",
+                "-P${SessionInitScript.INCREMENTAL_COMMON_CODE_PROPERTY}=false",
+            ),
+            SessionInitScript.gradleArguments(mapOf("a" to "1", "b" to "two words"), CompilationMode(isCommonCodeIncremental = false, isClean = true)),
         )
     }
 

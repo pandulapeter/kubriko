@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
@@ -32,9 +33,10 @@ import kotlin.test.assertTrue
 
 /**
  * Builds [BenchmarkProject] for real, through the Tooling API and the init script's classpath task as the Scene editor
- * does, and times a cold build, a warm one with nothing changed, the changes an edit loop makes, and loading the new
- * classes into a 1,000-Actor Scene. Each build also reports which generated files the change touched and which classes
- * Kotlin compiled again, which shows whether a change to one type recompiles only that type.
+ * does, and times a cold build, a warm one with nothing changed, the changes an edit loop makes, a clean build as
+ * Reload makes one, and loading the new classes into a 1,000-Actor Scene. Each build also reports which generated
+ * files the change touched and which classes Kotlin compiled again, which shows whether a change to one type
+ * recompiles only that type.
  *
  * Builds run with Creator's own arguments plus `--no-build-cache`: every run makes the same changes, so a build cache
  * (which `~/.gradle/gradle.properties` may turn on) would restore the outputs instead of compiling them.
@@ -74,6 +76,8 @@ class CreatorBuildBenchmarkTest {
         probe.build("A Block added to the base of a family of ten") { probe.changeActorType(base) { it.withBlock(BlockDefinition.Log("Base")) } }
         probe.build("A Property added to the base of a family of ten") { probe.changeActorType(base) { it.withProperty("baseSpeed") } }
         probe.build("One Actor moved in a Scene") { probe.moveActor(BenchmarkProject.sceneName(LOADED_SCENE_SIZE), actorId = "a7") }
+        probe.build("Reload, which compiles everything from scratch", isClean = true)
+        probe.build("The next build with nothing changed")
         probe.loadScene(BenchmarkProject.sceneName(LOADED_SCENE_SIZE))
     }
 
@@ -118,7 +122,7 @@ class CreatorBuildBenchmarkTest {
          * Times [change] (regenerating the code), then the build, and reports both with the generated files the change
          * touched and the classes the build compiled again.
          */
-        fun build(step: String, change: () -> Unit = {}) {
+        fun build(step: String, isClean: Boolean = false, change: () -> Unit = {}) {
             val generatedBefore = snapshot(generatedDirectory) { it.readText() }
             val changeStart = System.nanoTime()
             change()
@@ -132,6 +136,7 @@ class CreatorBuildBenchmarkTest {
                     taskPath = ":${SessionInitScript.CLASSPATH_TASK_NAME}",
                     arguments = SessionInitScript.gradleArguments(
                         mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
+                        CompilationMode(isCommonCodeIncremental = true, isClean = isClean),
                     ) + "--no-build-cache" + extraArguments,
                     onEvent = { output.appendLine(it.toString()) },
                 )

@@ -37,6 +37,7 @@ throughout: a 17 s cold build and 7 to 10 s per type change), with the property 
 | A Block added to the base of a family of ten | 5.4 s | 0.7 s (the type and its base) |
 | A Property added to the base of a family of ten | 5.5 s | 1.4 s (the family and its users) |
 | One Actor moved in a Scene | 0.5 s (no compile) | 0.5 s |
+| Reload (`--rerun-tasks`: everything from scratch) | | 5.3 s, then 0.15 s for the next build |
 | Loading the classes / creating a 1,000-Actor Scene | 11 ms / 0.4 to 0.6 s | |
 
 What it shows:
@@ -50,8 +51,11 @@ What it shows:
   compilation of common code back on (the second column). Checked by hand: platform code using a changed common declaration is
   still recompiled (a renamed function fails the build, a new defaulted parameter recompiles the caller). What KT-62686 guards
   against wasn't reproduced; `expect`/`actual` pairs are the suspected case, which generated code never has but hand-written code
-  may. **Waiting for the user's decision**: pass it (only in Creator's builds, through `gradleArguments`, so a project's own
-  builds are unaffected, at the cost of a full rebuild whenever the two alternate), or wait for Kotlin 2.5.
+  may. **Done, with the user's agreement** (2026-10-29, `IncrementalCompilationPolicy`): Creator's builds pass it (only
+  Creator's, through `gradleArguments`, so a project's own builds keep Kotlin's default), except in a project whose sources
+  declare an `expect` (`ExpectDeclarations`), and the build after a failed one, after Reload, or after classes that couldn't be
+  loaded runs with `--rerun-tasks`, which compiles everything from scratch. (Turning the property off doesn't do that: it isn't
+  an input of the compile task, which stays up to date.) Remove it all with Kotlin 2.5's separate compilation.
 - Every classpath build also packs `desktopJar` (about 0.23 s); step 3 can point the classpath at the class folders instead.
 - Creating a 1,000-Actor Scene from the classes takes 0.4 to 0.6 s, which step 4 pays on every swap and step 5 should hide.
 
@@ -63,8 +67,8 @@ What it shows:
    the template's `gradle.properties` (a template upgrade), and the init script made configuration-cache compatible (it passes
    `--no-configuration-cache` today).
 3. **Compile only what's needed:** the classpath task compiles the desktop target only (measured: it runs no web or other
-   target's tasks), but it packs `desktopJar` every time. A type change is a full rebuild until incremental compilation of
-   common code works (see Measuring the build); with it, about 0.7 s at 200 types.
+   target's tasks), but it packs `desktopJar` every time. A type change takes about 0.7 s at 200 types since common code
+   compiles incrementally (see Measuring the build).
 4. **Reload without reopening:** after a type change, compile in the background and swap the Scene editor to the new classes when the
    build finishes (new class loader, `SceneView` created again from the open Scene, camera and selection kept), instead of an
    "outdated" notice and a manual reload. The notice stays only while a build is failing.

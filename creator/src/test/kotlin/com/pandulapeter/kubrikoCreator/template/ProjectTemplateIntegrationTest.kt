@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
@@ -108,6 +109,7 @@ class ProjectTemplateIntegrationTest {
                     taskPath = ":${SessionInitScript.CLASSPATH_TASK_NAME}",
                     arguments = SessionInitScript.gradleArguments(
                         mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
+                        CompilationMode(isCommonCodeIncremental = true, isClean = false),
                     ),
                     onEvent = { output.appendLine(it.toString()) },
                 )

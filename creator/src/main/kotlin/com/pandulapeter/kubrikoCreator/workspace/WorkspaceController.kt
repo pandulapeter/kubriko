@@ -24,8 +24,10 @@ import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.git.GitRepository
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
+import com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.ExpectDeclarations
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
@@ -109,6 +111,9 @@ internal class WorkspaceController(
      * The folders of the Scenes folder, empty ones too.
      */
     val sceneFolders = _sceneFolders.asStateFlow()
+    private val incrementalCompilation = IncrementalCompilationPolicy(
+        hasExpectDeclarations = ExpectDeclarations(project.rootDirectory).let { declarations -> { withContext(ioDispatcher) { declarations.any() } } },
+    )
     private val consoleLog = ConsoleLog()
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     val console = consoleLog.entries
@@ -137,6 +142,7 @@ internal class WorkspaceController(
         report = ::appendToConsole,
         readScene = { scenes.actors(SceneStore.nameOf(it.file)).orEmpty() },
         spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
+        requestCleanBuild = incrementalCompilation::requestCleanBuild,
     )
 
     /**
@@ -317,22 +323,24 @@ internal class WorkspaceController(
         val startTime = currentTimeMillis()
         val outputTail = ArrayDeque<String>()
         val hasReportedProblems = AtomicBoolean(false)
-        val isSuccessful = build.run(
-            taskPath = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName",
-            arguments = SessionInitScript.gradleArguments(properties),
-            onEvent = { event ->
-                when (event) {
-                    is GradleBuildEvent.Output -> synchronized(outputTail) {
-                        outputTail.addLast(event.line)
-                        if (outputTail.size > OUTPUT_TAIL_SIZE) outputTail.removeFirst()
+        val isSuccessful = incrementalCompilation.build { mode ->
+            build.run(
+                taskPath = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName",
+                arguments = SessionInitScript.gradleArguments(properties, mode),
+                onEvent = { event ->
+                    when (event) {
+                        is GradleBuildEvent.Output -> synchronized(outputTail) {
+                            outputTail.addLast(event.line)
+                            if (outputTail.size > OUTPUT_TAIL_SIZE) outputTail.removeFirst()
+                        }
+                        is GradleBuildEvent.Problem -> {
+                            hasReportedProblems.set(true)
+                            appendToConsole(event.toConsoleEntry())
+                        }
                     }
-                    is GradleBuildEvent.Problem -> {
-                        hasReportedProblems.set(true)
-                        appendToConsole(event.toConsoleEntry())
-                    }
-                }
-            },
-        )
+                },
+            )
+        }
         if (!isSuccessful) {
             appendToConsole(ConsoleEntry.Status(Res.string.status_build_failed, isError = true))
             if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { appendToConsole(ConsoleEntry.BuildOutput(it)) }

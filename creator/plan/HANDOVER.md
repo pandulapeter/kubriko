@@ -28,8 +28,10 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   conditional (measured first) or a manual check.
 - **The build benchmark** (2026-10-29, `benchmark/CreatorBuildBenchmarkTest`): the 200-type project built for real, with a
   baseline in `02-fast-iteration.md`. It found the build cache hiding compiles (so it passes `--no-build-cache`) and Kotlin
-  rebuilding all of common code on every change (KT-62686), which an internal Kotlin property fixes; that decision is the user's.
-  Creator's task arguments now come from `SessionInitScript.gradleArguments`.
+  rebuilding all of common code on every change (KT-62686). With the user's agreement, Creator's builds now pass Kotlin's
+  internal property for incremental common code (`IncrementalCompilationPolicy`): 5.5 s to 0.7 s per type change at 200 types;
+  off for projects declaring an `expect`, and a clean build (`--rerun-tasks`) after a failed build, Reload, or classes that
+  couldn't be loaded.
 - **`Logger.log`** (`tools/logger`, db2184aaa) builds its list once instead of three times, with no API change: a library
   change for 0.8.1.
 - **Parent Actor types** (2026-10-28), generated as real Kotlin inheritance (`<Name>Base` classes with Event hooks), with the
@@ -76,13 +78,13 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. **Ask the user** about `kotlin.internal.incremental.enableUnsafeOptimizationsForMultiplatform` (`02-fast-iteration.md` →
-   Measuring the build): every type change is a full rebuild today (KT-62686), 5.5 s at 200 types, and 0.7 s with it.
-   If yes: add it to `SessionInitScript.gradleArguments`, with a test, and add a row to the table.
-2. The rest of `02-fast-iteration.md`, steps 1 to 5, each measured with `CreatorBuildBenchmarkTest` (a row each).
-3. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
+1. The rest of `02-fast-iteration.md`, steps 1 to 5, each measured with `CreatorBuildBenchmarkTest` (a row each).
+2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Incremental common code in the running app (only measured by the benchmark and unit-tested): a type change in the scratch
+  Breakout opening the Scene faster, Reload taking a full build, and a broken Kotlin Block's failed build followed by a clean one.
 
 - Foundation (2026-10-29), seen working: playing the scratch Breakout with the new generated code (bounces, Bricks removed, no
   errors), dragging the Ball in the Scene editor and undoing it, and going back to a Scene without building. Not seen: a Log Block's line reaching the console in a play session
