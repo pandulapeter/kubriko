@@ -20,7 +20,7 @@ internal object PropertyNaming {
     private val namePattern = Regex("[a-z][A-Za-z0-9]*")
 
     /**
-     * Kotlin's keywords, and the names the generated class (and the Kubriko traits it implements) already uses.
+     * Kotlin's keywords, and the names the generated classes (and the Kubriko traits and `Manager` they extend) already use.
      */
     private val reservedNames = setOf(
         "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object",
@@ -28,6 +28,8 @@ internal object PropertyNaming {
         "actorManager", "body", "bodyCenter", "bottomRight", "collidableTypes", "collidables", "collisionMask", "color", "deltaTimeInMilliseconds",
         "drawingOrder", "generatedAudio", "generatedScenes", "halfSize", "index", "isAlwaysActive", "keyboardInputManager", "isVisible", "key", "kubriko", "layerIndex", "metadata", "other",
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
+        "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
+        "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
     )
 
     /**
@@ -43,7 +45,7 @@ internal object PropertyNaming {
      */
     fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
         !namePattern.matches(name) -> Res.string.error_property_name_invalid
-        name in reservedNames || name.startsWith("isTouching") || TimerNaming.fieldSuffixes.any(name::endsWith) -> Res.string.error_property_name_reserved
+        name in reservedNames || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) -> Res.string.error_property_name_reserved
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_property_name_taken
         else -> null
     }
