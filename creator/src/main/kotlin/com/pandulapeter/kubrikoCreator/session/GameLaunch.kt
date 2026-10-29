@@ -18,6 +18,9 @@ import java.io.File
  * @param java The Java executable of the desktop module's `run` task.
  * @param jvmArguments The `run` task's JVM arguments.
  * @param classpath The module's own classes and resources, then the session library's runtime classpath.
+ * @param reloadTaskName The task that applies changes to the running game, for a game started with Compose Hot Reload
+ *   ([HotReloadLaunch]), which keeps a copy of the module's classes of its own; null for one started from the module's
+ *   classes.
  */
 internal data class GameLaunch(
     val java: File,
@@ -25,6 +28,7 @@ internal data class GameLaunch(
     val workingDirectory: File,
     val jvmArguments: List<String>,
     val classpath: List<File>,
+    val reloadTaskName: String? = null,
 ) {
     /**
      * The command that starts the session's launcher with [classpath] and [systemProperties], playing [mainClass].

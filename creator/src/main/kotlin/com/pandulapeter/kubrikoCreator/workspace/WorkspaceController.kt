@@ -38,11 +38,9 @@ import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
-import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
-import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
@@ -133,15 +131,24 @@ internal class WorkspaceController(
     private val classpathBuildLock = Mutex()
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     val console = consoleLog.entries
-    private val sessions = SessionController(
+    private val sessions: SessionController = SessionController(
         channel = sessionChannel,
         runTask = ::runCreatorTask,
         console = consoleLog,
         scope = scope,
-        prepareLaunch = ::prepareGameLaunch,
+        prepareLaunch = { gameBuilds.prepareLaunch() },
         runGame = runGame,
     )
     val sessionState = sessions.state
+    private val gameBuilds: GameBuilds = GameBuilds(
+        rootDirectory = project.rootDirectory,
+        sessions = sessions,
+        runTask = ::runCreatorTask,
+        console = consoleLog,
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+        currentTimeMillis = currentTimeMillis,
+    )
 
     /**
      * The project's Scene files, by name.
@@ -177,7 +184,10 @@ internal class WorkspaceController(
             ioDispatcher = ioDispatcher,
             onSaved = { haveTypesChanged ->
                 refreshResources()
-                if (haveTypesChanged) sceneEditing.markOutdated()
+                if (haveTypesChanged) {
+                    sceneEditing.markOutdated()
+                    gameBuilds.onCodeChanged()
+                }
             },
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
             syncBuildFiles = syncBuildFiles,
@@ -261,6 +271,7 @@ internal class WorkspaceController(
                 refreshResources()
                 sceneEditing.onScenesChanged(names)
                 blockTypes?.onScenesChanged()
+                gameBuilds.onCodeChanged()
             },
             onSceneRenamed = { oldName, newName ->
                 val file = scenes.fileOf(newName)
@@ -304,7 +315,10 @@ internal class WorkspaceController(
             refreshProjectUpgrade()
         }
         if (ProjectChange.SCENES in changes) blockTypes?.onScenesChanged()
-        if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) refreshResources()
+        if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
+            refreshResources()
+            gameBuilds.onCodeChanged()
+        }
         git.refresh()
     }
 
@@ -336,18 +350,6 @@ internal class WorkspaceController(
             appendToConsole(ConsoleEntry.Status(Res.string.status_play_from_scene_needs_upgrade, arguments = listOf(firstScene)))
         }
         sessions.play(firstScene)
-    }
-
-    /**
-     * Builds the project's classpath for a play session, with how to start the game from it.
-     */
-    private suspend fun prepareGameLaunch(): GameLaunchPreparation {
-        val file = SessionInitScript.playClasspathFileOf(project.rootDirectory)
-        if (!runCreatorTask(SessionInitScript.CLASSPATH_TASK_NAME, mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to file.absolutePath))) {
-            return GameLaunchPreparation.Failed
-        }
-        val launch = withContext(ioDispatcher) { file.takeIf { it.isFile }?.readText()?.let(ProjectClasspath::parse)?.launch }
-        return launch?.let(GameLaunchPreparation::Ready) ?: GameLaunchPreparation.Unavailable
     }
 
     fun stopSession() = sessions.stop()
@@ -396,7 +398,7 @@ internal class WorkspaceController(
                 },
             )
         }
-        val isSuccessful = if (taskName == SessionInitScript.CLASSPATH_TASK_NAME) {
+        val isSuccessful = if (taskName != SessionInitScript.SESSION_TASK_NAME) {
             classpathBuildLock.withLock { runBuild() }
         } else {
             // A session's build lasts as long as the game runs, so it only waits for the classpath build before it.

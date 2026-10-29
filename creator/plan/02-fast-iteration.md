@@ -114,8 +114,18 @@ What it shows:
    their Actors as `PreviewActor`s (Creator's own, from the Actor's saved state and the look, selected and moved like the
    real ones) until classes built with those looks are swapped in. A new type dropped into the Scene shows right away too.
    Behavior that isn't the look (Properties shown differently, a parent's drawing) waits for the classes, as before.
-6. **Hot reload in the game:** Compose Hot Reload in the play session, so Block and Kotlin changes apply to a running game without
-   a restart (moved here from `14-later.md`). Generated code is shaped for it: no static state that a reload would lose.
+6. **Hot reload in the game. Done** (2026-10-29, no library change): projects already have Compose Hot Reload, which Compose
+   Multiplatform bundles; play builds pass `kubrikoCreatorHotReload`, and the classpath task then also writes how Hot Reload's
+   run task would start the game (its JetBrains Runtime, its argument file, its reload task, and the session libraries), so
+   Creator starts the game with Hot Reload's agent (DevTools off), from Hot Reload's own copy of the classes. Every change
+   while it plays builds the project, and `GameReloader` compares the built classes' `ClassShape`s (superclass, interfaces,
+   instance fields, and the content of a class with mutable static state or enum constants) with the ones the game runs:
+   only code changed runs the reload task, anything else starts the game again from the same Scene, naming the type in the
+   console. Found first by hand: reloading a class with a new field leaves it null in live objects, and the game window died
+   with an error dialog on the next draw; `KubrikoWiring.isLoggingEnabled` is the only mutable static state generated code
+   has. Seen in the app on Breakout: a Log Block's message changed and pressed in 0.2 s with the game's state kept, the
+   Paddle made a circle restarting the game with a console line, and a reload after that restart. A project without Hot
+   Reload's tasks or a JetBrains Runtime plays as before.
 
 ## Playing
 

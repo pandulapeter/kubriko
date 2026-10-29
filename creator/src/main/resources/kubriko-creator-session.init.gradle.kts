@@ -12,7 +12,8 @@
 // version, and kubrikoCreatorClasspath compiles the module and writes its Kubriko version and runtime classpath (with the module's
 // own output folders in place of its jar) to a file, for Kubriko Creator to load the project's classes itself, followed by what it
 // takes to launch the game from them as kubrikoCreatorSession does (the "launch." lines), for Kubriko Creator to play the game
-// without Gradle. kubrikoCreatorWarmUp
+// without Gradle; with kubrikoCreatorHotReload, also how Compose Hot Reload would run it ("launch.hot" lines), so that changes
+// reach the running game through its reload task. kubrikoCreatorWarmUp
 // compiles one generated file next to the module's code, so that Kotlin's compile daemon is running and warm before the first change,
 // even when the classpath build at opening found everything up to date. Nothing here keeps the configuration cache from being used.
 if (gradle.startParameter.projectProperties["kubrikoCreatorMode"] != null) {
@@ -50,7 +51,16 @@ gradle.projectsEvaluated {
             }
         }
         // The classpath task hands Kubriko Creator the folders the module's jar is packed from, so that it isn't packed on every build.
-        val jar = tasks.findByName(runtime.name.removeSuffix("RuntimeClasspath").let { if (it.isEmpty()) "jar" else "${it}Jar" }) as? Jar
+        val target = runtime.name.removeSuffix("RuntimeClasspath")
+        val jar = tasks.findByName(if (target.isEmpty()) "jar" else "${target}Jar") as? Jar
+        // Compose Hot Reload's run task, for a play session that applies changes to the running game.
+        val hotRun = if (properties["kubrikoCreatorHotReload"] == "true" && target.isNotEmpty()) {
+            tasks.findByName("hotRun${target.replaceFirstChar { it.uppercase() }}") as? JavaExec
+        } else {
+            null
+        }
+        val hotArgumentFileTask = hotRun?.let { tasks.findByName("${it.name}Argfile") }
+        val hotReloadTask = tasks.findByName("hotReload${target.replaceFirstChar { it.uppercase() }}Main")?.takeIf { hotArgumentFileTask != null }
         tasks.register("kubrikoCreatorClasspath") {
             group = "kubriko creator"
             val version = kubrikoVersion(runtime)
@@ -65,6 +75,10 @@ gradle.projectsEvaluated {
             // Lenient, so that a project whose Kubriko version has no session library still gets its classpath.
             val sessionFiles = session.incoming.artifactView { lenient(true) }.files
             val ownFiles = run.classpath.minus(runtime)
+            val hotJava = hotRun?.javaLauncher?.map { it.executablePath.asFile.absolutePath }
+            val hotArgumentFiles = hotArgumentFileTask?.outputs?.files
+            val hotReloadTaskName = hotReloadTask?.name
+            if (hotReloadTask != null && hotArgumentFileTask != null) dependsOn(hotArgumentFileTask)
             inputs.files(classpath, packedFiles)
             doLast {
                 val folders = linkedSetOf<File>()
@@ -90,7 +104,21 @@ gradle.projectsEvaluated {
                         jvmArgs.map { "launch.jvmArg=$it" } +
                         ((if (isPackedJarOnly) folders else ownFiles.files) + sessionFiles.files).map { "launch.classpath=${it.absolutePath}" }
                 }
-                file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath } + launch).joinToString("\n"))
+                // Without a JetBrains Runtime (which Gradle provisions for Hot Reload), the game is played without it.
+                val hotJavaPath = try {
+                    hotJava?.orNull
+                } catch (exception: Exception) {
+                    logger.warn("Kubriko Creator plays the game without Compose Hot Reload, which has no Java runtime here.", exception)
+                    null
+                }
+                val hotArgumentFile = hotArgumentFiles?.files?.singleOrNull()
+                val hotLaunch = if (launch.isEmpty() || hotJavaPath == null || hotArgumentFile == null || hotReloadTaskName == null) {
+                    emptyList()
+                } else {
+                    listOf("launch.hotJava=$hotJavaPath", "launch.hotArgumentFile=${hotArgumentFile.absolutePath}", "launch.hotReloadTask=$hotReloadTaskName") +
+                        sessionFiles.files.map { "launch.hotLibrary=${it.absolutePath}" }
+                }
+                file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath } + launch + hotLaunch).joinToString("\n"))
             }
         }
         val warmUpCompile = extra.properties[warmUpTaskProperty(runtime.name.removeSuffix("RuntimeClasspath"))]

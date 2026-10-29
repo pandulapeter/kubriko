@@ -14,6 +14,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## State (commits on main not pushed since b5b65fbfb; ask before pushing; `library.version` is 0.8.1, unreleased; 0.8.0 is on Maven Central)
 
+- **Hot reload in the game** (2026-10-29, `02-fast-iteration.md` step 6, the last of it): games played from Creator start
+  with Compose Hot Reload, and changes while playing are reloaded, or restart the game when a reload can't apply them.
 - **Foundation work** (2026-10-28/29, `01-foundation.md`), after a review found generated games with real bugs and a data flow
   that recomputed the whole project on every change. Done: generated games (Log Blocks off outside play sessions through a
   version 5 template upgrade; movement steps at most 33 ms; removed Actors skipped; Actors active off screen; edges from the
@@ -78,10 +80,18 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`: step 6 (hot reload in the game), the last of it.
-2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
+1. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
+   `02-fast-iteration.md` is done but for its manual checks.
 
 ## Never checked by hand
+
+- Hot reload in the game (2026-10-29, step 6), seen working on the scratch Breakout: a changed Log Block reloaded in 0.2 to
+  0.3 s (pressing Left logged the new message), a changed shape restarting the game with the console naming Paddle, and a
+  reload after the restart. Not seen: a hand-written Kotlin change (a Composable in `Game.kt`, which Hot Reload is made
+  for), a Scene or sprite changed while playing (Hot Reload's copy holds the resources too, so whether the reload task
+  brings them is open), a Manager type's Property added (should restart), a JetBrains Runtime Gradle has to download first
+  (the first Play then waits for it with only "Building…"), the AI's `start_game` after a restart, and Windows.
+  A type's color doesn't change Actors already playing: it is each Actor's starting color, kept in its state.
 
 - Playing without Gradle (2026-10-29), seen working: Play and Play from this Scene starting the game in 1.1 to 1.4 s, the
   version 7 upgrade, the old game replaced by a new one, Stop, and closing the game window. Not seen: a game that crashes

@@ -60,6 +60,7 @@ internal class SessionController(
      */
     var job: Job? = null
         private set
+    private var lastFirstScene: String? = null
     private var protocolVersion = SessionProtocol.VERSION
     private val commandIds = AtomicInteger()
 
@@ -76,8 +77,12 @@ internal class SessionController(
      *   or later honor.
      */
     fun play(firstScene: String? = null) {
-        job?.cancel()
+        lastFirstScene = firstScene
+        val previousJob = job
+        previousJob?.cancel()
         job = scope.launch {
+            // A game started with Compose Hot Reload writes where it can be reached into a file the previous one deletes as it ends.
+            previousJob?.join()
             _state.value = SessionState.Starting(SessionMode.PLAY)
             try {
                 val isSuccessful = when (val preparation = prepareLaunch()) {
@@ -95,6 +100,11 @@ internal class SessionController(
             }
         }
     }
+
+    /**
+     * Plays the game again, from the Scene it was started with last time.
+     */
+    fun restart() = play(lastFirstScene)
 
     private fun systemPropertiesOf(firstScene: String?) = mapOf(
         SessionProtocol.PORT_PROPERTY to channel.port.toString(),

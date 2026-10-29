@@ -26,7 +26,8 @@ import java.util.concurrent.TimeUnit
  *
  * The game runs from a copy of the project's class files, made in [snapshotDirectory] and deleted once it ends: the
  * Scene editor builds the project again while the game plays, and a class the game loads later must be the version it
- * started with. Resources are read from where they are.
+ * started with. Resources are read from where they are. A game started with Compose Hot Reload runs from Hot Reload's own
+ * copy instead, which its reloads update.
  *
  * @param projectDirectory The project's folder: the classpath entries in it are the ones a build changes.
  */
@@ -55,7 +56,8 @@ internal class GameProcess(
     suspend fun run(gameLaunch: GameLaunch, systemProperties: Map<String, String>): Exit = withContext(Dispatchers.IO) {
         val snapshot = Files.createTempDirectory(snapshotDirectory.apply { mkdirs() }.toPath(), "game").toFile()
         try {
-            val process = ProcessBuilder(gameLaunch.command(snapshotOf(gameLaunch.classpath, snapshot), systemProperties))
+            val classpath = if (gameLaunch.reloadTaskName == null) snapshotOf(gameLaunch.classpath, snapshot) else gameLaunch.classpath
+            val process = ProcessBuilder(gameLaunch.command(classpath, systemProperties))
                 .directory(gameLaunch.workingDirectory)
                 .redirectErrorStream(true)
                 .start()

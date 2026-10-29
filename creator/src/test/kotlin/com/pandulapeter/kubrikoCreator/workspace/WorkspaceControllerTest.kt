@@ -64,6 +64,7 @@ import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_game_failed
+import kubriko.creator.generated.resources.status_game_reloaded
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
@@ -293,6 +294,45 @@ class WorkspaceControllerTest {
             assertEquals(SessionState.Idle, controller.sessionState.value)
         } finally {
             playClasspathFile.delete()
+        }
+    }
+
+    @Test
+    fun aGameStartedWithHotReloadGetsTheChangesMadeWhileItPlays() = runTest {
+        val root = createTempDirectory().toFile()
+        val playClasspathFile = SessionInitScript.playClasspathFileOf(root)
+        val classpathFile = SessionInitScript.classpathFileOf(root)
+        try {
+            val classes = File(root, "build/classes").apply { mkdirs() }
+            val argumentFile = File(root, "build/run/game.argfile").apply { parentFile.mkdirs() }
+            argumentFile.writeText("\"-javaagent:/libs/agent.jar\"\n\"-cp\"\n\"${File(root, "build/run/classes").path}\"\n\"game.MainKt\"\n")
+            val launches = mutableListOf<GameLaunch>()
+            val controller = createController(rootDirectory = root, runGame = { launch, _ -> launches += launch; awaitCancellation() })
+            controller.play()
+            assertContains(build.currentRun.arguments, "-PkubrikoCreatorHotReload=true")
+            playClasspathFile.writeText(
+                "kubrikoVersion=1.0.0\n${classes.path}\nlaunch.java=/jdk/bin/java\nlaunch.mainClass=game.MainKt\nlaunch.workingDir=${root.path}\n" +
+                    "launch.classpath=${classes.path}\nlaunch.hotJava=/jbr/bin/java\nlaunch.hotArgumentFile=${argumentFile.path}\n" +
+                    "launch.hotReloadTask=hotReloadDesktopMain\nlaunch.hotLibrary=/libs/session.jar\n",
+            )
+            build.currentRun.finish(isSuccessful = true)
+            val launch = launches.single()
+            assertEquals(File("/jbr/bin/java"), launch.java)
+            assertEquals(listOf(File(root, "build/run/classes"), File("/libs/session.jar")), launch.classpath)
+            assertEquals("hotReloadDesktopMain", launch.reloadTaskName)
+            channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
+            controller.onProjectChanged(setOf(ProjectChange.SOURCES))
+            assertEquals(":${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
+            classpathFile.writeText("kubrikoVersion=1.0.0\n${classes.path}\n")
+            build.currentRun.finish(isSuccessful = true)
+            assertEquals(":hotReloadDesktopMain", build.currentRun.taskPath)
+            build.currentRun.finish(isSuccessful = true)
+            assertContains(controller.statuses, Res.string.status_game_reloaded)
+            assertEquals(1, launches.size)
+        } finally {
+            playClasspathFile.delete()
+            classpathFile.delete()
+            root.deleteRecursively()
         }
     }
 

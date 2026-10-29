@@ -52,7 +52,15 @@ lives in `plan/` (start with `plan/README.md`).
   daemon is held while the game runs. The game runs from a copy of the project's class files (in `playDirectoryOf`,
   deleted when it ends), since the Scene editor rebuilds the classes meanwhile; resources are read where they are. A game
   that exits with an error shows its exit code and last lines in the console; stopping it destroys the process. Only a
-  build without `launch.` lines falls back to the session task. Play from this Scene (the Scene editor's header, and
+  build without `launch.` lines falls back to the session task. **Hot reload:** play builds pass `kubrikoCreatorHotReload`,
+  and the classpath task then also writes `launch.hot` lines (`HotReloadLaunch`) from Compose Hot Reload's run task, which
+  Compose Multiplatform gives every project: its JetBrains Runtime, its `@argfile` (`JavaArgumentFile` reads it), its
+  reload task, and the session libraries. Such a game starts with Hot Reload's agent and DevTools off, from Hot Reload's
+  own copy of the classes (so without Creator's). While it plays, every type, source, or Scene change builds the project
+  and `GameReloader` (in `GameBuilds`, which also prepares launches) compares the built classes' `ClassShape`s with the
+  game's: only code changed runs the reload task, while a changed superclass, interface, instance field, or class with
+  static state (which a reload would leave null or reset) restarts the game from the same Scene. A game waits for the one
+  before it to end, since Hot Reload's pid file is shared. Play from this Scene (the Scene editor's header, and
   `start_game`'s `scene`) passes `kubriko.creator.scene`, which template version 7's `Main.kt` hands to
   `KubrikoWiring.firstSceneOverride`; an older project gets a console note that it may start with its first Scene. Each workspace runs in a scope of its own (a child of the app's), which
   `close()` cancels once the pending writes are done (`BlockTypesController.awaitWrites`), and quitting waits for that; an
