@@ -224,7 +224,7 @@
     <string name="property_kind_toggle">Toggle</string>
     <string name="error_property_name_invalid">A Property's name starts with a lowercase letter, followed by letters and numbers only.</string>
     <string name="error_property_name_reserved">That name is already used by the generated code. Try another one.</string>
-    <string name="error_property_name_taken">This Actor type already has a Property with that name.</string>
+    <string name="error_property_name_taken">This type already has a Property with that name, or one differing only in capital letters.</string>
     <string name="error_command_property_unknown">%1$s has no Property called %2$s.</string>
     <string name="error_command_property_kind_changed">A Property's kind can't change. Remove it and add a new one instead.</string>
     <string name="error_command_property_missing">There's no %2$s Property called %1$s in this Actor type.</string>
