@@ -36,6 +36,12 @@ internal object BlockTypeNaming {
         "MusicManager", "SoundManager", "SpriteManager", "Res", "IntSize", "FilterQuality",
         "State", "Color", "Key", "Kubriko", "SceneOffset", "SceneSize", "Manager", "ActorManager", "ViewportManager", "StateManager", "Logger", "Random",
         "Box", "BasicText", "Composable", "Modifier", "Alignment", "TextStyle", "WindowInsets",
+        "Actor", "Dynamic", "Unique", "Visible", "BoxBody", "DrawScope", "SceneUnit", "Collidable", "CollisionDetector", "CollisionManager",
+        "BoxCollisionMask", "CircleCollisionMask", "KeyboardInputAware", "KeyboardInputManager", "Editable", "EditableMetadata", "Exposed",
+        "Serializable", "SerializationManager", "SerializableBoxBody", "SerializableColor", "SerializableSceneOffset", "SerialName", "Json",
+        "KClass", "Volatile", "Job", "CancellationException",
+        "Any", "Nothing", "Unit", "Boolean", "Byte", "Short", "Int", "Long", "Float", "Double", "Char", "String", "Array", "List", "Map",
+        "Set", "Pair", "Exception",
     )
 
     /**

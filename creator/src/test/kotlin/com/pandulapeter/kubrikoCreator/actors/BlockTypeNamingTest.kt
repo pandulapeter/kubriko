@@ -35,6 +35,15 @@ class BlockTypeNamingTest {
     }
 
     @Test
+    fun kotlinsOwnTypesAndEveryClassTheGeneratedCodeImportsAreReserved() {
+        val imported = ActorTypeCodeGenerator.BASE_IMPORTS + ActorTypeCodeGenerator.SPRITE_IMPORTS + ActorTypeCodeGenerator.KEYBOARD_IMPORTS +
+            ActorTypeCodeGenerator.KEYBOARD_MANAGER_IMPORTS
+        (imported.map { it.substringAfterLast('.') }.filter { it.first().isUpperCase() } + listOf("Float", "String", "Unit", "CollisionManager")).forEach {
+            assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it)
+        }
+    }
+
+    @Test
     fun namesMustBeUniqueIgnoringCase() {
         assertEquals(Res.string.error_type_name_taken, BlockTypeNaming.validate("Ball", listOf("Ball")))
         assertEquals(Res.string.error_type_name_taken, BlockTypeNaming.validate("BALL", listOf("Ball")))
