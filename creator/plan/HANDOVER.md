@@ -17,12 +17,14 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 - Commits on `main` aren't pushed since b5b65fbfb: ask before pushing.
 - `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
   its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
-- AI work is paused by the user's choice: only fix bugs in what exists.
-- The user wants every item of `01-large-projects.md` to `03-reuse-and-traits.md` done, with nothing capped in number.
+- The user wants every item of `01-large-projects.md` to `04-reuse-and-traits.md` done, with nothing capped in number.
+- Creator is meant to be AI-centric: the in-app assistant panel (`02-ai-assistant.md`) was moved up to come right after
+  `01-large-projects.md`, hosting agents over ACP as Android Studio does.
 
 ## Next
 
-`01-large-projects.md` (caps first), then the files in order.
+`01-large-projects.md` (caps first), then the first four steps of `02-ai-assistant.md` → Order, then the files in order, with the rest
+of `02-ai-assistant.md` alongside them.
 
 ## To check by hand
 

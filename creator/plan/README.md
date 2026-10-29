@@ -19,14 +19,16 @@ has a file of its own, so a session only needs the one it works on.
 The files are numbered in the order they are worked on.
 
 1. [Large projects](01-large-projects.md) - nothing capped (named Timers, every key), the Scene list panel, and AI tools that page.
-2. [Folders and search](02-resource-organization.md) - the sidebar filter, quick open, find usages, and the search AI tools.
-3. [Reuse, Traits, and bigger games](03-reuse-and-traits.md) - functions, Traits, and what bigger games need.
-4. [Blocks, Actor types, and Manager types](04-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
+2. [AI assistant](02-ai-assistant.md) - an in-app chat panel hosting Claude (on the user's own subscription or API key), Codex, Gemini
+   CLI, or any ACP Registry agent, as Android Studio does. Creator is an AI-centric tool, so the panel's first four steps come right
+   after `01`; the rest of the file (more agents, resuming, Keep and Undo, more for the MCP server) goes alongside `03` to `06`.
+   **Every new editor feature lands with its command, its AI tool, and their tests.**
+3. [Folders and search](03-resource-organization.md) - the sidebar filter, quick open, find usages, and the search AI tools.
+4. [Reuse, Traits, and bigger games](04-reuse-and-traits.md) - functions, Traits, and what bigger games need.
+5. [Blocks, Actor types, and Manager types](05-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
    sheets and animation, UI elements, the Paddle game template, Convert to code, and more drag and drop.
-5. [Sprite editor](05-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
-   GameMaker 6.1's; it follows sprite sheets in `04-blocks.md`.
-6. [AI assistant](06-ai-assistant.md) - more for the MCP server, then the in-app panel with the user's API key, which waits until the editor
-   does more. **Every new editor feature lands with its command, its AI tool, and their tests.**
+6. [Sprite editor](06-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
+   GameMaker 6.1's; it follows sprite sheets in `05-blocks.md`.
 7. [Version control](07-git.md) - sidebar change markers, restoring old versions, branches, remotes.
 8. [Debugger](08-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
 9. [Export and distribution](09-export-and-distribution.md) - signed Android builds, desktop installers, web export, iOS,
@@ -91,6 +93,8 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
 - **Compile times** slow the edit-play loop; the build benchmark (`benchmark/CreatorBuildBenchmarkTest`) measures every change to them.
 - **Session protocol drift** across Kubriko versions; it is versioned and checked.
 - **AI cost and privacy:** users pay for their own usage and send project files to the API; the UI says so.
+- **Agent churn:** the ACP adapters release often and ACP v2 is still a draft; agent versions are pinned to the registry's, and the panel
+  needs Node.js for npx agents.
 
 ## Open questions
 
@@ -98,6 +102,6 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
    Creator's own version, `../CLAUDE.md` → Conventions).
 2. Whether the Showcase should become editable in Creator.
 3. Whether web export should offer one-click hosting.
-4. Whether Creator may run the user's own Claude Code for its assistant panel, so subscription users need no API key. Calling the API with
-   a subscription is not allowed; see `06-ai-assistant.md` → in-app assistant panel for what the terms say and what to ask Anthropic,
-   citing Android Studio, which hosts Claude over the Agent Client Protocol (ACP) with the user's own sign-in.
+4. Whether a free, MPL-2.0 desktop app hosting Claude Code over ACP (as Android Studio does) has to accept Anthropic's Commercial Terms
+   itself. The terms now allow users to sign in to a hosted, unmodified Claude Code with their own subscription, so this is asked before
+   release, not before building; see `02-ai-assistant.md` → What the terms allow.

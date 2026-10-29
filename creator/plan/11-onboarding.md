@@ -11,7 +11,7 @@
 
 The first ten minutes after someone downloads Creator: everything it needs is fetched for them with visible progress, there are games to open
 and learn from right away, and a project they already have in version control is one URL away. Comes after `09-export-and-distribution.md`,
-since it starts from Creator's own installer, and after the Block set in `04-blocks.md`, which the demo games are built from.
+since it starts from Creator's own installer, and after the Block set in `05-blocks.md`, which the demo games are built from.
 
 Today Creator runs from this repository with a JDK already installed, git needs no installation (JGit), and Gradle distributions are
 downloaded by the wrapper inside a build, with nothing to show for it but the console.
@@ -41,10 +41,10 @@ every one, and each comes with a short tour of what to look at first.
 | # | Game | What it introduces |
 |---|---|---|
 | 1 | Click the moving targets | One Actor type, one Scene, pointer input, a Timer, Properties |
-| 2 | Paddle and bricks (the Paddle game template, `04-blocks.md`) | Collision, a score Manager type, text, sounds, winning and losing |
+| 2 | Paddle and bricks (the Paddle game template, `05-blocks.md`) | Collision, a score Manager type, text, sounds, winning and losing |
 | 3 | Top-down space shooter | Spawning and removing Actors, keyboard and gamepad input, particles, increasing difficulty |
 | 4 | Side-scrolling platformer | Physics, sprites and animation, a following camera, several levels as Scenes |
-| 5 | Small adventure with menus | Title and pause menus, saved progress (persistence), Traits and functions (`03-reuse-and-traits.md`), and some hand-written Kotlin next to the Blocks |
+| 5 | Small adventure with menus | Title and pause menus, saved progress (persistence), Traits and functions (`04-reuse-and-traits.md`), and some hand-written Kotlin next to the Blocks |
 
 Original games in common genres, with their own art and sounds (licensed for reuse, so users may ship games made from them). More can follow
 once these five work, such as one exported to every platform.

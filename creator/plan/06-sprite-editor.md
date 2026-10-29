@@ -11,7 +11,7 @@
 
 A pixel-art editor for sprites and their animations, inspired by GameMaker 6.1's sprite and image editors: a beginner draws the ball, the
 paddle, or a walking character without leaving Creator, frame by frame, with onion skinning. It follows sprites as an appearance
-(`04-blocks.md` → Appearance), which gives it something to edit.
+(`05-blocks.md` → Appearance), which gives it something to edit.
 
 ## Files
 
@@ -20,7 +20,7 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
   a format of Creator's own or GIF: the game and IntelliJ need nothing else (`README.md` → Principles 2).
 - `.kubriko/sprites/<name>.json` keeps what the sheet can't: frame size, frame count, frames per row, frames per second, and the origin
   (the pivot). Deleting it leaves a plain image, which can be opened again by entering the frame size.
-- Sprites live in the sidebar beside Actor types and Scenes, in virtual folders kept in their JSON (`02-resource-organization.md`; Compose
+- Sprites live in the sidebar beside Actor types and Scenes, in virtual folders kept in their JSON (`03-resource-organization.md`; Compose
   resources take no subfolders in `drawable`). Renaming one follows every Actor type that uses it, like an Actor type rename follows
   collision Events.
 - A new sprite starts as one fully transparent frame of the size the user picks (32 by 32 by default).
@@ -59,9 +59,9 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 ## Sprites in the game
 
 Actor types already draw a whole image as their sprite (`../CLAUDE.md` → Commands → Sprites), with the sprites plugin coming and going
-with that code. What the editor adds is used through `04-blocks.md` → Appearance: sprite sheets drawn with `AnimatedSprite`, the size
+with that code. What the editor adds is used through `05-blocks.md` → Appearance: sprite sheets drawn with `AnimatedSprite`, the size
 defaulting to the frame size, and Blocks to set the animation's frame, speed, and whether it loops, with sprite thumbnails in the
-Scene editor (`04-blocks.md` → Scene editor).
+Scene editor (`05-blocks.md` → Scene editor).
 
 ## Later
 

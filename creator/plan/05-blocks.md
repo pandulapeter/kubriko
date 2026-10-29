@@ -9,7 +9,7 @@
 -->
 # Blocks, Actor types, and Manager types
 
-Blocks are the heart of the product. Each addition below lands with its command and AI tool (`06-ai-assistant.md`), generator tests, and a
+Blocks are the heart of the product. Each addition below lands with its command and AI tool (`02-ai-assistant.md`), generator tests, and a
 case in the integration test's every-Block types (an Actor type and two Manager types).
 
 ## More for Manager types
@@ -43,8 +43,8 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when
   the size changes.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
-  editor (`05-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
-  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`03-reuse-and-traits.md`).
+  editor (`06-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
+  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`04-reuse-and-traits.md`).
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
   Scene bounds (as opposed to touching the edge).
 - **More drag and drop:** reordering Events the same way, and dragging a Block into another Event.
