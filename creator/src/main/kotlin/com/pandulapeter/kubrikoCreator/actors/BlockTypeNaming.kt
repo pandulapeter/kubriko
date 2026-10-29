@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_type_name_base_suffix
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_type_name_reserved
 import kubriko.creator.generated.resources.error_type_name_taken
@@ -50,7 +51,8 @@ internal object BlockTypeNaming {
      */
     fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
         !namePattern.matches(name) -> Res.string.error_type_name_invalid
-        name in reservedNames || name.endsWith(BASE_SUFFIX) -> Res.string.error_type_name_reserved
+        name in reservedNames -> Res.string.error_type_name_reserved
+        name.endsWith(BASE_SUFFIX) -> Res.string.error_type_name_base_suffix
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_type_name_taken
         else -> null
     }

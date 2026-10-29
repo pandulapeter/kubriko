@@ -22,7 +22,7 @@ import kubriko.creator.generated.resources.error_command_actor_type_has_children
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_parent_cycle
 import kubriko.creator.generated.resources.error_command_parent_property_kind
-import kubriko.creator.generated.resources.error_type_name_reserved
+import kubriko.creator.generated.resources.error_type_name_base_suffix
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -58,7 +58,7 @@ class ParentCommandsTest {
 
     @Test
     fun namesEndingLikeABaseClassAreReserved() {
-        assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate("EnemyBase", emptyList()))
+        assertEquals(Res.string.error_type_name_base_suffix, BlockTypeNaming.validate("EnemyBase", emptyList()))
         assertEquals(null, BlockTypeNaming.validate("Baseball", emptyList()))
     }
 }
