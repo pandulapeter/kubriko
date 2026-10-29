@@ -298,7 +298,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   Ctrl+Y (Cmd on macOS).
 - **Beginner-friendly by default:** the Block palette shows one category at a time (`BlockCategory`, tabs like GameMaker's that wrap
   onto a second row, without the ones a Manager has no Blocks in),
-  Blocks are added by a click (at the end) or dragged (from the palette or by a Block's handle) to where they go
+  Blocks are added by a click (at the end, which the Block list scrolls to) or dragged (from the palette or by a Block's handle) to where they go
   (`BlockDragState`: an in-window drag, dropped through `add_block` / `move_block`, into a gap found from the rows the lazy Block
   list has laid out, which scrolls while a Block is held near its edges), each Block is a card indented by its
   section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing

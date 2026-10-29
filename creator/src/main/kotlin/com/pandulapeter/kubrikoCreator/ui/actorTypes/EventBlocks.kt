@@ -61,6 +61,9 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The Blocks of the selected Event, in the order they run, under a header that also chooses the Event's key or other
  * Actor type.
+ *
+ * @param scrollToEndRequest Changes whenever a Block was added at the end (by a click in the palette), which the list
+ *   scrolls to so that it is seen.
  */
 @Composable
 internal fun EventBlocks(
@@ -74,6 +77,7 @@ internal fun EventBlocks(
     onBlockRemoved: (blockIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
+    scrollToEndRequest: Int = 0,
 ) = Column(
     modifier = modifier,
 ) {
@@ -128,6 +132,7 @@ internal fun EventBlocks(
         onBlockChange = onBlockChange,
         onBlockRemoved = onBlockRemoved,
         highlight = highlight,
+        scrollToEndRequest = scrollToEndRequest,
     )
 }
 
@@ -142,8 +147,12 @@ private fun BlockList(
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
     onBlockRemoved: (blockIndex: Int) -> Unit,
     highlight: ActorTypeHighlight?,
+    scrollToEndRequest: Int,
 ) {
     val listState = rememberLazyListState()
+    LaunchedEffect(scrollToEndRequest) {
+        if (scrollToEndRequest > 0) listState.animateScrollToItem(blocks.size)
+    }
     var listTop by remember { mutableFloatStateOf(0f) }
     dragState.laidOutRows = { laidOutRows(listState.layoutInfo.visibleItemsInfo, listTop - listState.layoutInfo.viewportStartOffset, blocks.size) }
     val isDragging = dragState.dragged != null

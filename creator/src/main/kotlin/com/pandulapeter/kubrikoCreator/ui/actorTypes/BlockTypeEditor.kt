@@ -30,6 +30,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -115,6 +116,7 @@ internal fun BlockTypeEditor(
     val event = eventIndex?.let { definition.events[it] }
     val currentEventIndex by rememberUpdatedState(eventIndex)
     val currentOnCommand by rememberUpdatedState(onCommand)
+    var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
     val dragState = remember(name) {
         BlockDragState(
             onDrop = { block, gap ->
@@ -234,6 +236,7 @@ internal fun BlockTypeEditor(
                 dragState = dragState,
                 onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
                 highlight = highlight?.takeIf { it.eventIndex == eventIndex },
+                scrollToEndRequest = blockListScrollToEndRequest,
             )
             VerticalDivider()
             BlockPalette(
@@ -241,7 +244,12 @@ internal fun BlockTypeEditor(
                 eventType = event?.type,
                 typeKind = definition.kind,
                 dragState = dragState,
-                onBlockKindSelected = { kind -> eventIndex?.let { onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault()))) } },
+                onBlockKindSelected = { kind ->
+                    eventIndex?.let {
+                        onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault())))
+                        blockListScrollToEndRequest++
+                    }
+                },
             )
         }
     }
