@@ -75,6 +75,8 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Otherwise a failure shows only "is_error: true", never the reason. GitHub masks the secrets in the log.
+          show_full_output: true
           claude_args: >-
             --model ${{ inputs.model }}
             --max-budget-usd ${{ inputs.budget_usd }}
