@@ -67,7 +67,8 @@ internal object ActorFamilyCodeGenerator {
         )
         val hooks = Hooks(features, scopeOf(byName.getValue(root)))
         val usesNumberText = members.any { member ->
-            member.events.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scopeOf(member)) } }
+            val memberScope by lazy { scopeOf(member) }
+            member.events.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, memberScope) } }
         }
         val imports = (features.imports + listOfNotNull(
             "com.pandulapeter.kubriko.collision.mask.$COLLISION_MASK".takeIf { features.isCollidable && maskTypeOf(features.shapes) == COLLISION_MASK },
