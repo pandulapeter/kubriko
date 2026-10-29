@@ -78,6 +78,14 @@ class AcpAgentTest {
         while (!condition()) delay(10)
     }
 
+    /**
+     * Waits for [messages] to have caught up with [expected], since they are collected on another thread than the prompt's.
+     */
+    private suspend fun assertReceived(expected: List<String>, messages: List<String>) {
+        awaitTrue { messages.size >= expected.size }
+        assertEquals(expected, messages)
+    }
+
     private fun messagesOf(conversation: AgentConversation) = CopyOnWriteArrayList<String>().also { messages ->
         scope.launch(start = CoroutineStart.UNDISPATCHED) {
             conversation.updates.collect { update ->
@@ -117,11 +125,23 @@ class AcpAgentTest {
         val conversation = agent(launcher).newConversation(workingDirectory, listOf(mcpServer), meta)
         val messages = messagesOf(conversation)
         assertEquals(StopReason.END_TURN, conversation.prompt(text("hello")).stopReason)
-        assertEquals(listOf("Hi", " there"), messages)
+        assertReceived(listOf("Hi", " there"), messages)
         val parameters = launcher.agents.single().newSessions.single()
         assertEquals(workingDirectory.absolutePath, parameters.cwd)
         assertEquals(listOf<McpServer>(mcpServer), parameters.mcpServers)
         assertEquals(meta, parameters._meta)
+    }
+
+    @Test
+    fun aPromptsOwnUpdatesReachItsCallerBeforeItReturns() = test {
+        val agent = agent(launcher())
+        val conversation = agent.newConversation(workingDirectory)
+        val messages = messagesOf(conversation)
+        val received = mutableListOf<String>()
+        conversation.prompt(text("hello")) { update -> ((update as? SessionUpdate.AgentMessageChunk)?.content as? ContentBlock.Text)?.let { received += it.text } }
+        assertEquals(listOf("Hi", " there"), received)
+        conversation.prompt(text("later"))
+        assertReceived(listOf(FakeAgent.LATER), messages)
     }
 
     @Test
@@ -130,14 +150,14 @@ class AcpAgentTest {
         val rejecting = agent.newConversation(workingDirectory)
         val rejected = messagesOf(rejecting)
         rejecting.prompt(text("edit"))
-        assertEquals(listOf("reject"), rejected)
+        assertReceived(listOf("reject"), rejected)
         val allowing = agent.newConversation(
             workingDirectory,
             permissions = { _, options -> RequestPermissionOutcome.Selected(options.first { it.kind == PermissionOptionKind.ALLOW_ONCE }.optionId) },
         )
         val allowed = messagesOf(allowing)
         allowing.prompt(text("edit"))
-        assertEquals(listOf("allow"), allowed)
+        assertReceived(listOf("allow"), allowed)
         val cancelling = agent.newConversation(workingDirectory, permissions = { _, _ -> RequestPermissionOutcome.Cancelled })
         val cancelled = messagesOf(cancelling)
         cancelling.prompt(text("edit"))
@@ -173,7 +193,7 @@ class AcpAgentTest {
         agent.state.await { it is AgentState.Running }
         assertEquals(listOf(conversation.id), launcher.agents[1].loadedSessions)
         conversation.prompt(text("hello"))
-        assertEquals(listOf("Hi", " there"), messages)
+        assertReceived(listOf("Hi", " there"), messages)
         assertFalse(conversation.isLost.value)
         assertEquals(listOf("Fake agent started."), agent.errorOutput.value)
     }

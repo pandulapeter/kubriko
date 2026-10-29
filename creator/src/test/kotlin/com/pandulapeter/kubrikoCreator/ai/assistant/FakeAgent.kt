@@ -23,12 +23,23 @@ import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PermissionOptionId
 import com.agentclientprotocol.model.PermissionOptionKind
+import com.agentclientprotocol.model.PlanEntry
+import com.agentclientprotocol.model.PlanEntryPriority
+import com.agentclientprotocol.model.PlanEntryStatus
 import com.agentclientprotocol.model.PromptResponse
 import com.agentclientprotocol.model.RequestPermissionOutcome
+import com.agentclientprotocol.model.SessionConfigId
+import com.agentclientprotocol.model.SessionConfigOption
+import com.agentclientprotocol.model.SessionConfigOptionValue
+import com.agentclientprotocol.model.SessionConfigSelectOption
+import com.agentclientprotocol.model.SessionConfigSelectOptions
+import com.agentclientprotocol.model.SessionConfigValueId
 import com.agentclientprotocol.model.SessionId
 import com.agentclientprotocol.model.SessionUpdate
+import com.agentclientprotocol.model.SetSessionConfigOptionResponse
 import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
+import com.agentclientprotocol.model.ToolCallStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -46,7 +57,10 @@ import java.util.concurrent.atomic.AtomicInteger
  * - `edit`: asks for permission to edit, then says which option was chosen (or `cancelled`);
  * - `wait`: works until cancelled;
  * - `crash`: the process ends with exit code 1;
- * - `later`: ends the turn, then sends a message outside any prompt.
+ * - `later`: ends the turn, then sends a message outside any prompt;
+ * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message.
+ *
+ * Every conversation offers a `model` option, `sonnet` or `opus`.
  *
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
  */
@@ -87,6 +101,27 @@ internal class FakeAgent(
         private val channel: FakeAgentChannel,
         private val isLoaded: Boolean,
     ) : AgentSession {
+        private var model = "sonnet"
+
+        override val configOptions
+            get() = listOf(
+                SessionConfigOption.select(
+                    id = MODEL,
+                    name = "Model",
+                    currentValue = model,
+                    options = SessionConfigSelectOptions.Flat(
+                        listOf(
+                            SessionConfigSelectOption(SessionConfigValueId("sonnet"), "Sonnet"),
+                            SessionConfigSelectOption(SessionConfigValueId("opus"), "Opus"),
+                        ),
+                    ),
+                ),
+            )
+
+        override suspend fun setConfigOption(configId: SessionConfigId, value: SessionConfigOptionValue, _meta: JsonElement?): SetSessionConfigOptionResponse {
+            model = (value as SessionConfigOptionValue.StringValue).value
+            return SetSessionConfigOptionResponse(configOptions)
+        }
 
         override suspend fun replayHistory() {
             if (isLoaded) currentCoroutineContext().client.notify(message(HISTORY))
@@ -110,6 +145,12 @@ internal class FakeAgent(
                     ).outcome
                     emit(Event.SessionUpdateEvent(message((outcome as? RequestPermissionOutcome.Selected)?.optionId?.value ?: "cancelled")))
                 }
+                "tool" -> {
+                    emit(Event.SessionUpdateEvent(SessionUpdate.PlanUpdate(listOf(PlanEntry("List the Scenes", PlanEntryPriority.HIGH, PlanEntryStatus.IN_PROGRESS)))))
+                    emit(Event.SessionUpdateEvent(SessionUpdate.ToolCall(ToolCallId("tool-1"), "mcp__kubriko-creator__list_scenes", status = ToolCallStatus.PENDING)))
+                    emit(Event.SessionUpdateEvent(SessionUpdate.ToolCallUpdate(ToolCallId("tool-1"), status = ToolCallStatus.COMPLETED)))
+                    emit(Event.SessionUpdateEvent(message("Done")))
+                }
                 "wait" -> awaitCancellation()
                 "crash" -> {
                     channel.writeError("Fake agent crashed.")
@@ -131,6 +172,7 @@ internal class FakeAgent(
     companion object {
         const val HISTORY = "history"
         const val LATER = "later"
+        const val MODEL = "model"
         private val sessionCount = AtomicInteger()
 
         fun message(text: String) = SessionUpdate.AgentMessageChunk(ContentBlock.Text(text))

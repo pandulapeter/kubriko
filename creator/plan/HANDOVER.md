@@ -23,13 +23,22 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`02-ai-assistant.md` → Order: the panel, then the sign-in methods, together with the five "First" items of its Context for large
-games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. The ACP client and the Claude Agent behind it
-(`Assistant`) exist, unit-tested against a fake agent, and `ClaudeAgentLiveTest` passed against the real `claude-acp` on the
-personal login (one `list_scenes` call, no shell), but nothing in the app creates them yet. What is left in
-`01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+`02-ai-assistant.md` → Order: the sign-in methods and the API key (4), together with the five "First" items of its Context for
+large games, then the panel's tool call cards tied into the activity view (7), then the files in order, with the rest of
+`02-ai-assistant.md` alongside them. The panel exists (toolbar → Assistant) and was seen working on 2026-10-29 with Claude Agent on
+the `claude-personal` configuration: one prompt streamed its answer as Markdown, with a card for Claude Code's `ToolSearch` and one
+titled "List the Scenes". Nothing signs in from the panel yet: a configuration without a login fails at its first prompt with the
+agent's own message. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
+
+**The assistant panel (built and unit-tested on 2026-10-29; only a read-only prompt seen in the app)**
+- A request that changes the game ("make the Ball faster"): the activity view following it, the cards' ticks, and undo.
+- A permission request inline (Claude Agent rarely asks, since its editing tools are off), Stop during a turn, a slash command
+  completed with Tab, and changing Model or Effort mid-conversation.
+- The default configuration with no Claude Code login (what the first prompt shows), a machine without Node.js (the Install
+  Node.js link), and the first run on a machine where `npx` still has to download the adapter (how long "Starting" lasts).
+- Several conversations (the menu above the options), ending one, and closing the project while a turn runs.
 
 **Large projects (built and unit-tested on 2026-10-29, not yet seen in the app)**
 - The paged `read_scene` (summary, type, rectangle), `list_actor_types` by folder, and the batch tools (`place_actors`,

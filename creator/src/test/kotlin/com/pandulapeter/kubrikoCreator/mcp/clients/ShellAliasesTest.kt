@@ -65,4 +65,18 @@ class ShellAliasesTest {
     fun quotingIsResolvedAsAShellWould() {
         assertEquals("it's \"here\" \\ \$x", ShellAliases.unquote("'it'\\''s' \"\\\"here\\\"\" \\\\ '\$x'"))
     }
+
+    @Test
+    fun environmentsAreTheVariablesInFrontOfTheProgram() {
+        assertEquals(
+            mapOf("CLAUDE_CONFIG_DIR" to "/Users/me/.claude-personal"),
+            ShellAliases.environmentOf("CLAUDE_CONFIG_DIR=~/.claude-personal /opt/homebrew/bin/claude", home = "/Users/me"),
+        )
+        assertEquals(
+            mapOf("CODEX_HOME" to "/Users/me/.codex-work", "MODE" to "fast"),
+            ShellAliases.environmentOf("env CODEX_HOME=\$HOME/.codex-work MODE=\"fast\" codex --flag=1", home = "/Users/me"),
+        )
+        assertEquals(mapOf("A" to "/Users/me"), ShellAliases.environmentOf("A=\${HOME} claude", home = "/Users/me"))
+        assertEquals(emptyMap(), ShellAliases.environmentOf("claude --model=opus", home = "/Users/me"))
+    }
 }

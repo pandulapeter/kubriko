@@ -21,6 +21,14 @@ import androidx.compose.ui.awt.SwingWindow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
+import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSystemPrompt
+import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeAgentOptions
+import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
@@ -35,6 +43,7 @@ import com.pandulapeter.kubrikoCreator.window.TitleBarAppearance
 import com.pandulapeter.kubrikoCreator.window.TitleBarInsets
 import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar
 import com.pandulapeter.kubrikoCreator.window.rememberIsFullscreen
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
@@ -67,7 +76,10 @@ fun main(args: Array<String>) {
             )
         }
         val aiClients = remember { AiClientsController(mcp = mcp, runner = ShellProcessRunner(), scope = scope, ioDispatcher = Dispatchers.IO) }
+        val assistant = remember { assistantController(scope) { controller.openProjectCommands } }
         val screen by controller.screen.collectAsState()
+        val openProjectDirectory = (screen as? AppScreen.Workspace)?.controller?.project?.rootDirectory
+        LaunchedEffect(openProjectDirectory) { assistant.setProject(openProjectDirectory) }
         val recentProjects by controller.recentProjects.collectAsState()
         val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
         val windowState = rememberWindowState(width = 1280.dp, height = 820.dp)
@@ -81,6 +93,7 @@ fun main(args: Array<String>) {
             state = windowState,
             onCloseRequest = {
                 mcp.close()
+                assistant.close()
                 val closing = controller.closeProject()
                 scope.launch {
                     closing?.join()
@@ -110,10 +123,39 @@ fun main(args: Array<String>) {
                             onCloseProject = controller::closeProject,
                             mcp = mcp,
                             aiClients = aiClients,
+                            assistant = assistant,
                         )
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * The assistant, whose agent runs Claude Agent through the user's `npx`, with tools of its own working on the project
+ * [executor] gives.
+ */
+private fun assistantController(scope: CoroutineScope, executor: () -> CommandExecutor?): AssistantController {
+    val version = CreatorConfiguration.load().kubrikoVersion
+    return AssistantController(
+        scope = scope,
+        runner = ShellProcessRunner(),
+        store = AssistantSettingsStore.default(),
+        ioDispatcher = Dispatchers.IO,
+        createAssistant = { command ->
+            Assistant(
+                agent = AcpAgent(
+                    command = command,
+                    launcher = ProcessAgentLauncher(File(System.getProperty("user.home"))),
+                    clientInfo = AcpAgent.clientInfo(version),
+                    scope = scope,
+                    ioDispatcher = Dispatchers.IO,
+                ),
+                toolServer = McpToolServer(executor = executor, callDispatcher = Dispatchers.Main, version = version),
+                ioDispatcher = Dispatchers.IO,
+                sessionMeta = ClaudeAgentOptions.sessionMeta(AssistantSystemPrompt.text),
+            )
+        },
+    )
 }

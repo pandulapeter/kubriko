@@ -49,11 +49,13 @@ import kubriko.creator.generated.resources.action_redo_named
 import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_stop
 import kubriko.creator.generated.resources.action_toggle_ai_connection
+import kubriko.creator.generated.resources.action_toggle_assistant
 import kubriko.creator.generated.resources.action_toggle_version_control
 import kubriko.creator.generated.resources.action_undo
 import kubriko.creator.generated.resources.action_undo_named
 import kubriko.creator.generated.resources.ic_ai
 import kubriko.creator.generated.resources.ic_branch
+import kubriko.creator.generated.resources.ic_chat
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_redo
@@ -128,6 +130,12 @@ internal fun WorkspaceToolbar(
         onUndo = onUndo,
         onRedo = onRedo,
     )
+    PanelToggle(
+        isOpen = openPanel == SidePanel.ASSISTANT,
+        onClick = { onPanelToggled(SidePanel.ASSISTANT) },
+    ) {
+        ButtonContent(Res.drawable.ic_chat, Res.string.action_toggle_assistant)
+    }
     PanelToggle(
         isOpen = openPanel == SidePanel.AI_CONNECTION,
         onClick = { onPanelToggled(SidePanel.AI_CONNECTION) },

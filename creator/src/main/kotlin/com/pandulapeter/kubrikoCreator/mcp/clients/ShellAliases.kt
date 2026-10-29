@@ -41,6 +41,23 @@ internal object ShellAliases {
         .orEmpty()
 
     /**
+     * The environment variables [command] sets for its program (`CLAUDE_CONFIG_DIR=~/.claude-personal claude`), in front
+     * of it or after `env`, with a leading `~` or `$HOME` replaced by [home].
+     */
+    fun environmentOf(command: String, home: String) = command.trim().split(whitespace)
+        .takeWhile { '=' in it || it in prefixes }
+        .filter { '=' in it }
+        .associate { assignment ->
+            val value = unquote(assignment.substringAfter('='))
+            assignment.substringBefore('=') to when {
+                value == "~" || value.startsWith("~/") -> home + value.removePrefix("~")
+                value.startsWith(HOME_VARIABLE) -> home + value.removePrefix(HOME_VARIABLE)
+                value.startsWith(BRACED_HOME_VARIABLE) -> home + value.removePrefix(BRACED_HOME_VARIABLE)
+                else -> value
+            }
+        }
+
+    /**
      * [text] as a POSIX shell (or, with [isFish], fish) reads it: quotes removed, escapes resolved. Fish differs only in
      * single quotes, where `\'` and `\\` are escapes.
      */
@@ -81,4 +98,6 @@ internal object ShellAliases {
     private val whitespace = Regex("\\s+")
     private val fishSingleQuoteEscapes = setOf('\'', '\\')
     private val prefixes = setOf("env", "exec", "command")
+    private const val HOME_VARIABLE = "\$HOME"
+    private const val BRACED_HOME_VARIABLE = "\${HOME}"
 }

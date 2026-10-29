@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
@@ -56,6 +57,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
+import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantPanel
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
@@ -76,6 +78,7 @@ internal fun WorkspaceScreen(
     controller: WorkspaceController,
     mcp: McpController,
     aiClients: AiClientsController,
+    assistant: AssistantController,
     onCloseProject: () -> Unit,
 ) {
     val resources by controller.resources.collectAsState()
@@ -245,6 +248,13 @@ internal fun WorkspaceScreen(
                 } else if (sceneEditing == SceneEditingState.Closed) {
                     WorkspaceHint(
                         modifier = Modifier.weight(1f).fillMaxHeight(),
+                    )
+                }
+                if (openPanel == SidePanel.ASSISTANT) {
+                    VerticalDivider()
+                    AssistantPanel(
+                        modifier = Modifier.width(360.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                        controller = assistant,
                     )
                 }
                 if (openPanel == SidePanel.AI_CONNECTION) {

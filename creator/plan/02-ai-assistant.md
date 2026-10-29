@@ -60,8 +60,8 @@ Read from Android Studio 2026.2.2's running processes and settings on October 29
 
 All of it lives in a new `ai/assistant` package; the MCP connection for outside clients stays as it is.
 
-1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): an agent that Creator holds for as long as it runs, stopped when Creator
-   quits, and its standard error in a log the user can open. Move to protocol version 2 once it is final (the adapter serves its draft).
+1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): the agent's standard error in a log the user can open. Move to protocol
+   version 2 once it is final (the adapter serves its draft).
 2. **The agent list:** the registry fetched at start and cached in the settings folder (so it works offline), filtered to distributions
    Creator can run on this platform. Claude Agent first, then Codex and Gemini CLI, built in as a fallback list before the first fetch.
    Versions are pinned to the registry's and offered as an update when it moves. A custom agent is a command line the user enters.
@@ -77,27 +77,20 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): each `AiStep` knowing its conversation, so the panel's tool call
    cards tie into it; reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
    have no portable switch, so their `session/request_permission` for edits and commands is rejected by default (`PermissionHandler.Reject`),
-   with the user able to allow it. Picking the Claude Code configuration: this Mac's logins live behind aliases (`claude-personal` sets
-   `CLAUDE_CONFIG_DIR`), so the panel should offer the setups `ShellAliases` finds, passing their `CLAUDE_CONFIG_DIR` to the agent.
+   with the user able to allow it.
 6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
-7. **The panel:** conversations per project; `agent_message_chunk`s streamed as Markdown, thoughts collapsed; `tool_call` cards titled
-   from `CommandTarget`, which tie into the activity view's following and flashing; `plan` updates as a checklist; permission requests
-   inline (Allow once, Always, Reject); `available_commands_update` as slash command completion; session config options (model, mode,
-   effort) as menus; Stop (`session/cancel`); context chips for the open Scene and the selected Actor type, sent as `resource_link`s; a
-   Scene or game screenshot attached as an image where `promptCapabilities.image` allows; conversations resumed after a restart with
-   `session/load` where the agent offers it.
+7. **The panel** (see `../CLAUDE.md` → Assistant): tool call cards naming their `CommandTarget` and tying into the activity view's
+   following and flashing (clicking one goes to what it changed); context chips for the open Scene and the selected Actor type, sent as
+   `resource_link`s; a Scene or game screenshot attached as an image where `promptCapabilities.image` allows; conversations kept per
+   project after it closes and resumed after a restart with `session/load` where the agent offers it; Markdown tables, which the
+   panel's reader shows as plain lines.
 8. **Keep and Undo:** before each prompt Creator commits a checkpoint ("Before Claude's changes") when the project is under version
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** first, right after `01-large-projects.md`:
-
-1. The panel (7), without resuming or attachments, holding the `Assistant` for Creator's lifetime (1), with the Claude Code
-   configuration to use (5).
-2. The sign-in methods and the API key (4).
-
-Then alongside `04` to `07`: agent profiles and the fallbacks (Other agents and services), Codex first, then Gemini CLI and
+**Order:** first, right after `01-large-projects.md`, the sign-in methods and the API key (4), then the tool call cards of the panel
+(7). Then alongside `04` to `07`: agent profiles and the fallbacks (Other agents and services), Codex first, then Gemini CLI and
 Copilot; the registry, the Node.js download, and binary agents (2, 3); resuming and attachments; Keep and Undo (8); usage (9); and
 the MCP server items above.
 

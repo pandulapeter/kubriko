@@ -17,12 +17,19 @@ import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PromptResponse
 import com.agentclientprotocol.model.RequestPermissionResponse
+import com.agentclientprotocol.model.SessionConfigId
+import com.agentclientprotocol.model.SessionConfigOption
+import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.agentclientprotocol.model.SessionId
 import com.agentclientprotocol.model.SessionUpdate
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.json.JsonElement
 
 /**
@@ -38,7 +45,8 @@ internal class AgentConversation internal constructor(
     private val _updates = MutableSharedFlow<SessionUpdate>(extraBufferCapacity = UPDATE_BUFFER_SIZE)
 
     /**
-     * What the agent reports: its messages, thoughts, tool calls, and plans, from prompts and between them. The history an
+     * What the agent reports: its messages, thoughts, tool calls, and plans, between prompts and from prompts that take no
+     * `onUpdate` of their own. The history an
      * agent replays when the conversation is loaded again after a crash is left out, since it was reported already.
      */
     val updates = _updates.asSharedFlow()
@@ -49,8 +57,13 @@ internal class AgentConversation internal constructor(
      */
     val isLost = _isLost.asStateFlow()
 
-    @Volatile
-    private var session: ClientSession? = null
+    private val session = MutableStateFlow<ClientSession?>(null)
+
+    /**
+     * The options the agent offers for the conversation (its model, mode, or effort), with their current values.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val configOptions: Flow<List<SessionConfigOption>> = session.flatMapLatest { it?.configOptions ?: flowOf(emptyList()) }
 
     @Volatile
     private var isReplaying = false
@@ -71,13 +84,14 @@ internal class AgentConversation internal constructor(
      * Sends [content] and suspends until the agent has finished its turn, starting the agent first if it isn't running.
      * Cancelling the calling coroutine abandons the turn without telling the agent; [cancel] stops it.
      *
+     * @param onUpdate Takes what the agent reports during the turn, in order and before this returns, in place of [updates].
      * @throws ConversationLostException If the conversation was lost.
      */
-    suspend fun prompt(content: List<ContentBlock>): PromptResponse {
+    suspend fun prompt(content: List<ContentBlock>, onUpdate: (suspend (SessionUpdate) -> Unit)? = null): PromptResponse {
         var response: PromptResponse? = null
         agent.sessionOf(this).prompt(content).collect { event ->
             when (event) {
-                is Event.SessionUpdateEvent -> _updates.emit(event.update)
+                is Event.SessionUpdateEvent -> onUpdate?.invoke(event.update) ?: _updates.emit(event.update)
                 is Event.PromptResponseEvent -> response = event.response
             }
         }
@@ -88,7 +102,16 @@ internal class AgentConversation internal constructor(
      * Asks the agent to stop its current turn, which then ends with [com.agentclientprotocol.model.StopReason.CANCELLED].
      */
     suspend fun cancel() {
-        session?.cancel()
+        session.value?.cancel()
+    }
+
+    /**
+     * Changes one of the [configOptions].
+     *
+     * @throws ConversationLostException If the conversation was lost.
+     */
+    suspend fun setConfigOption(id: SessionConfigId, value: SessionConfigOptionValue) {
+        agent.sessionOf(this).setConfigOption(id, value)
     }
 
     /**
@@ -96,10 +119,10 @@ internal class AgentConversation internal constructor(
      */
     suspend fun close() = agent.close(this)
 
-    internal fun currentSession() = session
+    internal fun currentSession() = session.value
 
     internal fun attach(session: ClientSession) {
-        this.session = session
+        this.session.value = session
     }
 
     internal suspend fun <T> replaying(load: suspend () -> T): T {
@@ -112,7 +135,7 @@ internal class AgentConversation internal constructor(
     }
 
     internal fun markLost() {
-        session = null
+        session.value = null
         _isLost.value = true
     }
 
