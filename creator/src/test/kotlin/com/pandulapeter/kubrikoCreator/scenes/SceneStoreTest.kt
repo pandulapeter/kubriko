@@ -117,4 +117,15 @@ class SceneStoreTest {
         assertFalse(store.isValid("main"))
         assertFalse(store.isValid("missing"))
     }
+
+    @Test
+    fun aSceneFileThatCantBeReadCountsAsNoScene() {
+        store.write("main", "[]")
+        val file = File(root, "${SceneStore.DEFAULT_SCENE_DIRECTORY}/main.json")
+        file.setLastModified(file.lastModified() + 2_000)
+        file.setReadable(false)
+        if (file.canRead()) return
+        assertNull(store.read("main"))
+        assertFalse(store.isValid("main"))
+    }
 }

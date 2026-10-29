@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -72,6 +73,7 @@ internal class SceneStore(
         val target = File(sceneDirectory, "$newName.$EXTENSION")
         target.parentFile.mkdirs()
         source.renameTo(target)
+        cache.remove(source)
         ownWrites.record(source)
         ownWrites.record(target)
     }
@@ -119,7 +121,11 @@ internal class SceneStore(
         val length = file.length()
         val lastModified = file.lastModified()
         return cache[file]?.takeIf { it.length == length && it.lastModified == lastModified }
-            ?: CachedScene(file.readText(), length, lastModified).also { cache[file] = it }
+            ?: try {
+                CachedScene(file.readText(), length, lastModified).also { cache[file] = it }
+            } catch (_: IOException) {
+                null
+            }
     }
 
     /**
@@ -142,6 +148,7 @@ internal class SceneStore(
     fun delete(name: String) {
         file(name)?.let { file ->
             file.delete()
+            cache.remove(file)
             ownWrites.record(file)
         }
     }
