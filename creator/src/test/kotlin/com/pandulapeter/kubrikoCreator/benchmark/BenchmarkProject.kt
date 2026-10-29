@@ -49,6 +49,12 @@ internal object BenchmarkProject {
         ignoreUnknownKeys = true
     }
 
+    private val offlineGenerator = ProjectGenerator(
+        CreatorConfiguration(kubrikoVersion = "1.0.0", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = false),
+        wrapperInstaller = { _, _ -> },
+        startVersionControl = { _, _ -> },
+    )
+
     fun actorTypeName(index: Int) = "Enemy$index"
 
     fun managerTypeName(index: Int) = "Manager$index"
@@ -56,13 +62,12 @@ internal object BenchmarkProject {
     fun sceneName(size: Int) = "scene-$size"
 
     /**
-     * Creates the project in [parentDirectory], with its definitions and Scenes written as files (generating its code is
-     * part of what is measured), and returns its folder.
+     * Creates the project in [parentDirectory] with [generator] (by default one that installs no Gradle wrapper, so the
+     * project can't be built), with its definitions and Scenes written as files (generating its code is part of what is
+     * measured), and returns its folder.
      */
-    fun create(parentDirectory: File): File {
-        val configuration = CreatorConfiguration(kubrikoVersion = "1.0.0", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = false)
-        val directory = ProjectGenerator(configuration, wrapperInstaller = { _, _ -> }, startVersionControl = { _, _ -> })
-            .create(NewProjectRequest(name = "Benchmark", packageName = PACKAGE_NAME, parentDirectory = parentDirectory, isUnderVersionControl = false))
+    fun create(parentDirectory: File, generator: ProjectGenerator = offlineGenerator): File {
+        val directory = generator.create(NewProjectRequest(name = "Benchmark", packageName = PACKAGE_NAME, parentDirectory = parentDirectory, isUnderVersionControl = false))
         val actors = File(directory, "${BlockTypeStore.CREATOR_DIRECTORY}/actors").apply { deleteRecursively() }
         repeat(ACTOR_TYPE_COUNT) { index ->
             val folder = File(actors, "family${index / 10}").apply { mkdirs() }

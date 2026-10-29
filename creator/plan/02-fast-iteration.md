@@ -18,23 +18,42 @@ before more features.
 
 ## Measuring the build
 
-The benchmark of `01-foundation.md` times Creator's own work without Gradle, so nothing yet shows how a build grows with the
-project. Compiling stays on the edit loop for hand-written types even after step 5, so before step 1 the benchmark gets a run
-that builds its project for real (behind `KUBRIKO_CREATOR_BENCHMARK=true`, through the same Tooling API connection and
-`kubrikoCreatorClasspath` task as the Scene editor), timing:
+Exists (`benchmark/CreatorBuildBenchmarkTest`, `KUBRIKO_CREATOR_BENCHMARK=true` and `KUBRIKO_CREATOR_VERSION`): the benchmark
+project of `01-foundation.md` built for real through the Tooling API, the init script, and Creator's own arguments (now shared,
+`SessionInitScript.gradleArguments`), reporting for each step the generated files it touched and the classes Kotlin wrote again.
+It passes `--no-build-cache`, since every run makes the same changes and a build cache restores them instead of compiling (the
+user's `~/.gradle/gradle.properties` turns it on; the first numbers of this benchmark were cache hits).
+`KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS` adds Gradle arguments, to measure a change to the build before making it.
 
-- A cold build, and a warm one with nothing changed (Gradle's fixed cost per build).
-- One Block added to a leaf Actor type, and a Property added to one (a change to its generated class's API).
-- A change to the base type of a family of ten, which every type in the family compiles against.
-- One Actor moved in a Scene, which regenerates for the Scenes' music and so must not cause a compile at all.
-- Loading the new classes and creating a 1,000-Actor Scene from them, apart from the build.
+Baseline on 2026-10-29 (M-series Mac, warm Gradle and Kotlin daemons; the first run after they start is several times slower
+throughout: a 17 s cold build and 7 to 10 s per type change), with the property below as the second column:
 
-With these, the build should also show which generated files a change touches. A change to one type should leave the API of
-shared generated files (`GeneratedActorTypes`, `KubrikoWiring`, `GeneratedScenes`) unchanged, so Kotlin's incremental compilation
-recompiles only that type and what uses it. If a shared file's API changes every time, its dependents recompile on every edit, and
-the generator should be fixed before steps 1 to 3 are measured. The baseline goes in a table here, like the one in
-`01-foundation.md`; steps 1 to 4 are measured against it and add a row each, and a target is set from the first numbers (a warm
-type change at 200 types within a few seconds is the expectation step 3 already states).
+| Step | Build | With unsafe multiplatform IC |
+|---|---|---|
+| Cold build (a project never built) | 7.3 s | 7.2 s |
+| Warm build, nothing changed | 0.2 s | 0.2 s |
+| A Block added to a leaf Actor type | 5.5 s (all 253 classes) | 0.7 s (only that type) |
+| A Property added to a leaf Actor type | 5.5 s | 0.6 s (only that type) |
+| A Block added to the base of a family of ten | 5.4 s | 0.7 s (the type and its base) |
+| A Property added to the base of a family of ten | 5.5 s | 1.4 s (the family and its users) |
+| One Actor moved in a Scene | 0.5 s (no compile) | 0.5 s |
+| Loading the classes / creating a 1,000-Actor Scene | 11 ms / 0.4 to 0.6 s | |
+
+What it shows:
+
+- **The generator is already shaped for incremental compilation:** a change to one type rewrites only that type's file, and
+  the shared files (`GeneratedActorTypes`, `KubrikoWiring`, `GeneratedScenes`) don't change. A Scene change compiles nothing.
+- **Kotlin doesn't compile incrementally anyway:** every change to `commonMain` (where all generated code lives) is a full
+  rebuild, with the reason "Incremental compilation might be incorrect (KT-62686)" in Kotlin's build report. A change only in
+  `desktopMain` stays incremental. JetBrains' fix is the opt-in "separate compilation" of Kotlin 2.5.0 (Creator is on 2.4.21).
+  Until then, the internal `kotlin.internal.incremental.enableUnsafeOptimizationsForMultiplatform=true` turns incremental
+  compilation of common code back on (the second column). Checked by hand: platform code using a changed common declaration is
+  still recompiled (a renamed function fails the build, a new defaulted parameter recompiles the caller). What KT-62686 guards
+  against wasn't reproduced; `expect`/`actual` pairs are the suspected case, which generated code never has but hand-written code
+  may. **Waiting for the user's decision**: pass it (only in Creator's builds, through `gradleArguments`, so a project's own
+  builds are unaffected, at the cost of a full rebuild whenever the two alternate), or wait for Kotlin 2.5.
+- Every classpath build also packs `desktopJar` (about 0.23 s); step 3 can point the classpath at the class folders instead.
+- Creating a 1,000-Actor Scene from the classes takes 0.4 to 0.6 s, which step 4 pays on every swap and step 5 should hide.
 
 ## Steps, cheapest first
 
@@ -43,9 +62,9 @@ type change at 200 types within a few seconds is the expectation step 3 already 
 2. **Configuration cache and parallel builds in projects:** `org.gradle.configuration-cache=true` and `org.gradle.caching=true` in
    the template's `gradle.properties` (a template upgrade), and the init script made configuration-cache compatible (it passes
    `--no-configuration-cache` today).
-3. **Compile only what's needed:** the classpath task compiles the desktop target only; check that it doesn't also process resources
-   for other targets or run the web toolchain. Generated code is a few small files, so Kotlin's incremental compilation should keep a
-   type change at a few seconds once the daemon is warm.
+3. **Compile only what's needed:** the classpath task compiles the desktop target only (measured: it runs no web or other
+   target's tasks), but it packs `desktopJar` every time. A type change is a full rebuild until incremental compilation of
+   common code works (see Measuring the build); with it, about 0.7 s at 200 types.
 4. **Reload without reopening:** after a type change, compile in the background and swap the Scene editor to the new classes when the
    build finishes (new class loader, `SceneView` created again from the open Scene, camera and selection kept), instead of an
    "outdated" notice and a manual reload. The notice stays only while a build is failing.

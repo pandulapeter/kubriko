@@ -30,4 +30,10 @@ internal object SessionInitScript {
             )
         }
     }
+
+    /**
+     * The arguments that run one of the script's tasks with Kubriko Creator's [properties].
+     */
+    fun gradleArguments(properties: Map<String, String>) =
+        listOf("--init-script", file.absolutePath, "--no-configuration-cache") + properties.map { (key, value) -> "-P$key=$value" }
 }

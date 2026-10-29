@@ -106,12 +106,8 @@ class ProjectTemplateIntegrationTest {
             val isSuccessful = runBlocking {
                 connection.run(
                     taskPath = ":${SessionInitScript.CLASSPATH_TASK_NAME}",
-                    arguments = listOf(
-                        "--init-script",
-                        SessionInitScript.file.absolutePath,
-                        "--no-configuration-cache",
-                        "-PkubrikoCreatorMode=classpath",
-                        "-PkubrikoCreatorClasspathFile=${classpathFile.absolutePath}",
+                    arguments = SessionInitScript.gradleArguments(
+                        mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
                     ),
                     onEvent = { output.appendLine(it.toString()) },
                 )

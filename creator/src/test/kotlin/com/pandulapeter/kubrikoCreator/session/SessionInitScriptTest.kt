@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.session
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class SessionInitScriptTest {
@@ -30,6 +31,14 @@ class SessionInitScriptTest {
     fun theScriptStartsTheSessionLauncherThatShipsWithCreatorSession() {
         val launcherClassName = Regex("mainClass.set\\(\"([^\"]+)\"\\)").find(script)!!.groupValues[1]
         Class.forName(launcherClassName).getMethod("main", Array<String>::class.java)
+    }
+
+    @Test
+    fun theArgumentsPassTheScriptAndEveryPropertyAsAProjectProperty() {
+        assertEquals(
+            listOf("--init-script", SessionInitScript.file.absolutePath, "--no-configuration-cache", "-Pa=1", "-Pb=two words"),
+            SessionInitScript.gradleArguments(mapOf("a" to "1", "b" to "two words")),
+        )
     }
 
     @Test

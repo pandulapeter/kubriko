@@ -319,7 +319,7 @@ internal class WorkspaceController(
         val hasReportedProblems = AtomicBoolean(false)
         val isSuccessful = build.run(
             taskPath = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName",
-            arguments = listOf("--init-script", SessionInitScript.file.absolutePath, "--no-configuration-cache") + properties.map { (key, value) -> "-P$key=$value" },
+            arguments = SessionInitScript.gradleArguments(properties),
             onEvent = { event ->
                 when (event) {
                     is GradleBuildEvent.Output -> synchronized(outputTail) {

@@ -24,6 +24,9 @@ lives in `plan/` (start with `plan/README.md`).
   additionally generates every template for real and compiles it, plus an Actor type and two Manager types using every Event and Block (and
   each other's Properties), for desktop and web, and resolves the desktop runtime classpath as playing does (compiling alone misses a
   library whose repository is missing).
+- `KUBRIKO_CREATOR_BENCHMARK=true` times a 200-type project without Gradle (`CreatorBenchmarkTest`) and, with
+  `KUBRIKO_CREATOR_VERSION` as above, builds it for real (`CreatorBuildBenchmarkTest`, `--no-build-cache`, more Gradle arguments
+  through `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`), printing each step's time, generated files touched, and classes compiled again.
 - **Every change ships with solid unit tests**: controllers against fakes (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`,
   `FakeGitRepository`), file code against real temporary folders, git against real temporary repositories (JGit needs no installed git),
   sockets over real localhost connections. `StringResourcesTest` fails on any string or icon nothing uses, and on escaped apostrophes.
