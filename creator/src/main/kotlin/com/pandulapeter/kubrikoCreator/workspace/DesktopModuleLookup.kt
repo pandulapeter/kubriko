@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import java.util.concurrent.atomic.AtomicReference
 
@@ -24,9 +25,9 @@ internal class DesktopModuleLookup(
     private val ioDispatcher: CoroutineDispatcher,
     private val findDesktopModulePath: () -> String,
 ) {
-    private val lookup = AtomicReference(start())
+    private val lookup = AtomicReference(lookUp().apply { start() })
 
-    private fun start() = scope.async(ioDispatcher) { findDesktopModulePath() }
+    private fun lookUp() = scope.async(ioDispatcher, start = CoroutineStart.LAZY) { findDesktopModulePath() }
 
     suspend fun await(): String {
         val current = lookup.get()
@@ -35,7 +36,9 @@ internal class DesktopModuleLookup(
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
-            lookup.compareAndSet(current, start())
+            // Lazily, so the next lookup reads the files as they are when it is needed, and only once.
+            val next = lookUp()
+            if (!lookup.compareAndSet(current, next)) next.cancel()
             throw exception
         }
     }

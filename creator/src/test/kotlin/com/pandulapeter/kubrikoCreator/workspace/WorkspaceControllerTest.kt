@@ -207,6 +207,7 @@ class WorkspaceControllerTest {
         )
         controller.play()
         assertTrue(build.runs.isEmpty())
+        assertEquals(1, lookups, "the next lookup waits until it is needed, so it reads the files as they are then")
         controller.play()
         assertEquals(1, build.runs.size)
     }
