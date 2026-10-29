@@ -89,6 +89,7 @@ internal fun WorkspaceToolbar(
 ) {
     if (sessionState == SessionState.Idle) {
         Button(
+            modifier = ToolbarButtonModifier,
             contentPadding = ToolbarButtonPadding,
             colors = ButtonDefaults.buttonColors(containerColor = Accent.ACTION.color, contentColor = Color.White),
             onClick = onPlay,
@@ -97,6 +98,7 @@ internal fun WorkspaceToolbar(
         }
     } else {
         FilledTonalButton(
+            modifier = ToolbarButtonModifier,
             contentPadding = ToolbarButtonPadding,
             colors = ButtonDefaults.filledTonalButtonColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -187,12 +189,14 @@ private fun PanelToggle(
     content: @Composable RowScope.() -> Unit,
 ) = if (isOpen) {
     FilledTonalButton(
+        modifier = ToolbarButtonModifier,
         contentPadding = ToolbarButtonPadding,
         onClick = onClick,
         content = content,
     )
 } else {
     TextButton(
+        modifier = ToolbarButtonModifier,
         contentPadding = ToolbarButtonPadding,
         onClick = onClick,
         content = content,
@@ -231,6 +235,10 @@ private fun ButtonContent(
     )
 }
 
+/**
+ * Shorter than Material's 40dp, so that a filled button (Play, Stop) keeps clear of the divider under the toolbar.
+ */
+private val ToolbarButtonModifier = Modifier.height(32.dp)
 private val ToolbarButtonPadding = PaddingValues(start = 12.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
 
 internal fun SessionState.description() = when (this) {
