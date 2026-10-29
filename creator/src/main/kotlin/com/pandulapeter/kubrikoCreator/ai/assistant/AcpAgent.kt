@@ -175,11 +175,13 @@ internal class AcpAgent(
         connection?.let { return it }
         if (_state.value is AgentState.Failed) crashesInARow = 0
         val connection = connect()
+        // Stored before checking, so that a close() running meanwhile either sees it and stops it, or is seen here.
+        this.connection = connection
         if (isClosed) {
+            this.connection = null
             shutDown(connection.scope, connection.channel)
             error("The agent was closed.")
         }
-        this.connection = connection
         scope.launch {
             val exitCode = withContext(ioDispatcher) { connection.channel.awaitExit() }
             onExit(connection, exitCode)
