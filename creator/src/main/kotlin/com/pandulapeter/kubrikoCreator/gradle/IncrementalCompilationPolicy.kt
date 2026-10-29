@@ -35,7 +35,7 @@ internal class IncrementalCompilationPolicy(
      * one, and so does a cancelled clean one, which didn't happen.
      */
     suspend fun build(build: suspend (CompilationMode) -> Boolean): Boolean {
-        val mode = CompilationMode(isCommonCodeIncremental = !hasExpectDeclarations(), isClean = isCleanBuildRequested.getAndSet(false))
+        val mode = incrementalMode().copy(isClean = isCleanBuildRequested.getAndSet(false))
         val isSuccessful = try {
             build(mode)
         } catch (exception: CancellationException) {
@@ -45,4 +45,10 @@ internal class IncrementalCompilationPolicy(
         if (!isSuccessful) requestCleanBuild()
         return isSuccessful
     }
+
+    /**
+     * The mode of a build whose outcome doesn't matter, such as warming up Kotlin's compile daemon: never from scratch,
+     * and leaving a requested clean build to the next build that does matter.
+     */
+    suspend fun incrementalMode() = CompilationMode(isCommonCodeIncremental = !hasExpectDeclarations(), isClean = false)
 }

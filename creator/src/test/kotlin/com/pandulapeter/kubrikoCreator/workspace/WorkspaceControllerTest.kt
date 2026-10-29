@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
@@ -21,6 +22,9 @@ import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
+import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
+import com.pandulapeter.kubrikoCreator.scenes.LoadedEntryPoint
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.CoroutineDispatcher
@@ -88,6 +92,7 @@ class WorkspaceControllerTest {
         blockTypeRepository: FakeBlockTypeRepository? = null,
         startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
         rootDirectory: File = this@WorkspaceControllerTest.rootDirectory,
+        entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -100,6 +105,8 @@ class WorkspaceControllerTest {
             scanResources = scanResources,
             blockTypeRepository = blockTypeRepository,
             startWatching = startWatching,
+            creatorKubrikoVersion = CREATOR_KUBRIKO_VERSION,
+            entryPointLoader = entryPointLoader,
         )
     }
 
@@ -199,6 +206,26 @@ class WorkspaceControllerTest {
         build.currentRun.finish(isSuccessful = true)
         assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
         assertEquals(2, build.runs.size)
+    }
+
+    @Test
+    fun theCompilerIsWarmedUpSilentlyOnceThePreparedClassesAreLoadedAndASessionWaitsForIt() = runTest {
+        val entryPoint = object : CreatorEntryPoint {
+            override fun createSerializationManager() = throw NotImplementedError()
+        }
+        val controller = createController(entryPointLoader = { LoadedEntryPoint(entryPoint = entryPoint, close = {}) })
+        controller.sceneEditing.prepare()
+        SessionInitScript.classpathFileOf(rootDirectory).writeText("kubrikoVersion=$CREATOR_KUBRIKO_VERSION\n")
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(listOf(":${SessionInitScript.CLASSPATH_TASK_NAME}", ":${SessionInitScript.WARM_UP_TASK_NAME}"), build.runs.map { it.taskPath })
+        assertContains(build.currentRun.arguments, "-PkubrikoCreatorMode=warmUp")
+        val console = controller.console.value
+        controller.play()
+        assertEquals(2, build.runs.size)
+        build.currentRun.finish(isSuccessful = false)
+        assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
+        assertFalse("--rerun-tasks" in build.currentRun.arguments, "a failed warm-up doesn't make the next build a clean one")
+        assertEquals(console + ConsoleEntry.Status(Res.string.status_building), controller.console.value)
     }
 
     @Test
@@ -585,5 +612,9 @@ class WorkspaceControllerTest {
         } finally {
             root.deleteRecursively()
         }
+    }
+
+    private companion object {
+        const val CREATOR_KUBRIKO_VERSION = "1.0.0"
     }
 }

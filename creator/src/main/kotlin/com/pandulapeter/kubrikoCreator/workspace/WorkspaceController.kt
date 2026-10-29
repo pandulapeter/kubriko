@@ -152,6 +152,7 @@ internal class WorkspaceController(
         readScene = { scenes.actors(SceneStore.nameOf(it.file)).orEmpty() },
         spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
         requestCleanBuild = incrementalCompilation::requestCleanBuild,
+        warmUpCompiler = ::warmUpCompiler,
     )
 
     /**
@@ -335,7 +336,7 @@ internal class WorkspaceController(
         suspend fun runBuild() = incrementalCompilation.build { mode ->
             startTime = currentTimeMillis()
             build.run(
-                taskPath = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName",
+                taskPath = taskPathOf(modulePath, taskName),
                 arguments = SessionInitScript.gradleArguments(properties, mode),
                 onEvent = { event ->
                     when (event) {
@@ -367,6 +368,30 @@ internal class WorkspaceController(
         }
         return isSuccessful
     }
+
+    /**
+     * Compiles one generated file next to the project's code, without a word in the console, so that Kotlin's compile
+     * daemon runs and is warm before the first change: the build at opening starts it only when something needed
+     * compiling, and a cold one makes the first change take seconds longer.
+     */
+    private suspend fun warmUpCompiler() {
+        val modulePath = try {
+            desktopModulePath.await()
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            return
+        }
+        classpathBuildLock.withLock {
+            build.run(
+                taskPath = taskPathOf(modulePath, SessionInitScript.WARM_UP_TASK_NAME),
+                arguments = SessionInitScript.gradleArguments(mapOf("kubrikoCreatorMode" to "warmUp"), incrementalCompilation.incrementalMode()),
+                onEvent = {},
+            )
+        }
+    }
+
+    private fun taskPathOf(modulePath: String, taskName: String) = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName"
 
     private fun GradleBuildEvent.Problem.toConsoleEntry() = ConsoleEntry.Problem(
         message = message,

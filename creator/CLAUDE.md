@@ -39,7 +39,10 @@ lives in `plan/` (start with `plan/README.md`).
   `GradleProject` model configures every task), and the first build waits for it, reporting a project without one in the console.
   The Tooling API connection is made on first use, which is right away: the workspace builds the classpath and loads the
   project's classes in the background as soon as it opens (`SceneEditingController.prepare`), so the Gradle daemon is warm
-  and the first Scene opens without a build. Builds of the classpath never overlap, and a play session waits for the one
+  and the first Scene opens without a build. Once they are loaded, the init script's `kubrikoCreatorWarmUp` compiles one
+  generated file in a compilation of its own next to the desktop target's code (`WorkspaceController.warmUpCompiler`, silent,
+  never clean, and not a failed build when it fails), since the build at opening starts Kotlin's compile daemon only when
+  something needed compiling, and a cold daemon made the first change seconds slower. Builds of the classpath never overlap, and a play session waits for the one
   running (`classpathBuildLock`), since a build started while another runs needs a daemon of its own; a cancelled build
   returns only once Gradle has stopped it, for the same reason. A play session holds its daemon while the game runs, so a
   Scene opened then still starts a second one. Each workspace runs in a scope of its own (a child of the app's), which
@@ -47,9 +50,9 @@ lives in `plan/` (start with `plan/README.md`).
   opening that is cancelled closes what it made. Builds of the classpath report their time in the console, and so does opening
   a Scene.
 - **Creator** works on files and Gradle only. It drives the project's own build through the Gradle Tooling API (`gradle/GradleProjectConnection`)
-  with `src/main/resources/kubriko-creator-session.init.gradle.kts`, which adds two tasks to every Compose desktop module without touching the
+  with `src/main/resources/kubriko-creator-session.init.gradle.kts`, which adds three tasks to every Compose desktop module without touching the
   project: `kubrikoCreatorSession` (runs the module's classpath plus `tool-creator-session` at the project's Kubriko version, in `play` or `edit`
-  mode, reporting back over a versioned JSON-lines protocol on a localhost port, `SessionServer`) and `kubrikoCreatorClasspath` (compiles and
+  mode, reporting back over a versioned JSON-lines protocol on a localhost port, `SessionServer`), `kubrikoCreatorWarmUp` (above), and `kubrikoCreatorClasspath` (compiles and
   writes the Kubriko version and runtime classpath to a file, with the folders the module's jar is packed from in place of the jar,
   found through the jar task's `source`, so the jar isn't packed; a file the jar puts elsewhere than its folder would is
   copied to `build/kubrikoCreator/moved`). Every build's arguments come from `SessionInitScript.gradleArguments`; the script and the classpath file keep their paths

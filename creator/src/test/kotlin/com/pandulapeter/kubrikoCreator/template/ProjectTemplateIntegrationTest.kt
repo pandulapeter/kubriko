@@ -76,6 +76,7 @@ class ProjectTemplateIntegrationTest {
                         listOf("audioPlayback", "collision", "keyboardInput", "sprites").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
                         assertCompiles(connection, directory, "${template.id} with every Block")
                         assertRuntimeClasspathResolves(connection, "${template.id} with every Block")
+                        assertCompilerWarmsUp(connection, directory, "${template.id} with every Block")
                     }
                 }
             } finally {
@@ -118,6 +119,27 @@ class ProjectTemplateIntegrationTest {
         } finally {
             classpathFile.delete()
         }
+    }
+
+    /**
+     * Runs the init script's warm-up as Kubriko Creator does after opening a project, which has to compile its file
+     * next to the project's code.
+     */
+    private fun assertCompilerWarmsUp(connection: GradleProjectConnection, directory: File, description: String) {
+        val output = StringBuilder()
+        val isSuccessful = runBlocking {
+            connection.run(
+                taskPath = ":${SessionInitScript.WARM_UP_TASK_NAME}",
+                arguments = SessionInitScript.gradleArguments(
+                    mapOf("kubrikoCreatorMode" to "warmUp"),
+                    CompilationMode(isCommonCodeIncremental = true, isClean = false),
+                ),
+                onEvent = { output.appendLine(it.toString()) },
+            )
+        }
+        assertTrue(isSuccessful, "$description: the compiler doesn't warm up:\n$output")
+        val classes = directory.resolve("build/classes/kotlin/desktop/kubrikoCreatorWarmUp")
+        assertTrue(classes.walkTopDown().any { it.name == "KubrikoCreatorWarmUp.class" }, "$description: the warm-up compiled nothing")
     }
 
     private val properties = listOf(

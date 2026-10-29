@@ -78,13 +78,20 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The first change after opening a project builds for 10 s: the warm-up build at open was up to date, so Kotlin's compile
-   daemon only starts then (`02-fast-iteration.md`, step 4's finding). Warm it at open too, then measure in the app.
-2. The rest of `02-fast-iteration.md`: step 5 (steps 1 to 4 are done), each measured with `CreatorBuildBenchmarkTest` (a
+1. The rest of `02-fast-iteration.md`: step 5 (steps 1 to 4 are done), each measured with `CreatorBuildBenchmarkTest` (a
    row each).
-3. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
+2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Warming Kotlin's compile daemon (2026-10-29, `kubrikoCreatorWarmUp`), seen working: opening the scratch Breakout ran it
+  right after the classes loaded (a fresh Kotlin daemon started, nothing in the console), the first change after that built
+  in 3.0 s, and the integration test runs it on the template. Not compared in the app against the same change without it
+  (the command line said 2.9 to 3.2 s down to 1.0 to 1.5 s with a cold Kotlin daemon), and not seen: a change made while
+  the warm-up still runs (it should wait for it), and a project whose warm-up fails (nothing should show).
+- The Scene editor ticking without the focus (2026-10-29, `SceneView`'s `shouldPauseOnFocusLoss = false`): a Scene swapped
+  in while Creator was in the background was seen staying empty before it; not seen since. Also worth a look: what it
+  costs while Creator sits in the background with a Scene open (it now draws every frame there too).
 
 - Swapping the open Scene's classes (2026-10-29), seen working on the scratch Breakout: "Updating…", Bricks redrawn as
   circles and back with zoom and selection kept, a broken source showing the notice and recovering once removed. Not seen:

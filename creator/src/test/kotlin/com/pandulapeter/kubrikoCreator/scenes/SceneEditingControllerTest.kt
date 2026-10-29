@@ -53,6 +53,7 @@ class SceneEditingControllerTest {
     private val sceneReads = mutableListOf<ProjectResource>()
     private var buildGate: CompletableDeferred<Unit>? = null
     private var cleanBuildRequests = 0
+    private var warmUpCount = 0
     private val ball = SceneActorEntry("Ball", "{}", "a")
     private val brick = SceneActorEntry("Brick", "{}", "b")
     private var loader = EntryPointLoader { classpath ->
@@ -84,6 +85,7 @@ class SceneEditingControllerTest {
         classpathFile = File(root, "classpath.txt"),
         currentTimeMillis = { 1_500L * tasks.size },
         requestCleanBuild = { cleanBuildRequests++ },
+        warmUpCompiler = { warmUpCount++ },
     )
 
     @Test
@@ -112,6 +114,31 @@ class SceneEditingControllerTest {
         controller.open(scene)
         assertIs<SceneEditingState.Open>(controller.state.value)
         assertEquals(1, tasks.size)
+    }
+
+    @Test
+    fun theCompilerIsWarmedUpOnceThePreparedClassesAreLoaded() = runTest {
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val controller = createController()
+        controller.prepare()
+        assertEquals(0, warmUpCount)
+        gate.complete(Unit)
+        assertEquals(1, warmUpCount)
+        controller.prepare()
+        controller.open(scene)
+        controller.markOutdated()
+        controller.open(otherScene)
+        assertEquals(1, warmUpCount, "only preparing warms up")
+    }
+
+    @Test
+    fun theCompilerIsntWarmedUpAfterAFailedOrUnsupportedPreparation() = runTest {
+        isBuildSuccessful = false
+        createController().prepare()
+        isBuildSuccessful = true
+        projectVersion = "0.9.0"
+        createController().prepare()
+        assertEquals(0, warmUpCount)
     }
 
     @Test

@@ -25,6 +25,7 @@ internal object SessionInitScript {
 
     const val SESSION_TASK_NAME = "kubrikoCreatorSession"
     const val CLASSPATH_TASK_NAME = "kubrikoCreatorClasspath"
+    const val WARM_UP_TASK_NAME = "kubrikoCreatorWarmUp"
     private const val RESOURCE_NAME = "kubriko-creator-session.init.gradle.kts"
 
     private val directory get() = File(System.getProperty("java.io.tmpdir"), "kubriko-creator")

@@ -45,6 +45,7 @@ import java.io.IOException
  *   ([SessionInitScript.classpathFileOf]).
  * @param requestCleanBuild Makes the next build compile everything from scratch, for when the classes may not match the
  *   sources: on Reload, and when they couldn't be loaded.
+ * @param warmUpCompiler Gets the compiler ready for the first change, once [prepare] has loaded the classes.
  */
 internal class SceneEditingController(
     private val creatorKubrikoVersion: String,
@@ -57,6 +58,7 @@ internal class SceneEditingController(
     private val classpathFile: File,
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
     private val requestCleanBuild: () -> Unit = {},
+    private val warmUpCompiler: suspend () -> Unit = {},
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) {
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
@@ -78,10 +80,13 @@ internal class SceneEditingController(
     private var revision = 0
 
     /**
-     * Builds and loads the project's classes in the background, so that the first Scene opened doesn't wait for a build.
+     * Builds and loads the project's classes in the background, so that the first Scene opened doesn't wait for a build,
+     * and then warms up the compiler, so that the first change doesn't wait for it either.
      */
     fun prepare() {
-        if (loading == null) startLoading()
+        if (loading != null) return
+        val prepared = startLoading()
+        scope.launch { if (prepared.await() is LoadResult.Loaded) warmUpCompiler() }
     }
 
     /**

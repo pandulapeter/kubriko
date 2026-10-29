@@ -53,6 +53,16 @@ class IncrementalCompilationPolicyTest {
     }
 
     @Test
+    fun theIncrementalModeLeavesARequestedCleanBuildToTheNextBuild() = runTest {
+        policy.requestCleanBuild()
+        assertEquals(incremental, policy.incrementalMode())
+        build()
+        assertEquals(listOf(clean), modes)
+        hasExpectDeclarations = true
+        assertEquals(CompilationMode(isCommonCodeIncremental = false, isClean = false), policy.incrementalMode())
+    }
+
+    @Test
     fun aProjectDeclaringExpectsNeverCompilesCommonCodeIncrementally() = runTest {
         hasExpectDeclarations = true
         build()

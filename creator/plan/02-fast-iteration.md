@@ -68,6 +68,15 @@ What it shows:
    Gradle stopped it, so none of them starts a second daemon. One does still: a Scene opened while the game plays, since the play
    session holds its daemon for as long as the game runs (Playing, below, would end that by launching the game from the
    classpath). Not a benchmark row: the benchmark runs Gradle directly, and this changes when the build runs, not how long.
+   **Kotlin's compile daemon is warmed too** (2026-10-29): the build at opening starts it only when something needs
+   compiling, so once the classes are loaded, the init script's `kubrikoCreatorWarmUp` compiles one generated file in a
+   compilation of its own beside the desktop target's, seeing its code and classpath, so the compiler, its plugins, and the
+   incremental path all run. Measured on Breakout from the command line with a fresh Kotlin daemon: the first change after an
+   up-to-date build took 2.9 to 3.2 s without it and 1.0 to 1.5 s with it (the second change about 1 s either way); the
+   warm-up itself takes 1.2 to 2.3 s, in the background. In the app (fresh Kotlin daemon, the Gradle daemon possibly warm
+   from the command line runs): the warm-up ran right after opening, nothing in the console, and the first change built in
+   3.0 s; the same change without the warm-up wasn't timed in the app. A cold Gradle daemon still costs its own JIT
+   warm-up on the first few builds, which this doesn't touch.
 2. **Configuration cache in projects. Done** (2026-10-29): the template's `gradle.properties` turns on
    `org.gradle.configuration-cache` (`org.gradle.caching` was on already), template version 6 adds both to existing projects,
    Creator no longer passes `--no-configuration-cache`, and the init script works with it (the Kubriko version is read while
@@ -90,9 +99,12 @@ What it shows:
    after it instead of cancelling it. A failed build keeps the old classes, with the notice and Reload, until a build works.
    Seen in the app on Breakout: a Brick's shape changed on disk showed on screen 1.9 s after the file was written (a 0.3 s
    build; the rest is the watcher's one-second poll, regenerating, and creating the Actors), zoom and selection kept; a
-   source that doesn't compile showed the notice and its error, and removing it recovered. **Found:** the first change after
+   source that doesn't compile showed the notice and its error, and removing it recovered. A Scene swapped in while Creator
+   was in the background (a change made in another app) stayed empty until it was focused again, since a Kubriko instance
+   culls, and so draws, its Actors only on ticks, which `viewportFrames()` stops without the focus; the Scene editor's
+   instance now ticks without it (not yet seen in the app). **Found:** the first change after
    opening built for 10 s, since the warm-up build at open compiled nothing (it was up to date) and so never started Kotlin's
-   compile daemon. Starting that daemon at open belongs to step 1.
+   compile daemon. Starting that daemon at open belongs to step 1, and is done (above).
 5. **Draw what doesn't need the project's classes:** block-built Actor types are known without compiling (shape, color, size, sprite),
    so the Scene editor can show a changed type's Actors from its definition right away (a preview Actor drawn by Creator) while the
    compile runs, then swap in the real classes. Hand-written types keep their last compiled look until then.

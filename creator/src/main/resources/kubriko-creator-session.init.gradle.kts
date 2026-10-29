@@ -10,7 +10,21 @@
 // Kubriko Creator passes this script to the project's build, without touching the project's files. It adds two tasks to every Compose
 // desktop application module: kubrikoCreatorSession runs the module's own classpath plus tool-creator-session at the module's Kubriko
 // version, and kubrikoCreatorClasspath compiles the module and writes its Kubriko version and runtime classpath (with the module's
-// own output folders in place of its jar) to a file, for Kubriko Creator to load the project's classes itself. Nothing here keeps the configuration cache from being used.
+// own output folders in place of its jar) to a file, for Kubriko Creator to load the project's classes itself. kubrikoCreatorWarmUp
+// compiles one generated file next to the module's code, so that Kotlin's compile daemon is running and warm before the first change,
+// even when the classpath build at opening found everything up to date. Nothing here keeps the configuration cache from being used.
+if (gradle.startParameter.projectProperties["kubrikoCreatorMode"] != null) {
+    gradle.allprojects {
+        pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
+            try {
+                addWarmUpCompilations()
+            } catch (exception: Exception) {
+                logger.info("Kubriko Creator can't warm up Kotlin's compile daemon in $path.", exception)
+            }
+        }
+    }
+}
+
 gradle.projectsEvaluated {
     val properties = gradle.startParameter.projectProperties
     // Included builds (such as build-logic) run this script too, without Kubriko Creator's properties.
@@ -60,6 +74,11 @@ gradle.projectsEvaluated {
                 file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath }).joinToString("\n"))
             }
         }
+        val warmUpCompile = extra.properties[warmUpTaskProperty(runtime.name.removeSuffix("RuntimeClasspath"))]
+        tasks.register("kubrikoCreatorWarmUp") {
+            group = "kubriko creator"
+            if (warmUpCompile != null) dependsOn(warmUpCompile)
+        }
         tasks.register<JavaExec>("kubrikoCreatorSession") {
             group = "kubriko creator"
             classpath = files(run.classpath.minus(runtime), session)
@@ -79,3 +98,31 @@ fun Project.kubrikoVersion(runtime: Configuration) = runtime.incoming.resolution
     .mapNotNull { it.requested as? org.gradle.api.artifacts.component.ModuleComponentSelector }
     .firstOrNull { it.group == "io.github.pandulapeter.kubriko" && it.module == "engine" }
     ?.version ?: throw GradleException("$path does not depend on the Kubriko engine.")
+
+// The Kotlin Gradle plugin isn't on an init script's classpath, so its model is reached through Groovy's dynamic calls. The warm-up
+// compilation sees the main one's code and classpath, and its file changes on every build, so that it always compiles.
+fun Project.addWarmUpCompilations() {
+    @Suppress("UNCHECKED_CAST")
+    val targets = extensions.getByName("kotlin").withGroovyBuilder { getProperty("targets") } as NamedDomainObjectCollection<Any>
+    targets.matching { it.withGroovyBuilder { getProperty("platformType") }.toString() == "jvm" }.all {
+        val target = withGroovyBuilder { getProperty("name") } as String
+        @Suppress("UNCHECKED_CAST")
+        val compilations = withGroovyBuilder { getProperty("compilations") } as NamedDomainObjectContainer<Any>
+        val warmUp = compilations.create("kubrikoCreatorWarmUp")
+        warmUp.withGroovyBuilder { "associateWith"(compilations.getByName("main")) }
+        val directory = layout.buildDirectory.dir("kubrikoCreator/warmUp/$target")
+        val source = tasks.register("kubrikoCreatorWarmUpSource${target.replaceFirstChar { it.uppercase() }}") {
+            outputs.dir(directory)
+            outputs.upToDateWhen { false }
+            doLast {
+                directory.get().file("KubrikoCreatorWarmUp.kt").asFile.writeText("internal object KubrikoCreatorWarmUp { const val TIME = ${System.nanoTime()}L }\n")
+            }
+        }
+        (warmUp.withGroovyBuilder { getProperty("defaultSourceSet") }.withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet).srcDir(source)
+        val compileTaskName = warmUp.withGroovyBuilder { getProperty("compileKotlinTaskName") } as String
+        tasks.named(compileTaskName) { outputs.cacheIf { false } }
+        extra[warmUpTaskProperty(target)] = compileTaskName
+    }
+}
+
+fun warmUpTaskProperty(target: String) = "kubrikoCreatorWarmUpTask.$target"
