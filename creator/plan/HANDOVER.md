@@ -78,8 +78,7 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`: step 6 (hot reload in the game) and Playing; and the open question about circle
-   Actor types with bodies that aren't square (below).
+1. The rest of `02-fast-iteration.md`: step 6 (hot reload in the game) and Playing.
 2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
@@ -88,10 +87,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   on purpose (a broken Kotlin file, so the preview stays up): Ball changed to a rectangle showed as a square, Brick's color
   reached the one Brick without a color of its own, the previewed Ball was dragged and inspected, a new type (Star) written
   on disk and dragged in from the sidebar showed and was selected, and once the file was removed, the compiled classes
-  took over with the same look and the selection kept. Not seen: a sprite type's preview. **Open question for the
-  user:** a circle Actor type whose body isn't square (Brick is 100 by 36) draws a circle of the width clipped to the
-  body, which looks like a rectangle (the user took it for the preview not working), while its collision mask is the
-  whole circle; an oval, or a circle of the smaller side for both drawing and mask, would match what it looks like.
+  took over with the same look and the selection kept. Not seen: a sprite type's preview. Circle types whose bodies aren't square draw a
+  clipped circle that looks like a rectangle; the user chose to keep that (2026-10-29).
 
 - Warming Kotlin's compile daemon (2026-10-29, `kubrikoCreatorWarmUp`), seen working: opening the scratch Breakout ran it
   right after the classes loaded (a fresh Kotlin daemon started, nothing in the console), the first change after that built
