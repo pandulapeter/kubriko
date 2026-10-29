@@ -110,7 +110,7 @@ internal class WorkspaceController(
      * The Gradle path of the module that runs the game on desktop, asked from Gradle in the background as soon as the
      * workspace opens, since only builds need it.
      */
-    private val desktopModulePath = scope.async(ioDispatcher) { findDesktopModulePath() }
+    private val desktopModulePath = DesktopModuleLookup(scope, ioDispatcher, findDesktopModulePath)
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
     private val _sceneFolders = MutableStateFlow(emptySet<String>())

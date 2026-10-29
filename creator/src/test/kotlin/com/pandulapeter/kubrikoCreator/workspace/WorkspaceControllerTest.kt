@@ -197,6 +197,21 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun theDesktopModuleIsAskedForAgainAfterALookupThatFailed() = runTest {
+        var lookups = 0
+        val controller = createController(
+            findDesktopModulePath = {
+                lookups++
+                if (lookups == 1) throw ProjectInspectionException(Res.string.error_no_desktop_module) else ":"
+            },
+        )
+        controller.play()
+        assertTrue(build.runs.isEmpty())
+        controller.play()
+        assertEquals(1, build.runs.size)
+    }
+
+    @Test
     fun aBuildWaitsForTheChangesThatAreStillBeingWritten() = runTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository, ioDispatcher = StandardTestDispatcher(testScheduler))
