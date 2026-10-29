@@ -21,13 +21,13 @@ import androidx.compose.ui.awt.SwingWindow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
 import com.pandulapeter.kubrikoCreator.ui.AppContent
+import com.pandulapeter.kubrikoCreator.ui.theme.CreatorTheme
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
 import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar
 import com.pandulapeter.kubrikoCreator.window.ProvideInterfaceScale
@@ -97,7 +97,7 @@ fun main(args: Array<String>) {
                 isFullscreen = rememberIsFullscreen(window = window, windowState = windowState),
             ) {
                 ProvideInterfaceScale {
-                    KubrikoTheme {
+                    CreatorTheme {
                         titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
                         AppContent(
                             screen = screen,
