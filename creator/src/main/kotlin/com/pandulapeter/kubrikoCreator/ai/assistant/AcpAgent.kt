@@ -14,6 +14,9 @@ import com.agentclientprotocol.client.Client
 import com.agentclientprotocol.client.ClientInfo
 import com.agentclientprotocol.client.ClientSession
 import com.agentclientprotocol.common.SessionCreationParameters
+import com.agentclientprotocol.model.AcpMethod
+import com.agentclientprotocol.model.AcpNotification
+import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.ClientCapabilities
 import com.agentclientprotocol.model.Implementation
 import com.agentclientprotocol.model.McpServer
@@ -40,6 +43,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -74,6 +78,18 @@ internal class AcpAgent(
      * The last lines the current (or last) process wrote to its standard error.
      */
     val errorOutput = _errorOutput.asStateFlow()
+    private val _authStatus = MutableStateFlow<AuthStatus?>(null)
+
+    /**
+     * Who the agent works as, where it reports that (Claude Agent does), or null while it hasn't.
+     */
+    val authStatus = _authStatus.asStateFlow()
+    private val _signInMethods = MutableStateFlow(emptyList<SignInMethod>())
+
+    /**
+     * The ways of signing in the agent offered when it last started.
+     */
+    val signInMethods = _signInMethods.asStateFlow()
     private val lifecycle = Mutex()
 
     @Volatile
@@ -120,6 +136,16 @@ internal class AcpAgent(
         conversation.attach(session)
         conversations += conversation
         conversation
+    }
+
+    /**
+     * Signs in with [method], one of [AgentInfo.authMethods] that the agent runs by itself.
+     *
+     * @throws AgentStartException If the agent couldn't be started.
+     */
+    suspend fun authenticate(method: AuthMethodId) {
+        val client = lifecycle.withLock { connected().client }
+        client.authenticate(method)
     }
 
     internal suspend fun sessionOf(conversation: AgentConversation): ClientSession = lifecycle.withLock {
@@ -183,6 +209,9 @@ internal class AcpAgent(
             name = command.program,
         )
         val protocol = Protocol(connectionScope, transport)
+        protocol.setNotificationHandlerRaw(authStatusUpdate, connectionScope.coroutineContext) { notification ->
+            AuthStatus.parse(notification.params)?.let { _authStatus.value = it }
+        }
         val client = Client(protocol)
         protocol.start()
         val exit = connectionScope.async(ioDispatcher) { channel.awaitExit() }
@@ -207,6 +236,7 @@ internal class AcpAgent(
             throw AgentStartException(exitCode, errorOutput, initializing.failure())
         }
         exit.cancel()
+        _signInMethods.value = SignInMethod.of(info.authMethods, command)
         return Connection(channel, connectionScope, client, info, timeSource.markNow())
     }
 
@@ -281,8 +311,17 @@ internal class AcpAgent(
         )
 
         private const val TERMINAL_AUTH = "terminal-auth"
+        private val authStatusUpdate = AcpMethod.AcpNotificationMethod(AuthStatus.METHOD, AuthStatusNotification.serializer())
     }
 }
+
+/**
+ * The shape the SDK needs for an extension notification; [AuthStatus.parse] reads its parameters.
+ */
+@Serializable
+private class AuthStatusNotification(
+    @Suppress("PropertyName") override val _meta: JsonElement? = null,
+) : AcpNotification
 
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun Deferred<*>.failure() = if (isCompleted) getCompletionExceptionOrNull() else null

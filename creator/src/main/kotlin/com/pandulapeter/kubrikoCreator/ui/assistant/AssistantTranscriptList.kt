@@ -47,6 +47,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_failure_agent_not_started
+import kubriko.creator.generated.resources.assistant_failure_auth_required
 import kubriko.creator.generated.resources.assistant_failure_conversation_lost
 import kubriko.creator.generated.resources.assistant_failure_node_missing
 import kubriko.creator.generated.resources.assistant_failure_prompt_failed
@@ -252,6 +253,7 @@ internal fun FailureReason.description(details: String? = null): String = when (
     FailureReason.NODE_MISSING -> stringResource(Res.string.assistant_failure_node_missing)
     FailureReason.AGENT_NOT_STARTED -> stringResource(Res.string.assistant_failure_agent_not_started)
     FailureReason.CONVERSATION_LOST -> stringResource(Res.string.assistant_failure_conversation_lost)
+    FailureReason.AUTH_REQUIRED -> stringResource(Res.string.assistant_failure_auth_required)
     FailureReason.PROMPT_FAILED -> details?.let { stringResource(Res.string.assistant_failure_prompt_failed, it) }
         ?: stringResource(Res.string.assistant_failure_prompt_failed_unknown)
 }

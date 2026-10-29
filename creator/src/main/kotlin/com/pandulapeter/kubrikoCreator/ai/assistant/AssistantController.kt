@@ -10,17 +10,26 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.pandulapeter.kubrikoCreator.mcp.clients.ProcessRunner
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 
 /**
  * The assistant panel's state for as long as Kubriko Creator runs: the one [Assistant], created on first use and held
@@ -28,12 +37,17 @@ import java.io.File
  * which end when the project closes, since their tools work on whatever project is open.
  *
  * @param scope Where conversations run: the main thread, which the panel's state is read on.
+ * @param secrets Where the API key is kept.
+ * @param signInLauncher Runs the sign-in commands of an agent's terminal sign-in methods.
  * @param createAssistant Creates the assistant running [AgentCommand], the agent through the user's `npx`.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
     private val scope: CoroutineScope,
     private val runner: ProcessRunner,
     private val store: AssistantSettingsStore,
+    private val secrets: SecretStore,
+    private val signInLauncher: AgentLauncher,
     private val ioDispatcher: CoroutineDispatcher,
     private val createAssistant: (AgentCommand) -> Assistant,
     private val home: String = System.getProperty("user.home"),
@@ -66,7 +80,50 @@ internal class AssistantController(
      */
     val currentChat = _currentChat.asStateFlow()
     private val assistantLock = Mutex()
-    private var assistant: Assistant? = null
+    private val assistant = MutableStateFlow<Assistant?>(null)
+
+    /**
+     * Who the agent works as, once it has said so.
+     */
+    val authStatus = assistant.flatMapLatest { it?.authStatus ?: flowOf(null) }.stateIn(scope, SharingStarted.Eagerly, null)
+
+    /**
+     * The ways of signing in the agent offers, once it has started.
+     */
+    val signInMethods = assistant.flatMapLatest { it?.signInMethods ?: flowOf(emptyList()) }.stateIn(scope, SharingStarted.Eagerly, emptyList())
+    private val statusBeforeSignIn = MutableStateFlow<AuthStatus?>(null)
+
+    /**
+     * Whether the agent said it isn't signed in, and the user hasn't signed in since. Claude Agent reports a new sign-in
+     * only at the next prompt.
+     */
+    val needsSignIn = combine(authStatus, statusBeforeSignIn) { status, before -> status?.isSignedIn == false && status != before }
+        .stateIn(scope, SharingStarted.Eagerly, false)
+    private val _signIn = MutableStateFlow<SignInSession?>(null)
+
+    /**
+     * The sign-in command running in the panel's terminal.
+     */
+    val signIn = _signIn.asStateFlow()
+    private val _hasApiKey = MutableStateFlow(false)
+
+    /**
+     * Whether Claude Agent uses the user's Anthropic API key, kept in [secrets], rather than a Claude Code login.
+     */
+    val hasApiKey = _hasApiKey.asStateFlow()
+
+    /**
+     * Whether this computer has somewhere to keep an API key.
+     */
+    val canKeepApiKey get() = secrets.isAvailable
+    private val _apiKeyFailed = MutableStateFlow(false)
+
+    /**
+     * Whether the last API key given couldn't be kept.
+     */
+    val apiKeyFailed = _apiKeyFailed.asStateFlow()
+    private val apiKeyLookup = CompletableDeferred<Unit>()
+    private var hasLookedUpApiKey = false
     private var project: File? = null
     private var hasFoundConfigurations = false
     private val discovery = CompletableDeferred<Unit>()
@@ -76,6 +133,7 @@ internal class AssistantController(
      * alias is gone falls back to the default one.
      */
     fun findConfigurations() {
+        lookUpApiKey()
         if (hasFoundConfigurations) return
         hasFoundConfigurations = true
         scope.launch {
@@ -136,6 +194,92 @@ internal class AssistantController(
         _configuration.value = configuration
         settings.update { it.copy(claudeConfigurationAlias = configuration.alias) }
         store.save(settings.value)
+        restartAgent()
+    }
+
+    /**
+     * Signs in with [method]: in the panel's terminal for a terminal method, otherwise by the agent itself. Once a
+     * terminal method succeeds, prompts refused for want of a sign-in are sent again.
+     */
+    fun signIn(method: SignInMethod) {
+        val command = method.terminal
+        if (command == null) {
+            scope.launch {
+                try {
+                    assistant().authenticate(method)
+                    _chats.value.forEach { it.resendAfterSignIn() }
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    // The agent reports the failure through the next prompt, which still asks for a sign-in.
+                }
+            }
+            return
+        }
+        scope.launch {
+            _signIn.value?.stop()
+            val session = try {
+                SignInSession(method, withContext(ioDispatcher) { signInLauncher.launch(command) }, scope, ioDispatcher)
+            } catch (_: IOException) {
+                null
+            }
+            _signIn.value = session ?: return@launch
+            if (session.exitCode.first { it != null } == 0 && _signIn.value === session) {
+                statusBeforeSignIn.value = authStatus.value
+                _signIn.value = null
+                _chats.value.forEach { it.resendAfterSignIn() }
+            }
+        }
+    }
+
+    /**
+     * Ends the sign-in command and closes the panel's terminal.
+     */
+    fun closeSignIn() {
+        val session = _signIn.value ?: return
+        _signIn.value = null
+        scope.launch { session.stop() }
+    }
+
+    /**
+     * Uses [apiKey] from now on, kept in the operating system's secret store, which starts the agent again (ending
+     * every conversation) and a new conversation.
+     *
+     * @param onKept Called once the key is kept.
+     */
+    fun setApiKey(apiKey: String, onKept: () -> Unit = {}) {
+        val key = apiKey.trim().takeIf { it.isNotEmpty() } ?: return
+        scope.launch {
+            val isKept = withContext(ioDispatcher) { secrets.write(API_KEY, key) }
+            _apiKeyFailed.value = !isKept
+            if (!isKept) return@launch
+            _hasApiKey.value = true
+            onKept()
+            restartAgent()
+        }
+    }
+
+    /**
+     * Forgets the API key, so that Claude Agent signs in as Claude Code does, which starts it again.
+     */
+    fun removeApiKey() {
+        scope.launch {
+            withContext(ioDispatcher) { secrets.delete(API_KEY) }
+            _hasApiKey.value = false
+            restartAgent()
+        }
+    }
+
+    private fun lookUpApiKey() {
+        if (hasLookedUpApiKey) return
+        hasLookedUpApiKey = true
+        scope.launch {
+            _hasApiKey.value = withContext(ioDispatcher) { secrets.read(API_KEY) } != null
+            apiKeyLookup.complete(Unit)
+        }
+    }
+
+    private fun restartAgent() {
         endChats()
         scope.launch { replaceAssistant() }
         newChat()
@@ -149,18 +293,22 @@ internal class AssistantController(
     }
 
     private suspend fun replaceAssistant() {
-        val replaced = assistantLock.withLock { assistant.also { assistant = null } } ?: return
+        val replaced = assistantLock.withLock { assistant.value.also { assistant.value = null } } ?: return
         withContext(ioDispatcher) { replaced.close() }
     }
 
     private suspend fun assistant(): Assistant = assistantLock.withLock {
-        assistant ?: run {
+        assistant.value ?: run {
             if (_configuration.value.alias != null) {
                 findConfigurations()
                 discovery.await()
             }
+            lookUpApiKey()
+            apiKeyLookup.await()
+            val apiKey = if (_hasApiKey.value) withContext(ioDispatcher) { secrets.read(API_KEY) } else null
             val npx = withContext(ioDispatcher) { runner.locate(NPX) } ?: throw NodeMissingException()
-            createAssistant(RegistryAgent.claude.command(File(npx), _configuration.value.environment)).also { assistant = it }
+            val environment = _configuration.value.environment + listOfNotNull(apiKey?.let { ANTHROPIC_API_KEY to it })
+            createAssistant(RegistryAgent.claude.command(File(npx), environment)).also { assistant.value = it }
         }
     }
 
@@ -168,11 +316,14 @@ internal class AssistantController(
      * Ends the agent, when Kubriko Creator quits.
      */
     override fun close() {
-        assistant?.close()
-        assistant = null
+        _signIn.value?.let { session -> scope.launch { session.stop() } }
+        assistant.value?.close()
+        assistant.value = null
     }
 
     private companion object {
         const val NPX = "npx"
+        const val API_KEY = "anthropic-api-key"
+        const val ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY"
     }
 }

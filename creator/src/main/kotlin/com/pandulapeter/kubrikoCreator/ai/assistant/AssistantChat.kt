@@ -16,6 +16,8 @@ import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
+import com.agentclientprotocol.protocol.JsonRpcException
+import com.agentclientprotocol.rpc.JsonRpcErrorCode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -106,9 +108,23 @@ internal class AssistantChat(
      * Sends [text] to the agent, unless a prompt runs or the conversation isn't ready.
      */
     fun send(text: String) {
-        val conversation = conversation ?: return
-        if (_isBusy.value || text.isBlank() || _state.value != ChatState.Ready) return
+        if (_isBusy.value || text.isBlank() || _state.value != ChatState.Ready || conversation == null) return
         _transcript.update { it.withUserMessage(text) }
+        prompt(text)
+    }
+
+    /**
+     * Sends the last prompt again if the agent refused it for want of a sign-in, now that the user has signed in.
+     */
+    fun resendAfterSignIn() {
+        if (_isBusy.value || _state.value != ChatState.Ready || !_transcript.value.needsSignIn) return
+        val text = _transcript.value.items.filterIsInstance<TranscriptItem.UserMessage>().lastOrNull()?.text ?: return
+        _transcript.update { it.withoutLastItem() }
+        prompt(text)
+    }
+
+    private fun prompt(text: String) {
+        val conversation = conversation ?: return
         _isBusy.value = true
         scope.launch {
             try {
@@ -122,7 +138,9 @@ internal class AssistantChat(
             } catch (exception: AgentStartException) {
                 _transcript.update { it.withFailure(FailureReason.AGENT_NOT_STARTED, exception.errorOutput.lastOrNull()) }
             } catch (exception: Exception) {
-                _transcript.update { it.withFailure(FailureReason.PROMPT_FAILED, exception.message) }
+                _transcript.update {
+                    if (exception.isAuthRequired()) it.withFailure(FailureReason.AUTH_REQUIRED) else it.withFailure(FailureReason.PROMPT_FAILED, exception.message)
+                }
             } finally {
                 _isBusy.value = false
             }
@@ -197,3 +215,8 @@ internal class AssistantChat(
         }
     }
 }
+
+/**
+ * Whether this is the agent's `authRequired` error, which an agent answers a prompt with until the user signs in.
+ */
+private fun Throwable.isAuthRequired() = generateSequence(this) { it.cause }.any { it is JsonRpcException && it.code == JsonRpcErrorCode.AUTH_REQUIRED.code }

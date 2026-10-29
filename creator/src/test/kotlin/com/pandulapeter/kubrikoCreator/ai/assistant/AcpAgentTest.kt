@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.HttpHeader
 import com.agentclientprotocol.model.McpServer
@@ -102,7 +103,7 @@ class AcpAgentTest {
         val agent = agent(launcher)
         assertEquals(AgentState.Stopped, agent.state.value)
         val info = agent.start()
-        assertEquals("fake-login", info.authMethods.single().id.value)
+        assertEquals(FakeAgent.AGENT_LOGIN, info.authMethods.first().id.value)
         assertEquals(AgentState.Running(info), agent.state.value)
         assertEquals(AgentCommand("fake-agent", listOf("--acp")), launcher.commands.single())
         val clientInfo = launcher.agents.single().clientInfos.single()
@@ -302,6 +303,27 @@ class AcpAgentTest {
         assertFailsWith<IllegalStateException> { agent.start() }
         delay(100)
         assertEquals(1, launcher.agents.size)
+    }
+
+    @Test
+    fun theAgentsSignInMethodsAndIdentityAreKept() = test {
+        val launcher = launcher()
+        val agent = agent(launcher)
+        agent.start()
+        val methods = agent.signInMethods.value
+        assertEquals(listOf(FakeAgent.AGENT_LOGIN, "terminal-login"), methods.map { it.id.value })
+        assertEquals(FakeAgent.TERMINAL_LOGIN, methods.last().terminal?.program)
+        assertNull(agent.authStatus.value)
+        launcher.channels.single().pushAuthStatus("account", "Claude Max", "me@example.com")
+        assertEquals(AuthStatus(AuthStatus.Kind.ACCOUNT, "Claude Max", email = "me@example.com"), agent.authStatus.await { it != null })
+    }
+
+    @Test
+    fun agentSignInIsAskedOfTheAgent() = test {
+        val launcher = launcher()
+        val agent = agent(launcher)
+        agent.authenticate(AuthMethodId(FakeAgent.AGENT_LOGIN))
+        assertEquals(listOf(AuthMethodId(FakeAgent.AGENT_LOGIN)), launcher.agents.single().authenticated)
     }
 
     private companion object {

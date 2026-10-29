@@ -37,6 +37,15 @@ internal class Assistant(
     private val serverStart = Mutex()
     private var port: Int? = null
     private val toolConversations = ConcurrentHashMap<AgentConversation, String>()
+    val authStatus get() = agent.authStatus
+    val signInMethods get() = agent.signInMethods
+
+    /**
+     * Signs in with [method], which the agent runs by itself.
+     *
+     * @throws AgentStartException If the agent couldn't be started.
+     */
+    suspend fun authenticate(method: SignInMethod) = agent.authenticate(method.id)
 
     /**
      * Starts a conversation about the project in [projectDirectory].

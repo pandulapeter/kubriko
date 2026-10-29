@@ -64,6 +64,13 @@ internal data class AssistantTranscript(
 
     fun withFailure(reason: FailureReason, details: String? = null) = copy(items = items + TranscriptItem.Failure(reason, details))
 
+    fun withoutLastItem() = copy(items = items.dropLast(1))
+
+    /**
+     * Whether the last prompt was refused until the user signs in.
+     */
+    val needsSignIn get() = (items.lastOrNull() as? TranscriptItem.Failure)?.reason == FailureReason.AUTH_REQUIRED
+
     private fun withToolCall(toolCall: TranscriptItem.ToolCall): AssistantTranscript {
         val index = items.indexOfFirst { it is TranscriptItem.ToolCall && it.id == toolCall.id }
         return copy(items = if (index < 0) items + toolCall else items.toMutableList().also { it[index] = toolCall })

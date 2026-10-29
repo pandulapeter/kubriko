@@ -23,21 +23,31 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`02-ai-assistant.md` → Order: the sign-in methods and the API key (4), together with the five "First" items of its Context for
-large games, then the panel's tool call cards tied into the activity view (7), then the files in order, with the rest of
-`02-ai-assistant.md` alongside them. The panel exists (toolbar → Assistant) and was seen working on 2026-10-29 with Claude Agent on
-the `claude-personal` configuration: one prompt streamed its answer as Markdown, with a card for Claude Code's `ToolSearch` and one
-titled "List the Scenes". Nothing signs in from the panel yet: a configuration without a login fails at its first prompt with the
-agent's own message. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+`02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
+its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
+built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
+`claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic
+Console, the subscription method ran the real adapter's `claude auth login` in the panel (browser opening stubbed) with its link and
+code field, Close ended it, and the API key form opened and cancelled. What is left in `01-large-projects.md` waits for other plans
+(Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
 
 **The assistant panel (seen working on 2026-10-29: a change followed in the editor and undone, Stop, Tab completion, Effort,
 several conversations, the default and alias configurations, and closing the project mid-turn)**
 - A permission request inline (Claude Agent rarely asks, since its editing tools are off; a mode such as Manual may).
-- The default configuration with no Claude Code login (this Mac's default one is signed in), a machine without Node.js (the
-  Install Node.js link), and the first run on a machine where `npx` still has to download the adapter (how long "Starting" lasts).
+- A machine without Node.js (the Install Node.js link), and the first run on a machine where `npx` still has to download the adapter (how long "Starting" lasts).
 - Whether answers now name Events and Blocks as the editor does ("Set velocity", not `setVelocity`), after the system prompt asked.
+
+**Signing in (seen in part on 2026-10-29, see Next)**
+- A real sign-in to completion: the browser flow, a pasted code, the prompt refused before it sent again by itself, and the
+  account menu changing after that prompt. Use a scratch `CLAUDE_CONFIG_DIR` (Creator inherits it for the default configuration),
+  never the user's own.
+- A real API key: saved to the keychain, the agent starting again with it and reporting "Anthropic API key", billing, and Stop
+  using the API key going back to the login. The macOS keychain may ask for access the first time.
+- Linux (`secret-tool`) and Windows (the Credential Locker through PowerShell) secret stores, untested on those systems.
+- The text field's outline is hard to see on the cards' background.
+- One run in about 40 of the assistant tests timed out (`*ai.assistant*`); which test wasn't caught.
 
 **Large projects (built and unit-tested on 2026-10-29, not yet seen in the app)**
 - The paged `read_scene` (summary, type, rectangle), `list_actor_types` by folder, and the batch tools (`place_actors`,

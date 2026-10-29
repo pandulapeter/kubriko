@@ -26,16 +26,19 @@ import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 class AssistantChatTest {
     private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val scope = CoroutineScope(SupervisorJob() + mainThread)
-    private val launcher = FakeAgentLauncher()
+    private val isSignedIn = AtomicBoolean(true)
+    private val launcher = FakeAgentLauncher({ FakeAgent(isSignedIn = isSignedIn) })
     private val agent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO)
     private val ended = CopyOnWriteArrayList<AgentConversation>()
 
@@ -165,5 +168,29 @@ class AssistantChatTest {
         val chat = readyChat()
         withContext(mainThread) { chat.close() }
         assertTrue(ended.single().isLost.value)
+    }
+
+    @Test
+    fun aPromptRefusedForWantOfASignInIsSentAgainAfterSigningIn() = test {
+        isSignedIn.set(false)
+        val chat = readyChat()
+        chat.sendAndWait("hello")
+        assertTrue(chat.transcript.value.needsSignIn)
+        assertEquals(TranscriptItem.Failure(FailureReason.AUTH_REQUIRED), chat.transcript.value.items.last())
+        isSignedIn.set(true)
+        withContext(mainThread) { chat.resendAfterSignIn() }
+        chat.isBusy.first { it }
+        chat.isBusy.first { !it }
+        assertEquals(listOf(TranscriptItem.UserMessage("hello"), TranscriptItem.AgentMessage("Hi there")), chat.transcript.value.items)
+        assertEquals(listOf("hello", "hello"), launcher.agents.single().prompts)
+    }
+
+    @Test
+    fun onlyARefusedPromptIsSentAgain() = test {
+        val chat = readyChat()
+        chat.sendAndWait("hello")
+        withContext(mainThread) { chat.resendAfterSignIn() }
+        assertFalse(chat.isBusy.value)
+        assertEquals(listOf("hello"), launcher.agents.single().prompts)
     }
 }

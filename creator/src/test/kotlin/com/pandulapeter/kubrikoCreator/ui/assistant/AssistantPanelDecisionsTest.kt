@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
+import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.SessionConfigGroupId
 import com.agentclientprotocol.model.SessionConfigOption
@@ -17,6 +18,7 @@ import com.agentclientprotocol.model.SessionConfigSelectOption
 import com.agentclientprotocol.model.SessionConfigSelectOptions
 import com.agentclientprotocol.model.SessionConfigValueId
 import com.agentclientprotocol.model.ToolCallId
+import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
 import kotlin.test.Test
@@ -70,5 +72,21 @@ class AssistantPanelDecisionsTest {
         assertEquals("Make the Ball faster", conversationTitle("Make the Ball faster\nand red"))
         assertEquals("Make the Ball start twice as fast. Keep…", conversationTitle("Make the Ball start twice as fast. Keep the answer short."))
         assertEquals("a".repeat(40) + "…", conversationTitle("a".repeat(50)))
+    }
+
+    @Test
+    fun theAccountMenuOffersSignInOnlyWithoutAnApiKey() {
+        val methods = listOf(SignInMethod(AuthMethodId("claude-ai-login"), "Claude Subscription"))
+        assertEquals(listOf(AccountAction.SignIn(methods.single()), AccountAction.UseApiKey), accountActions(methods, hasApiKey = false, canKeepApiKey = true))
+        assertEquals(listOf(AccountAction.UseApiKey, AccountAction.RemoveApiKey), accountActions(methods, hasApiKey = true, canKeepApiKey = true))
+        assertEquals(listOf(AccountAction.SignIn(methods.single())), accountActions(methods, hasApiKey = false, canKeepApiKey = false))
+    }
+
+    @Test
+    fun theSignInAreaShowsARunningSignInFirst() {
+        assertEquals(SignInAreaContent.TERMINAL, signInAreaContent(isSigningIn = true, isEnteringApiKey = true, needsSignIn = true))
+        assertEquals(SignInAreaContent.API_KEY, signInAreaContent(isSigningIn = false, isEnteringApiKey = true, needsSignIn = true))
+        assertEquals(SignInAreaContent.METHODS, signInAreaContent(isSigningIn = false, isEnteringApiKey = false, needsSignIn = true))
+        assertNull(signInAreaContent(isSigningIn = false, isEnteringApiKey = false, needsSignIn = false))
     }
 }

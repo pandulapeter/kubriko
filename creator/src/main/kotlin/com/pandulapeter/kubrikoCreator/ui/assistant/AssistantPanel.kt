@@ -28,6 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -68,6 +71,10 @@ internal fun AssistantPanel(
 ) {
     val chats by controller.chats.collectAsState()
     val chat by controller.currentChat.collectAsState()
+    val authStatus by controller.authStatus.collectAsState()
+    val signInMethods by controller.signInMethods.collectAsState()
+    val hasApiKey by controller.hasApiKey.collectAsState()
+    var isEnteringApiKey by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         controller.findConfigurations()
         if (controller.currentChat.value == null) controller.newChat()
@@ -107,13 +114,40 @@ internal fun AssistantPanel(
         configOptions = chat?.configOptions?.collectAsState()?.value.orEmpty(),
         onConfigurationSelected = controller::selectConfiguration,
         onConfigOptionSelected = { option, choice -> chat?.setConfigOption(option.id, SessionConfigOptionValue.of(choice.value.value)) },
-    )
+    ) {
+        AssistantAccountMenu(
+            status = authStatus,
+            methods = signInMethods,
+            hasApiKey = hasApiKey,
+            canKeepApiKey = controller.canKeepApiKey,
+            onSignIn = controller::signIn,
+            onUseApiKey = { isEnteringApiKey = true },
+            onRemoveApiKey = controller::removeApiKey,
+        )
+    }
     HorizontalDivider()
+    val session by controller.signIn.collectAsState()
+    val needsSignIn by controller.needsSignIn.collectAsState()
+    val hasApiKeyFailed by controller.apiKeyFailed.collectAsState()
     chat?.let { current ->
         ChatContent(
             modifier = Modifier.weight(1f),
             chat = current,
-        )
+        ) { isPromptRefused ->
+            AssistantSignInArea(
+                session = session,
+                isEnteringApiKey = isEnteringApiKey,
+                needsSignIn = needsSignIn || isPromptRefused,
+                methods = signInMethods,
+                canKeepApiKey = controller.canKeepApiKey,
+                hasApiKeyFailed = hasApiKeyFailed,
+                onSignIn = controller::signIn,
+                onCloseSignIn = controller::closeSignIn,
+                onUseApiKey = { isEnteringApiKey = true },
+                onSaveApiKey = { key -> controller.setApiKey(key) { isEnteringApiKey = false } },
+                onCancelApiKey = { isEnteringApiKey = false },
+            )
+        }
     }
 }
 
@@ -121,6 +155,7 @@ internal fun AssistantPanel(
 private fun ChatContent(
     chat: AssistantChat,
     modifier: Modifier = Modifier,
+    signInArea: @Composable (isPromptRefused: Boolean) -> Unit,
 ) = Column(
     modifier = modifier,
 ) {
@@ -152,6 +187,7 @@ private fun ChatContent(
         HorizontalDivider()
         PlanChecklist(transcript.plan)
     }
+    signInArea(transcript.needsSignIn)
     permissionRequest?.let { request ->
         PermissionCard(
             request = request,

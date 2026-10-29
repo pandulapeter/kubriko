@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.agent.Agent
+import com.agentclientprotocol.model.AcpMethod
+import com.agentclientprotocol.model.AcpNotification
 import com.agentclientprotocol.protocol.Protocol
 import com.agentclientprotocol.transport.StdioTransport
 import kotlinx.coroutines.CompletableDeferred
@@ -18,6 +20,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import java.io.IOException
 import java.nio.channels.Channels
 import java.nio.channels.Pipe
@@ -66,6 +73,7 @@ internal class FakeAgentChannel(
     private val agentWriter = Channels.newOutputStream(toCreator.sink()).bufferedWriter()
     private val errorWriter = Channels.newOutputStream(errorPipe.sink()).bufferedWriter()
     val isStopped get() = exit.isCompleted
+    private val protocol: Protocol
 
     init {
         val reader = Channels.newInputStream(fromCreator.source()).bufferedReader()
@@ -81,11 +89,30 @@ internal class FakeAgentChannel(
                 }
             },
         )
-        val protocol = Protocol(scope, transport)
+        protocol = Protocol(scope, transport)
         Agent(protocol, agent.support(this))
         protocol.start()
         if (agent.exitsAtStart != null) crash(agent.exitsAtStart)
     }
+
+    /**
+     * Sends `_auth/status_update`, as Claude Agent does, saying the agent works as [kind] ([label]).
+     */
+    fun pushAuthStatus(kind: String, label: String, email: String? = null) = protocol.sendNotificationRaw(
+        AcpMethod.AcpNotificationMethod(AuthStatus.METHOD, StatusUpdate.serializer()),
+        buildJsonObject {
+            putJsonObject("authStatus") {
+                put("kind", kind)
+                put("label", label)
+                email?.let { putJsonObject("account") { put("email", it) } }
+            }
+        },
+    )
+
+    @Serializable
+    private class StatusUpdate(
+        @Suppress("PropertyName") override val _meta: JsonElement? = null,
+    ) : AcpNotification
 
     fun writeError(line: String) = synchronized(errorWriter) {
         errorWriter.write(line)

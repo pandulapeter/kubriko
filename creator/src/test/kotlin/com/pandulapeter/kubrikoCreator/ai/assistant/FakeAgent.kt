@@ -19,6 +19,7 @@ import com.agentclientprotocol.common.SessionCreationParameters
 import com.agentclientprotocol.model.AgentCapabilities
 import com.agentclientprotocol.model.AuthMethod
 import com.agentclientprotocol.model.AuthMethodId
+import com.agentclientprotocol.model.AuthenticateResponse
 import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PermissionOption
@@ -41,6 +42,8 @@ import com.agentclientprotocol.model.SetSessionConfigOptionResponse
 import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
+import com.agentclientprotocol.protocol.JsonRpcException
+import com.agentclientprotocol.rpc.JsonRpcErrorCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -49,7 +52,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -61,6 +70,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * - `later`: ends the turn, then sends a message outside any prompt;
  * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message.
  *
+ * While [isSignedIn] is false, every prompt is refused with the `authRequired` error. The agent offers an agent sign-in
+ * method and a terminal one, whose `_meta["terminal-auth"]` runs [TERMINAL_LOGIN].
+ *
  * Every conversation offers a `model` option, `sonnet` or `opus`, and announces a `compact` slash command as soon as it starts.
  *
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
@@ -69,11 +81,13 @@ internal class FakeAgent(
     private val supportsLoading: Boolean = true,
     val exitsAtStart: Int? = null,
     private val answersInitialize: Boolean = true,
+    private val isSignedIn: AtomicBoolean = AtomicBoolean(true),
 ) {
     val clientInfos = CopyOnWriteArrayList<ClientInfo>()
     val newSessions = CopyOnWriteArrayList<SessionCreationParameters>()
     val loadedSessions = CopyOnWriteArrayList<SessionId>()
     val prompts = CopyOnWriteArrayList<String>()
+    val authenticated = CopyOnWriteArrayList<AuthMethodId>()
 
     fun support(channel: FakeAgentChannel) = object : AgentSupport {
         override suspend fun initialize(clientInfo: ClientInfo): AgentInfo {
@@ -82,8 +96,28 @@ internal class FakeAgent(
             channel.writeError("Fake agent started.")
             return AgentInfo(
                 capabilities = AgentCapabilities(loadSession = supportsLoading),
-                authMethods = listOf(AuthMethod.AgentAuth(AuthMethodId("fake-login"), "Fake login")),
+                authMethods = listOf(
+                    AuthMethod.AgentAuth(AuthMethodId(AGENT_LOGIN), "Fake login"),
+                    AuthMethod.TerminalAuth(
+                        id = AuthMethodId("terminal-login"),
+                        name = "Terminal login",
+                        args = listOf("--cli", "login"),
+                        _meta = buildJsonObject {
+                            putJsonObject("terminal-auth") {
+                                put("command", TERMINAL_LOGIN)
+                                putJsonArray("args") { add("login") }
+                            }
+                        },
+                    ),
+                    AuthMethod.EnvVarAuth(AuthMethodId("variables"), "Variables", vars = emptyList()),
+                ),
             )
+        }
+
+        override suspend fun authenticate(methodId: AuthMethodId, _meta: JsonElement?): AuthenticateResponse {
+            authenticated += methodId
+            isSignedIn.set(true)
+            return AuthenticateResponse()
         }
 
         override suspend fun createSession(sessionParameters: SessionCreationParameters): AgentSession {
@@ -135,6 +169,7 @@ internal class FakeAgent(
         override suspend fun prompt(content: List<ContentBlock>, _meta: JsonElement?) = flow {
             val text = (content.single() as ContentBlock.Text).text
             prompts += text
+            if (!isSignedIn.get()) throw JsonRpcException(JsonRpcErrorCode.AUTH_REQUIRED.code, "Authentication required")
             when (text) {
                 "hello" -> {
                     emit(Event.SessionUpdateEvent(message("Hi")))
@@ -179,6 +214,8 @@ internal class FakeAgent(
         const val LATER = "later"
         const val MODEL = "model"
         const val COMPACT = "compact"
+        const val AGENT_LOGIN = "fake-login"
+        const val TERMINAL_LOGIN = "fake-terminal-login"
         private val sessionCount = AtomicInteger()
 
         fun message(text: String) = SessionUpdate.AgentMessageChunk(ContentBlock.Text(text))

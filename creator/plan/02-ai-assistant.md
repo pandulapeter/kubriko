@@ -68,12 +68,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients
    do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK.
    Binary agents are unpacked per version under Creator's tools folder.
-4. **Sign-in:** the agent's `authMethods` as buttons in the panel. Terminal methods run in a small terminal pane in Creator (a pty; the
-   OS terminal as a fallback), since `claude auth login` opens the browser and may ask for a pasted code; then `authenticate`. The panel
-   header shows the identity from `_auth/status_update` ("Claude subscription", "API key"). **API key** for Claude: kept in the OS
-   keychain and passed as `ANTHROPIC_API_KEY` in the agent's environment only; other agents read their own variables. Creator never
-   sees or stores Claude.ai credentials, and never passes `--hide-claude-auth` or otherwise hides a sign-in method (the terms forbid
-   restricting Claude Code's).
+4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is other agents' own key variables (`EnvVarAuth`, under Other
+   agents), and the operating system's terminal as a fallback for a sign-in command that turns out to need a terminal device.
 5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): each `AiStep` knowing its conversation, so the panel's tool call
    cards tie into it; reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
    have no portable switch, so their `session/request_permission` for edits and commands is rejected by default (`PermissionHandler.Reject`),
@@ -89,10 +85,10 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** first, right after `01-large-projects.md`, the sign-in methods and the API key (4), then the tool call cards of the panel
-(7). Then alongside `04` to `07`: agent profiles and the fallbacks (Other agents and services), Codex first, then Gemini CLI and
-Copilot; the registry, the Node.js download, and binary agents (2, 3); resuming and attachments; Keep and Undo (8); usage (9); and
-the MCP server items above.
+**Order:** first the tool call cards of the panel (7), together with the five "First" items of Context for large games. Then
+alongside `04` to `07`: agent profiles and the fallbacks (Other agents and services), Codex first, then Gemini CLI and Copilot;
+the registry, the Node.js download, and binary agents (2, 3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP
+server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
@@ -144,7 +140,7 @@ advertises:
   agent offers one (a session mode or config option); otherwise every permission request for an `edit`, `delete`, `move`, or `execute`
   tool call is rejected (`PermissionHandler.Reject`). An agent that changes files without asking is marked as such in the list, and its
   conversations suggest version control, so that Keep and Undo (8) can take its changes back.
-- **Sign-in:** every kind of `authMethods` entry: agent (`authenticate`), terminal (the terminal pane of step 4), and environment
+- **Sign-in:** every kind of `authMethods` entry: agent (`authenticate`), terminal (the sign-in terminal, `SignInSession`), and environment
   variable (`EnvVarAuth`, whose `vars` name the fields; the values kept in the OS keychain per agent).
 - **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for Codex),
   offered from the user's shell aliases (`ShellAliases`) as the MCP clients' setups are, so `claude-personal` and `claude-flashfood`

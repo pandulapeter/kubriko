@@ -29,6 +29,11 @@ internal enum class FailureReason {
     CONVERSATION_LOST,
 
     /**
+     * The agent needs the user to sign in first.
+     */
+    AUTH_REQUIRED,
+
+    /**
      * The agent answered the prompt with an error.
      */
     PROMPT_FAILED,

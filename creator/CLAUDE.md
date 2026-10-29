@@ -373,6 +373,22 @@ under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `E
 `mcp__kubriko-creator` allowed without asking. `ClaudeAgentLiveTest` runs the real adapter when `KUBRIKO_CREATOR_CLAUDE_AGENT=true`
 (`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks the configuration), on an existing login; it costs a request.
 
+**Signing in** never passes through Creator: the agent signs in by itself. `AcpAgent.signInMethods` are its `initialize` answer's
+`authMethods` (`SignInMethod`): a terminal method runs the command its `_meta["terminal-auth"]` names (otherwise the agent's own
+program with the method's arguments), in the agent's environment so that it signs in to the same Claude Code configuration; an
+agent method is `authenticate`; methods taking variables are left out for now. `AcpAgent.authStatus` is what the agent last pushed
+with `_auth/status_update` (`AuthStatus`: none, a subscription account with its email, an API key, a gateway, or cloud
+credentials). A prompt the agent refuses with `authRequired` ends in an `AUTH_REQUIRED` failure, and `AssistantChat.resendAfterSignIn`
+sends it again (without a second user message) once the user has signed in. Terminal methods run in the panel's sign-in terminal
+(`SignInSession`, through `AssistantController`'s `signInLauncher`): plain pipes, since `claude auth login` needs no terminal device,
+its output shown as `TerminalText` (escape sequences dropped, a line written over with `\r` shown as its last version, OSC 8 and
+bare links kept for an Open the sign-in page button), and a field for the code the browser may give. Claude Agent reports a new
+identity only at the next prompt, so after a successful terminal sign-in `needsSignIn` stays false until the agent reports
+something new. **The API key** is kept in the operating system's secret store (`SystemSecretStore` over `SecretCommands`: the
+macOS keychain through `security`, the Secret Service through `secret-tool`, the Windows Credential Locker through PowerShell;
+the key always on the tool's standard input, never its arguments) and reaches the agent only as `ANTHROPIC_API_KEY` in its
+environment, which outranks a Claude Code login; giving or removing it starts the agent again, ending the conversations.
+
 **The panel** (toolbar → Assistant, `ui/assistant`): `AssistantController` (app-level, created in `main`) holds the one
 `Assistant` from first use until Creator quits, created with the user's `npx` (`ProcessRunner.locate`; without it a conversation
 fails with `NodeMissingException` and the panel links Node.js's download), and the conversations about the open project
@@ -384,7 +400,9 @@ it is gone), and choosing another ends the conversations, replaces the agent, an
 `AssistantTranscript` (messages and thoughts with their chunks joined, tool calls updated in place by ID, the latest plan and slash
 commands, and turns that ended other than by the agent finishing them); a prompt's own updates come through `prompt`'s `onUpdate`,
 so they are in the transcript before its turn ends. Permission requests wait for the user's answer (Stop cancels one), and the
-agent's config options (mode, model, effort, and others) are menus labeled with their names. The panel draws messages with its own
+agent's config options (mode, model, effort, and others) are menus labeled with their names, after the account menu (who the
+agent works as, its sign-in methods, and the API key; `accountActions`). Above the composer, `AssistantSignInArea` shows the
+running sign-in, the API key form, or, while signing in is needed, `SignInCard` (`signInAreaContent` decides). The panel draws messages with its own
 Markdown reader (`MarkdownParser`, `InlineMarkdown`, `MarkdownText`), titles Creator's tool calls (`mcp__kubriko-creator__<tool>`)
 with their command's title, and offers slash commands while one is typed (`AgentConversation.availableCommands`, kept from
 the agent's first announcement, which comes before anything collects `updates`).
@@ -397,7 +415,7 @@ the agent's first announcement, which comes before anything collects `updates`).
 | `project` | Project inspection (`ProjectInspector`: the build files and name, and the desktop module through `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s poll of each file's `FileStamp` in `.kubriko/actors`, Scenes, and sources, excluding generated code; files as Creator left them, which `BlockTypeStore` and `SceneStore` note in the workspace's `OwnWrites`, don't count as changed, so Creator's own writes don't reload anything), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`; each source file's libraries kept by length and modification time), `ExpectDeclarations` (whether the sources declare an `expect`, kept the same way). |
 | `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `SpriteFiles`, `GeneratedFile` (checksummed header), `BlockTypeStore` (writes definitions; `regenerate` turns the types in memory into code, writing only files whose code changed, which it knows without reading them while their length and modification time are the ones it left; skips hand-edited files and reports them; keeps each Scene's music the same way), `ActorTypeFamily` (built once per regeneration and passed to every scope, since building it costs more than generating a type). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
-| `ai/assistant` | The in-app assistant (see Assistant): `Assistant`, the ACP client (`AcpAgent`, `AgentConversation`, `AgentLauncher`), `RegistryAgent`, `ClaudeAgentOptions`, `AssistantSystemPrompt`, and the panel's state (`AssistantController`, `AssistantChat`, `AssistantTranscript`, `ClaudeConfiguration`). |
+| `ai/assistant` | The in-app assistant (see Assistant): `Assistant`, the ACP client (`AcpAgent`, `AgentConversation`, `AgentLauncher`), `RegistryAgent`, `ClaudeAgentOptions`, `AssistantSystemPrompt`, signing in (`SignInMethod`, `AuthStatus`, `SignInSession`, `TerminalText`, `SecretStore`), and the panel's state (`AssistantController`, `AssistantChat`, `AssistantTranscript`, `ClaudeConfiguration`). |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits; writes queued as `PendingWrite`s and written in batches, 100 ms after the last change, a type saved several times written once, then one regeneration and build file sync per batch; `awaitWrites`, which builds, git commands (`CommandContext.awaitWrites`), and closing wait for; reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
 | `scenes` | `SceneEditingController`, `SceneView`, `ActorTypeLook` and `PreviewActor`, `SceneHitTest` and `SceneBoundsGrid`, `ScenePatch`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |

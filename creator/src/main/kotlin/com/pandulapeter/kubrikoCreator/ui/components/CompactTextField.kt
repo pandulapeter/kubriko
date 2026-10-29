@@ -25,13 +25,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
 /**
  * A desktop-sized text field: one line high, with an optional [label] inside it on the left and an optional
  * [placeholder] while it is empty. [isError] draws its outline in the error color. Multiple lines wrap, unless
- * [isWrapping] is false, as for code, when they scroll sideways instead.
+ * [isWrapping] is false, as for code, when they scroll sideways instead. [isSecret] shows the text as dots, as for a key.
  */
 @Composable
 internal fun CompactTextField(
@@ -43,12 +45,14 @@ internal fun CompactTextField(
     isError: Boolean = false,
     isSingleLine: Boolean = true,
     isWrapping: Boolean = true,
+    isSecret: Boolean = false,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
 ) = BasicTextField(
     modifier = modifier,
     value = value,
     onValueChange = onValueChange,
     singleLine = isSingleLine,
+    visualTransformation = if (isSecret) PasswordVisualTransformation() else VisualTransformation.None,
     textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
     decorationBox = { innerTextField ->
