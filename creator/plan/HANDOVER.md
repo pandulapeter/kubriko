@@ -22,11 +22,11 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
   `01-large-projects.md`, hosting agents over ACP as Android Studio does.
 - A review on 2026-10-29 fixed small bugs on the spot and planned the rest: `14-stability.md` (new), `01-large-projects.md` →
   Known costs, `02-ai-assistant.md` → Holding up, `12-onboarding.md` → Mistakes and failures in the first hour, `06-blocks.md` →
-  Dangling references, and a note in `08-git.md`. Its open questions are in `14-stability.md`.
+  Dangling references, and `08-git.md` → Projects inside a larger repository.
 
 ## Next
 
-`02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
+`14-stability.md`, from its first item, since the user put stability before new features. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
 its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
 built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
 `claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic

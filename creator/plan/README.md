@@ -16,14 +16,17 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-The files are numbered in the order they are worked on.
+The files are numbered in the order they are worked on, except Stability (`14`), which comes right after `01`: its first items lock
+projects and lose work, so it goes before every new feature.
 
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
    flooded console, long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.
+   - Then [Stability](14-stability.md) - broken and hand-edited files, crash-safe writes, format versions, undo history that can't be
+     replayed, generated names that can clash, and process and lifecycle leaks.
 2. [AI assistant](02-ai-assistant.md) - an in-app chat panel hosting Claude (on the user's own subscription or API key), Codex, Gemini
-   CLI, or any ACP Registry agent, as Android Studio does. Creator is an AI-centric tool, so the panel's first four steps come right
-   after `01`; the rest of the file (more agents, resuming, Keep and Undo, more for the MCP server) goes alongside `04` to `07`.
+   CLI, or any ACP Registry agent, as Android Studio does. Creator is an AI-centric tool, so the panel's remaining steps come right
+   after `14`; the rest of the file (more agents, resuming, Keep and Undo, more for the MCP server) goes alongside `04` to `07`.
    **Every new editor feature lands with its command, its AI tool, and their tests,** and every AI surface disappears when AI features
    are turned off (`03-settings.md`), so build the panel against that switch from its first step.
 3. [Settings](03-settings.md) - Creator settings (with a switch that turns every AI feature off) and Project settings (name, version,
@@ -42,8 +45,6 @@ The files are numbered in the order they are worked on.
 12. [Onboarding](12-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
 13. [Later](13-later.md) - code editor, language server, asset editor extension point.
-14. [Stability](14-stability.md) - broken and hand-edited files, crash-safe writes, format versions, undo history that can't be
-    replayed, and process and lifecycle leaks (see its open question about doing it sooner).
 
 ## Vision
 

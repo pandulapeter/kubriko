@@ -10,7 +10,8 @@
 # Stability
 
 What breaks, hangs, or loses work today when files are broken, a process misbehaves, or something fails halfway. Each item names
-the code, why it matters, and the direction; none of it is built yet. The first two lose or lock up a user's work.
+the code, why it matters, and the direction; none of it is built yet. The first two lose or lock up a user's work, so this file comes
+right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
 
 ## Broken and hand-edited files
 
@@ -43,8 +44,10 @@ the code, why it matters, and the direction; none of it is built yet. The first 
 - **Format versions.** `.kubriko/*.json` and Scene files carry no format version; compatibility lives in scattered lenient
   serializers (`TimerNameSerializer`, old key names). A file written by a newer Creator fails to load or loses fields when saved by
   an older one. Direction: a `formatVersion` in `.kubriko/project.json` (one number for the project's Creator files, raised only by
-  changes an older Creator can't read), migrations applied on load, and a notice instead of opening a project whose version is
-  newer, so nothing is overwritten. Decide before the first public release, since every project made before it is unversioned.
+  changes an older Creator can't read), migrations applied on load, and a project whose version is newer opened read-only: a
+  notice says which Creator version it needs, every `WriteCommand` is rejected with the same message, and nothing regenerates code,
+  syncs the build files, or offers a template upgrade, while browsing, building, and playing still work. Lands before the first
+  public release, since every project made before it is unversioned and counts as version 0.
 
 ## Undo history
 
@@ -100,8 +103,9 @@ the code, why it matters, and the direction; none of it is built yet. The first 
   in after the Manager (`score` for `Score`), falling back to `scoreManager` only for the type's own Properties. A Manager type
   named `Velocity`, `Body`, `IsRemoved`, `Sprite`, `Other`, or `Index` clashes with generated members and locals, and `Scope` in a
   Manager hides `Manager.scope`; adding a Property `score` later silently renames the field, breaking Kotlin Blocks that say
-  `score.value`. Direction: also fall back for every name `PropertyNaming` reserves, and decide whether the field name should be
-  fixed per Manager (always `scoreManager`) despite the template upgrade that would take, since Kotlin Blocks name these fields.
+  `score.value`. Direction: always name the field `<name>Manager` (`scoreManager`), whatever the type's Properties, and reserve
+  Property names ending in `Manager` (`PropertyNaming`) so nothing can clash with it. Kotlin Blocks and Kotlin UI name these fields,
+  so the change is a format migration (Format versions above) that renames them through `KotlinIdentifiers`, as Manager renames do.
 
 ## Scene editor
 
@@ -116,9 +120,3 @@ the code, why it matters, and the direction; none of it is built yet. The first 
 - **Renaming a Scene ignores a failed move.** `SceneStore.move` doesn't check `renameTo` (Windows refuses while the game holds the file),
   yet `renameScene` still renames the goToScene Blocks and follows the open Scene to a file that doesn't exist. Direction: `Files.move`,
   and `rename_scene` failing (`Applied.failed`) before anything else changes; the folder rename stops at the first failure.
-
-## Open questions
-
-1. Whether this file goes before `02-ai-assistant.md`'s remaining steps: its first two items can lock a project or lose work for
-   anyone who edits files outside Creator or merges branches, which bigger projects do daily.
-2. Whether a newer project format should open read-only rather than not at all.

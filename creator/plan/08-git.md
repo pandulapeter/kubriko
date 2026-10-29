@@ -19,6 +19,10 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
   keychain. A generated GitHub Actions workflow builds every platform (`10-export-and-distribution.md`).
 - **Conflicts:** never write conflict markers into Creator's JSON; stop before changing anything and explain which files clash. Since every
   Scene Actor has a stable ID, a Scene conflict can later be shown, and resolved, Actor by Actor (`01-large-projects.md`).
-- Projects inside a larger repository (not at its root) are currently left to other tools; decide whether to support them. Today such a
-  project shows "no repository", and Start version control (or a new project with git on) creates a repository nested inside the
-  other one; at least look up the parent folders first (JGit's `findGitDir`) and explain instead.
+- **Projects inside a larger repository** (not at its root: a monorepo, a game beside its website, a folder of several games). Today such
+  a project shows "no repository", and Start version control (or a new project with git on) creates a repository nested inside the
+  other one. Support every layout: find the repository by looking up the parent folders (JGit's `findGitDir`), and work on the
+  project's folder within it (status, change grouping, commits, history, discarding, and restoring limited to the project's path,
+  paths shown relative to the project); Start version control and new projects offer to use the enclosing repository, and only
+  create a nested one when asked. Git worktrees and submodules (a `.git` file rather than a folder) open the same way, and a project
+  whose repository root is above it says so in the version control panel.
