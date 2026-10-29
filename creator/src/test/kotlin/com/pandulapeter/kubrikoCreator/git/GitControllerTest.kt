@@ -20,6 +20,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_git_committed
 import kubriko.creator.generated.resources.status_git_failed
 import kubriko.creator.generated.resources.status_git_repository_created
+import org.eclipse.jgit.api.errors.JGitInternalException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -107,6 +108,15 @@ class GitControllerTest {
         assertFalse(controller.commit("Broken"))
         assertEquals(before, controller.state.value)
         assertTrue(reports.isEmpty())
+    }
+
+    @Test
+    fun aLockedIndexFailsTheCommitLikeAnyOtherGitError() = runTest {
+        val repository = FakeGitRepository(RepositoryStatus("main", listOf(FileChange("README.md", ChangeKind.ADDED))))
+        val controller = createController(repository)
+        repository.isFailing = true
+        repository.failure = { JGitInternalException("Cannot lock the index.") }
+        assertFalse(controller.commit("Locked"))
     }
 
     @Test

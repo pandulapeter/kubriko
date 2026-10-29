@@ -24,6 +24,7 @@ import kubriko.creator.generated.resources.status_git_committed
 import kubriko.creator.generated.resources.status_git_failed
 import kubriko.creator.generated.resources.status_git_repository_created
 import org.eclipse.jgit.api.errors.GitAPIException
+import org.eclipse.jgit.api.errors.JGitInternalException
 import java.io.IOException
 
 /**
@@ -100,6 +101,8 @@ internal class GitController(
                 try {
                     operation(openRepository())
                 } catch (_: GitAPIException) {
+                    null
+                } catch (_: JGitInternalException) {
                     null
                 } catch (_: IOException) {
                     null
