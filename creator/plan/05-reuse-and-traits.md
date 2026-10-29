@@ -12,7 +12,7 @@
 What GameMaker had for games past a few objects: parent objects, scripts, and settings per object (persistent, visible, depth), plus
 Kubriko's own Traits. Without them, 20 enemy types are 20 copies of the same Blocks, and a growing game leaves Creator for Kotlin.
 Every addition lands with its command, AI tool, generator tests, and a case in the integration test's every-Block types, as in
-`05-blocks.md`.
+`06-blocks.md`.
 
 **Order:** functions, then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter.
 

@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 internal data class EventDefinition(
     @Description("When the Event happens.")
     @SerialName("type") val type: EventType,
-    @Description("The key a keyPressed Event reacts to. Only keyPressed Events have one.")
+    @Description("The key a keyPressed Event reacts to, " + KeyChoice.DESCRIPTION + " Only keyPressed Events have one.")
     @SerialName("key") val key: KeyChoice? = null,
     @Description("The Actor type a collision Event reacts to overlapping. Only collision Events have one.")
     @SerialName("otherActorType") val otherActorType: String? = null,

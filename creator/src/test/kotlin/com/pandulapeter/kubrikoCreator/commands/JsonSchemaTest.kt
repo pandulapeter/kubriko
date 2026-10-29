@@ -80,7 +80,7 @@ class JsonSchemaTest {
         val other = JsonSchema.of(SetEventOtherActorType.Input.serializer().descriptor)["properties"]!!.jsonObject["otherActorType"]!!.jsonObject
         assertEquals(Json.parseToJsonElement("""["string","null"]"""), other["type"])
         val key = JsonSchema.of(AddEvent.Input.serializer().descriptor)["properties"]!!.jsonObject["key"]!!.jsonObject
-        assertEquals(null, key["enum"]!!.jsonArray.last().jsonPrimitive.contentOrNull)
+        assertEquals(Json.parseToJsonElement("""["string","null"]"""), key["type"])
     }
 
     @Test

@@ -21,22 +21,25 @@ The files are numbered in the order they are worked on.
 1. [Large projects](01-large-projects.md) - nothing capped (named Timers, every key), the Scene list panel, and AI tools that page.
 2. [AI assistant](02-ai-assistant.md) - an in-app chat panel hosting Claude (on the user's own subscription or API key), Codex, Gemini
    CLI, or any ACP Registry agent, as Android Studio does. Creator is an AI-centric tool, so the panel's first four steps come right
-   after `01`; the rest of the file (more agents, resuming, Keep and Undo, more for the MCP server) goes alongside `03` to `06`.
-   **Every new editor feature lands with its command, its AI tool, and their tests.**
-3. [Folders and search](03-resource-organization.md) - the sidebar filter, quick open, find usages, and the search AI tools.
-4. [Reuse, Traits, and bigger games](04-reuse-and-traits.md) - functions, Traits, and what bigger games need.
-5. [Blocks, Actor types, and Manager types](05-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
+   after `01`; the rest of the file (more agents, resuming, Keep and Undo, more for the MCP server) goes alongside `04` to `07`.
+   **Every new editor feature lands with its command, its AI tool, and their tests,** and every AI surface disappears when AI features
+   are turned off (`03-settings.md`), so build the panel against that switch from its first step.
+3. [Settings](03-settings.md) - Creator settings (with a switch that turns every AI feature off) and Project settings (name, version,
+   application ID, icons, and signing).
+4. [Folders and search](04-resource-organization.md) - the sidebar filter, quick open, find usages, and the search AI tools.
+5. [Reuse, Traits, and bigger games](05-reuse-and-traits.md) - functions, Traits, and what bigger games need.
+6. [Blocks, Actor types, and Manager types](06-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
    sheets and animation, UI elements, the Paddle game template, Convert to code, and more drag and drop.
-6. [Sprite editor](06-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
-   GameMaker 6.1's; it follows sprite sheets in `05-blocks.md`.
-7. [Version control](07-git.md) - sidebar change markers, restoring old versions, branches, remotes.
-8. [Debugger](08-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
-9. [Export and distribution](09-export-and-distribution.md) - signed Android builds, desktop installers, web export, iOS,
-   Creator's own installers.
-10. [Project upkeep](10-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
-11. [Onboarding](11-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
+7. [Sprite editor](07-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
+   GameMaker 6.1's; it follows sprite sheets in `06-blocks.md`.
+8. [Version control](08-git.md) - sidebar change markers, restoring old versions, branches, remotes.
+9. [Debugger](09-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
+10. [Export and distribution](10-export-and-distribution.md) - debug and release builds, signed Android builds, desktop installers,
+    web export, iOS, and Creator's own installers.
+11. [Project upkeep](11-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
+12. [Onboarding](12-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
-12. [Later](12-later.md) - code editor, language server, asset editor extension point.
+13. [Later](13-later.md) - code editor, language server, asset editor extension point.
 
 ## Vision
 
@@ -57,7 +60,7 @@ compatibility or a copy of its look, icons, or action set; running Creator itsel
 5. **No engine changes for editor convenience**; editor-only runtime needs go into opt-in modules.
 6. **The AI can do exactly what the user can, through the same validated commands, and nothing else.**
 7. **Two reference projects keep the design honest:** a beginner game built only from Blocks (the Getting started paddle game, and the
-   Breakout in `~/Projects/breakout`), and Tesselar (see `10-project-upkeep.md`).
+   Breakout in `~/Projects/breakout`), and Tesselar (see `11-project-upkeep.md`).
 
 ## Files and ownership
 
@@ -67,7 +70,7 @@ compatibility or a copy of its look, icons, or action set; running Creator itsel
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
 | `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes. |
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene offers to reload. |
-| Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff (`10-project-upkeep.md`). |
+| Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff (`11-project-upkeep.md`). |
 | The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
 | `.kubriko/local/` | Creator | Git-ignored. |
 

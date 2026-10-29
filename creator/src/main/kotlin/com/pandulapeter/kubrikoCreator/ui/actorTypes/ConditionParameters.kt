@@ -93,10 +93,8 @@ internal fun ConditionParameters(
             YesNoChoice(condition.isOn, Res.string.condition_is_on, Res.string.condition_is_off) { onConditionChange(condition.copy(isOn = it)) }
         }
         is ConditionDefinition.KeyHeld -> {
-            MenuButton(
-                label = stringResource(condition.key.title),
-                options = KeyChoice.entries,
-                optionText = { stringResource(it.title) },
+            KeyChoiceButton(
+                key = condition.key,
                 onSelected = { onConditionChange(condition.copy(key = it)) },
             )
             YesNoChoice(condition.isHeld, Res.string.condition_is_held, Res.string.condition_is_not_held) { onConditionChange(condition.copy(isHeld = it)) }

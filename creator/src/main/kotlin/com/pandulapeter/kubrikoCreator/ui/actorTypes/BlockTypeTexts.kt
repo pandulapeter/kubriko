@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -81,6 +82,7 @@ import kubriko.creator.generated.resources.screen_position_top_left
 import kubriko.creator.generated.resources.screen_position_top_right
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 internal val EventType.title: StringResource
     get() = when (this) {
@@ -143,7 +145,10 @@ internal val PauseAction.title: StringResource
         PauseAction.TOGGLE -> Res.string.block_pause_action_toggle
     }
 
-internal val KeyChoice.title: StringResource
+/**
+ * What the key is called, for the common ones that have a name of their own; the rest show [readableKeyName].
+ */
+internal val KeyChoice.title: StringResource?
     get() = when (this) {
         KeyChoice.LEFT -> Res.string.key_left
         KeyChoice.RIGHT -> Res.string.key_right
@@ -155,7 +160,11 @@ internal val KeyChoice.title: StringResource
         KeyChoice.A -> Res.string.key_a
         KeyChoice.S -> Res.string.key_s
         KeyChoice.D -> Res.string.key_d
+        else -> null
     }
+
+@Composable
+internal fun KeyChoice.text() = title?.let { stringResource(it) } ?: readableKeyName(composeKeyName)
 
 internal val PropertyKind.icon: DrawableResource
     get() = when (this) {

@@ -38,7 +38,7 @@ internal class ActorTypeFeatures(
     isCollidableAnyway: Boolean,
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
-    val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
+    val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key?.isKnown == true }
     val edgeEvents = events.filter { it.type == EventType.EDGE_TOUCHED }
     val collisionEvents = events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
     val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer?.let(TimerNaming::isValid) == true }

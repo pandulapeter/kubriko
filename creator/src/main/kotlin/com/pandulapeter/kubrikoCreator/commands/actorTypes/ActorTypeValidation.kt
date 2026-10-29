@@ -54,6 +54,7 @@ import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_not_allowed
 import kubriko.creator.generated.resources.error_command_type_missing
+import kubriko.creator.generated.resources.error_game_key_unknown
 
 /**
  * The block-built types of the project, which every type command has validated to exist before it is applied.
@@ -117,6 +118,7 @@ internal fun validateSize(width: Float, height: Float) = if (width.isFinite() &&
 internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection? = when {
     !event.type.isAvailableIn(scope.kind) -> Rejection(Res.string.error_command_event_not_allowed, event.type.serialName)
     event.key != null && event.type != EventType.KEY_PRESSED -> Rejection(Res.string.error_command_key_not_allowed)
+    event.key?.isKnown == false -> Rejection(Res.string.error_game_key_unknown, event.key.composeKeyName)
     event.otherActorType != null && event.type != EventType.COLLISION -> Rejection(Res.string.error_command_other_actor_type_not_allowed)
     event.timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
     event.timer != null && !TimerNaming.isValid(event.timer) -> Rejection(Res.string.error_command_timer_invalid)
@@ -132,6 +134,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
     !BlockKind.of(block).isAvailableIn(eventType, scope.kind) -> Rejection(Res.string.error_command_block_not_allowed, block.serialName, eventType.serialName)
     block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(Res.string.error_command_condition_not_allowed)
     !block.areNumbersFinite -> Rejection(Res.string.error_command_number_invalid)
+    ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> Rejection(Res.string.error_game_key_unknown, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
     block.timerName?.let(TimerNaming::isValid) == false -> Rejection(Res.string.error_command_timer_invalid)
     block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> Rejection(Res.string.error_command_actor_type_missing, block.actorTypeReference.orEmpty())
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false -> Rejection(Res.string.error_command_scene_missing, block.scene)

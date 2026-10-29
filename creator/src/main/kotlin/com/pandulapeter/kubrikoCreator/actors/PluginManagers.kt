@@ -47,7 +47,7 @@ internal data class PluginManagers(
             }
             val usesKeyboard = definitions.any { definition ->
                 definition.events.any { event ->
-                    (event.type == EventType.KEY_PRESSED && event.key != null) ||
+                    (event.type == EventType.KEY_PRESSED && event.key?.isKnown == true) ||
                         event.blocks.any { (it as? BlockDefinition.If)?.condition is ConditionDefinition.KeyHeld }
                 }
             }

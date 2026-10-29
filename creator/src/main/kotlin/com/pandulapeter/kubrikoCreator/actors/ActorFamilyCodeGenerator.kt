@@ -326,7 +326,7 @@ internal object ActorFamilyCodeGenerator {
             EventType.ADDED_TO_SCENE -> Hook("$ADDED()", "$ADDED()")
             EventType.EVERY_FRAME -> Hook("$EVERY_FRAME()", "$EVERY_FRAME()")
             EventType.EDGE_TOUCHED -> Hook("$EDGE($EDGE_PARAMETERS)", "$EDGE($EDGE_ARGUMENTS)")
-            EventType.KEY_PRESSED -> event.key?.let { Hook("${key(it)}()", "${key(it)}()") }
+            EventType.KEY_PRESSED -> event.key?.takeIf { it.isKnown }?.let { Hook("${key(it)}()", "${key(it)}()") }
             EventType.COLLISION -> event.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
                 Hook("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
             }

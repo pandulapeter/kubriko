@@ -10,26 +10,14 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.ic_chevron
-import org.jetbrains.compose.resources.painterResource
 
 /**
  * An outlined button showing the chosen option, with a chevron, that opens a menu of [options].
@@ -42,23 +30,10 @@ internal fun <T> MenuButton(
     onSelected: (T) -> Unit,
 ) = Box {
     var isExpanded by remember { mutableStateOf(false) }
-    OutlinedButton(
-        modifier = Modifier.heightIn(min = 32.dp),
-        contentPadding = PaddingValues(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+    MenuButtonFace(
+        label = label,
         onClick = { isExpanded = true },
-    ) {
-        Text(
-            modifier = Modifier.weight(1f, fill = false),
-            text = label,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Icon(
-            modifier = Modifier.padding(start = 4.dp).size(14.dp),
-            painter = painterResource(Res.drawable.ic_chevron),
-            contentDescription = null,
-        )
-    }
+    )
     DropdownMenu(
         expanded = isExpanded,
         onDismissRequest = { isExpanded = false },

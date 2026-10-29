@@ -246,7 +246,11 @@ internal object BlockCodeGenerator {
             is ConditionDefinition.Number -> "$property ${condition.comparison.operator} ${floatLiteral(condition.value)}"
             is ConditionDefinition.Text -> "$property ${if (condition.isEqual) "==" else "!="} ${stringLiteral(condition.value)}"
             is ConditionDefinition.Toggle -> if (condition.isOn) "$property" else "!$property"
-            is ConditionDefinition.KeyHeld -> (if (condition.isHeld) "" else "!") + "keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"
+            is ConditionDefinition.KeyHeld -> when {
+                !condition.key.isKnown -> (!condition.isHeld).toString()
+                condition.isHeld -> "keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"
+                else -> "!keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"
+            }
             is ConditionDefinition.Velocity -> "velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${unitLiteral(condition.value)}"
             is ConditionDefinition.Chance -> "Random.nextFloat() * 100f < ${floatLiteral(condition.percent)}"
             is ConditionDefinition.Paused -> (if (condition.isPaused) "!" else "") + "$STATE_MANAGER_FIELD.isRunning.value"

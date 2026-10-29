@@ -50,6 +50,7 @@ import kubriko.creator.generated.resources.error_command_sound_missing
 import kubriko.creator.generated.resources.error_command_sprite_missing
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_not_allowed
+import kubriko.creator.generated.resources.error_game_key_unknown
 import kubriko.creator.generated.resources.error_property_name_taken
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_type_name_taken
@@ -187,6 +188,10 @@ class ActorTypeCommandsTest {
         assertEquals(Rejection(Res.string.error_command_other_actor_type_not_allowed), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 0, "Wall")))
         assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Ghost"), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 2, "Ghost")))
         assertEquals(Rejection(Res.string.error_command_key_not_allowed), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, key = KeyChoice.A)))
+        assertEquals(Rejection(Res.string.error_game_key_unknown, "Hyper"), context.rejection(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("Hyper"))))
+        assertEquals(Rejection(Res.string.error_game_key_unknown, "Hyper"), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.KEY_PRESSED, key = KeyChoice("Hyper"))))
+        assertEquals(Rejection(Res.string.error_game_key_unknown, "Hyper"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("Hyper"))))))
+        assertEquals(KeyChoice("F5"), context.assertRoundTrip(Invocation(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("F5")))) { context.ball() }!!.events[1].key)
     }
 
     @Test

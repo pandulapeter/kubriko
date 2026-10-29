@@ -25,6 +25,7 @@ import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_event_key
 import kubriko.creator.generated.resources.error_command_key_not_allowed
+import kubriko.creator.generated.resources.error_game_key_unknown
 
 @OptIn(EditorMutation::class)
 internal object SetEventKey : WriteCommand<SetEventKey.Input> {
@@ -36,7 +37,11 @@ internal object SetEventKey : WriteCommand<SetEventKey.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
-        ?: if (context.requireType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED) Rejection(Res.string.error_command_key_not_allowed) else null
+        ?: when {
+            context.requireType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED -> Rejection(Res.string.error_command_key_not_allowed)
+            !input.key.isKnown -> Rejection(Res.string.error_game_key_unknown, input.key.composeKeyName)
+            else -> null
+        }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
@@ -51,7 +56,7 @@ internal object SetEventKey : WriteCommand<SetEventKey.Input> {
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,
-        @Description("The key.")
+        @Description("The key, " + KeyChoice.DESCRIPTION)
         @SerialName("key") val key: KeyChoice,
     )
 }

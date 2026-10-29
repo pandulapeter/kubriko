@@ -102,10 +102,8 @@ internal fun EventBlocks(
             style = MaterialTheme.typography.titleSmall,
         )
         when (event.type) {
-            EventType.KEY_PRESSED -> MenuButton(
-                label = event.key?.let { stringResource(it.title) }.orEmpty(),
-                options = KeyChoice.entries,
-                optionText = { stringResource(it.title) },
+            EventType.KEY_PRESSED -> KeyChoiceButton(
+                key = event.key ?: KeyChoice.SPACE,
                 onSelected = onKeyChange,
             )
             EventType.TIMER_FINISHED -> (event.timer ?: TimerNaming.DEFAULT_NAME).let { timer ->

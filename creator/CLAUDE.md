@@ -161,6 +161,11 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   the velocity, a chance, or whether the game is paused), else, repeat, and end Blocks mark sections, so every Block keeps its plain index. `BlockNesting`
   works out each Block's depth for the editor's indentation and the generator alike; an if or repeat without an end runs to
   the end of the Event, and an else or end that belongs to no section shows a warning and generates a comment.
+- **Keys** (`KeyChoice`): key pressed Events and held-key conditions take any key Compose knows on every platform
+  (`composeKeys`, one entry per `Key` constant, so Creator stops compiling rather than generating code that doesn't when
+  Compose drops one), saved by the constant's name (`Spacebar`; older projects' `space`, and any case, are read too). A key
+  that isn't one is rejected and left out of the generated code. `KeyChoiceButton` opens them all, common ones first,
+  filtered by what is typed (`matchingKeys`), or chosen by pressing one.
 - **Timers** are named, as many as needed, like GameMaker's alarms but not capped: the startTimer (seconds, once or repeating)
   and stopTimer Blocks, and a timerFinished Event per Timer, each naming it (`TimerNaming`: a lowercase identifier). A Timer
   exists once a Block or an Event names it; an Actor type shares its Timers with its whole family, so a child's Block can start

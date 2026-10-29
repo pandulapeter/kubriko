@@ -56,7 +56,7 @@ internal object ManagerTypeCodeGenerator {
         val name = definition.name
         val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames.toList(), managerTypes)
         val events = definition.events.filter { it.type.isAvailableIn(BlockTypeKind.MANAGER) }
-        val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
+        val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key?.isKnown == true }
         val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer?.let(TimerNaming::isValid) == true }
         val startEvents = events.filter { it.type == EventType.GAME_STARTED }
         val frameEvents = events.filter { it.type == EventType.EVERY_FRAME }

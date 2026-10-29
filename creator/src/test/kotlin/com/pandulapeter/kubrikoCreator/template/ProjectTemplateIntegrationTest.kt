@@ -229,7 +229,14 @@ class ProjectTemplateIntegrationTest {
 
     private fun everyEvent(blocks: List<BlockDefinition>) = EventType.entries.flatMap { type ->
         when (type) {
-            EventType.KEY_PRESSED -> KeyChoice.entries.map { key -> EventDefinition(type = type, key = key, blocks = blocks) }
+            EventType.KEY_PRESSED -> KeyChoice.all.mapIndexed { index, key ->
+                // Every key, though only a few with every Block, which would make a method too large to compile.
+                EventDefinition(
+                    type = type,
+                    key = key,
+                    blocks = if (index < 3) blocks else listOf(BlockDefinition.If(ConditionDefinition.KeyHeld(key)), BlockDefinition.Log("Held"), BlockDefinition.End),
+                )
+            }
             EventType.COLLISION -> listOf("EveryBlock", "Ball").map { EventDefinition(type = type, otherActorType = it, blocks = blocks + blocks) }
             EventType.TIMER_FINISHED -> listOf("timer1", "spawnEnemy", "timer1").map { EventDefinition(type = type, timer = it, blocks = blocks) }
             else -> listOf(EventDefinition(type = type, blocks = blocks))

@@ -16,7 +16,7 @@ files where the format allows it, so the project stays readable in IntelliJ and 
 ## Folders left
 
 - **Sprites:** virtual folders, since Compose resources take no subfolders in `drawable` (only a folder's direct files become
-  accessors); a sprite's folder is kept in `.kubriko/sprites/<name>.json` (`06-sprite-editor.md`), and sprite names stay unique.
+  accessors); a sprite's folder is kept in `.kubriko/sprites/<name>.json` (`07-sprite-editor.md`), and sprite names stay unique.
 - **Sounds and music:** their real subfolders under `composeResources/files` shown as trees (they are already addressed by path).
 - **Kotlin files:** the package tree, read-only (moving them is IntelliJ's job).
 - Expanded folders remembered per project in `.kubriko/local`, and moving a whole folder into another by dragging.

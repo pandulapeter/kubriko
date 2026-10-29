@@ -20,7 +20,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 - **Kubriko's API as a read tool** (the root `CLAUDE.md`'s overview, or the KDoc of a named class): real sessions read Kubriko's sources
   jars with their own shell to write Kotlin Blocks.
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
-  (`08-debugger.md`) exists.
+  (`09-debugger.md`) exists.
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), numbering steps per project rather than
   per run of Creator, and naming the client (from MCP's `clientInfo`) when two are connected.
 
@@ -69,7 +69,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    Creator can run on this platform. Claude Agent first, then Codex and Gemini CLI, built in as a fallback list before the first fetch.
    Versions are pinned to the registry's and offered as an update when it moves. A custom agent is a command line the user enters.
 3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients
-   do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `11-onboarding.md` builds for the JDK.
+   do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK.
    Binary agents are unpacked per version under Creator's tools folder.
 4. **Sign-in:** the agent's `authMethods` as buttons in the panel. Terminal methods run in a small terminal pane in Creator (a pty; the
    OS terminal as a fallback), since `claude auth login` opens the browser and may ask for a pasted code; then `authenticate`. The panel
@@ -103,7 +103,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 3. The panel (7), without resuming or attachments.
 4. The sign-in methods and the API key (4).
 
-Then alongside `03` to `06`: the registry, the Node.js download, and other agents (2, 3); resuming and attachments; Keep and
+Then alongside `04` to `07`: the registry, the Node.js download, and other agents (2, 3); resuming and attachments; Keep and
 Undo (8); usage (9); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
@@ -162,7 +162,7 @@ understand the game is shown to the user too.
    revision and the change, not the whole object. The user's own edits between two prompts reach the next one as a short summary ("you
    added a Collision with Brick Event to Ball"), so the agent stays in sync without reading everything again.
 4. **`get_relations`:** what references an Actor type, Manager type, Property, or Scene, and what it references, from the model; it
-   replaces chains of reads, and `search_project` and `find_usages` (`03-resource-organization.md`) build on it.
+   replaces chains of reads, and `search_project` and `find_usages` (`04-resource-organization.md`) build on it.
 5. **Token budgets as tests**, like the size checks and the build benchmark: the whole tool list, and each read tool on the Breakout
    copy (`read_actor_type` of the Ball, `read_scene` of a level, the digest), stay under a budget, so their cost can't creep up.
 
@@ -183,7 +183,7 @@ understand the game is shown to the user too.
   fire. Shown in the editor and readable by the AI.
 - **Fewer retries:** rejections that say precisely what to change, and a dry run for write tools.
 - **Cheaper screenshots:** downscaled or cropped to a region or an Actor, and replaced by Actors' states from the debug agent
-  (`08-debugger.md`) where those say enough.
+  (`09-debugger.md`) where those say enough.
 - **Planning first** for big requests, as a checklist the user approves (ACP `plan` updates), and model hints (a smaller model for
   small edits) that the user decides on, since they pay.
 

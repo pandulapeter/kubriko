@@ -17,7 +17,7 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 - Ask before pushing.
 - `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
   its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
-- The user wants every item of `01-large-projects.md` to `04-reuse-and-traits.md` done, with nothing capped in number.
+- The user wants every item of `01-large-projects.md` to `05-reuse-and-traits.md` done, with nothing capped in number.
 - Creator is meant to be AI-centric: the in-app assistant panel (`02-ai-assistant.md`) was moved up to come right after
   `01-large-projects.md`, hosting agents over ACP as Android Studio does.
 

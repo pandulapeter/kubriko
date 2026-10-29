@@ -282,6 +282,10 @@
     <string name="key_a">A</string>
     <string name="key_s">S</string>
     <string name="key_d">D</string>
+    <string name="key_search">Search keys</string>
+    <string name="key_press">Choose a key by pressing it</string>
+    <string name="key_listening">Press the key…</string>
+    <string name="key_none_found">No key matches.</string>
     <string name="action_new_actor_type">New Actor type</string>
     <string name="action_new_folder">New folder</string>
     <string name="action_rename_folder">Rename</string>

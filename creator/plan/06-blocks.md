@@ -25,7 +25,7 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 
 1. **UI elements (once a second UI need comes, such as a title screen with a Start button):** `texts` becomes a sealed `elements`
    tree (column, row, box, text, image, button, progress bar) that the editor builds visually, with a text as one kind of element so
-   existing files still load. Buttons run a new Manager Event, "When a button is clicked", so UI behavior stays Events and Blocks.
+   existing files still load. It also lifts the cap on where a text goes (today one of the nine `ScreenPosition`s). Buttons run a new Manager Event, "When a button is clicked", so UI behavior stays Events and Blocks.
    Worth doing before many projects depend on the flat `texts` list.
 2. **Hand-written Composables:** a Manager shows a `@Composable` from the project's own code, chosen by name, so a project that
    outgrows Creator's UI keeps it in its own files.
@@ -43,8 +43,8 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when
   the size changes.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
-  editor (`06-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
-  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`04-reuse-and-traits.md`).
+  editor (`07-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
+  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`05-reuse-and-traits.md`).
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
   Scene bounds (as opposed to touching the edge).
 - **More drag and drop:** reordering Events the same way, and dragging a Block into another Event.

@@ -61,7 +61,7 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
         @SerialName("actorType") val actorType: String,
         @Description("When the Event happens.")
         @SerialName("type") val type: EventType,
-        @Description("The key a keyPressed Event reacts to. Only keyPressed Events have one.")
+        @Description("The key a keyPressed Event reacts to, " + KeyChoice.DESCRIPTION + " Spacebar unless another one is given. Only keyPressed Events have one.")
         @SerialName("key") val key: KeyChoice? = null,
         @Description("The Actor type a collision Event reacts to overlapping. Only collision Events have one.")
         @SerialName("otherActorType") val otherActorType: String? = null,

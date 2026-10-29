@@ -64,7 +64,7 @@ internal sealed interface ConditionDefinition {
     @SerialName("keyHeld")
     @Description("Checks whether a key is being held down.")
     data class KeyHeld(
-        @Description("The key.")
+        @Description("The key, " + KeyChoice.DESCRIPTION)
         @SerialName("key") val key: KeyChoice = KeyChoice.SPACE,
         @Description("True to check that it is held, false to check that it isn't.")
         @SerialName("isHeld") val isHeld: Boolean = true,
