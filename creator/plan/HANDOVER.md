@@ -78,10 +78,16 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`: step 6 (hot reload in the game) and Playing.
+1. The rest of `02-fast-iteration.md`: step 6 (hot reload in the game), the last of it.
 2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Playing without Gradle (2026-10-29), seen working: Play and Play from this Scene starting the game in 1.1 to 1.4 s, the
+  version 7 upgrade, the old game replaced by a new one, Stop, and closing the game window. Not seen: a game that crashes
+  (the exit code and last lines in the console are unit-tested), audio and sprites found from the copied classes, a
+  project whose `run` task has no Java toolchain (it should fall back to Gradle), Windows paths, and the AI's `start_game`
+  with a `scene`.
 
 - Previews of changed Actor types (2026-10-29, step 5), seen working on the scratch Breakout with a build kept failing
   on purpose (a broken Kotlin file, so the preview stays up): Ball changed to a rectangle showed as a square, Brick's color

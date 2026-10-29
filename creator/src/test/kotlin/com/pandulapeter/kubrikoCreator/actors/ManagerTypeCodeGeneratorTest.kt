@@ -163,7 +163,7 @@ class ManagerTypeCodeGeneratorTest {
             wiring,
             "    fun createManagers(isInSceneEditor: Boolean = false, firstScene: String? = null): List<Manager> {\n" +
                 "        val managers = listOf<Manager>(\n            Game(isInSceneEditor),\n            Level(isInSceneEditor),\n        )\n" +
-                "        return listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers\n    }\n",
+                "        return listOf(GeneratedScenes(firstSceneOverride ?: firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers\n    }\n",
         )
         assertContains(ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"), "        val managers = listOf<Manager>(\n        )\n")
         assertFalse("CollisionManager" in wiring || "KeyboardInputManager" in wiring)
@@ -177,7 +177,7 @@ class ManagerTypeCodeGeneratorTest {
             wiring,
             "        val pluginManagers = if (isInSceneEditor) {\n            emptyList()\n        } else {\n            listOf<Manager>(\n" +
                 "                CollisionManager.newInstance(),\n                KeyboardInputManager.newInstance(),\n            )\n        }\n" +
-                "        return pluginManagers + listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers\n",
+                "        return pluginManagers + listOf(GeneratedScenes(firstSceneOverride ?: firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())) + managers\n",
         )
         assertFalse("CollisionManager" in ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesKeyboard = true)))
     }
@@ -214,7 +214,7 @@ class ManagerTypeCodeGeneratorTest {
         val wiring = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesAudio = true))
         assertContains(wiring, "import com.pandulapeter.kubriko.audioPlayback.MusicManager\nimport com.pandulapeter.kubriko.audioPlayback.SoundManager\n")
         assertContains(wiring, "            listOf<Manager>(\n                MusicManager.newInstance(),\n                SoundManager.newInstance(),\n            )\n")
-        assertContains(wiring, "listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()), GeneratedAudio(isInSceneEditor)) + managers\n")
+        assertContains(wiring, "listOf(GeneratedScenes(firstSceneOverride ?: firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()), GeneratedAudio(isInSceneEditor)) + managers\n")
         val withoutAudio = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesKeyboard = true))
         assertFalse("audioPlayback" in withoutAudio || "GeneratedAudio" in withoutAudio)
     }
@@ -223,7 +223,7 @@ class ManagerTypeCodeGeneratorTest {
     fun theWiringCreatesTheSpriteManagerAlsoForTheSceneEditorWhichHasNone() {
         val wiring = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesSprites = true))
         assertContains(wiring, "import com.pandulapeter.kubriko.sprites.SpriteManager\n")
-        assertContains(wiring, "        return listOf(GeneratedScenes(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()), SpriteManager.newInstance()) + managers\n")
+        assertContains(wiring, "        return listOf(GeneratedScenes(firstSceneOverride ?: firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()), SpriteManager.newInstance()) + managers\n")
         assertFalse("SpriteManager" in ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"))
     }
 

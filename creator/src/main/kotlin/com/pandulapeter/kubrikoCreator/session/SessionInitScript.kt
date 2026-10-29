@@ -52,6 +52,18 @@ internal object SessionInitScript {
     fun classpathFileOf(rootDirectory: File) = File(directory, "classpath-${hashOf(rootDirectory.absoluteFile.normalize().path.toByteArray())}.txt")
         .apply { parentFile.mkdirs() }
 
+    /**
+     * Where the classpath task writes the classpath of the project in [rootDirectory] for a play session, which the Scene
+     * editor's builds of it don't touch.
+     */
+    fun playClasspathFileOf(rootDirectory: File) = File(directory, "play-classpath-${hashOf(rootDirectory.absoluteFile.normalize().path.toByteArray())}.txt")
+        .apply { parentFile.mkdirs() }
+
+    /**
+     * Where the games played from the project in [rootDirectory] keep their copies of its classes ([GameProcess]).
+     */
+    fun playDirectoryOf(rootDirectory: File) = File(directory, "play-${hashOf(rootDirectory.absoluteFile.normalize().path.toByteArray())}")
+
     private fun hashOf(content: ByteArray) = MessageDigest.getInstance("SHA-256").digest(content).take(8).joinToString("") { "%02x".format(it) }
 
     /**

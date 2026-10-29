@@ -21,7 +21,7 @@ internal class FakeProjectRunner(
 
     override suspend fun play(durationInMilliseconds: Long) = result.also { calls += "play $durationInMilliseconds" }
 
-    override suspend fun startGame() = result.also { calls += "start" }
+    override suspend fun startGame(firstScene: String?) = result.also { calls += if (firstScene == null) "start" else "start $firstScene" }
 
     override suspend fun stopGame() = result.also { calls += "stop" }
 

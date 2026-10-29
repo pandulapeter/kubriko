@@ -63,7 +63,7 @@ class ProjectUpgraderTest {
     @Test
     fun aNewProjectIsUpToDate() {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
         assertFalse(sceneLoaderFile.exists())
     }
 
@@ -86,7 +86,7 @@ class ProjectUpgraderTest {
         assertEquals(newMain, mainFile.readText())
         assertFalse(sceneLoaderFile.exists())
         val settings = settingsFile.readText()
-        assertContains(settings, "\"templateVersion\": 6")
+        assertContains(settings, "\"templateVersion\": 7")
         assertContains(settings, "\"extra\": true")
     }
 
@@ -98,7 +98,7 @@ class ProjectUpgraderTest {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
         assertFalse(sceneLoaderFile.exists())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
     }
 
     @Test
@@ -113,7 +113,7 @@ class ProjectUpgraderTest {
         assertEquals(listOf("$PACKAGE_PATH/Game.kt", MAIN_PATH), upgrade.changes.map { it.path })
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
     }
 
     @Test
@@ -124,6 +124,16 @@ class ProjectUpgraderTest {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newMain, mainFile.readText())
         assertContains(newMain, "KubrikoWiring.isLoggingEnabled = System.getProperty(\"kubriko.creator.logging\").toBoolean()")
+    }
+
+    @Test
+    fun upgradingAVersion6ProjectLetsPlaySessionsChooseTheFirstScene() {
+        mainFile.writeText(newMain.lines().filterNot { "firstSceneOverride" in it }.joinToString("\n"))
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 6 }""")
+        assertEquals(listOf(MAIN_PATH), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newMain, mainFile.readText())
+        assertContains(newMain, "    KubrikoWiring.firstSceneOverride = System.getProperty(\"kubriko.creator.scene\")\n")
     }
 
     @Test
@@ -199,7 +209,7 @@ class ProjectUpgraderTest {
         mainFile.writeText(newMain)
         sceneLoaderFile.delete()
         ProjectUpgrader(directory).recordVersionIfUpToDate()
-        assertContains(settingsFile.readText(), "\"templateVersion\": 6")
+        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
     }
 
     @Test

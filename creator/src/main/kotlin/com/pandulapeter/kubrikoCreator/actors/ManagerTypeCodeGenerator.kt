@@ -39,6 +39,8 @@ internal object ManagerTypeCodeGenerator {
      */
     const val LOGGING_FLAG = "isLoggingEnabled"
     const val LOGGING_PROPERTY = "kubriko.creator.logging"
+    const val FIRST_SCENE_FLAG = "firstSceneOverride"
+    const val FIRST_SCENE_PROPERTY = "kubriko.creator.scene"
     private const val SCENE_EDITOR_GUARD = "if (isInSceneEditor) return"
     private const val ACTOR_MANAGER_FIELD = "actorManager"
     private const val VIEWPORT_MANAGER_FIELD = "viewportManager"
@@ -188,6 +190,12 @@ internal object ManagerTypeCodeGenerator {
         appendLine("    var $LOGGING_FLAG = false")
         appendLine()
         appendLine("    /**")
+        appendLine("     * The Scene the game starts with instead of the one `Game.kt` names, when Kubriko Creator plays it from a Scene (`Main.kt`")
+        appendLine("     * reads it from the `$FIRST_SCENE_PROPERTY` system property); null in a released game.")
+        appendLine("     */")
+        appendLine("    var $FIRST_SCENE_FLAG: String? = null")
+        appendLine()
+        appendLine("    /**")
         appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, the one that loads Scenes (and the one that plays")
         appendLine("     * sounds and music, if the game does), and those of the plugins the game uses, for Kubriko.newInstance.")
         appendLine("     *")
@@ -199,7 +207,7 @@ internal object ManagerTypeCodeGenerator {
         appendLine("        val managers = listOf<Manager>(")
         managerTypeNames.sorted().forEach { appendLine("            $it(isInSceneEditor),") }
         appendLine("        )")
-        val scenes = "listOf(${ScenesCodeGenerator.SCENES_NAME}(firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())" +
+        val scenes = "listOf(${ScenesCodeGenerator.SCENES_NAME}($FIRST_SCENE_FLAG ?: firstScene, isInSceneEditor, managers.filterIsInstance<Actor>())" +
             (if (pluginManagers.usesAudio) ", ${AudioCodeGenerator.AUDIO_NAME}(isInSceneEditor)" else "") +
             (if (pluginManagers.usesSprites) ", SpriteManager.newInstance()" else "") + ")"
         if (pluginManagerNames.isEmpty()) {

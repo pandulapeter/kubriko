@@ -10,7 +10,9 @@
 // Kubriko Creator passes this script to the project's build, without touching the project's files. It adds two tasks to every Compose
 // desktop application module: kubrikoCreatorSession runs the module's own classpath plus tool-creator-session at the module's Kubriko
 // version, and kubrikoCreatorClasspath compiles the module and writes its Kubriko version and runtime classpath (with the module's
-// own output folders in place of its jar) to a file, for Kubriko Creator to load the project's classes itself. kubrikoCreatorWarmUp
+// own output folders in place of its jar) to a file, for Kubriko Creator to load the project's classes itself, followed by what it
+// takes to launch the game from them as kubrikoCreatorSession does (the "launch." lines), for Kubriko Creator to play the game
+// without Gradle. kubrikoCreatorWarmUp
 // compiles one generated file next to the module's code, so that Kotlin's compile daemon is running and warm before the first change,
 // even when the classpath build at opening found everything up to date. Nothing here keeps the configuration cache from being used.
 if (gradle.startParameter.projectProperties["kubrikoCreatorMode"] != null) {
@@ -31,6 +33,7 @@ gradle.projectsEvaluated {
     if (properties["kubrikoCreatorMode"] == null) return@projectsEvaluated
     val port = properties["kubrikoCreatorPort"]
     val classpathFile = properties["kubrikoCreatorClasspathFile"]
+    val firstScene = properties["kubrikoCreatorScene"]
     allprojects {
         val run = tasks.findByName("run") as? JavaExec ?: return@allprojects
         val runtime = listOf("runtimeClasspath", "desktopRuntimeClasspath", "jvmRuntimeClasspath")
@@ -55,6 +58,13 @@ gradle.projectsEvaluated {
             val classpath = if (isPackedJarOnly) runtime else run.classpath
             val packedFiles = if (isPackedJarOnly) jar.source else files()
             val movedFiles = layout.buildDirectory.dir("kubrikoCreator/moved").get().asFile
+            val java = run.javaLauncher.map { it.executablePath.asFile.absolutePath }.orElse("")
+            val mainClass = run.mainClass.orElse("")
+            val jvmArgs = run.jvmArgs.orEmpty()
+            val workingDirectory = run.workingDir
+            // Lenient, so that a project whose Kubriko version has no session library still gets its classpath.
+            val sessionFiles = session.incoming.artifactView { lenient(true) }.files
+            val ownFiles = run.classpath.minus(runtime)
             inputs.files(classpath, packedFiles)
             doLast {
                 val folders = linkedSetOf<File>()
@@ -71,7 +81,16 @@ gradle.projectsEvaluated {
                     }
                 })
                 val file = File(classpathFile ?: throw GradleException("kubrikoCreatorClasspath needs kubrikoCreatorClasspathFile."))
-                file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath }).joinToString("\n"))
+                // The session's classpath is resolved on its own (its libraries may raise versions), so the game runs with the module's own
+                // files and that, as kubrikoCreatorSession runs it.
+                val launch = if (java.get().isEmpty() || mainClass.get().isEmpty()) {
+                    emptyList()
+                } else {
+                    listOf("launch.java=${java.get()}", "launch.mainClass=${mainClass.get()}", "launch.workingDir=${workingDirectory.absolutePath}") +
+                        jvmArgs.map { "launch.jvmArg=$it" } +
+                        ((if (isPackedJarOnly) folders else ownFiles.files) + sessionFiles.files).map { "launch.classpath=${it.absolutePath}" }
+                }
+                file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath } + launch).joinToString("\n"))
             }
         }
         val warmUpCompile = extra.properties[warmUpTaskProperty(runtime.name.removeSuffix("RuntimeClasspath"))]
@@ -87,6 +106,7 @@ gradle.projectsEvaluated {
             jvmArgs(run.jvmArgs ?: emptyList<String>())
             workingDir = run.workingDir
             if (port != null) systemProperty("kubriko.creator.port", port)
+            if (firstScene != null) systemProperty("kubriko.creator.scene", firstScene)
             systemProperty("kubriko.creator.logging", "true")
             args("play", run.mainClass.get())
         }

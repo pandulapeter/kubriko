@@ -44,8 +44,17 @@ lives in `plan/` (start with `plan/README.md`).
   never clean, and not a failed build when it fails), since the build at opening starts Kotlin's compile daemon only when
   something needed compiling, and a cold daemon made the first change seconds slower. Builds of the classpath never overlap, and a play session waits for the one
   running (`classpathBuildLock`), since a build started while another runs needs a daemon of its own; a cancelled build
-  returns only once Gradle has stopped it, for the same reason. A play session holds its daemon while the game runs, so a
-  Scene opened then still starts a second one. Each workspace runs in a scope of its own (a child of the app's), which
+  returns only once Gradle has stopped it, for the same reason. **Playing** builds the classpath too (into a file of its own,
+  `SessionInitScript.playClasspathFileOf`, so the Scene editor's builds don't touch it; a fraction of a second when nothing
+  changed), whose `launch.` lines say how `kubrikoCreatorSession` would start the game (`GameLaunch`: the `run` task's Java
+  and JVM arguments, its working folder and main class, and the module's own files followed by the session library's own
+  resolution, which may raise library versions), and Creator starts that process itself (`GameProcess`), so no Gradle
+  daemon is held while the game runs. The game runs from a copy of the project's class files (in `playDirectoryOf`,
+  deleted when it ends), since the Scene editor rebuilds the classes meanwhile; resources are read where they are. A game
+  that exits with an error shows its exit code and last lines in the console; stopping it destroys the process. Only a
+  build without `launch.` lines falls back to the session task. Play from this Scene (the Scene editor's header, and
+  `start_game`'s `scene`) passes `kubriko.creator.scene`, which template version 7's `Main.kt` hands to
+  `KubrikoWiring.firstSceneOverride`; an older project gets a console note that it may start with its first Scene. Each workspace runs in a scope of its own (a child of the app's), which
   `close()` cancels once the pending writes are done (`BlockTypesController.awaitWrites`), and quitting waits for that; an
   opening that is cancelled closes what it made. Builds of the classpath report their time in the console, and so does opening
   a Scene.
@@ -222,7 +231,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   set `KubrikoWiring.isLoggingEnabled` from the `kubriko.creator.logging` system property, which only the play session sets (the
   init script), so Log Blocks (`if (KubrikoWiring.isLoggingEnabled) Logger.log(...)`) cost nothing in a released game. Version 6 turns Gradle's
   configuration cache and build cache on in `gradle.properties` (keeping a property set to any value already, and creating
-  the file if there is none). A change's `after` is null for a file it deletes.
+  the file if there is none). Version 7 has the desktop `Main.kt` also set `KubrikoWiring.firstSceneOverride` from the
+  `kubriko.creator.scene` system property (null in a released game), which `createManagers` loads instead of `firstScene`,
+  for playing from a Scene. A change's `after` is null for a file it deletes.
 - **Parent Actor types** (`ActorTypeFamily`, `set_parent`): an Actor type may name a `parent`, like GameMaker's parent objects
   (cycles and a parent named nowhere count as none). A child gets its ancestors' Properties (one of its own with the same name
   and kind only changes the initial value; another kind is rejected) and Events (one of its own of the same kind, key, other
@@ -293,7 +304,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   PATH, and passes the token through the environment; without npx the row asks for Node.js. Cursor gets the URL and header.
 - **The panel** (toolbar → AI connection): a Connect / Disconnect / Install row per client, the on/off switch, the address
   with the token for other MCP clients, Advanced (port, token, commands), and the call log.
-- **Playing the game:** `start_game`, `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
+- **Playing the game:** `start_game` (optionally in a `scene`), `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
   `SessionCommand`s Creator sends back on the session's connection, answered by id: keys go to the AWT event
   listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), and every step first
   brings the window to the front, since Kubriko pauses unfocused games, and waits up to two seconds for the focus to arrive

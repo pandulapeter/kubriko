@@ -13,6 +13,10 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.session.GameLaunch
+import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
+import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +30,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_game_failed
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
@@ -33,14 +38,19 @@ import kubriko.creator.generated.resources.status_unsupported_protocol
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * The session process that plays the game or edits a Scene in a window of its own: starting and stopping it, and what
- * it reports.
+ * The session process that plays the game: starting and stopping it, and what it reports. The game is started without
+ * Gradle when the build says how ([prepareLaunch], [runGame]), and through the init script's session task otherwise.
+ *
+ * @param prepareLaunch Builds the project for a play session.
+ * @param runGame Plays the game with the given system properties until it ends, and stops it when cancelled.
  */
 internal class SessionController(
     private val channel: SessionChannel,
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
     private val console: ConsoleLog,
     private val scope: CoroutineScope,
+    private val prepareLaunch: suspend () -> GameLaunchPreparation = { GameLaunchPreparation.Unavailable },
+    private val runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
 ) : AutoCloseable {
     private val _state = MutableStateFlow<SessionState>(SessionState.Idle)
     val state = _state.asStateFlow()
@@ -59,20 +69,42 @@ internal class SessionController(
         }
     }
 
-    fun play() {
+    /**
+     * Plays the game, replacing the session that runs, if any.
+     *
+     * @param firstScene The Scene the game starts with instead of its first one, which only projects on template version 7
+     *   or later honor.
+     */
+    fun play(firstScene: String? = null) {
         job?.cancel()
         job = scope.launch {
             _state.value = SessionState.Starting(SessionMode.PLAY)
             try {
-                val isSuccessful = runTask(
-                    SessionInitScript.SESSION_TASK_NAME,
-                    mapOf("kubrikoCreatorPort" to channel.port.toString(), "kubrikoCreatorMode" to "play"),
-                )
+                val isSuccessful = when (val preparation = prepareLaunch()) {
+                    is GameLaunchPreparation.Ready -> runGame(preparation.launch, systemPropertiesOf(firstScene)).also(::reportFailure).isSuccessful
+                    GameLaunchPreparation.Unavailable -> runTask(
+                        SessionInitScript.SESSION_TASK_NAME,
+                        mapOf("kubrikoCreatorPort" to channel.port.toString(), "kubrikoCreatorMode" to "play") +
+                            firstScene?.let { mapOf("kubrikoCreatorScene" to it) }.orEmpty(),
+                    )
+                    GameLaunchPreparation.Failed -> false
+                }
                 if (isSuccessful) console.append(ConsoleEntry.Status(Res.string.status_session_ended))
             } finally {
                 _state.value = SessionState.Idle
             }
         }
+    }
+
+    private fun systemPropertiesOf(firstScene: String?) = mapOf(
+        SessionProtocol.PORT_PROPERTY to channel.port.toString(),
+        ManagerTypeCodeGenerator.LOGGING_PROPERTY to "true",
+    ) + firstScene?.let { mapOf(ManagerTypeCodeGenerator.FIRST_SCENE_PROPERTY to it) }.orEmpty()
+
+    private fun reportFailure(exit: GameProcess.Exit) {
+        if (exit.isSuccessful) return
+        console.append(ConsoleEntry.Status(Res.string.status_game_failed, arguments = listOf(exit.exitCode.toString()), isError = true))
+        exit.output.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
     }
 
     fun stop() {

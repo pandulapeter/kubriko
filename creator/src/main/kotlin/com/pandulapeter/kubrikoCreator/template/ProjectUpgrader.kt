@@ -34,7 +34,8 @@ import java.io.File
  * the Log Blocks on, which released games leave off: the desktop `Main.kt` sets `KubrikoWiring.isLoggingEnabled` from a system
  * property before the application starts. Version 6 turns Gradle's configuration cache and build cache on in
  * `gradle.properties` (a property set already, to any value, is kept; a missing file is created), so that Kubriko Creator's builds skip configuring
- * the project when nothing changed. A file is only changed when it
+ * the project when nothing changed. Version 7 lets Kubriko Creator play the game from any Scene: the desktop `Main.kt` also sets
+ * `KubrikoWiring.firstSceneOverride` from a system property. A file is only changed when it
  * still looks like the template's (one `Kubriko.newInstance` with a one-line `SceneLoader` in it, one-line plugin
  * Managers, one `createSerializationManager`); a file that already does what the version needs counts as done, whoever
  * changed it, and so does a `SceneLoader.kt` changed by hand, which is left alone.
@@ -63,7 +64,7 @@ internal class ProjectUpgrader(
         val isGameUpgraded = propose("$packagePath/$GAME_FILE", ::isGameUpToDate) { upgradedGame(it, wiringImport) }
         propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it }) { withManagersHandedToTheSceneEditor(it, wiringImport) }
         val desktopPackagePath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}"
-        propose("$desktopPackagePath/$MAIN_FILE", ::turnsLoggingOn) { withLoggingTurnedOn(it, wiringImport) }
+        propose("$desktopPackagePath/$MAIN_FILE", { turnsLoggingOn(it) && overridesFirstScene(it) }) { withFirstSceneOverride(it, wiringImport) }
         val properties = read(GRADLE_PROPERTIES_FILE).orEmpty()
         if (!setsCaches(properties)) changes += ProposedFileChange(GRADLE_PROPERTIES_FILE, properties, withCaches(properties))
         val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
@@ -111,13 +112,14 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 6
+        const val CURRENT_VERSION = 7
         private const val GRADLE_PROPERTIES_FILE = "gradle.properties"
         private val cacheProperties = listOf("org.gradle.configuration-cache", "org.gradle.caching")
         private const val GAME_FILE = "Game.kt"
         private const val MAIN_FILE = "Main.kt"
         private const val APPLICATION_MAIN = "fun main() = application {"
         private const val LOGGING_SWITCH = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}"
+        private const val FIRST_SCENE_SWITCH = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.FIRST_SCENE_FLAG}"
         private const val ENTRY_POINT_FILE = "GameEntryPoint.kt"
         private const val SCENE_LOADER_FILE = "SceneLoader.kt"
         private const val SCENE_LOADER_TEMPLATE = "upgrades/SceneLoader-2.kt.template"
@@ -214,6 +216,22 @@ internal class ProjectUpgrader(
         private fun String.lacksProperty(key: String) = lines().none { line -> line.trimStart().startsWith(key) && line.trimStart().removePrefix(key).trimStart().let { it.startsWith("=") || it.startsWith(":") } }
 
         private fun turnsLoggingOn(text: String) = LOGGING_SWITCH in text
+
+        private fun overridesFirstScene(text: String) = FIRST_SCENE_SWITCH in text
+
+        /**
+         * [text] (a desktop `Main.kt`) also setting the Scene the game starts with from the play session's system property,
+         * right after it turns the Log Blocks on ([withLoggingTurnedOn], made first if it doesn't yet), or null if it can't be.
+         */
+        internal fun withFirstSceneOverride(text: String, wiringImport: String): String? {
+            val withLogging = if (turnsLoggingOn(text)) text else withLoggingTurnedOn(text, wiringImport) ?: return null
+            if (overridesFirstScene(withLogging)) return withLogging
+            val lines = withLogging.lines().toMutableList()
+            val logging = lines.indexOfFirst { LOGGING_SWITCH in it }.takeIf { lines.count { line -> LOGGING_SWITCH in line } == 1 } ?: return null
+            val indent = lines[logging].takeWhile { it == ' ' }
+            lines.add(logging + 1, "$indent$FIRST_SCENE_SWITCH = System.getProperty(\"${ManagerTypeCodeGenerator.FIRST_SCENE_PROPERTY}\")")
+            return lines.joinToString("\n")
+        }
 
         /**
          * [text] (a desktop `Main.kt`) turning the Log Blocks on from the play session's system property before the application

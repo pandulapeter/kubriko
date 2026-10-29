@@ -6,6 +6,7 @@ import {{PACKAGE}}.generated.KubrikoWiring
 
 fun main() {
     KubrikoWiring.isLoggingEnabled = System.getProperty("kubriko.creator.logging").toBoolean()
+    KubrikoWiring.firstSceneOverride = System.getProperty("kubriko.creator.scene")
     application {
         Window(
             title = "{{PROJECT_NAME}}",

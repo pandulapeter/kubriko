@@ -38,8 +38,12 @@ import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
+import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.session.GameLaunch
+import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
+import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
@@ -70,6 +74,7 @@ import kubriko.creator.generated.resources.status_kubriko_libraries_added
 import kubriko.creator.generated.resources.status_kubriko_libraries_removed
 import kubriko.creator.generated.resources.status_kubriko_version_changed
 import kubriko.creator.generated.resources.status_kubriko_version_newer
+import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -96,6 +101,7 @@ internal class WorkspaceController(
     generatedPath: String? = null,
     openGitRepository: () -> GitRepository? = { JGitRepository.open(project.rootDirectory) },
     createGitRepository: (message: String) -> GitRepository = { JGitRepository.create(project.rootDirectory, it) },
+    runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = GameProcess(project.rootDirectory, SessionInitScript.playDirectoryOf(project.rootDirectory))::run,
 ) {
     /**
      * Everything the workspace starts runs here, and stops when it is closed.
@@ -132,6 +138,8 @@ internal class WorkspaceController(
         runTask = ::runCreatorTask,
         console = consoleLog,
         scope = scope,
+        prepareLaunch = ::prepareGameLaunch,
+        runGame = runGame,
     )
     val sessionState = sessions.state
 
@@ -239,7 +247,13 @@ internal class WorkspaceController(
             blockTypes = blockTypes,
             git = git,
             scenes = scenes,
-            runner = WorkspaceRunner(sessions = sessions, runTask = ::runCreatorTask, console = consoleLog, ioDispatcher = ioDispatcher),
+            runner = WorkspaceRunner(
+                sessions = sessions,
+                startSession = ::play,
+                runTask = ::runCreatorTask,
+                console = consoleLog,
+                ioDispatcher = ioDispatcher,
+            ),
             ioDispatcher = ioDispatcher,
             audioFiles = { AudioFiles.of(_resources.value) },
             spriteFiles = { SpriteFiles.of(_resources.value) },
@@ -313,7 +327,28 @@ internal class WorkspaceController(
         }
     }
 
-    fun play() = sessions.play()
+    /**
+     * Plays the game, from its first Scene or [firstScene], which a project whose template files are older than that
+     * ([projectUpgrade]) may not honor, as the console says then.
+     */
+    fun play(firstScene: String? = null) {
+        if (firstScene != null && _projectUpgrade.value is TemplateUpgrade.Needed) {
+            appendToConsole(ConsoleEntry.Status(Res.string.status_play_from_scene_needs_upgrade, arguments = listOf(firstScene)))
+        }
+        sessions.play(firstScene)
+    }
+
+    /**
+     * Builds the project's classpath for a play session, with how to start the game from it.
+     */
+    private suspend fun prepareGameLaunch(): GameLaunchPreparation {
+        val file = SessionInitScript.playClasspathFileOf(project.rootDirectory)
+        if (!runCreatorTask(SessionInitScript.CLASSPATH_TASK_NAME, mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to file.absolutePath))) {
+            return GameLaunchPreparation.Failed
+        }
+        val launch = withContext(ioDispatcher) { file.takeIf { it.isFile }?.readText()?.let(ProjectClasspath::parse)?.launch }
+        return launch?.let(GameLaunchPreparation::Ready) ?: GameLaunchPreparation.Unavailable
+    }
 
     fun stopSession() = sessions.stop()
 

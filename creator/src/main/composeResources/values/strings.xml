@@ -14,6 +14,7 @@
     <string name="action_open_project">Open project…</string>
     <string name="action_close_project">Close project</string>
     <string name="action_play">Play</string>
+    <string name="action_play_from_scene">Play from this Scene</string>
     <string name="action_stop">Stop</string>
     <string name="action_clear_console">Clear</string>
     <string name="action_new_project">New project…</string>
@@ -75,6 +76,8 @@
     <string name="status_session_started">Session started.</string>
     <string name="status_session_ended">Session ended.</string>
     <string name="status_session_stopped">Session stopped.</string>
+    <string name="status_play_from_scene_needs_upgrade">This project's files are older than playing from a Scene needs, so the game may start with its first Scene instead of %1$s. Upgrading the project fixes that.</string>
+    <string name="status_game_failed">The game stopped with an error (exit code %1$s). The last lines it printed:</string>
     <string name="status_build_failed">The build failed.</string>
     <string name="status_built">Built in %1$s seconds.</string>
     <string name="status_actor_type_not_saved">An Actor type couldn't be saved.</string>

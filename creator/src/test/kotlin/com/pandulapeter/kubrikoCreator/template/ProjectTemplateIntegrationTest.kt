@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
+import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.runBlocking
 import java.awt.image.BufferedImage
@@ -39,6 +40,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -116,6 +118,8 @@ class ProjectTemplateIntegrationTest {
                 )
             }
             assertTrue(isSuccessful, "$description: the desktop runtime classpath doesn't resolve:\n$output")
+            val launch = assertNotNull(ProjectClasspath.parse(classpathFile.readText())?.launch, "$description: the classpath says nothing about launching the game")
+            assertTrue(launch.classpath.any { "creator-session" in it.name }, "$description: the game would be launched without the session library")
         } finally {
             classpathFile.delete()
         }

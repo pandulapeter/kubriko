@@ -119,6 +119,11 @@ What it shows:
 
 ## Playing
 
-- `start_game` and the Play button reuse the warm daemon and the classpath the Scene editor already built when nothing changed since.
-- A "play from this Scene" button that starts the game in the open Scene: the session passes the Scene's name, and the template's
-  `main` hands it to `createManagers(firstScene = …)` instead of the first one (a template upgrade).
+- **Done** (2026-10-29, seen working on the scratch Breakout): `start_game` and the Play button build the classpath (0.0 to
+  0.5 s when nothing changed, with the configuration cache) and start the game themselves from what the build says
+  (`GameLaunch`, `GameProcess`) instead of through Gradle, which packed the jar and held a daemon for as long as the game
+  ran; the game window showed 1.1 to 1.4 s after the click. The game runs from a copy of the project's class files.
+- **Done** (2026-10-29, seen working): Play from this Scene, in the Scene editor's header (and `start_game`'s `scene`),
+  through template version 7 (`KubrikoWiring.firstSceneOverride`, set by `Main.kt` from a system property). Seen: the
+  version 7 upgrade's diff and Apply, a version 6 project starting with its first Scene with a console note, and after the
+  upgrade, `level2` starting the game with only its Ball and Paddle.

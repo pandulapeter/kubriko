@@ -48,12 +48,14 @@ import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
+import kubriko.creator.generated.resources.action_play_from_scene
 import kubriko.creator.generated.resources.action_reload_scene
 import kubriko.creator.generated.resources.action_zoom_in
 import kubriko.creator.generated.resources.action_zoom_out
 import kubriko.creator.generated.resources.action_zoom_to_fit
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_fit_screen
+import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_refresh
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_zoom_in
@@ -65,7 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * A Scene, edited inside Kubriko Creator's window: a header naming it, with the camera's zoom, saying when its classes
- * are being built again after a change or couldn't be, offering to reload it and to close it, above the Scene itself and the inspector of what is selected in it.
+ * are being built again after a change or couldn't be, offering to play the game from it, to reload it, and to close it, above the Scene itself and the inspector of what is selected in it.
  * Every change is a command.
  *
  * @param actorTypes The project's block-built Actor types.
@@ -78,6 +80,7 @@ internal fun SceneEditorPane(
     actorTypeDragState: SidebarDragState,
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>,
+    onPlay: () -> Unit,
     onReload: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -93,6 +96,7 @@ internal fun SceneEditorPane(
         onZoomIn = { view.viewportManager.multiplyScaleFactor(ZOOM_STEP) },
         onZoomOut = { view.viewportManager.multiplyScaleFactor(1f / ZOOM_STEP) },
         onZoomToFit = view::zoomToFit,
+        onPlay = onPlay,
         onReload = onReload,
         onClose = onClose,
     )
@@ -143,6 +147,7 @@ private fun SceneHeader(
     onZoomIn: () -> Unit,
     onZoomOut: () -> Unit,
     onZoomToFit: () -> Unit,
+    onPlay: () -> Unit,
     onReload: () -> Unit,
     onClose: () -> Unit,
 ) = Row(
@@ -178,6 +183,7 @@ private fun SceneHeader(
         )
     }
     Spacer(Modifier.weight(1f))
+    IconActionButton(icon = Res.drawable.ic_play, label = Res.string.action_play_from_scene, onClick = onPlay)
     IconActionButton(icon = Res.drawable.ic_zoom_out, label = Res.string.action_zoom_out, onClick = onZoomOut)
     IconActionButton(icon = Res.drawable.ic_zoom_in, label = Res.string.action_zoom_in, onClick = onZoomIn)
     IconActionButton(icon = Res.drawable.ic_fit_screen, label = Res.string.action_zoom_to_fit, onClick = onZoomToFit)

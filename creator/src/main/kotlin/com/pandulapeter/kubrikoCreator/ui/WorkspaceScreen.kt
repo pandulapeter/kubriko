@@ -193,6 +193,7 @@ internal fun WorkspaceScreen(
                         actorTypeDragState = sidebarDragState,
                         actorTypes = actorTypes,
                         music = remember(resources) { AudioFiles.of(resources).music },
+                        onPlay = { controller.play(firstScene = state.sceneName) },
                         onReload = controller.sceneEditing::reload,
                         onClose = controller.sceneEditing::close,
                     )

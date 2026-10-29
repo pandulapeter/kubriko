@@ -30,6 +30,7 @@ import java.util.Base64
  */
 internal class WorkspaceRunner(
     private val sessions: SessionController,
+    private val startSession: (firstScene: String?) -> Unit = sessions::play,
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
     private val console: ConsoleLog,
     private val ioDispatcher: CoroutineDispatcher,
@@ -56,8 +57,8 @@ internal class WorkspaceRunner(
         hasStarted
     }
 
-    override suspend fun startGame() = recordConsole {
-        startAndAwait().also { hasStarted ->
+    override suspend fun startGame(firstScene: String?) = recordConsole {
+        startAndAwait(firstScene).also { hasStarted ->
             if (hasStarted) {
                 sessions.request(ANSWER_TIMEOUT, create = SessionCommand::BringToFront)
                 // So that a screenshot taken right away shows the first Scene; a game that can't tell starts all the same.
@@ -111,9 +112,9 @@ internal class WorkspaceRunner(
      *
      * @return Whether it is up.
      */
-    private suspend fun startAndAwait(): Boolean {
+    private suspend fun startAndAwait(firstScene: String? = null): Boolean {
         stopAndAwait()
-        sessions.play()
+        startSession(firstScene)
         val session = checkNotNull(sessions.job)
         return merge(
             sessions.state.filterIsInstance<SessionState.Running>().map { true },

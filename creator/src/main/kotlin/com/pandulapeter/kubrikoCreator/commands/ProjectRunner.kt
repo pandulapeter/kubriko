@@ -32,9 +32,10 @@ internal interface ProjectRunner {
      * Builds and starts the game, waits until it is up, and leaves it running for [pressKeys], [wait], and
      * [captureScreen], until [stopGame].
      *
+     * @param firstScene The Scene the game starts in instead of its first one.
      * @return Whether the game started, and what the console showed meanwhile.
      */
-    suspend fun startGame(): RunResult
+    suspend fun startGame(firstScene: String? = null): RunResult
 
     /**
      * @return Whether a game was running, and what the console showed while it stopped.

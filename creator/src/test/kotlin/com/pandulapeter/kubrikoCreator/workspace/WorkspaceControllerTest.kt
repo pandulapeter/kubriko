@@ -25,12 +25,16 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.LoadedEntryPoint
+import com.pandulapeter.kubrikoCreator.session.GameLaunch
+import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -58,6 +62,9 @@ import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
+import kubriko.creator.generated.resources.status_built
+import kubriko.creator.generated.resources.status_game_failed
+import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
@@ -93,6 +100,7 @@ class WorkspaceControllerTest {
         startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
         rootDirectory: File = this@WorkspaceControllerTest.rootDirectory,
         entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
+        runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -107,7 +115,17 @@ class WorkspaceControllerTest {
             startWatching = startWatching,
             creatorKubrikoVersion = CREATOR_KUBRIKO_VERSION,
             entryPointLoader = entryPointLoader,
+            runGame = runGame,
         )
+    }
+
+    /**
+     * Plays the game through the init script's session task: the classpath build before it says nothing about how to
+     * launch the game.
+     */
+    private fun WorkspaceController.playThroughGradle() {
+        play()
+        build.currentRun.finish(isSuccessful = true)
     }
 
     private val WorkspaceController.statuses get() = console.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
@@ -131,7 +149,7 @@ class WorkspaceControllerTest {
     @Test
     fun playRunsTheSessionTaskOfTheRootModuleInPlayMode() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
         val arguments = build.currentRun.arguments
         assertEquals(SessionInitScript.file.absolutePath, arguments[arguments.indexOf("--init-script") + 1])
@@ -139,7 +157,7 @@ class WorkspaceControllerTest {
         assertContains(arguments, "-PkubrikoCreatorPort=${channel.port}")
         assertContains(arguments, "-PkubrikoCreatorMode=play")
         assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
-        assertEquals(listOf(Res.string.status_building), controller.statuses)
+        assertEquals(listOf(Res.string.status_building, Res.string.status_built, Res.string.status_building), controller.statuses)
     }
 
     @Test
@@ -202,10 +220,12 @@ class WorkspaceControllerTest {
         val controller = createController()
         controller.sceneEditing.prepare()
         controller.play()
-        assertEquals(listOf(":${SessionInitScript.CLASSPATH_TASK_NAME}"), build.runs.map { it.taskPath })
+        assertEquals(1, build.runs.size, "the game's build waits for the Scene editor's")
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(listOf(":${SessionInitScript.CLASSPATH_TASK_NAME}", ":${SessionInitScript.CLASSPATH_TASK_NAME}"), build.runs.map { it.taskPath })
+        assertContains(build.currentRun.arguments, "-PkubrikoCreatorClasspathFile=${SessionInitScript.playClasspathFileOf(rootDirectory).absolutePath}")
         build.currentRun.finish(isSuccessful = true)
         assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
-        assertEquals(2, build.runs.size)
     }
 
     @Test
@@ -223,21 +243,96 @@ class WorkspaceControllerTest {
         controller.play()
         assertEquals(2, build.runs.size)
         build.currentRun.finish(isSuccessful = false)
-        assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
+        assertEquals(":${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
         assertFalse("--rerun-tasks" in build.currentRun.arguments, "a failed warm-up doesn't make the next build a clean one")
         assertEquals(console + ConsoleEntry.Status(Res.string.status_building), controller.console.value)
     }
 
     @Test
+    fun aGameTheBuildSaysHowToLaunchIsPlayedWithoutGradleFromTheChosenScene() = runTest {
+        val playClasspathFile = SessionInitScript.playClasspathFileOf(rootDirectory)
+        try {
+            val launches = mutableListOf<Pair<GameLaunch, Map<String, String>>>()
+            val exit = CompletableDeferred<GameProcess.Exit>()
+            val controller = createController(runGame = { launch, properties -> launches += launch to properties; exit.await() })
+            controller.play(firstScene = "levels/1-1")
+            playClasspathFile.writeText("kubrikoVersion=1.0.0\n/game/classes\nlaunch.java=/jdk/bin/java\nlaunch.mainClass=game.MainKt\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
+            build.currentRun.finish(isSuccessful = true)
+            assertEquals(1, build.runs.size, "Gradle doesn't start the game")
+            val (launch, properties) = launches.single()
+            assertEquals(GameLaunch(File("/jdk/bin/java"), "game.MainKt", File("/game"), emptyList(), listOf(File("/game/classes"))), launch)
+            assertEquals(mapOf("kubriko.creator.port" to channel.port.toString(), "kubriko.creator.logging" to "true", "kubriko.creator.scene" to "levels/1-1"), properties)
+            exit.complete(GameProcess.Exit(1, listOf("Exception in thread \"main\"")))
+            assertEquals(Res.string.status_game_failed, controller.statuses.last())
+            assertEquals(ConsoleEntry.BuildOutput("Exception in thread \"main\""), controller.console.value.last())
+            assertEquals(SessionState.Idle, controller.sessionState.value)
+        } finally {
+            playClasspathFile.delete()
+        }
+    }
+
+    @Test
+    fun stoppingAGamePlayedWithoutGradleStopsItsProcess() = runTest {
+        val playClasspathFile = SessionInitScript.playClasspathFileOf(rootDirectory)
+        try {
+            var isStopped = false
+            val controller = createController(
+                runGame = { _, _ ->
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        isStopped = true
+                    }
+                },
+            )
+            controller.play()
+            playClasspathFile.writeText("kubrikoVersion=1.0.0\nlaunch.java=/java\nlaunch.mainClass=M\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
+            build.currentRun.finish(isSuccessful = true)
+            controller.stopSession()
+            assertTrue(isStopped)
+            assertEquals(SessionState.Idle, controller.sessionState.value)
+        } finally {
+            playClasspathFile.delete()
+        }
+    }
+
+    @Test
+    fun aFailedBuildStartsNoGame() = runTest {
+        val controller = createController()
+        controller.play()
+        build.currentRun.finish(isSuccessful = false)
+        assertEquals(1, build.runs.size)
+        assertEquals(SessionState.Idle, controller.sessionState.value)
+    }
+
+    @Test
+    fun playingFromASceneInAProjectThatNeedsAnUpgradeSaysItMayStartElsewhere() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            File(root, ".kubriko").mkdirs()
+            File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game", "templateVersion": 6 }""")
+            File(root, "gradle.properties").writeText("org.gradle.caching=true\norg.gradle.configuration-cache=true\n")
+            File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("fun main() {\n    KubrikoWiring.isLoggingEnabled = true\n}\n")
+            val controller = createController(rootDirectory = root)
+            controller.play()
+            assertTrue(Res.string.status_play_from_scene_needs_upgrade !in controller.statuses)
+            controller.play(firstScene = "main")
+            assertContains(controller.statuses, Res.string.status_play_from_scene_needs_upgrade)
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun theSessionTaskOfANestedModuleIsAddressedByItsPath() = runTest {
-        createController(desktopModulePath = ":app:desktop").play()
+        createController(desktopModulePath = ":app:desktop").playThroughGradle()
         assertEquals(":app:desktop:${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
     }
 
     @Test
     fun aHelloInTheCurrentProtocolMarksTheSessionAsRunning() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
         assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
         assertEquals(Res.string.status_session_started, controller.statuses.last())
@@ -246,7 +341,7 @@ class WorkspaceControllerTest {
     @Test
     fun aHelloInANewerProtocolStillRunsTheSession() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION + 1, mode = SessionMode.PLAY))
         assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
     }
@@ -254,7 +349,7 @@ class WorkspaceControllerTest {
     @Test
     fun aHelloInAnInvalidProtocolStopsTheSession() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         channel.receive(SessionMessage.Hello(protocolVersion = 0, mode = SessionMode.PLAY))
         assertTrue(build.currentRun.isCancelled)
         assertEquals(SessionState.Idle, controller.sessionState.value)
@@ -285,7 +380,7 @@ class WorkspaceControllerTest {
     @Test
     fun problemsAppearWithTheirLocationRelativeToTheProject() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         build.currentRun.onEvent(GradleBuildEvent.Problem("Unresolved reference", File(rootDirectory, "src/Ball.kt"), line = 3, column = 5))
         build.currentRun.onEvent(GradleBuildEvent.Problem("Somewhere else", file = null, line = null, column = null))
         assertEquals(
@@ -300,7 +395,7 @@ class WorkspaceControllerTest {
     @Test
     fun aFailedBuildWithoutProblemsShowsTheTailOfItsOutput() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         repeat(40) { build.currentRun.onEvent(GradleBuildEvent.Output("line $it", isError = it % 2 == 0)) }
         build.currentRun.finish(isSuccessful = false)
         assertEquals(Res.string.status_build_failed, controller.statuses.last())
@@ -311,7 +406,7 @@ class WorkspaceControllerTest {
     @Test
     fun aFailedBuildWithProblemsShowsOnlyTheProblems() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         build.currentRun.onEvent(GradleBuildEvent.Output("e: noise", isError = true))
         build.currentRun.onEvent(GradleBuildEvent.Problem("Unresolved reference", file = null, line = null, column = null))
         build.currentRun.finish(isSuccessful = false)
@@ -321,16 +416,16 @@ class WorkspaceControllerTest {
     @Test
     fun aSessionThatExitsOnItsOwnEndsQuietly() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         build.currentRun.finish(isSuccessful = true)
-        assertEquals(listOf(Res.string.status_building, Res.string.status_session_ended), controller.statuses)
+        assertEquals(listOf(Res.string.status_building, Res.string.status_built, Res.string.status_building, Res.string.status_session_ended), controller.statuses)
         assertEquals(SessionState.Idle, controller.sessionState.value)
     }
 
     @Test
     fun stoppingCancelsTheRunningSession() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         controller.stopSession()
         assertTrue(build.currentRun.isCancelled)
         assertEquals(Res.string.status_session_stopped, controller.statuses.last())
@@ -464,9 +559,9 @@ class WorkspaceControllerTest {
     @Test
     fun startingASessionReplacesTheRunningOne() = runTest {
         val controller = createController()
-        controller.play()
-        controller.play()
-        assertTrue(build.runs.first().isCancelled)
+        controller.playThroughGradle()
+        controller.playThroughGradle()
+        assertTrue(build.runs[1].isCancelled, "the first session")
         assertFalse(build.currentRun.isCancelled)
         assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
     }
@@ -490,7 +585,7 @@ class WorkspaceControllerTest {
     @Test
     fun closingStopsTheSessionAndReleasesTheBuildAndTheChannel() = runTest {
         val controller = createController()
-        controller.play()
+        controller.playThroughGradle()
         controller.close()
         assertTrue(build.currentRun.isCancelled)
         assertTrue(build.isClosed)
@@ -600,7 +695,7 @@ class WorkspaceControllerTest {
             File(root, "gradle.properties").writeText("org.gradle.caching=true\norg.gradle.configuration-cache=true\n")
             val game = File(root, "src/commonMain/kotlin/com/example/game/Game.kt").apply { parentFile.mkdirs() }
             game.writeText("package com.example.game\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
-            File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled.\n")
+            File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled and KubrikoWiring.firstSceneOverride.\n")
             val controller = createController(rootDirectory = root)
             val upgrade = assertIs<TemplateUpgrade.Needed>(controller.projectUpgrade.value)
             assertEquals(listOf("src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"), upgrade.byHand)
@@ -608,7 +703,7 @@ class WorkspaceControllerTest {
             File(root, "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt").writeText("// Uses KubrikoWiring.\n")
             controller.onProjectChanged(setOf(ProjectChange.SOURCES))
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
-            assertTrue("\"templateVersion\": 6" in File(root, ".kubriko/project.json").readText())
+            assertTrue("\"templateVersion\": 7" in File(root, ".kubriko/project.json").readText())
         } finally {
             root.deleteRecursively()
         }
