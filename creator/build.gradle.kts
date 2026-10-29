@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.tools.creatorSession)
     implementation(projects.tools.uiComponents)
     implementation(compose.desktop.currentOs)
+    implementation(libs.acp)
     implementation(libs.compose.resources)
     implementation(libs.gradle.toolingApi)
     implementation(libs.jbr.api)

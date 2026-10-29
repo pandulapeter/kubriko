@@ -7,6 +7,7 @@
 # https://mozilla.org/MPL/2.0/.
 
 [versions]
+acp = "0.34.0" # https://github.com/agentclientprotocol/kotlin-sdk/releases
 android-compileSdk = "37"
 android-minSdk = "29"
 androidx-activity = "1.13.0" # https://developer.android.com/jetpack/androidx/releases/activity
@@ -36,6 +37,7 @@ spotless = "8.10.4" # https://github.com/diffplug/spotless/blob/main/plugin-grad
 vanniktech-publish = "0.37.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 [libraries]
+acp = { group = "com.agentclientprotocol", name = "acp", version.ref = "acp" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 androidx-core-splashScreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashScreen" }
 androidx-navigationEvent-compose = { group = "org.jetbrains.androidx.navigationevent", name = "navigationevent-compose", version.ref = "androidx-navigationEvent" }

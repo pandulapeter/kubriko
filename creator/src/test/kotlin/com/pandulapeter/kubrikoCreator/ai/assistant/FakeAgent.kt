@@ -1,0 +1,138 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ai.assistant
+
+import com.agentclientprotocol.agent.AgentInfo
+import com.agentclientprotocol.agent.AgentSession
+import com.agentclientprotocol.agent.AgentSupport
+import com.agentclientprotocol.agent.client
+import com.agentclientprotocol.client.ClientInfo
+import com.agentclientprotocol.common.Event
+import com.agentclientprotocol.common.SessionCreationParameters
+import com.agentclientprotocol.model.AgentCapabilities
+import com.agentclientprotocol.model.AuthMethod
+import com.agentclientprotocol.model.AuthMethodId
+import com.agentclientprotocol.model.ContentBlock
+import com.agentclientprotocol.model.PermissionOption
+import com.agentclientprotocol.model.PermissionOptionId
+import com.agentclientprotocol.model.PermissionOptionKind
+import com.agentclientprotocol.model.PromptResponse
+import com.agentclientprotocol.model.RequestPermissionOutcome
+import com.agentclientprotocol.model.SessionId
+import com.agentclientprotocol.model.SessionUpdate
+import com.agentclientprotocol.model.StopReason
+import com.agentclientprotocol.model.ToolCallId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonElement
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
+
+/**
+ * An ACP agent built on the Kotlin SDK's agent side, answering prompts by their text:
+ * - `hello`: two message chunks, then the end of the turn;
+ * - `edit`: asks for permission to edit, then says which option was chosen (or `cancelled`);
+ * - `wait`: works until cancelled;
+ * - `crash`: the process ends with exit code 1;
+ * - `later`: ends the turn, then sends a message outside any prompt.
+ *
+ * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
+ */
+internal class FakeAgent(
+    private val supportsLoading: Boolean = true,
+    val exitsAtStart: Int? = null,
+    private val answersInitialize: Boolean = true,
+) {
+    val clientInfos = CopyOnWriteArrayList<ClientInfo>()
+    val newSessions = CopyOnWriteArrayList<SessionCreationParameters>()
+    val loadedSessions = CopyOnWriteArrayList<SessionId>()
+    val prompts = CopyOnWriteArrayList<String>()
+
+    fun support(channel: FakeAgentChannel) = object : AgentSupport {
+        override suspend fun initialize(clientInfo: ClientInfo): AgentInfo {
+            clientInfos += clientInfo
+            if (!answersInitialize) awaitCancellation()
+            channel.writeError("Fake agent started.")
+            return AgentInfo(
+                capabilities = AgentCapabilities(loadSession = supportsLoading),
+                authMethods = listOf(AuthMethod.AgentAuth(AuthMethodId("fake-login"), "Fake login")),
+            )
+        }
+
+        override suspend fun createSession(sessionParameters: SessionCreationParameters): AgentSession {
+            newSessions += sessionParameters
+            return Session(SessionId("session-${sessionCount.incrementAndGet()}"), channel, isLoaded = false)
+        }
+
+        override suspend fun loadSession(sessionId: SessionId, sessionParameters: SessionCreationParameters): AgentSession {
+            loadedSessions += sessionId
+            return Session(sessionId, channel, isLoaded = true)
+        }
+    }
+
+    private inner class Session(
+        override val sessionId: SessionId,
+        private val channel: FakeAgentChannel,
+        private val isLoaded: Boolean,
+    ) : AgentSession {
+
+        override suspend fun replayHistory() {
+            if (isLoaded) currentCoroutineContext().client.notify(message(HISTORY))
+        }
+
+        override suspend fun prompt(content: List<ContentBlock>, _meta: JsonElement?) = flow {
+            val text = (content.single() as ContentBlock.Text).text
+            prompts += text
+            when (text) {
+                "hello" -> {
+                    emit(Event.SessionUpdateEvent(message("Hi")))
+                    emit(Event.SessionUpdateEvent(message(" there")))
+                }
+                "edit" -> {
+                    val outcome = currentCoroutineContext().client.requestPermissions(
+                        SessionUpdate.ToolCallUpdate(ToolCallId("edit-1"), title = "Edit Game.kt"),
+                        listOf(
+                            PermissionOption(PermissionOptionId("allow"), "Allow", PermissionOptionKind.ALLOW_ONCE),
+                            PermissionOption(PermissionOptionId("reject"), "Reject", PermissionOptionKind.REJECT_ONCE),
+                        ),
+                    ).outcome
+                    emit(Event.SessionUpdateEvent(message((outcome as? RequestPermissionOutcome.Selected)?.optionId?.value ?: "cancelled")))
+                }
+                "wait" -> awaitCancellation()
+                "crash" -> {
+                    channel.writeError("Fake agent crashed.")
+                    channel.crash(1)
+                    awaitCancellation()
+                }
+                "later" -> {
+                    val client = currentCoroutineContext().client
+                    CoroutineScope(Dispatchers.Default).launch {
+                        delay(50)
+                        client.notify(message(LATER))
+                    }
+                }
+            }
+            emit(Event.PromptResponseEvent(PromptResponse(StopReason.END_TURN)))
+        }
+    }
+
+    companion object {
+        const val HISTORY = "history"
+        const val LATER = "later"
+        private val sessionCount = AtomicInteger()
+
+        fun message(text: String) = SessionUpdate.AgentMessageChunk(ContentBlock.Text(text))
+    }
+}

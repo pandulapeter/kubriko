@@ -349,6 +349,20 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   and lights up the finished step's target (`rememberFlashColor`) in the editor and the sidebar (`ui/AiFollowing.kt`).
 - Tests talk to a real server on localhost through the SDK's client, run real shell commands, and play a fake session.
 
+## Assistant (ACP)
+
+The in-app assistant's agents are Agent Client Protocol agents (`ai/assistant`, the official Kotlin SDK, `com.agentclientprotocol:acp`).
+`AcpAgent` is one agent process (`AgentCommand`, started through an `AgentLauncher`: `ProcessAgentLauncher` in the app) hosting many
+`AgentConversation`s (ACP sessions). It starts on first use and initializes with protocol version 1, advertising terminal sign-in
+(`_meta["terminal-auth"]`) but neither file system nor terminal access, since Creator's own tools make every change. A conversation
+streams the agent's `SessionUpdate`s (from prompts and between them) as `updates`; `prompt` suspends until the turn ends, `cancel`
+sends `session/cancel`, and permission requests go to its `PermissionHandler` (`Reject` by default). A process that ends unasked is
+started again and its conversations loaded again with `session/load` (the replayed history left out of `updates`), or marked lost
+where the agent can't load them; one that exits within 30 seconds of starting more than three times in a row is `Failed` until it
+is used again, and one without conversations is only started again when used. A process that exits before answering `initialize`, or
+can't be started, fails with `AgentStartException` (its exit code and last standard error lines, also kept in `errorOutput`). Tests run
+`FakeAgent`, built on the SDK's agent side, over in-process pipes (`FakeAgentLauncher`).
+
 ## Packages (`com.pandulapeter.kubrikoCreator`)
 
 | Package | What it holds |
@@ -357,6 +371,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | `project` | Project inspection (`ProjectInspector`: the build files and name, and the desktop module through `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s poll of each file's `FileStamp` in `.kubriko/actors`, Scenes, and sources, excluding generated code; files as Creator left them, which `BlockTypeStore` and `SceneStore` note in the workspace's `OwnWrites`, don't count as changed, so Creator's own writes don't reload anything), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`; each source file's libraries kept by length and modification time), `ExpectDeclarations` (whether the sources declare an `expect`, kept the same way). |
 | `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `SpriteFiles`, `GeneratedFile` (checksummed header), `BlockTypeStore` (writes definitions; `regenerate` turns the types in memory into code, writing only files whose code changed, which it knows without reading them while their length and modification time are the ones it left; skips hand-edited files and reports them; keeps each Scene's music the same way), `ActorTypeFamily` (built once per regeneration and passed to every scope, since building it costs more than generating a type). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
+| `ai/assistant` | The in-app assistant's ACP client (see Assistant): `AcpAgent`, `AgentConversation`, `AgentLauncher`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits; writes queued as `PendingWrite`s and written in batches, 100 ms after the last change, a type saved several times written once, then one regeneration and build file sync per batch; `awaitWrites`, which builds, git commands (`CommandContext.awaitWrites`), and closing wait for; reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
 | `scenes` | `SceneEditingController`, `SceneView`, `ActorTypeLook` and `PreviewActor`, `SceneHitTest` and `SceneBoundsGrid`, `ScenePatch`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |

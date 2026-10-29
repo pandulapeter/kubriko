@@ -60,11 +60,8 @@ Read from Android Studio 2026.2.2's running processes and settings on October 29
 
 All of it lives in a new `ai/assistant` package; the MCP connection for outside clients stays as it is.
 
-1. **ACP client:** the official Kotlin SDK, `com.agentclientprotocol:acp` (JVM, 0.34.0 on Maven Central in October 2026; check its
-   license file, which the README gives as both MIT and Apache-2.0, either fine beside MPL-2.0). Creator starts the agent process,
-   talks over `StdioTransport`, and calls `initialize` with protocol version 1 (the adapter serves the draft v2 too; move once it is
-   final), advertising terminal auth but neither `fs` nor `terminal`, since Creator's own tools make every change. One process per agent,
-   many sessions on it; stopped when Creator quits, restarted after a crash with its sessions reloaded, its stderr in Creator's log.
+1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): an agent that Creator holds for as long as it runs, stopped when Creator
+   quits, and its standard error in a log the user can open. Move to protocol version 2 once it is final (the adapter serves its draft).
 2. **The agent list:** the registry fetched at start and cached in the settings folder (so it works offline), filtered to distributions
    Creator can run on this platform. Claude Agent first, then Codex and Gemini CLI, built in as a fallback list before the first fetch.
    Versions are pinned to the registry's and offered as an update when it moves. A custom agent is a command line the user enters.
@@ -97,11 +94,10 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 
 **Order:** first, right after `01-large-projects.md`:
 
-1. The ACP client, with a fake agent in tests (1).
-2. Claude Agent on an existing Claude Code login, with Creator's tools per conversation and the system prompt (5, 6), from a
+1. Claude Agent on an existing Claude Code login, with Creator's tools per conversation and the system prompt (5, 6), from a
    registry entry built in rather than fetched.
-3. The panel (7), without resuming or attachments.
-4. The sign-in methods and the API key (4).
+2. The panel (7), without resuming or attachments, holding the agent for Creator's lifetime (1).
+3. The sign-in methods and the API key (4).
 
 Then alongside `04` to `07`: the registry, the Node.js download, and other agents (2, 3); resuming and attachments; Keep and
 Undo (8); usage (9); and the MCP server items above.
