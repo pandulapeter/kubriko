@@ -11,7 +11,7 @@
 
 - **Debug agent** in `tools/creator-session`, answering the session protocol: Actor tree, live property values (through `@Exposed`), logs,
   `MetadataManager` metrics, pause, single-step through a `TickSource`, editing a property while paused. It reads the running `Kubriko`
-  instances from `CreatorEntryPoint`, and reaches projects (`00-library-release.md`) with a later
+  instances from `CreatorEntryPoint` (`06-ai-assistant.md` → projects reporting them), and reaches projects with a later
   release, offered only to sessions that report the capability.
 - **Panels in Creator:** Actors, Inspector, Logs, and a frame-time graph, next to Play.
 - **Other targets:** Android through `adb reverse`, web through a WebSocket variant of the protocol.

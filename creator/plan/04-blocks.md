@@ -14,7 +14,7 @@ case in the integration test's every-Block types (an Actor type and two Manager 
 
 ## More for Manager types
 
-- **Managers in the Scene editor:** their Properties shown and set per Scene.
+- **Managers in the Scene editor:** their Properties shown and set per Scene (a library change, so it waits for a release).
 - **Reacting to Actors:** an Actor of a type added or removed, for "all Bricks are gone", and counting the Actors of a type.
 - **More text:** showing a text only while a toggle Property is on, and fonts.
 

@@ -18,7 +18,6 @@ has a file of its own, so a session only needs the one it works on.
 
 The files are numbered in the order they are worked on.
 
-0. [Library releases](00-library-release.md) - how library changes reach projects, and the ones waiting for a release.
 1. [Large projects](01-large-projects.md) - nothing capped (named Timers, every key), the Scene list panel, and AI tools that page.
 2. [Folders and search](02-resource-organization.md) - the sidebar filter, quick open, find usages, and the search AI tools.
 3. [Reuse, Traits, and bigger games](03-reuse-and-traits.md) - functions, Traits, and what bigger games need.
@@ -96,7 +95,7 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
 ## Open questions
 
 1. The oldest Kubriko version Creator supports for projects that aren't opted in (sessions work from 0.7.4; opted-in projects are raised to
-   Creator's own version, `00-library-release.md`).
+   Creator's own version, `../CLAUDE.md` → Conventions).
 2. Whether the Showcase should become editable in Creator.
 3. Whether web export should offer one-click hosting.
 4. Whether Creator may run the user's own Claude Code for its assistant panel, so subscription users need no API key. Calling the API with

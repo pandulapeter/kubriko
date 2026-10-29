@@ -389,4 +389,10 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
   `run { }` scope, Blocks outside their Event become comments) and follow the engine's no-allocation rules.
 - Nothing under `engine/`, `plugins/`, or `tools/` may depend on `creator`. Library changes Creator needs follow the public API rules (confirm first).
+- **Library releases:** what Creator needs from the libraries reaches projects only through a Kubriko release, since projects
+  resolve Kubriko from Maven Central and opted-in ones use Creator's own version, so a Creator release follows each Kubriko release
+  that changes its library side, and `scene-editor-api` and `creator-api` promise no binary compatibility across versions. A session
+  older than Creator keeps working with the features it lacks hidden, offered by protocol version rather than refused.
+  `CreatorEntryPoint` only gains members with default implementations, and nothing goes into a published artifact before the
+  Creator feature that uses it exists.
 - Generated code, `.kubriko/`, and Scenes are owned as described in `plan/README.md` → Files and ownership.

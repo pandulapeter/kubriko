@@ -15,6 +15,8 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 
 ## More for the MCP server
 
+- **Projects reporting their Kubriko instances:** a template upgrade that makes `GameEntryPoint` override `getRunningInstances`
+  (in `tool-creator-api` since 0.8.0), so that `start_game` waits until the game has drawn Actors; the debugger needs it too.
 - **Kubriko's API as a read tool** (the root `CLAUDE.md`'s overview, or the KDoc of a named class): real sessions read Kubriko's sources
   jars with their own shell to write Kotlin Blocks.
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
