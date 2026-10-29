@@ -49,6 +49,33 @@ every one, and each comes with a short tour of what to look at first.
 Original games in common genres, with their own art and sounds (licensed for reuse, so users may ship games made from them). More can follow
 once these five work, such as one exported to every platform.
 
+## Mistakes and failures in the first hour
+
+What someone who knows neither Kotlin nor Gradle meets when something goes wrong, found in review:
+
+- **Every opening failure says "not a Gradle project".** `AppController.openProject` turns any exception other than a
+  `ProjectInspectionException` into `error_not_a_gradle_project`: an invalid `.kubriko/project.json`, a daemon that can't start, or
+  a sandboxed shell (the case in `HANDOVER.md`) all tell the user their folder isn't a project. Direction: separate messages for
+  an unreadable `.kubriko/project.json` (naming the file) and for Gradle failing, with the cause's own message under them.
+- **A failed build's cause is thrown away.** `GradleProjectConnection.run` completes with `false` in `onFailure` and drops the
+  `GradleConnectionException`, so a Gradle download failing offline, or a JDK Gradle can't use, shows "The build failed." and
+  nothing else. Direction: hand the root cause's message to `runCreatorTask` as an event, shown when the build reported no
+  problems, in plain words where the cause is a known one (offline, unsupported JDK).
+- **Creating a project that fails loses the form.** `AppScreen.NewProject(error = …)` comes back with an empty form, since its
+  state lives in `NewProjectScreen`'s `remember`, and `error_project_not_created` never says why. Direction: keep the request in
+  `AppScreen.NewProject` and show the cause (network, disk, permission).
+- **Progress screens can't be cancelled.** `ProgressScreen` (creating and opening a project) has no Cancel, though
+  `AppController` can cancel both; a first project waiting minutes for Gradle's download leaves only quitting. Direction: a Cancel
+  button that calls `closeProject`, which already cleans up after itself.
+- **Messages in code words.** Rejections name Events by their IDs (`error_command_event_not_allowed`, `error_command_key_not_allowed`: "an Actor type can't have a gameStarted
+  one", "Only keyPressed Events have a key"), though the editor calls them "When the game starts"; a type name ending in `Base`
+  (`Database`, `MoonBase`) is refused as "used by Kubriko itself"; `error_property_name_taken` says "This Actor type" in a
+  Manager type and doesn't say case is ignored; a Timer named `class` is told to start with a lowercase letter; and project names
+  with accents (`Kalandjáték`) are refused for not using "only letters". Direction: the editor's Event titles in user-facing
+  rejections (the AI gets both), and one message per actual reason.
+- **The git panel** clears the commit message even when the commit fails (`ui/git/GitPanel.kt`), and puts the commit form below
+  every change, out of sight in a big change set. Direction: clear it on success only, and put the form first.
+
 ## Opening a project from version control
 
 - **Clone** on the project list: a URL (HTTPS or SSH), a folder, and a progress bar, through JGit, so no git installation is needed; GitHub

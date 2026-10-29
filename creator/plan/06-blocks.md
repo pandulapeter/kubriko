@@ -50,6 +50,13 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **More drag and drop:** dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
+## Dangling references
+
+A Block naming an Actor type, Scene, sound, or Timer that no longer exists keeps the name and generates a comment, so the game
+quietly stops doing it, while the Block card looks exactly as before (`ActorTypeChoice`, `SceneChoice`, `AudioFileChoice`). Show
+such a Block with a warning ("Brick no longer exists") from `BlockScope.actorTypeNames`, `sceneNames`, and `audioFiles`, list them
+in the console after a delete, and offer them to find usages (`04-resource-organization.md`).
+
 ## Convert to code
 
 One-way: removes an Actor type's JSON and the generated header, moves the class out of the `generated` package into the user's code, and adds
