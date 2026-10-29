@@ -64,7 +64,7 @@ internal fun EventListItem(
         .heightIn(min = 36.dp)
         .alpha(if (dragState.dragged == index) 0.4f else 1f)
         .then(if (isSelected) Modifier.background(Accent.EVENT.container) else Modifier)
-        .background(rememberFlashColor(flashKey))
+        .background(rememberFlashColor(flashKey, Accent.EVENT.color))
         .dropLines(isDropAbove, isDropBelow)
         .listDragSource(dragState) { index }
         .clickable { if (!dragState.isClickAfterDrag) onClick() }

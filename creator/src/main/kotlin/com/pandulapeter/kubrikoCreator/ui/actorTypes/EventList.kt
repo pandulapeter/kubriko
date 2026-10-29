@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import androidx.compose.ui.zIndex
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -112,6 +113,7 @@ internal fun EventList(
         val listState = rememberLazyListState()
         val itemKeys = remember { ListItemKeys<EventDefinition>() }
         val keys = remember(itemKeys, events) { itemKeys.update(events) }
+        val draggedKey = rememberDraggedKey(dragState.dragged, keys)
         val gap = dragState.gap
         Box {
             LazyColumn(
@@ -120,7 +122,7 @@ internal fun EventList(
             ) {
                 items(count = events.size, key = { keys[it] }, contentType = { EVENT_CONTENT_TYPE }) { index ->
                     EventListItem(
-                        modifier = Modifier.animateItem(),
+                        modifier = Modifier.animateItem().zIndex(if (keys[index] == draggedKey) 1f else 0f),
                         event = events[index],
                         index = index,
                         isSelected = index == selectedIndex,

@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -155,6 +156,7 @@ private fun BlockList(
         }
         val itemKeys = remember { ListItemKeys<BlockDefinition>() }
         val keys = remember(itemKeys, blocks) { itemKeys.update(blocks) }
+        val draggedKey = rememberDraggedKey((dragState.dragged as? DraggedBlock.Existing)?.index, keys)
         val gap = dragState.gap
         val nesting = remember(blocks) { BlockNesting.of(blocks).first }
         LazyColumn(
@@ -178,7 +180,7 @@ private fun BlockList(
             }
             items(count = blocks.size, key = { keys[it] }, contentType = { BLOCK_CONTENT_TYPE }) { index ->
                 Column(
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItem().zIndex(if (keys[index] == draggedKey) 1f else 0f),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     DropIndicator(isVisible = gap == index)

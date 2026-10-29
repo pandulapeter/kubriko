@@ -302,8 +302,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   (`ListDragState`, an in-window drag, dropped through `add_block` / `move_block`), and Events are dragged to reorder them
   (`move_event`; the selected Event stays selected). Both lists drop into a gap found from the rows the lazy list has laid out
   and scroll while an item is held near their edges (`lazyListDropTarget`); `ListItemKeys` follows Blocks and Events between
-  versions (equal ones keep their keys when moved, edited ones the key of their place), so moves animate (`animateItem`) and a
-  new one flashes, and each Event's Blocks and each type's Events get a list of their own. Each Block is a card indented by its
+  versions (equal ones keep their keys when moved, edited ones the key of their place), so moves animate (`animateItem`, the dragged
+  one drawn above the rest, `rememberDraggedKey`) and a new one flashes in its accent, and each Event's Blocks and each type's Events get a list of their own. Each Block is a card indented by its
   section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing
   uses yet and collapses Kotlin files, and New project keeps the package under More options.
 - Desktop-sized UI from the start: `ui/theme` (`CreatorTheme`: Kubriko's colors with `CreatorTypography`, Public Sans in four

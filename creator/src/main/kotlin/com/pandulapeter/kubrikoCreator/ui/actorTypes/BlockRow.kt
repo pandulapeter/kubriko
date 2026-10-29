@@ -84,7 +84,7 @@ internal fun BlockRow(
         .clip(MaterialTheme.shapes.small)
         .background(if (nesting.role == BlockNesting.Role.PLAIN) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
         .accentEdge(BlockKind.of(block).category.accent.color)
-        .background(rememberFlashColor(flashKey))
+        .background(rememberFlashColor(flashKey, BlockKind.of(block).category.accent.color))
         .padding(start = 8.dp, top = 2.dp, bottom = 6.dp),
     verticalArrangement = Arrangement.spacedBy(2.dp),
 ) {

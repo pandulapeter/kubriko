@@ -18,17 +18,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 
 /**
- * A background color that lights up whenever [key] becomes a new non-null value and then fades away, to show what
- * just changed.
+ * A background color that lights up in [color] whenever [key] becomes a new non-null value and then fades away, to show
+ * what just changed.
  */
 @Composable
-internal fun rememberFlashColor(key: Any?): Color {
+internal fun rememberFlashColor(key: Any?, color: Color = MaterialTheme.colorScheme.tertiary): Color {
     val strength = remember { Animatable(0f) }
     LaunchedEffect(key) {
         if (key != null) strength.snapTo(1f)
         strength.animateTo(0f, tween(if (key == null) FADE_OUT_DURATION else FLASH_DURATION))
     }
-    return MaterialTheme.colorScheme.tertiary.copy(alpha = MAXIMUM_ALPHA * strength.value)
+    return color.copy(alpha = MAXIMUM_ALPHA * strength.value)
 }
 
 private const val FLASH_DURATION = 1800

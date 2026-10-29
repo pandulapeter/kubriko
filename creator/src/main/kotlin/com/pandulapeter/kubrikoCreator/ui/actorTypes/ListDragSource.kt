@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,4 +41,15 @@ internal fun <T : Any> Modifier.listDragSource(state: ListDragState<T>, item: ()
             },
         )
     }
+}
+
+/**
+ * The key of the row last dragged from [draggedIndex] (while it is dragged, and after it is dropped, until the next
+ * drag), so that the list draws it above the others while it moves to its new place.
+ */
+@Composable
+internal fun rememberDraggedKey(draggedIndex: Int?, keys: List<Long>): Long? {
+    var draggedKey by remember { mutableStateOf<Long?>(null) }
+    SideEffect { draggedIndex?.let { draggedKey = keys.getOrNull(it) } }
+    return draggedKey
 }
