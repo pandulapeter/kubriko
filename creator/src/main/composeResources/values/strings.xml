@@ -51,7 +51,7 @@
     <string name="project_upgrade_notice">This project was made by an older Kubriko Creator, and its template files need a few small changes for what this version generates.</string>
     <string name="project_upgrade_title">Upgrade the template files</string>
     <string name="project_upgrade_message">These files belong to you, so nothing changes until you apply this. Commit first to be able to go back with version control.</string>
-    <string name="project_upgrade_by_hand">Kubriko Creator can't change %1$s, which changed too much. Make the changes by hand: in Game.kt, pass *KubrikoWiring.createManagers(firstScene = "main").toTypedArray() to Kubriko.newInstance instead of a SceneLoader, in GameEntryPoint.kt, add override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true), and in the desktop Main.kt, set KubrikoWiring.isLoggingEnabled = System.getProperty("kubriko.creator.logging").toBoolean() before the application starts.</string>
+    <string name="project_upgrade_by_hand">Kubriko Creator can't change %1$s, which changed too much. Make the changes by hand: in Game.kt, pass *KubrikoWiring.createManagers(firstScene = "main").toTypedArray() to Kubriko.newInstance instead of a SceneLoader, in GameEntryPoint.kt, add override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true), and in the desktop Main.kt, set KubrikoWiring.isLoggingEnabled = System.getProperty("kubriko.creator.logging").toBoolean() and KubrikoWiring.firstSceneOverride = System.getProperty("kubriko.creator.scene") before the application starts.</string>
     <string name="project_upgrade_file_deleted">%1$s (no longer needed, so it is deleted)</string>
     <string name="project_upgrade_commit_message">Save the project before Kubriko Creator upgrades its template files.</string>
     <string name="action_review_upgrade">Review changes</string>
@@ -85,7 +85,7 @@
     <string name="status_built">Built in %1$s seconds.</string>
     <string name="status_actor_type_not_saved">An Actor type couldn't be saved.</string>
     <string name="status_kubriko_version_changed">The project now uses Kubriko %1$s, the version of this Kubriko Creator, instead of %2$s.</string>
-    <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes open in a window of their own.</string>
+    <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes can't be edited until Kubriko Creator is updated.</string>
     <string name="status_kubriko_libraries_added">The project now depends on %1$s, which its code uses.</string>
     <string name="status_kubriko_libraries_removed">The project no longer depends on %1$s, which nothing uses.</string>
     <string name="status_unsupported_protocol">This version of Kubriko Creator doesn't support the project's Kubriko version.</string>
