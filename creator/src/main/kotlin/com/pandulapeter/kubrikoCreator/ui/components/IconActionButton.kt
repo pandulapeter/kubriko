@@ -58,12 +58,12 @@ internal fun IconActionButton(
     modifier = modifier,
 ) {
     IconButton(
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier.size(36.dp),
         enabled = isEnabled,
         onClick = onClick,
     ) {
         Icon(
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(20.dp),
             painter = painterResource(icon),
             contentDescription = label,
             tint = if (isEnabled) tint else tint.copy(alpha = 0.38f),

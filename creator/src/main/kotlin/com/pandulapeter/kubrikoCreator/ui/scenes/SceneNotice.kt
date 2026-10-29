@@ -16,10 +16,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,11 +70,11 @@ internal fun SceneNotice(
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (onTryAgain != null) {
-                TextButton(onClick = onTryAgain) {
+                Button(onClick = onTryAgain) {
                     Text(stringResource(Res.string.action_try_again))
                 }
             }
-            TextButton(onClick = onClose) {
+            OutlinedButton(onClick = onClose) {
                 Text(stringResource(Res.string.action_close_scene))
             }
         }

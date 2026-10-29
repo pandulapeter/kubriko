@@ -10,6 +10,9 @@
 package com.pandulapeter.kubrikoCreator.ui.git
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +36,16 @@ internal fun DiscardConfirmation(
     onDismissRequest = onDismiss,
     title = { Text(stringResource(Res.string.git_discard_title, entry.title)) },
     text = { Text(stringResource(Res.string.git_discard_message)) },
-    confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(Res.string.action_discard)) } },
+    confirmButton = {
+        Button(
+            onClick = onConfirm,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
+            ),
+        ) {
+            Text(stringResource(Res.string.action_discard))
+        }
+    },
     dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
 )

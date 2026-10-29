@@ -232,20 +232,20 @@ private fun FolderRow(
 ) = Row(
     modifier = modifier
         .fillMaxWidth()
-        .height(28.dp)
+        .height(32.dp)
         .clickable(onClick = onToggle)
         .padding(start = 12.dp + SIDEBAR_INDENT * row.depth, end = 4.dp),
     horizontalArrangement = Arrangement.spacedBy(4.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
     Icon(
-        modifier = Modifier.size(12.dp).rotate(if (row.isExpanded) 0f else -90f),
+        modifier = Modifier.size(14.dp).rotate(if (row.isExpanded) 0f else -90f),
         painter = painterResource(Res.drawable.ic_chevron),
         contentDescription = stringResource(if (row.isExpanded) Res.string.action_collapse_group else Res.string.action_expand_group),
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Icon(
-        modifier = Modifier.size(14.dp),
+        modifier = Modifier.size(16.dp),
         painter = painterResource(Res.drawable.ic_folder_open),
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,

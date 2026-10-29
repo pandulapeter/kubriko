@@ -49,7 +49,7 @@ internal fun SidebarItem(
 ) = Row(
     modifier = modifier
         .fillMaxWidth()
-        .height(28.dp)
+        .height(32.dp)
         .padding(horizontal = 6.dp)
         .clip(MaterialTheme.shapes.small)
         .then(if (isSelected) Modifier.background(accent?.container ?: MaterialTheme.colorScheme.secondaryContainer) else Modifier)
@@ -61,7 +61,7 @@ internal fun SidebarItem(
 ) {
     val color = if (isSelected && accent == null) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
     Icon(
-        modifier = Modifier.size(14.dp),
+        modifier = Modifier.size(16.dp),
         painter = painterResource(icon),
         contentDescription = null,
         tint = accent?.color ?: color.copy(alpha = 0.7f),

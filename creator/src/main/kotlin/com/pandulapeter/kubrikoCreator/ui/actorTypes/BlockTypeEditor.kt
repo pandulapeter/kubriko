@@ -155,7 +155,7 @@ internal fun BlockTypeEditor(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
             Column(
-                modifier = Modifier.width(230.dp).fillMaxHeight().verticalScroll(rememberScrollState()),
+                modifier = Modifier.width(250.dp).fillMaxHeight().verticalScroll(rememberScrollState()),
             ) {
                 if (definition is ActorTypeDefinition) {
                     AppearanceColumn(
@@ -191,7 +191,7 @@ internal fun BlockTypeEditor(
             }
             VerticalDivider()
             EventList(
-                modifier = Modifier.width(260.dp).fillMaxHeight(),
+                modifier = Modifier.width(280.dp).fillMaxHeight(),
                 typeKind = definition.kind,
                 events = definition.events,
                 inheritedEvents = inheritance.events,
@@ -230,7 +230,7 @@ internal fun BlockTypeEditor(
             )
             VerticalDivider()
             BlockPalette(
-                modifier = Modifier.width(200.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                modifier = Modifier.width(220.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                 eventType = event?.type,
                 typeKind = definition.kind,
                 dragState = dragState,

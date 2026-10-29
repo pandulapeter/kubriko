@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -79,7 +80,7 @@ internal fun ProjectUpgradeDialog(
         }
     },
     confirmButton = {
-        TextButton(onClick = onApply, enabled = upgrade.changes.isNotEmpty()) { Text(stringResource(Res.string.action_apply_upgrade)) }
+        Button(onClick = onApply, enabled = upgrade.changes.isNotEmpty()) { Text(stringResource(Res.string.action_apply_upgrade)) }
     },
     dismissButton = {
         Row {

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -116,7 +117,7 @@ internal fun ColorPickerDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
         },
         confirmButton = {
-            TextButton(onClick = { onColorSelected(value.argb) }) { Text(stringResource(Res.string.action_done)) }
+            Button(onClick = { onColorSelected(value.argb) }) { Text(stringResource(Res.string.action_done)) }
         },
     )
 }

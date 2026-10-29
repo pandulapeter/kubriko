@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,11 +62,19 @@ internal fun ProjectUpgradeNotice(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
         )
-        val buttonColors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onTertiaryContainer)
-        TextButton(onClick = onDismiss, colors = buttonColors) {
+        TextButton(
+            onClick = onDismiss,
+            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onTertiaryContainer),
+        ) {
             Text(stringResource(Res.string.action_not_now))
         }
-        TextButton(onClick = onReview, colors = buttonColors) {
+        Button(
+            onClick = onReview,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onTertiary,
+            ),
+        ) {
             Text(stringResource(Res.string.action_review_upgrade))
         }
     }
