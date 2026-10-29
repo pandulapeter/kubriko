@@ -32,7 +32,10 @@ A chat panel next to the editor, behind a small backend interface, so it can tal
   use JNA directly; macOS only protects the item from other apps when Creator ships as a signed app bundle with its own runtime).
 - **The user's own Claude Code**, for subscription users, if Anthropic confirms it is allowed (see below): Creator runs the user's installed,
   unmodified `claude` in headless mode with streamed JSON in and out, pointed at Creator's MCP server, and shows its messages in
-  the panel. The user signs in through Claude Code's own flow; Creator never sees their credentials.
+  the panel. The user signs in through Claude Code's own flow; Creator never sees their credentials. The Agent Client Protocol (ACP, the
+  editor-to-agent protocol Zed started) is the alternative to headless mode: Creator would host any ACP agent, Claude Code through its ACP
+  adapter and Codex or Gemini with little extra work, with Creator's MCP server handed to the agent as its tools. Android Studio hosts
+  Claude, Codex, and Antigravity this way (October 2026).
 
 **Local models** (checked October 2026): Apple's on-device model (Foundation Models, macOS 26) has a 4,096-token context (8,192
 for the newer model, by one report), less than Creator's tool list alone (about 6,000 tokens), and early tool-calling reports are
@@ -48,6 +51,14 @@ binary with their own subscription where a product runs it, but running Claude C
 of Service. Whether that applies to a free, open-source desktop app running a copy the user installed themselves is unclear: ask Anthropic
 (the page points to sales) before building the second backend. MCP needs no such answer, since the user's own Claude client
 makes the requests.
+
+Android Studio is the closest public example ([Android Developers Blog, "Build your way: use any AI agent of your choice in Android
+Studio"](https://developer.android.com/blog/posts/build-your-way-use-any-ai-agent-of-your-choice-in-android-studio), October 2026): it
+hosts agents over ACP, and the user picks "Claude Agent" and signs in or gives an API key, with plans supported "subject to the agent
+provider". It doesn't settle the question for Creator, since Google likely has a commercial agreement with Anthropic and the post doesn't
+say whether Claude offers subscription login there, but it is the precedent to cite. Ask Anthropic, naming it: may a free, MPL-2.0 desktop
+app launch the user's own installed Claude Code, as Android Studio and Zed do over ACP, with the user signing in to their own plan? Ask
+about the ACP adapter separately too: Zed's is built on the Agent SDK, which the terms limit to API keys.
 
 - Model: Claude Opus 5.5 by default, with a selector (the user pays). Streaming, adaptive thinking, prompt caching on the tool list and the
   system prompt (Kubriko's concepts plus the generated Block catalog), refusal handling.

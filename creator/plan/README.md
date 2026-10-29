@@ -104,4 +104,5 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
 2. Whether the Showcase should become editable in Creator.
 3. Whether web export should offer one-click hosting.
 4. Whether Creator may run the user's own Claude Code for its assistant panel, so subscription users need no API key. Calling the API with
-   a subscription is not allowed; see `08-ai-assistant.md` → in-app assistant panel for what the terms say and what to ask Anthropic.
+   a subscription is not allowed; see `08-ai-assistant.md` → in-app assistant panel for what the terms say and what to ask Anthropic,
+   citing Android Studio, which hosts Claude over the Agent Client Protocol (ACP) with the user's own sign-in.
