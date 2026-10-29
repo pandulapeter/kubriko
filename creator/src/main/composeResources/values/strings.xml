@@ -423,6 +423,7 @@
     <string name="error_command_already_under_version_control">The project is already under version control.</string>
     <string name="error_command_commit_message_empty">Give the commit a message.</string>
     <string name="error_command_nothing_to_commit">There are no changes to commit.</string>
+    <string name="error_command_commit_conflicts">Some files still have conflicts from a merge. Resolve them first, so the conflict markers aren't committed.</string>
     <string name="error_command_change_missing">%1$s hasn't changed since the last commit.</string>
     <string name="command_start_version_control">Start version control</string>
     <string name="command_commit">Commit</string>

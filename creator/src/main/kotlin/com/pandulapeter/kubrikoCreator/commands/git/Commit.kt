@@ -16,11 +16,13 @@ import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.GitState
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_commit
+import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
 import kubriko.creator.generated.resources.error_command_no_repository
 import kubriko.creator.generated.resources.error_command_nothing_to_commit
@@ -40,6 +42,7 @@ internal object Commit : WriteCommand<Commit.Input> {
         is GitState.Ready -> when {
             input.message.isBlank() -> Rejection(Res.string.error_command_commit_message_empty)
             state.changes.isEmpty() -> Rejection(Res.string.error_command_nothing_to_commit)
+            state.changes.any { it.kind == ChangeKind.CONFLICTING } -> Rejection(Res.string.error_command_commit_conflicts)
             else -> null
         }
     }

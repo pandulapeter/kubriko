@@ -26,6 +26,7 @@ import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_already_under_version_control
 import kubriko.creator.generated.resources.error_command_change_missing
+import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
 import kubriko.creator.generated.resources.error_command_no_repository
 import kubriko.creator.generated.resources.error_command_nothing_to_commit
@@ -60,6 +61,13 @@ class GitCommandsTest {
         assertNull(Commit.validate(context, Commit.Input("Write the README.")))
         assertNull(Commit.apply(context, Commit.Input("Write the README.")).inverse)
         assertEquals(listOf("Write the README."), repository.commits)
+    }
+
+    @Test
+    fun committingIsRejectedWhileAMergeLeftConflicts() = runTest {
+        val repository = FakeGitRepository(RepositoryStatus("main", listOf(FileChange("README.md", ChangeKind.CONFLICTING))))
+        val context = commandContext(git = gitController(repository))
+        assertEquals(Rejection(Res.string.error_command_commit_conflicts), Commit.validate(context, Commit.Input("Merge.")))
     }
 
     @Test
