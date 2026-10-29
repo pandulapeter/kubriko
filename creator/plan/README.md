@@ -34,10 +34,12 @@ The files are numbered in the order they are worked on.
    does more. **Every new editor feature lands with its command, its AI tool, and their tests.**
 9. [Version control](09-git.md) - sidebar change markers, restoring old versions, branches, remotes.
 10. [Debugger](10-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
-11. [Export and distribution](11-export-and-distribution.md) - signed Android builds, desktop installers, web export, iOS, the JDK download,
+11. [Export and distribution](11-export-and-distribution.md) - signed Android builds, desktop installers, web export, iOS,
     Creator's own installers.
 12. [Project upkeep](12-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
-13. [Later](13-later.md) - code editor, language server, asset editor extension point.
+13. [Onboarding](13-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
+    games of increasing complexity, and cloning a project from version control.
+14. [Later](14-later.md) - code editor, language server, asset editor extension point.
 
 ## Vision
 

@@ -76,7 +76,7 @@ What it shows:
    so the Scene editor can show a changed type's Actors from its definition right away (a preview Actor drawn by Creator) while the
    compile runs, then swap in the real classes. Hand-written types keep their last compiled look until then.
 6. **Hot reload in the game:** Compose Hot Reload in the play session, so Block and Kotlin changes apply to a running game without
-   a restart (moved here from `13-later.md`). Generated code is shaped for it: no static state that a reload would lose.
+   a restart (moved here from `14-later.md`). Generated code is shaped for it: no static state that a reload would lose.
 
 ## Playing
 

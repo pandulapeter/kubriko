@@ -34,4 +34,4 @@ explanations instead of failures for layouts Creator can't interpret.
 
 **Tesselar** (two Kubriko instances, procedural world, its own cuboid model format) is the advanced reference: it plays unchanged; Scene
 editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the editable instance; cuboid models need the asset
-editor extension point (`13-later.md`); Blocks don't apply.
+editor extension point (`14-later.md`); Blocks don't apply.
