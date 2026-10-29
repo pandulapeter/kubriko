@@ -23,8 +23,8 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`01-large-projects.md` (caps first), then the first four steps of `02-ai-assistant.md` → Order, then the files in order, with the rest
-of `02-ai-assistant.md` alongside them.
+`01-large-projects.md` (caps first), then the first four steps of `02-ai-assistant.md` → Order together with the five "First" items
+of its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them.
 
 ## To check by hand
 
