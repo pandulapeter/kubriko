@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
  */
 internal class SystemSecretStore(
     private val commands: SecretCommands? = SecretCommands.forThisPlatform(),
+    private val timeoutInMilliseconds: Long = TIMEOUT_IN_MILLISECONDS,
 ) : SecretStore {
     override val isAvailable get() = commands != null
 
@@ -38,13 +39,21 @@ internal class SystemSecretStore(
     private fun run(command: List<String>, input: String? = null): Outcome? = try {
         val process = ProcessBuilder(command).redirectError(ProcessBuilder.Redirect.DISCARD).start()
         process.outputStream.bufferedWriter().use { writer -> input?.let(writer::write) }
-        val output = process.inputStream.bufferedReader().readText()
-        if (process.waitFor(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) Outcome(process.exitValue(), output) else null.also { process.destroyForcibly() }
+        val output = StringBuilder()
+        // Read on a thread of its own, since a tool waiting for an unlock prompt nobody answers never closes its output.
+        val reader = Thread { output.append(process.inputStream.bufferedReader().readText()) }.apply { start() }
+        if (process.waitFor(timeoutInMilliseconds, TimeUnit.MILLISECONDS)) {
+            reader.join()
+            Outcome(process.exitValue(), output.toString())
+        } else {
+            process.destroyForcibly()
+            null
+        }
     } catch (_: IOException) {
         null
     }
 
     private companion object {
-        const val TIMEOUT_IN_SECONDS = 10L
+        const val TIMEOUT_IN_MILLISECONDS = 10_000L
     }
 }
