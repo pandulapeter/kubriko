@@ -1,0 +1,151 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
+# Temporary: one unattended Claude review of Kubriko Creator and its plans, on a branch of its own. Small fixes land as
+# commits, larger findings as new or updated files in creator/plan/. Dispatched by hand only; delete this file once the
+# review is merged.
+
+name: '[Creator] AI review (temporary)'
+
+on:
+  workflow_dispatch:
+    inputs:
+      budget:
+        description: 'The most the run may spend on the Anthropic API, in US dollars'
+        default: '50'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: creator-review
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: Review Kubriko Creator
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      BRANCH: creator-review-${{ github.run_number }}
+      BUDGET: ${{ inputs.budget }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
+      # The pre-commit hook runs the license, size, and regex checks and spotlessCheck, so every commit passes what
+      # Tests would check.
+      - name: Create the review branch
+        run: |
+          git config user.name 'Pandula Péter'
+          git config user.email 'pandulapeter@gmail.com'
+          git config core.hooksPath .githooks
+          git switch -c "$BRANCH"
+          git push -u origin "$BRANCH"
+      # Warms the Gradle cache, so the agent's first test run doesn't spend its time downloading.
+      - name: Build Kubriko Creator
+        run: ./gradlew :creator:compileTestKotlin --no-configuration-cache
+      - name: Install Claude Code
+        run: npm install --global @anthropic-ai/claude-code
+      - name: Review with Claude
+        # Leaves time for the final push below when the review runs long.
+        timeout-minutes: 320
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUMMARY: ${{ runner.temp }}/summary.md
+        run: |
+          cat > "$RUNNER_TEMP/prompt.md" <<'PROMPT'
+          You are running unattended in a GitHub Actions job (Ubuntu, 4 cores, 16 GB, no display), on the branch
+          `$BRANCH` of the Kubriko repository, which is already checked out and pushed. Nobody can answer a question
+          until the run is over: never use AskUserQuestion and never wait for an answer. Record every decision that
+          really belongs to the maintainer as an open question in the plan it concerns.
+
+          The hard cap for this whole run is $BUDGET US dollars, subagents included (--max-budget-usd stops the run
+          mid-work past it), so commit and push as you go and spend it in order of value. You run in print mode: ending
+          your turn ends the run and kills every subagent still working, so launch subagents in the foreground, never
+          with `run_in_background` (parallel ones as several Agent calls in one message).
+
+          ## Task
+
+          Review all of Kubriko Creator (`creator/`) built so far, together with its plans (`creator/plan/`), and
+          improve it for:
+
+          1. scalability: large projects with many Actor types, Scenes, resources, and long Event/Block lists, and
+             long-running sessions;
+          2. usefulness on complex projects: what a real, bigger game would need that Creator makes hard or impossible;
+          3. beginner-friendliness: the first hour of someone who knows neither Kotlin nor Gradle, error messages,
+             empty states, and recoverability from mistakes;
+          4. general stability: bugs, races, lifecycle and process handling, file I/O and corrupted or hand-edited
+             files, and error handling.
+
+          Look for concrete bugs as well as architectural issues (coupling, responsibilities in the wrong place,
+          designs the plans will outgrow, and plans that contradict each other or the code).
+
+          ## How to work
+
+          - Start with `CLAUDE.md`, `creator/CLAUDE.md`, `creator/plan/README.md`, and `creator/plan/HANDOVER.md`, then
+            the rest of `creator/plan/`, then the code. Follow `.claude/skills/code-style/SKILL.md` for every Kotlin
+            edit and `.claude/skills/commit-messages/SKILL.md` for every commit (one-line, one-sentence messages, no
+            trailers). `.claude/skills/codebase-review/SKILL.md` describes how this repository triages findings into
+            simple and complex: use its criteria, but not its interactive steps.
+          - Use subagents to read areas in parallel, but verify every finding yourself against the code before acting
+            on it. Drop what does not hold.
+          - Small, local fixes with one obvious form (a clear bug, a missing check, a wrong message, or a stale doc):
+            fix them, with a unit test when the fix is testable (Creator's tests are a priority: see
+            `creator/CLAUDE.md`), run `./gradlew :creator:test --no-configuration-cache`, and commit each fix on its
+            own, staging only its own paths. Then run `git push`.
+          - Anything larger (changes to threading, lifecycle, persisted formats, the session protocol, or the
+            architecture; anything needing a decision): do not implement it. Add it to the plan file in `creator/plan/`
+            it belongs to, or update the item already there, following the plans' conventions (only future work, no
+            history or "Done" notes; a new topic gets a new numbered file and a line in the roadmap of
+            `creator/plan/README.md`). Each item says what is wrong (with file paths), why it matters, and the proposed
+            direction. Commit plan changes in a few cohesive commits and push.
+          - Never touch `engine/`, `plugins/`, `tools/`, `examples/`, `app/`, or `.github/` except where a Creator bug
+            cannot be fixed otherwise; then plan it instead. Never change published public API.
+          - Keep `creator/CLAUDE.md` true for whatever you change. Never rewrite `creator/plan/HANDOVER.md`'s "Next"
+            section; add a short note there pointing to the review's plan changes instead.
+          - If a commit's pre-commit hook fails, fix the cause; never bypass it with `--no-verify`.
+          - Never force push, rebase published commits, switch branches, or push to `main`.
+
+          ## When done (or when the budget is nearly spent)
+
+          Write a short Markdown report to the file named by the SUMMARY environment variable: the fixes committed
+          (short hash and message each), the plan items added or changed (file and title each), the findings dropped
+          after verification with one sentence why, and the open questions for the maintainer. Use the Oxford comma in
+          every list of three or more. Commit and push whatever is left.
+          PROMPT
+          prompt="$(sed -e "s/\$BUDGET/$BUDGET/g" -e "s/\$BRANCH/$BRANCH/g" "$RUNNER_TEMP/prompt.md")"
+          claude -p "$prompt" \
+            --model claude-opus-5-5 \
+            --allowedTools Bash,Read,Edit,Write,Glob,Grep,Agent,TodoWrite \
+            --max-budget-usd "$BUDGET" \
+            --output-format stream-json \
+            --verbose \
+            | tee "$RUNNER_TEMP/review.jsonl" \
+            | jq -r --unbuffered 'select(.type == "assistant") | .message.content[]? | select(.type == "text") | .text' || true
+      - name: Push the review branch
+        if: ${{ always() }}
+        run: git push origin "$BRANCH"
+      - name: Publish the report
+        if: ${{ always() }}
+        run: |
+          if [ -s "$RUNNER_TEMP/summary.md" ]; then cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"; fi
+          echo "Branch: \`$BRANCH\`" >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the transcript and the report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: review
+          path: |
+            ${{ runner.temp }}/review.jsonl
+            ${{ runner.temp }}/summary.md
+          if-no-files-found: ignore
+          retention-days: 30
