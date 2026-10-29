@@ -69,6 +69,13 @@ class TimerCommandsTest {
     }
 
     @Test
+    fun undoingTheRemovalOfATimerFinishedEventBringsItBackWithItsTimer() = runTest {
+        val context = commandContext(enemy, bat)
+        val events = context.assertRoundTrip(Invocation(RemoveEvent, RemoveEvent.Input("Bat", 0))) { context.blockTypes!!["Bat"]!!.events }
+        assertEquals(emptyList(), events)
+    }
+
+    @Test
     fun theScopeOffersTheTimersOfTheWholeFamily() = runTest {
         val context = commandContext(enemy, bat, wall, game)
         assertEquals(listOf("blink", "spawn"), context.scopeOf(context.blockTypes!!["Bat"]!!).timerNames)

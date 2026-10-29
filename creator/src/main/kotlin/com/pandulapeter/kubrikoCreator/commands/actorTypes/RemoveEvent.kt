@@ -46,6 +46,7 @@ internal object RemoveEvent : WriteCommand<RemoveEvent.Input> {
                     type = event.type,
                     key = event.key,
                     otherActorType = event.otherActorType,
+                    timer = event.timer,
                     blocks = event.blocks,
                     index = input.eventIndex,
                 ),
