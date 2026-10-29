@@ -73,6 +73,16 @@ class ClassLoaderEntryPointLoaderTest {
     }
 
     @Test
+    fun aClassFileThatCantBeReadIsReportedAsClassesThatCouldntBeLoaded() {
+        val classes = File(root, "unreadable").apply { mkdirs() }
+        val classFile = File(classes, "Broken.class").apply { writeText("") }
+        classFile.setReadable(false)
+        if (classFile.canRead()) return
+        val exception = assertFailsWith<EntryPointLoadingException> { load(classes) }
+        assertEquals(Res.string.error_entry_point_not_loaded, exception.reason)
+    }
+
+    @Test
     fun onlyJarsAndFoldersTheProjectBuildsAreCopied() {
         fun jar(path: String) = File(root, path).apply { parentFile.mkdirs(); writeText("") }
         assertTrue(ClassLoaderEntryPointLoader.isProjectOutput(jar("game/build/libs/game-desktop.jar")))

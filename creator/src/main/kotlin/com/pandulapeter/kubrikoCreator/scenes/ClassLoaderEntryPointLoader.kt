@@ -15,6 +15,7 @@ import kubriko.creator.generated.resources.error_entry_point_missing
 import kubriko.creator.generated.resources.error_entry_point_multiple
 import kubriko.creator.generated.resources.error_entry_point_not_loaded
 import java.io.File
+import java.io.IOException
 import java.util.ServiceConfigurationError
 import java.util.ServiceLoader
 import kotlin.io.path.createTempDirectory
@@ -33,7 +34,12 @@ internal object ClassLoaderEntryPointLoader : EntryPointLoader {
 
     override fun load(classpath: ProjectClasspath): LoadedEntryPoint {
         val copies = createTempDirectory("kubriko-creator-classes").toFile().apply { deleteOnExit() }
-        val classLoader = classLoaderOf(classpath.files, copies)
+        val classLoader = try {
+            classLoaderOf(classpath.files, copies)
+        } catch (exception: IOException) {
+            copies.deleteRecursively()
+            throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, exception)
+        }
         try {
             val entryPoints = ServiceLoader.load(CreatorEntryPoint::class.java, classLoader).toList()
             val entryPoint = when (entryPoints.size) {
@@ -50,12 +56,15 @@ internal object ClassLoaderEntryPointLoader : EntryPointLoader {
             )
         } catch (exception: EntryPointLoadingException) {
             classLoader.close()
+            copies.deleteRecursively()
             throw exception
         } catch (error: ServiceConfigurationError) {
             classLoader.close()
+            copies.deleteRecursively()
             throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, error)
         } catch (error: LinkageError) {
             classLoader.close()
+            copies.deleteRecursively()
             throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, error)
         }
     }
