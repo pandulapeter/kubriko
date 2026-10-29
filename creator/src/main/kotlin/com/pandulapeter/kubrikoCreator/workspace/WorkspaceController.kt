@@ -314,7 +314,10 @@ internal class WorkspaceController(
             sceneEditing.markOutdated()
             refreshProjectUpgrade()
         }
-        if (ProjectChange.SCENES in changes) blockTypes?.onScenesChanged()
+        if (ProjectChange.SCENES in changes) {
+            blockTypes?.onScenesChanged()
+            sceneEditing.onScenesChangedOnDisk()
+        }
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
             refreshResources()
             gameBuilds.onCodeChanged()

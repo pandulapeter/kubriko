@@ -256,6 +256,15 @@ internal class SceneEditingController(
     }
 
     /**
+     * Shows the open Scene again (or closes it if it is gone) after Scene files changed outside Kubriko Creator, which
+     * doesn't say which ones.
+     */
+    fun onScenesChangedOnDisk() {
+        val open = _state.value as? SceneEditingState.Open ?: return
+        onScenesChanged(listOf(open.sceneName))
+    }
+
+    /**
      * Notes that a command moved the Scene [oldName] to [scene], which the open Scene follows if it was that one.
      */
     fun onSceneRenamed(oldName: String, scene: ProjectResource) = _state.update { state ->

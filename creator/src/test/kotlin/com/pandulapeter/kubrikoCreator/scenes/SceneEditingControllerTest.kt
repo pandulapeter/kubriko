@@ -425,6 +425,19 @@ class SceneEditingControllerTest {
     }
 
     @Test
+    fun theOpenSceneIsReadAgainWhenScenesChangeOnDisk() = runTest {
+        val controller = createController()
+        writeScene(ball)
+        controller.open(scene)
+        writeScene(ball, brick)
+        controller.onScenesChangedOnDisk()
+        assertEquals(listOf(ball, brick), assertIs<SceneEditingState.Open>(controller.state.value).actors)
+        scene.file.delete()
+        controller.onScenesChangedOnDisk()
+        assertEquals(SceneEditingState.Closed, controller.state.value)
+    }
+
+    @Test
     fun theSceneIsReadWhileTheProjectBuilds() = runTest {
         writeScene(ball)
         val gate = CompletableDeferred<Unit>().also { buildGate = it }

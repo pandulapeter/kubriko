@@ -288,7 +288,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   one (`SceneDocument.newId`), or the one `place_actor`, `restore_actor`, or new Scene settings are given (how the Scene editor
   selects what it just placed, and how undoing a removal brings the same Actor back). Positions live in
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
-  Actor type renames its Actors in every Scene. A command that changes the open Scene shows it again (or closes it if deleted); a
+  Actor type renames its Actors in every Scene. A command that changes the open Scene shows it again (or closes it if deleted), and so does a Scene change on disk; a
   changed Actor type marks it outdated, since its classes must be compiled again, but regenerating code for changed Scenes doesn't.
   `set_actor_values` changes one Actor's body (a new size moves the pivot to the middle), color, and Property values
   (`ActorStateEdits`; colors as Compose's packed value, rotations in radians) and is undone by `set_actor_state`, which replaces
