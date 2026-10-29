@@ -22,6 +22,10 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   benchmark, batched type writes, generation from memory with caches, `ActorTypeFamily` no longer quadratic, Scenes cached
   in `SceneStore`, a watcher that ignores Creator's own writes, `ScenePatch` in the Scene editor, and a narrower workspace
   recomposition. A type change at 200 types went from 1.3 s to 0.14 s, a Scene edit at 5,000 Actors from 1.26 s to 45 ms.
+  On 2026-10-29 also: the Scene editor gets parsed Actors from `SceneStore` (read while the project builds), picking goes
+  through `SceneBoundsGrid`, the type editor's lists are lazy (the Block list's drops from `LaidOutRows`, with auto-scroll),
+  and the undo history and git state are collected where they are shown. What is left of `01-foundation.md` is only
+  conditional (measured first) or a manual check.
 - **`Logger.log`** (`tools/logger`, db2184aaa) builds its list once instead of three times, with no API change: a library
   change for 0.8.1.
 - **Parent Actor types** (2026-10-28), generated as real Kotlin inheritance (`<Name>Base` classes with Event hooks), with the
@@ -68,11 +72,12 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `01-foundation.md`, in its order: what is left of steps 1 and 4 to 6 (Scene cache filled when a Scene opens,
-   lazy Event/Block/Property lists with drag targets that work off screen, the picking grid, the remaining screen-wide
-   collections). Run the benchmark (`KUBRIKO_CREATOR_BENCHMARK=true`) before and after anything on the data flow.
-2. `02-fast-iteration.md`: no waiting for Gradle in the Scene editor (preview Actors from definitions, swapping classes in the
-   background), measured first.
+1. See the lazy Block list in the running app (`01-foundation.md` → 6): select Ball in a scratch Breakout whose Ball has a
+   long addedToScene Event (60 Log Blocks, 40 Properties; a script for it is easy), scroll it, and drag a palette Block and
+   an existing Block past the visible ones, holding near the edges. The session of 2026-10-29 got as far as screenshots of
+   the lists drawn as before, then the user's Android Studio covered Creator.
+2. `02-fast-iteration.md`, starting with Measuring the build (the Gradle-backed benchmark), then no waiting for Gradle in
+   the Scene editor (preview Actors from definitions, swapping classes in the background), measured first.
 3. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
@@ -82,6 +87,9 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   after the version 5 upgrade; quitting with a change made less than 100 ms before (it should be written); the Scene editor
   after an inspector edit (a replaced Actor) and after placing and removing Actors (`ScenePatch` add and remove); a Scene
   changed by git while open; and the version 5 upgrade's diff on the real Breakout copy.
+
+- The Scene editor after the 2026-10-29 changes: clicking Actors (picked through `SceneBoundsGrid`), selecting right after
+  placing, removing, and undoing (a full rebuild of the grid), and a click after a drag (an in-place grid update).
 
 - Parents in the editor: the inherited Properties and Events, replacing an inherited Event (it starts with runParentEvent), the
   parent menu leaving out the type's own descendants, deleting a parent with children (rejected in the console), and a child of
