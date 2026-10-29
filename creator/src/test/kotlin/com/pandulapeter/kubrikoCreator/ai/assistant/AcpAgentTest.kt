@@ -293,6 +293,26 @@ class AcpAgentTest {
     }
 
     @Test
+    fun closingTheAgentWhileItStartsStopsItsProcess() = test {
+        val launcher = launcher()
+        lateinit var agent: AcpAgent
+        val closingLauncher = object : AgentLauncher {
+            override fun launch(command: AgentCommand) = launcher.launch(command).also { agent.close() }
+        }
+        agent = AcpAgent(
+            command = AgentCommand("fake-agent", listOf("--acp")),
+            launcher = closingLauncher,
+            clientInfo = AcpAgent.clientInfo("1.2.3"),
+            scope = scope,
+            ioDispatcher = Dispatchers.IO,
+            timeSource = timeSource,
+        ).also { agents += it }
+        assertFailsWith<IllegalStateException> { agent.start() }
+        assertTrue(launcher.channels.single().isStopped)
+        assertEquals(AgentState.Stopped, agent.state.value)
+    }
+
+    @Test
     fun closingTheAgentStopsItsProcess() = test {
         val launcher = launcher()
         val agent = agent(launcher)
