@@ -49,7 +49,9 @@ lives in `plan/` (start with `plan/README.md`).
   project's `CreatorEntryPoint` through `ServiceLoader`, and `SceneView` creates the Scene's Actors from the file's states with the
   project's `SerializationManager` and Managers in a Kubriko instance of its own that never runs (one Actor per entry, kept by
   the Actor's ID), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). A click selects the Actor on top (`SceneHitTest`:
-  lowest drawing order, then the later one; the Scene settings only where nothing else is), dragging it moves it live and dispatches
+  lowest drawing order, then the later one; the Scene settings only where nothing else is), looking only at the Actors near
+  it (`SceneBoundsGrid`, a uniform grid of their bounds, updated in place when Actors only move or change and built again on
+  the next click after Actors are added, removed, or reordered), dragging it moves it live and dispatches
   `move_actor` when let go, dragging elsewhere or scrolling pans, Ctrl/Cmd+scroll and the header zoom (`SceneFraming` shows the
   Scene settings' bounds, or every Actor), Delete or Backspace dispatches `remove_actor`, and an Actor type dragged from the sidebar
   (`SidebarDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). The inspector beside it
@@ -57,9 +59,10 @@ lives in `plan/` (start with `plan/README.md`).
   Actor, so defaults its state leaves out show), and for block-built types its color and Property values (the type's where the
   state has none), set through `set_actor_values`; the Scene settings through `set_scene_settings`; with nothing selected, a hint
   and a way to the Scene settings (added if the Scene has none). Every change is a command, so it
-  is undone like any other, and after each the file is read again and `SceneView.load` applies only what changed
+  is undone like any other, and after each the Scene's Actors are read again from `SceneStore` (which parses the Scene in the
+  background while the project builds, so the first command doesn't parse it on the main thread) and `SceneView.load` applies only what changed
   (`ScenePatch`: unchanged Actors stay, one whose state differs only in position is moved, a changed one is created again,
-  new ones at the end are added, removed ones go; a new order creates the whole Scene again), parsing and creating Actors
+  new ones at the end are added, removed ones go; a new order creates the whole Scene again), creating Actors
   off the main thread. A project on another Kubriko version
   gets a notice instead (`SceneEditingState.Unsupported`), and so does a Scene whose project didn't build or whose entry point
   couldn't be loaded (`SceneEditingState.Failed`, with Try again), rather than the pane just closing. Compose resources are read
@@ -281,7 +284,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits; writes queued as `PendingWrite`s and written in batches, 100 ms after the last change, a type saved several times written once, then one regeneration and build file sync per batch; `awaitWrites`, which builds, git commands (`CommandContext.awaitWrites`), and closing wait for; reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `SceneView`, `SceneHitTest`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
+| `scenes` | `SceneEditingController`, `SceneView`, `SceneHitTest` and `SceneBoundsGrid`, `ScenePatch`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |

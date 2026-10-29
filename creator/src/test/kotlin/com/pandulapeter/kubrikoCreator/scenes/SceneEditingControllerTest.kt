@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -48,6 +49,10 @@ class SceneEditingControllerTest {
     private val loadedClasspaths = mutableListOf<ProjectClasspath>()
     private var closedCount = 0
     private val reports = mutableListOf<ConsoleEntry>()
+    private val sceneReads = mutableListOf<ProjectResource>()
+    private var buildGate: CompletableDeferred<Unit>? = null
+    private val ball = SceneActorEntry("Ball", "{}", "a")
+    private val brick = SceneActorEntry("Brick", "{}", "b")
     private var loader = EntryPointLoader { classpath ->
         loadedClasspaths += classpath
         LoadedEntryPoint(entryPoint = entryPoint, close = { closedCount++ })
@@ -62,6 +67,7 @@ class SceneEditingControllerTest {
         creatorKubrikoVersion = "1.0.0",
         runTask = { taskName, properties ->
             tasks += taskName to properties
+            buildGate?.await()
             File(properties.getValue("kubrikoCreatorClasspathFile")).writeText("kubrikoVersion=$projectVersion\n/game/build/libs/game.jar")
             isBuildSuccessful
         },
@@ -69,6 +75,10 @@ class SceneEditingControllerTest {
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         report = { reports += it },
+        readScene = { resource ->
+            sceneReads += resource
+            if (resource.file.isFile) SceneDocument.parse(resource.file.readText()) else emptyList()
+        },
         createClasspathFile = { File.createTempFile("classpath", ".txt", root) },
         currentTimeMillis = { 1_500L * tasks.size },
     )
@@ -142,22 +152,40 @@ class SceneEditingControllerTest {
     }
 
     @Test
-    fun theOpenSceneShowsItsFileAgainWhenItChangesAndClosesWhenItIsDeleted() = runTest {
+    fun theOpenSceneShowsItsActorsAgainWhenItChangesAndClosesWhenItIsDeleted() = runTest {
         val controller = createController()
-        scene.file.parentFile.mkdirs()
-        scene.file.writeText("[]")
+        writeScene(ball)
         controller.open(scene)
-        assertEquals("[]", assertIs<SceneEditingState.Open>(controller.state.value).content)
-        scene.file.writeText("[{}]")
+        assertEquals(listOf(ball), assertIs<SceneEditingState.Open>(controller.state.value).actors)
+        writeScene(ball, brick)
         controller.onScenesChanged(listOf("other"))
-        assertEquals("[]", assertIs<SceneEditingState.Open>(controller.state.value).content)
+        assertEquals(listOf(ball), assertIs<SceneEditingState.Open>(controller.state.value).actors)
         controller.onScenesChanged(listOf("main"))
         val changed = assertIs<SceneEditingState.Open>(controller.state.value)
-        assertEquals("[{}]", changed.content)
+        assertEquals(listOf(ball, brick), changed.actors)
         assertEquals(false, changed.isOutdated)
         scene.file.delete()
         controller.onScenesChanged(listOf("main"))
         assertEquals(SceneEditingState.Closed, controller.state.value)
+    }
+
+    @Test
+    fun theSceneIsReadWhileTheProjectBuilds() = runTest {
+        writeScene(ball)
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val controller = createController()
+        controller.open(scene)
+        runCurrent()
+        assertIs<SceneEditingState.Preparing>(controller.state.value)
+        assertEquals(listOf(scene), sceneReads)
+        gate.complete(Unit)
+        runCurrent()
+        assertEquals(listOf(ball), assertIs<SceneEditingState.Open>(controller.state.value).actors)
+    }
+
+    private fun writeScene(vararg actors: SceneActorEntry) {
+        scene.file.parentFile.mkdirs()
+        scene.file.writeText(SceneDocument.format(actors.toList()))
     }
 
     @Test

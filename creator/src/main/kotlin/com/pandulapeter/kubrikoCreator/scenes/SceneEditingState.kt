@@ -46,14 +46,14 @@ internal sealed interface SceneEditingState {
     ) : SceneEditingState
 
     /**
-     * @param content The Scene file's content, read again whenever a command changes it.
+     * @param actors The Scene's Actors, read again whenever a command changes the Scene.
      * @param revision Changes every time the Scene is (re)opened, so that the editor starts over.
      * @param isOutdated Whether an Actor type changed since the project's classes were loaded, which a reload picks up.
      */
     data class Open(
         val scene: ProjectResource,
         val entryPoint: CreatorEntryPoint,
-        val content: String,
+        val actors: List<SceneActorEntry>,
         val revision: Int,
         val isOutdated: Boolean = false,
     ) : SceneEditingState {

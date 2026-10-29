@@ -135,6 +135,7 @@ internal class WorkspaceController(
         scope = scope,
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
+        readScene = { scenes.actors(SceneStore.nameOf(it.file)).orEmpty() },
         spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
     )
 

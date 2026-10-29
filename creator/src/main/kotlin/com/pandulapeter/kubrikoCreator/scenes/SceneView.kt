@@ -31,12 +31,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
 
 /**
  * A Scene drawn by the project's own Actor classes, in a Kubriko instance of Kubriko Creator's that never runs the game:
  * its Actors are created from the Scene's states as the game creates them, and are only ever moved while they are
- * dragged. Changes go through commands, which change the file, which is [load]ed again, changing only what changed.
+ * dragged. Changes go through commands, which change the Scene, which is [load]ed again, changing only what changed.
  */
 internal class SceneView(entryPoint: CreatorEntryPoint) {
     private val serializationManager = entryPoint.createSerializationManager()
@@ -64,6 +63,14 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         private set
     var actors: List<Editable<*>?> = emptyList()
         private set
+    private var indicesById: Map<String, Int> = emptyMap()
+
+    /**
+     * The Actors' bounds for picking, built again on the first pick after a change that added, removed, or reordered
+     * Actors, and updated in place for one that only moved or changed some.
+     */
+    private val boundsGrid = SceneBoundsGrid()
+    private var isBoundsGridOutdated = true
 
     /**
      * Changes every time the Actors are created again, for what shows them.
@@ -72,23 +79,24 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     val loadRevision = _loadRevision.asStateFlow()
 
     /**
-     * Shows the Scene [content]: parsed, and its new and changed Actors created, off the main thread. Only what changed
+     * Shows the Scene's [next] Actors, its new and changed ones created off the main thread. Only what changed
      * since the last [load] changes in the Kubriko instance ([ScenePatch]): a moved Actor is moved, a changed one is
      * created again (so it is drawn after others of its drawing order until the Scene is opened again), and the rest
      * stay, unless their order changed, which creates the whole Scene again.
      */
-    suspend fun load(content: String) {
-        val next = withContext(Dispatchers.Default) { parseOrEmpty(content) }
+    suspend fun load(next: List<SceneActorEntry>) {
         val patch = ScenePatch.between(entries, next)
         if (patch == null) {
             val created = withContext(Dispatchers.Default) { next.map(::createActor) }
             entries = next
             actors = created
+            isBoundsGridOutdated = true
             actorManager.removeAll()
             actorManager.add(created.filterNotNull())
         } else {
             apply(patch, next)
         }
+        indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
         _loadRevision.update { it + 1 }
     }
 
@@ -112,16 +120,13 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         patch.removedIndices.forEach { index -> actors[index]?.let(removed::add) }
         entries = next
         actors = nextActors
+        if (patch.removedIndices.isNotEmpty() || ScenePatch.Action.Add in patch.actions) {
+            isBoundsGridOutdated = true
+        } else if (!isBoundsGridOutdated) {
+            patch.actions.forEachIndexed { index, action -> if (action is ScenePatch.Action.Move || action is ScenePatch.Action.Replace) boundsGrid.update(index, boundsAt(index)) }
+        }
         if (removed.isNotEmpty()) actorManager.remove(removed)
         if (added.isNotEmpty()) actorManager.add(added)
-    }
-
-    private fun parseOrEmpty(content: String) = try {
-        SceneDocument.parse(content)
-    } catch (_: SerializationException) {
-        emptyList()
-    } catch (_: IllegalArgumentException) {
-        emptyList()
     }
 
     /**
@@ -129,19 +134,26 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
      */
     fun actorIdAt(screenOffset: Offset): String? {
         val position = toScene(screenOffset)
-        return SceneHitTest.pick(allBounds(), position.x.raw, position.y.raw)?.let { entries[it].id }
+        return currentBoundsGrid().pick(position.x.raw, position.y.raw)?.let { entries[it].id }
     }
 
-    fun entryOf(id: String) = entries.firstOrNull { it.id == id }
+    private fun currentBoundsGrid() = boundsGrid.also {
+        if (isBoundsGridOutdated) {
+            it.rebuild(actors.indices.mapNotNull(::boundsAt), actors.size)
+            isBoundsGridOutdated = false
+        }
+    }
 
-    fun actorOf(id: String) = actors.getOrNull(entries.indexOfFirst { it.id == id })
+    fun entryOf(id: String) = indicesById[id]?.let(entries::get)
+
+    fun actorOf(id: String) = indicesById[id]?.let(actors::get)
 
     /**
      * Whether the Actor [id] is the Scene settings, which fill the Scene's bounds behind everything else.
      */
     fun isBackground(id: String) = entryOf(id)?.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME
 
-    fun boundsOf(id: String) = entries.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(::boundsAt)
+    fun boundsOf(id: String) = indicesById[id]?.let(::boundsAt)
 
     private fun boundsAt(index: Int) = actors.getOrNull(index)?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME) }
 
@@ -150,14 +162,12 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
      */
     fun zoomToFit() {
         val size = viewportManager.size.value
-        val framing = SceneFraming.fit(allBounds(), size.width, size.height) ?: return
+        val framing = SceneFraming.fit(currentBoundsGrid().all(), size.width, size.height) ?: return
         viewportManager.setCameraPosition(SceneOffset(framing.centerX.sceneUnit, framing.centerY.sceneUnit))
         // The aspect ratio mode may scale the factor that is set further, which the target has to make up for.
         val adjustment = viewportManager.scaleFactor.value.horizontal / viewportManager.rawScaleFactor.value.horizontal
         viewportManager.setScaleFactor(framing.scaleFactor / adjustment)
     }
-
-    private fun allBounds() = actors.indices.mapNotNull(::boundsAt)
 
     fun toScene(screenOffset: Offset): SceneOffset = screenOffset.toSceneOffset(viewportManager)
 

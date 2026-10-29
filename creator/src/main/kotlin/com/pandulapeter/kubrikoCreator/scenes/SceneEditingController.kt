@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,10 +30,12 @@ import java.io.IOException
 
 /**
  * Opens Scenes in Kubriko Creator's own window: compiles the project, loads its classes next to Creator's, and hands
- * the project's entry point and the Scene's content to the Scene editor. A project on another Kubriko version can't
+ * the project's entry point and the Scene's Actors to the Scene editor. A project on another Kubriko version can't
  * share Creator's classes, so its Scenes can't be edited ([SceneEditingState.Unsupported]).
  *
  * @param runTask Runs one of the init script's tasks with the given properties, reporting problems in the console.
+ * @param readScene The Actors of a Scene file, empty if it can't be read. Called off the main thread, while the project
+ *   builds, so that the [SceneStore] it reads from has the Scene parsed for the first command on it.
  * @param spriteFiles The project's sprite files by the name of their resource accessor, which the Scene editor reads
  *   itself ([SpriteLoadingEntryPoint]).
  */
@@ -43,6 +46,7 @@ internal class SceneEditingController(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val report: (ConsoleEntry) -> Unit,
+    private val readScene: (ProjectResource) -> List<SceneActorEntry>,
     private val createClasspathFile: () -> File = { File.createTempFile("kubriko-creator-classpath", ".txt").apply { deleteOnExit() } },
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
@@ -66,11 +70,12 @@ internal class SceneEditingController(
         _state.value = SceneEditingState.Preparing(scene)
         val startTime = currentTimeMillis()
         job = scope.launch {
+            val actors = async(ioDispatcher) { readScene(scene) }
             val loaded = loadedEntryPoint ?: (buildAndLoad(scene) ?: return@launch)
             _state.value = SceneEditingState.Open(
                 scene = scene,
                 entryPoint = SpriteLoadingEntryPoint(loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
-                content = withContext(ioDispatcher) { readContent(scene.file) },
+                actors = actors.await(),
                 revision = ++revision,
             )
             report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
@@ -126,7 +131,7 @@ internal class SceneEditingController(
     }
 
     /**
-     * Notes that commands changed the Scene files called [names]: the open Scene shows its new content if it is one of
+     * Notes that commands changed the Scene files called [names]: the open Scene shows its new Actors if it is one of
      * them, and is closed if it was deleted.
      */
     fun onScenesChanged(names: Collection<String>) {
@@ -134,8 +139,8 @@ internal class SceneEditingController(
         when {
             open.sceneName !in names -> Unit
             open.scene.file.isFile -> scope.launch {
-                val content = withContext(ioDispatcher) { readContent(open.scene.file) }
-                _state.update { if (it is SceneEditingState.Open && it.revision == open.revision) it.copy(content = content) else it }
+                val actors = withContext(ioDispatcher) { readScene(open.scene) }
+                _state.update { if (it is SceneEditingState.Open && it.revision == open.revision) it.copy(actors = actors) else it }
             }
             else -> close()
         }
@@ -178,12 +183,6 @@ internal class SceneEditingController(
             }
         }
         loadedEntryPoint = null
-    }
-
-    private fun readContent(file: File) = try {
-        file.readText()
-    } catch (_: IOException) {
-        ""
     }
 
     private fun readClasspath(file: File) = try {

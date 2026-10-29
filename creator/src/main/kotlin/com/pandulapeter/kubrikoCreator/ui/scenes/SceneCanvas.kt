@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 
@@ -61,13 +62,13 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
  * too, and with Ctrl or Cmd, zooms. Delete or Backspace removes the selected Actor, and an Actor type dragged in from the
  * sidebar is placed where it is dropped ([onPlace], in scene units).
  *
- * @param content The Scene file's content, which the Actors are created from again whenever it changes.
+ * @param actors The Scene's Actors, which [view] loads again whenever they change.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun SceneCanvas(
     view: SceneView,
-    content: String,
+    actors: List<SceneActorEntry>,
     selectedId: String?,
     onSelect: (String?) -> Unit,
     onMove: (actorId: String, x: Float, y: Float) -> Unit,
@@ -80,7 +81,7 @@ internal fun SceneCanvas(
     DisposableEffect(dragState) {
         onDispose { dragState.sceneTarget = null }
     }
-    LaunchedEffect(view, content) { view.load(content) }
+    LaunchedEffect(view, actors) { view.load(actors) }
     val loadRevision by view.loadRevision.collectAsState()
     val cameraPosition by view.viewportManager.cameraPosition.collectAsState()
     val scaleFactor by view.viewportManager.scaleFactor.collectAsState()

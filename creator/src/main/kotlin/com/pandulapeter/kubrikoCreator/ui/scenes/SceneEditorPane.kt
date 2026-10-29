@@ -111,7 +111,7 @@ internal fun SceneEditorPane(
         SceneCanvas(
             modifier = Modifier.weight(1f).fillMaxHeight(),
         view = view,
-        content = state.content,
+        actors = state.actors,
         selectedId = selectedId,
         onSelect = { selectedId = it },
         onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },

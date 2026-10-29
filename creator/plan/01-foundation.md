@@ -81,20 +81,16 @@ git commands, and closing wait for pending writes. Left:
 
 - A dependency index (regenerate only the types a change affects) if 85 ms for 200 types grows with bigger projects; measured
   first (`03-large-projects.md` → Measured, not assumed).
-- The first command on a Scene that isn't cached yet parses it on the main thread (about 30 ms at 5,000 Actors): opening a
-  Scene in the editor should fill the cache in the background.
 
 ## 5. Scene editing in place
 
 `SceneView` applies a `ScenePatch` after each change instead of creating every Actor again (`../CLAUDE.md` → Scene
-editing); seen working on the scratch Breakout (dragging the Ball, then undo). Left:
+editing); seen working on the scratch Breakout (dragging the Ball, then undo). The editor gets the Scene's parsed entries
+from `SceneStore` instead of its text, read in the background while the project builds (which also fills the cache before
+the first command), and picking goes through `SceneBoundsGrid`, updated in place when Actors only move or change. Left:
 
-- **Picking** goes through a uniform grid of Actor bounds, updated with the patches, so a click doesn't walk every Actor or
-  allocate their bounds (`SceneView.allBounds`).
 - A changed Actor is created again, so it moves after the others of its drawing order until the Scene is opened again; Actor
   types could take a new state in place (an `Editable` reloading itself) if that shows.
-- The editor still gets the new Scene as text from the file; the commands could hand it their parsed entries
-  (`SceneStore.actors`) instead, which also fills the cache when a Scene opens (`01` → 4, left).
 
 ## 6. The editor's own UI
 
