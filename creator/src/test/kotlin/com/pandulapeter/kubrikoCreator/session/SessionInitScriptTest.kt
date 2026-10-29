@@ -57,6 +57,8 @@ class SessionInitScriptTest {
         val project = File("/projects/game")
         assertEquals(SessionInitScript.classpathFileOf(project), SessionInitScript.classpathFileOf(File("/projects/other/../game")))
         assertNotEquals(SessionInitScript.classpathFileOf(project), SessionInitScript.classpathFileOf(File("/projects/other")))
+        assertEquals(SessionInitScript.buildClasspathFileOf(project), SessionInitScript.buildClasspathFileOf(File("/projects/other/../game")))
+        assertNotEquals(SessionInitScript.classpathFileOf(project), SessionInitScript.buildClasspathFileOf(project))
     }
 
     @Test

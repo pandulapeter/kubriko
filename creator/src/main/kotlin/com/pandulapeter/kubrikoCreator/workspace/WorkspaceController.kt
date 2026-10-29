@@ -262,7 +262,7 @@ internal class WorkspaceController(
                 startSession = ::play,
                 runTask = ::runCreatorTask,
                 console = consoleLog,
-                ioDispatcher = ioDispatcher,
+                classpathFile = SessionInitScript.buildClasspathFileOf(project.rootDirectory),
             ),
             ioDispatcher = ioDispatcher,
             audioFiles = { AudioFiles.of(_resources.value) },

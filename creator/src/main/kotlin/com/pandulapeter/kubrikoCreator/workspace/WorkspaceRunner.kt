@@ -14,14 +14,12 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Base64
 
@@ -33,19 +31,14 @@ internal class WorkspaceRunner(
     private val startSession: (firstScene: String?) -> Unit = sessions::play,
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
     private val console: ConsoleLog,
-    private val ioDispatcher: CoroutineDispatcher,
+    private val classpathFile: File,
 ) : ProjectRunner {
 
     override suspend fun build() = recordConsole {
-        val classpathFile = withContext(ioDispatcher) { File.createTempFile("kubriko-creator-classpath", ".txt") }
-        try {
-            runTask(
-                SessionInitScript.CLASSPATH_TASK_NAME,
-                mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
-            )
-        } finally {
-            withContext(ioDispatcher) { classpathFile.delete() }
-        }
+        runTask(
+            SessionInitScript.CLASSPATH_TASK_NAME,
+            mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
+        )
     }
 
     override suspend fun play(durationInMilliseconds: Long) = recordConsole {

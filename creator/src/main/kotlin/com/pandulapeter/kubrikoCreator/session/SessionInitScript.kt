@@ -53,6 +53,13 @@ internal object SessionInitScript {
         .apply { parentFile.mkdirs() }
 
     /**
+     * Where the classpath task writes the classpath of the project in [rootDirectory] for a build the AI asked for, which
+     * keeps its path, like the others, so that Gradle reuses its configuration cache.
+     */
+    fun buildClasspathFileOf(rootDirectory: File) = File(directory, "build-classpath-${hashOf(rootDirectory.absoluteFile.normalize().path.toByteArray())}.txt")
+        .apply { parentFile.mkdirs() }
+
+    /**
      * Where the classpath task writes the classpath of the project in [rootDirectory] for a play session, which the Scene
      * editor's builds of it don't touch.
      */
