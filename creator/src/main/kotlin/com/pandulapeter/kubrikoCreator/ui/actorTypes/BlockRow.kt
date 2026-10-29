@@ -94,7 +94,7 @@ internal fun BlockRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            modifier = Modifier.size(18.dp).blockDragSource(dragState) { DraggedBlock.Existing(index, block) },
+            modifier = Modifier.size(18.dp).listDragSource(dragState) { DraggedBlock.Existing(index, block) },
             painter = painterResource(Res.drawable.ic_drag_handle),
             contentDescription = stringResource(Res.string.action_drag_block),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,

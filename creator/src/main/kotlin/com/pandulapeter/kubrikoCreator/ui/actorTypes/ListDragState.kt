@@ -15,31 +15,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockKind
 
 /**
- * A Block being dragged in the Actor type editor: a new one from the palette, or one of the selected Event's.
- */
-internal sealed interface DraggedBlock {
-
-    val kind: BlockKind
-
-    data class New(
-        override val kind: BlockKind,
-    ) : DraggedBlock
-
-    data class Existing(
-        val index: Int,
-        val block: BlockDefinition,
-    ) : DraggedBlock {
-        override val kind get() = BlockKind.of(block)
-    }
-}
-
-/**
- * The Block rows of the selected Event that are laid out (the lazy Block list lays out only those on screen), as their
- * spans in root coordinates, top to bottom, and the index of the first of them.
+ * The rows of a lazy list that are laid out (only those on screen are), as their spans in root coordinates, top to
+ * bottom, and the index of the first of them.
  */
 internal data class LaidOutRows(
     val firstIndex: Int,
@@ -51,19 +30,20 @@ internal data class LaidOutRows(
 }
 
 /**
- * Where a Block is being dragged, in the editor's root coordinates, and where in the selected Event's Blocks it would
- * land. Drag sources report the pointer; the Block list reports where it is and which of its rows are laid out, and
- * scrolls by [autoScrollStep] while the pointer is near its edges, so that every gap can be reached.
+ * Where an item ([T]: a Block, or the index of an Event) is being dragged, in the editor's root coordinates, and where
+ * in a list it would land. Drag sources ([listDragSource]) report the pointer; the list ([lazyListDropTarget]) reports
+ * where it is and which of its rows are laid out, and scrolls by [autoScrollStep] while the pointer is near its edges,
+ * so that every gap can be reached.
  *
- * @param onDrop Called with the Block and the gap it was dropped in (0 is before the first Block).
+ * @param onDrop Called with the item and the gap it was dropped in (0 is before the first row).
  */
 @Stable
-internal class BlockDragState(
-    private val onDrop: (DraggedBlock, gap: Int) -> Unit,
+internal class ListDragState<T : Any>(
+    private val onDrop: (T, gap: Int) -> Unit,
     private val clock: () -> Long = System::nanoTime,
 ) {
     private var lastDragEndedAt = Long.MIN_VALUE / 2
-    var dragged by mutableStateOf<DraggedBlock?>(null)
+    var dragged by mutableStateOf<T?>(null)
         private set
     var pointer by mutableStateOf(Offset.Zero)
         private set
@@ -71,7 +51,7 @@ internal class BlockDragState(
     var laidOutRows: () -> LaidOutRows = { LaidOutRows.NONE }
 
     /**
-     * The gap the Block would land in if it were dropped now, or null if the pointer isn't over the Block list.
+     * The gap the item would land in if it were dropped now, or null if the pointer isn't over the list.
      */
     val gap: Int?
         get() {
@@ -81,7 +61,7 @@ internal class BlockDragState(
         }
 
     /**
-     * How far the Block list should scroll on this frame: towards the edge the pointer is within [edge] of, faster the
+     * How far the list should scroll on this frame: towards the edge the pointer is within [edge] of, faster the
      * closer it is, up to [maximumStep]. Zero while nothing is dragged over the list.
      */
     fun autoScrollStep(edge: Float, maximumStep: Float): Float {
@@ -94,8 +74,8 @@ internal class BlockDragState(
         }
     }
 
-    fun start(block: DraggedBlock, at: Offset) {
-        dragged = block
+    fun start(item: T, at: Offset) {
+        dragged = item
         pointer = at
     }
 
@@ -104,10 +84,10 @@ internal class BlockDragState(
     }
 
     fun end() {
-        val block = dragged ?: return
+        val item = dragged ?: return
         val gap = gap
         cancel()
-        if (gap != null) onDrop(block, gap)
+        if (gap != null) onDrop(item, gap)
     }
 
     fun cancel() {
@@ -132,6 +112,6 @@ internal class BlockDragState(
 internal fun gapAt(y: Float, rows: List<ClosedFloatingPointRange<Float>>) = rows.indexOfFirst { y < (it.start + it.endInclusive) / 2 }.let { if (it < 0) rows.size else it }
 
 /**
- * The index a Block moved from [index] into [gap] ends up at, or null if that leaves it where it is.
+ * The index a row moved from [index] into [gap] ends up at, or null if that leaves it where it is.
  */
 internal fun moveTarget(index: Int, gap: Int) = (if (gap > index) gap - 1 else gap).takeIf { it != index }

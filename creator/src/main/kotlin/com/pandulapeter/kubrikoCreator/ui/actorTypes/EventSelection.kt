@@ -18,3 +18,15 @@ internal fun selectedEventIndex(requestedIndex: Int?, eventCount: Int): Int? = w
     requestedIndex == null -> 0
     else -> requestedIndex.coerceIn(0, eventCount - 1)
 }
+
+/**
+ * Where the [selected] Event is after the Event at [index] moved to [targetIndex]: it follows the move if it was the one
+ * moved, and otherwise shifts with the Events between the two places.
+ */
+internal fun selectedEventIndexAfterMove(selected: Int?, index: Int, targetIndex: Int): Int? = when {
+    selected == null -> null
+    selected == index -> targetIndex
+    index < selected && selected <= targetIndex -> selected - 1
+    targetIndex <= selected && selected < index -> selected + 1
+    else -> selected
+}

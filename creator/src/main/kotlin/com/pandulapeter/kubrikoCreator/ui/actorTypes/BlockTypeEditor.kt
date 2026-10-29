@@ -203,6 +203,7 @@ internal fun BlockTypeEditor(
                 modifier = Modifier.width(280.dp).fillMaxHeight(),
                 typeKind = definition.kind,
                 events = definition.events,
+                listIdentity = name,
                 inheritedEvents = inheritance.events,
                 onOverride = { event ->
                     onCommand(Invocation(AddEvent, AddEvent.Input(name, event.type, event.key, event.otherActorType, event.timer, listOf(BlockDefinition.RunParentEvent))))
@@ -216,7 +217,7 @@ internal fun BlockTypeEditor(
                 },
                 onMoved = { index, targetIndex ->
                     onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
-                    requestedEventIndex = targetIndex
+                    requestedEventIndex = selectedEventIndexAfterMove(eventIndex, index, targetIndex)
                 },
                 onRemoved = { index ->
                     onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
@@ -236,6 +237,7 @@ internal fun BlockTypeEditor(
                 dragState = dragState,
                 onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
                 highlight = highlight?.takeIf { it.eventIndex == eventIndex },
+                listIdentity = name to eventIndex,
                 scrollToEndRequest = blockListScrollToEndRequest,
             )
             VerticalDivider()

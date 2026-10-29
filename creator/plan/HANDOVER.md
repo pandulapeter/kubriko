@@ -85,7 +85,9 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   changed by git while open; and the version 5 upgrade's diff on the real Breakout copy.
 
 - The lazy Block list: dragging an existing Block by its handle up past the top edge (auto-scroll upwards); the palette
-  drag downwards was seen working.
+  drag downwards was seen working, and so were the animated moves, the flash of a clicked or dropped Block, and dragging an
+  Event to the top with the selected one staying selected. Not seen: a Block or Event flashing after undoing its removal, and
+  typing into a just-added Block (an edit keeps its key, so the field should keep the focus).
 - The Scene editor after the 2026-10-29 changes: clicking Actors (picked through `SceneBoundsGrid`), selecting right after
   placing, removing, and undoing (a full rebuild of the grid), and a click after a drag (an in-place grid update).
 
@@ -129,7 +131,7 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   score"), and watch the activity view pace a burst of calls.
 - Connect for the plain "Claude Code" row in the Claude app, and for Claude Desktop from a real chat (writing its config needs the user).
 - Codex (out of quota until Nov 21, 2026), Cursor, Gemini CLI, Windows, and fish aliases with a real fish.
-- In the editor: the Event move buttons, the New Scene field, undo and redo, and Connect and Disconnect against a real config. Watch
+- In the editor: the New Scene field, undo and redo, and Connect and Disconnect against a real config. Watch
   for a palette drag adding its Block twice.
 
 ## Working with the live app

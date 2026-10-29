@@ -23,16 +23,15 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 
 /**
- * Lets the element be dragged as [block] into the selected Event's Blocks, reporting the pointer to [state] in root
- * coordinates.
+ * Lets the element be dragged as [item] into a list, reporting the pointer to [state] in root coordinates.
  */
 @Composable
-internal fun Modifier.blockDragSource(state: BlockDragState, block: () -> DraggedBlock): Modifier {
+internal fun <T : Any> Modifier.listDragSource(state: ListDragState<T>, item: () -> T): Modifier {
     var origin by remember { mutableStateOf(Offset.Zero) }
-    val currentBlock by rememberUpdatedState(block)
+    val currentItem by rememberUpdatedState(item)
     return onGloballyPositioned { origin = it.positionInRoot() }.pointerInput(state) {
         detectDragGestures(
-            onDragStart = { state.start(currentBlock(), origin + it) },
+            onDragStart = { state.start(currentItem(), origin + it) },
             onDragEnd = state::end,
             onDragCancel = state::cancel,
             onDrag = { change, _ ->

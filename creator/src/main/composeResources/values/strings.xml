@@ -223,8 +223,6 @@
     <string name="action_delete_manager_type">Delete Manager type</string>
     <string name="action_add_event">Add Event</string>
     <string name="action_remove">Remove</string>
-    <string name="action_move_up">Up</string>
-    <string name="action_move_down">Down</string>
     <string name="actor_type_appearance">Appearance</string>
     <string name="actor_type_events">Events</string>
     <string name="actor_type_events_empty">This doesn't do anything yet. Add an Event, then give it Blocks to run.</string>

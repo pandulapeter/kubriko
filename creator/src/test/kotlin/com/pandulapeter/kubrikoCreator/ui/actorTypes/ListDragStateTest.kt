@@ -19,7 +19,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class BlockDragStateTest {
+class ListDragStateTest {
     private val drops = mutableListOf<Pair<DraggedBlock, Int>>()
     private var now = 0L
     private val state = BlockDragState(onDrop = { block, gap -> drops += block to gap }, clock = { now }).apply {

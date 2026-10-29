@@ -148,7 +148,7 @@ private fun PaletteEntry(
         .background(kind.category.accent.container)
         .accentEdge(kind.category.accent.color)
         .heightIn(min = 32.dp)
-        .blockDragSource(dragState) { DraggedBlock.New(kind) }
+        .listDragSource(dragState) { DraggedBlock.New(kind) }
         .clickable(onClick = onClick)
         .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -31,4 +31,13 @@ class EventSelectionTest {
         assertNull(selectedEventIndex(requestedIndex = 0, eventCount = 0))
         assertNull(selectedEventIndex(requestedIndex = null, eventCount = 0))
     }
+
+    @Test
+    fun theSelectedEventStaysSelectedWhenEventsMove() {
+        assertEquals(3, selectedEventIndexAfterMove(selected = 1, index = 1, targetIndex = 3))
+        assertEquals(1, selectedEventIndexAfterMove(selected = 2, index = 0, targetIndex = 3))
+        assertEquals(3, selectedEventIndexAfterMove(selected = 2, index = 3, targetIndex = 0))
+        assertEquals(0, selectedEventIndexAfterMove(selected = 0, index = 2, targetIndex = 3))
+        assertEquals(null, selectedEventIndexAfterMove(selected = null, index = 2, targetIndex = 3))
+    }
 }

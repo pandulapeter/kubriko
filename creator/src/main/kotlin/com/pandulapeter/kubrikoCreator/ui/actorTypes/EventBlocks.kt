@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,18 +29,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
@@ -62,6 +53,8 @@ import org.jetbrains.compose.resources.stringResource
  * The Blocks of the selected Event, in the order they run, under a header that also chooses the Event's key or other
  * Actor type.
  *
+ * @param listIdentity What the Blocks belong to (the type and the Event), so that a change of it starts over instead of
+ *   animating from the Blocks shown before.
  * @param scrollToEndRequest Changes whenever a Block was added at the end (by a click in the palette), which the list
  *   scrolls to so that it is seen.
  */
@@ -77,6 +70,7 @@ internal fun EventBlocks(
     onBlockRemoved: (blockIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
+    listIdentity: Any? = null,
     scrollToEndRequest: Int = 0,
 ) = Column(
     modifier = modifier,
@@ -127,6 +121,7 @@ internal fun EventBlocks(
     HorizontalDivider()
     BlockList(
         blocks = event.blocks,
+        listIdentity = listIdentity,
         scope = scope,
         dragState = dragState,
         onBlockChange = onBlockChange,
@@ -137,11 +132,14 @@ internal fun EventBlocks(
 }
 
 /**
- * The Blocks themselves, composed only while they are near the screen, as drop targets for [dragState].
+ * The Blocks themselves, composed only while they are near the screen, as drop targets for [dragState]. Moves animate,
+ * and new Blocks flash, followed by [ListItemKeys]; another [listIdentity] (Event) gets a list of its own, so that
+ * switching Events doesn't animate from one's Blocks to the other's.
  */
 @Composable
 private fun BlockList(
     blocks: List<BlockDefinition>,
+    listIdentity: Any?,
     scope: BlockScope,
     dragState: BlockDragState,
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
@@ -149,89 +147,63 @@ private fun BlockList(
     highlight: ActorTypeHighlight?,
     scrollToEndRequest: Int,
 ) {
-    val listState = rememberLazyListState()
-    LaunchedEffect(scrollToEndRequest) {
-        if (scrollToEndRequest > 0) listState.animateScrollToItem(blocks.size)
-    }
-    var listTop by remember { mutableFloatStateOf(0f) }
-    dragState.laidOutRows = { laidOutRows(listState.layoutInfo.visibleItemsInfo, listTop - listState.layoutInfo.viewportStartOffset, blocks.size) }
-    val isDragging = dragState.dragged != null
-    val density = LocalDensity.current
-    LaunchedEffect(listState, isDragging) {
-        if (!isDragging) return@LaunchedEffect
-        val edge = with(density) { AUTO_SCROLL_EDGE.toPx() }
-        val maximumStep = with(density) { AUTO_SCROLL_MAXIMUM_STEP.toPx() }
-        while (true) {
-            withFrameNanos { }
-            val step = dragState.autoScrollStep(edge, maximumStep)
-            if (step != 0f) listState.scrollBy(step)
+    key(listIdentity) {
+        val listState = rememberLazyListState()
+        val requestShownFirst = remember { scrollToEndRequest }
+        LaunchedEffect(scrollToEndRequest) {
+            if (scrollToEndRequest != requestShownFirst) listState.animateScrollToItem(blocks.size)
         }
-    }
-    val gap = dragState.gap
-    val nesting = remember(blocks) { BlockNesting.of(blocks).first }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .onGloballyPositioned { coordinates ->
-                dragState.listBounds = coordinates.boundsInRoot()
-                listTop = coordinates.positionInRoot().y
+        val itemKeys = remember { ListItemKeys<BlockDefinition>() }
+        val keys = remember(itemKeys, blocks) { itemKeys.update(blocks) }
+        val gap = dragState.gap
+        val nesting = remember(blocks) { BlockNesting.of(blocks).first }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .lazyListDropTarget(dragState, listState, blocks.size, BLOCK_CONTENT_TYPE)
+                .padding(start = 12.dp, end = 8.dp),
+            state = listState,
+            contentPadding = PaddingValues(vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (blocks.isEmpty()) {
+                item(key = EMPTY_KEY) {
+                    Text(
+                        modifier = Modifier.padding(4.dp),
+                        text = stringResource(Res.string.event_blocks_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-            .padding(start = 12.dp, end = 8.dp),
-        state = listState,
-        contentPadding = PaddingValues(vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        if (blocks.isEmpty()) {
-            item(key = EMPTY_KEY) {
-                Text(
-                    modifier = Modifier.padding(4.dp),
-                    text = stringResource(Res.string.event_blocks_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            items(count = blocks.size, key = { keys[it] }, contentType = { BLOCK_CONTENT_TYPE }) { index ->
+                Column(
+                    modifier = Modifier.animateItem(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    DropIndicator(isVisible = gap == index)
+                    BlockRow(
+                        block = blocks[index],
+                        nesting = nesting[index],
+                        scope = scope,
+                        index = index,
+                        dragState = dragState,
+                        onBlockChange = { onBlockChange(index, it) },
+                        onRemove = { onBlockRemoved(index) },
+                        flashKey = highlight?.key?.takeIf { highlight.blockIndex == index } ?: keys[index].takeIf(itemKeys::isRecentlyAdded),
+                    )
+                }
             }
-        }
-        items(count = blocks.size, key = { it }, contentType = { BLOCK_CONTENT_TYPE }) { index ->
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                DropIndicator(isVisible = gap == index)
-                BlockRow(
-                    block = blocks[index],
-                    nesting = nesting[index],
-                    scope = scope,
-                    index = index,
-                    dragState = dragState,
-                    onBlockChange = { onBlockChange(index, it) },
-                    onRemove = { onBlockRemoved(index) },
-                    flashKey = highlight?.key?.takeIf { highlight.blockIndex == index },
-                )
+            item(key = END_KEY) {
+                DropIndicator(isVisible = gap == blocks.size)
             }
         }
-        item(key = BLOCK_LIST_END_KEY) {
-            DropIndicator(isVisible = gap == blocks.size)
-        }
     }
-}
-
-/**
- * The Block rows among [items] (those keyed by their index), with their spans in root coordinates for a list whose
- * items start at [itemsTop]. With none of them laid out, the gap is after the last of the [blockCount] Blocks if the list
- * shows its end.
- */
-internal fun laidOutRows(items: List<LazyListItemInfo>, itemsTop: Float, blockCount: Int): LaidOutRows {
-    val rows = items.filter { it.key is Int }
-    return LaidOutRows(
-        firstIndex = rows.firstOrNull()?.key as? Int ?: if (items.any { it.key == BLOCK_LIST_END_KEY }) blockCount else 0,
-        spans = rows.map { (itemsTop + it.offset)..(itemsTop + it.offset + it.size) },
-    )
 }
 
 private const val EMPTY_KEY = "empty"
-internal const val BLOCK_LIST_END_KEY = "end"
+private const val END_KEY = "end"
 private const val BLOCK_CONTENT_TYPE = "block"
-private val AUTO_SCROLL_EDGE = 40.dp
-private val AUTO_SCROLL_MAXIMUM_STEP = 12.dp
 
 /**
  * Where a dragged Block would land: a line between two Blocks.
