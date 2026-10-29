@@ -13,6 +13,7 @@ import com.agentclientprotocol.client.ClientSession
 import com.agentclientprotocol.common.ClientSessionOperations
 import com.agentclientprotocol.common.Event
 import com.agentclientprotocol.common.SessionCreationParameters
+import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PromptResponse
@@ -50,6 +51,13 @@ internal class AgentConversation internal constructor(
      * agent replays when the conversation is loaded again after a crash is left out, since it was reported already.
      */
     val updates = _updates.asSharedFlow()
+    private val _availableCommands = MutableStateFlow(emptyList<AvailableCommand>())
+
+    /**
+     * The slash commands the agent offers, which it may announce as soon as the conversation starts, before anything
+     * collects [updates].
+     */
+    val availableCommands = _availableCommands.asStateFlow()
     private val _isLost = MutableStateFlow(false)
 
     /**
@@ -76,6 +84,7 @@ internal class AgentConversation internal constructor(
         ) = RequestPermissionResponse(this@AgentConversation.permissions.answer(toolCall, permissions))
 
         override suspend fun notify(notification: SessionUpdate, _meta: JsonElement?) {
+            note(notification)
             if (!isReplaying) _updates.emit(notification)
         }
     }
@@ -91,7 +100,10 @@ internal class AgentConversation internal constructor(
         var response: PromptResponse? = null
         agent.sessionOf(this).prompt(content).collect { event ->
             when (event) {
-                is Event.SessionUpdateEvent -> onUpdate?.invoke(event.update) ?: _updates.emit(event.update)
+                is Event.SessionUpdateEvent -> {
+                    note(event.update)
+                    onUpdate?.invoke(event.update) ?: _updates.emit(event.update)
+                }
                 is Event.PromptResponseEvent -> response = event.response
             }
         }
@@ -118,6 +130,10 @@ internal class AgentConversation internal constructor(
      * Ends the conversation. The agent forgets it if it can.
      */
     suspend fun close() = agent.close(this)
+
+    private fun note(update: SessionUpdate) {
+        if (update is SessionUpdate.AvailableCommandsUpdate) _availableCommands.value = update.availableCommands
+    }
 
     internal fun currentSession() = session.value
 

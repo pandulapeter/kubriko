@@ -19,6 +19,7 @@ import com.agentclientprotocol.common.SessionCreationParameters
 import com.agentclientprotocol.model.AgentCapabilities
 import com.agentclientprotocol.model.AuthMethod
 import com.agentclientprotocol.model.AuthMethodId
+import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PermissionOptionId
@@ -60,7 +61,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * - `later`: ends the turn, then sends a message outside any prompt;
  * - `tool`: a plan, a tool call of Kubriko Creator's that completes, and a message.
  *
- * Every conversation offers a `model` option, `sonnet` or `opus`.
+ * Every conversation offers a `model` option, `sonnet` or `opus`, and announces a `compact` slash command as soon as it starts.
  *
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
  */
@@ -123,6 +124,10 @@ internal class FakeAgent(
             return SetSessionConfigOptionResponse(configOptions)
         }
 
+        override suspend fun postInitialize() {
+            currentCoroutineContext().client.notify(SessionUpdate.AvailableCommandsUpdate(listOf(AvailableCommand(COMPACT, "Compact the conversation"))))
+        }
+
         override suspend fun replayHistory() {
             if (isLoaded) currentCoroutineContext().client.notify(message(HISTORY))
         }
@@ -173,6 +178,7 @@ internal class FakeAgent(
         const val HISTORY = "history"
         const val LATER = "later"
         const val MODEL = "model"
+        const val COMPACT = "compact"
         private val sessionCount = AtomicInteger()
 
         fun message(text: String) = SessionUpdate.AgentMessageChunk(ContentBlock.Text(text))

@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 /**
@@ -43,42 +44,80 @@ internal fun CompactTextField(
     isSingleLine: Boolean = true,
     isWrapping: Boolean = true,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+) = BasicTextField(
+    modifier = modifier,
+    value = value,
+    onValueChange = onValueChange,
+    singleLine = isSingleLine,
+    textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
+    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+    decorationBox = { innerTextField ->
+        Decoration(value.isEmpty(), label, placeholder, isError, isSingleLine, isWrapping, textStyle, innerTextField)
+    },
+)
+
+/**
+ * The [CompactTextField] of a [TextFieldValue], for a caller that places the cursor or the selection itself.
+ */
+@Composable
+internal fun CompactTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier,
+    label: String? = null,
+    placeholder: String? = null,
+    isError: Boolean = false,
+    isSingleLine: Boolean = true,
+    isWrapping: Boolean = true,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+) = BasicTextField(
+    modifier = modifier,
+    value = value,
+    onValueChange = onValueChange,
+    singleLine = isSingleLine,
+    textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
+    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+    decorationBox = { innerTextField ->
+        Decoration(value.text.isEmpty(), label, placeholder, isError, isSingleLine, isWrapping, textStyle, innerTextField)
+    },
+)
+
+@Composable
+private fun Decoration(
+    isEmpty: Boolean,
+    label: String?,
+    placeholder: String?,
+    isError: Boolean,
+    isSingleLine: Boolean,
+    isWrapping: Boolean,
+    textStyle: TextStyle,
+    innerTextField: @Composable () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
-    BasicTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = isSingleLine,
-        textStyle = textStyle.copy(color = colors.onSurface),
-        cursorBrush = SolidColor(colors.primary),
-        decorationBox = { innerTextField ->
-            Row(
-                modifier = Modifier
-                    .heightIn(min = 32.dp)
-                    .border(1.dp, if (isError) colors.error else colors.outlineVariant, MaterialTheme.shapes.small)
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = if (isSingleLine) Alignment.CenterVertically else Alignment.Top,
-            ) {
-                if (label != null) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colors.onSurfaceVariant,
-                    )
-                }
-                Box(if (isWrapping) Modifier.weight(1f) else Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
-                    if (value.isEmpty() && placeholder != null) {
-                        Text(
-                            text = placeholder,
-                            style = textStyle,
-                            color = colors.onSurfaceVariant,
-                        )
-                    }
-                    innerTextField()
-                }
+    Row(
+        modifier = Modifier
+            .heightIn(min = 32.dp)
+            .border(1.dp, if (isError) colors.error else colors.outlineVariant, MaterialTheme.shapes.small)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = if (isSingleLine) Alignment.CenterVertically else Alignment.Top,
+    ) {
+        if (label != null) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.onSurfaceVariant,
+            )
+        }
+        Box(if (isWrapping) Modifier.weight(1f) else Modifier.weight(1f).horizontalScroll(rememberScrollState())) {
+            if (isEmpty && placeholder != null) {
+                Text(
+                    text = placeholder,
+                    style = textStyle,
+                    color = colors.onSurfaceVariant,
+                )
             }
-        },
-    )
+            innerTextField()
+        }
+    }
 }

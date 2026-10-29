@@ -64,4 +64,11 @@ class AssistantPanelDecisionsTest {
         assertNull(creatorToolTitleOf(TranscriptItem.ToolCall(ToolCallId("2"), "mcp__kubriko-creator__no_such_tool")))
         assertNull(creatorToolTitleOf(TranscriptItem.ToolCall(ToolCallId("3"), "Read Game.kt")))
     }
+
+    @Test
+    fun conversationsAreNamedByTheirFirstLineCutAtAWord() {
+        assertEquals("Make the Ball faster", conversationTitle("Make the Ball faster\nand red"))
+        assertEquals("Make the Ball start twice as fast. Keep…", conversationTitle("Make the Ball start twice as fast. Keep the answer short."))
+        assertEquals("a".repeat(40) + "…", conversationTitle("a".repeat(50)))
+    }
 }

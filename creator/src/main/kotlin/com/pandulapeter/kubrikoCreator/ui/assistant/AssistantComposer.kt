@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +30,8 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.AvailableCommand
@@ -62,17 +63,22 @@ internal fun AssistantComposer(
 ) = Column(
     modifier = modifier,
 ) {
-    var text by rememberSaveable { mutableStateOf("") }
+    var value by remember { mutableStateOf(TextFieldValue()) }
+    val text = value.text
     val completions = remember(text, commands) { slashCompletions(text, commands) }
     fun send() {
         if (!isEnabled || isBusy || text.isBlank()) return
         onSend(text.trim())
-        text = ""
+        value = TextFieldValue()
+    }
+    fun complete(command: AvailableCommand) {
+        val completed = "/${command.name} "
+        value = TextFieldValue(completed, TextRange(completed.length))
     }
     completions.forEach { command ->
         SlashCommandRow(
             command = command,
-            onClick = { text = "/${command.name} " },
+            onClick = { complete(command) },
         )
     }
     Row(
@@ -87,12 +93,12 @@ internal fun AssistantComposer(
                     when {
                         event.type != KeyEventType.KeyDown -> false
                         event.key == Key.Enter && !event.isShiftPressed -> true.also { send() }
-                        event.key == Key.Tab && completions.isNotEmpty() -> true.also { text = "/${completions.first().name} " }
+                        event.key == Key.Tab && completions.isNotEmpty() -> true.also { complete(completions.first()) }
                         else -> false
                     }
                 },
-            value = text,
-            onValueChange = { text = it },
+            value = value,
+            onValueChange = { value = it },
             placeholder = stringResource(Res.string.assistant_input_hint),
             isSingleLine = false,
         )

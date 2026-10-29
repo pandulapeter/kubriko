@@ -155,6 +155,12 @@ class AssistantChatTest {
     }
 
     @Test
+    fun slashCommandsAnnouncedAtTheStartAreKept() = test {
+        val chat = readyChat()
+        assertEquals(FakeAgent.COMPACT, chat.availableCommands.first { it.isNotEmpty() }.single().name)
+    }
+
+    @Test
     fun closingEndsTheConversation() = test {
         val chat = readyChat()
         withContext(mainThread) { chat.close() }

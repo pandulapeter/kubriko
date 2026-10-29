@@ -386,7 +386,8 @@ commands, and turns that ended other than by the agent finishing them); a prompt
 so they are in the transcript before its turn ends. Permission requests wait for the user's answer (Stop cancels one), and the
 agent's config options (mode, model, effort, and others) are menus labeled with their names. The panel draws messages with its own
 Markdown reader (`MarkdownParser`, `InlineMarkdown`, `MarkdownText`), titles Creator's tool calls (`mcp__kubriko-creator__<tool>`)
-with their command's title, and offers slash commands while one is typed.
+with their command's title, and offers slash commands while one is typed (`AgentConversation.availableCommands`, kept from
+the agent's first announcement, which comes before anything collects `updates`).
 
 ## Packages (`com.pandulapeter.kubrikoCreator`)
 
@@ -403,7 +404,7 @@ with their command's title, and offers slash commands while one is typed.
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder). |
-| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/assistant`, `ui/components`, `ui/theme` | Compose UI (`ui/scenes`: the Scene editor's pane, canvas, and the sidebar drag). `BlockTypeEditor` follows GameMaker's object window: a one-line header (`BlockTypeHeader`: the name, renamed in place through `rename_actor_type` / `rename_manager_type`, and for an Actor type the type it is based on and the ones based on it, which open on a click), appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette. |
+| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/assistant`, `ui/components`, `ui/theme` | Compose UI (`ui/scenes`: the Scene editor's pane, canvas, and the sidebar drag). `BlockTypeEditor` follows GameMaker's object window: a one-line header (`BlockTypeHeader`: the name, renamed in place through `rename_actor_type` / `rename_manager_type`, and for an Actor type the type it is based on and the ones based on it, which open on a click), appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette; `BlockTypeEditorColumns` narrows the fixed columns evenly when a side panel takes the room, so the Blocks keep 320dp. |
 | `window` | JetBrains Runtime title bar the content extends under, and the 0.85 interface scale (both from the user's Campfire app). |
 
 ## Conventions specific to Creator

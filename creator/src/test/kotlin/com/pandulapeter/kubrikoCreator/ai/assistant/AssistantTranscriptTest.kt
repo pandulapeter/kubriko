@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
-import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PlanEntry
 import com.agentclientprotocol.model.PlanEntryPriority
@@ -73,16 +72,13 @@ class AssistantTranscriptTest {
     }
 
     @Test
-    fun plansAndCommandsAreTheLatestOnes() {
+    fun plansAreTheLatestOnes() {
         val entry = PlanEntry("Add a Paddle", PlanEntryPriority.HIGH, PlanEntryStatus.IN_PROGRESS)
-        val command = AvailableCommand("compact", "Compact the conversation")
         val transcript = AssistantTranscript().with(
             SessionUpdate.PlanUpdate(listOf(entry.copy(status = PlanEntryStatus.PENDING))),
             SessionUpdate.PlanUpdate(listOf(entry)),
-            SessionUpdate.AvailableCommandsUpdate(listOf(command)),
         )
         assertEquals(listOf(entry), transcript.plan)
-        assertEquals(listOf(command), transcript.commands)
         assertEquals(emptyList(), transcript.items)
         assertEquals(emptyList(), transcript.withUpdate(SessionUpdate.PlanRemoved("plan")).plan)
     }

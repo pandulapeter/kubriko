@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.RequestPermissionOutcome
@@ -57,6 +58,12 @@ internal class AssistantChat(
      * What the agent waits for the user to allow or reject.
      */
     val permissionRequest = _permissionRequest.asStateFlow()
+    private val _availableCommands = MutableStateFlow(emptyList<AvailableCommand>())
+
+    /**
+     * The slash commands the agent offers.
+     */
+    val availableCommands = _availableCommands.asStateFlow()
     private val _configOptions = MutableStateFlow(emptyList<SessionConfigOption>())
 
     /**
@@ -183,6 +190,7 @@ internal class AssistantChat(
             _state.value = ChatState.Ready
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.updates.collect { update -> _transcript.update { it.withUpdate(update) } } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.configOptions.collect { _configOptions.value = it } }
+            scope.launch(start = CoroutineStart.UNDISPATCHED) { started.availableCommands.collect { _availableCommands.value = it } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) {
                 started.isLost.collect { isLost -> if (isLost && !isClosed) _state.value = ChatState.Failed(FailureReason.CONVERSATION_LOST) }
             }

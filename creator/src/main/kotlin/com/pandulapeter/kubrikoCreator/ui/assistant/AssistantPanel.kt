@@ -160,7 +160,7 @@ private fun ChatContent(
     }
     HorizontalDivider()
     AssistantComposer(
-        commands = transcript.commands,
+        commands = chat.availableCommands.collectAsState().value,
         isEnabled = state == ChatState.Ready,
         isBusy = isBusy,
         onSend = chat::send,
@@ -240,8 +240,19 @@ private fun Failure(
 }
 
 @Composable
-private fun AssistantChat.title() = transcript.collectAsState().value.title?.lineSequence()?.first()?.take(TITLE_LENGTH)
+private fun AssistantChat.title() = transcript.collectAsState().value.title?.let(::conversationTitle)
     ?: stringResource(Res.string.action_new_conversation)
 
+/**
+ * The first line of what the user first asked, cut short at a word, as the conversation's name in the menu.
+ */
+internal fun conversationTitle(firstMessage: String): String {
+    val line = firstMessage.lineSequence().first().trim()
+    if (line.length <= TITLE_LENGTH) return line
+    val cut = line.take(TITLE_LENGTH).substringBeforeLast(' ').ifEmpty { line.take(TITLE_LENGTH) }
+    return cut.trimEnd('.', ',', ';', ':') + ELLIPSIS
+}
+
 private const val TITLE_LENGTH = 40
+private const val ELLIPSIS = "…"
 private const val NODE_DOWNLOAD_URL = "https://nodejs.org/en/download"

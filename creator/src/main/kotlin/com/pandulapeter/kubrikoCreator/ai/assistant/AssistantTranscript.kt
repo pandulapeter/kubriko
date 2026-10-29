@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
-import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PlanEntry
 import com.agentclientprotocol.model.SessionUpdate
@@ -19,12 +18,10 @@ import com.agentclientprotocol.model.StopReason
  * A conversation as the assistant panel shows it, built up from what the user sends and the agent reports.
  *
  * @param plan The agent's latest plan, shown as a checklist.
- * @param commands The slash commands the agent offers.
  */
 internal data class AssistantTranscript(
     val items: List<TranscriptItem> = emptyList(),
     val plan: List<PlanEntry> = emptyList(),
-    val commands: List<AvailableCommand> = emptyList(),
 ) {
     /**
      * The first thing the user asked, which names the conversation.
@@ -57,7 +54,6 @@ internal data class AssistantTranscript(
         }
         is SessionUpdate.PlanUpdate -> copy(plan = update.entries)
         is SessionUpdate.PlanRemoved -> copy(plan = emptyList())
-        is SessionUpdate.AvailableCommandsUpdate -> copy(commands = update.availableCommands)
         else -> this
     }
 

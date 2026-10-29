@@ -32,13 +32,12 @@ agent's own message. What is left in `01-large-projects.md` waits for other plan
 
 ## To check by hand
 
-**The assistant panel (built and unit-tested on 2026-10-29; only a read-only prompt seen in the app)**
-- A request that changes the game ("make the Ball faster"): the activity view following it, the cards' ticks, and undo.
-- A permission request inline (Claude Agent rarely asks, since its editing tools are off), Stop during a turn, a slash command
-  completed with Tab, and changing Model or Effort mid-conversation.
-- The default configuration with no Claude Code login (what the first prompt shows), a machine without Node.js (the Install
-  Node.js link), and the first run on a machine where `npx` still has to download the adapter (how long "Starting" lasts).
-- Several conversations (the menu above the options), ending one, and closing the project while a turn runs.
+**The assistant panel (seen working on 2026-10-29: a change followed in the editor and undone, Stop, Tab completion, Effort,
+several conversations, the default and alias configurations, and closing the project mid-turn)**
+- A permission request inline (Claude Agent rarely asks, since its editing tools are off; a mode such as Manual may).
+- The default configuration with no Claude Code login (this Mac's default one is signed in), a machine without Node.js (the
+  Install Node.js link), and the first run on a machine where `npx` still has to download the adapter (how long "Starting" lasts).
+- Whether answers now name Events and Blocks as the editor does ("Set velocity", not `setVelocity`), after the system prompt asked.
 
 **Large projects (built and unit-tested on 2026-10-29, not yet seen in the app)**
 - The paged `read_scene` (summary, type, rectangle), `list_actor_types` by folder, and the batch tools (`place_actors`,
