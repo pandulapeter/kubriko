@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ColorField
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.NumberField
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.audioFileLabel
+import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_width

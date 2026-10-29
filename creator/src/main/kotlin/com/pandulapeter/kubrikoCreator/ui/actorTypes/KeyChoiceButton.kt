@@ -44,6 +44,7 @@ import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.composeKeyNameOf
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.MenuButtonFace
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.key_listening
