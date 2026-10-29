@@ -42,6 +42,7 @@ internal class ProjectGenerator(
             throw ProjectCreationException(Res.string.error_project_folder_not_empty)
         }
         val values = placeholderValues(request)
+        val didExist = directory.exists()
         try {
             loadTemplate(request.template).forEach { file ->
                 File(directory, TemplateRenderer.renderPath(file.path, request.packageName)).apply {
@@ -54,13 +55,23 @@ internal class ProjectGenerator(
             wrapperInstaller.install(directory, configuration.gradleVersion)
             if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
         } catch (exception: IOException) {
-            throw ProjectCreationException(Res.string.error_project_not_created, exception)
+            throw notCreated(directory, didExist, exception)
         } catch (exception: RuntimeException) {
-            throw ProjectCreationException(Res.string.error_project_not_created, exception)
+            throw notCreated(directory, didExist, exception)
         } catch (exception: GitAPIException) {
-            throw ProjectCreationException(Res.string.error_project_not_created, exception)
+            throw notCreated(directory, didExist, exception)
         }
         return directory
+    }
+
+    /**
+     * Removes what was written of a project that couldn't be created (the folder was empty or missing before), so that
+     * trying again with the same name works.
+     */
+    private fun notCreated(directory: File, didExist: Boolean, cause: Exception): ProjectCreationException {
+        directory.deleteRecursively()
+        if (didExist) directory.mkdirs()
+        return ProjectCreationException(Res.string.error_project_not_created, cause)
     }
 
     internal fun placeholderValues(request: NewProjectRequest) = mapOf(

@@ -103,6 +103,14 @@ class ProjectGeneratorTest {
             generator(wrapperInstaller = { _, _ -> throw IOException("Offline.") }).create(request)
         }
         assertEquals(Res.string.error_project_not_created, exception.reason)
+        assertFalse(File(parentDirectory, "my-game").exists(), "what was written is removed, so trying again works")
+    }
+
+    @Test
+    fun aFailedCreationInAnExistingEmptyFolderLeavesItEmpty() {
+        val directory = File(parentDirectory, "my-game").apply { mkdirs() }
+        assertFailsWith<ProjectCreationException> { generator(wrapperInstaller = { _, _ -> throw IOException("Offline.") }).create(request) }
+        assertEquals(emptyList(), directory.list()?.toList())
     }
 
     @Test
