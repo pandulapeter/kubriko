@@ -62,6 +62,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
@@ -232,6 +233,7 @@ internal fun BlockTypeEditor(
                 scope = scope,
                 onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
                 onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
+                onTimerRename = { oldName, newName -> onCommand(Invocation(RenameTimer, RenameTimer.Input(name, oldName, newName))) },
                 onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
                 onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
                 dragState = dragState,

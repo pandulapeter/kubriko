@@ -185,7 +185,7 @@ private fun InlineParameters(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TimerChoice(block.timer) { onBlockChange(block.copy(timer = it)) }
+        TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
         NumberField(
             modifier = Modifier.width(96.dp),
             label = Res.string.block_parameter_seconds,
@@ -201,7 +201,7 @@ private fun InlineParameters(
             onCheckedChange = { onBlockChange(block.copy(isRepeating = it)) },
         )
     }
-    is BlockDefinition.StopTimer -> TimerChoice(block.timer) { onBlockChange(block.copy(timer = it)) }
+    is BlockDefinition.StopTimer -> TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
     is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames.orEmpty()) { onBlockChange(block.copy(scene = it)) }
     is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds.orEmpty(), Res.string.block_sound_choose) { onBlockChange(block.copy(sound = it)) }
     is BlockDefinition.PlayMusic -> Row(

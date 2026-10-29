@@ -39,8 +39,6 @@ one selects it in the Scene editor and centers the camera on it.
 
 Every user-made thing is unlimited, and the editor stays usable with many of them (virtualized lists, search, folders):
 
-- **Timers:** today 1 to 8 per Actor (`TIMER_NUMBERS`), copied from GameMaker's alarms. Named Timers instead, as many as needed
-  (a Timer is a pair of fields only once a Block or Event uses it), with old numbered ones kept by name ("Timer 1").
 - **Keys:** key Events and held-key conditions offer 10 keys (`KeyChoice`). Every key Compose knows, chosen from a searchable list
   or by pressing it, with the common ones first.
 - **Screen texts:** nine places (`ScreenPosition`); with UI elements (`05-blocks.md` → Game UI) any layout.

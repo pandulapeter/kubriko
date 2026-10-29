@@ -28,8 +28,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUN
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventLines
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.periodField
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.remainingField
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.stringLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
 
@@ -144,8 +142,8 @@ internal object ActorFamilyCodeGenerator {
         }
         features.lookups.forEach { appendLine("    protected lateinit var $it") }
         features.timers.forEach { timer ->
-            appendLine("    protected var ${remainingField(timer)} = 0L")
-            appendLine("    protected var ${periodField(timer)} = 0L")
+            appendLine("    protected var ${TimerNaming.remainingField(timer)} = 0L")
+            appendLine("    protected var ${TimerNaming.periodField(timer)} = 0L")
         }
         if (features.lookups.isNotEmpty() || features.addedEvents.isNotEmpty()) {
             appendLine()
@@ -159,8 +157,8 @@ internal object ActorFamilyCodeGenerator {
             appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
             appendLine(REMOVED_GUARD)
             features.timers.forEach { timer ->
-                val remaining = remainingField(timer)
-                val period = periodField(timer)
+                val remaining = TimerNaming.remainingField(timer)
+                val period = TimerNaming.periodField(timer)
                 appendLine("        if ($remaining > 0) {")
                 appendLine("            $remaining -= deltaTimeInMilliseconds")
                 appendLine("            if ($remaining <= 0) {")
@@ -332,7 +330,7 @@ internal object ActorFamilyCodeGenerator {
             EventType.COLLISION -> event.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
                 Hook("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
             }
-            EventType.TIMER_FINISHED -> event.timer?.takeIf { it in TIMER_NUMBERS }?.let { Hook("${timer(it)}()", "${timer(it)}()") }
+            EventType.TIMER_FINISHED -> event.timer?.takeIf(TimerNaming::isValid)?.let { Hook("${timer(it)}()", "${timer(it)}()") }
             EventType.GAME_STARTED -> null
         }
 
@@ -347,7 +345,7 @@ internal object ActorFamilyCodeGenerator {
 
             fun collision(other: String) = "onCollisionWith$other"
 
-            fun timer(timer: Int) = "onTimer${timer}Finished"
+            fun timer(timer: String) = TimerNaming.hookName(timer)
         }
     }
 }

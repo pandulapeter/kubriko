@@ -96,7 +96,7 @@ internal object BenchmarkProject {
                 PropertyDefinition.Toggle("isAngry"),
             ),
             events = listOf(
-                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(x = 40f, y = 20f), BlockDefinition.StartTimer(timer = 1, seconds = 2f, isRepeating = true))),
+                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(x = 40f, y = 20f), BlockDefinition.StartTimer(timer = "spawn", seconds = 2f, isRepeating = true))),
                 EventDefinition(
                     EventType.EVERY_FRAME,
                     blocks = listOf(
@@ -108,7 +108,7 @@ internal object BenchmarkProject {
                 ),
                 EventDefinition(EventType.COLLISION, otherActorType = other, blocks = listOf(BlockDefinition.BounceOffOther, BlockDefinition.ChangeNumber("hp", by = -1f), BlockDefinition.Log("{label} was hit: {hp}"))),
                 EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.SetToggle("isAngry", value = true), BlockDefinition.MoveTowardsNearest(other, speed = 80f))),
-                EventDefinition(EventType.TIMER_FINISHED, timer = 1, blocks = listOf(BlockDefinition.AddActor(actorTypeName((index + 7) % ACTOR_TYPE_COUNT), x = 16f))),
+                EventDefinition(EventType.TIMER_FINISHED, timer = "spawn", blocks = listOf(BlockDefinition.AddActor(actorTypeName((index + 7) % ACTOR_TYPE_COUNT), x = 16f))),
                 EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)),
             ),
         )

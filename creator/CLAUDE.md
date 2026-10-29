@@ -161,9 +161,14 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   the velocity, a chance, or whether the game is paused), else, repeat, and end Blocks mark sections, so every Block keeps its plain index. `BlockNesting`
   works out each Block's depth for the editor's indentation and the generator alike; an if or repeat without an end runs to
   the end of the Event, and an else or end that belongs to no section shows a warning and generates a comment.
-- **Timers** 1 to 8 per Actor, like GameMaker's alarms: the startTimer (seconds, once or repeating) and stopTimer Blocks, and a
-  timerFinished Event per Timer (its number set like a key Event's key). Generated as two `Long` fields per Timer that is used,
-  counted down at the start of `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting one never allocates.
+- **Timers** are named, as many as needed, like GameMaker's alarms but not capped: the startTimer (seconds, once or repeating)
+  and stopTimer Blocks, and a timerFinished Event per Timer, each naming it (`TimerNaming`: a lowercase identifier). A Timer
+  exists once a Block or an Event names it; an Actor type shares its Timers with its whole family, so a child's Block can start
+  its parent's (`BlockScope.timerNames`). The editor's Timer menu offers the Timers in use and names a new one in place, and the
+  Event's menu renames one (`rename_timer`, through the whole family). Older projects' numbers are read as `timer1` to `timer8`
+  (`TimerNameSerializer`), which keeps their generated fields and hooks. Generated as two `Long` fields per Timer that is used
+  (`<name>RemainingInMilliseconds` and `<name>PeriodInMilliseconds`, which no Property may end like), counted down at the start
+  of `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting one never allocates.
 - **Other Actor types** in Blocks: addActor spawns one through its own `metadata.instantiate(position)` (so with its size
   and initial Property values, at a position relative to the Actor or the Scene), and moveTowardsNearest aims the velocity at
   the closest Actor of a type (a loop over `allActors` by index, comparing squared distances, skipping removed Actors). Like collision Events, they follow renames, are rejected for

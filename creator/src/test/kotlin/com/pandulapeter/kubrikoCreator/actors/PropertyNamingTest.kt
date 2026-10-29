@@ -27,7 +27,7 @@ class PropertyNamingTest {
     }
 
     @Test
-    fun namesTheGeneratedCodeUsesAreReserved() = listOf("velocity", "body", "color", "other", "key", "when", "isTouchingLeftEdge", "timer3RemainingInMilliseconds", "stateManager", "generatedScenes", "keyboardInputManager", "bodyCenter").forEach {
+    fun namesTheGeneratedCodeUsesAreReserved() = listOf("velocity", "body", "color", "other", "key", "when", "isTouchingLeftEdge", "timer3RemainingInMilliseconds", "spawnPeriodInMilliseconds", "stateManager", "generatedScenes", "keyboardInputManager", "bodyCenter").forEach {
         assertEquals(Res.string.error_property_name_reserved, PropertyNaming.validate(it, emptyList()), it)
     }
 

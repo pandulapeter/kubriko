@@ -21,6 +21,7 @@ package com.pandulapeter.kubrikoCreator.actors
  * @param baseClassNames The Actor types with children, whose Actors (and their children's) are instances of a base class.
  * @param ancestorNames The Actor type's ancestors, its parent first.
  * @param parentEventCall How the code of the Event being generated runs its parent's Event, or null where there is none.
+ * @param timerNames The Timers the type uses, with those of its whole family for an Actor type, since they share them.
  */
 internal data class BlockScope(
     val typeName: String,
@@ -33,6 +34,7 @@ internal data class BlockScope(
     val baseClassNames: Set<String> = emptySet(),
     val ancestorNames: List<String> = emptyList(),
     val parentEventCall: String? = null,
+    val timerNames: List<String> = emptyList(),
 ) {
     /**
      * The class Actors of [actorType] are instances of, its children's too: its base class if it has children.
@@ -103,6 +105,12 @@ internal data class BlockScope(
                 audioFiles = audioFiles,
                 baseClassNames = actorTypes.map { it.name }.filterTo(mutableSetOf(), family::hasChildren),
                 ancestorNames = family.ancestorsOf(definition.name),
+                timerNames = if (definition is ActorTypeDefinition) {
+                    val members = family.familyOf(family.rootOf(definition.name)).toSet()
+                    actorTypes.filter { it.name in members }.flatMap { it.timerNames }
+                } else {
+                    definition.timerNames
+                }.distinct().sorted(),
             )
         }
     }

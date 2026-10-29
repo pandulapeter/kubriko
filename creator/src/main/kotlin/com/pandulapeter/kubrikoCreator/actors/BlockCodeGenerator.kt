@@ -61,16 +61,16 @@ internal object BlockCodeGenerator {
     }
 
     /**
-     * Counts Timer [timer] down and runs the Blocks of its [events] when it finishes. A repeating Timer carries the time
+     * Counts the Timer [timer] down and runs the Blocks of its [events] when it finishes. A repeating Timer carries the time
      * it overshot into its next round, and the Blocks may start or stop it again.
      */
-    internal fun StringBuilder.appendTimer(timer: Int, events: List<EventDefinition>, scope: BlockScope) {
-        val remaining = remainingField(timer)
-        val period = periodField(timer)
+    internal fun StringBuilder.appendTimer(timer: String, events: List<EventDefinition>, scope: BlockScope) {
+        val remaining = TimerNaming.remainingField(timer)
+        val period = TimerNaming.periodField(timer)
         appendLine("        if ($remaining > 0) {")
         appendLine("            $remaining -= deltaTimeInMilliseconds")
         appendLine("            if ($remaining <= 0) {")
-        appendLine("                // When Timer $timer finishes")
+        appendLine("                // When $timer finishes")
         appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
         appendEvents(events, depth = 4, scope = scope)
         appendLine("            }")
@@ -195,13 +195,13 @@ internal object BlockCodeGenerator {
         } else {
             listOf("// Choose an Actor type for this Block.")
         }
-        is BlockDefinition.StartTimer -> if (block.timer in TIMER_NUMBERS) {
+        is BlockDefinition.StartTimer -> if (TimerNaming.isValid(block.timer)) {
             val milliseconds = (block.seconds * 1000).roundToLong().coerceAtLeast(1)
-            listOf("${remainingField(block.timer)} = $milliseconds", "${periodField(block.timer)} = ${if (block.isRepeating) milliseconds else 0}")
+            listOf("${TimerNaming.remainingField(block.timer)} = $milliseconds", "${TimerNaming.periodField(block.timer)} = ${if (block.isRepeating) milliseconds else 0}")
         } else {
-            listOf("// Start a Timer only works with Timers 1 to 8.")
+            listOf("// Give this Block's Timer a name made of letters and digits.")
         }
-        is BlockDefinition.StopTimer -> if (block.timer in TIMER_NUMBERS) listOf("${remainingField(block.timer)} = 0") else listOf("// Stop a Timer only works with Timers 1 to 8.")
+        is BlockDefinition.StopTimer -> if (TimerNaming.isValid(block.timer)) listOf("${TimerNaming.remainingField(block.timer)} = 0") else listOf("// Give this Block's Timer a name made of letters and digits.")
         is BlockDefinition.GoToScene -> if (block.scene.isNotEmpty()) listOf("$SCENES_FIELD.goTo(${stringLiteral(block.scene)})") else listOf("// Choose a Scene for this Block.")
         BlockDefinition.RestartScene -> listOf("$SCENES_FIELD.restart()")
         is BlockDefinition.PauseGame -> listOf(
@@ -328,8 +328,4 @@ internal object BlockCodeGenerator {
     }
 
     internal fun colorLiteral(color: Long) = "0x" + (color and 0xFFFFFFFFL).toString(16).uppercase().padStart(8, '0')
-
-    internal fun remainingField(timer: Int) = "timer${timer}RemainingInMilliseconds"
-
-    internal fun periodField(timer: Int) = "timer${timer}PeriodInMilliseconds"
 }

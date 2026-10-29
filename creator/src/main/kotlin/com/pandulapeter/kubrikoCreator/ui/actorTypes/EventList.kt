@@ -61,7 +61,6 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_event
 import kubriko.creator.generated.resources.ic_loop
-import kubriko.creator.generated.resources.timer_name
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -241,6 +240,6 @@ private fun InheritedEventItem(
 internal fun EventDefinition.detail(): String? = when (type) {
     EventType.KEY_PRESSED -> key?.let { stringResource(it.title) }
     EventType.COLLISION -> otherActorType ?: stringResource(Res.string.event_collision_choose)
-    EventType.TIMER_FINISHED -> timer?.let { stringResource(Res.string.timer_name, it) }
+    EventType.TIMER_FINISHED -> timer
     else -> null
 }

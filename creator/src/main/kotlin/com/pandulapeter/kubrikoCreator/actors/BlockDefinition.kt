@@ -158,8 +158,9 @@ internal sealed interface BlockDefinition {
     @SerialName("startTimer")
     @Description("Starts one of the Actor's Timers, or starts it again from the beginning. When it finishes, the timerFinished Event of that Timer runs.")
     data class StartTimer(
-        @Description("Which Timer, from 1 to 8.")
-        @SerialName("timer") val timer: Int = 1,
+        @Description("The name of the Timer, like spawnEnemy: a letter, then letters and digits, starting lowercase. A Timer exists once a Block or an Event names it.")
+        @Serializable(with = TimerNameSerializer::class)
+        @SerialName("timer") val timer: String = TimerNaming.DEFAULT_NAME,
         @Description("How long it takes, in seconds.")
         @SerialName("seconds") val seconds: Float = 1f,
         @Description("True to start it again each time it finishes, until a stopTimer Block stops it.")
@@ -170,8 +171,9 @@ internal sealed interface BlockDefinition {
     @SerialName("stopTimer")
     @Description("Stops one of the Actor's Timers, so that it doesn't finish.")
     data class StopTimer(
-        @Description("Which Timer, from 1 to 8.")
-        @SerialName("timer") val timer: Int = 1,
+        @Description("The name of the Timer, like spawnEnemy: a letter, then letters and digits, starting lowercase. A Timer exists once a Block or an Event names it.")
+        @Serializable(with = TimerNameSerializer::class)
+        @SerialName("timer") val timer: String = TimerNaming.DEFAULT_NAME,
     ) : BlockDefinition
 
     @Serializable
@@ -306,12 +308,21 @@ internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: Stri
 /**
  * The Timer [this] Block starts or stops, if it is one of those.
  */
-internal val BlockDefinition.timerNumber
+internal val BlockDefinition.timerName
     get() = when (this) {
         is BlockDefinition.StartTimer -> timer
         is BlockDefinition.StopTimer -> timer
         else -> null
     }
+
+/**
+ * [this] Block with the Timer it starts or stops renamed from [oldName] to [newName], if it is that one.
+ */
+internal fun BlockDefinition.withTimerRenamed(oldName: String, newName: String) = when {
+    this is BlockDefinition.StartTimer && timer == oldName -> copy(timer = newName)
+    this is BlockDefinition.StopTimer && timer == oldName -> copy(timer = newName)
+    else -> this
+}
 
 /**
  * [this] Block with the Property of [manager] (the type's own one, if null) that it changes, or shows in a Log Block,

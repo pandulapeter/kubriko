@@ -18,7 +18,6 @@ import org.jetbrains.compose.resources.StringResource
 internal object PropertyNaming {
 
     private val namePattern = Regex("[a-z][A-Za-z0-9]*")
-    private val generatedTimerField = Regex("timer[0-9]+(Remaining|Period)InMilliseconds")
 
     /**
      * Kotlin's keywords, and the names the generated class (and the Kubriko traits it implements) already uses.
@@ -44,7 +43,7 @@ internal object PropertyNaming {
      */
     fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
         !namePattern.matches(name) -> Res.string.error_property_name_invalid
-        name in reservedNames || name.startsWith("isTouching") || generatedTimerField.matches(name) -> Res.string.error_property_name_reserved
+        name in reservedNames || name.startsWith("isTouching") || TimerNaming.fieldSuffixes.any(name::endsWith) -> Res.string.error_property_name_reserved
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_property_name_taken
         else -> null
     }

@@ -20,8 +20,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.floatLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.periodField
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.remainingField
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
 
 /**
@@ -59,12 +57,12 @@ internal object ManagerTypeCodeGenerator {
         val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames.toList(), managerTypes)
         val events = definition.events.filter { it.type.isAvailableIn(BlockTypeKind.MANAGER) }
         val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
-        val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer in TIMER_NUMBERS }
+        val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer?.let(TimerNaming::isValid) == true }
         val startEvents = events.filter { it.type == EventType.GAME_STARTED }
         val frameEvents = events.filter { it.type == EventType.EVERY_FRAME }
         val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents
         val generatedBlocks = generatedEvents.flatMap { it.blocks }
-        val timers = (timerEvents.mapNotNull { it.timer } + generatedBlocks.mapNotNull { it.timerNumber }).filter { it in TIMER_NUMBERS }.distinct().sorted()
+        val timers = (timerEvents.mapNotNull { it.timer } + generatedBlocks.mapNotNull { it.timerName }).filter(TimerNaming::isValid).distinct().sorted()
         val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
         val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
         val texts = definition.texts.map { templateLiteral(it.text, scope) }
@@ -120,10 +118,10 @@ internal object ManagerTypeCodeGenerator {
             timers.forEach { timer ->
                 appendLine()
                 appendLine("    /**")
-                appendLine("     * Until Timer $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
+                appendLine("     * Until $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
                 appendLine("     */")
-                appendLine("    private var ${remainingField(timer)} = 0L")
-                appendLine("    private var ${periodField(timer)} = 0L")
+                appendLine("    private var ${TimerNaming.remainingField(timer)} = 0L")
+                appendLine("    private var ${TimerNaming.periodField(timer)} = 0L")
             }
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()

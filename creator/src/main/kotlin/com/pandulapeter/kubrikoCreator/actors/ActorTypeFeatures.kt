@@ -41,12 +41,12 @@ internal class ActorTypeFeatures(
     val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
     val edgeEvents = events.filter { it.type == EventType.EDGE_TOUCHED }
     val collisionEvents = events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
-    val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer in TIMER_NUMBERS }
+    val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer?.let(TimerNaming::isValid) == true }
     val addedEvents = events.filter { it.type == EventType.ADDED_TO_SCENE }
     val everyFrameEvents = events.filter { it.type == EventType.EVERY_FRAME }
     val isCollidable = collisionEvents.isNotEmpty() || isCollidableAnyway
     val generatedEvents = addedEvents + everyFrameEvents + edgeEvents + keyEvents + collisionEvents + timerEvents
-    val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerNumber } }).filter { it in TIMER_NUMBERS }.distinct().sorted()
+    val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
     val generatedBlocks = generatedEvents.flatMap { it.blocks }
     private val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
     val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }

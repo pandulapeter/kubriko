@@ -432,8 +432,8 @@ class ActorTypeCodeGeneratorTest {
     fun timersAreCountedDownAtTheStartOfEachFrameAndRunTheirEventWhenTheyFinish() {
         assertFalse("RemainingInMilliseconds" in generate())
         val code = generate(
-            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.StartTimer(timer = 2, seconds = 1.5f, isRepeating = true))),
-            EventDefinition(EventType.TIMER_FINISHED, timer = 2, blocks = listOf(BlockDefinition.Stop, BlockDefinition.StopTimer(timer = 2))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.StartTimer(timer = "timer2", seconds = 1.5f, isRepeating = true))),
+            EventDefinition(EventType.TIMER_FINISHED, timer = "timer2", blocks = listOf(BlockDefinition.Stop, BlockDefinition.StopTimer(timer = "timer2"))),
         )
         assertContains(code, "    private var timer2RemainingInMilliseconds = 0L\n    private var timer2PeriodInMilliseconds = 0L\n")
         assertContains(code, "        timer2RemainingInMilliseconds = 1500\n        timer2PeriodInMilliseconds = 1500\n")
@@ -445,7 +445,7 @@ class ActorTypeCodeGeneratorTest {
                 |        if (timer2RemainingInMilliseconds > 0) {
                 |            timer2RemainingInMilliseconds -= deltaTimeInMilliseconds
                 |            if (timer2RemainingInMilliseconds <= 0) {
-                |                // When Timer 2 finishes
+                |                // When timer2 finishes
                 |                timer2RemainingInMilliseconds = if (timer2PeriodInMilliseconds > 0) (timer2RemainingInMilliseconds + timer2PeriodInMilliseconds).coerceAtLeast(1) else 0
                 |                velocity = SceneOffset.Zero
                 |                timer2RemainingInMilliseconds = 0
@@ -457,12 +457,12 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
-    fun timerBlocksStartOnceOrRepeatingAndTimersOutOfRangeBecomeComments() {
+    fun timerBlocksStartOnceOrRepeatingAndInvalidTimerNamesBecomeComments() {
         fun lines(block: BlockDefinition) = BlockCodeGenerator.blockLines(block, EventType.EVERY_FRAME, BlockScope("Player"))
-        assertEquals(listOf("timer1RemainingInMilliseconds = 1", "timer1PeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer(seconds = 0f)))
-        assertEquals(listOf("timer8RemainingInMilliseconds = 0"), lines(BlockDefinition.StopTimer(timer = 8)))
-        assertEquals(listOf("// Start a Timer only works with Timers 1 to 8."), lines(BlockDefinition.StartTimer(timer = 9)))
-        assertFalse("timer0" in generate(EventDefinition(EventType.TIMER_FINISHED, timer = 0, blocks = listOf(BlockDefinition.Stop))))
+        assertEquals(listOf("timerRemainingInMilliseconds = 1", "timerPeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer(seconds = 0f)))
+        assertEquals(listOf("spawnEnemy2RemainingInMilliseconds = 0"), lines(BlockDefinition.StopTimer(timer = "spawnEnemy2")))
+        assertEquals(listOf("// Give this Block's Timer a name made of letters and digits."), lines(BlockDefinition.StartTimer(timer = "Spawn enemy")))
+        assertFalse("Spawn" in generate(EventDefinition(EventType.TIMER_FINISHED, timer = "Spawn", blocks = listOf(BlockDefinition.Stop))))
     }
 
     @Test

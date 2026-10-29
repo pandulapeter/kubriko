@@ -66,8 +66,8 @@ class ManagerTypeCodeGeneratorTest {
         val code = generate(
             game.copy(
                 events = listOf(
-                    EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.StartTimer(2, 0.5f))),
-                    EventDefinition(EventType.TIMER_FINISHED, timer = 2, blocks = listOf(BlockDefinition.ChangeNumber("score", 1f))),
+                    EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(BlockDefinition.StartTimer("timer2", 0.5f))),
+                    EventDefinition(EventType.TIMER_FINISHED, timer = "timer2", blocks = listOf(BlockDefinition.ChangeNumber("score", 1f))),
                 ),
             ),
         )

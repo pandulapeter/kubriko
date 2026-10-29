@@ -27,7 +27,25 @@ internal fun BlockTypeDefinition.withEventMoved(eventIndex: Int, targetIndex: In
 
 internal fun BlockTypeDefinition.withEventKey(eventIndex: Int, key: KeyChoice) = withEvent(eventIndex) { it.copy(key = key) }
 
-internal fun BlockTypeDefinition.withEventTimer(eventIndex: Int, timer: Int) = withEvent(eventIndex) { it.copy(timer = timer) }
+internal fun BlockTypeDefinition.withEventTimer(eventIndex: Int, timer: String) = withEvent(eventIndex) { it.copy(timer = timer) }
+
+/**
+ * The Timers its Events react to and its Blocks start or stop.
+ */
+internal val BlockTypeDefinition.timerNames
+    get() = events.flatMap { event -> listOfNotNull(event.timer) + event.blocks.mapNotNull { it.timerName } }.distinct()
+
+/**
+ * Every timerFinished Event and Timer Block that names the Timer [oldName] names [newName] instead.
+ */
+internal fun BlockTypeDefinition.withTimerRenamed(oldName: String, newName: String) = withEvents(
+    events.map { event ->
+        event.copy(
+            timer = if (event.timer == oldName) newName else event.timer,
+            blocks = event.blocks.map { it.withTimerRenamed(oldName, newName) },
+        )
+    },
+)
 
 internal fun BlockTypeDefinition.withEventOtherActorType(eventIndex: Int, actorTypeName: String?) = withEvent(eventIndex) { it.copy(otherActorType = actorTypeName) }
 

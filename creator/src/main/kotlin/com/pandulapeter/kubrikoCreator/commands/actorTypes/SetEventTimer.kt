@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.EventType
-import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
+import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.withEventTimer
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -39,13 +39,13 @@ internal object SetEventTimer : WriteCommand<SetEventTimer.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: when {
             context.requireType(input.actorType).events[input.eventIndex].type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
-            input.timer !in TIMER_NUMBERS -> Rejection(Res.string.error_command_timer_invalid)
+            !TimerNaming.isValid(input.timer) -> Rejection(Res.string.error_command_timer_invalid)
             else -> null
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
-        val previous = definition.events[input.eventIndex].timer ?: TIMER_NUMBERS.first
+        val previous = definition.events[input.eventIndex].timer ?: TimerNaming.DEFAULT_NAME
         context.requireBlockTypes.put(definition.withEventTimer(input.eventIndex, input.timer))
         return Applied(inverse = Invocation(SetEventTimer, input.copy(timer = previous)))
     }
@@ -56,7 +56,7 @@ internal object SetEventTimer : WriteCommand<SetEventTimer.Input> {
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,
-        @Description("The Timer, from 1 to 8.")
-        @SerialName("timer") val timer: Int,
+        @Description("The name of the Timer, like spawnEnemy: a letter, then letters and digits, starting lowercase. A Timer exists once a Block or an Event names it.")
+        @SerialName("timer") val timer: String,
     )
 }

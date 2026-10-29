@@ -25,8 +25,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandli
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.periodField
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.remainingField
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.stringLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.unitLiteral
@@ -137,10 +135,10 @@ internal object ActorTypeCodeGenerator {
             timers.forEach { timer ->
                 appendLine()
                 appendLine("    /**")
-                appendLine("     * Until Timer $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
+                appendLine("     * Until $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
                 appendLine("     */")
-                appendLine("    private var ${remainingField(timer)} = 0L")
-                appendLine("    private var ${periodField(timer)} = 0L")
+                appendLine("    private var ${TimerNaming.remainingField(timer)} = 0L")
+                appendLine("    private var ${TimerNaming.periodField(timer)} = 0L")
             }
             if (lookups.isNotEmpty() || addedEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()

@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
@@ -137,6 +138,7 @@ internal class CommandRegistry(
                 MoveEvent,
                 SetEventKey,
                 SetEventTimer,
+                RenameTimer,
                 SetEventOtherActorType,
                 AddBlock,
                 EditBlock,

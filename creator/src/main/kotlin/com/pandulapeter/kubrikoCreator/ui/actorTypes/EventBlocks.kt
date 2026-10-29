@@ -42,7 +42,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
-import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
+import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_blocks_empty
@@ -64,7 +64,8 @@ internal fun EventBlocks(
     event: EventDefinition?,
     scope: BlockScope,
     onKeyChange: (KeyChoice) -> Unit,
-    onTimerChange: (Int) -> Unit,
+    onTimerChange: (String) -> Unit,
+    onTimerRename: (oldName: String, newName: String) -> Unit,
     onOtherActorTypeChange: (String) -> Unit,
     dragState: BlockDragState,
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
@@ -107,10 +108,14 @@ internal fun EventBlocks(
                 optionText = { stringResource(it.title) },
                 onSelected = onKeyChange,
             )
-            EventType.TIMER_FINISHED -> TimerChoice(
-                timer = event.timer ?: TIMER_NUMBERS.first,
-                onSelected = onTimerChange,
-            )
+            EventType.TIMER_FINISHED -> (event.timer ?: TimerNaming.DEFAULT_NAME).let { timer ->
+                TimerChoice(
+                    timer = timer,
+                    timerNames = scope.timerNames,
+                    onSelected = onTimerChange,
+                    onRename = { onTimerRename(timer, it) },
+                )
+            }
             EventType.COLLISION -> ActorTypeChoice(
                 actorType = event.otherActorType.orEmpty(),
                 actorTypeNames = scope.actorTypeNames,

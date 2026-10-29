@@ -24,10 +24,10 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
-import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
+import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
-import com.pandulapeter.kubrikoCreator.actors.timerNumber
+import com.pandulapeter.kubrikoCreator.actors.timerName
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
@@ -119,7 +119,7 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
     event.key != null && event.type != EventType.KEY_PRESSED -> Rejection(Res.string.error_command_key_not_allowed)
     event.otherActorType != null && event.type != EventType.COLLISION -> Rejection(Res.string.error_command_other_actor_type_not_allowed)
     event.timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
-    event.timer != null && event.timer !in TIMER_NUMBERS -> Rejection(Res.string.error_command_timer_invalid)
+    event.timer != null && !TimerNaming.isValid(event.timer) -> Rejection(Res.string.error_command_timer_invalid)
     event.otherActorType != null && event.otherActorType !in scope.actorTypeNames -> Rejection(Res.string.error_command_actor_type_missing, event.otherActorType)
     else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, scope) }
 }
@@ -132,7 +132,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
     !BlockKind.of(block).isAvailableIn(eventType, scope.kind) -> Rejection(Res.string.error_command_block_not_allowed, block.serialName, eventType.serialName)
     block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(Res.string.error_command_condition_not_allowed)
     !block.areNumbersFinite -> Rejection(Res.string.error_command_number_invalid)
-    block.timerNumber?.let { it !in TIMER_NUMBERS } == true -> Rejection(Res.string.error_command_timer_invalid)
+    block.timerName?.let(TimerNaming::isValid) == false -> Rejection(Res.string.error_command_timer_invalid)
     block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> Rejection(Res.string.error_command_actor_type_missing, block.actorTypeReference.orEmpty())
     block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false -> Rejection(Res.string.error_command_scene_missing, block.scene)
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false -> Rejection(Res.string.error_command_sound_missing, block.sound)
