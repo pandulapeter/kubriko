@@ -99,10 +99,10 @@ the workspace remembers its folder trees, Scene names, and Actor type list; and 
 of scanning every folder and item for each folder. Events, Blocks, Properties (the whole left column of the type editor), the
 palette, and git changes are lazy lists; the Block list's drop gap comes from the rows it has laid out (`LaidOutRows`), and it
 scrolls while a Block is held near its top or bottom edge, so every gap can be reached. The undo history and the git state are
-collected by the toolbar and the git panel, so a keystroke in a field no longer recomposes the workspace. Left:
+collected by the toolbar and the git panel, so a keystroke in a field no longer recomposes the workspace. Seen working on the
+scratch Breakout with a 61-Block Event and 40 Properties: the lists drawn as before, and a palette Block held at the Block
+list's bottom edge scrolling it from Line 1 to Line 24 and landing in the gap under the pointer (index 25 on disk). Left:
 
-- Seeing the lazy Block list in the running app: scrolling a long Event, and dragging a Block past the visible ones (the lists
-  were seen drawn as before on the scratch Breakout, but not scrolled or dragged yet).
 - `aiSteps` stays in the workspace: following the AI and the highlights need its latest step, which changes with every change
   of the list, so moving the list into `AiActivityBar` saves nothing.
 - The console's list is copied on every line (up to 2,000 entries, microseconds); a ring buffer if a busy game shows it.

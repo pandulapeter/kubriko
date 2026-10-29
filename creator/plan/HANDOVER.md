@@ -72,13 +72,9 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. See the lazy Block list in the running app (`01-foundation.md` → 6): select Ball in a scratch Breakout whose Ball has a
-   long addedToScene Event (60 Log Blocks, 40 Properties; a script for it is easy), scroll it, and drag a palette Block and
-   an existing Block past the visible ones, holding near the edges. The session of 2026-10-29 got as far as screenshots of
-   the lists drawn as before, then the user's Android Studio covered Creator.
-2. `02-fast-iteration.md`, starting with Measuring the build (the Gradle-backed benchmark), then no waiting for Gradle in
+1. `02-fast-iteration.md`, starting with Measuring the build (the Gradle-backed benchmark), then no waiting for Gradle in
    the Scene editor (preview Actors from definitions, swapping classes in the background), measured first.
-3. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
+2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
 
@@ -88,6 +84,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   after an inspector edit (a replaced Actor) and after placing and removing Actors (`ScenePatch` add and remove); a Scene
   changed by git while open; and the version 5 upgrade's diff on the real Breakout copy.
 
+- The lazy Block list: dragging an existing Block by its handle up past the top edge (auto-scroll upwards); the palette
+  drag downwards was seen working.
 - The Scene editor after the 2026-10-29 changes: clicking Actors (picked through `SceneBoundsGrid`), selecting right after
   placing, removing, and undoing (a full rebuild of the grid), and a click after a drag (an in-place grid update).
 
