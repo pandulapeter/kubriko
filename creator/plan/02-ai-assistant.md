@@ -97,8 +97,9 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    configuration to use (5).
 2. The sign-in methods and the API key (4).
 
-Then alongside `04` to `07`: the registry, the Node.js download, and other agents (2, 3); resuming and attachments; Keep and
-Undo (8); usage (9); and the MCP server items above.
+Then alongside `04` to `07`: agent profiles and the fallbacks (Other agents and services), Codex first, then Gemini CLI and
+Copilot; the registry, the Node.js download, and binary agents (2, 3); resuming and attachments; Keep and Undo (8); usage (9); and
+the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
@@ -133,6 +134,49 @@ Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-c
 Android Studio, Zed, and JetBrains IDEs host the same adapter the same way, and the page now covers hosting explicitly, so this no longer
 blocks building. Before release, confirm with Anthropic (the page points to sales) whether a free, MPL-2.0 desktop app that launches the
 adapter needs to accept the Commercial Terms itself, naming Android Studio as the precedent.
+
+### Other agents and services
+
+`AcpAgent` speaks to any ACP agent; what differs between agents goes into an **agent profile**, of which Claude's is the first
+(`RegistryAgent.claude` and `ClaudeAgentOptions`): how the agent starts (the registry's `npx`, per-platform `binary`, or `uvx`
+distribution), how it reaches Creator's tools, how it gets the system prompt, how it is kept off the project's files, how it signs
+in, and which account it uses. Where a profile has nothing better, the panel falls back on what the agent's `initialize` answer
+advertises:
+
+- **Tools:** an HTTP MCP server where `mcpCapabilities.http` is set; otherwise a stdio one running `mcp-remote` through the user's
+  `npx`, as Claude Desktop's entry does, with the conversation's token in its environment.
+- **System prompt:** ACP's own `systemPrompt` where `sessionCapabilities.systemPrompt` is advertised (once the Kotlin SDK has the
+  field), the profile's own way otherwise, and as a last resort the first prompt's leading text (not repeated after `session/load`).
+- **Staying off the files:** the agent's own switch for its tools where it has one; otherwise a read-only mode or sandbox where the
+  agent offers one (a session mode or config option); otherwise every permission request for an `edit`, `delete`, `move`, or `execute`
+  tool call is rejected (`PermissionHandler.Reject`). An agent that changes files without asking is marked as such in the list, and its
+  conversations suggest version control, so that Keep and Undo (8) can take its changes back.
+- **Sign-in:** every kind of `authMethods` entry: agent (`authenticate`), terminal (the terminal pane of step 4), and environment
+  variable (`EnvVarAuth`, whose `vars` name the fields; the values kept in the OS keychain per agent).
+- **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for Codex),
+  offered from the user's shell aliases (`ShellAliases`) as the MCP clients' setups are, so `claude-personal` and `claude-flashfood`
+  each become an account to choose.
+
+The first profiles after Claude, each checked in a real session before it is listed as built in:
+
+| Agent | Known (read October 29, 2026) | To check |
+|---|---|---|
+| Codex (`codex-acp` 2.4.0, npx, Apache-2.0) | Takes client MCP servers over HTTP; ChatGPT login, `CODEX_API_KEY` / `OPENAI_API_KEY`, or a custom gateway; `INITIAL_AGENT_MODE=read-only` and a sandbox mode; `CODEX_CONFIG` merged into its session config; ships its own `@openai/codex`. | The system prompt through `CODEX_CONFIG` (Codex's developer instructions) or leading text; whether read-only still lets MCP tools run; `CODEX_HOME` for accounts. Out of quota on this Mac until November 21, 2026. |
+| Gemini CLI (`gemini` 0.66.0, npx, `--acp`) | Apache-2.0. | Client MCP servers over HTTP; the system prompt (`GEMINI_SYSTEM_MD` replaces Gemini's own rather than appending, so leading text may be better); excluding its edit and shell tools; Google login and `GEMINI_API_KEY`. Not installed on this Mac. |
+| GitHub Copilot CLI (`github-copilot-cli`, npx, `--acp`) | Proprietary. | The same four, and signing in with a Copilot subscription. |
+| Cursor, OpenCode, goose, Junie (`binary`) | Per-platform archives in the registry. | Unpacking per version under Creator's tools folder (3); OpenCode and goose with a local model (Ollama, LM Studio). |
+
+The registry's other agents (43 in all) are listed with the fallbacks alone and marked untested, and a custom agent (2) gets them
+too.
+
+**Model services** need no agents of their own: Claude through Amazon Bedrock, Google Vertex AI, or a company gateway is Claude
+Agent's gateway sign-in (offered when the client advertises `auth._meta.gateway`) or Claude Code's own environment
+(`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`); Codex has a gateway of its own; local OpenAI-compatible servers go through
+OpenCode or goose. Creator keeps only the keys and addresses the user gives it, in the keychain, never a login.
+
+**Terms per vendor:** before a profile offers an agent's subscription sign-in, its vendor's terms for hosting it are read and summed
+up here, as Claude Code's are above (OpenAI's for Codex with a ChatGPT login, Google's for Gemini CLI, GitHub's for Copilot), and its
+name and icon follow that vendor's trademark rules.
 
 ## Context for large games
 
@@ -183,9 +227,10 @@ understand the game is shown to the user too.
 
 ## Testing
 
-- The ACP client against a fake agent built on the Kotlin SDK's agent side: streaming, tool calls, permission requests, sign-in
-  methods, cancellation, a crash and restart, and a session reloaded. An opt-in test (like the template integration test) runs the real
-  `claude-acp` from the registry on an existing login.
+- `FakeAgent` variants for each fallback: no HTTP MCP, no system prompt capability, no `session/load`, restricted only by permission
+  requests, and each kind of sign-in method.
+- An opt-in live test per profile, as `ClaudeAgentLiveTest` is for Claude, with that agent's account variable: one tool call through
+  the conversation's address, and nothing written to the project folder.
 - A small eval set of realistic requests ("make the Ball faster", "add a Paddle moved with A and D", "remove Bricks the Ball hits", and the
   requests real sessions were given: "log when the game starts", "stop the paddle on key release and show a score") replayed
   against the tools with recorded model responses, so tool changes are checked without spending tokens; a live run is opt-in, like the
