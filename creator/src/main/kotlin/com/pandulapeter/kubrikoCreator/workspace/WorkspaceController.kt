@@ -473,7 +473,7 @@ internal class WorkspaceController(
         return parentScope.launch {
             blockTypes?.awaitWrites()
             scope.cancel()
-            build.close()
+            withContext(ioDispatcher) { build.close() }
         }
     }
 
