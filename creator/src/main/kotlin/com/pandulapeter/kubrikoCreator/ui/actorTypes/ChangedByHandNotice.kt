@@ -71,7 +71,7 @@ internal fun ChangedByHandNotice(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
         )
-        var isConfirming by remember { mutableStateOf(false) }
+        var isConfirming by remember(actorTypeName) { mutableStateOf(false) }
         Button(
             onClick = { isConfirming = true },
             colors = ButtonDefaults.buttonColors(
