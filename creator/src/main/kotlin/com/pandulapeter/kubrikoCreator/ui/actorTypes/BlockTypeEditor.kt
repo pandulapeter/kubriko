@@ -21,8 +21,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -154,18 +153,22 @@ internal fun BlockTypeEditor(
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
-            Column(
-                modifier = Modifier.width(250.dp).fillMaxHeight().verticalScroll(rememberScrollState()),
+            LazyColumn(
+                modifier = Modifier.width(250.dp).fillMaxHeight(),
             ) {
                 if (definition is ActorTypeDefinition) {
-                    AppearanceColumn(
-                        definition = definition,
-                        sprites = sprites,
-                        onChange = { onCommand(Invocation(SetAppearance, it)) },
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                    item {
+                        Column {
+                            AppearanceColumn(
+                                definition = definition,
+                                sprites = sprites,
+                                onChange = { onCommand(Invocation(SetAppearance, it)) },
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                        }
+                    }
                 }
-                PropertyList(
+                propertyListItems(
                     properties = definition.properties,
                     inheritedProperties = inheritance.properties,
                     emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
@@ -174,19 +177,23 @@ internal fun BlockTypeEditor(
                     onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
                 )
                 if (definition is ManagerTypeDefinition) {
-                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                    ScreenTextList(
-                        texts = definition.texts,
-                        onAdded = { onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition(text = "{${definition.properties.firstOrNull()?.name ?: "score"}}")))) },
-                        onChanged = { index, text -> onCommand(Invocation(EditText, EditText.Input(name, index, text))) },
-                        onRemoved = { index -> onCommand(Invocation(RemoveText, RemoveText.Input(name, index))) },
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                    KotlinUiSection(
-                        managerTypeName = name,
-                        code = definition.kotlinUi,
-                        onCodeChange = { onCommand(Invocation(SetKotlinUi, SetKotlinUi.Input(name, it))) },
-                    )
+                    item {
+                        Column {
+                            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                            ScreenTextList(
+                                texts = definition.texts,
+                                onAdded = { onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition(text = "{${definition.properties.firstOrNull()?.name ?: "score"}}")))) },
+                                onChanged = { index, text -> onCommand(Invocation(EditText, EditText.Input(name, index, text))) },
+                                onRemoved = { index -> onCommand(Invocation(RemoveText, RemoveText.Input(name, index))) },
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                            KotlinUiSection(
+                                managerTypeName = name,
+                                code = definition.kotlinUi,
+                                onCodeChange = { onCommand(Invocation(SetKotlinUi, SetKotlinUi.Input(name, it))) },
+                            )
+                        }
+                    }
                 }
             }
             VerticalDivider()

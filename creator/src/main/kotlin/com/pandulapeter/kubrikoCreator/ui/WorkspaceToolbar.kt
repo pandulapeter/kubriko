@@ -28,15 +28,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
+import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
+import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_project
 import kubriko.creator.generated.resources.action_play
@@ -67,10 +71,10 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun WorkspaceToolbar(
     sessionState: SessionState,
-    history: CommandHistory,
+    history: StateFlow<CommandHistory>,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
-    branch: String?,
+    gitState: StateFlow<GitState>,
     isAiConnected: Boolean,
     openPanel: SidePanel?,
     onPanelToggled: (SidePanel) -> Unit,
@@ -141,7 +145,7 @@ internal fun WorkspaceToolbar(
         isOpen = openPanel == SidePanel.VERSION_CONTROL,
         onClick = { onPanelToggled(SidePanel.VERSION_CONTROL) },
     ) {
-        VersionControlLabel(branch)
+        VersionControlLabel(gitState)
     }
     IconActionButton(
         icon = Res.drawable.ic_refresh,
@@ -157,10 +161,11 @@ internal fun WorkspaceToolbar(
 
 @Composable
 private fun HistoryButtons(
-    history: CommandHistory,
+    history: StateFlow<CommandHistory>,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
 ) {
+    val history by history.collectAsState()
     IconActionButton(
         icon = Res.drawable.ic_undo,
         label = history.nextUndoTitle?.let { stringResource(Res.string.action_undo_named, stringResource(it)) } ?: stringResource(Res.string.action_undo),
@@ -196,8 +201,9 @@ private fun PanelToggle(
 
 @Composable
 private fun VersionControlLabel(
-    branch: String?,
+    gitState: StateFlow<GitState>,
 ) {
+    val branch = (gitState.collectAsState().value as? GitState.Ready)?.branch
     Icon(
         modifier = Modifier.size(16.dp),
         painter = painterResource(Res.drawable.ic_branch),

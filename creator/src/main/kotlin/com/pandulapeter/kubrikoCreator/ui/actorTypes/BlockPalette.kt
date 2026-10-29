@@ -19,14 +19,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,10 +90,11 @@ internal fun BlockPalette(
         style = MaterialTheme.typography.labelLarge,
         color = category.accent.color,
     )
-    Column(
-        modifier = Modifier.verticalScroll(rememberScrollState()),
+    val kinds = remember(category, eventType, typeKind) { category.kinds.filter { it.isAvailableIn(eventType, typeKind) } }
+    LazyColumn(
+        modifier = Modifier.weight(1f, fill = false),
     ) {
-        category.kinds.filter { it.isAvailableIn(eventType, typeKind) }.forEach { kind ->
+        items(kinds) { kind ->
             PaletteEntry(
                 kind = kind,
                 dragState = dragState,

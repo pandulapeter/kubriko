@@ -18,8 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -96,12 +96,10 @@ internal fun EventList(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    Column(
-        modifier = Modifier.verticalScroll(rememberScrollState()),
-    ) {
-        events.forEachIndexed { index, event ->
+    LazyColumn {
+        items(count = events.size) { index ->
             EventListItem(
-                event = event,
+                event = events[index],
                 isSelected = index == selectedIndex,
                 isFirst = index == 0,
                 isLast = index == events.lastIndex,
@@ -113,13 +111,15 @@ internal fun EventList(
             )
         }
         if (inheritedEvents.isNotEmpty()) {
-            Text(
-                modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 2.dp),
-                text = stringResource(Res.string.actor_type_inherited_events),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            inheritedEvents.forEach { event -> InheritedEventItem(event = event, onOverride = { onOverride(event) }) }
+            item {
+                Text(
+                    modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 2.dp),
+                    text = stringResource(Res.string.actor_type_inherited_events),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            items(inheritedEvents) { event -> InheritedEventItem(event = event, onOverride = { onOverride(event) }) }
         }
     }
 }

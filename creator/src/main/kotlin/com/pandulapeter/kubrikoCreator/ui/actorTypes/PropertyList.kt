@@ -12,9 +12,13 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -50,64 +54,76 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The Properties of an Actor type: the values each of its Actors keeps, with the value they start with.
+ * The Properties of an Actor type: the values each of its Actors keeps, with the value they start with, as items of the
+ * lazy list they are shown in, so that only the rows on screen are composed.
  *
  * @param onChanged Called with a Property's current name and what it should become.
  */
-@Composable
-internal fun PropertyList(
+internal fun LazyListScope.propertyListItems(
     properties: List<PropertyDefinition>,
     emptyHint: StringResource,
     onAdded: (PropertyDefinition) -> Unit,
     onChanged: (name: String, PropertyDefinition) -> Unit,
     onRemoved: (name: String) -> Unit,
-    modifier: Modifier = Modifier,
     inheritedProperties: List<PropertyDefinition> = emptyList(),
-) = Column(
-    modifier = modifier,
 ) {
-    PanelHeader(
-        icon = Res.drawable.ic_property,
-        accent = Accent.PROPERTIES,
-        title = stringResource(Res.string.actor_type_properties),
-    ) {
-        MenuIconButton(
-            icon = Res.drawable.ic_add,
-            label = Res.string.action_add_property,
-            options = PropertyKind.entries,
-            optionText = { stringResource(it.title) },
-            optionIcon = { it.icon },
-            onSelected = { kind -> onAdded(kind.create(PropertyNaming.freeName(kind.defaultName, (properties + inheritedProperties).map { it.name }))) },
-        )
-    }
-    Column(
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        inheritedProperties.forEach { property ->
-            Text(
-                text = stringResource(Res.string.actor_type_inherited_property, property.name, stringResource(PropertyKind.of(property).title)),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+    item {
+        PanelHeader(
+            icon = Res.drawable.ic_property,
+            accent = Accent.PROPERTIES,
+            title = stringResource(Res.string.actor_type_properties),
+        ) {
+            MenuIconButton(
+                icon = Res.drawable.ic_add,
+                label = Res.string.action_add_property,
+                options = PropertyKind.entries,
+                optionText = { stringResource(it.title) },
+                optionIcon = { it.icon },
+                onSelected = { kind -> onAdded(kind.create(PropertyNaming.freeName(kind.defaultName, (properties + inheritedProperties).map { it.name }))) },
             )
         }
-        if (properties.isEmpty() && inheritedProperties.isEmpty()) {
+    }
+    itemsIndexed(inheritedProperties) { index, property ->
+        Text(
+            modifier = Modifier.propertyItemPadding(isFirst = index == 0),
+            text = stringResource(Res.string.actor_type_inherited_property, property.name, stringResource(PropertyKind.of(property).title)),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    if (properties.isEmpty() && inheritedProperties.isEmpty()) {
+        item {
             Text(
+                modifier = Modifier.propertyItemPadding(isFirst = true),
                 text = stringResource(emptyHint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        properties.forEach { property ->
-            PropertyRow(
-                property = property,
-                otherNames = properties.map { it.name } - property.name,
-                onChange = { onChanged(property.name, it) },
-                onRemove = { onRemoved(property.name) },
-            )
-        }
+    }
+    val names = properties.map { it.name }
+    itemsIndexed(properties) { index, property ->
+        PropertyRow(
+            modifier = Modifier.propertyItemPadding(isFirst = index == 0 && inheritedProperties.isEmpty()),
+            property = property,
+            otherNames = names - property.name,
+            onChange = { onChanged(property.name, it) },
+            onRemove = { onRemoved(property.name) },
+        )
+    }
+    item {
+        Spacer(modifier = Modifier.height(PROPERTY_LIST_VERTICAL_PADDING))
     }
 }
+
+private fun Modifier.propertyItemPadding(isFirst: Boolean) = padding(
+    start = 12.dp,
+    end = 12.dp,
+    top = if (isFirst) PROPERTY_LIST_VERTICAL_PADDING else PROPERTY_SPACING,
+)
+
+private val PROPERTY_LIST_VERTICAL_PADDING = 4.dp
+private val PROPERTY_SPACING = 10.dp
 
 @Composable
 private fun PropertyRow(
@@ -115,7 +131,9 @@ private fun PropertyRow(
     otherNames: List<String>,
     onChange: (PropertyDefinition) -> Unit,
     onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
 ) = Column(
+    modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     Row(

@@ -88,8 +88,6 @@ internal fun WorkspaceScreen(
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     var openPanel by remember { mutableStateOf<SidePanel?>(null) }
     val mcpState by mcp.state.collectAsState()
-    val gitState by controller.git.state.collectAsState()
-    val history by controller.commands.history.collectAsState()
     val aiSteps by controller.commands.aiSteps.collectAsState()
     val latestAiStep = aiSteps.lastOrNull()
     var isFollowingAi by remember { mutableStateOf(true) }
@@ -121,7 +119,7 @@ internal fun WorkspaceScreen(
                 controller.commands.dispatch(Invocation(UpgradeProject, NoInput))
                 isReviewingUpgrade = false
             },
-            onCommitFirst = (gitState as? GitState.Ready)?.takeIf { it.changes.isNotEmpty() }?.let {
+            onCommitFirst = (controller.git.state.collectAsState().value as? GitState.Ready)?.takeIf { it.changes.isNotEmpty() }?.let {
                 { controller.commands.dispatch(Invocation(Commit, Commit.Input(upgradeCommitMessage))) }
             },
             onDismiss = { isReviewingUpgrade = false },
@@ -145,10 +143,10 @@ internal fun WorkspaceScreen(
         ) {
             WorkspaceToolbar(
                 sessionState = sessionState,
-                history = history,
+                history = controller.commands.history,
                 onUndo = controller.commands::undo,
                 onRedo = controller.commands::redo,
-                branch = (gitState as? GitState.Ready)?.branch,
+                gitState = controller.git.state,
                 isAiConnected = mcpState is McpServerState.Running,
                 openPanel = openPanel,
                 onPanelToggled = { panel ->
@@ -273,7 +271,7 @@ internal fun WorkspaceScreen(
                     VerticalDivider()
                     GitPanel(
                         modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                        state = gitState,
+                        state = controller.git.state,
                         onRefresh = controller.git::refresh,
                         onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },
                         onCommit = { message -> controller.commands.dispatch(Invocation(Commit, Commit.Input(message))) },

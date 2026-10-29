@@ -96,10 +96,13 @@ the first command), and picking goes through `SceneBoundsGrid`, updated in place
 
 Done: the console collects its own entries (`WorkspaceConsole`), so a line the game logs no longer recomposes the workspace;
 the workspace remembers its folder trees, Scene names, and Actor type list; and `folderTreeRows` groups by folder once instead
-of scanning every folder and item for each folder. Left:
+of scanning every folder and item for each folder. Events, Blocks, Properties (the whole left column of the type editor), the
+palette, and git changes are lazy lists; the Block list's drop gap comes from the rows it has laid out (`LaidOutRows`), and it
+scrolls while a Block is held near its top or bottom edge, so every gap can be reached. The undo history and the git state are
+collected by the toolbar and the git panel, so a keystroke in a field no longer recomposes the workspace. Left:
 
-- **Lazy lists** for Events, Blocks, Properties, the palette, and git changes, which are scrolled `Column`s today. The Block
-  list's drag and drop finds its drop targets from laid-out cards (`BlockDragState`), so it needs targets that work for cards
-  that aren't composed before it can be lazy; seen in the running app before it is called done.
-- The other screen-wide collections (`aiSteps`, `history`, `gitState`) move into what shows them, as the console's did.
+- Seeing the lazy Block list in the running app: scrolling a long Event, and dragging a Block past the visible ones (the lists
+  were seen drawn as before on the scratch Breakout, but not scrolled or dragged yet).
+- `aiSteps` stays in the workspace: following the AI and the highlights need its latest step, which changes with every change
+  of the list, so moving the list into `AiActivityBar` saves nothing.
 - The console's list is copied on every line (up to 2,000 entries, microseconds); a ring buffer if a busy game shows it.

@@ -38,8 +38,22 @@ internal sealed interface DraggedBlock {
 }
 
 /**
+ * The Block rows of the selected Event that are laid out (the lazy Block list lays out only those on screen), as their
+ * spans in root coordinates, top to bottom, and the index of the first of them.
+ */
+internal data class LaidOutRows(
+    val firstIndex: Int,
+    val spans: List<ClosedFloatingPointRange<Float>>,
+) {
+    companion object {
+        val NONE = LaidOutRows(0, emptyList())
+    }
+}
+
+/**
  * Where a Block is being dragged, in the editor's root coordinates, and where in the selected Event's Blocks it would
- * land. Drag sources report the pointer; the Block list reports where it and its rows are.
+ * land. Drag sources report the pointer; the Block list reports where it is and which of its rows are laid out, and
+ * scrolls by [autoScrollStep] while the pointer is near its edges, so that every gap can be reached.
  *
  * @param onDrop Called with the Block and the gap it was dropped in (0 is before the first Block).
  */
@@ -54,12 +68,7 @@ internal class BlockDragState(
     var pointer by mutableStateOf(Offset.Zero)
         private set
     var listBounds: Rect? = null
-
-    /**
-     * The bounds of each Block row of the selected Event, by index; read only for the first [blockCount] of them.
-     */
-    val rowBounds = mutableMapOf<Int, Rect>()
-    var blockCount = 0
+    var laidOutRows: () -> LaidOutRows = { LaidOutRows.NONE }
 
     /**
      * The gap the Block would land in if it were dropped now, or null if the pointer isn't over the Block list.
@@ -67,8 +76,23 @@ internal class BlockDragState(
     val gap: Int?
         get() {
             if (dragged == null || listBounds?.contains(pointer) != true) return null
-            return gapAt(pointer.y, (0 until blockCount).mapNotNull { index -> rowBounds[index]?.let { it.top..it.bottom } })
+            val rows = laidOutRows()
+            return rows.firstIndex + gapAt(pointer.y, rows.spans)
         }
+
+    /**
+     * How far the Block list should scroll on this frame: towards the edge the pointer is within [edge] of, faster the
+     * closer it is, up to [maximumStep]. Zero while nothing is dragged over the list.
+     */
+    fun autoScrollStep(edge: Float, maximumStep: Float): Float {
+        val bounds = listBounds ?: return 0f
+        if (dragged == null || !bounds.contains(pointer)) return 0f
+        return when {
+            pointer.y < bounds.top + edge -> -maximumStep * (bounds.top + edge - pointer.y) / edge
+            pointer.y > bounds.bottom - edge -> maximumStep * (pointer.y - bounds.bottom + edge) / edge
+            else -> 0f
+        }
+    }
 
     fun start(block: DraggedBlock, at: Offset) {
         dragged = block

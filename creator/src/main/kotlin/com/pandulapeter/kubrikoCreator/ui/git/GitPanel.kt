@@ -14,14 +14,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_commit
 import kubriko.creator.generated.resources.action_refresh
@@ -56,7 +58,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun GitPanel(
-    state: GitState,
+    state: StateFlow<GitState>,
     onRefresh: () -> Unit,
     onStartVersionControl: () -> Unit,
     onCommit: (String) -> Unit,
@@ -71,7 +73,7 @@ internal fun GitPanel(
     ) {
         IconActionButton(icon = Res.drawable.ic_refresh, label = Res.string.action_refresh, onClick = onRefresh)
     }
-    when (state) {
+    when (val state = state.collectAsState().value) {
         GitState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally))
         GitState.NoRepository -> NoRepository(onStartVersionControl)
         is GitState.Ready -> Repository(state, onCommit, onDiscard)
@@ -100,64 +102,67 @@ private fun Repository(
     state: GitState.Ready,
     onCommit: (String) -> Unit,
     onDiscard: (ChangeEntry) -> Unit,
-) = Column(
-    modifier = Modifier.verticalScroll(rememberScrollState()),
 ) {
     var message by remember { mutableStateOf("") }
     var entryToDiscard by remember { mutableStateOf<ChangeEntry?>(null) }
-    state.branch?.let { branch ->
-        Text(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            text = stringResource(Res.string.git_branch, branch),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    Text(
-        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
-        text = stringResource(Res.string.git_changes, state.changes.size),
-        style = MaterialTheme.typography.titleSmall,
-    )
-    if (state.changes.isEmpty()) {
-        Text(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            text = stringResource(Res.string.git_no_changes),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    state.changes.forEach { entry ->
-        ChangeRow(
-            entry = entry,
-            onDiscard = { entryToDiscard = entry },
-        )
-    }
-    if (state.changes.isNotEmpty()) {
-        CompactTextField(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).heightIn(min = 56.dp),
-            value = message,
-            onValueChange = { message = it },
-            placeholder = stringResource(Res.string.git_commit_message),
-            isSingleLine = false,
-        )
-        Button(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            enabled = message.isNotBlank(),
-            onClick = {
-                onCommit(message)
-                message = ""
-            },
-        ) {
-            Text(stringResource(Res.string.action_commit))
+    LazyColumn {
+        state.branch?.let { branch ->
+            item {
+                Text(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    text = stringResource(Res.string.git_branch, branch),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-    }
-    HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
-    PanelHeader(
-        icon = Res.drawable.ic_history,
-        title = stringResource(Res.string.git_history),
-    )
-    state.history.forEach { commit ->
-        CommitRow(commit)
+        item {
+            Text(
+                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
+                text = stringResource(Res.string.git_changes, state.changes.size),
+                style = MaterialTheme.typography.titleSmall,
+            )
+        }
+        if (state.changes.isEmpty()) {
+            item {
+                Text(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    text = stringResource(Res.string.git_no_changes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        items(state.changes) { entry ->
+            ChangeRow(
+                entry = entry,
+                onDiscard = { entryToDiscard = entry },
+            )
+        }
+        if (state.changes.isNotEmpty()) {
+            item {
+                CommitForm(
+                    message = message,
+                    onMessageChange = { message = it },
+                    onCommit = {
+                        onCommit(message)
+                        message = ""
+                    },
+                )
+            }
+        }
+        item {
+            Column {
+                HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
+                PanelHeader(
+                    icon = Res.drawable.ic_history,
+                    title = stringResource(Res.string.git_history),
+                )
+            }
+        }
+        items(state.history) { commit ->
+            CommitRow(commit)
+        }
     }
     entryToDiscard?.let { entry ->
         DiscardConfirmation(
@@ -168,5 +173,27 @@ private fun Repository(
             },
             onDismiss = { entryToDiscard = null },
         )
+    }
+}
+
+@Composable
+private fun CommitForm(
+    message: String,
+    onMessageChange: (String) -> Unit,
+    onCommit: () -> Unit,
+) = Column {
+    CompactTextField(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).heightIn(min = 56.dp),
+        value = message,
+        onValueChange = onMessageChange,
+        placeholder = stringResource(Res.string.git_commit_message),
+        isSingleLine = false,
+    )
+    Button(
+        modifier = Modifier.padding(horizontal = 12.dp),
+        enabled = message.isNotBlank(),
+        onClick = onCommit,
+    ) {
+        Text(stringResource(Res.string.action_commit))
     }
 }

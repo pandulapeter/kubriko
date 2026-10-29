@@ -24,9 +24,7 @@ class BlockDragStateTest {
     private var now = 0L
     private val state = BlockDragState(onDrop = { block, gap -> drops += block to gap }, clock = { now }).apply {
         listBounds = Rect(0f, 0f, 100f, 300f)
-        rowBounds[0] = Rect(0f, 0f, 100f, 40f)
-        rowBounds[1] = Rect(0f, 50f, 100f, 90f)
-        blockCount = 2
+        laidOutRows = { LaidOutRows(0, listOf(0f..40f, 50f..90f)) }
     }
 
     @Test
@@ -57,6 +55,32 @@ class BlockDragStateTest {
         state.end()
         assertEquals(listOf<Pair<DraggedBlock, Int>>(DraggedBlock.New(BlockKind.STOP) to 1), drops)
         assertNull(state.dragged)
+    }
+
+    @Test
+    fun rowsScrolledOutOfTheListCountBeforeTheLaidOutOnes() {
+        state.laidOutRows = { LaidOutRows(10, listOf(-20f..40f, 50f..90f)) }
+        state.start(DraggedBlock.New(BlockKind.STOP), Offset(50f, 5f))
+        assertEquals(10, state.gap)
+        state.moveTo(Offset(50f, 80f))
+        assertEquals(12, state.gap)
+        state.laidOutRows = { LaidOutRows.NONE }
+        assertEquals(0, state.gap)
+    }
+
+    @Test
+    fun theListScrollsWhileABlockIsDraggedNearItsEdges() {
+        assertEquals(0f, state.autoScrollStep(edge = 40f, maximumStep = 10f), "nothing is dragged")
+        state.start(DraggedBlock.New(BlockKind.STOP), Offset(50f, 150f))
+        assertEquals(0f, state.autoScrollStep(edge = 40f, maximumStep = 10f))
+        state.moveTo(Offset(50f, 0f))
+        assertEquals(-10f, state.autoScrollStep(edge = 40f, maximumStep = 10f))
+        state.moveTo(Offset(50f, 20f))
+        assertEquals(-5f, state.autoScrollStep(edge = 40f, maximumStep = 10f))
+        state.moveTo(Offset(50f, 290f))
+        assertEquals(7.5f, state.autoScrollStep(edge = 40f, maximumStep = 10f))
+        state.moveTo(Offset(150f, 290f))
+        assertEquals(0f, state.autoScrollStep(edge = 40f, maximumStep = 10f), "outside the list")
     }
 
     @Test
