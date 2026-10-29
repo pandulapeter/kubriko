@@ -147,6 +147,8 @@ internal class AiClientsController(
                 if (McpConfigFile.server(file, McpToolServer.SERVER_NAME) != null) AiClientStatus.Connected else AiClientStatus.NotConnected
             } catch (exception: SerializationException) {
                 AiClientStatus.Failed(exception.message.orEmpty())
+            } catch (exception: IOException) {
+                AiClientStatus.Failed(exception.message.orEmpty())
             }
         }
     }

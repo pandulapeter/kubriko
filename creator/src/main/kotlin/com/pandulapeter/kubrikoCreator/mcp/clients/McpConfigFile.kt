@@ -10,9 +10,9 @@
 package com.pandulapeter.kubrikoCreator.mcp.clients
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -69,7 +69,14 @@ internal object McpConfigFile {
         return format(JsonObject(if (servers.isEmpty()) root - SERVERS else root + (SERVERS to JsonObject(servers))), text)
     }
 
-    private fun parse(text: String) = Json.parseToJsonElement(text).jsonObject
+    /**
+     * The JSON object in [text], or an empty one for an empty file, as apps leave one they created without settings.
+     */
+    private fun parse(text: String) = if (text.isBlank()) {
+        JsonObject(emptyMap())
+    } else {
+        Json.parseToJsonElement(text) as? JsonObject ?: throw SerializationException("The file holds JSON, but not an object.")
+    }
 
     /**
      * [root] pretty-printed with the indentation and final line break of [original].

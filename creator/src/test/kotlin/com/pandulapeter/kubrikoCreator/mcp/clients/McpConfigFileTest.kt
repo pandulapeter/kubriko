@@ -129,4 +129,20 @@ class McpConfigFileTest {
         assertEquals(broken, file.readText())
         assertEquals(listOf("config.json"), directory.list()?.toList())
     }
+
+    @Test
+    fun aJsonValueOtherThanAnObjectIsNeverWritten() {
+        file.writeText("[]")
+        assertFailsWith<SerializationException> { McpConfigFile.server(file, "kubriko-creator") }
+        assertFailsWith<SerializationException> { McpConfigFile.addServer(file, "kubriko-creator", entry) }
+        assertEquals("[]", file.readText())
+    }
+
+    @Test
+    fun anEmptyFileCountsAsOneWithoutSettings() {
+        file.writeText("")
+        assertEquals(null, McpConfigFile.server(file, "kubriko-creator"))
+        McpConfigFile.addServer(file, "kubriko-creator", entry)
+        assertEquals(entry, McpConfigFile.server(file, "kubriko-creator"))
+    }
 }
