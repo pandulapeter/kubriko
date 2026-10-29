@@ -64,6 +64,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActorOrder
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
@@ -157,6 +158,7 @@ internal class CommandRegistry(
                 RenameScene,
                 PlaceActor,
                 MoveActor,
+                MoveActorOrder,
                 SetActorValues,
                 SetActorState,
                 SetSceneSettings,

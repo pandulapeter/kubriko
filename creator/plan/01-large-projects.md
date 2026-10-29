@@ -16,7 +16,6 @@ project. Nothing a user builds is capped in number. Reuse is `05-reuse-and-trait
 
 ## Scene Actors
 
-- An ordering command (`move_actor_order`, to the front or back of the list, which decides the order Actors are added in).
 - A user-facing name per Actor once Identifiable is a Trait (`05-reuse-and-traits.md`; the ID stays internal and stable when the name
   changes).
 - Showing a git merge conflict in a Scene by Actor (`08-git.md`).

@@ -290,7 +290,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   changed Actor type marks it outdated, since its classes must be compiled again, but regenerating code for changed Scenes doesn't.
   `set_actor_values` changes one Actor's body (a new size moves the pivot to the middle), color, and Property values
   (`ActorStateEdits`; colors as Compose's packed value, rotations in radians) and is undone by `set_actor_state`, which replaces
-  a whole state (and is the AI's way to hand-written types' other values).
+  a whole state (and is the AI's way to hand-written types' other values). `move_actor_order` moves an Actor in the Scene's list, the
+  order Actors are added in (so, of two with the same drawing order, the later is drawn on top); the inspector's header sends
+  the selected one to the start or the end.
 
 ## AI connection (MCP)
 

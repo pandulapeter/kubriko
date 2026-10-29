@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActorOrder
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
@@ -33,9 +34,13 @@ import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_bring_actor_to_front
 import kubriko.creator.generated.resources.action_remove_actor
+import kubriko.creator.generated.resources.action_send_actor_to_back
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_delete
+import kubriko.creator.generated.resources.ic_move_down
+import kubriko.creator.generated.resources.ic_move_up
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.scene_inspector_hint
 import kubriko.creator.generated.resources.scene_settings_title
@@ -103,6 +108,19 @@ internal fun SceneInspector(
         }
         else -> {
             PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId, accent = Accent.CAST) {
+                val index = view.entries.indexOf(entry)
+                IconActionButton(
+                    icon = Res.drawable.ic_move_down,
+                    label = Res.string.action_send_actor_to_back,
+                    onClick = { onCommand(Invocation(MoveActorOrder, MoveActorOrder.Input(sceneName, selectedId, 0))) },
+                    isEnabled = index > 0,
+                )
+                IconActionButton(
+                    icon = Res.drawable.ic_move_up,
+                    label = Res.string.action_bring_actor_to_front,
+                    onClick = { onCommand(Invocation(MoveActorOrder, MoveActorOrder.Input(sceneName, selectedId, view.entries.lastIndex))) },
+                    isEnabled = index < view.entries.lastIndex,
+                )
                 IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
             }
             if (actor != null) {

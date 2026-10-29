@@ -311,6 +311,8 @@
     <string name="action_reload_scene">Reload</string>
     <string name="action_zoom_in">Zoom in</string>
     <string name="action_remove_actor">Remove from the Scene</string>
+    <string name="action_send_actor_to_back">Add first, behind Actors of the same drawing order</string>
+    <string name="action_bring_actor_to_front">Add last, in front of Actors of the same drawing order</string>
     <string name="scene_inspector_hint">Drag an Actor type from the sidebar into the Scene to place it there, and click an Actor to change it. Drag it to move it, or press Delete to remove it.</string>
     <string name="scene_inspector_x">X</string>
     <string name="scene_inspector_y">Y</string>
@@ -449,6 +451,7 @@
     <string name="command_move_actor">Move Actor</string>
     <string name="command_set_scene_settings">Change Scene settings</string>
     <string name="command_remove_actor">Remove Actor</string>
+    <string name="command_move_actor_order">Reorder Actor</string>
     <string name="command_restore_actor">Restore Actor</string>
     <string name="command_rename_scene">Rename Scene</string>
     <string name="warning_scene_named_in_code">%1$s still names the Scene %2$s, which is now %3$s. Change it there by hand.</string>

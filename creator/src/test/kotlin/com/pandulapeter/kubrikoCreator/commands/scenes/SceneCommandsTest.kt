@@ -109,6 +109,16 @@ class SceneCommandsTest {
     }
 
     @Test
+    fun actorsAreReorderedAndPutBackInTheirPlace() = runTest {
+        val context = context(wall, music)
+        assertEquals(listOf(music, wall), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "wall", 1))) { context.main() })
+        assertEquals(listOf(wall, music), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "music", 1))) { context.main() })
+        assertEquals(Rejection(Res.string.error_command_index_invalid, "2"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", 2)))
+        assertEquals(Rejection(Res.string.error_command_index_invalid, "-1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", -1)))
+        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "ghost"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "ghost", 0)))
+    }
+
+    @Test
     fun actorChangesAreValidated() = runTest {
         val context = context(wall, music)
         assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "ghost"), RemoveActor.validate(context, RemoveActor.Input("main", "ghost")))
