@@ -43,7 +43,7 @@ internal object ChangeGrouping {
     }
 
     private fun typeName(path: String, generatedPath: String?) = when {
-        path.endsWith(".json") -> definitionPaths.firstOrNull { path.startsWith(it) }?.let { path.removePrefix(it).removeSuffix(".json").takeIf { name -> '/' !in name } }
+        path.endsWith(".json") -> definitionPaths.firstOrNull { path.startsWith(it) }?.let { path.substringAfterLast('/').removeSuffix(".json") }
         generatedPath != null && path.startsWith("$generatedPath/") && path.endsWith(".kt") -> path.removePrefix("$generatedPath/").removeSuffix(".kt")
             .takeIf { '/' !in it && it !in generatedFilesOfNoType }
         else -> null

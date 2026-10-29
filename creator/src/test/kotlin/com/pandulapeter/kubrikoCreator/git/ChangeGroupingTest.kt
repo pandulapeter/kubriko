@@ -79,6 +79,15 @@ class ChangeGroupingTest {
             listOf(FileChange("src/Ball.kt", ChangeKind.MODIFIED), FileChange(".kubriko/actors/nested/Ball.json", ChangeKind.MODIFIED)),
             generatedPath = null,
         )
-        assertEquals(listOf(false, false), entries.map { it.isBlockType })
+        assertEquals(listOf(true, false), entries.map { it.isBlockType })
+    }
+
+    @Test
+    fun aTypeInAFolderIsGroupedWithItsGeneratedCode() {
+        val entries = ChangeGrouping.group(
+            listOf(FileChange(".kubriko/actors/enemies/Bat.json", ChangeKind.MODIFIED), FileChange("$generated/Bat.kt", ChangeKind.MODIFIED)),
+            generated,
+        )
+        assertEquals(listOf(".kubriko/actors/enemies/Bat.json", "$generated/Bat.kt"), entries.single { it.title == "Bat" }.paths)
     }
 }
