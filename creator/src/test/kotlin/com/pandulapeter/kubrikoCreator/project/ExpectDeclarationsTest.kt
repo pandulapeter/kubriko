@@ -71,6 +71,12 @@ class ExpectDeclarationsTest {
     }
 
     @Test
+    fun aPackageNamedLikeAFolderBuildsWriteStillCounts() {
+        root.resolve("src/commonMain/kotlin/com/example/build/Platform.kt").apply { parentFile.mkdirs() }.writeText("expect fun name(): String\n")
+        assertTrue(declarations.any())
+    }
+
+    @Test
     fun aProjectWithoutSourcesDeclaresNone() {
         assertFalse(declarations.any())
     }

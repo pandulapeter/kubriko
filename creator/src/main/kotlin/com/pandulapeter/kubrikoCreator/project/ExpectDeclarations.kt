@@ -23,8 +23,8 @@ internal class ExpectDeclarations(
     @Synchronized
     fun any(): Boolean {
         val sources = rootDirectory.walkTopDown()
-            .onEnter { it == rootDirectory || it.name !in ignoredDirectoryNames }
-            .filter { it.isFile && it.extension == "kt" && SOURCE_DIRECTORY in it.relativeTo(rootDirectory).invariantSeparatorsPath.split('/') }
+            .onEnter { it == rootDirectory || it.isWithinSources() || it.name !in ignoredDirectoryNames }
+            .filter { it.isFile && it.extension == "kt" && it.isWithinSources() }
             .toSet()
         declaresExpectBySource.keys.retainAll(sources)
         return sources.any { file ->
@@ -34,9 +34,14 @@ internal class ExpectDeclarations(
         }
     }
 
+    private fun File.isWithinSources() = SOURCE_DIRECTORY in relativeTo(rootDirectory).invariantSeparatorsPath.split('/').dropLast(1)
+
     companion object {
         private const val SOURCE_DIRECTORY = "src"
-        private val ignoredDirectoryNames = setOf("build", ".gradle", ".git", ".idea", ".kotlin", ".kubriko", "kotlin-js-store", "node_modules")
+        private val ignoredDirectoryNames = setOf(
+            "build", "out", ".gradle", ".git", ".idea", ".fleet", ".vscode", ".kotlin", ".kubriko", ".cxx", "kotlin-js-store", "node_modules", "Pods",
+            "DerivedData",
+        )
         private val declaration = Regex("""(?m)^[\t ]*(?:@\S+[\t ]+)*(?:[a-z]+[\t ]+)*expect[\t ]+(?:[a-z]+[\t ]+)*(?:fun|class|object|interface|val|var|typealias)\b""")
 
         fun declaresExpect(text: String) = declaration.containsMatchIn(text)
