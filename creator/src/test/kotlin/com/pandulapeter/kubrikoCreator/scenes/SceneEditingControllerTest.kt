@@ -143,16 +143,6 @@ class SceneEditingControllerTest {
     }
 
     @Test
-    fun aChangeWhileTheSceneBuildsOpensItOutdated() = runTest {
-        val gate = CompletableDeferred<Unit>().also { buildGate = it }
-        val controller = createController()
-        controller.open(scene)
-        controller.markOutdated()
-        gate.complete(Unit)
-        assertTrue(assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
-    }
-
-    @Test
     fun aFailedPreparationIsShownByTheFirstSceneWithoutBuildingAgain() = runTest {
         isBuildSuccessful = false
         val controller = createController()
@@ -239,19 +229,111 @@ class SceneEditingControllerTest {
     }
 
     @Test
-    fun changedActorTypesMarkTheOpenSceneOutdatedUntilReloaded() = runTest {
+    fun aChangeBuildsTheOpenSceneAgainAndSwapsItsClassesOnceTheyAreReady() = runTest {
         val controller = createController()
         controller.markOutdated()
-        assertEquals(SceneEditingState.Closed, controller.state.value)
+        controller.open(scene)
+        val before = assertIs<SceneEditingState.Open>(controller.state.value)
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        controller.markOutdated()
+        val updating = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertTrue(updating.isUpdating)
+        assertEquals(before.revision, updating.revision, "the old classes stay until the new ones are ready")
+        gate.complete(Unit)
+        val after = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertTrue(after.revision > before.revision)
+        assertEquals(false, after.isUpdating)
+        assertEquals(false, after.isOutdated)
+        assertEquals(2, tasks.size)
+        assertEquals(0, cleanBuildRequests)
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount, "the old classes are released")
+        controller.close()
+        controller.open(otherScene)
+        assertEquals(2, tasks.size, "the new classes are kept for the next Scene")
+    }
+
+    @Test
+    fun changesDuringABuildBuildAgainOnceItEnds() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        val first = CompletableDeferred<Unit>().also { buildGate = it }
+        controller.markOutdated()
+        controller.markOutdated()
+        assertEquals(2, tasks.size, "the running build isn't cancelled")
+        val second = CompletableDeferred<Unit>().also { buildGate = it }
+        first.complete(Unit)
+        assertEquals(3, tasks.size)
+        assertTrue(assertIs<SceneEditingState.Open>(controller.state.value).isUpdating)
+        second.complete(Unit)
+        val after = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals(false, after.isUpdating)
+        assertEquals(3, tasks.size)
+    }
+
+    @Test
+    fun aChangeWhileTheSceneOpensBuildsItAgainRightAfter() = runTest {
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val controller = createController()
         controller.open(scene)
         controller.markOutdated()
-        val outdated = assertIs<SceneEditingState.Open>(controller.state.value)
-        assertTrue(outdated.isOutdated)
-        controller.reload()
-        val reloaded = assertIs<SceneEditingState.Open>(controller.state.value)
-        assertEquals(false, reloaded.isOutdated)
-        assertTrue(reloaded.revision > outdated.revision)
+        gate.complete(Unit)
+        val open = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals(false, open.isUpdating)
         assertEquals(2, tasks.size)
+    }
+
+    @Test
+    fun aFailedBuildKeepsTheOldClassesAndSaysTheSceneIsOutdatedUntilABuildWorks() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        val before = assertIs<SceneEditingState.Open>(controller.state.value)
+        isBuildSuccessful = false
+        controller.markOutdated()
+        val failed = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertTrue(failed.isOutdated)
+        assertEquals(false, failed.isUpdating)
+        assertEquals(before.revision, failed.revision)
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(0, closedCount, "the shown classes stay")
+        isBuildSuccessful = true
+        controller.markOutdated()
+        assertEquals(false, assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
+        assertEquals(3, tasks.size)
+    }
+
+    @Test
+    fun closingDuringABuildReleasesTheShownClassesAndKeepsTheNewOnesForTheNextScene() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        controller.markOutdated()
+        controller.close()
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount)
+        gate.complete(Unit)
+        controller.open(scene)
+        assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals(2, tasks.size)
+    }
+
+    @Test
+    fun reloadingDuringABuildBuildsFromScratch() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        CompletableDeferred<Unit>().also { buildGate = it }
+        controller.markOutdated()
+        buildGate = null
+        controller.reload()
+        assertEquals(1, cleanBuildRequests)
+        assertEquals(3, tasks.size)
+        assertEquals(false, assertIs<SceneEditingState.Open>(controller.state.value).isUpdating)
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount, "the classes shown before Reload are released, and the cancelled build loaded none")
     }
 
     @Test

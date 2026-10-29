@@ -78,11 +78,18 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`, steps 4 and 5 (steps 1 to 3, keeping Gradle warm, the configuration cache, and
-   skipping the jar, are done), each measured with `CreatorBuildBenchmarkTest` (a row each).
-2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
+1. The first change after opening a project builds for 10 s: the warm-up build at open was up to date, so Kotlin's compile
+   daemon only starts then (`02-fast-iteration.md`, step 4's finding). Warm it at open too, then measure in the app.
+2. The rest of `02-fast-iteration.md`: step 5 (steps 1 to 4 are done), each measured with `CreatorBuildBenchmarkTest` (a
+   row each).
+3. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Swapping the open Scene's classes (2026-10-29), seen working on the scratch Breakout: "Updating…", Bricks redrawn as
+  circles and back with zoom and selection kept, a broken source showing the notice and recovering once removed. Not seen:
+  a change made while that build ran (it should build once more after it), closing the Scene or opening another one
+  during the build, Reload during it, and a Scene of many Actors (whether the old one stays smooth while the new one loads).
 
 - Class folders instead of the jar (2026-10-29): the benchmark loads them and creates a 1,000-Actor Scene from them, and the
   scratch Breakout's classpath lists the three folders with no jar built; seen in the app: opening the scratch Breakout's

@@ -169,6 +169,13 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         viewportManager.setScaleFactor(framing.scaleFactor / adjustment)
     }
 
+    var camera: SceneCamera
+        get() = SceneCamera(viewportManager.cameraPosition.value, viewportManager.rawScaleFactor.value.horizontal)
+        set(value) {
+            viewportManager.setCameraPosition(value.position)
+            viewportManager.setScaleFactor(value.scaleFactor)
+        }
+
     fun toScene(screenOffset: Offset): SceneOffset = screenOffset.toSceneOffset(viewportManager)
 
     /**

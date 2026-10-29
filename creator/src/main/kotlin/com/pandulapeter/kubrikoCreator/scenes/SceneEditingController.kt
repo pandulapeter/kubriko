@@ -62,12 +62,18 @@ internal class SceneEditingController(
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
     val state = _state.asStateFlow()
     private var job: Job? = null
+    private var updateJob: Job? = null
 
     /**
      * The project's classes for its current sources, being built and loaded or loaded already, kept for every Scene
      * opened until something changes ([markOutdated]).
      */
     private var loading: Deferred<LoadResult>? = null
+
+    /**
+     * The classes the open Scene is drawn with, which are kept until it shows others, even once [loading] has newer ones.
+     */
+    private var shown: Deferred<LoadResult>? = null
     private var isLoadingOutdated = false
     private var revision = 0
 
@@ -86,31 +92,66 @@ internal class SceneEditingController(
 
     private fun open(scene: ProjectResource, isRebuilding: Boolean) {
         close()
-        if (isRebuilding || isLoadingOutdated) releaseLoading()
         val startTime = currentTimeMillis()
         _state.value = SceneEditingState.Preparing(scene)
-        val loading = loading ?: startLoading()
+        val loading = loading?.takeUnless { isRebuilding || isLoadingOutdated } ?: startLoading()
         job = scope.launch {
             val actors = async(ioDispatcher) { readScene(scene) }
             _state.value = when (val result = loading.await()) {
                 is LoadResult.Loaded -> SceneEditingState.Open(
                     scene = scene,
-                    entryPoint = SpriteLoadingEntryPoint(result.loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
+                    entryPoint = show(loading, result),
                     actors = actors.await(),
                     revision = ++revision,
-                    isOutdated = isLoadingOutdated,
                 ).also {
                     report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
                 }
                 is LoadResult.Failed -> SceneEditingState.Failed(scene, result.reason).also { forget(loading) }
                 is LoadResult.Unsupported -> SceneEditingState.Unsupported(scene, result.kubrikoVersion).also { forget(loading) }
             }
+            if (isLoadingOutdated) update()
         }
     }
 
+    /**
+     * Starts building and loading the classes of the current sources, releasing the ones loaded before unless they are shown.
+     */
     private fun startLoading() = scope.async { buildAndLoad() }.also {
+        loading?.takeIf { previous -> previous !== shown }?.let(::release)
         loading = it
         isLoadingOutdated = false
+    }
+
+    /**
+     * Notes that the open Scene is drawn with [loaded], the result of [deferred], releasing the classes it showed before.
+     */
+    private fun show(deferred: Deferred<LoadResult>, loaded: LoadResult.Loaded): SpriteLoadingEntryPoint {
+        shown?.takeIf { it !== deferred && it !== loading }?.let(::release)
+        shown = deferred
+        return SpriteLoadingEntryPoint(loaded.loaded.entryPoint, ProjectSpriteLoader(spriteFiles()))
+    }
+
+    /**
+     * Builds the open Scene's classes again in the background and swaps them in, keeping the old ones on screen until
+     * then, and building again after a build during which something changed. A failed build leaves the old classes and
+     * shows that the Scene is outdated.
+     */
+    private fun update() {
+        if (updateJob?.isActive == true) return
+        updateJob = scope.launch {
+            while (isLoadingOutdated && _state.value is SceneEditingState.Open) {
+                _state.update { if (it is SceneEditingState.Open) it.copy(isUpdating = true) else it }
+                val deferred = startLoading()
+                val result = deferred.await()
+                val open = _state.value as? SceneEditingState.Open ?: break
+                if (result is LoadResult.Loaded) {
+                    _state.value = open.copy(entryPoint = show(deferred, result), revision = ++revision, isOutdated = false, isUpdating = isLoadingOutdated)
+                } else {
+                    forget(deferred)
+                    _state.value = open.copy(isOutdated = true, isUpdating = false)
+                }
+            }
+        }
     }
 
     /**
@@ -157,12 +198,12 @@ internal class SceneEditingController(
     }
 
     /**
-     * Notes that an Actor type or a source changed: the open Scene shows that its classes are no longer current, and
-     * the next Scene opened builds the project again.
+     * Notes that an Actor type or a source changed: the open Scene is built again in the background and swaps its
+     * classes when that is done ([update]), and the next Scene opened builds the project again.
      */
     fun markOutdated() {
         isLoadingOutdated = true
-        _state.update { if (it is SceneEditingState.Open) it.copy(isOutdated = true) else it }
+        if (_state.value is SceneEditingState.Open) update()
     }
 
     /**
@@ -175,7 +216,7 @@ internal class SceneEditingController(
             open.sceneName !in names -> Unit
             open.scene.file.isFile -> scope.launch {
                 val actors = withContext(ioDispatcher) { readScene(open.scene) }
-                _state.update { if (it is SceneEditingState.Open && it.revision == open.revision) it.copy(actors = actors) else it }
+                _state.update { if (it is SceneEditingState.Open && it.scene == open.scene) it.copy(actors = actors) else it }
             }
             else -> close()
         }
@@ -198,6 +239,10 @@ internal class SceneEditingController(
     fun close() {
         job?.cancel()
         job = null
+        updateJob?.cancel()
+        updateJob = null
+        shown?.takeIf { it !== loading }?.let(::release)
+        shown = null
         _state.value = SceneEditingState.Closed
     }
 
@@ -206,12 +251,11 @@ internal class SceneEditingController(
      */
     fun dispose() {
         close()
-        releaseLoading()
+        loading?.let(::release)
+        loading = null
     }
 
-    private fun releaseLoading() {
-        val released = loading ?: return
-        loading = null
+    private fun release(released: Deferred<LoadResult>) {
         released.cancel()
         scope.launch {
             val loaded = try {

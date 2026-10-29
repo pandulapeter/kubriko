@@ -291,7 +291,8 @@
     <string name="error_entry_point_multiple">The project registers more than one CreatorEntryPoint.</string>
     <string name="error_entry_point_not_loaded">The project's CreatorEntryPoint couldn't be loaded.</string>
     <string name="scene_preparing">Preparing %1$s…</string>
-    <string name="scene_outdated">The project changed since this Scene was opened.</string>
+    <string name="scene_outdated">The project doesn't build, so this Scene shows it as it last built.</string>
+    <string name="scene_updating">Updating…</string>
     <string name="action_reload_scene">Reload</string>
     <string name="action_zoom_in">Zoom in</string>
     <string name="action_remove_actor">Remove from the Scene</string>

@@ -28,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +42,6 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
-import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
@@ -61,12 +59,13 @@ import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_zoom_in
 import kubriko.creator.generated.resources.ic_zoom_out
 import kubriko.creator.generated.resources.scene_outdated
+import kubriko.creator.generated.resources.scene_updating
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A Scene, edited inside Kubriko Creator's window: a header naming it, with the camera's zoom, offering to reload it
- * (when its Actor types changed) and to close it, above the Scene itself and the inspector of what is selected in it.
+ * A Scene, edited inside Kubriko Creator's window: a header naming it, with the camera's zoom, saying when its classes
+ * are being built again after a change or couldn't be, offering to reload it and to close it, above the Scene itself and the inspector of what is selected in it.
  * Every change is a command.
  *
  * @param actorTypes The project's block-built Actor types.
@@ -85,15 +84,12 @@ internal fun SceneEditorPane(
 ) = Column(
     modifier = modifier,
 ) {
-    val view = remember(state.revision) { SceneView(state.entryPoint) }
-    // Registered before the canvas, so that its viewport is torn down before the instance it draws.
-    DisposableEffect(view) {
-        onDispose { view.dispose() }
-    }
-    var selectedId by remember(state.revision) { mutableStateOf<String?>(null) }
+    val view = rememberSceneView(state)
+    var selectedId by remember(state.scene.file) { mutableStateOf<String?>(null) }
     SceneHeader(
         sceneName = state.scene.name,
         isOutdated = state.isOutdated,
+        isUpdating = state.isUpdating,
         onZoomIn = { view.viewportManager.multiplyScaleFactor(ZOOM_STEP) },
         onZoomOut = { view.viewportManager.multiplyScaleFactor(1f / ZOOM_STEP) },
         onZoomToFit = view::zoomToFit,
@@ -142,6 +138,7 @@ internal fun SceneEditorPane(
 private fun SceneHeader(
     sceneName: String,
     isOutdated: Boolean,
+    isUpdating: Boolean,
     onZoomIn: () -> Unit,
     onZoomOut: () -> Unit,
     onZoomToFit: () -> Unit,
@@ -170,6 +167,14 @@ private fun SceneHeader(
         TextButton(onClick = onReload) {
             Text(stringResource(Res.string.action_reload_scene))
         }
+    }
+    if (isUpdating) {
+        Text(
+            modifier = Modifier.padding(start = 8.dp),
+            text = stringResource(Res.string.scene_updating),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
     Spacer(Modifier.weight(1f))
     IconActionButton(icon = Res.drawable.ic_zoom_out, label = Res.string.action_zoom_out, onClick = onZoomOut)

@@ -84,9 +84,15 @@ What it shows:
    a Block or Property added to a leaf type 530 to about 295 ms, to the base of a family 550 to 300 ms, one Actor moved 297 to
    90 ms; loading the classes went from 12 to 67 ms, so a Scene opened after a change gains about 180 ms. Play builds still
    pack the jar, which the game's own process needs no more than the editor does (Playing, below).
-4. **Reload without reopening:** after a type change, compile in the background and swap the Scene editor to the new classes when the
-   build finishes (new class loader, `SceneView` created again from the open Scene, camera and selection kept), instead of an
-   "outdated" notice and a manual reload. The notice stays only while a build is failing.
+4. **Reload without reopening. Done** (2026-10-29): a type or source change builds the open Scene again in the background and
+   swaps its classes when they are ready (`SceneEditingController.update`), the new `SceneView` creating its Actors while the
+   old one stays on screen and then taking over its camera; the selection stays. A change during the build builds once more
+   after it instead of cancelling it. A failed build keeps the old classes, with the notice and Reload, until a build works.
+   Seen in the app on Breakout: a Brick's shape changed on disk showed on screen 1.9 s after the file was written (a 0.3 s
+   build; the rest is the watcher's one-second poll, regenerating, and creating the Actors), zoom and selection kept; a
+   source that doesn't compile showed the notice and its error, and removing it recovered. **Found:** the first change after
+   opening built for 10 s, since the warm-up build at open compiled nothing (it was up to date) and so never started Kotlin's
+   compile daemon. Starting that daemon at open belongs to step 1.
 5. **Draw what doesn't need the project's classes:** block-built Actor types are known without compiling (shape, color, size, sprite),
    so the Scene editor can show a changed type's Actors from its definition right away (a preview Actor drawn by Creator) while the
    compile runs, then swap in the real classes. Hand-written types keep their last compiled look until then.

@@ -90,7 +90,11 @@ lives in `plan/` (start with `plan/README.md`).
   closes (selecting an Actor type, or another Scene), so the next Scene opens without building, until a type or a source
   changes (`markOutdated`, also during that build), Reload, or the workspace closes; a failed build or another Kubriko
   version is shown by the Scenes waiting for it, and the next Scene builds again; released classes go a few seconds after their editor leaves
-  composition. Creator no longer starts `tool-creator-session` in Edit mode.
+  composition. A change while a Scene is open builds it again in the background (`update`, the header says "Updating…"):
+  the new classes are swapped in when they are ready, and a change during that build builds once more after it, rather than
+  cancelling it. The editor's new `SceneView` creates its Actors while the old one is still shown and then takes over its
+  camera (`rememberSceneView`, `SceneCamera`), and the selection is kept per Scene, so a swap only changes the Actors. A
+  failed build keeps the old classes and says so in the header, with Reload, until a build works. Creator no longer starts `tool-creator-session` in Edit mode.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
   and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
   after `com.pandulapeter.kubriko.` in imports and fully qualified names, generated code included; the engine and `tool-creator-api` always),
