@@ -30,6 +30,8 @@ import java.io.File
 /**
  * Opens a workspace through the project's own Gradle build, without waiting for Gradle: only the project's files are
  * read, and the desktop module is asked from Gradle in the background, for the first build to wait for if it must.
+ * That first build starts right away, in the background too, so that the Gradle daemon is warm and the project's
+ * classes are loaded by the time a Scene is opened.
  */
 internal object GradleWorkspaceOpener : WorkspaceOpener {
 
@@ -56,7 +58,7 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
             startWatching = { onChange ->
                 ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO, ownWrites = ownWrites).start(onChange)
             },
-        )
+        ).also { it.sceneEditing.prepare() }
     }
 
     /**

@@ -55,6 +55,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_not_a_gradle_project
@@ -115,6 +117,12 @@ internal class WorkspaceController(
         hasExpectDeclarations = ExpectDeclarations(project.rootDirectory).let { declarations -> { withContext(ioDispatcher) { declarations.any() } } },
     )
     private val consoleLog = ConsoleLog()
+
+    /**
+     * Keeps builds of the classpath from overlapping each other or the start of a session, since a build that starts
+     * while another one runs needs a Gradle daemon of its own.
+     */
+    private val classpathBuildLock = Mutex()
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     val console = consoleLog.entries
     private val sessions = SessionController(
@@ -320,10 +328,11 @@ internal class WorkspaceController(
             appendToConsole(ConsoleEntry.Status(Res.string.error_not_a_gradle_project, isError = true))
             return false
         }
-        val startTime = currentTimeMillis()
+        var startTime = 0L
         val outputTail = ArrayDeque<String>()
         val hasReportedProblems = AtomicBoolean(false)
-        val isSuccessful = incrementalCompilation.build { mode ->
+        suspend fun runBuild() = incrementalCompilation.build { mode ->
+            startTime = currentTimeMillis()
             build.run(
                 taskPath = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName",
                 arguments = SessionInitScript.gradleArguments(properties, mode),
@@ -340,6 +349,13 @@ internal class WorkspaceController(
                     }
                 },
             )
+        }
+        val isSuccessful = if (taskName == SessionInitScript.CLASSPATH_TASK_NAME) {
+            classpathBuildLock.withLock { runBuild() }
+        } else {
+            // A session's build lasts as long as the game runs, so it only waits for the classpath build before it.
+            classpathBuildLock.withLock {}
+            runBuild()
         }
         if (!isSuccessful) {
             appendToConsole(ConsoleEntry.Status(Res.string.status_build_failed, isError = true))

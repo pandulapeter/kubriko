@@ -12,8 +12,10 @@ package com.pandulapeter.kubrikoCreator.scenes
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -25,6 +27,7 @@ import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_build_failed
 import kubriko.creator.generated.resources.status_scene_opened
+import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.io.IOException
 
@@ -57,9 +60,21 @@ internal class SceneEditingController(
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
     val state = _state.asStateFlow()
     private var job: Job? = null
-    private var loadedEntryPoint: LoadedEntryPoint? = null
-    private var isLoadedEntryPointOutdated = false
+
+    /**
+     * The project's classes for its current sources, being built and loaded or loaded already, kept for every Scene
+     * opened until something changes ([markOutdated]).
+     */
+    private var loading: Deferred<LoadResult>? = null
+    private var isLoadingOutdated = false
     private var revision = 0
+
+    /**
+     * Builds and loads the project's classes in the background, so that the first Scene opened doesn't wait for a build.
+     */
+    fun prepare() {
+        if (loading == null) startLoading()
+    }
 
     /**
      * Shows [scene], built and loaded with the project's classes, or with the classes loaded for the Scene shown before
@@ -69,26 +84,44 @@ internal class SceneEditingController(
 
     private fun open(scene: ProjectResource, isRebuilding: Boolean) {
         close()
-        if (isRebuilding || isLoadedEntryPointOutdated) releaseLoadedEntryPoint()
-        _state.value = SceneEditingState.Preparing(scene)
+        if (isRebuilding || isLoadingOutdated) releaseLoading()
         val startTime = currentTimeMillis()
+        _state.value = SceneEditingState.Preparing(scene)
+        val loading = loading ?: startLoading()
         job = scope.launch {
             val actors = async(ioDispatcher) { readScene(scene) }
-            val loaded = loadedEntryPoint ?: (buildAndLoad(scene) ?: return@launch)
-            _state.value = SceneEditingState.Open(
-                scene = scene,
-                entryPoint = SpriteLoadingEntryPoint(loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
-                actors = actors.await(),
-                revision = ++revision,
-            )
-            report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
+            _state.value = when (val result = loading.await()) {
+                is LoadResult.Loaded -> SceneEditingState.Open(
+                    scene = scene,
+                    entryPoint = SpriteLoadingEntryPoint(result.loaded.entryPoint, ProjectSpriteLoader(spriteFiles())),
+                    actors = actors.await(),
+                    revision = ++revision,
+                    isOutdated = isLoadingOutdated,
+                ).also {
+                    report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
+                }
+                is LoadResult.Failed -> SceneEditingState.Failed(scene, result.reason).also { forget(loading) }
+                is LoadResult.Unsupported -> SceneEditingState.Unsupported(scene, result.kubrikoVersion).also { forget(loading) }
+            }
         }
     }
 
+    private fun startLoading() = scope.async { buildAndLoad() }.also {
+        loading = it
+        isLoadingOutdated = false
+    }
+
     /**
-     * Builds the project and loads its classes, keeping them for the next Scene, or shows why it couldn't.
+     * Drops a result that isn't a loaded entry point once a Scene showed it, so the next Scene builds again.
      */
-    private suspend fun buildAndLoad(scene: ProjectResource): LoadedEntryPoint? {
+    private fun forget(failed: Deferred<LoadResult>) {
+        if (loading === failed) loading = null
+    }
+
+    /**
+     * Builds the project and loads its classes, or says why it couldn't.
+     */
+    private suspend fun buildAndLoad(): LoadResult {
         val classpathFile = createClasspathFile()
         val isBuilt = runTask(
             SessionInitScript.CLASSPATH_TASK_NAME,
@@ -96,18 +129,14 @@ internal class SceneEditingController(
         )
         val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
         return when {
-            classpath == null -> null.also { _state.value = SceneEditingState.Failed(scene, Res.string.scene_build_failed) }
-            classpath.kubrikoVersion != creatorKubrikoVersion -> null.also { _state.value = SceneEditingState.Unsupported(scene, classpath.kubrikoVersion) }
+            classpath == null -> LoadResult.Failed(Res.string.scene_build_failed)
+            classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(classpath.kubrikoVersion)
             else -> try {
-                withContext(ioDispatcher) { entryPointLoader.load(classpath) }.also {
-                    loadedEntryPoint = it
-                    isLoadedEntryPointOutdated = false
-                }
+                LoadResult.Loaded(withContext(ioDispatcher) { entryPointLoader.load(classpath) })
             } catch (exception: EntryPointLoadingException) {
                 if (exception.cause != null) requestCleanBuild()
-                _state.value = SceneEditingState.Failed(scene, exception.reason)
                 report(ConsoleEntry.Status(exception.reason, isError = true))
-                null
+                LoadResult.Failed(exception.reason)
             }
         }
     }
@@ -131,7 +160,7 @@ internal class SceneEditingController(
      * the next Scene opened builds the project again.
      */
     fun markOutdated() {
-        isLoadedEntryPointOutdated = true
+        isLoadingOutdated = true
         _state.update { if (it is SceneEditingState.Open) it.copy(isOutdated = true) else it }
     }
 
@@ -176,18 +205,23 @@ internal class SceneEditingController(
      */
     fun dispose() {
         close()
-        releaseLoadedEntryPoint()
+        releaseLoading()
     }
 
-    private fun releaseLoadedEntryPoint() {
-        loadedEntryPoint?.let { loaded ->
+    private fun releaseLoading() {
+        val released = loading ?: return
+        loading = null
+        released.cancel()
+        scope.launch {
+            val loaded = try {
+                released.await() as? LoadResult.Loaded
+            } catch (_: CancellationException) {
+                null
+            } ?: return@launch
             // The editor leaves composition on the next frame, and may still load classes while it is torn down.
-            scope.launch {
-                delay(RELEASE_DELAY_IN_MILLISECONDS)
-                loaded.close()
-            }
+            delay(RELEASE_DELAY_IN_MILLISECONDS)
+            loaded.loaded.close()
         }
-        loadedEntryPoint = null
     }
 
     private fun readClasspath(file: File) = try {
@@ -201,4 +235,12 @@ internal class SceneEditingController(
     private companion object {
         const val RELEASE_DELAY_IN_MILLISECONDS = 5_000L
     }
+}
+
+private sealed interface LoadResult {
+    data class Loaded(val loaded: LoadedEntryPoint) : LoadResult
+
+    data class Failed(val reason: StringResource) : LoadResult
+
+    data class Unsupported(val kubrikoVersion: String) : LoadResult
 }

@@ -86,6 +86,12 @@ class BlockTypesControllerTest {
     }
 
     @Test
+    fun regeneratingWhenOpenedSaysTheTypesDidNotChange() = runTest {
+        createController(FakeBlockTypeRepository(listOf(wall)))
+        assertEquals(listOf(false), savedTypeChanges)
+    }
+
+    @Test
     fun theStoredActorTypesAreLoadedWhenOpened() = runTest {
         assertEquals(listOf(ball, wall), createController(FakeBlockTypeRepository(listOf(wall, ball))).actorTypes.value)
     }

@@ -78,10 +78,17 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
 
 ## Next
 
-1. The rest of `02-fast-iteration.md`, steps 1 to 5, each measured with `CreatorBuildBenchmarkTest` (a row each).
+1. The rest of `02-fast-iteration.md`, steps 2 to 5 (step 1, keeping Gradle warm, is done), each measured with
+   `CreatorBuildBenchmarkTest` (a row each).
 2. The rest in file order: `03-large-projects.md` (caps), `04-resource-organization.md` (Search, the previous next item), and on.
 
 ## Never checked by hand
+
+- Keeping Gradle warm (2026-10-29), seen working: opening the scratch Breakout built it with nothing clicked ("Built in 2.9
+  seconds." in the console). Not seen (Android Studio covered Creator's window, so nothing was clicked): opening `main` right
+  after that without a build, opening a Scene while that build still runs (it should wait for it, not build twice), Play
+  pressed during it (it should start once the build ends), and a project whose build fails on open (the console shows the
+  problems right away, and the first Scene shows the failure without building again).
 
 - Incremental common code in the running app (only measured by the benchmark and unit-tested): a type change in the scratch
   Breakout opening the Scene faster, Reload taking a full build, and a broken Kotlin Block's failed build followed by a clean one.

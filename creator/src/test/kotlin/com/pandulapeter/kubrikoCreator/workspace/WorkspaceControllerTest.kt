@@ -192,6 +192,17 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun aSessionWaitsForTheClasspathBuildBeforeIt() = runTest {
+        val controller = createController()
+        controller.sceneEditing.prepare()
+        controller.play()
+        assertEquals(listOf(":${SessionInitScript.CLASSPATH_TASK_NAME}"), build.runs.map { it.taskPath })
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
+        assertEquals(2, build.runs.size)
+    }
+
+    @Test
     fun theSessionTaskOfANestedModuleIsAddressedByItsPath() = runTest {
         createController(desktopModulePath = ":app:desktop").play()
         assertEquals(":app:desktop:${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)

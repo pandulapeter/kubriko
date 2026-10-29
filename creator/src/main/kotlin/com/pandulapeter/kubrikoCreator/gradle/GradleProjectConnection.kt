@@ -9,7 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.gradle
 
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ResultHandler
@@ -18,7 +21,6 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import java.io.File
-import kotlin.coroutines.resume
 
 /**
  * A long-lived connection to a project's Gradle build, through the Gradle Tooling API, made on first use, so that
@@ -38,24 +40,34 @@ internal class GradleProjectConnection(
         onEvent: (GradleBuildEvent) -> Unit,
     ): Boolean {
         val cancellation = GradleConnector.newCancellationTokenSource()
-        return suspendCancellableCoroutine { continuation ->
-            continuation.invokeOnCancellation { cancellation.cancel() }
-            connection.newBuild()
-                .forTasks(taskPath)
-                .withArguments(arguments)
-                .withCancellationToken(cancellation.token())
-                .setStandardOutput(LineOutputStream { onEvent(GradleBuildEvent.Output(it, isError = false)) })
-                .setStandardError(LineOutputStream { onEvent(GradleBuildEvent.Output(it, isError = true)) })
-                .addProgressListener({ event ->
-                    if (event is SingleProblemEvent) {
-                        event.toBuildEvent()?.let(onEvent)
-                    }
-                }, setOf(OperationType.PROBLEMS))
-                .run(object : ResultHandler<Void?> {
-                    override fun onComplete(result: Void?) = continuation.resume(true)
+        val outcome = CompletableDeferred<Boolean>()
+        connection.newBuild()
+            .forTasks(taskPath)
+            .withArguments(arguments)
+            .withCancellationToken(cancellation.token())
+            .setStandardOutput(LineOutputStream { onEvent(GradleBuildEvent.Output(it, isError = false)) })
+            .setStandardError(LineOutputStream { onEvent(GradleBuildEvent.Output(it, isError = true)) })
+            .addProgressListener({ event ->
+                if (event is SingleProblemEvent) {
+                    event.toBuildEvent()?.let(onEvent)
+                }
+            }, setOf(OperationType.PROBLEMS))
+            .run(object : ResultHandler<Void?> {
+                override fun onComplete(result: Void?) {
+                    outcome.complete(true)
+                }
 
-                    override fun onFailure(failure: GradleConnectionException) = continuation.resume(false)
-                })
+                override fun onFailure(failure: GradleConnectionException) {
+                    outcome.complete(false)
+                }
+            })
+        return try {
+            outcome.await()
+        } catch (exception: CancellationException) {
+            cancellation.cancel()
+            // Until Gradle stops the build, its daemon is busy, and the next build would start another one.
+            withContext(NonCancellable) { outcome.join() }
+            throw exception
         }
     }
 

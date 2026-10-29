@@ -37,7 +37,12 @@ lives in `plan/` (start with `plan/README.md`).
 - **Opening** a project never waits for Gradle (`GradleWorkspaceOpener`): it only checks for a build or settings file and reads the
   root project's name from the settings (`ProjectInspector`); the desktop module is asked from Gradle in the background (the
   `GradleProject` model configures every task), and the first build waits for it, reporting a project without one in the console.
-  The Tooling API connection is made on first use. Each workspace runs in a scope of its own (a child of the app's), which
+  The Tooling API connection is made on first use, which is right away: the workspace builds the classpath and loads the
+  project's classes in the background as soon as it opens (`SceneEditingController.prepare`), so the Gradle daemon is warm
+  and the first Scene opens without a build. Builds of the classpath never overlap, and a play session waits for the one
+  running (`classpathBuildLock`), since a build started while another runs needs a daemon of its own; a cancelled build
+  returns only once Gradle has stopped it, for the same reason. A play session holds its daemon while the game runs, so a
+  Scene opened then still starts a second one. Each workspace runs in a scope of its own (a child of the app's), which
   `close()` cancels once the pending writes are done (`BlockTypesController.awaitWrites`), and quitting waits for that; an
   opening that is cancelled closes what it made. Builds of the classpath report their time in the console, and so does opening
   a Scene.
@@ -75,9 +80,11 @@ lives in `plan/` (start with `plan/README.md`).
   couldn't be loaded (`SceneEditingState.Failed`, with Try again), rather than the pane just closing. Compose resources are read
   through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
   `SpriteManager` for one whose `imageLoader` (`ProjectSpriteLoader`) reads the sprite files from disk, matching resources by ID
-  (`drawable:<accessor>`, which is what Compose resources are equal by). The loaded classes are kept when the Scene
+  (`drawable:<accessor>`, which is what Compose resources are equal by). The loaded classes (`loading`, the build and
+  loading of the current sources, which every Scene opened meanwhile waits for) are kept when the Scene
   closes (selecting an Actor type, or another Scene), so the next Scene opens without building, until a type or a source
-  changes (`markOutdated`), Reload, or the workspace closes; released classes go a few seconds after their editor leaves
+  changes (`markOutdated`, also during that build), Reload, or the workspace closes; a failed build or another Kubriko
+  version is shown by the Scenes waiting for it, and the next Scene builds again; released classes go a few seconds after their editor leaves
   composition. Creator no longer starts `tool-creator-session` in Edit mode.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
   and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package

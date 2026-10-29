@@ -61,8 +61,13 @@ What it shows:
 
 ## Steps, cheapest first
 
-1. **Keep Gradle warm:** one Tooling API connection and daemon per workspace for every task (check that nothing opens a second one),
-   started when the project opens, with a classpath build in the background right away, so the first Scene opens from a warm build.
+1. **Keep Gradle warm. Done** (2026-10-29): one Tooling API connection per workspace serves every task (the only other one,
+   `GradleWrapperInstaller`, runs when a project is created), and the workspace builds and loads the classpath as soon as it opens,
+   so the first Scene opens without a build: the cold build (7.3 s at 200 types, 2.9 s for Breakout seen in the app) moves out of
+   the first Scene's way. Classpath builds don't overlap, play waits for the one running, and a cancelled build returns only once
+   Gradle stopped it, so none of them starts a second daemon. One does still: a Scene opened while the game plays, since the play
+   session holds its daemon for as long as the game runs (Playing, below, would end that by launching the game from the
+   classpath). Not a benchmark row: the benchmark runs Gradle directly, and this changes when the build runs, not how long.
 2. **Configuration cache and parallel builds in projects:** `org.gradle.configuration-cache=true` and `org.gradle.caching=true` in
    the template's `gradle.properties` (a template upgrade), and the init script made configuration-cache compatible (it passes
    `--no-configuration-cache` today).

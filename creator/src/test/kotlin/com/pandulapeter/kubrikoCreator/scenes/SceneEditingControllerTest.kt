@@ -102,6 +102,80 @@ class SceneEditingControllerTest {
     }
 
     @Test
+    fun preparingBuildsAndLoadsTheClassesSoTheFirstSceneOpensWithoutBuilding() = runTest {
+        val controller = createController()
+        controller.prepare()
+        assertEquals(1, tasks.size)
+        assertEquals(1, loadedClasspaths.size)
+        assertEquals(SceneEditingState.Closed, controller.state.value)
+        controller.prepare()
+        controller.open(scene)
+        assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals(1, tasks.size)
+    }
+
+    @Test
+    fun aSceneOpenedWhileTheClassesArePreparedWaitsForThatBuild() = runTest {
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val controller = createController()
+        controller.prepare()
+        controller.open(scene)
+        controller.open(otherScene)
+        assertIs<SceneEditingState.Preparing>(controller.state.value)
+        gate.complete(Unit)
+        assertEquals(otherScene, assertIs<SceneEditingState.Open>(controller.state.value).scene)
+        assertEquals(1, tasks.size)
+    }
+
+    @Test
+    fun aChangeWhileTheClassesArePreparedBuildsAgainForTheFirstScene() = runTest {
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val controller = createController()
+        controller.prepare()
+        controller.markOutdated()
+        gate.complete(Unit)
+        controller.open(scene)
+        assertEquals(false, assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
+        assertEquals(2, tasks.size)
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount, "the prepared classes are released")
+    }
+
+    @Test
+    fun aChangeWhileTheSceneBuildsOpensItOutdated() = runTest {
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val controller = createController()
+        controller.open(scene)
+        controller.markOutdated()
+        gate.complete(Unit)
+        assertTrue(assertIs<SceneEditingState.Open>(controller.state.value).isOutdated)
+    }
+
+    @Test
+    fun aFailedPreparationIsShownByTheFirstSceneWithoutBuildingAgain() = runTest {
+        isBuildSuccessful = false
+        val controller = createController()
+        controller.prepare()
+        controller.open(scene)
+        assertEquals(SceneEditingState.Failed(scene, Res.string.scene_build_failed), controller.state.value)
+        assertEquals(1, tasks.size)
+        controller.open(otherScene)
+        assertEquals(2, tasks.size)
+    }
+
+    @Test
+    fun disposingWhileTheClassesArePreparedStopsTheBuild() = runTest {
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        val controller = createController()
+        controller.prepare()
+        controller.dispose()
+        gate.complete(Unit)
+        runCurrent()
+        assertTrue(loadedClasspaths.isEmpty())
+    }
+
+    @Test
     fun theClasspathFileIsDeletedOnceRead() = runTest {
         createController().open(scene)
         assertTrue(File(tasks.single().second.getValue("kubrikoCreatorClasspathFile")).exists().not())

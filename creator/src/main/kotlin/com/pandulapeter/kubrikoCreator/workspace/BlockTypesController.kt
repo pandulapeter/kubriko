@@ -88,8 +88,9 @@ internal class BlockTypesController(
     private val pendingWriteCount = MutableStateFlow(0)
 
     init {
-        // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away.
-        queue(PendingWrite.Regenerate)
+        // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away,
+        // before the first build, so no classes loaded from it are outdated.
+        queue(PendingWrite.Regenerate, haveTypesChanged = false)
         scope.launch {
             val types = withContext(ioDispatcher) { repository.load() }
             emptyFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
