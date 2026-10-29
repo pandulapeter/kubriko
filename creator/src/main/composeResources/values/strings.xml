@@ -320,6 +320,11 @@
     <string name="scene_inspector_scale_horizontal">Scale across</string>
     <string name="scene_inspector_scale_vertical">Scale down</string>
     <string name="scene_settings_title">Scene settings</string>
+    <string name="scene_actor_search">Filter by type or ID</string>
+    <string name="scene_actor_count">Actors: %1$d</string>
+    <string name="scene_actor_count_filtered">Actors: %1$d of %2$d</string>
+    <string name="action_show_scene_actors">Show the list of the Scene's Actors</string>
+    <string name="action_hide_scene_actors">Hide the list of the Scene's Actors</string>
     <string name="scene_settings_center_x">Center X</string>
     <string name="scene_settings_center_y">Center Y</string>
     <string name="scene_settings_camera_x">Camera X</string>

@@ -186,6 +186,14 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         viewportManager.setScaleFactor(framing.scaleFactor / adjustment)
     }
 
+    /**
+     * Moves the camera to the middle of the Actor [id], keeping the zoom.
+     */
+    fun centerOn(id: String) {
+        val bounds = boundsOf(id) ?: return
+        viewportManager.setCameraPosition(SceneOffset(((bounds.left + bounds.right) / 2).sceneUnit, ((bounds.top + bounds.bottom) / 2).sceneUnit))
+    }
+
     var camera: SceneCamera
         get() = SceneCamera(viewportManager.cameraPosition.value, viewportManager.rawScaleFactor.value.horizontal)
         set(value) {

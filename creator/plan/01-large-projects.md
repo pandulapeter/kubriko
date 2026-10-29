@@ -12,18 +12,13 @@
 Creator has to hold up for games the size GameMaker made: hundreds of Actor types, Scenes with thousands of Actors, many people on one
 project. Nothing a user builds is capped in number. Reuse is `05-reuse-and-traits.md`, and finding things is `04-resource-organization.md`.
 
-**Order:** the remaining caps first (they change file formats), then the Scene list panel, then the AI tools.
+**Order:** the AI tools; screen texts wait for UI elements, and the rest of Scene Actors for the plans named there.
 
 ## Scene Actors
 
 - A user-facing name per Actor once Identifiable is a Trait (`05-reuse-and-traits.md`; the ID stays internal and stable when the name
   changes).
 - Showing a git merge conflict in a Scene by Actor (`08-git.md`).
-
-## Scene list panel
-
-The Actors of the open Scene, by type and name, filterable and virtualized, for Scenes too dense to click into. Selecting
-one selects it in the Scene editor and centers the camera on it.
 
 ## AI tools at scale
 

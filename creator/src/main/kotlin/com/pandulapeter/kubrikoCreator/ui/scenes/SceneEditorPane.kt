@@ -23,11 +23,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,11 +50,14 @@ import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
+import kubriko.creator.generated.resources.action_hide_scene_actors
 import kubriko.creator.generated.resources.action_play_from_scene
 import kubriko.creator.generated.resources.action_reload_scene
+import kubriko.creator.generated.resources.action_show_scene_actors
 import kubriko.creator.generated.resources.action_zoom_in
 import kubriko.creator.generated.resources.action_zoom_out
 import kubriko.creator.generated.resources.action_zoom_to_fit
+import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_fit_screen
 import kubriko.creator.generated.resources.ic_play
@@ -89,6 +94,7 @@ internal fun SceneEditorPane(
 ) {
     val view = rememberSceneView(state)
     var selectedId by remember(state.scene.file) { mutableStateOf<String?>(null) }
+    var isActorListShown by remember { mutableStateOf(false) }
     SceneHeader(
         sceneName = state.scene.name,
         isOutdated = state.isOutdated,
@@ -96,6 +102,8 @@ internal fun SceneEditorPane(
         onZoomIn = { view.viewportManager.multiplyScaleFactor(ZOOM_STEP) },
         onZoomOut = { view.viewportManager.multiplyScaleFactor(1f / ZOOM_STEP) },
         onZoomToFit = view::zoomToFit,
+        isActorListShown = isActorListShown,
+        onActorListToggled = { isActorListShown = !isActorListShown },
         onPlay = onPlay,
         onReload = onReload,
         onClose = onClose,
@@ -108,6 +116,20 @@ internal fun SceneEditorPane(
     Row(
         modifier = Modifier.fillMaxSize(),
     ) {
+        if (isActorListShown) {
+            // Read so that the list follows the Actors created from the Scene's content.
+            view.loadRevision.collectAsState().value
+            SceneActorList(
+                modifier = Modifier.width(220.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                entries = view.entries,
+                selectedId = selectedId,
+                onSelect = { actorId ->
+                    selectedId = actorId
+                    view.centerOn(actorId)
+                },
+            )
+            VerticalDivider()
+        }
         SceneCanvas(
             modifier = Modifier.weight(1f).fillMaxHeight(),
         view = view,
@@ -147,6 +169,8 @@ private fun SceneHeader(
     onZoomIn: () -> Unit,
     onZoomOut: () -> Unit,
     onZoomToFit: () -> Unit,
+    isActorListShown: Boolean,
+    onActorListToggled: () -> Unit,
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onClose: () -> Unit,
@@ -183,6 +207,12 @@ private fun SceneHeader(
         )
     }
     Spacer(Modifier.weight(1f))
+    IconActionButton(
+        icon = Res.drawable.ic_actor_type,
+        label = if (isActorListShown) Res.string.action_hide_scene_actors else Res.string.action_show_scene_actors,
+        onClick = onActorListToggled,
+        tint = if (isActorListShown) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+    )
     IconActionButton(icon = Res.drawable.ic_play, label = Res.string.action_play_from_scene, onClick = onPlay)
     IconActionButton(icon = Res.drawable.ic_zoom_out, label = Res.string.action_zoom_out, onClick = onZoomOut)
     IconActionButton(icon = Res.drawable.ic_zoom_in, label = Res.string.action_zoom_in, onClick = onZoomIn)

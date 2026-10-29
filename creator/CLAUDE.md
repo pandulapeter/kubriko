@@ -85,7 +85,9 @@ lives in `plan/` (start with `plan/README.md`).
   loader whose parent is its own (Kubriko, Compose, and Kotlin shared; project jars copied and the class files of project folders read first, `ProjectClassLoader`, so rebuilds can replace them), finds the
   project's `CreatorEntryPoint` through `ServiceLoader`, and `SceneView` creates the Scene's Actors from the file's states with the
   project's `SerializationManager` and Managers in a Kubriko instance of its own that never runs (one Actor per entry, kept by
-  the Actor's ID), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). A click selects the Actor on top (`SceneHitTest`:
+  the Actor's ID), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). The header's Actors button shows the Scene's
+  Actors in a list beside it (`SceneActorList`: in their order, by type and ID, filtered by what is typed, lazily composed),
+  where a click selects one and centers the camera on it (`SceneView.centerOn`). A click selects the Actor on top (`SceneHitTest`:
   lowest drawing order, then the later one; the Scene settings only where nothing else is), looking only at the Actors near
   it (`SceneBoundsGrid`, a uniform grid of their bounds, updated in place when Actors only move or change and built again on
   the next click after Actors are added, removed, or reordered), dragging it moves it live and dispatches

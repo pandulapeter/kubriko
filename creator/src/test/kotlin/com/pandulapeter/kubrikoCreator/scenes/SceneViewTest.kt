@@ -56,6 +56,16 @@ class SceneViewTest {
     }
 
     @Test
+    fun centeringOnAnActorMovesTheCameraToItsMiddleAndKeepsTheZoom() = runTest {
+        view.load(listOf(box("a", 0f, 0f), box("b", 300f, -40f)))
+        view.camera = SceneCamera(SceneOffset.Zero, 2f)
+        view.centerOn("b")
+        assertEquals(SceneCamera(SceneOffset(300f.sceneUnit, (-40f).sceneUnit), 2f), view.camera)
+        view.centerOn("ghost")
+        assertEquals(SceneOffset(300f.sceneUnit, (-40f).sceneUnit), view.camera.position)
+    }
+
+    @Test
     fun aMovedActorIsPickedWhereItIsNowWithoutBeingCreatedAgain() = runTest {
         view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f)))
         pickAt(0f, 0f)
