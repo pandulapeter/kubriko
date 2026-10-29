@@ -20,6 +20,9 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 - The user wants every item of `01-large-projects.md` to `05-reuse-and-traits.md` done, with nothing capped in number.
 - Creator is meant to be AI-centric: the in-app assistant panel (`02-ai-assistant.md`) was moved up to come right after
   `01-large-projects.md`, hosting agents over ACP as Android Studio does.
+- A review on 2026-10-29 fixed small bugs on the spot and planned the rest: `14-stability.md` (new), `01-large-projects.md` →
+  Known costs, `02-ai-assistant.md` → Holding up, `12-onboarding.md` → Mistakes and failures in the first hour, `06-blocks.md` →
+  Dangling references, and a note in `08-git.md`. Its open questions are in `14-stability.md`.
 
 ## Next
 
