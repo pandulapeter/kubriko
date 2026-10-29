@@ -60,9 +60,10 @@ What someone who knows neither Kotlin nor Gradle meets when something goes wrong
 - **Creating a project that fails loses the form.** `AppScreen.NewProject(error = …)` comes back with an empty form, since its
   state lives in `NewProjectScreen`'s `remember`, and `error_project_not_created` never says why. Direction: keep the request in
   `AppScreen.NewProject` and show the cause (network, disk, permission).
-- **Progress screens can't be cancelled.** `ProgressScreen` (creating and opening a project) has no Cancel, though
-  `AppController` can cancel both; a first project waiting minutes for Gradle's download leaves only quitting. Direction: a Cancel
-  button that calls `closeProject`, which already cleans up after itself.
+- **Creating a project can't be cancelled.** Opening one can, but `ProgressScreen` offers no Cancel while a project is created, and a
+  first project waiting minutes for Gradle's download leaves only quitting. `ProjectGenerator.create` blocks, so cancelling the job
+  alone would let it finish writing in the background. Direction: make the wrapper download cancellable, and remove the folder when
+  creation is cancelled, as it already is when creation fails.
 - **Messages in code words.** Rejections name Events by their IDs (`error_command_event_not_allowed`, `error_command_key_not_allowed`:
   "an Actor type can't have a gameStarted one", "Only keyPressed Events have a key"), though the editor calls them "When the game starts";
   a Timer named `class` is told to start with a lowercase letter; and project names with accents (`Kalandjáték`) are refused for not using
