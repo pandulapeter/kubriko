@@ -12,7 +12,7 @@
 Creator has to hold up for games the size GameMaker made: hundreds of Actor types, Scenes with thousands of Actors, many people on one
 project. Nothing a user builds is capped in number. Reuse is `05-reuse-and-traits.md`, and finding things is `04-resource-organization.md`.
 
-**Order:** the AI tools; screen texts wait for UI elements, and the rest of Scene Actors for the plans named there.
+**Order:** screen texts wait for UI elements, and the rest of Scene Actors for the plans named there.
 
 ## Scene Actors
 
@@ -22,12 +22,9 @@ project. Nothing a user builds is capped in number. Reuse is `05-reuse-and-trait
 
 ## AI tools at scale
 
-- `read_scene` returns a page (an offset and a count), or the Actors of a type, or those in a rectangle, with a total; a summary
-  mode (counts per type, the bounds) for orientation. Same for `list_actor_types` with folders (`04-resource-organization.md`).
-- Batch commands for what the AI does in bulk: placing a grid of Actors (`place_actors` with a list), and editing many at once, each
-  one undo step.
 - The project digest, compact Block notation, and the rest of keeping a large game in an agent's context cheaply are in
   `02-ai-assistant.md` → Context for large games.
+- Paging `list_manager_types` and `list_scenes` like `list_actor_types`, once a project has enough of them to need it.
 
 ## No caps
 

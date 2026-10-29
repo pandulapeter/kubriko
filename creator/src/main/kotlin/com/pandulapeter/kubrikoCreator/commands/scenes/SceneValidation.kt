@@ -17,7 +17,9 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_actor_id_invalid
+import kubriko.creator.generated.resources.error_command_actor_id_repeated
 import kubriko.creator.generated.resources.error_command_actor_id_taken
+import kubriko.creator.generated.resources.error_command_actors_empty
 import kubriko.creator.generated.resources.error_command_scene_actor_missing
 import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_missing
@@ -32,11 +34,33 @@ internal fun CommandContext.validateSceneActor(sceneName: String, actorId: Strin
     ?: if (readScene(sceneName).none { it.id == actorId }) Rejection(Res.string.error_command_scene_actor_missing, sceneName, actorId) else null
 
 /**
+ * Why [actorIds] can't all be changed together in the Scene called [sceneName]: there are none, one is given twice, or one isn't there.
+ */
+internal fun CommandContext.validateSceneActors(sceneName: String, actorIds: List<String>): Rejection? = validateScene(sceneName) ?: validateActorList(actorIds) ?: run {
+    val ids = readScene(sceneName).mapTo(HashSet()) { it.id }
+    actorIds.firstOrNull { it !in ids }?.let { Rejection(Res.string.error_command_scene_actor_missing, sceneName, it) }
+}
+
+/**
+ * Why [actorIds], the Actors a batch command names, can't be used: there are none, or one is given twice.
+ */
+internal fun validateActorList(actorIds: List<String?>): Rejection? {
+    if (actorIds.isEmpty()) return Rejection(Res.string.error_command_actors_empty)
+    val seen = HashSet<String>()
+    return actorIds.firstOrNull { it != null && !seen.add(it) }?.let { Rejection(Res.string.error_command_actor_id_repeated, it) }
+}
+
+/**
  * Why [actorId] can't be the ID of a new Actor among [actors]: it isn't an ID, or another Actor has it.
  */
-internal fun validateNewActorId(actorId: String, actors: List<SceneActorEntry>): Rejection? = when {
+internal fun validateNewActorId(actorId: String, actors: List<SceneActorEntry>): Rejection? = validateNewActorId(actorId) { id -> actors.any { it.id == id } }
+
+/**
+ * Why [actorId] can't be the ID of a new Actor in a Scene whose IDs [isTaken] knows.
+ */
+internal inline fun validateNewActorId(actorId: String, isTaken: (String) -> Boolean): Rejection? = when {
     !SceneDocument.isValidId(actorId) -> Rejection(Res.string.error_command_actor_id_invalid, actorId)
-    actors.any { it.id == actorId } -> Rejection(Res.string.error_command_actor_id_taken, actorId)
+    isTaken(actorId) -> Rejection(Res.string.error_command_actor_id_taken, actorId)
     else -> null
 }
 

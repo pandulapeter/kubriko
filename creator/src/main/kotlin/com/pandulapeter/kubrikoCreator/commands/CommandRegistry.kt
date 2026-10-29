@@ -66,12 +66,17 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActorOrder
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActors
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActors
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActors
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 
 /**
@@ -157,13 +162,18 @@ internal class CommandRegistry(
                 DeleteScene,
                 RenameScene,
                 PlaceActor,
+                PlaceActors,
                 MoveActor,
                 MoveActorOrder,
                 SetActorValues,
                 SetActorState,
+                SetActorsValues,
+                SetActorsState,
                 SetSceneSettings,
                 RemoveActor,
+                RemoveActors,
                 RestoreActor,
+                RestoreActors,
                 StartVersionControl,
                 Commit,
                 DiscardChanges,

@@ -65,7 +65,7 @@ class ActorValueCommandsTest {
             rotation = 90f,
             scaleVertical = 2f,
             color = 0xFF112233,
-            properties = listOf(SetActorValues.PropertyValue("hits", number = 3f), SetActorValues.PropertyValue("isGolden", toggle = true)),
+            properties = listOf(ActorValueChanges.PropertyValue("hits", number = 3f), ActorValueChanges.PropertyValue("isGolden", toggle = true)),
         )
         val state = context.assertRoundTrip(Invocation(SetActorValues, input)) { context.state(0) }!!
         assertEquals(5f to 20f, SceneDocument.positionOf(state))
@@ -98,17 +98,17 @@ class ActorValueCommandsTest {
         assertEquals(Rejection(Res.string.error_command_scene_actor_not_block_built, "Wall"), rejection(SetActorValues.Input("main", "i1", color = 0xFF000000)))
         assertEquals(
             Rejection(Res.string.error_command_actor_property_missing, "Brick", "lives"),
-            rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("lives", number = 1f)))),
+            rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("lives", number = 1f)))),
         )
         assertEquals(
             Rejection(Res.string.error_command_property_value_invalid, "hits"),
-            rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("hits", text = "3")))),
+            rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("hits", text = "3")))),
         )
         assertEquals(
             Rejection(Res.string.error_command_property_value_invalid, "label"),
-            rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("label", text = "a", toggle = true)))),
+            rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("label", text = "a", toggle = true)))),
         )
-        assertNull(rejection(SetActorValues.Input("main", "i0", properties = listOf(SetActorValues.PropertyValue("label", text = "gold")))))
+        assertNull(rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("label", text = "gold")))))
     }
 
     @Test

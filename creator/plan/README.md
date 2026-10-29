@@ -18,7 +18,8 @@ has a file of its own, so a session only needs the one it works on.
 
 The files are numbered in the order they are worked on.
 
-1. [Large projects](01-large-projects.md) - nothing capped (named Timers, every key), the Scene list panel, and AI tools that page.
+1. [Large projects](01-large-projects.md) - what is left once the plans it waits for land: screen texts in any layout, Actor names, and
+   what the benchmarks show is needed.
 2. [AI assistant](02-ai-assistant.md) - an in-app chat panel hosting Claude (on the user's own subscription or API key), Codex, Gemini
    CLI, or any ACP Registry agent, as Android Studio does. Creator is an AI-centric tool, so the panel's first four steps come right
    after `01`; the rest of the file (more agents, resuming, Keep and Undo, more for the MCP server) goes alongside `04` to `07`.

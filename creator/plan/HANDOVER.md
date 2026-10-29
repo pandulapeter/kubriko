@@ -23,12 +23,16 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`01-large-projects.md` → AI tools at scale (its caps, the ordering command, and the Scene list panel are done), then the first four steps of `02-ai-assistant.md` → Order together with the five "First" items
-of its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them.
+The first four steps of `02-ai-assistant.md` → Order, together with the five "First" items of its Context for large games, then the
+files in order, with the rest of `02-ai-assistant.md` alongside them. What is left in `01-large-projects.md` waits for other plans
+(Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
 
 **Large projects (built and unit-tested on 2026-10-29, not yet seen in the app)**
+- The paged `read_scene` (summary, type, rectangle), `list_actor_types` by folder, and the batch tools (`place_actors`,
+  `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) from a real AI session, say "fill the top of the
+  Scene with a grid of bricks, then make every second one golden": one undo step each, and the open Scene showing the result.
 - The Timer menu in a timerFinished Event's header and in the Timer Blocks: choosing, New Timer… typed in place (a bad name shows
   why), Rename this Timer… following through a family, and an old project's numbered Timers showing as `timer1`.
 - The key picker (`KeyChoiceButton`): its popup's search, the list scrolling through all 296 keys, choosing by pressing a key

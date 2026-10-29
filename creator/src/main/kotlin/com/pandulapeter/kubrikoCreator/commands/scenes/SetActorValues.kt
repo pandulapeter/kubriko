@@ -9,9 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
-import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -19,20 +17,10 @@ import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
-import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
-import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_actor_values
-import kubriko.creator.generated.resources.error_command_actor_property_missing
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_property_value_invalid
-import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
-import kubriko.creator.generated.resources.error_command_size_invalid
 
 internal object SetActorValues : WriteCommand<SetActorValues.Input> {
     override val name = "set_actor_values"
@@ -43,43 +31,13 @@ internal object SetActorValues : WriteCommand<SetActorValues.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId) ?: run {
-        val actor = context.readScene(input.scene).requireActor(input.actorId)
-        val definition = context.blockTypes?.get(actor.typeId) as? ActorTypeDefinition
-        val numbers = listOfNotNull(input.x, input.y, input.width, input.height, input.rotation, input.scaleHorizontal, input.scaleVertical)
-        when {
-            SceneDocument.stateObject(actor.state) == null -> Rejection(Res.string.error_command_scene_content_invalid)
-            numbers.any { !it.isFinite() } || input.properties.any { it.number?.isFinite() == false } -> Rejection(Res.string.error_command_number_invalid)
-            listOfNotNull(input.width, input.height).any { it <= 0f } -> Rejection(Res.string.error_command_size_invalid)
-            (input.color != null || input.properties.isNotEmpty()) && definition == null -> Rejection(Res.string.error_command_scene_actor_not_block_built, actor.typeId)
-            else -> input.properties.firstNotNullOfOrNull { value ->
-                val property = definition?.properties?.firstOrNull { it.name == value.name }
-                    ?: return@firstNotNullOfOrNull Rejection(Res.string.error_command_actor_property_missing, actor.typeId, value.name)
-                val kind = PropertyKind.of(property)
-                if (value.toJson()?.fits(kind) == true) null else Rejection(Res.string.error_command_property_value_invalid, value.name)
-            }
-        }
-    }
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId)
+        ?: context.validateActorValues(context.readScene(input.scene).requireActor(input.actorId), input.changes)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val actors = context.readScene(input.scene)
         val previous = actors.requireActor(input.actorId)
-        val state = checkNotNull(
-            ActorStateEdits.withChanges(
-                previous.state,
-                ActorStateEdits.Changes(
-                    x = input.x,
-                    y = input.y,
-                    width = input.width,
-                    height = input.height,
-                    rotationInDegrees = input.rotation,
-                    scaleHorizontal = input.scaleHorizontal,
-                    scaleVertical = input.scaleVertical,
-                    color = input.color,
-                    properties = input.properties.associate { it.name to checkNotNull(it.toJson()) },
-                ),
-            ),
-        )
+        val state = input.changes.applyTo(previous.state)
         context.writeScene(input.scene, actors.withActorChanged(input.actorId) { it.copy(state = state) })
         return Applied(inverse = Invocation(SetActorState, SetActorState.Input(input.scene, input.actorId, previous.state)))
     }
@@ -112,24 +70,8 @@ internal object SetActorValues : WriteCommand<SetActorValues.Input> {
         @Description("The new color of an Actor of a block-built Actor type, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
         @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long? = null,
         @Description("New values of the Properties of an Actor of a block-built Actor type.")
-        @SerialName("properties") val properties: List<PropertyValue> = emptyList(),
-    )
-
-    @Serializable
-    @Description("The value of one Property: a number, a text, or a toggle, as the Property's kind is.")
-    data class PropertyValue(
-        @Description("The name of the Property.")
-        @SerialName("name") val name: String,
-        @Description("The value of a number Property.")
-        @SerialName("number") val number: Float? = null,
-        @Description("The value of a text Property.")
-        @SerialName("text") val text: String? = null,
-        @Description("The value of a toggle Property.")
-        @SerialName("toggle") val toggle: Boolean? = null,
+        @SerialName("properties") val properties: List<ActorValueChanges.PropertyValue> = emptyList(),
     ) {
-        /**
-         * The value as it is saved, or null unless exactly one kind of value is given.
-         */
-        fun toJson() = listOfNotNull(number?.let(::JsonPrimitive), text?.let(::JsonPrimitive), toggle?.let(::JsonPrimitive)).singleOrNull()
+        val changes get() = ActorValueChanges(actorId, x, y, width, height, rotation, scaleHorizontal, scaleVertical, color, properties)
     }
 }

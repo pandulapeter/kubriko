@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
@@ -128,7 +129,7 @@ private fun NumberPair(
 private fun PropertyValueField(
     property: PropertyDefinition,
     state: String,
-    onChange: (SetActorValues.PropertyValue) -> Unit,
+    onChange: (ActorValueChanges.PropertyValue) -> Unit,
 ) {
     val saved = ActorStateEdits.propertyOf(state, property.name)
     when (property) {
@@ -136,12 +137,12 @@ private fun PropertyValueField(
             modifier = Modifier.fillMaxWidth(),
             label = property.name,
             value = saved?.floatOrNull ?: property.initialValue,
-            onValueChange = { onChange(SetActorValues.PropertyValue(property.name, number = it)) },
+            onValueChange = { onChange(ActorValueChanges.PropertyValue(property.name, number = it)) },
         )
         is PropertyDefinition.Text -> CompactTextField(
             modifier = Modifier.fillMaxWidth(),
             value = saved?.takeIf { it.isString }?.content ?: property.initialValue,
-            onValueChange = { onChange(SetActorValues.PropertyValue(property.name, text = it)) },
+            onValueChange = { onChange(ActorValueChanges.PropertyValue(property.name, text = it)) },
             label = property.name,
         )
         is PropertyDefinition.Toggle -> Row(
@@ -155,7 +156,7 @@ private fun PropertyValueField(
             )
             Switch(
                 checked = saved?.booleanOrNull ?: property.initialValue,
-                onCheckedChange = { onChange(SetActorValues.PropertyValue(property.name, toggle = it)) },
+                onCheckedChange = { onChange(ActorValueChanges.PropertyValue(property.name, toggle = it)) },
             )
         }
     }

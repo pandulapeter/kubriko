@@ -295,6 +295,13 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   a whole state (and is the AI's way to hand-written types' other values). `move_actor_order` moves an Actor in the Scene's list, the
   order Actors are added in (so, of two with the same drawing order, the later is drawn on top); the inspector's header sends
   the selected one to the start or the end.
+- **At scale:** `read_scene` returns a page (`offset`, `count`, 100 by default; `total` and `nextOffset`), narrowed to an Actor
+  type (not its children) or to a rectangle of positions, or a summary (Actors per type and the bounds of their positions); the raw
+  `content` only comes with a page holding the whole Scene. `list_actor_types` pages the same way, narrowed to a folder and its
+  folders, and lists the folders (`folders`, empty ones too). The batch commands are each one undo step: `place_actors`,
+  `remove_actors`, and `restore_actors` (inserted one after another, so its inverse from `remove_actors` lists the original indices
+  ascending), `set_actors_values` (`ActorValueChanges` per Actor, validated and applied as `set_actor_values` does), and
+  `set_actors_state`. A batch names no Actor twice and at least one.
 
 ## AI connection (MCP)
 
