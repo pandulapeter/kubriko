@@ -32,6 +32,17 @@ A clear "level" per project (any project: build, play, export; with `Editable` A
 in: Actor types), an opt-in flow that generates the entry point, its service file, and `.kubriko/project.json` as a confirmed diff, and
 explanations instead of failures for layouts Creator can't interpret.
 
-**Tesselar** (two Kubriko instances, procedural world, its own cuboid model format) is the advanced reference: it plays unchanged; Scene
-editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the editable instance; cuboid models need the asset
-editor extension point (`14-later.md`); Blocks don't apply.
+- **The game's module.** Creator plays the first module with a `run` task, so a project with several desktop applications (a game plus
+  its own tools) plays whichever comes first in Gradle's order. `.kubriko/project.json` should name the game's module, and a project
+  that isn't opted in should be asked once when there is more than one, and remembered in `.kubriko/local/`.
+- **The code's module.** Generated code, the build file sync, and the sources Creator scans need the module that holds the game's code,
+  which in a multi-module project isn't the desktop one (see Kubriko dependencies above).
+- **Every resource.** The sidebar lists only the folders Creator knows about (sprites, sounds, Scenes); a project's own resource
+  folders (`files/model`) should show too, opening in the system's editor until a project registers an editor of its own.
+
+**Tesselar** (two Kubriko instances, procedural world, its own cuboid model format, a version catalog, and code in `:gameplay` with
+`:app:desktop` beside the desktop `:editor:model` and `:editor:region` tools) is the advanced reference. It plays unchanged, though only
+because `:app:desktop` comes first. Scene editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the
+editable instance, and is worth little there: its levels are procedural regions, edited in its own region editor. Its models and regions
+need the asset editor extension point (`14-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
+apply. The realistic ceiling is Creator as its play, debugging, version control, and AI host, with its own editors inside.
