@@ -54,6 +54,20 @@ jobs:
       # Warms the Gradle cache, so the agent's first test run doesn't spend its time downloading.
       - name: Build Kubriko Creator
         run: ./gradlew :creator:compileTestKotlin --no-configuration-cache
+      # The action hides Claude Code's output, so a refused key, an empty credit balance, or an unavailable model would
+      # fail it without a reason. A one-token request shows the API's own error instead.
+      - name: Check the API key and model
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          status=$(curl -sS -o response.json -w '%{http_code}' https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" -H 'anthropic-version: 2023-06-01' -H 'content-type: application/json' \
+            -d '{"model":"${{ inputs.model }}","max_tokens":1,"messages":[{"role":"user","content":"Hi"}]}')
+          if [ "$status" != 200 ]; then
+            echo "::error::The Anthropic API answered $status: $(cat response.json)"
+            exit 1
+          fi
+          rm response.json
       - name: Review with Claude
         uses: anthropics/claude-code-action@v1
         # Leaves time for the final push below when the review runs long.
