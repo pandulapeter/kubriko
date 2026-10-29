@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -153,11 +154,15 @@ internal fun BlockTypeEditor(
             )
         }
         HorizontalDivider()
-        Row(
+        BoxWithConstraints(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
+        val columns = remember(maxWidth) { BlockTypeEditorColumns.of(maxWidth) }
+        Row(
+            modifier = Modifier.fillMaxSize(),
+        ) {
             LazyColumn(
-                modifier = Modifier.width(250.dp).fillMaxHeight(),
+                modifier = Modifier.width(columns.properties).fillMaxHeight(),
             ) {
                 if (definition is ActorTypeDefinition) {
                     item {
@@ -201,7 +206,7 @@ internal fun BlockTypeEditor(
             }
             VerticalDivider()
             EventList(
-                modifier = Modifier.width(280.dp).fillMaxHeight(),
+                modifier = Modifier.width(columns.events).fillMaxHeight(),
                 typeKind = definition.kind,
                 events = definition.events,
                 listIdentity = name,
@@ -244,7 +249,7 @@ internal fun BlockTypeEditor(
             )
             VerticalDivider()
             BlockPalette(
-                modifier = Modifier.width(220.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                modifier = Modifier.width(columns.palette).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                 eventType = event?.type,
                 typeKind = definition.kind,
                 dragState = dragState,
@@ -255,6 +260,7 @@ internal fun BlockTypeEditor(
                     }
                 },
             )
+        }
         }
     }
     DragPreview(dragState)
