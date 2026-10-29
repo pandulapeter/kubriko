@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+import com.pandulapeter.kubriko.helpers.TickSource
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
@@ -51,6 +52,9 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         PointerInputManager.newInstance(),
         serializationManager,
         *entryPoint.createCustomManagers().toTypedArray(),
+        // Actors are only drawn once a tick has culled them, and a Scene swapped in while Creator is in the background
+        // (its project edited elsewhere) would stay empty until Creator got the focus back.
+        tickSource = TickSource.viewportFrames(shouldPauseOnFocusLoss = false),
         instanceNameForLogging = "SceneView",
     )
     val viewportManager = kubriko.get<ViewportManager>()
