@@ -196,7 +196,7 @@ private fun PropertyNameField(
     onRename: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var text by remember { mutableStateOf(name) }
+    var text by remember(name) { mutableStateOf(name) }
     val isValid = PropertyNaming.validate(text, otherNames) == null
     if (isValid && text != name) {
         text = name
