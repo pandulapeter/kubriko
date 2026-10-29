@@ -15,6 +15,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -313,6 +314,21 @@ class BlockTypeStoreTest {
         assertEquals(lastModified, file.lastModified())
         store.save(ball.copy(shape = ActorShape.RECTANGLE))
         store.regenerate(store.load())
+        assertContains(file.readText(), "drawRect")
+    }
+
+    @Test
+    fun aGeneratedFileThatCouldntBeWrittenIsWrittenByTheNextRegeneration() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.saveAndRegenerate(ball)
+        val file = File(generated, "Ball.kt")
+        val changed = ball.copy(shape = ActorShape.RECTANGLE)
+        file.setWritable(false)
+        if (file.canWrite()) return
+        assertFails { store.regenerate(listOf(changed)) }
+        file.setWritable(true)
+        store.regenerate(listOf(changed))
         assertContains(file.readText(), "drawRect")
     }
 

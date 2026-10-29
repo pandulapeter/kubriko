@@ -95,7 +95,7 @@ internal class BlockTypeStore private constructor(
         val sceneMusic = sceneMusic()
         val typeNames = definitions.mapTo(HashSet()) { it.name }
         if (overwriting.isEmpty() && lastGeneration == definitions to sceneMusic && generatedFilesAreAsLeft()) return changedByHand.filterTo(HashSet()) { it in typeNames }
-        lastGeneration = definitions to sceneMusic
+        lastGeneration = null
         val actorTypes = definitions.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
         val actorTypeNames = actorTypes.map { it.name }
@@ -128,6 +128,7 @@ internal class BlockTypeStore private constructor(
             AudioCodeGenerator.AUDIO_NAME,
             if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music) else null,
         )
+        lastGeneration = definitions to sceneMusic
         return changedByHand.filterTo(HashSet()) { it in typeNames }
     }
 
