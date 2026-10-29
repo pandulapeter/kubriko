@@ -9,8 +9,7 @@
 -->
 # Library releases
 
-Kubriko 0.8.0 shipped Creator's library side (`tool-creator-api`, `tool-creator-session` with protocol 3, `SceneEditor.Content`), so
-projects resolve Kubriko from Maven Central. What Creator needs from the libraries reaches projects only through later releases.
+What Creator needs from the libraries reaches projects only through Kubriko releases, since projects resolve Kubriko from Maven Central.
 
 ## Rules
 
@@ -28,10 +27,10 @@ projects resolve Kubriko from Maven Central. What Creator needs from the librari
 Each one changes the libraries, so each is offered only to sessions whose protocol version has it:
 
 - the template upgrade that makes `GameEntryPoint` report the game's Kubriko instances (`getRunningInstances`, which `start_game` waits on);
-- the debug agent, `tools/debug-overlay`, and deprecating the debug menu (`10-debugger.md`);
+- the debug agent, `tools/debug-overlay`, and deprecating the debug menu (`08-debugger.md`);
 - Managers' Properties per Scene (Creator's Scene editor is its own now, so its other plans need no library change)
-  (`06-blocks.md` → Scene editor);
-- the asset editor extension point (`14-later.md`).
+  (`04-blocks.md` → Scene editor);
+- the asset editor extension point (`12-later.md`).
 
 Blocks, Manager types, templates, git, the AI assistant, and export are Creator-only (generated code uses existing plugins) and don't wait
 for any of this.

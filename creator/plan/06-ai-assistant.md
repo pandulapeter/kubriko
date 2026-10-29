@@ -18,7 +18,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 - **Kubriko's API as a read tool** (the root `CLAUDE.md`'s overview, or the KDoc of a named class): real sessions read Kubriko's sources
   jars with their own shell to write Kotlin Blocks.
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
-  (`10-debugger.md`) exists.
+  (`08-debugger.md`) exists.
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), numbering steps per project rather than
   per run of Creator, and naming the client (from MCP's `clientInfo`) when two are connected.
 

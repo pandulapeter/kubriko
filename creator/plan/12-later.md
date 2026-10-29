@@ -12,7 +12,7 @@
 - **Code editor (minor, like GameMaker's code action):** Kotlin syntax highlighting, search, tabs, compiler errors inline at their line, and
   "Open in IntelliJ". A language server (`kotlin-lsp`) only if there's demand.
 - **Asset editor extension point:** a project or plugin registers an editor for its own resource type, running with the project's classes
-  (Tesselar's model and region editors would be the first; both are already desktop modules in Tesselar, see `12-project-upkeep.md`).
+  (Tesselar's model and region editors would be the first; both are already desktop modules in Tesselar, see `10-project-upkeep.md`).
 - **Project settings panel:** targets, application ID and name, icons, Managers and Plugins (as a diff), aspect ratio, target frame rate.
 - **Library version range:** which Kubriko versions Creator supports for projects that aren't opted in (opted-in ones use Creator's own,
   `00-library-release.md`).

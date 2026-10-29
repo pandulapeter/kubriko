@@ -10,16 +10,16 @@
 # Large projects
 
 Creator has to hold up for games the size GameMaker made: hundreds of Actor types, Scenes with thousands of Actors, many people on one
-project. Nothing a user builds is capped in number. The data flow underneath (a project in memory, coalesced writes, Scene edits
-applied in place, lazy lists, and the benchmark) is `01-foundation.md`; this file builds on it. Compile times are
-`02-fast-iteration.md`, reuse is `05-reuse-and-traits.md`, and finding things is `04-resource-organization.md`.
-
-Scene Actors have stable IDs and Scene files hold one Actor per line (`../CLAUDE.md` → Commands → Scenes). Left from that: an
-ordering command (`move_actor_order`, to the front or back of the list, which decides the order Actors are added in), a user-facing
-name per Actor once Identifiable is a Trait (`05-reuse-and-traits.md`; the ID stays internal and stable when the name changes), and
-showing a git merge conflict in a Scene by Actor (`09-git.md`).
+project. Nothing a user builds is capped in number. Reuse is `03-reuse-and-traits.md`, and finding things is `02-resource-organization.md`.
 
 **Order:** the remaining caps first (they change file formats), then the Scene list panel, then the AI tools.
+
+## Scene Actors
+
+- An ordering command (`move_actor_order`, to the front or back of the list, which decides the order Actors are added in).
+- A user-facing name per Actor once Identifiable is a Trait (`03-reuse-and-traits.md`; the ID stays internal and stable when the name
+  changes).
+- Showing a git merge conflict in a Scene by Actor (`07-git.md`).
 
 ## Scene list panel
 
@@ -29,7 +29,7 @@ one selects it in the Scene editor and centers the camera on it.
 ## AI tools at scale
 
 - `read_scene` returns a page (an offset and a count), or the Actors of a type, or those in a rectangle, with a total; a summary
-  mode (counts per type, the bounds) for orientation. Same for `list_actor_types` with folders (`04-resource-organization.md`).
+  mode (counts per type, the bounds) for orientation. Same for `list_actor_types` with folders (`02-resource-organization.md`).
 - Batch commands for what the AI does in bulk: placing a grid of Actors (`place_actors` with a list), and editing many at once, each
   one undo step.
 
@@ -41,18 +41,18 @@ Every user-made thing is unlimited, and the editor stays usable with many of the
   (a Timer is a pair of fields only once a Block or Event uses it), with old numbered ones kept by name ("Timer 1").
 - **Keys:** key Events and held-key conditions offer 10 keys (`KeyChoice`). Every key Compose knows, chosen from a searchable list
   or by pressing it, with the common ones first.
-- **Events, Blocks, Properties, texts, Scenes, types:** no limits exist; their lists become lazy in `01-foundation.md`, and the
-  sidebar search (`04-resource-organization.md`) covers all of them.
-- **Screen texts:** nine places (`ScreenPosition`); with UI elements (`06-blocks.md` → Game UI) any layout.
+- **Screen texts:** nine places (`ScreenPosition`); with UI elements (`04-blocks.md` → Game UI) any layout.
 
 ## Measured, not assumed
 
-Each of these waits for the benchmark (`01-foundation.md` → Benchmark) to show it's needed:
+Each of these waits for the benchmarks (`benchmark/CreatorBenchmarkTest`, and `CreatorBuildBenchmarkTest` for builds) to show
+it's needed:
 
 - Regenerating only the types a change affects (a dependency index: type → types that refer to it), if regenerating every
   type's text stays expensive off the main thread.
 - Splitting shared generated files (`GeneratedActorTypes`, `KubrikoWiring`) per type or per family, if the build benchmark
-  (`02-fast-iteration.md` → Measuring the build) shows a warm compile after one type change growing with the number of types.
+  shows a warm compile after one type change growing with the number of types.
 - A per-type instance list in generated code, if moveTowardsNearest over `allActors` shows up in frame times.
 - Fingerprinting per folder in `ProjectWatcher` (a folder's modification time and entry count), if a watcher pass over
   thousands of files costs too much.
+- A ring buffer for the console, whose list is copied on every line (up to 2,000 entries), if a busy game shows it.

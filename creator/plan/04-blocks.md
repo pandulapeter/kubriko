@@ -9,7 +9,7 @@
 -->
 # Blocks, Actor types, and Manager types
 
-Blocks are the heart of the product. Each addition below lands with its command and AI tool (`08-ai-assistant.md`), generator tests, and a
+Blocks are the heart of the product. Each addition below lands with its command and AI tool (`06-ai-assistant.md`), generator tests, and a
 case in the integration test's every-Block types (an Actor type and two Manager types).
 
 ## More for Manager types
@@ -40,13 +40,14 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **Scene settings in Creator:** a panel for them beside the Scene editor, and fitting the view to the bounds (through
   `ViewportManager.setAspectRatioMode`).
 - **Camera:** follow an Actor, shake, zoom.
+- **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when
+  the size changes.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
-  editor (`07-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
-  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`05-reuse-and-traits.md`).
+  editor (`05-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
+  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`03-reuse-and-traits.md`).
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
   Scene bounds (as opposed to touching the edge).
-- **More drag and drop:** reordering Events the same way, dragging a Block into another Event, and scrolling the Block list while
-  dragging near its edge.
+- **More drag and drop:** reordering Events the same way, and dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
 ## Convert to code
@@ -65,4 +66,6 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 Selecting, moving, removing, placing from the sidebar, and the inspector exist (`../CLAUDE.md` → Processes → Scene editing). Next: editors
 for hand-written types' other state values (through `set_actor_state`), resize and rotate handles, an outline that follows rotation,
 snapping to a grid, keyboard nudging, duplicating, placing hand-written Actor types (their default state through their metadata), sprite
-thumbnails in the sidebar while dragging, multi-select, and layer filtering and locking. None of it needs a library change.
+thumbnails in the sidebar while dragging, multi-select, and layer filtering and locking. None of it needs a library change. A changed
+Actor is created again, so it is drawn after the others of its drawing order until the Scene is opened again; if that shows, Actor
+types could take a new state in place (an `Editable` reloading itself).

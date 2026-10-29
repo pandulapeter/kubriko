@@ -12,13 +12,13 @@
 What GameMaker had for games past a few objects: parent objects, scripts, and settings per object (persistent, visible, depth), plus
 Kubriko's own Traits. Without them, 20 enemy types are 20 copies of the same Blocks, and a growing game leaves Creator for Kotlin.
 Every addition lands with its command, AI tool, generator tests, and a case in the integration test's every-Block types, as in
-`06-blocks.md`.
+`04-blocks.md`.
 
-**Order:** functions, then Traits, then the rest (parent types exist). Each is generated into ordinary Kotlin, as now: no runtime interpreter.
+**Order:** functions, then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter.
 
 ## Parent Actor types
 
-Exist (`../CLAUDE.md` → Commands → Parent Actor types), as real Kotlin inheritance. Left:
+What they still lack (`../CLAUDE.md` → Commands → Parent Actor types):
 
 - **"Only a parent":** a toggle for a type that is never placed (left out of the sidebar drag and the Scene editor's placing) and
   never created by addActor; addActor of a parent otherwise creates the parent itself.
@@ -50,7 +50,7 @@ interfaces and overrides the examples write by hand. The plugins they need come 
 |---|---|
 | `Unique` | "Only one at a time": adding another removes the first. The Scene editor warns when a Scene has two. |
 | `Visible` | Drawing order and layer in the appearance; a "visible" toggle each Actor keeps (and a Block to show or hide it); clip to bounds. |
-| `Dynamic.isAlwaysActive` | "Keep moving off-screen": today a generated Actor that leaves the viewport stops updating (Kubriko puts far-away Actors to sleep), which surprises users; decide the default per template. |
+| `Dynamic.isAlwaysActive` | "Sleep while far off screen": generated Actors are always active, so a per-type choice for big levels. |
 | `Identifiable` | A name per placed Actor, set in the Scene editor's inspector, that Blocks can refer to ("the Actor named Player"). |
 | `Overlay` | "Draw on the screen": the Actor is drawn in screen space, for HUD pieces that are Actors. |
 | `Group` | Compound Actor types: an Actor type made of other Actors placed relative to it (a prefab), added and removed together. |

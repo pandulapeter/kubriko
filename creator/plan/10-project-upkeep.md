@@ -12,14 +12,18 @@
 ## Template drift
 
 Moving more out of hand-owned files into generated ones (the Managers from project settings, a Scene registry), so that fewer upgrades
-are needed. The plugins a project depends on, and the plugin Managers it creates, already follow its code (`../CLAUDE.md`).
+are needed.
 
 ## Kubriko versions
 
 Opted-in projects follow Creator's own Kubriko version. Left: a link to the release notes of the versions a raise skipped, suggesting a
 Creator update for a project on a newer version than Creator's, and refusing to raise a project to a version that isn't published (a
-packaged Creator built from `main` after a version bump would otherwise break the project's build; `:creator:run` always uses local
-libraries now).
+packaged Creator built from `main` after a version bump would otherwise break the project's build).
+
+## Incremental builds
+
+Creator's builds turn on Kotlin's internal incremental compilation of common code (`IncrementalCompilationPolicy`, around KT-62686).
+Once projects are on Kotlin 2.5, use its separate compilation of common code instead, and remove the policy.
 
 ## Kubriko dependencies
 
@@ -44,5 +48,5 @@ explanations instead of failures for layouts Creator can't interpret.
 `:app:desktop` beside the desktop `:editor:model` and `:editor:region` tools) is the advanced reference. It plays unchanged, though only
 because `:app:desktop` comes first. Scene editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the
 editable instance, and is worth little there: its levels are procedural regions, edited in its own region editor. Its models and regions
-need the asset editor extension point (`14-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
+need the asset editor extension point (`12-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
 apply. The realistic ceiling is Creator as its play, debugging, version control, and AI host, with its own editors inside.
