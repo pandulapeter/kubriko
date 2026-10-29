@@ -108,7 +108,7 @@ What it shows:
 5. **Draw what doesn't need the project's classes:** block-built Actor types are known without compiling (shape, color, size, sprite),
    so the Scene editor can show a changed type's Actors from its definition right away (a preview Actor drawn by Creator) while the
    compile runs, then swap in the real classes. Hand-written types keep their last compiled look until then. **Done**
-   (2026-10-29, not yet seen in the app): every build knows the looks (`ActorTypeLook`: shape, color, size, sprite file) of
+   (2026-10-29, seen working in the app with a build kept failing on purpose): every build knows the looks (`ActorTypeLook`: shape, color, size, sprite file) of
    the types it compiled, taken once the changes are written; the open Scene's `previews` are the types whose look changed
    since the shown classes were built, or that are new, updated as soon as a type changes in memory; and `SceneView` draws
    their Actors as `PreviewActor`s (Creator's own, from the Actor's saved state and the look, selected and moved like the
