@@ -41,10 +41,20 @@ internal class SystemSecretStore(
         process.outputStream.bufferedWriter().use { writer -> input?.let(writer::write) }
         val output = StringBuilder()
         // Read on a thread of its own, since a tool waiting for an unlock prompt nobody answers never closes its output.
-        val reader = Thread { output.append(process.inputStream.bufferedReader().readText()) }.apply { start() }
+        val reader = Thread {
+            try {
+                val text = process.inputStream.bufferedReader().readText()
+                synchronized(output) { output.append(text) }
+            } catch (_: IOException) {
+                // What was read so far is all there is.
+            }
+        }.apply {
+            isDaemon = true
+            start()
+        }
         if (process.waitFor(timeoutInMilliseconds, TimeUnit.MILLISECONDS)) {
-            reader.join()
-            Outcome(process.exitValue(), output.toString())
+            reader.join(timeoutInMilliseconds)
+            Outcome(process.exitValue(), synchronized(output) { output.toString() })
         } else {
             process.destroyForcibly()
             null
