@@ -61,6 +61,10 @@ internal fun rememberFolderTreeActions(controller: WorkspaceController) = rememb
                 controller.blockTypes?.select(name)
             }
         },
+        onSelectionCleared = {
+            controller.sceneEditing.close()
+            controller.blockTypes?.select(null)
+        },
         onCreateItem = { group, name ->
             when (group) {
                 FolderGroup.ACTOR_TYPES -> controller.createActorType(name)

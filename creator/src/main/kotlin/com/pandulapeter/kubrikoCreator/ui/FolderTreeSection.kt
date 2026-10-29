@@ -90,6 +90,7 @@ internal data class FolderTreeGroupState(
  */
 internal class FolderTreeActions(
     val onSelected: (FolderGroup, name: String) -> Unit,
+    val onSelectionCleared: () -> Unit,
     val onCreateItem: (FolderGroup, name: String) -> StringResource?,
     val onCreateFolder: (FolderGroup, path: String) -> StringResource?,
     val onRenameFolder: (FolderGroup, path: String, newName: String) -> StringResource?,
@@ -200,7 +201,13 @@ internal fun LazyListScope.folderTreeSection(
                 text = FolderPaths.nameOf(row.name),
                 depth = row.depth,
                 isSelected = row.name == state.selectedName,
-                onClick = { if (!dragState.isClickAfterDrag) actions.onSelected(group, row.name) },
+                onClick = {
+                    when {
+                        dragState.isClickAfterDrag -> Unit
+                        row.name == state.selectedName -> actions.onSelectionCleared()
+                        else -> actions.onSelected(group, row.name)
+                    }
+                },
                 flashKey = flashKey?.takeIf { row.name == flashedName },
             )
         }

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
@@ -69,7 +71,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The project's contents: its Actor types, Manager types, and Scenes as trees of folders, then its other files grouped
- * by what they are. Clicking a type edits it, and clicking a Scene opens it.
+ * by what they are. Clicking a type edits it, and clicking a Scene opens it; clicking the selected one again, or empty
+ * space, selects nothing.
  *
  * @param folderGroups The groups with folders it shows (the type groups only for projects that opted in to them).
  * @param dragState Where types and Scenes are dragged to: folders, and the open Scene.
@@ -88,7 +91,7 @@ internal fun ProjectSidebar(
     var collapsedFolders by remember { mutableStateOf(emptyMap<FolderGroup, Set<String>>()) }
     var collapsedGroups by remember { mutableStateOf(setOf(ResourceGroup.KOTLIN)) }
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } },
     ) {
         FolderGroup.entries.forEach { group ->
             val state = folderGroups[group] ?: return@forEach

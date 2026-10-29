@@ -88,6 +88,8 @@ before it ends. What exists is in `../CLAUDE.md`, what is planned in the other f
   drag downwards was seen working, and so were the animated moves, the flash of a clicked or dropped Block, and dragging an
   Event to the top with the selected one staying selected. Not seen: a Block or Event flashing after undoing its removal, and
   typing into a just-added Block (an edit keeps its key, so the field should keep the focus).
+- Deselecting in the sidebar: clicking the selected type or Scene again, and clicking empty space (also a Kotlin file
+  row, which isn't clickable, counts as empty space).
 - The Scene editor after the 2026-10-29 changes: clicking Actors (picked through `SceneBoundsGrid`), selecting right after
   placing, removing, and undoing (a full rebuild of the grid), and a click after a drag (an in-place grid update).
 

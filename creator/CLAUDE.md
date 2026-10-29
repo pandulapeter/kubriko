@@ -212,7 +212,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Scene follows, and the console names hand-written Kotlin that still names the old Scene (like the template's `Game.kt`). The
   sidebar shows the three groups as trees (`folderTreeSection`, `folderTreeRows`): folders first, each with a menu (new folder,
   rename, delete when empty), and types and Scenes dragged into a folder or onto the group's header (`SidebarDragState`, which
-  also carries Actor types into the open Scene). Scene folder names follow Scene name rules (no spaces). The workspace keeps the
+  also carries Actor types into the open Scene). Clicking the selected type or Scene again, or empty space in the
+  sidebar, selects nothing (`onSelectionCleared`: the open Scene closes and the workspace hint shows). Scene folder names follow Scene name rules (no spaces). The workspace keeps the
   focus when nothing in it is focused (`historyShortcutTarget`), so Cmd/Ctrl+Z always reaches the undo history.
 - **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`), written with one Actor per line so they diff and merge,
   and kept parsed in memory while the file's length and modification time are the ones it was read or written with:
