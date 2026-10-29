@@ -14,10 +14,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_game_changes_not_applied
 import kubriko.creator.generated.resources.status_game_reload_failed
 import kubriko.creator.generated.resources.status_game_reloaded
 import kubriko.creator.generated.resources.status_game_restarting
 import java.io.File
+import java.io.IOException
 
 /**
  * Brings a game started with Compose Hot Reload up to date with every change made while it plays: the project is built,
@@ -55,7 +57,13 @@ internal class GameReloader(
 
     init {
         scope.launch {
-            for (change in changes) applyChanges()
+            for (change in changes) {
+                try {
+                    applyChanges()
+                } catch (exception: IOException) {
+                    console.append(ConsoleEntry.Status(Res.string.status_game_changes_not_applied, isError = true, arguments = listOf(exception.message ?: exception.toString())))
+                }
+            }
         }
     }
 

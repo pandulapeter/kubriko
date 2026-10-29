@@ -17,10 +17,12 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_game_changes_not_applied
 import kubriko.creator.generated.resources.status_game_reload_failed
 import kubriko.creator.generated.resources.status_game_reloaded
 import kubriko.creator.generated.resources.status_game_restarting
 import java.io.File
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -37,6 +39,7 @@ class GameReloaderTest {
     private val reloads = mutableListOf<String>()
     private var reloadResult: suspend () -> Boolean = { true }
     private var builds = 0
+    private var shapesFailure: IOException? = null
     private var restarts = 0
 
     private fun TestScope.createReloader() = GameReloader(
@@ -45,7 +48,11 @@ class GameReloaderTest {
             builds++
             buildResult()
         },
-        readShapes = { assertEquals(folders, it); builtShapes },
+        readShapes = {
+            assertEquals(folders, it)
+            shapesFailure?.let { failure -> throw failure }
+            builtShapes
+        },
         isGameRunning = { isGameRunning },
         reload = {
             reloads += it
@@ -66,6 +73,18 @@ class GameReloaderTest {
         assertEquals(listOf("hotReloadDesktopMain"), reloads)
         assertEquals(0, restarts)
         assertEquals(ConsoleEntry.Status(Res.string.status_game_reloaded, arguments = listOf("0.0")), statuses.last())
+    }
+
+    @Test
+    fun classesThatCantBeReadAreReportedAndTheNextChangeIsStillApplied() = runTest {
+        val reloader = createReloader()
+        reloader.onGameStarting("hotReloadDesktopMain", mapOf("game/Ball" to ball))
+        shapesFailure = IOException("Ball.class")
+        reloader.onCodeChanged()
+        assertEquals(Res.string.status_game_changes_not_applied, statuses.last().text)
+        shapesFailure = null
+        reloader.onCodeChanged()
+        assertEquals(listOf("hotReloadDesktopMain"), reloads)
     }
 
     @Test
