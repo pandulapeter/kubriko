@@ -147,12 +147,12 @@ internal class AcpAgent(
         if (_state.value is AgentState.Failed) crashesInARow = 0
         val connection = connect()
         this.connection = connection
-        _state.value = AgentState.Running(connection.info)
         scope.launch {
             val exitCode = withContext(ioDispatcher) { connection.channel.awaitExit() }
             onExit(connection, exitCode)
         }
         reload(connection)
+        _state.value = AgentState.Running(connection.info)
         return connection
     }
 
