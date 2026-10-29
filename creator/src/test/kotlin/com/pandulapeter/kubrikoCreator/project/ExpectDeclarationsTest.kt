@@ -63,6 +63,14 @@ class ExpectDeclarationsTest {
     }
 
     @Test
+    fun theSourcesOfEveryModuleCountButNotWhatTheBuildsWrite() {
+        root.resolve("composeApp/build/generated/Platform.kt").apply { parentFile.mkdirs() }.writeText("expect fun name(): String\n")
+        assertFalse(declarations.any())
+        root.resolve("composeApp/src/commonMain/kotlin/Platform.kt").apply { parentFile.mkdirs() }.writeText("expect fun name(): String\n")
+        assertTrue(declarations.any())
+    }
+
+    @Test
     fun aProjectWithoutSourcesDeclaresNone() {
         assertFalse(declarations.any())
     }

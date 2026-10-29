@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.project
 import java.io.File
 
 /**
- * Whether a project's sources declare an `expect` anywhere, reading again only the files that changed since the last
+ * Whether a project's sources (in the `src` folder of any of its modules) declare an `expect` anywhere, reading again only the files that changed since the last
  * check. Text that only looks like a declaration (in a raw string, say) counts too, which errs on the safe side.
  */
 internal class ExpectDeclarations(
@@ -22,7 +22,10 @@ internal class ExpectDeclarations(
 
     @Synchronized
     fun any(): Boolean {
-        val sources = File(rootDirectory, SOURCE_DIRECTORY).walkTopDown().filter { it.isFile && it.extension == "kt" }.toSet()
+        val sources = rootDirectory.walkTopDown()
+            .onEnter { it == rootDirectory || it.name !in ignoredDirectoryNames }
+            .filter { it.isFile && it.extension == "kt" && SOURCE_DIRECTORY in it.relativeTo(rootDirectory).invariantSeparatorsPath.split('/') }
+            .toSet()
         declaresExpectBySource.keys.retainAll(sources)
         return sources.any { file ->
             val stamp = FileStamp.of(file)
@@ -33,6 +36,7 @@ internal class ExpectDeclarations(
 
     companion object {
         private const val SOURCE_DIRECTORY = "src"
+        private val ignoredDirectoryNames = setOf("build", ".gradle", ".git", ".idea", ".kotlin", ".kubriko", "kotlin-js-store", "node_modules")
         private val declaration = Regex("""(?m)^[\t ]*(?:@\S+[\t ]+)*(?:[a-z]+[\t ]+)*expect[\t ]+(?:[a-z]+[\t ]+)*(?:fun|class|object|interface|val|var|typealias)\b""")
 
         fun declaresExpect(text: String) = declaration.containsMatchIn(text)
