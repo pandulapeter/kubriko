@@ -57,10 +57,6 @@ What someone who knows neither Kotlin nor Gradle meets when something goes wrong
   `ProjectInspectionException` into `error_not_a_gradle_project`: an invalid `.kubriko/project.json`, a daemon that can't start, or
   a sandboxed shell (the case in `HANDOVER.md`) all tell the user their folder isn't a project. Direction: separate messages for
   an unreadable `.kubriko/project.json` (naming the file) and for Gradle failing, with the cause's own message under them.
-- **A failed build's cause is thrown away.** `GradleProjectConnection.run` completes with `false` in `onFailure` and drops the
-  `GradleConnectionException`, so a Gradle download failing offline, or a JDK Gradle can't use, shows "The build failed." and
-  nothing else. Direction: hand the root cause's message to `runCreatorTask` as an event, shown when the build reported no
-  problems, in plain words where the cause is a known one (offline, unsupported JDK).
 - **Creating a project that fails loses the form.** `AppScreen.NewProject(error = …)` comes back with an empty form, since its
   state lives in `NewProjectScreen`'s `remember`, and `error_project_not_created` never says why. Direction: keep the request in
   `AppScreen.NewProject` and show the cause (network, disk, permission).
