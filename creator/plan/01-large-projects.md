@@ -32,6 +32,8 @@ one selects it in the Scene editor and centers the camera on it.
   mode (counts per type, the bounds) for orientation. Same for `list_actor_types` with folders (`03-resource-organization.md`).
 - Batch commands for what the AI does in bulk: placing a grid of Actors (`place_actors` with a list), and editing many at once, each
   one undo step.
+- The project digest, compact Block notation, and the rest of keeping a large game in an agent's context cheaply are in
+  `02-ai-assistant.md` → Context for large games.
 
 ## No caps
 
