@@ -16,6 +16,26 @@ in waiting at all: steps 4 and 5 remove the wait from the editor entirely. Measu
 `01-foundation.md` and the console timings it adds, so every change here is a measured one. This comes right after the foundation,
 before more features.
 
+## Measuring the build
+
+The benchmark of `01-foundation.md` times Creator's own work without Gradle, so nothing yet shows how a build grows with the
+project. Compiling stays on the edit loop for hand-written types even after step 5, so before step 1 the benchmark gets a run
+that builds its project for real (behind `KUBRIKO_CREATOR_BENCHMARK=true`, through the same Tooling API connection and
+`kubrikoCreatorClasspath` task as the Scene editor), timing:
+
+- A cold build, and a warm one with nothing changed (Gradle's fixed cost per build).
+- One Block added to a leaf Actor type, and a Property added to one (a change to its generated class's API).
+- A change to the base type of a family of ten, which every type in the family compiles against.
+- One Actor moved in a Scene, which regenerates for the Scenes' music and so must not cause a compile at all.
+- Loading the new classes and creating a 1,000-Actor Scene from them, apart from the build.
+
+With these, the build should also show which generated files a change touches. A change to one type should leave the API of
+shared generated files (`GeneratedActorTypes`, `KubrikoWiring`, `GeneratedScenes`) unchanged, so Kotlin's incremental compilation
+recompiles only that type and what uses it. If a shared file's API changes every time, its dependents recompile on every edit, and
+the generator should be fixed before steps 1 to 3 are measured. The baseline goes in a table here, like the one in
+`01-foundation.md`; steps 1 to 4 are measured against it and add a row each, and a target is set from the first numbers (a warm
+type change at 200 types within a few seconds is the expectation step 3 already states).
+
 ## Steps, cheapest first
 
 1. **Keep Gradle warm:** one Tooling API connection and daemon per workspace for every task (check that nothing opens a second one),

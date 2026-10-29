@@ -51,6 +51,8 @@ Each of these waits for the benchmark (`01-foundation.md` → Benchmark) to show
 
 - Regenerating only the types a change affects (a dependency index: type → types that refer to it), if regenerating every
   type's text stays expensive off the main thread.
+- Splitting shared generated files (`GeneratedActorTypes`, `KubrikoWiring`) per type or per family, if the build benchmark
+  (`02-fast-iteration.md` → Measuring the build) shows a warm compile after one type change growing with the number of types.
 - A per-type instance list in generated code, if moveTowardsNearest over `allActors` shows up in frame times.
 - Fingerprinting per folder in `ProjectWatcher` (a folder's modification time and entry count), if a watcher pass over
   thousands of files costs too much.
