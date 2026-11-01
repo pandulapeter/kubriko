@@ -147,4 +147,12 @@ class SceneViewTest {
         const val TYPE_ID = "Box"
         const val SIZE = 20f
     }
+
+    @Test
+    fun actorsThatCouldntBeCreatedAreFoundByTheirIds() {
+        val entries = listOf(SceneActorEntry("Ball", "{}", "a"), SceneActorEntry("Gone", "{}", "b"), SceneActorEntry("Ball", "{}", "c"))
+        assertEquals(setOf("b"), uncreatedIdsOf(entries, listOf("actor", null, "actor")))
+        assertEquals(setOf("c"), uncreatedIdsOf(entries, listOf("actor", "actor")))
+        assertEquals(emptySet(), uncreatedIdsOf(emptyList(), emptyList()))
+    }
 }

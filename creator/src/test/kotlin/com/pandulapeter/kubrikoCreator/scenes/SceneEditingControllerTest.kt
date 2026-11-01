@@ -38,6 +38,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,6 +58,7 @@ class SceneEditingControllerTest {
     private val sceneReads = mutableListOf<ProjectResource>()
     private var buildGate: CompletableDeferred<Unit>? = null
     private var cleanBuildRequests = 0
+    private var sceneProblem: SceneFileProblem? = null
     private var warmUpCount = 0
     private val ballLook = ActorTypeLook(ActorShape.CIRCLE, color = 0xFFFFFFFF, width = 20f, height = 20f)
     private val brickLook = ActorTypeLook(ActorShape.RECTANGLE, color = 0xFFE0605A, width = 100f, height = 36f)
@@ -93,6 +95,7 @@ class SceneEditingControllerTest {
             sceneReads += resource
             if (resource.file.isFile) SceneDocument.parse(resource.file.readText()) else emptyList()
         },
+        readSceneProblem = { sceneProblem },
         classpathFile = File(root, "classpath.txt"),
         currentTimeMillis = { 1_500L * tasks.size },
         requestCleanBuild = { cleanBuildRequests++ },
@@ -141,6 +144,18 @@ class SceneEditingControllerTest {
         advanceTimeBy(6_000)
         runCurrent()
         assertEquals(1, closedCount)
+    }
+
+    @Test
+    fun aSceneThatCantBeReadOpensSayingWhyAndFollowsItsFile() = runTest {
+        sceneProblem = SceneFileProblem.Unparsable("Unexpected JSON token.")
+        val controller = createController()
+        controller.open(scene)
+        assertEquals(sceneProblem, assertIs<SceneEditingState.Open>(controller.state.value).problem)
+        sceneProblem = null
+        scene.file.apply { parentFile.mkdirs() }.writeText("[]")
+        controller.onScenesChanged(listOf("main"))
+        assertNull(assertIs<SceneEditingState.Open>(controller.state.value).problem)
     }
 
     @Test

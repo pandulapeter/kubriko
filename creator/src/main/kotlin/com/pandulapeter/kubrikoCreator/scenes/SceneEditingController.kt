@@ -39,6 +39,7 @@ import java.io.IOException
  * share Creator's classes, so its Scenes can't be edited ([SceneEditingState.Unsupported]).
  *
  * @param runTask Runs one of the init script's tasks with the given properties, reporting problems in the console.
+ * @param readSceneProblem Why a Scene file can't be read, or null if it can, called right after [readScene].
  * @param readScene The Actors of a Scene file, empty if it can't be read. Called off the main thread, while the project
  *   builds, so that the [SceneStore] it reads from has the Scene parsed for the first command on it.
  * @param spriteFiles The project's sprite files by the name of their resource accessor, which the Scene editor reads
@@ -64,6 +65,7 @@ internal class SceneEditingController(
     private val ioDispatcher: CoroutineDispatcher,
     private val report: (ConsoleEntry) -> Unit,
     private val readScene: (ProjectResource) -> List<SceneActorEntry>,
+    private val readSceneProblem: (ProjectResource) -> SceneFileProblem? = { null },
     private val classpathFile: File,
     private val spriteFiles: () -> Map<String, File> = { emptyMap() },
     private val requestCleanBuild: () -> Unit = {},
@@ -118,14 +120,15 @@ internal class SceneEditingController(
         _state.value = SceneEditingState.Preparing(scene)
         val loading = loading?.takeUnless { isRebuilding || isLoadingOutdated } ?: startLoading()
         job = scope.launch {
-            val actors = async(ioDispatcher) { readScene(scene) }
+            val read = async(ioDispatcher) { readScene(scene) to readSceneProblem(scene) }
             _state.value = when (val result = loading.await()) {
                 is LoadResult.Loaded -> SceneEditingState.Open(
                     scene = scene,
                     entryPoint = show(loading, result),
-                    actors = actors.await(),
+                    actors = read.await().first,
                     revision = ++revision,
                     previews = currentPreviews(),
+                    problem = read.await().second,
                 ).also {
                     report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
                 }
@@ -268,8 +271,10 @@ internal class SceneEditingController(
             open.scene.file.isFile -> {
                 val request = sceneReads.start()
                 scope.launch {
-                    val actors = withContext(ioDispatcher) { readScene(open.scene) }
-                    if (sceneReads.isLatest(request)) _state.update { if (it is SceneEditingState.Open && it.scene == open.scene) it.copy(actors = actors) else it }
+                    val (actors, problem) = withContext(ioDispatcher) { readScene(open.scene) to readSceneProblem(open.scene) }
+                    if (sceneReads.isLatest(request)) {
+                        _state.update { if (it is SceneEditingState.Open && it.scene == open.scene) it.copy(actors = actors, problem = problem) else it }
+                    }
                 }
             }
             else -> close()

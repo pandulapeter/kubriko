@@ -20,6 +20,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -116,6 +117,19 @@ class SceneStoreTest {
         assertNull(store.actors("main"))
         assertFalse(store.isValid("main"))
         assertFalse(store.isValid("missing"))
+    }
+
+    @Test
+    fun aSceneThatCantBeReadSaysWhy() {
+        store.write("main", SceneDocument.format(listOf(SceneActorEntry("Ball", "{}", "a"))))
+        assertNull(store.problemOf("main"))
+        store.write("main", SceneDocument.format(listOf(SceneActorEntry("Ball", "{}", "a"), SceneActorEntry("Ball", "[1]", "b"))))
+        assertEquals(SceneFileProblem.StateNotAnObject("b"), store.problemOf("main"))
+        assertFalse(store.isValid("main"))
+        store.write("main", "not a Scene")
+        assertTrue(assertIs<SceneFileProblem.Unparsable>(store.problemOf("main")).reason.isNotEmpty())
+        assertFalse("\n" in (store.problemOf("main") as SceneFileProblem.Unparsable).reason)
+        assertNull(store.problemOf("missing"))
     }
 
     @Test

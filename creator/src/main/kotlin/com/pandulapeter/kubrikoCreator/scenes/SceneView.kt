@@ -74,6 +74,13 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     private var indicesById: Map<String, Int> = emptyMap()
 
     /**
+     * The IDs of the Actors that couldn't be created from their states (of a type whose class is gone, for example),
+     * which are neither drawn nor selectable on the canvas.
+     */
+    var uncreatedIds: Set<String> = emptySet()
+        private set
+
+    /**
      * The looks of the Actor types whose Actors are drawn by Creator ([PreviewActor]) until their classes are compiled.
      */
     private var previews: Map<String, ActorTypeLook> = emptyMap()
@@ -114,6 +121,7 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
             apply(patch, next)
         }
         indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
+        uncreatedIds = uncreatedIdsOf(entries, actors)
         _loadRevision.update { it + 1 }
     }
 
@@ -255,3 +263,8 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         private const val POINT_SIZE = 8f
     }
 }
+
+/**
+ * The IDs of [entries] whose Actors, at the same indices of [actors], couldn't be created.
+ */
+internal fun uncreatedIdsOf(entries: List<SceneActorEntry>, actors: List<Any?>) = entries.indices.filter { actors.getOrNull(it) == null }.mapTo(HashSet()) { entries[it].id }

@@ -98,6 +98,11 @@ internal class SceneStore(
      */
     fun isValid(name: String) = cached(name)?.isValid == true
 
+    /**
+     * Why the Scene [name] can't be read, or null if it can (or doesn't exist).
+     */
+    fun problemOf(name: String) = cached(name)?.problem
+
     @EditorMutation
     fun write(name: String, content: String) = write(name, content, actors = null)
 
@@ -133,16 +138,23 @@ internal class SceneStore(
      * A Scene file's [text] as it was read or written, parsed once, when first needed (unless [knownActors] are given).
      */
     private class CachedScene(val text: String, val length: Long, val lastModified: Long, knownActors: List<SceneActorEntry>? = null) {
-        val actors by lazy {
-            knownActors ?: try {
-                SceneDocument.parse(text)
-            } catch (_: SerializationException) {
-                null
-            } catch (_: IllegalArgumentException) {
-                null
+        private val parsed by lazy {
+            knownActors?.let { Result.success(it) } ?: try {
+                Result.success(SceneDocument.parse(text))
+            } catch (exception: SerializationException) {
+                Result.failure(exception)
+            } catch (exception: IllegalArgumentException) {
+                Result.failure(exception)
             }
         }
-        val isValid by lazy { actors?.let(SceneDocument::isValid) == true }
+        val actors get() = parsed.getOrNull()
+        val problem by lazy {
+            parsed.fold(
+                onSuccess = { actors -> actors.firstOrNull { SceneDocument.stateObject(it.state) == null }?.let { SceneFileProblem.StateNotAnObject(it.id) } },
+                onFailure = { SceneFileProblem.Unparsable(it.message?.lineSequence()?.first() ?: it.toString()) },
+            )
+        }
+        val isValid by lazy { actors != null && problem == null }
     }
 
     @EditorMutation

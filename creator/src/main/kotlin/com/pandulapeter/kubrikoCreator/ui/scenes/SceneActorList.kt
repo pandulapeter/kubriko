@@ -34,17 +34,20 @@ import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_actor_count
 import kubriko.creator.generated.resources.scene_actor_count_filtered
+import kubriko.creator.generated.resources.scene_actor_not_created
 import kubriko.creator.generated.resources.scene_actor_search
 import kubriko.creator.generated.resources.scene_settings_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The Actors of the open Scene in the order they are added, by type and ID, filtered by what is typed, for Scenes too
- * dense to click into. The selected one is scrolled to whenever it is selected elsewhere.
+ * dense to click into. The selected one is scrolled to whenever it is selected elsewhere, and those that couldn't be
+ * created ([uncreatedIds]) say so.
  */
 @Composable
 internal fun SceneActorList(
     entries: List<SceneActorEntry>,
+    uncreatedIds: Set<String>,
     selectedId: String?,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -83,6 +86,7 @@ internal fun SceneActorList(
             SceneActorRow(
                 title = if (entry.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME) settingsTitle else entry.typeId,
                 id = entry.id,
+                isCreated = entry.id !in uncreatedIds,
                 isSelected = entry.id == selectedId,
                 onClick = { onSelect(entry.id) },
             )
@@ -94,6 +98,7 @@ internal fun SceneActorList(
 private fun SceneActorRow(
     title: String,
     id: String,
+    isCreated: Boolean,
     isSelected: Boolean,
     onClick: () -> Unit,
 ) = Column(
@@ -110,9 +115,9 @@ private fun SceneActorRow(
         overflow = TextOverflow.Ellipsis,
     )
     Text(
-        text = id,
+        text = if (isCreated) id else stringResource(Res.string.scene_actor_not_created, id),
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = if (isCreated) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
         maxLines = 1,
     )
 }

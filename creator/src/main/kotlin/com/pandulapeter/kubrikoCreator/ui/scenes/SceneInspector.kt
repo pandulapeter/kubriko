@@ -42,6 +42,7 @@ import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_move_down
 import kubriko.creator.generated.resources.ic_move_up
 import kubriko.creator.generated.resources.ic_scene
+import kubriko.creator.generated.resources.scene_actor_not_created_hint
 import kubriko.creator.generated.resources.scene_inspector_hint
 import kubriko.creator.generated.resources.scene_settings_title
 import org.jetbrains.compose.resources.stringResource
@@ -130,6 +131,13 @@ internal fun SceneInspector(
                     state = entry.state,
                     definition = actorTypes.firstOrNull { it.name == entry.typeId },
                     onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
+                )
+            } else {
+                Text(
+                    modifier = Modifier.padding(12.dp),
+                    text = stringResource(Res.string.scene_actor_not_created_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }

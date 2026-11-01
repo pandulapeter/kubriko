@@ -184,6 +184,7 @@ internal class WorkspaceController(
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
         readScene = { scenes.actors(SceneStore.nameOf(it.file)).orEmpty() },
+        readSceneProblem = { scenes.problemOf(SceneStore.nameOf(it.file)) },
         spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
         requestCleanBuild = incrementalCompilation::requestCleanBuild,
         warmUpCompiler = tasks::warmUpCompiler,

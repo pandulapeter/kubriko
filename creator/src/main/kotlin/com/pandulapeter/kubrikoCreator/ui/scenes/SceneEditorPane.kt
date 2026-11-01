@@ -49,6 +49,7 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
 import kubriko.creator.generated.resources.action_hide_scene_actors
@@ -113,6 +114,7 @@ internal fun SceneEditorPane(
         onClose = onClose,
     )
     HorizontalDivider()
+    state.problem?.let { problem -> InvalidSceneNotice(problem = problem, onOpenFile = { openInSystemEditor(state.scene.file) }) }
     val onRemove = { actorId: String ->
         selectedId = null
         onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, actorId)))
@@ -126,6 +128,7 @@ internal fun SceneEditorPane(
             SceneActorList(
                 modifier = Modifier.width(220.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                 entries = view.entries,
+                uncreatedIds = view.uncreatedIds,
                 selectedId = selectedId,
                 onSelect = { actorId ->
                     selectedId = actorId

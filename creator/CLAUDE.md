@@ -89,7 +89,10 @@ lives in `plan/` (start with `plan/README.md`).
   the Actor's ID), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). Creating a `SceneView` runs the project's code (its
   Managers' constructors), so `rememberSceneView` does it off the main thread (`createDisposingIfCancelled`), and what that code throws
   (a `NoClassDefFoundError` too) fails the Scene with the problem (`SceneEditingController.onViewFailed`), or, for newer classes,
-  leaves the older ones shown as outdated. Classes are loaded the same way, so a load cancelled midway closes what it loaded, and released classes
+  leaves the older ones shown as outdated. A Scene file that can't be read (`SceneFileProblem`: it doesn't parse, or an Actor's state isn't a JSON
+  object) opens with `InvalidSceneNotice`, which says why and opens it in the system editor, since no command can change it; Actors
+  that couldn't be created from their states (`SceneView.uncreatedIds`) are marked in the Actor list and explained in the inspector,
+  whose Remove still works. Classes are loaded the same way, so a load cancelled midway closes what it loaded, and released classes
   are closed a few seconds later on a scope that outlives the workspace (`releaseScope`). The header's Actors button shows the Scene's
   Actors in a list beside it (`SceneActorList`: in their order, by type and ID, filtered by what is typed, lazily composed),
   where a click selects one and centers the camera on it (`SceneView.centerOn`). A click selects the Actor on top (`SceneHitTest`:

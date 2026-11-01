@@ -322,6 +322,11 @@
     <string name="error_entry_point_multiple">The project registers more than one CreatorEntryPoint.</string>
     <string name="error_entry_point_not_loaded">The project's CreatorEntryPoint couldn't be loaded.</string>
     <string name="error_scene_view_failed">The project's code failed while the Scene was being shown: %1$s</string>
+    <string name="scene_invalid_unparsable">This Scene file can't be read, so nothing in it can be changed until it is fixed by hand: %1$s</string>
+    <string name="scene_invalid_state">The saved state of the Actor %1$s isn't a JSON object, so nothing in this Scene can be changed until its file is fixed by hand.</string>
+    <string name="action_open_in_system_editor">Open in the system editor</string>
+    <string name="scene_actor_not_created">%1$s · couldn't be created</string>
+    <string name="scene_actor_not_created_hint">Kubriko Creator couldn't create this Actor from its saved state (its type may be gone, or its class out of date), so it isn't drawn or selectable in the Scene. Remove it, or fix its state in the Scene file.</string>
     <string name="scene_preparing">Preparing %1$s…</string>
     <string name="scene_outdated">The project doesn't build, so this Scene shows it as it last built.</string>
     <string name="scene_updating">Updating…</string>
