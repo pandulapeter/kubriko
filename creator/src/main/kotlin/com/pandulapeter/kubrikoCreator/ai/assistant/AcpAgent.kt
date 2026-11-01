@@ -215,7 +215,7 @@ internal class AcpAgent(
     }
 
     private suspend fun connected(): Connection {
-        check(!isClosed) { "The agent was closed." }
+        if (isClosed) throw AgentClosedException()
         connection?.let { return it }
         if (_state.value is AgentState.Failed) crashesInARow = 0
         val connection = connect()
@@ -336,6 +336,8 @@ internal class AcpAgent(
             else -> try {
                 connected()
             } catch (_: AgentStartException) {
+            } catch (_: AgentClosedException) {
+                // Closed while the process ended, which close() doesn't wait for.
             }
         }
     }
