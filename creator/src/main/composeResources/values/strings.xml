@@ -616,6 +616,11 @@
     <string name="assistant_usage_context">Context %1$d%% of %2$s tokens</string>
     <string name="assistant_usage_cost">%1$s so far</string>
     <string name="assistant_usage_billed_to_key">Billed to your API key</string>
+    <string name="assistant_chip_scene">Scene %1$s</string>
+    <string name="assistant_chip_actor_type">Actor type %1$s</string>
+    <string name="assistant_chip_manager_type">Manager type %1$s</string>
+    <string name="assistant_chip_problem">The latest problem</string>
+    <string name="assistant_chip_hint">Sent with your next message, so the assistant knows what you mean. Click to leave it out.</string>
     <string name="assistant_starting_download">The first time, it is downloaded, which can take a minute.</string>
     <string name="assistant_input_hint">Ask the assistant (Enter sends, Shift+Enter starts a new line)</string>
     <string name="assistant_thinking">Thinking</string>

@@ -96,6 +96,11 @@ internal class FakeAgent(
      * What came before the user's text in the prompts: what Kubriko Creator told the agent on top.
      */
     val leadingTexts = CopyOnWriteArrayList<String>()
+
+    /**
+     * What else came before the user's text: links to what the user was looking at.
+     */
+    val leadingBlocks = CopyOnWriteArrayList<ContentBlock>()
     val authenticated = CopyOnWriteArrayList<AuthMethodId>()
 
     fun support(channel: FakeAgentChannel) = object : AgentSupport {
@@ -178,7 +183,12 @@ internal class FakeAgent(
         override suspend fun prompt(content: List<ContentBlock>, _meta: JsonElement?) = flow {
             val text = (content.last() as ContentBlock.Text).text
             prompts += text
-            content.dropLast(1).forEach { leadingTexts += (it as ContentBlock.Text).text }
+            content.dropLast(1).forEach { block ->
+                when (block) {
+                    is ContentBlock.Text -> leadingTexts += block.text
+                    else -> leadingBlocks += block
+                }
+            }
             if (!isSignedIn.get()) throw JsonRpcException(JsonRpcErrorCode.AUTH_REQUIRED.code, "Authentication required")
             when (text) {
                 "hello" -> {

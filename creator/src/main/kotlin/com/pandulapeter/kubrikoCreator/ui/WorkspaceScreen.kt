@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
@@ -286,6 +287,12 @@ internal fun WorkspaceScreen(
                         digest = digest,
                         onTypeSelected = { folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, it) },
                         onSceneSelected = { if (openSceneName != it) folderTreeActions.onSelected(FolderGroup.SCENES, it) },
+                        attention = AttentionChip.of(
+                            openScene = openSceneName,
+                            selectedType = selectedBlockType?.name,
+                            isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
+                            console = controller.console.collectAsState().value,
+                        ),
                     )
                 }
                 if (openPanel == SidePanel.VERSION_CONTROL) {

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.mcp.McpController
@@ -30,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
  * assistant, or an AI tool of the user's own connected over MCP. What the AI is told about the game sits behind a button.
  *
  * @param digest What the AI is told about the game, read only while that view is shown.
+ * @param attention What the user is looking at, which the assistant offers with the next message.
  */
 @Composable
 internal fun AiPanel(
@@ -43,6 +45,7 @@ internal fun AiPanel(
     digest: ProjectDigest?,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
+    attention: List<AttentionChip>,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
@@ -59,6 +62,7 @@ internal fun AiPanel(
             controller = assistant,
             aiSteps = aiSteps,
             onShowStep = onShowStep,
+            attention = attention,
         )
         AiPanelView.OWN_TOOL -> AiConnectionPanel(
             modifier = content,

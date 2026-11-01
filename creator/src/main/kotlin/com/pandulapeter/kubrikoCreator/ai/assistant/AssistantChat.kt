@@ -94,6 +94,7 @@ internal class AssistantChat(
     private var seenRevision = 0
     private var pendingAnswer: CompletableDeferred<RequestPermissionOutcome>? = null
     private var isClosed = false
+    private var lastContext = emptyList<ContentBlock>()
 
     private val permissions = PermissionHandler { toolCall, options ->
         val answer = CompletableDeferred<RequestPermissionOutcome>()
@@ -122,11 +123,13 @@ internal class AssistantChat(
     }
 
     /**
-     * Sends [text] to the agent, unless a prompt runs or the conversation isn't ready.
+     * Sends [text] to the agent with [context] (what the user is looking at, [AttentionChip]) ahead of it, unless a
+     * prompt runs or the conversation isn't ready.
      */
-    fun send(text: String) {
+    fun send(text: String, context: List<ContentBlock> = emptyList()) {
         if (_isBusy.value || text.isBlank() || _state.value != ChatState.Ready || conversation == null) return
         _transcript.update { it.withUserMessage(text) }
+        lastContext = context
         prompt(text)
     }
 
@@ -149,7 +152,7 @@ internal class AssistantChat(
         scope.launch {
             try {
                 val changes = log?.let { ChangesSummary.of(it.since(since), since, _toolsId.value) }
-                val content = listOfNotNull(changes?.let(ContentBlock::Text), ContentBlock.Text(text))
+                val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
                 _transcript.update { it.withTurnEnd(response.stopReason) }
             } catch (exception: CancellationException) {

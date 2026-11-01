@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
@@ -214,6 +215,15 @@ class AssistantChatTest {
         assertEquals(TranscriptItem.Failure(FailureReason.AGENT_STOPPED), chat.transcript.value.items.last())
         chat.sendAndWait("hello")
         assertEquals(TranscriptItem.AgentMessage("Hi there"), chat.transcript.value.items.last())
+    }
+
+    @Test
+    fun whatTheUserLooksAtGoesAheadOfTheirMessage() = test {
+        val chat = readyChat()
+        withContext(mainThread) { chat.send("hello", listOf(AttentionChip.Scene("level-1").toContent())) }
+        chat.isBusy.first { !it }
+        assertEquals<List<ContentBlock>>(listOf(AttentionChip.Scene("level-1").toContent()), launcher.agents.single().leadingBlocks)
+        assertEquals(listOf("hello"), launcher.agents.single().prompts)
     }
 
     @Test

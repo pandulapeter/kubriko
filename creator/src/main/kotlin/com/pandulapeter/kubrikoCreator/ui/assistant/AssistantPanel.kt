@@ -40,6 +40,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.commands.AiStep
@@ -69,6 +70,7 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * @param aiSteps The open project's AI steps, which the tool call cards tie into.
  * @param onShowStep Goes to what a step worked on, in the editor.
+ * @param attention What the user is looking at, offered with the next message.
  */
 @Composable
 internal fun AssistantPanel(
@@ -76,6 +78,7 @@ internal fun AssistantPanel(
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
+    attention: List<AttentionChip> = emptyList(),
 ) {
     val agent by controller.agent.collectAsState()
     CompositionLocalProvider(LocalAgent provides agent) {
@@ -83,6 +86,7 @@ internal fun AssistantPanel(
             controller = controller,
             aiSteps = aiSteps,
             onShowStep = onShowStep,
+            attention = attention,
             modifier = modifier,
         )
     }
@@ -93,6 +97,7 @@ private fun AssistantPanelContent(
     controller: AssistantController,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
+    attention: List<AttentionChip>,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
@@ -184,6 +189,7 @@ private fun AssistantPanelContent(
             modifier = Modifier.weight(1f),
             chat = current,
             download = controller.download.collectAsState().value,
+            attention = attention,
             isBilledToApiKey = hasApiKey,
             onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
@@ -209,6 +215,7 @@ private fun AssistantPanelContent(
 @Composable
 private fun ChatContent(
     chat: AssistantChat,
+    attention: List<AttentionChip>,
     download: AgentDownload?,
     isBilledToApiKey: Boolean,
     onOpenLog: (() -> Unit)?,
@@ -259,6 +266,12 @@ private fun ChatContent(
             onAnswer = chat::answer,
         )
     }
+    var leftOut by remember(chat) { mutableStateOf(emptySet<String>()) }
+    AttentionChips(
+        chips = attention,
+        leftOut = leftOut,
+        onToggle = { chip -> leftOut = if (chip.key in leftOut) leftOut - chip.key else leftOut + chip.key },
+    )
     ConversationUsageLine(
         usage = transcript.usage,
         isBilledToApiKey = isBilledToApiKey,
@@ -268,7 +281,7 @@ private fun ChatContent(
         commands = chat.availableCommands.collectAsState().value,
         isEnabled = state == ChatState.Ready,
         isBusy = isBusy,
-        onSend = chat::send,
+        onSend = { text -> chat.send(text, attention.filter { it.key !in leftOut }.map { it.toContent() }) },
         onStop = chat::stop,
     )
 }

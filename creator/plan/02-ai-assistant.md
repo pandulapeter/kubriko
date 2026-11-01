@@ -74,8 +74,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    with the user able to allow it.
 6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
-7. **The panel** (see `../CLAUDE.md` → Assistant): context chips for the open Scene and the selected Actor type, sent as
-   `resource_link`s; a Scene or game screenshot attached as an image where `promptCapabilities.image` allows; conversations kept per
+7. **The panel** (see `../CLAUDE.md` → Assistant): a Scene or game screenshot attached as an image where `promptCapabilities.image`
+   allows; conversations kept per
    project after it closes and resumed after a restart with `session/load` where the agent offers it.
 8. **Keep and Undo:** before each prompt Creator commits a checkpoint ("Before Claude's changes") when the project is under version
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
@@ -164,8 +164,7 @@ follows, so it can hand an agent exact, compact, and always fresh context that i
 its way to understanding and the model pays for it. These serve the panel and outside MCP clients alike. Whatever helps the AI
 understand the game is shown to the user too.
 
-- **Following the user's attention:** context chips filled in on their own (the open Scene, the selected Actor type and Event, the
-  last build failure or console exception), sent as links the agent follows when it needs them rather than as pasted text.
+- **Following the user's attention:** the selected Event as a chip too (its index lives in `BlockTypeEditor`'s own state today).
 - **A game notes file:** the game's design notes (mechanics, naming, and decisions) as a plain committed file, the project's
   `AGENTS.md` (with a `CLAUDE.md` pointing to it), which Claude Code and other agents read by themselves, outside clients included.
   After a conversation the AI proposes updates as a diff, which the user confirms (Principle 4).
