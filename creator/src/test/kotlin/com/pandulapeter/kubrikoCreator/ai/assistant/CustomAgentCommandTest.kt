@@ -16,15 +16,16 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class CustomAgentCommandTest {
-    private val locate = { program: String -> "/opt/homebrew/bin/$program".takeIf { program == "opencode" } }
+    private val folder = File(File.listRoots().first(), "opt/homebrew/bin")
+    private val locate = { program: String -> File(folder, program).path.takeIf { program == "opencode" } }
 
     @Test
     fun aProgramWithoutAFolderIsFoundAsTheShellWouldAndItsFolderGoesOnThePath() {
         val command = CustomAgentCommand.of("OPENCODE_MODEL=ollama/qwen opencode acp --port 0", "/Users/me", locate)!!
-        assertEquals("/opt/homebrew/bin/opencode", command.program)
+        assertEquals(File(folder, "opencode").path, command.program)
         assertEquals(listOf("acp", "--port", "0"), command.arguments)
         assertEquals("ollama/qwen", command.environment["OPENCODE_MODEL"])
-        assertTrue(command.environment.getValue("PATH").startsWith("/opt/homebrew/bin${File.pathSeparator}"))
+        assertTrue(command.environment.getValue("PATH").startsWith("${folder.path}${File.pathSeparator}"))
     }
 
     @Test

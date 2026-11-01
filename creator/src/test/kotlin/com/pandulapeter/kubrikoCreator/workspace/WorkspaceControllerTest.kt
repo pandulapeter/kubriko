@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.LoadedEntryPoint
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
+import com.pandulapeter.kubrikoCreator.session.JavaArgumentFile
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -358,7 +359,7 @@ class WorkspaceControllerTest {
         try {
             val classes = File(root, "build/classes").apply { mkdirs() }
             val argumentFile = File(root, "build/run/game.argfile").apply { parentFile.mkdirs() }
-            argumentFile.writeText("\"-javaagent:/libs/agent.jar\"\n\"-cp\"\n\"${File(root, "build/run/classes").path}\"\n\"game.MainKt\"\n")
+            argumentFile.writeText(JavaArgumentFile.format(listOf("-javaagent:/libs/agent.jar", "-cp", File(root, "build/run/classes").path, "game.MainKt")))
             val launches = mutableListOf<GameLaunch>()
             val controller = createController(rootDirectory = root, runGame = { launch, _ -> launches += launch; awaitCancellation() })
             controller.play()

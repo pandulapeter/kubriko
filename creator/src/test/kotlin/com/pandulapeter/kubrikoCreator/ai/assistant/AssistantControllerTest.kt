@@ -111,7 +111,7 @@ class AssistantControllerTest {
     fun aConversationRunsClaudeAgentThroughNpxInTheProject() = test {
         val chat = controller().startChat()
         chat.state.first { it == ChatState.Ready }
-        assertEquals("/opt/tools/bin/npx", commands.single().program)
+        assertEquals(File("/opt/tools/bin/npx").path, commands.single().program)
         assertEquals((RegistryAgent.claude.distribution as AgentDistribution.Npx).packageName, commands.single().arguments.last())
         assertEquals(listOf(AgentProfile.claude), profiles)
         assertEquals(projectDirectory.absolutePath, launcher.agents.single().newSessions.single().cwd)
@@ -125,7 +125,7 @@ class AssistantControllerTest {
         onMain { controller.selectAgent(AgentChoice.Custom("GOOSE_MODE=chat goose acp")) }
         controller.currentChat.value!!.state.first { it == ChatState.Ready }
         val command = commands.last()
-        assertEquals("/opt/tools/bin/goose", command.program)
+        assertEquals(File("/opt/tools/bin/goose").path, command.program)
         assertEquals(listOf("acp"), command.arguments)
         assertEquals("chat", command.environment["GOOSE_MODE"])
         assertEquals(AgentProfile.fallback, profiles.last())
@@ -200,7 +200,7 @@ class AssistantControllerTest {
         runner.installed += "uvx"
         onMain { chat.retry() }
         chat.state.first { it == ChatState.Ready }
-        assertEquals("/opt/tools/bin/uvx", commands.single().program)
+        assertEquals(File("/opt/tools/bin/uvx").path, commands.single().program)
         assertEquals(listOf("fast-agent-acp==0.10.1"), commands.single().arguments)
     }
 

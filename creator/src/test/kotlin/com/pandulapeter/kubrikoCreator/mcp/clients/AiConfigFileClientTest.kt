@@ -11,10 +11,12 @@ package com.pandulapeter.kubrikoCreator.mcp.clients
 
 import com.pandulapeter.kubrikoCreator.mcp.McpSettings
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 
 class AiConfigFileClientTest {
     private val settings = McpSettings(port = 7781, token = "secret")
@@ -30,6 +32,10 @@ class AiConfigFileClientTest {
 
     @Test
     fun claudeDesktopReachesTheServerThroughMcpRemoteRunByTheNpxTheShellFinds() {
+        if (System.getProperty("os.name").orEmpty().lowercase().contains("windows")) {
+            assertNull(AiConfigFileClient.CLAUDE_DESKTOP.entry(settings, "C:\\nodejs\\npx.cmd")["env"]?.jsonObject?.get("PATH"))
+            return
+        }
         assertEquals(
             Json.parseToJsonElement(
                 """

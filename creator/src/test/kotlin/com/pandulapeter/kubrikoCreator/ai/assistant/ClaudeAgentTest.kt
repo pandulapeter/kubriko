@@ -27,9 +27,9 @@ class ClaudeAgentTest {
     fun claudeRunsThroughNpxWithItsFolderOnThePath() {
         val npx = File("/opt/homebrew/bin/npx")
         val command = RegistryAgent.npxCommand(RegistryAgent.claude.distribution as AgentDistribution.Npx, npx, mapOf("CLAUDE_CONFIG_DIR" to "/Users/someone/.claude-personal"))
-        assertEquals("/opt/homebrew/bin/npx", command.program)
+        assertEquals(npx.path, command.program)
         assertEquals(listOf("--yes", "@agentclientprotocol/claude-agent-acp@0.99.0"), command.arguments)
-        assertTrue(command.environment.getValue("PATH").startsWith("/opt/homebrew/bin${File.pathSeparator}"))
+        assertTrue(command.environment.getValue("PATH").startsWith("${npx.parent}${File.pathSeparator}"))
         assertEquals("/Users/someone/.claude-personal", command.environment["CLAUDE_CONFIG_DIR"])
     }
 

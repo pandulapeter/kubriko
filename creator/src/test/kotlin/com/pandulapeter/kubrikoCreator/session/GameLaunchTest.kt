@@ -41,7 +41,7 @@ class GameLaunchTest {
         val launch = GameLaunch(File("/jdk/bin/java"), "game.MainKt", File("/game"), listOf("-Xmx1g"), emptyList())
         assertEquals(
             listOf(
-                "/jdk/bin/java", "-Xmx1g", "-Dkubriko.creator.port=1234", "@/tmp/classpath.args",
+                File("/jdk/bin/java").path, "-Xmx1g", "-Dkubriko.creator.port=1234", "@" + File("/tmp/classpath.args").path,
                 "com.pandulapeter.kubriko.creatorSession.CreatorSessionLauncherKt", "play", "game.MainKt",
             ),
             launch.command(File("/tmp/classpath.args"), mapOf("kubriko.creator.port" to "1234")),
