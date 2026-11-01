@@ -536,7 +536,7 @@
     <string name="ai_client_connected">Connected. New %1$s sessions can work on the open project.</string>
     <string name="ai_client_connected_after_restart">Connected. Restart %1$s if it's open; then its new chats can work on the open project.</string>
     <string name="ai_client_needs_program">Needs %1$s, which isn't installed.</string>
-    <string name="ai_client_failed">Couldn't connect: %1$s</string>
+    <string name="ai_client_failed">Couldn't connect. What it said:</string>
     <string name="ai_client_command">The command that runs %1$s</string>
     <string name="error_game_not_running">The game isn't running.</string>
     <string name="error_game_unsupported">This project's Kubriko version is too old for the game to be played from Kubriko Creator's tools.</string>
@@ -635,8 +635,7 @@
     <string name="action_close">Close</string>
     <string name="action_get_api_key">Get a key</string>
     <string name="action_open_sign_in_page">Open the sign-in page</string>
-    <string name="assistant_failure_prompt_failed">Something went wrong: %1$s</string>
-    <string name="assistant_failure_prompt_failed_unknown">Something went wrong.</string>
+    <string name="assistant_failure_prompt_failed">Claude Agent answered with an error.</string>
     <string name="assistant_turn_cancelled">Stopped.</string>
     <string name="assistant_turn_refused">The assistant declined this request.</string>
     <string name="assistant_turn_max_tokens">The answer was cut short because it got too long.</string>

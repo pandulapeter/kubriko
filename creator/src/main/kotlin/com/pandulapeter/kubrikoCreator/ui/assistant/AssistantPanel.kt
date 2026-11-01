@@ -32,7 +32,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
@@ -40,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -271,13 +271,7 @@ private fun Failure(
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.error,
     )
-    if (state.details.isNotEmpty()) {
-        Text(
-            text = state.details.joinToString("\n"),
-            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    if (state.details.isNotEmpty()) FailureDetails(state.details.joinToString("\n"))
     if (state.reason == FailureReason.NODE_MISSING) {
         TextButton(onClick = { openInBrowser(NODE_DOWNLOAD_URL) }) {
             Text(stringResource(Res.string.action_install_node))

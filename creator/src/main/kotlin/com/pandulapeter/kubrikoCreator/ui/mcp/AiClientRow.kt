@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientStatus
+import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_connect
@@ -74,7 +75,7 @@ internal fun AiClientRow(
                 AiClientStatus.NotConnected -> stringResource(Res.string.ai_client_not_connected)
                 is AiClientStatus.NeedsProgram -> stringResource(Res.string.ai_client_needs_program, status.program.name)
                 AiClientStatus.Connected -> stringResource(if (isReadOnStart) Res.string.ai_client_connected_after_restart else Res.string.ai_client_connected, clientName)
-                is AiClientStatus.Failed -> stringResource(Res.string.ai_client_failed, status.output)
+                is AiClientStatus.Failed -> stringResource(Res.string.ai_client_failed)
             },
             style = MaterialTheme.typography.bodySmall,
             color = when (status) {
@@ -85,6 +86,12 @@ internal fun AiClientRow(
             maxLines = 4,
             overflow = TextOverflow.Ellipsis,
         )
+        if (status is AiClientStatus.Failed) {
+            FailureDetails(
+                text = status.output,
+                maxLines = 6,
+            )
+        }
     }
     when (status) {
         AiClientStatus.Checking -> CircularProgressIndicator(

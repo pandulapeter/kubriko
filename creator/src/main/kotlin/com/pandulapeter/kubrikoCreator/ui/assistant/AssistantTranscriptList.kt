@@ -50,6 +50,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import com.pandulapeter.kubrikoCreator.ui.canBeShown
+import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.description
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_failure_agent_not_started
@@ -58,7 +59,6 @@ import kubriko.creator.generated.resources.assistant_failure_auth_required
 import kubriko.creator.generated.resources.assistant_failure_conversation_lost
 import kubriko.creator.generated.resources.assistant_failure_node_missing
 import kubriko.creator.generated.resources.assistant_failure_prompt_failed
-import kubriko.creator.generated.resources.assistant_failure_prompt_failed_unknown
 import kubriko.creator.generated.resources.assistant_thinking
 import kubriko.creator.generated.resources.assistant_tool_failed
 import kubriko.creator.generated.resources.assistant_turn_cancelled
@@ -122,9 +122,9 @@ internal fun AssistantTranscriptList(
                     onShowStep = onShowStep,
                 )
                 is TranscriptItem.TurnEnded -> Notice(stringResource(item.reason.description()))
-                is TranscriptItem.Failure -> Notice(
-                    text = item.reason.description(item.details),
-                    isError = true,
+                is TranscriptItem.Failure -> FailureNotice(
+                    reason = item.reason,
+                    details = item.details,
                 )
             }
         }
@@ -286,16 +286,29 @@ private fun StopReason.description() = when (this) {
     else -> Res.string.assistant_turn_cancelled
 }
 
+@Composable
+private fun FailureNotice(
+    reason: FailureReason,
+    details: String?,
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(2.dp),
+) {
+    Notice(
+        text = reason.description(),
+        isError = true,
+    )
+    details?.takeIf { it.isNotBlank() }?.let { FailureDetails(it) }
+}
+
 /**
- * What the panel says about [this] failure, with [details] where the error had words of its own.
+ * What the panel says about [this] failure, in one plain sentence; the error's own words go under it ([FailureDetails]).
  */
 @Composable
-internal fun FailureReason.description(details: String? = null): String = when (this) {
+internal fun FailureReason.description(): String = when (this) {
     FailureReason.NODE_MISSING -> stringResource(Res.string.assistant_failure_node_missing)
     FailureReason.AGENT_NOT_STARTED -> stringResource(Res.string.assistant_failure_agent_not_started)
     FailureReason.AGENT_STOPPED -> stringResource(Res.string.assistant_failure_agent_stopped)
     FailureReason.CONVERSATION_LOST -> stringResource(Res.string.assistant_failure_conversation_lost)
     FailureReason.AUTH_REQUIRED -> stringResource(Res.string.assistant_failure_auth_required)
-    FailureReason.PROMPT_FAILED -> details?.let { stringResource(Res.string.assistant_failure_prompt_failed, it) }
-        ?: stringResource(Res.string.assistant_failure_prompt_failed_unknown)
+    FailureReason.PROMPT_FAILED -> stringResource(Res.string.assistant_failure_prompt_failed)
 }

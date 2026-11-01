@@ -175,9 +175,6 @@ What the panel and the MCP server get wrong today, found in review; each goes in
   `AiConfigFileClient` falls back from, but `AssistantController.assistant()` turns into `NodeMissingException`, so every chat on
   Windows asks for Node.js even when it is installed. Direction: resolve programs with `where` on Windows (finding `npx.cmd`), and
   start `.cmd` agents through `cmd /c` with their descendants stopped (`ProcessAgentLauncher.stop` already stops them).
-- **Error details are dropped or raw.** `AGENT_NOT_STARTED` ignores the standard error line it is given
-  (`ui/assistant/AssistantTranscriptList.kt`), `PROMPT_FAILED` shows the JSON-RPC message as it is, and `AiClientRow` the client's raw
-  output. Direction: a plain lead sentence per failure, with the details under it.
 
 ## Context for large games
 
