@@ -547,6 +547,24 @@ none, the conversation's steps of the same tool in order), and clicking a card a
 again (`RevisitedAiStep`, shown until the AI takes another step), and offers slash commands while one is typed (`AgentConversation.availableCommands`, kept from
 the agent's first announcement, which comes before anything collects `updates`).
 
+## Creator settings
+
+This user's settings on this computer (`settings/`): `CreatorSettings` in `settings.json` in the settings folder
+(`CreatorSettingsStore`; unreadable means the defaults, an interface scale not offered the closest one that is), held by
+`CreatorSettingsController` (app-level, created in `main`) and saved after every change. `CreatorSettingsDialog`
+(`ui/settings`) opens from the welcome screen and the workspace toolbar.
+
+- **AI features** (`isAiEnabled`, on by default): `CreatorSettingsController.isAiEnabled` is the one check. `McpController` keeps
+  the server stopped while it is off, whatever `McpSettings` say, and starts it as it was when it is on again;
+  `AssistantController` ends its conversations, sign-in, and agent when it goes off, and meanwhile opens no conversation,
+  starts no agent, signs nothing in, installs no Node.js, and doesn't fetch the agent registry (the cached one still loads).
+  The UI reads it as `LocalIsAiEnabled`: the toolbar's AI button, `AiActivityBar`, the AI panel, following the AI, and its
+  highlights show nothing, and the description field's hint doesn't name the AI. `AiFeaturesOffTest` renders those parts
+  with it off and finds no AI word. Commands, undo, and the game notes' files stay.
+- **Appearance:** the theme (`ThemeChoice`: the system's, light, or dark; `CreatorTheme` uses Kubriko's colors either way)
+  and the interface scale (`ProvideInterfaceScale`, 75% to 130%, Campfire's 85% by default).
+- **Editor:** the folder New project creates projects in (the home folder by default).
+
 ## Packages (`com.pandulapeter.kubrikoCreator`)
 
 | Package | What it holds |
@@ -559,6 +577,7 @@ the agent's first announcement, which comes before anything collects `updates`).
 | `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
 | `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits; writes queued as `PendingWrite`s and written in batches, 100 ms after the last change, a type saved several times written once, then one regeneration and build file sync per batch; `awaitWrites`, which builds, git commands (`CommandContext.awaitWrites`), and closing wait for (quitting at most 10 seconds); reload from disk unless a write is pending; a definition file that can't be read, or holds a type named other than the file, a name that can't be a class or is reserved, or a name another file holds too (ignoring case), is left out and reported in the console by path (`BlockTypeFileProblem`), nothing is regenerated or synced until it is fixed, its name stays taken (`takenNames`), and `BlockTypeStore` never writes over or deletes it), `GradleWorkspaceOpener`. |
 | `scenes` | `SceneEditingController`, `SceneView`, `ActorTypeLook` and `PreviewActor`, `SceneHitTest` and `SceneBoundsGrid`, `ScenePatch`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
+| `settings` | Creator settings (see Creator settings): `CreatorSettings`, `ThemeChoice`, `CreatorSettingsStore`, `CreatorSettingsController`. |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
 | `recent` | `RecentProjectsStore` (platform settings folder; one call at a time, keeping projects whose folder is gone, which the welcome screen greys with Forget). |

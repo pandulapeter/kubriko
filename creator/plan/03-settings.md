@@ -15,21 +15,13 @@ with everyone who clones it. Anything that is both per-project and private (sign
 
 ## Creator settings
 
-Opened from the toolbar and from the welcome screen, so they work without a project.
+What `../CLAUDE.md` → Creator settings describes, and:
 
-- **AI features (on or off).** Off removes every AI surface: the AI panel (Assistant, Your own AI tool, and the map) and its toolbar
-  button, `AiActivityBar` and the AI's highlighted targets, AI hints and empty-state suggestions, and AI mentions in
-  onboarding and the template's README. It is a guarantee, not just hiding: the MCP server is stopped, no agent process is started, and
-  nothing is sent anywhere. Commands, the undo history, and command titles stay, since they aren't AI features.
-  - One check (`CreatorSettings.isAiEnabled`, observed) that every AI surface reads, so a new one can't forget it; a UI test walks the
-    screens with it off and finds no AI string.
-  - Asked once on first run (`12-onboarding.md`), defaulting to on, and changeable later. Turning it back on restores the MCP settings
-    and connected clients as they were.
-  - Per user, never per project: a project made with AI opens normally with it off (its `AGENTS.md` and `CLAUDE.md`
-    (`GameNotes`) are just files).
-- **Appearance:** theme (system, light, or dark) and UI scale (Campfire's 0.85 by default).
-- **Editor:** default project folder, Scene grid and snapping defaults (`06-blocks.md`), whether Play saves first, and confirmation
-  prompts that were turned off with "Don't ask again", listed so they can be turned back on.
+- **AI features:** asked once on first run (`12-onboarding.md`), defaulting to on; onboarding and any later AI hints or
+  empty-state suggestions read `LocalIsAiEnabled` like the rest.
+- **Editor:** Scene grid and snapping defaults (`06-blocks.md`), whether Play saves first (writes are already automatic, so
+  only if that changes), and confirmation prompts turned off with "Don't ask again", listed so they can be turned back on (none
+  exist yet).
 - **Components:** the JDK, Gradle, and Android SDK (`12-onboarding.md` → Settings → Components).
 - **Updates:** whether Creator checks for updates (`10-export-and-distribution.md`).
 - **AI:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and commands from

@@ -89,7 +89,9 @@ internal fun WorkspaceScreen(
     aiClients: AiClientsController,
     assistant: AssistantController,
     onCloseProject: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
+    val isAiEnabled = LocalIsAiEnabled.current
     val resources by controller.resources.collectAsState()
     val sessionState by controller.sessionState.collectAsState()
     val blockTypesController = controller.blockTypes
@@ -105,7 +107,7 @@ internal fun WorkspaceScreen(
     val aiSteps by controller.commands.aiSteps.collectAsState()
     val latestAiStep = aiSteps.lastOrNull()
     var revisitedAiStep by remember { mutableStateOf<RevisitedAiStep?>(null) }
-    val shownAiStep = shownAiStep(latestAiStep, revisitedAiStep)
+    val shownAiStep = shownAiStep(latestAiStep, revisitedAiStep)?.takeIf { isAiEnabled }
     var isFollowingAi by remember { mutableStateOf(true) }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
     val readOnlyReason = (controller.formatStatus.collectAsState().value as? ProjectFormatStatus.ReadOnly)?.toRejection()
@@ -144,7 +146,7 @@ internal fun WorkspaceScreen(
     }
     LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
         val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
-        if (isFollowingAi && blockTypesController?.get(name) != null && blockTypesController.selectedName.value != name) {
+        if (isAiEnabled && isFollowingAi && blockTypesController?.get(name) != null && blockTypesController.selectedName.value != name) {
             controller.sceneEditing.close()
             blockTypesController.select(name)
         }
@@ -173,6 +175,7 @@ internal fun WorkspaceScreen(
                 onPlay = controller::play,
                 onStop = controller::stopSession,
                 onRefresh = controller::refreshResources,
+                onOpenSettings = onOpenSettings,
                 onCloseProject = onCloseProject,
             )
             HorizontalDivider()
@@ -267,7 +270,7 @@ internal fun WorkspaceScreen(
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
-                if (openPanel == SidePanel.AI) {
+                if (openPanel == SidePanel.AI && isAiEnabled) {
                     VerticalDivider()
                     val digest by produceState<ProjectDigest?>(null, aiPanelView, blockTypes, resources, sceneDescriptions, latestAiStep?.id, sceneEditing) {
                         value = if (aiPanelView == AiPanelView.GAME_MAP) controller.commands.context.projectDigest() else null

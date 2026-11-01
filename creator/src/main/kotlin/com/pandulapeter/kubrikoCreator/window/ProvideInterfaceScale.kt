@@ -13,22 +13,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 
 /**
- * Draws [content] at the desktop's interface scale, by scaling the density everything under it converts its dp and sp
+ * Draws [content] at the interface [scale] (Creator settings), by scaling the density everything under it converts its dp and sp
  * with. That is the one lever that shrinks Material as a whole - text, icons, paddings, bars and dialogs in the
  * proportions they were designed in - where scaling the typography alone would leave every row and button at the size
  * it has on a phone, around smaller text.
  */
 @Composable
 internal fun ProvideInterfaceScale(
+    scale: Float = CreatorSettings.DEFAULT_INTERFACE_SCALE,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
     CompositionLocalProvider(
-        LocalDensity provides Density(density = density.density * INTERFACE_SCALE, fontScale = density.fontScale),
+        LocalDensity provides Density(density = density.density * scale, fontScale = density.fontScale),
         content = content,
     )
 }
-
-private const val INTERFACE_SCALE = 0.85f

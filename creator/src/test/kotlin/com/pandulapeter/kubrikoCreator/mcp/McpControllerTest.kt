@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.mcp
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -40,11 +42,12 @@ class McpControllerTest {
         directory.deleteRecursively()
     }
 
-    private fun TestScope.controller() = McpController(
+    private fun TestScope.controller(isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true)) = McpController(
         server = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
         store = store,
         scope = testScope(),
         ioDispatcher = Dispatchers.IO,
+        isAiEnabled = isAiEnabled,
     ).also { controllers += it }
 
     private fun freePort() = ServerSocket(0).use { it.localPort }
@@ -68,6 +71,26 @@ class McpControllerTest {
         assertTrue(isListening(port))
         controller.setEnabled(false)
         assertEquals(McpServerState.Off, controller.awaitState(McpServerState.Off))
+        assertFalse(isListening(port))
+    }
+
+    @Test
+    fun turningAiFeaturesOffStopsTheServerAndTurningThemOnStartsItAsItWas() = runTest {
+        val port = freePort()
+        store.save(store.load().copy(isEnabled = true, port = port))
+        val isAiEnabled = MutableStateFlow(false)
+        val controller = controller(isAiEnabled)
+        assertEquals(McpServerState.Off, controller.awaitState(McpServerState.Off))
+        assertFalse(isListening(port))
+        isAiEnabled.value = true
+        assertEquals(McpServerState.Running(port), controller.awaitState(McpServerState.Running(port)))
+        isAiEnabled.value = false
+        assertEquals(McpServerState.Off, controller.awaitState(McpServerState.Off))
+        assertFalse(isListening(port))
+        assertTrue(controller.settings.value.isEnabled)
+        controller.setPort(port)
+        controller.setEnabled(true)
+        withContext(Dispatchers.IO) { Thread.sleep(200) }
         assertFalse(isListening(port))
     }
 

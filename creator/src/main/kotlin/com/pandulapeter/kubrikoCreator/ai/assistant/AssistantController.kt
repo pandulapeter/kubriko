@@ -20,8 +20,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -55,6 +58,8 @@ import java.io.IOException
  * @param errorLogFile Where agents' standard error is kept ([AgentErrorLog]), for the user to open.
  * @param conversations Where the conversations are kept per project, to be continued later.
  * @param node Downloads a Node.js of Creator's own for a user without one.
+ * @param isAiEnabled Whether AI features are on: while they are off, no agent starts, no conversation opens, the registry
+ *   isn't fetched, and turning them off ends what runs.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
@@ -75,6 +80,7 @@ internal class AssistantController(
     private val conversations: SavedConversationStore? = null,
     private val clock: () -> Long = System::currentTimeMillis,
     node: NodeRuntime? = null,
+    private val isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
     private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))
@@ -146,6 +152,7 @@ internal class AssistantController(
 
     init {
         scope.launch { loadAgents() }
+        scope.launch { isAiEnabled.drop(1).filter { !it }.collect { turnOff() } }
     }
 
     /**
@@ -225,6 +232,7 @@ internal class AssistantController(
     }
 
     private fun openChat(start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
+        if (!isAiEnabled.value) return
         val directory = project ?: return
         val agentId = _agent.value.id
         var owner: Assistant? = null
@@ -278,6 +286,7 @@ internal class AssistantController(
      * terminal method succeeds, prompts refused for want of a sign-in are sent again.
      */
     fun signIn(method: SignInMethod) {
+        if (!isAiEnabled.value) return
         if (method.variables != null) {
             _variablesFailed.value = false
             _variablesForm.value = method
@@ -347,6 +356,7 @@ internal class AssistantController(
      * Downloads a Node.js of Creator's own, then starts the conversations that couldn't start for want of one.
      */
     fun installNode() {
+        if (!isAiEnabled.value) return
         _nodeInstallFailure.value = null
         scope.launch {
             try {
@@ -427,6 +437,7 @@ internal class AssistantController(
         }
         updateAgents(withContext(ioDispatcher) { registry.cached() })
         agentsLoaded.complete(Unit)
+        isAiEnabled.first { it }
         withContext(ioDispatcher) { registry.refresh() }?.let(::updateAgents)
     }
 
@@ -436,6 +447,7 @@ internal class AssistantController(
     }
 
     private suspend fun assistant(): Assistant = assistantLock.withLock {
+        check(isAiEnabled.value) { "AI features are off." }
         assistant.value ?: run {
             agentsLoaded.await()
             val choice = _agent.value
@@ -443,6 +455,16 @@ internal class AssistantController(
             val environment = if (choice.isClaude) claude.environment() else agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty())
             createAssistant(commands.of(choice, npx, environment), npx, choice.profile).also { assistant.value = it }
         }
+    }
+
+    /**
+     * Ends every conversation, the sign-in, and the agent, when AI features are turned off.
+     */
+    private fun turnOff() {
+        endChats()
+        _variablesForm.value = null
+        closeSignIn()
+        scope.launch { replaceAssistant() }
     }
 
     /**

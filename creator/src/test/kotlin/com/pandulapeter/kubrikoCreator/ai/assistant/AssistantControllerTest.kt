@@ -18,6 +18,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -26,6 +28,7 @@ import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -61,7 +64,11 @@ class AssistantControllerTest {
 
     private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
 
-    private fun controller(registry: AgentRegistryStore? = null, installer: BinaryAgentInstaller? = null) = AssistantController(
+    private fun controller(
+        registry: AgentRegistryStore? = null,
+        installer: BinaryAgentInstaller? = null,
+        isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
+    ) = AssistantController(
         scope = scope,
         runner = runner,
         store = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
@@ -84,6 +91,7 @@ class AssistantControllerTest {
         installer = installer,
         conversations = SavedConversationStore(File(settingsDirectory, "conversations.json")),
         clock = { 1_000 },
+        isAiEnabled = isAiEnabled,
     ).also { controllers += it }
 
     private fun registry(vararg agents: String) = AgentRegistryStore(File(settingsDirectory, "agent-registry.json"), "darwin-aarch64") {
@@ -105,6 +113,40 @@ class AssistantControllerTest {
         val controller = controller()
         onMain { controller.newChat() }
         assertNull(controller.currentChat.value)
+    }
+
+    @Test
+    fun withAiFeaturesOffNoConversationOpensNoAgentStartsAndTheRegistryIsNotFetched() = test {
+        val fetches = AtomicInteger()
+        val registry = AgentRegistryStore(File(settingsDirectory, "agent-registry.json"), "darwin-aarch64") {
+            fetches.incrementAndGet()
+            """{"agents": []}"""
+        }
+        val isAiEnabled = MutableStateFlow(false)
+        val controller = controller(registry = registry, isAiEnabled = isAiEnabled)
+        onMain {
+            controller.setProject(projectDirectory)
+            controller.newChat()
+            controller.installNode()
+        }
+        delay(200)
+        assertNull(controller.currentChat.value)
+        assertTrue(commands.isEmpty())
+        assertEquals(0, fetches.get())
+        isAiEnabled.value = true
+        withTimeout(5.seconds) { while (fetches.get() == 0) delay(10) }
+        controller.startChat().state.first { it == ChatState.Ready }
+        assertEquals(1, commands.size)
+    }
+
+    @Test
+    fun turningAiFeaturesOffEndsTheConversationsAndTheAgent() = test {
+        val isAiEnabled = MutableStateFlow(true)
+        val controller = controller(isAiEnabled = isAiEnabled)
+        controller.startChat().state.first { it == ChatState.Ready }
+        isAiEnabled.value = false
+        withTimeout(5.seconds) { while (controller.currentChat.value != null || launcher.channels.any { !it.isStopped }) delay(10) }
+        assertTrue(controller.chats.value.isEmpty())
     }
 
     @Test

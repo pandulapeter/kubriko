@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,11 +32,13 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new_project
 import kubriko.creator.generated.resources.action_open_project
+import kubriko.creator.generated.resources.action_open_settings
 import kubriko.creator.generated.resources.app_name
 import kubriko.creator.generated.resources.choose_project_folder
 import kubriko.creator.generated.resources.ic_create_new_folder
 import kubriko.creator.generated.resources.ic_folder_open
 import kubriko.creator.generated.resources.ic_icon
+import kubriko.creator.generated.resources.ic_settings
 import kubriko.creator.generated.resources.welcome_subtitle
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -50,6 +53,7 @@ internal fun WelcomeScreen(
     onNewProject: () -> Unit,
     onOpenProject: (File) -> Unit,
     onForgetRecentProject: (RecentProject) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val pickerTitle = stringResource(Res.string.choose_project_folder)
     Column(
@@ -64,6 +68,7 @@ internal fun WelcomeScreen(
             onOpenProject = onOpenProject,
             onPickFolder = { pickFolder(pickerTitle)?.let(onOpenProject) },
             onForgetRecentProject = onForgetRecentProject,
+            onOpenSettings = onOpenSettings,
         )
     }
 }
@@ -76,6 +81,7 @@ private fun WelcomeContent(
     onOpenProject: (File) -> Unit,
     onPickFolder: () -> Unit,
     onForgetRecentProject: (RecentProject) -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -106,6 +112,9 @@ private fun WelcomeContent(
             }
             OutlinedButton(onClick = onPickFolder) {
                 ButtonLabel(Res.drawable.ic_folder_open, Res.string.action_open_project)
+            }
+            TextButton(onClick = onOpenSettings) {
+                ButtonLabel(Res.drawable.ic_settings, Res.string.action_open_settings)
             }
         }
         if (error != null) {

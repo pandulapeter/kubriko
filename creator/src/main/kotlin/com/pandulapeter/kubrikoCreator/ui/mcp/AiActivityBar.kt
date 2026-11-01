@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.ui.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.description
 import kotlinx.coroutines.delay
 import kubriko.creator.generated.resources.Res
@@ -63,6 +64,7 @@ internal fun AiActivityBar(
     onFollowingChange: (Boolean) -> Unit,
     onClick: () -> Unit,
 ) {
+    if (!LocalIsAiEnabled.current) return
     val current = steps.lastOrNull()
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(current?.id, current?.isRunning) {

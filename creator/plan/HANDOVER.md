@@ -28,11 +28,10 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`03-settings.md` (Creator settings with the switch that turns every AI feature off, and Project settings), then `04` to `07` in
-order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
-The AI switch's test can walk the AI panel's parts offscreen (`uiTest`) with it off and find no AI string; the AI
-surfaces today are `AiPanel` (and its toolbar button), `AiActivityBar` with the AI following and flashing (`ui/AiFollowing.kt`),
-`McpController`, and `AssistantController`.
+Project settings in `03-settings.md` (identity as a template upgrade, icons, targets, game, release, signing, and their AI
+tools); Creator settings are built (see To check by hand), with what is left of them waiting for other plans.
+Then `04` to `07` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for
+the benchmarks. A new AI surface reads `LocalIsAiEnabled` and joins `AiFeaturesOffTest`.
 
 ## How to check work
 
@@ -49,6 +48,14 @@ surfaces today are `AiPanel` (and its toolbar button), `AiActivityBar` with the 
 - **Templates for real**: the integration test in `../CLAUDE.md` → Running and testing builds every template.
 
 ## To check by hand
+
+**Creator settings (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- The dialog from the welcome screen and the toolbar; theme and interface size changing the whole window at once (the title
+  bar's light or dark controls too) and kept across restarts in `settings.json`.
+- AI features off with the MCP server on and a conversation running: the server stops (a client can't connect), the agent's
+  `node` process ends, the AI button, activity bar, and panel go; back on, the server runs on the same port and the panel opens
+  empty. Started with it off: no `agent-registry.json` fetch and no `npx` process.
+- The default project folder in New project, and Use the home folder.
 
 **Stability (built and unit-tested on 2026-11-01, not yet seen in the app)**
 - Format version 1 on the scratch Breakout copy: opening it records `"formatVersion": 1` and `minimumCreatorVersion`, and Kotlin

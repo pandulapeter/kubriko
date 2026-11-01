@@ -10,19 +10,47 @@
 package com.pandulapeter.kubrikoCreator.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.uiComponents.theme.KubrikoColors
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
+import com.pandulapeter.kubrikoCreator.settings.ThemeChoice
 
 /**
- * Kubriko's theme with the Creator's own [CreatorTypography] in place of the shared one.
+ * Kubriko's theme with the Creator's own [CreatorTypography] in place of the shared one, light or dark as [theme] says.
  */
 @Composable
 internal fun CreatorTheme(
+    theme: ThemeChoice = ThemeChoice.SYSTEM,
     content: @Composable () -> Unit,
 ) = KubrikoTheme {
     MaterialTheme(
-        colorScheme = MaterialTheme.colorScheme,
+        colorScheme = when (theme) {
+            ThemeChoice.SYSTEM -> MaterialTheme.colorScheme
+            ThemeChoice.LIGHT -> LightScheme
+            ThemeChoice.DARK -> DarkScheme
+        },
         typography = CreatorTypography(),
         content = content,
     )
 }
+
+/**
+ * The same colors [KubrikoTheme] picks from the system's setting.
+ */
+private val LightScheme = lightColorScheme(
+    primary = KubrikoColors.brandPrimary,
+    onPrimary = KubrikoColors.onBrandPrimary,
+    primaryContainer = KubrikoColors.brandPrimary,
+    onPrimaryContainer = KubrikoColors.onBrandPrimary,
+    secondary = KubrikoColors.brandPrimary,
+)
+
+private val DarkScheme = darkColorScheme(
+    primary = KubrikoColors.brandPrimary,
+    onPrimary = KubrikoColors.onBrandPrimary,
+    primaryContainer = KubrikoColors.brandPrimary,
+    onPrimaryContainer = KubrikoColors.onBrandPrimary,
+    secondary = KubrikoColors.brandSecondary,
+)

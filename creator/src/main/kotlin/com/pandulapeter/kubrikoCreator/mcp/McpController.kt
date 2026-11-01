@@ -16,7 +16,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -25,12 +27,16 @@ import java.io.IOException
 
 /**
  * The AI connection: its settings, and the MCP server they start and stop. Settings changes restart the server.
+ *
+ * @param isAiEnabled Whether AI features are on: while they are off, the server is stopped whatever the settings say,
+ *   and they are kept for when AI features are turned on again.
  */
 internal class McpController(
     private val server: McpToolServer,
     private val store: McpSettingsStore,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
+    private val isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
 ) : AutoCloseable {
     private val _settings = MutableStateFlow(store.load())
     val settings = _settings.asStateFlow()
@@ -43,6 +49,7 @@ internal class McpController(
 
     init {
         apply(_settings.value)
+        scope.launch { isAiEnabled.drop(1).collect { apply(_settings.value) } }
     }
 
     fun setEnabled(isEnabled: Boolean) = update(_settings.value.copy(isEnabled = isEnabled))
@@ -96,7 +103,7 @@ internal class McpController(
             // keeps every earlier change out, since the one before may have been cancelled while an older one still runs.
             restarts.withLock {
                 withContext(ioDispatcher) { server.stop() }
-                if (!settings.isEnabled) {
+                if (!settings.isEnabled || !isAiEnabled.value) {
                     _state.value = McpServerState.Off
                     return@launch
                 }

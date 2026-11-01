@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,7 +42,10 @@ import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
+import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
+import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsStore
 import com.pandulapeter.kubrikoCreator.ui.AppContent
+import com.pandulapeter.kubrikoCreator.ui.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorTheme
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
 import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar
@@ -52,6 +56,7 @@ import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar
 import com.pandulapeter.kubrikoCreator.window.rememberIsFullscreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
@@ -77,6 +82,8 @@ fun main(args: Array<String>) {
         val compositionScope = rememberCoroutineScope()
         val controller = remember { AppController(compositionScope) }
         val scope = controller.scope
+        val creatorSettings = remember { CreatorSettingsController(CreatorSettingsStore.default(), scope, Dispatchers.IO) }
+        val settings by creatorSettings.settings.collectAsState()
         val mcp = remember {
             McpController(
                 server = McpToolServer(
@@ -87,15 +94,17 @@ fun main(args: Array<String>) {
                 store = McpSettingsStore.default(),
                 scope = scope,
                 ioDispatcher = Dispatchers.IO,
+                isAiEnabled = creatorSettings.isAiEnabled,
             )
         }
         val aiClients = remember { AiClientsController(mcp = mcp, runner = ShellProcessRunner(), scope = scope, ioDispatcher = Dispatchers.IO) }
-        val assistant = remember { assistantController(scope) { controller.openProjectCommands } }
+        val assistant = remember { assistantController(scope, creatorSettings.isAiEnabled) { controller.openProjectCommands } }
         val screen by controller.screen.collectAsState()
         val openProjectDirectory = (screen as? AppScreen.Workspace)?.controller?.project?.rootDirectory
         LaunchedEffect(openProjectDirectory) { assistant.setProject(openProjectDirectory) }
         val recentProjects by controller.recentProjects.collectAsState()
-        val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
+        val homeFolder = remember { File(System.getProperty("user.home")) }
+        val defaultParentDirectory = settings.defaultProjectFolder?.let(::File) ?: homeFolder
         val windowState = rememberWindowState(width = 1280.dp, height = 820.dp)
         var titleBar by remember { mutableStateOf<ExtendedTitleBar?>(null) }
         LaunchedEffect(Unit) {
@@ -123,10 +132,11 @@ fun main(args: Array<String>) {
                 titleBar = titleBar,
                 isFullscreen = rememberIsFullscreen(window = window, windowState = windowState),
             ) {
-                ProvideInterfaceScale {
-                    CreatorTheme {
+                ProvideInterfaceScale(settings.interfaceScale) {
+                    CreatorTheme(settings.theme) {
                         titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
-                        AppContent(
+                        CompositionLocalProvider(LocalIsAiEnabled provides settings.isAiEnabled) {
+                            AppContent(
                             screen = screen,
                             recentProjects = recentProjects,
                             defaultParentDirectory = defaultParentDirectory,
@@ -138,7 +148,10 @@ fun main(args: Array<String>) {
                             mcp = mcp,
                             aiClients = aiClients,
                             assistant = assistant,
+                            creatorSettings = creatorSettings,
+                            homeFolder = homeFolder,
                         )
+                        }
                     }
                 }
             }
@@ -148,9 +161,9 @@ fun main(args: Array<String>) {
 
 /**
  * The assistant, whose agent runs Claude Agent through the user's `npx`, with tools of its own working on the project
- * [executor] gives.
+ * [executor] gives, while [isAiEnabled].
  */
-private fun assistantController(scope: CoroutineScope, executor: () -> CommandExecutor?): AssistantController {
+private fun assistantController(scope: CoroutineScope, isAiEnabled: StateFlow<Boolean>, executor: () -> CommandExecutor?): AssistantController {
     val version = CreatorConfiguration.load().kubrikoVersion
     val errorLog = AgentErrorLog.default()
     val installer = BinaryAgentInstaller.default()
@@ -186,5 +199,6 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         node = NodeRuntime(installer, File(BinaryAgentInstaller.defaultDirectory(), NodeRuntime.NODE_ID)),
         errorLogFile = errorLog.file,
         conversations = SavedConversationStore.default(),
+        isAiEnabled = isAiEnabled,
     )
 }

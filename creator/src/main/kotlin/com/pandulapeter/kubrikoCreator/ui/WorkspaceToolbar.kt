@@ -43,6 +43,7 @@ import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_project
+import kubriko.creator.generated.resources.action_open_settings
 import kubriko.creator.generated.resources.action_play
 import kubriko.creator.generated.resources.action_redo
 import kubriko.creator.generated.resources.action_redo_named
@@ -58,6 +59,7 @@ import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_redo
 import kubriko.creator.generated.resources.ic_refresh
+import kubriko.creator.generated.resources.ic_settings
 import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.ic_undo
 import kubriko.creator.generated.resources.session_editing
@@ -81,6 +83,7 @@ internal fun WorkspaceToolbar(
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onRefresh: () -> Unit,
+    onOpenSettings: () -> Unit,
     onCloseProject: () -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().height(44.dp).padding(horizontal = 12.dp),
@@ -128,20 +131,22 @@ internal fun WorkspaceToolbar(
         onUndo = onUndo,
         onRedo = onRedo,
     )
-    PanelToggle(
-        isOpen = openPanel == SidePanel.AI,
-        onClick = { onPanelToggled(SidePanel.AI) },
-    ) {
-        Icon(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(Res.drawable.ic_ai),
-            contentDescription = null,
-            tint = if (isAiConnected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-        )
-        Text(
-            modifier = Modifier.padding(start = 6.dp),
-            text = stringResource(Res.string.action_toggle_ai),
-        )
+    if (LocalIsAiEnabled.current) {
+        PanelToggle(
+            isOpen = openPanel == SidePanel.AI,
+            onClick = { onPanelToggled(SidePanel.AI) },
+        ) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(Res.drawable.ic_ai),
+                contentDescription = null,
+                tint = if (isAiConnected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+            )
+            Text(
+                modifier = Modifier.padding(start = 6.dp),
+                text = stringResource(Res.string.action_toggle_ai),
+            )
+        }
     }
     PanelToggle(
         isOpen = openPanel == SidePanel.VERSION_CONTROL,
@@ -153,6 +158,11 @@ internal fun WorkspaceToolbar(
         icon = Res.drawable.ic_refresh,
         label = Res.string.action_refresh,
         onClick = onRefresh,
+    )
+    IconActionButton(
+        icon = Res.drawable.ic_settings,
+        label = Res.string.action_open_settings,
+        onClick = onOpenSettings,
     )
     IconActionButton(
         icon = Res.drawable.ic_close,

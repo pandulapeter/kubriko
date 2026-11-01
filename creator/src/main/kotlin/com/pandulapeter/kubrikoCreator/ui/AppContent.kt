@@ -15,13 +15,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.AppScreen
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
+import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.app_name
 import kubriko.creator.generated.resources.creating_project
@@ -43,10 +50,24 @@ internal fun AppContent(
     mcp: McpController,
     aiClients: AiClientsController,
     assistant: AssistantController,
+    creatorSettings: CreatorSettingsController,
+    homeFolder: File,
 ) = Surface(
     modifier = Modifier.fillMaxSize(),
     color = MaterialTheme.colorScheme.surface,
 ) {
+    var isShowingSettings by remember { mutableStateOf(false) }
+    if (isShowingSettings) {
+        CreatorSettingsDialog(
+            settings = creatorSettings.settings.collectAsState().value,
+            homeFolder = homeFolder,
+            onAiEnabledChange = creatorSettings::setAiEnabled,
+            onThemeChange = creatorSettings::setTheme,
+            onInterfaceScaleChange = creatorSettings::setInterfaceScale,
+            onDefaultProjectFolderChange = creatorSettings::setDefaultProjectFolder,
+            onDismiss = { isShowingSettings = false },
+        )
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -68,6 +89,7 @@ internal fun AppContent(
                 mcp = mcp,
                 aiClients = aiClients,
                 assistant = assistant,
+                onOpenSettings = { isShowingSettings = true },
             )
         }
     }
@@ -86,6 +108,7 @@ private fun ScreenContent(
     mcp: McpController,
     aiClients: AiClientsController,
     assistant: AssistantController,
+    onOpenSettings: () -> Unit,
 ) {
     when (screen) {
         is AppScreen.Welcome -> WelcomeScreen(
@@ -94,6 +117,7 @@ private fun ScreenContent(
             onNewProject = onNewProject,
             onOpenProject = onOpenProject,
             onForgetRecentProject = onForgetRecentProject,
+            onOpenSettings = onOpenSettings,
         )
         is AppScreen.NewProject -> NewProjectScreen(
             error = screen.error,
@@ -114,6 +138,7 @@ private fun ScreenContent(
             aiClients = aiClients,
             assistant = assistant,
             onCloseProject = onCloseProject,
+            onOpenSettings = onOpenSettings,
         )
     }
 }
