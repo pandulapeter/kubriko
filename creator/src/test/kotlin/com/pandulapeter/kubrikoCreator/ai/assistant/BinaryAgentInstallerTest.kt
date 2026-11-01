@@ -11,6 +11,9 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import java.io.File
 import java.io.IOException
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.createTempDirectory
@@ -63,6 +66,23 @@ class BinaryAgentInstallerTest {
         installer.install(agent(), binary(URL, BinaryAgentInstaller.sha256Of(archive)))
         assertEquals(listOf(URL), downloads)
         assertFalse(File(tools, "antigravity-acp/1.4.5.download").exists())
+    }
+
+    @Test
+    fun theProgramsAnArchiveStartsInTurnStayExecutable() {
+        if (isWindows) return
+        val archive = File(directory, "agy-helper.zip")
+        FileSystems.newFileSystem(archive.toPath(), mapOf("create" to "true", "enablePosixFileAttributes" to "true")).use { zip ->
+            mapOf("agy_acp_server.par" to "rwxr-xr-x", "localharness_external" to "rwxr-xr-x", "notes.txt" to "rw-r--r--").forEach { (name, permissions) ->
+                val path = zip.getPath(name)
+                Files.writeString(path, name)
+                Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(permissions))
+            }
+        }
+        served[URL] = archive
+        val folder = installer.install(agent(), binary(URL)).parentFile
+        assertTrue(File(folder, "localharness_external").canExecute())
+        assertFalse(File(folder, "notes.txt").canExecute())
     }
 
     @Test

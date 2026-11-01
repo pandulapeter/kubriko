@@ -16,6 +16,9 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 import java.security.MessageDigest
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -84,15 +87,39 @@ internal class BinaryAgentInstaller(
         }
     }
 
-    private fun unzip(archive: File, into: File) = ZipInputStream(archive.inputStream().buffered()).use { zip ->
-        generateSequence { zip.nextEntry }.forEach { entry ->
-            val target = File(into, entry.name).normalize()
-            if (!target.isInside(into)) throw IOException("The archive holds ${entry.name}, which is outside it.")
-            if (entry.isDirectory) {
-                target.mkdirs()
-            } else {
-                target.parentFile.mkdirs()
-                target.outputStream().use { zip.copyTo(it) }
+    private fun unzip(archive: File, into: File) {
+        ZipInputStream(archive.inputStream().buffered()).use { zip ->
+            generateSequence { zip.nextEntry }.forEach { entry ->
+                val target = File(into, entry.name).normalize()
+                if (!target.isInside(into)) throw IOException("The archive holds ${entry.name}, which is outside it.")
+                if (entry.isDirectory) {
+                    target.mkdirs()
+                } else {
+                    target.parentFile.mkdirs()
+                    target.outputStream().use { zip.copyTo(it) }
+                }
+            }
+        }
+        if (!isWindows) applyZipPermissions(archive, into)
+    }
+
+    /**
+     * Gives the files unpacked from [archive] the Unix permissions it stores, which [ZipInputStream] can't read: an agent
+     * may start other programs of its archive (Google Antigravity does), which must stay executable.
+     */
+    private fun applyZipPermissions(archive: File, into: File) = FileSystems.newFileSystem(archive.toPath(), mapOf("enablePosixFileAttributes" to "true")).use { zip ->
+        val root = zip.getPath("/")
+        Files.walk(root).use { paths ->
+            paths.filter { Files.isRegularFile(it) }.forEach { source ->
+                val target = File(into, root.relativize(source).toString()).normalize()
+                if (target.isFile && target.isInside(into)) {
+                    val permissions = try {
+                        Files.getPosixFilePermissions(source)
+                    } catch (_: UnsupportedOperationException) {
+                        null
+                    }
+                    permissions?.let { Files.setPosixFilePermissions(target.toPath(), it + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_WRITE) }
+                }
             }
         }
     }
