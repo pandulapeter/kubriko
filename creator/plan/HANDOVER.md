@@ -27,14 +27,11 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`02-ai-assistant.md` → Order (every stability item was built and committed on 2026-11-01; the user asked for them
-to be done one after another without waiting for input): the panel's tool call cards tied into the activity view (7), together with the five "First" items of
-its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
-built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
-`claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic
-Console, the subscription method ran the real adapter's `claude auth login` in the panel (browser opening stubbed) with its link and
-code field, Close ended it, and the API key form opened and cancelled. What is left in `01-large-projects.md` waits for other plans
-(Traits, UI elements, git) or for the benchmarks.
+`02-ai-assistant.md` → Order: the five "First" items of Context for large games (the project digest with descriptions, compact
+Block notation and zoom levels, reads that know what was seen, `get_relations`, and token budgets as tests), then the files in
+order, with the rest of `02-ai-assistant.md` alongside them. The panel's tool call cards were tied into the activity view on
+2026-11-01 (see To check by hand). What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for
+the benchmarks.
 
 ## To check by hand
 
@@ -68,6 +65,12 @@ code field, Close ended it, and the API key form opened and cancelled. What is l
   `generated/<Name>.kt` goes, the console says so, and the build works; the same with that file edited by hand first (kept,
   named in the console as an error once).
 - Crash-safe writes on Windows (a Scene the running game holds open, which a move may be refused for) and on a network drive.
+
+**Tool call cards (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- In a real conversation, each Creator tool call card names what it worked on (`Ball, Event 2`), clicking one about a type or a
+  Scene goes there and lights it up again (also when clicked twice), and a new AI step takes the light back. This relies on Claude
+  Code sending `_meta["claudecode/toolUseId"]` (found in the bundled `claude` binary) matching the adapter's tool call ID; if
+  cards show no target, the ordered fallback is in use or the IDs differ.
 
 **The assistant panel (seen working on 2026-10-29: a change followed in the editor and undone, Stop, Tab completion, Effort,
 several conversations, the default and alias configurations, and closing the project mid-turn)**
