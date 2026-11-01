@@ -224,7 +224,7 @@ internal class AcpAgent(
         if (isClosed) {
             this.connection = null
             shutDown(connection.scope, connection.channel)
-            error("The agent was closed.")
+            throw AgentClosedException()
         }
         scope.launch {
             val exitCode = withContext(ioDispatcher) { connection.channel.awaitExit() }
