@@ -51,7 +51,9 @@ import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
+import com.pandulapeter.kubrikoCreator.context.healthFindings
 import com.pandulapeter.kubrikoCreator.context.projectDigest
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
@@ -270,6 +272,9 @@ internal fun WorkspaceScreen(
                     val digest by produceState<ProjectDigest?>(null, aiPanelView, blockTypes, resources, sceneDescriptions, latestAiStep?.id, sceneEditing) {
                         value = if (aiPanelView == AiPanelView.GAME_MAP) controller.commands.context.projectDigest() else null
                     }
+                    val findings by produceState(emptyList<HealthFinding>(), aiPanelView, blockTypes, resources, latestAiStep?.id, sceneEditing) {
+                        value = if (aiPanelView == AiPanelView.GAME_MAP) controller.commands.context.healthFindings() else emptyList()
+                    }
                     AiPanel(
                         modifier = Modifier.width(360.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                         view = aiPanelView,
@@ -287,6 +292,7 @@ internal fun WorkspaceScreen(
                             }
                         },
                         digest = digest,
+                        findings = findings,
                         onTypeSelected = { folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, it) },
                         onSceneSelected = { if (openSceneName != it) folderTreeActions.onSelected(FolderGroup.SCENES, it) },
                         attention = AttentionChip.of(

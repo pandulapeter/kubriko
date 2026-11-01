@@ -555,6 +555,7 @@
     <string name="command_list_scenes">List the Scenes</string>
     <string name="command_read_scene">Read a Scene</string>
     <string name="command_get_relations">Look at what refers to what</string>
+    <string name="command_get_health_checks">Look for what is worth a look</string>
     <string name="command_set_description">Change a description</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>
@@ -574,6 +575,12 @@
     <string name="ai_target_version_control">Version control</string>
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
+    <string name="game_map_worth_a_look">Worth a look</string>
+    <string name="health_unused_actor_type">%1$s: no Scene places it and no Block adds it.</string>
+    <string name="health_unreached_scene">%1$s: nothing goes to it, which is fine if the game starts with it.</string>
+    <string name="health_unread_property">%1$s: nothing reads it.</string>
+    <string name="health_timer_never_started">%1$s: the Timer %2$s never starts, so its Event never runs.</string>
+    <string name="health_collision_with_absent_type">%1$s: %2$s is never in a Scene, so their collision Event never runs.</string>
     <string name="game_map_title">What the AI knows about your game</string>
     <string name="action_toggle_ai">AI</string>
     <string name="action_show_game_map">What the AI knows about your game: the summary every conversation starts with</string>

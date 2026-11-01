@@ -166,8 +166,8 @@ understand the game is shown to the user too.
   and Claude Code's tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it.
 - **Exploring in subagents:** questions such as "which types change the score?" go to a subagent, defined through the session options
   rather than files in the project, so the conversation's context stays clean.
-- **Health checks** computed from the model: unused types, Scenes nothing goes to, Properties never read, and Events that can never
-  fire. Shown in the editor and readable by the AI.
+- **More health checks:** a Scene nothing goes to other than the first (needs the first Scene known from `Game.kt`), and the
+  findings shown where their subject is edited, beside the map's list.
 - **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do), and a dry
   run for write tools.
 - **Cheaper screenshots:** downscaled or cropped to a region or an Actor, and replaced by Actors' states from the debug agent

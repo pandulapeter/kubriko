@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -31,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
  * assistant, or an AI tool of the user's own connected over MCP. What the AI is told about the game sits behind a button.
  *
  * @param digest What the AI is told about the game, read only while that view is shown.
+ * @param findings What about the game is worth a look, shown with it.
  * @param attention What the user is looking at, which the assistant offers with the next message.
  * @param captureScreen Takes a screenshot of the running game.
  */
@@ -44,6 +46,7 @@ internal fun AiPanel(
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     digest: ProjectDigest?,
+    findings: List<HealthFinding>,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     attention: List<AttentionChip>,
@@ -88,6 +91,7 @@ internal fun AiPanel(
         AiPanelView.GAME_MAP -> GameMapPanel(
             modifier = content,
             digest = digest,
+            findings = findings,
             onTypeSelected = onTypeSelected,
             onSceneSelected = onSceneSelected,
         )

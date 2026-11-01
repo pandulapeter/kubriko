@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
@@ -58,6 +59,7 @@ import org.jetbrains.compose.resources.stringResource
  * type and Scene opening on a click.
  *
  * @param digest The digest of the open project, or null while it is worked out.
+ * @param findings What about the game is worth a look, shown first.
  */
 @Composable
 internal fun GameMapPanel(
@@ -65,6 +67,7 @@ internal fun GameMapPanel(
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
+    findings: List<HealthFinding> = emptyList(),
 ) = Column(
     modifier = modifier,
 ) {
@@ -86,6 +89,7 @@ internal fun GameMapPanel(
             )
         }
         if (digest == null) return@LazyColumn
+        healthSection(findings, onTypeSelected, onSceneSelected)
         if (digest.actorTypes.isEmpty() && digest.managerTypes.isEmpty() && digest.scenes.isEmpty()) {
             item { Text(stringResource(Res.string.game_map_empty), style = MaterialTheme.typography.bodySmall) }
         }
