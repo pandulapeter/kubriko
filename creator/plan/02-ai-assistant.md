@@ -60,8 +60,8 @@ Read from Android Studio 2026.2.2's running processes and settings on October 29
 
 All of it lives in a new `ai/assistant` package; the MCP connection for outside clients stays as it is.
 
-1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): the agent's standard error in a log the user can open. Move to protocol
-   version 2 once it is final (the adapter serves its draft).
+1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): move to protocol version 2 once it is final (the adapter serves its
+   draft).
 2. **The agent list** (see `../CLAUDE.md` → Assistant): the registry's icons in the menu (checked against each vendor's trademark rules
    first), and Claude Agent's version, pinned to the one checked, offered as an update once the registry's moves and it is checked.
 3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients

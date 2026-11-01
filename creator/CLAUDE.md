@@ -425,7 +425,9 @@ sends `session/cancel`, and permission requests go to its `PermissionHandler` (`
 started again and its conversations loaded again with `session/load` (the replayed history left out of `updates`), or marked lost
 where the agent can't load them; one that exits within 30 seconds of starting more than three times in a row is `Failed` until it
 is used again, and one without conversations is only started again when used. A process that exits before answering `initialize`, or
-can't be started, fails with `AgentStartException` (its exit code and last standard error lines, also kept in `errorOutput`). Tests run
+can't be started, fails with `AgentStartException` (its exit code and last standard error lines, also kept in `errorOutput`). Every
+process's standard error also goes to `logs/agent.log` in the settings folder (`AgentErrorLog`: each start headed by its time and command,
+moved aside to `agent.log.old` past 1 MB), which the agent menu and a failure open. Tests run
 `FakeAgent`, built on the SDK's agent side, over in-process pipes (`FakeAgentLauncher`).
 
 `Assistant` pairs an agent with an `McpToolServer` of its own, started on a free port with no outside token, so it serves only

@@ -47,11 +47,13 @@ import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
+import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_conversation
 import kubriko.creator.generated.resources.action_install_node
 import kubriko.creator.generated.resources.action_install_uv
 import kubriko.creator.generated.resources.action_new_conversation
+import kubriko.creator.generated.resources.action_open_agent_log
 import kubriko.creator.generated.resources.action_try_again
 import kubriko.creator.generated.resources.assistant_empty
 import kubriko.creator.generated.resources.assistant_note
@@ -118,6 +120,7 @@ private fun AssistantPanelContent(
                 customAgentCommand = controller.customAgentCommand,
                 onSelected = controller::selectAgent,
                 onEnterCustomAgent = { isEnteringCustomAgent = true },
+                onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             )
         }
         IconActionButton(
@@ -181,6 +184,7 @@ private fun AssistantPanelContent(
             modifier = Modifier.weight(1f),
             chat = current,
             download = controller.download.collectAsState().value,
+            onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
             onShowStep = onShowStep,
         ) { isPromptRefused ->
@@ -205,6 +209,7 @@ private fun AssistantPanelContent(
 private fun ChatContent(
     chat: AssistantChat,
     download: AgentDownload?,
+    onOpenLog: (() -> Unit)?,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
@@ -237,6 +242,7 @@ private fun ChatContent(
                 modifier = Modifier.fillMaxSize(),
                 state = failed,
                 onTryAgain = chat::retry.takeIf { failed.reason != FailureReason.CONVERSATION_LOST },
+                onOpenLog = onOpenLog,
             )
         }
     }
@@ -287,6 +293,7 @@ private fun Hint(
 private fun Failure(
     state: ChatState.Failed,
     onTryAgain: (() -> Unit)?,
+    onOpenLog: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier.verticalScroll(rememberScrollState()).padding(16.dp),
@@ -306,6 +313,11 @@ private fun Failure(
     if (state.reason == FailureReason.UV_MISSING) {
         TextButton(onClick = { openInBrowser(UV_INSTALL_URL) }) {
             Text(stringResource(Res.string.action_install_uv))
+        }
+    }
+    onOpenLog?.let { openLog ->
+        TextButton(onClick = openLog) {
+            Text(stringResource(Res.string.action_open_agent_log))
         }
     }
     onTryAgain?.let { tryAgain ->

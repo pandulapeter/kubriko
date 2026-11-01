@@ -15,14 +15,15 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_open_agent_log
 import kubriko.creator.generated.resources.assistant_agent_custom
 import kubriko.creator.generated.resources.assistant_agent_menu
 import kubriko.creator.generated.resources.assistant_agent_untested
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The agent the assistant runs, as a menu of the registry's agents, the custom one if the user entered it, and entering
- * a custom agent.
+ * The agent the assistant runs, as a menu of the registry's agents, the custom one if the user entered it, entering a
+ * custom agent, and opening the agents' log, when there is one.
  */
 @Composable
 internal fun AgentMenu(
@@ -31,20 +32,23 @@ internal fun AgentMenu(
     customAgentCommand: String?,
     onSelected: (AgentChoice) -> Unit,
     onEnterCustomAgent: () -> Unit,
+    onOpenLog: (() -> Unit)? = null,
 ) = WithTooltip(stringResource(Res.string.assistant_agent_menu)) {
     MenuButton(
         label = agent.label(),
-        options = agentMenuItems(agents, customAgentCommand),
+        options = agentMenuItems(agents, customAgentCommand, hasLog = onOpenLog != null),
         optionText = { item ->
             when (item) {
                 is AgentMenuItem.Agent -> item.choice.label()
                 AgentMenuItem.EnterCustom -> stringResource(Res.string.assistant_agent_custom)
+                AgentMenuItem.OpenLog -> stringResource(Res.string.action_open_agent_log)
             }
         },
         onSelected = { item ->
             when (item) {
                 is AgentMenuItem.Agent -> onSelected(item.choice)
                 AgentMenuItem.EnterCustom -> onEnterCustomAgent()
+                AgentMenuItem.OpenLog -> onOpenLog?.invoke()
             }
         },
     )
@@ -56,15 +60,19 @@ internal sealed interface AgentMenuItem {
     ) : AgentMenuItem
 
     data object EnterCustom : AgentMenuItem
+
+    data object OpenLog : AgentMenuItem
 }
 
 /**
- * What the agent menu offers: the registry's agents in their order, the custom agent once there is one, and entering one.
+ * What the agent menu offers: the registry's agents in their order, the custom agent once there is one, entering one, and
+ * the agents' log where there is one.
  */
-internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: String?): List<AgentMenuItem> =
+internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: String?, hasLog: Boolean = false): List<AgentMenuItem> =
     agents.map { AgentMenuItem.Agent(AgentChoice.Registry(it)) } +
         listOfNotNull(customAgentCommand?.let { AgentMenuItem.Agent(AgentChoice.Custom(it)) }) +
-        AgentMenuItem.EnterCustom
+        AgentMenuItem.EnterCustom +
+        listOfNotNull(AgentMenuItem.OpenLog.takeIf { hasLog })
 
 @Composable
 private fun AgentChoice.label() = if (this is AgentChoice.Registry && agent.isTested) name else stringResource(Res.string.assistant_agent_untested, name)

@@ -49,6 +49,7 @@ import java.io.IOException
  * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
  * @param registry Where the registry's agents come from, or null for Claude Agent alone.
  * @param installer Downloads the agents the registry distributes as archives.
+ * @param errorLogFile Where agents' standard error is kept ([AgentErrorLog]), for the user to open.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
@@ -64,6 +65,7 @@ internal class AssistantController(
     private val home: String = System.getProperty("user.home"),
     private val registry: AgentRegistryStore? = null,
     private val installer: BinaryAgentInstaller? = null,
+    val errorLogFile: File? = null,
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
     private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))

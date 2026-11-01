@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentErrorLog
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentRegistryStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
@@ -149,6 +150,7 @@ fun main(args: Array<String>) {
  */
 private fun assistantController(scope: CoroutineScope, executor: () -> CommandExecutor?): AssistantController {
     val version = CreatorConfiguration.load().kubrikoVersion
+    val errorLog = AgentErrorLog.default()
     return AssistantController(
         scope = scope,
         runner = ShellProcessRunner(),
@@ -164,6 +166,7 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
                     clientInfo = AcpAgent.clientInfo(version),
                     scope = scope,
                     ioDispatcher = Dispatchers.IO,
+                    errorLog = errorLog,
                 ),
                 toolServer = McpToolServer(executor = executor, callDispatcher = Dispatchers.Main, version = version),
                 ioDispatcher = Dispatchers.IO,
@@ -176,5 +179,6 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         changeLog = { executor()?.changeLog },
         registry = AgentRegistryStore.default(),
         installer = BinaryAgentInstaller.default(),
+        errorLogFile = errorLog.file,
     )
 }

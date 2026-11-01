@@ -64,6 +64,7 @@ import kotlin.time.TimeSource
  * Creator advertises neither file system nor terminal access, since its own tools make every change.
  *
  * @param scope Where the agent's connection runs; cancelling it ends the agent.
+ * @param errorLog Where every process's standard error is kept for the user.
  */
 internal class AcpAgent(
     private val command: AgentCommand,
@@ -72,6 +73,7 @@ internal class AcpAgent(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val timeSource: TimeSource = TimeSource.Monotonic,
+    private val errorLog: AgentErrorLog? = null,
 ) : AutoCloseable {
     private val _state = MutableStateFlow<AgentState>(AgentState.Stopped)
     val state = _state.asStateFlow()
@@ -198,6 +200,7 @@ internal class AcpAgent(
     private suspend fun connect(): Connection {
         _state.value = AgentState.Starting
         _errorOutput.value = emptyList()
+        errorLog?.started(command)
         val channel = try {
             withContext(ioDispatcher) { launcher.launch(command) }
         } catch (exception: IOException) {
@@ -206,7 +209,10 @@ internal class AcpAgent(
         }
         val connectionScope = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext[Job]))
         val errorReader = connectionScope.launch(ioDispatcher) {
-            channel.errors.bufferedReader().forEachLine { line -> _errorOutput.update { (it + line).takeLast(ERROR_OUTPUT_SIZE) } }
+            channel.errors.bufferedReader().forEachLine { line ->
+                errorLog?.append(line)
+                _errorOutput.update { (it + line).takeLast(ERROR_OUTPUT_SIZE) }
+            }
         }
         val reader = channel.fromAgent.bufferedReader()
         val writer = channel.toAgent.bufferedWriter()
