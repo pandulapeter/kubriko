@@ -63,7 +63,9 @@ import com.pandulapeter.kubrikoCreator.commands.project.GetRelations
 import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
 import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
+import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
+import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -126,6 +128,7 @@ internal class CommandRegistry(
                 GetRelations,
                 GetHealthChecks,
                 CheckChange,
+                ReadGameNotes,
                 ReadConsole,
                 GetVersionControlStatus,
                 GetProjectUpgrade,
@@ -142,6 +145,7 @@ internal class CommandRegistry(
                 SetAppearance,
                 SetParent,
                 SetDescription,
+                SetGameNotes,
                 CreateManagerType,
                 RenameManagerType,
                 DeleteManagerType,

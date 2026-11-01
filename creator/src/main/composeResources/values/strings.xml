@@ -500,6 +500,7 @@
     <string name="error_command_actor_id_repeated">The Actor %1$s is named more than once.</string>
     <string name="error_command_relations_subject">Name either a type (with a Property of it, optionally) or a Scene.</string>
     <string name="error_command_relations_property_missing">There's no Property called %1$s in %2$s.</string>
+    <string name="error_command_game_notes_too_long">The game's notes can be at most %1$s characters long.</string>
     <string name="error_command_description_invalid">A description is one line of at most %1$s characters.</string>
     <string name="error_command_page_invalid">The offset can't be negative, and the count has to be at least 1.</string>
     <string name="action_new_scene">New Scene</string>
@@ -559,6 +560,8 @@
     <string name="command_check_change">Check a change before making it</string>
     <string name="command_get_health_checks">Look for what is worth a look</string>
     <string name="command_set_description">Change a description</string>
+    <string name="command_read_game_notes">Read the game's notes</string>
+    <string name="command_set_game_notes">Change the game's notes</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>
     <string name="command_build">Build the project</string>

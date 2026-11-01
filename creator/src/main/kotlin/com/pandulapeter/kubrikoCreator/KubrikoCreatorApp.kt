@@ -34,7 +34,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversationStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
-import com.pandulapeter.kubrikoCreator.context.DigestText
+import com.pandulapeter.kubrikoCreator.context.ConversationStart
 import com.pandulapeter.kubrikoCreator.context.projectDigest
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
@@ -178,7 +178,7 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
                 npx = npx,
             )
         },
-        projectDigest = { executor()?.context?.let { DigestText.of(it.projectDigest()) } },
+        projectDigest = { executor()?.context?.let { ConversationStart.of(it) } },
         changeLog = { executor()?.changeLog },
         undoTurn = { toolsId, sinceRevision -> executor()?.undoTurn(toolsId, sinceRevision) ?: 0 },
         registry = AgentRegistryStore.default(),

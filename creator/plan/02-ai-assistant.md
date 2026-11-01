@@ -156,9 +156,8 @@ its way to understanding and the model pays for it. These serve the panel and ou
 understand the game is shown to the user too.
 
 - **Following the user's attention:** the selected Event as a chip too (its index lives in `BlockTypeEditor`'s own state today).
-- **A game notes file:** the game's design notes (mechanics, naming, and decisions) as a plain committed file, the project's
-  `AGENTS.md` (with a `CLAUDE.md` pointing to it), which Claude Code and other agents read by themselves, outside clients included.
-  After a conversation the AI proposes updates as a diff, which the user confirms (Principle 4).
+- **The game's notes in the editor:** a way for the user to open and edit `AGENTS.md` from Creator (the AI's changes already
+  go through Keep and Undo), and a diff of what a change to them would be before it is kept.
 - **"Last time" summaries:** a new conversation may start from a short summary of the project's previous one, rather than the user
   explaining again.
 - **A smaller tool list:** about 16,000 tokens (measured by `TokenBudgetTest`, November 2026) since the Block schema went to

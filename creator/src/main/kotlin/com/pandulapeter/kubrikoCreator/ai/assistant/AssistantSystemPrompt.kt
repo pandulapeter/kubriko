@@ -32,6 +32,9 @@ internal object AssistantSystemPrompt {
         |editor shows them ("When added to the Scene", "Set velocity"), not by their JSON types. Keep answers short, and say
         |what you changed so the user can find it in the editor.
         |
+        |The game's notes (AGENTS.md) keep its mechanics, naming, and decisions between conversations. When a conversation
+        |settles something worth keeping, say what you would add and add it with set_game_notes; the user keeps or undoes it.
+        |
         |The Block catalog, as get_block_catalog returns it:
         |${GetBlockCatalog.catalog}
         """.trimMargin()

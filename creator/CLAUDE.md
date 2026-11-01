@@ -338,6 +338,9 @@ decode is rejected with `InputProblem`'s one sentence
   Kotlin naming types, and Scenes placing Actors), each a `Relation` written `Ball#1.2 reads Game.score` (indexes from 0, as the tools
   take them); a Property belongs to the type declaring it, through parents. `get_relations` lists what a type, Property, or Scene
   uses and what uses it.
+- **The game's notes** (`GameNotes`): `AGENTS.md` at the project's root (with a `CLAUDE.md` importing it, created when the
+  project has none), which agents read by themselves; `read_game_notes` and `set_game_notes` (an undoable command, so the
+  turn's Keep and Undo covers it), and every assistant conversation starts with them after the digest (`ConversationStart`).
 - **Health checks** (`HealthChecks`, `HealthFinding`): Actor types nothing places or adds (nor any type based on them), Scenes no
   goToScene goes to (when there are several), Properties nothing reads (no condition, Log Block, text, or Kotlin names them), and
   timerFinished Events whose Timer nothing in the family starts or collision Events with a type never there. `get_health_checks`
