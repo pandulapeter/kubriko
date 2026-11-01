@@ -15,9 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Processes, threads, and lifecycles
 
-- **Game launches on Windows** put the whole classpath on the command line (`session/GameLaunch.kt`), which Windows caps at 32,767
-  characters; a long user folder with the usual jars gets close. Direction: pass it through a Java `@argfile`, as Hot Reload's
-  launch already does.
 - **Recent projects** (`RecentProjectsStore`) read, change, and write the file without a lock from several IO threads (the
   command-line project races the welcome screen's load), and `load` forgets projects whose folder is missing, so one on an
   unmounted drive is lost for good. Direction: synchronize the store and show missing projects greyed

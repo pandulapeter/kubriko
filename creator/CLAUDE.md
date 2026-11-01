@@ -49,7 +49,8 @@ lives in `plan/` (start with `plan/README.md`).
   changed), whose `launch.` lines say how `kubrikoCreatorSession` would start the game (`GameLaunch`: the `run` task's Java
   and JVM arguments, its working folder and main class, and the module's own files followed by the session library's own
   resolution, which may raise library versions), and Creator starts that process itself (`GameProcess`), so no Gradle
-  daemon is held while the game runs. The game runs from a copy of the project's class files (in `playDirectoryOf`,
+  daemon is held while the game runs; its classpath goes through an `@argfile` (`JavaArgumentFile.format`), since Windows caps
+  a command line at 32,767 characters. The game runs from a copy of the project's class files (in `playDirectoryOf`,
   deleted when it ends), since the Scene editor rebuilds the classes meanwhile; resources are read where they are. A game
   that exits with an error shows its exit code and last lines in the console; stopping it destroys the process. Only a
   build without `launch.` lines falls back to the session task. **Hot reload:** play builds pass `kubrikoCreatorHotReload`,

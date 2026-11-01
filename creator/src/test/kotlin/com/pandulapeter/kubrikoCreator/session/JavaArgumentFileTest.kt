@@ -36,4 +36,10 @@ class JavaArgumentFileTest {
     fun linesStartingWithAHashAreLeftOut() {
         assertEquals(listOf("-a", "b#c", "-d"), JavaArgumentFile.parse("# a comment\n-a b#c\n  # another one\n-d"))
     }
+
+    @Test
+    fun formattedArgumentsAreReadBackAsTheyWere() {
+        val arguments = listOf("plain", "with space", "C:\\Program Files\\Java", "it's", "\"quoted\"", "tab\tand\nnewline", "# not a comment", "")
+        assertEquals(arguments, JavaArgumentFile.parse(JavaArgumentFile.format(arguments)))
+    }
 }

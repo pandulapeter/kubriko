@@ -57,7 +57,8 @@ internal class GameProcess(
         val snapshot = Files.createTempDirectory(snapshotDirectory.apply { mkdirs() }.toPath(), "game").toFile()
         try {
             val classpath = if (gameLaunch.reloadTaskName == null) snapshotOf(gameLaunch.classpath, snapshot) else gameLaunch.classpath
-            val process = ProcessBuilder(gameLaunch.command(classpath, systemProperties))
+            val classpathArgumentFile = File(snapshot, CLASSPATH_ARGUMENT_FILE_NAME).apply { writeText(GameLaunch.classpathArguments(classpath)) }
+            val process = ProcessBuilder(gameLaunch.command(classpathArgumentFile, systemProperties))
                 .directory(gameLaunch.workingDirectory)
                 .redirectErrorStream(true)
                 .start()
@@ -111,5 +112,6 @@ internal class GameProcess(
     private companion object {
         const val OUTPUT_TAIL_SIZE = 30
         const val STOP_TIMEOUT_IN_SECONDS = 3L
+        const val CLASSPATH_ARGUMENT_FILE_NAME = "classpath.args"
     }
 }

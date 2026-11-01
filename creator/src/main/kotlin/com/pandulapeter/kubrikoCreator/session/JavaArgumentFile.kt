@@ -16,6 +16,27 @@ package com.pandulapeter.kubrikoCreator.session
  */
 internal object JavaArgumentFile {
 
+    /**
+     * The text of an `@argfile` that the `java` launcher reads as [arguments]: each quoted on a line of its own, so that
+     * spaces and Windows' backslashes in paths stay as they are.
+     */
+    fun format(arguments: List<String>) = arguments.joinToString(separator = "\n", postfix = "\n") { argument ->
+        buildString {
+            append('"')
+            argument.forEach { char ->
+                when (char) {
+                    '\\' -> append("\\\\")
+                    '"' -> append("\\\"")
+                    '\n' -> append("\\n")
+                    '\r' -> append("\\r")
+                    '\t' -> append("\\t")
+                    else -> append(char)
+                }
+            }
+            append('"')
+        }
+    }
+
     fun parse(text: String): List<String> {
         val arguments = mutableListOf<String>()
         val argument = StringBuilder()

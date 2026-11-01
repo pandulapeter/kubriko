@@ -41,10 +41,19 @@ class GameLaunchTest {
         val launch = GameLaunch(File("/jdk/bin/java"), "game.MainKt", File("/game"), listOf("-Xmx1g"), emptyList())
         assertEquals(
             listOf(
-                "/jdk/bin/java", "-Xmx1g", "-Dkubriko.creator.port=1234", "-cp", listOf("/a", "/b").joinToString(File.pathSeparator),
+                "/jdk/bin/java", "-Xmx1g", "-Dkubriko.creator.port=1234", "@/tmp/classpath.args",
                 "com.pandulapeter.kubriko.creatorSession.CreatorSessionLauncherKt", "play", "game.MainKt",
             ),
-            launch.command(listOf(File("/a"), File("/b")), mapOf("kubriko.creator.port" to "1234")),
+            launch.command(File("/tmp/classpath.args"), mapOf("kubriko.creator.port" to "1234")),
+        )
+    }
+
+    @Test
+    fun theClasspathGoesThroughAnArgumentFileTheJavaLauncherReadsBack() {
+        val classpath = listOf(File("C:\\Users\\Jane Doe\\game\\classes"), File("/b/it's \"quoted\".jar"))
+        assertEquals(
+            listOf("-cp", classpath.joinToString(File.pathSeparator) { it.path }),
+            JavaArgumentFile.parse(GameLaunch.classpathArguments(classpath)),
         )
     }
 }
