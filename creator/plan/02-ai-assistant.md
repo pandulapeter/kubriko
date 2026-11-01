@@ -79,9 +79,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    project after it closes and resumed after a restart with `session/load` where the agent offers it.
 8. **Keep and Undo:** before each prompt Creator commits a checkpoint ("Before Claude's changes") when the project is under version
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
-9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
+**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.

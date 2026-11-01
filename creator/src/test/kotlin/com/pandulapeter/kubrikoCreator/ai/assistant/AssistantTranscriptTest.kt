@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
+import com.agentclientprotocol.model.Cost
 import com.agentclientprotocol.model.PlanEntry
 import com.agentclientprotocol.model.PlanEntryPriority
 import com.agentclientprotocol.model.PlanEntryStatus
@@ -88,5 +89,13 @@ class AssistantTranscriptTest {
         val transcript = AssistantTranscript().withTurnEnd(StopReason.END_TURN).withTurnEnd(StopReason.CANCELLED)
         assertEquals(listOf<TranscriptItem>(TranscriptItem.TurnEnded(StopReason.CANCELLED)), transcript.items)
         assertNull(transcript.title)
+    }
+
+    @Test
+    fun usageIsTheLatestReported() {
+        val transcript = AssistantTranscript()
+            .withUpdate(SessionUpdate.UsageUpdate(1_000, 200_000, null))
+            .withUpdate(SessionUpdate.UsageUpdate(84_000, 200_000, Cost(0.12, "USD")))
+        assertEquals(ConversationUsage(84_000, 200_000, 0.12, "USD"), transcript.usage)
     }
 }

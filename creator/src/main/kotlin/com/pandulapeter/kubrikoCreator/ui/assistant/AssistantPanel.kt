@@ -184,6 +184,7 @@ private fun AssistantPanelContent(
             modifier = Modifier.weight(1f),
             chat = current,
             download = controller.download.collectAsState().value,
+            isBilledToApiKey = hasApiKey,
             onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
             onShowStep = onShowStep,
@@ -209,6 +210,7 @@ private fun AssistantPanelContent(
 private fun ChatContent(
     chat: AssistantChat,
     download: AgentDownload?,
+    isBilledToApiKey: Boolean,
     onOpenLog: (() -> Unit)?,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
@@ -257,6 +259,10 @@ private fun ChatContent(
             onAnswer = chat::answer,
         )
     }
+    ConversationUsageLine(
+        usage = transcript.usage,
+        isBilledToApiKey = isBilledToApiKey,
+    )
     HorizontalDivider()
     AssistantComposer(
         commands = chat.availableCommands.collectAsState().value,

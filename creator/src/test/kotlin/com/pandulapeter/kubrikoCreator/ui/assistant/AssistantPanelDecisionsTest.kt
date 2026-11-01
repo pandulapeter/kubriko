@@ -112,4 +112,15 @@ class AssistantPanelDecisionsTest {
         assertEquals(0f, downloadFraction(10, 0))
         assertEquals(String.format("%.1f", 12.3), megabytes(12_345_678))
     }
+
+    @Test
+    fun usageReadsAsPeopleSayIt() {
+        assertEquals(42, contextPercent(84_000, 200_000))
+        assertEquals(100, contextPercent(300, 200))
+        assertEquals("950", shortTokenCount(950))
+        assertEquals("200k", shortTokenCount(200_000))
+        assertEquals("1M", shortTokenCount(1_000_000))
+        assertEquals("$" + String.format("%.2f", 0.5), formattedCost(0.5, "usd"))
+        assertEquals(String.format("%.2f", 2.0) + " EUR", formattedCost(2.0, "EUR"))
+    }
 }

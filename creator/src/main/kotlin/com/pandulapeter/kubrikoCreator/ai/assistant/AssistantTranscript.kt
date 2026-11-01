@@ -18,10 +18,12 @@ import com.agentclientprotocol.model.StopReason
  * A conversation as the assistant panel shows it, built up from what the user sends and the agent reports.
  *
  * @param plan The agent's latest plan, shown as a checklist.
+ * @param usage What the conversation uses and cost, where the agent reports it.
  */
 internal data class AssistantTranscript(
     val items: List<TranscriptItem> = emptyList(),
     val plan: List<PlanEntry> = emptyList(),
+    val usage: ConversationUsage? = null,
 ) {
     /**
      * The first thing the user asked, which names the conversation.
@@ -54,6 +56,7 @@ internal data class AssistantTranscript(
         }
         is SessionUpdate.PlanUpdate -> copy(plan = update.entries)
         is SessionUpdate.PlanRemoved -> copy(plan = emptyList())
+        is SessionUpdate.UsageUpdate -> copy(usage = ConversationUsage(update.used, update.size, update.cost?.amount, update.cost?.currency))
         else -> this
     }
 

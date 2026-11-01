@@ -613,6 +613,9 @@
     <string name="assistant_starting">Starting %1$s…</string>
     <string name="assistant_downloading">Downloading %1$s… %2$s MB</string>
     <string name="assistant_downloading_of">Downloading %1$s… %2$s of %3$s MB</string>
+    <string name="assistant_usage_context">Context %1$d%% of %2$s tokens</string>
+    <string name="assistant_usage_cost">%1$s so far</string>
+    <string name="assistant_usage_billed_to_key">Billed to your API key</string>
     <string name="assistant_starting_download">The first time, it is downloaded, which can take a minute.</string>
     <string name="assistant_input_hint">Ask the assistant (Enter sends, Shift+Enter starts a new line)</string>
     <string name="assistant_thinking">Thinking</string>
