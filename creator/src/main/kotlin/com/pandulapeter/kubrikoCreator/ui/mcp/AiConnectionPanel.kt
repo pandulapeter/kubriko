@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -80,89 +80,134 @@ internal fun AiConnectionPanel(
     onRegenerateToken: () -> Unit,
     onCommandChange: (AiClient, String) -> Unit,
     modifier: Modifier = Modifier,
-) = Column(
-    modifier = modifier.verticalScroll(rememberScrollState()),
 ) {
     var isAdvancedOpen by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { onRefreshClients() }
-    PanelHeader(
-        icon = Res.drawable.ic_ai,
-        title = stringResource(Res.string.ai_connection_title),
-    )
-    Column(
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+    LazyColumn(
+        modifier = modifier,
     ) {
-        Text(
-            text = stringResource(Res.string.ai_connection_clients),
-            style = MaterialTheme.typography.titleSmall,
-        )
-        clientSetups.forEach { setup ->
-            AiClientRow(
-                title = setup.variant?.let { stringResource(Res.string.ai_client_variant, setup.client.displayName, it) } ?: setup.client.displayName,
-                clientName = setup.client.displayName,
-                installUrl = setup.client.installUrl,
-                isReadOnStart = false,
-                status = clientStatuses[setup.id] ?: AiClientStatus.Checking,
-                onConnect = { onConnect(setup) },
-                onDisconnect = { onDisconnect(setup) },
+        item {
+            PanelHeader(
+                icon = Res.drawable.ic_ai,
+                title = stringResource(Res.string.ai_connection_title),
             )
         }
-        configFileClients.forEach { client ->
-            AiClientRow(
-                title = client.displayName,
-                clientName = client.displayName,
-                installUrl = client.installUrl,
-                isReadOnStart = true,
-                status = clientStatuses[client.id] ?: AiClientStatus.Checking,
-                onConnect = { onConnectConfigFile(client) },
-                onDisconnect = { onDisconnectConfigFile(client) },
-            )
-        }
-        HorizontalDivider()
-        EnabledRow(
-            isEnabled = settings.isEnabled,
-            onEnabledChange = onEnabledChange,
-        )
-        StateText(
-            state = state,
-            url = settings.url,
-        )
-        CopyableText(
-            title = stringResource(Res.string.ai_connection_other),
-            text = settings.urlWithToken,
-        )
-        Text(
-            text = stringResource(Res.string.ai_connection_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        TextButton(onClick = { isAdvancedOpen = !isAdvancedOpen }) {
-            Text(stringResource(Res.string.ai_connection_advanced))
-        }
-        if (isAdvancedOpen) {
-            AiConnectionAdvanced(
+        item {
+            ConnectionSettings(
                 settings = settings,
+                state = state,
+                clientSetups = clientSetups,
+                configFileClients = configFileClients,
+                clientStatuses = clientStatuses,
+                isAdvancedOpen = isAdvancedOpen,
+                onAdvancedOpenChange = { isAdvancedOpen = it },
+                onEnabledChange = onEnabledChange,
+                onConnect = onConnect,
+                onDisconnect = onDisconnect,
+                onConnectConfigFile = onConnectConfigFile,
+                onDisconnectConfigFile = onDisconnectConfigFile,
                 onPortChange = onPortChange,
                 onRegenerateToken = onRegenerateToken,
                 onCommandChange = onCommandChange,
             )
         }
+        item {
+            HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
+            PanelHeader(
+                icon = Res.drawable.ic_history,
+                title = stringResource(Res.string.ai_connection_calls),
+            )
+        }
+        if (calls.isEmpty()) {
+            item {
+                Text(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    text = stringResource(Res.string.ai_connection_calls_empty),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        items(calls.asReversed()) { ToolCallRow(it) }
     }
-    HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
-    PanelHeader(
-        icon = Res.drawable.ic_history,
-        title = stringResource(Res.string.ai_connection_calls),
+}
+
+@Composable
+private fun ConnectionSettings(
+    settings: McpSettings,
+    state: McpServerState,
+    clientSetups: List<AiClientSetup>,
+    configFileClients: List<AiConfigFileClient>,
+    clientStatuses: Map<String, AiClientStatus>,
+    isAdvancedOpen: Boolean,
+    onAdvancedOpenChange: (Boolean) -> Unit,
+    onEnabledChange: (Boolean) -> Unit,
+    onConnect: (AiClientSetup) -> Unit,
+    onDisconnect: (AiClientSetup) -> Unit,
+    onConnectConfigFile: (AiConfigFileClient) -> Unit,
+    onDisconnectConfigFile: (AiConfigFileClient) -> Unit,
+    onPortChange: (Int) -> Boolean,
+    onRegenerateToken: () -> Unit,
+    onCommandChange: (AiClient, String) -> Unit,
+) = Column(
+    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+    verticalArrangement = Arrangement.spacedBy(10.dp),
+) {
+    Text(
+        text = stringResource(Res.string.ai_connection_clients),
+        style = MaterialTheme.typography.titleSmall,
     )
-    if (calls.isEmpty()) {
-        Text(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            text = stringResource(Res.string.ai_connection_calls_empty),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+    clientSetups.forEach { setup ->
+        AiClientRow(
+            title = setup.variant?.let { stringResource(Res.string.ai_client_variant, setup.client.displayName, it) } ?: setup.client.displayName,
+            clientName = setup.client.displayName,
+            installUrl = setup.client.installUrl,
+            isReadOnStart = false,
+            status = clientStatuses[setup.id] ?: AiClientStatus.Checking,
+            onConnect = { onConnect(setup) },
+            onDisconnect = { onDisconnect(setup) },
         )
     }
-    calls.asReversed().forEach { ToolCallRow(it) }
+    configFileClients.forEach { client ->
+        AiClientRow(
+            title = client.displayName,
+            clientName = client.displayName,
+            installUrl = client.installUrl,
+            isReadOnStart = true,
+            status = clientStatuses[client.id] ?: AiClientStatus.Checking,
+            onConnect = { onConnectConfigFile(client) },
+            onDisconnect = { onDisconnectConfigFile(client) },
+        )
+    }
+    HorizontalDivider()
+    EnabledRow(
+        isEnabled = settings.isEnabled,
+        onEnabledChange = onEnabledChange,
+    )
+    StateText(
+        state = state,
+        url = settings.url,
+    )
+    CopyableText(
+        title = stringResource(Res.string.ai_connection_other),
+        text = settings.urlWithToken,
+    )
+    Text(
+        text = stringResource(Res.string.ai_connection_note),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    TextButton(onClick = { onAdvancedOpenChange(!isAdvancedOpen) }) {
+        Text(stringResource(Res.string.ai_connection_advanced))
+    }
+    if (isAdvancedOpen) {
+        AiConnectionAdvanced(
+            settings = settings,
+            onPortChange = onPortChange,
+            onRegenerateToken = onRegenerateToken,
+            onCommandChange = onCommandChange,
+        )
+    }
 }
 
 @Composable

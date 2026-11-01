@@ -393,7 +393,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   runs `mcp-remote` through the full path of the `npx` the user's shell finds (`ProcessRunner.locate`), with that folder on the
   PATH, and passes the token through the environment; without npx the row asks for Node.js. Cursor gets the URL and header.
 - **The panel** (toolbar → AI connection): a Connect / Disconnect / Install row per client, the on/off switch, the address
-  with the token for other MCP clients, Advanced (port, token, commands), and the call log.
+  with the token for other MCP clients, Advanced (port, token, commands), and the call log (the newest 200 `McpToolCall`s, each
+  keeping only the first 300 characters of its arguments and result, in a lazy list).
 - **Playing the game:** `start_game` (optionally in a `scene`), `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
   `SessionCommand`s Creator sends back on the session's connection, answered by id: keys go to the AWT event
   listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), and every step first

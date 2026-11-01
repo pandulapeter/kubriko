@@ -148,6 +148,12 @@ class McpToolServerTest {
     }
 
     @Test
+    fun theLogKeepsOnlyTheStartOfLongResults() {
+        val call = McpToolCall.of("read_scene", "{}", "x".repeat(10_000), isError = false)
+        assertEquals("x".repeat(McpToolCall.PREVIEW_LENGTH) + "…", call.result)
+    }
+
+    @Test
     fun withoutAnOpenProjectToolsSaySo() = runTest {
         val port = start(executor = null)
         val result = connected(port) { callTool("list_scenes", emptyMap()) }

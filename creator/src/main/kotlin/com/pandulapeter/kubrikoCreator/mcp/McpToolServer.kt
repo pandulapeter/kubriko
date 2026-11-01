@@ -229,7 +229,7 @@ internal class McpToolServer(
         }
 
     private fun result(toolName: String, arguments: JsonObject, text: String, isError: Boolean, image: ByteArray? = null): CallToolResult {
-        _calls.update { (it + McpToolCall(toolName, arguments.toString(), text, isError)).takeLast(LOG_SIZE) }
+        _calls.update { (it + McpToolCall.of(toolName, arguments.toString(), text, isError)).takeLast(LOG_SIZE) }
         return CallToolResult(
             content = listOfNotNull(TextContent(text), image?.let { ImageContent(data = Base64.getEncoder().encodeToString(it), mimeType = "image/png") }),
             isError = isError,

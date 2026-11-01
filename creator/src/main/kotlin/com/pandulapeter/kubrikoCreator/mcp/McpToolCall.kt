@@ -10,14 +10,23 @@
 package com.pandulapeter.kubrikoCreator.mcp
 
 /**
- * One tool call an AI client made, for the log of the AI connection panel.
+ * One tool call an AI client made, for the log of the AI connection panel. Only the start of the arguments and the result
+ * is kept, since a result can be a whole project and the log holds hundreds of calls.
  *
- * @param arguments The arguments as the client sent them, in JSON.
- * @param result What the tool returned, or why it was rejected.
+ * @param arguments The start of the arguments as the client sent them, in JSON.
+ * @param result The start of what the tool returned, or why it was rejected.
  */
 internal data class McpToolCall(
     val toolName: String,
     val arguments: String,
     val result: String,
     val isError: Boolean,
-)
+) {
+    companion object {
+        const val PREVIEW_LENGTH = 300
+
+        fun of(toolName: String, arguments: String, result: String, isError: Boolean) = McpToolCall(toolName, arguments.preview(), result.preview(), isError)
+
+        private fun String.preview() = if (length <= PREVIEW_LENGTH) this else take(PREVIEW_LENGTH) + "…"
+    }
+}
