@@ -19,7 +19,8 @@ import kotlinx.serialization.Serializable
  * @param token What AI clients send as a bearer token. Anyone who has it can change the open project.
  * @param connectedClients The [com.pandulapeter.kubrikoCreator.mcp.clients.AiClientSetup.id]s of the AI tools Kubriko
  *   Creator connected, which it connects again when the port or token changes.
- * @param clientCommands The programs to run for AI tools whose command isn't the usual one.
+ * @param clientCommands The programs to run for AI tools whose command isn't the usual one, by [AiClient.id], so that a
+ *   tool no longer listed doesn't make the settings unreadable.
  */
 @Serializable
 internal data class McpSettings(
@@ -27,7 +28,7 @@ internal data class McpSettings(
     @SerialName("port") val port: Int = DEFAULT_PORT,
     @SerialName("token") val token: String,
     @SerialName("connectedClients") val connectedClients: Set<String> = emptySet(),
-    @SerialName("clientCommands") val clientCommands: Map<AiClient, String> = emptyMap(),
+    @SerialName("clientCommands") val clientCommands: Map<String, String> = emptyMap(),
 ) {
     val url get() = "http://${McpToolServer.HOST}:$port${McpToolServer.PATH}"
 
@@ -36,7 +37,7 @@ internal data class McpSettings(
      */
     val urlWithToken get() = "$url?${McpToolServer.TOKEN_PARAMETER}=$token"
 
-    fun commandOf(client: AiClient) = clientCommands[client] ?: client.defaultCommand
+    fun commandOf(client: AiClient) = clientCommands[client.id] ?: client.defaultCommand
 
     companion object {
         const val DEFAULT_PORT = 7781

@@ -66,7 +66,7 @@ internal class McpController(
      * Runs [command] for [client] from now on, or its usual program if it is blank.
      */
     fun setClientCommand(client: AiClient, command: String) = updateStored(
-        _settings.value.copy(clientCommands = if (command.isBlank()) _settings.value.clientCommands - client else _settings.value.clientCommands + (client to command.trim())),
+        _settings.value.copy(clientCommands = if (command.isBlank()) _settings.value.clientCommands - client.id else _settings.value.clientCommands + (client.id to command.trim())),
     )
 
     /**

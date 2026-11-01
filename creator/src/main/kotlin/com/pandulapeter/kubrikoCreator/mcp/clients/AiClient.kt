@@ -44,17 +44,6 @@ internal enum class AiClient(
         override fun addArguments(settings: McpSettings) = listOf("mcp", "add", SERVER_NAME, "--url", settings.urlWithToken)
 
         override val removeArguments = listOf("mcp", "remove", SERVER_NAME)
-    },
-
-    @SerialName("geminiCli")
-    GEMINI_CLI("Gemini CLI", "gemini", "https://github.com/google-gemini/gemini-cli") {
-        override fun addArguments(settings: McpSettings) = listOf(
-            "mcp", "add", "--scope", "user", "--transport", "http", "--header", "Authorization: Bearer ${settings.token}", SERVER_NAME, settings.url,
-        )
-
-        override val removeArguments = listOf("mcp", "remove", "--scope", "user", SERVER_NAME)
-
-        override val getArguments = listOf("mcp", "list")
     };
 
     /**
@@ -69,7 +58,7 @@ internal enum class AiClient(
 
     abstract val removeArguments: List<String>
 
-    open val getArguments = listOf("mcp", "get", SERVER_NAME)
+    val getArguments = listOf("mcp", "get", SERVER_NAME)
 
     /**
      * Whether the output of [getArguments] says Kubriko Creator's server is registered: every supported tool starts a

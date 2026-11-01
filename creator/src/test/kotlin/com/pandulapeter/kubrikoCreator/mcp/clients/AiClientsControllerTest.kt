@@ -87,7 +87,6 @@ class AiClientsControllerTest {
         controller.refresh()
         controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.NotConnected)
         controller.awaitStatus(AiClient.CODEX, AiClientStatus.Connected)
-        controller.awaitStatus(AiClient.GEMINI_CLI, AiClientStatus.NotInstalled)
     }
 
     @Test

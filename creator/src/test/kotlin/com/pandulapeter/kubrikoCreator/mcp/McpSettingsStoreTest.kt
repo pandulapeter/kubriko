@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp
 
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -46,6 +47,15 @@ class McpSettingsStoreTest {
             file.writeText(content)
             assertEquals(McpSettings(token = "token${index + 1}"), store.load())
         }
+    }
+
+    @Test
+    fun settingsNamingAToolNoLongerListedKeepTheirToken() {
+        file.parentFile.mkdirs()
+        file.writeText("""{"isEnabled":true,"port":9000,"token":"abc","clientCommands":{"geminiCli":"gemini","claudeCode":"my-claude"}}""")
+        val settings = store.load()
+        assertEquals("abc", settings.token)
+        assertEquals("my-claude", settings.commandOf(AiClient.CLAUDE_CODE))
     }
 
     @Test

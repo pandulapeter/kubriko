@@ -376,7 +376,7 @@ call is logged. Read tools are marked read-only, `WriteCommand.isDestructive` on
 created in `main`) keeps `McpSettings` (off by default, port 7781, a random token, connected clients, command overrides) in
 `mcp.json` in the settings folder and restarts the server when they change; a taken port shows as `Failed`.
 
-- **One-click clients** (`mcp/clients`): `AiClient` lists the supported tools (Claude Code, Codex, Gemini CLI), each a CLI with
+- **One-click clients** (`mcp/clients`): `AiClient` lists the supported tools (Claude Code and Codex), each a CLI with
   `mcp add` / `get` / `remove` at user scope; Codex can't send headers, so it gets the token in the URL. `AiClientSetup` is one way
   to run a tool: its program with its default configuration (which apps such as the Claude app use too, so it is always listed,
   run as `command claude` past an alias of the same name that runs something else), the user's replacement command, and each

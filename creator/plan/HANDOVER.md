@@ -202,8 +202,7 @@ Each of these is built and unit-tested, but wasn't seen in the running app.
   show a score"), watching the activity view pace a burst of calls.
 - Connect for the plain "Claude Code" row in the Claude app, Claude Desktop from a real chat (writing its config needs the user),
   and Connect and Disconnect against a real config.
-- Codex (out of quota until Nov 21, 2026), Cursor, Windows, and fish aliases with a real fish. Gemini CLI no longer serves
-  individuals (November 2026), so its one-click row may be worth dropping; ask the user.
+- Codex (out of quota until Nov 21, 2026), Cursor, Windows, and fish aliases with a real fish.
 
 ## Working with the live app
 
