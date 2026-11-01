@@ -60,6 +60,7 @@ class AiFeaturesOffTest {
             onPlay = {},
             onStop = {},
             onRefresh = {},
+            onOpenProjectSettings = {},
             onOpenSettings = {},
             onCloseProject = {},
         )

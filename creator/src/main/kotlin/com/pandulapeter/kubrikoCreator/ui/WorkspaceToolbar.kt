@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -30,6 +33,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +49,8 @@ import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_project
+import kubriko.creator.generated.resources.action_open_creator_settings
+import kubriko.creator.generated.resources.action_open_project_settings
 import kubriko.creator.generated.resources.action_open_settings
 import kubriko.creator.generated.resources.action_play
 import kubriko.creator.generated.resources.action_redo
@@ -83,6 +91,7 @@ internal fun WorkspaceToolbar(
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onRefresh: () -> Unit,
+    onOpenProjectSettings: () -> Unit,
     onOpenSettings: () -> Unit,
     onCloseProject: () -> Unit,
 ) = Row(
@@ -159,10 +168,9 @@ internal fun WorkspaceToolbar(
         label = Res.string.action_refresh,
         onClick = onRefresh,
     )
-    IconActionButton(
-        icon = Res.drawable.ic_settings,
-        label = Res.string.action_open_settings,
-        onClick = onOpenSettings,
+    SettingsMenuButton(
+        onOpenProjectSettings = onOpenProjectSettings,
+        onOpenCreatorSettings = onOpenSettings,
     )
     IconActionButton(
         icon = Res.drawable.ic_close,
@@ -190,6 +198,36 @@ private fun HistoryButtons(
         onClick = onRedo,
         isEnabled = history.nextRedoTitle != null,
     )
+}
+
+@Composable
+private fun SettingsMenuButton(
+    onOpenProjectSettings: () -> Unit,
+    onOpenCreatorSettings: () -> Unit,
+) = Box {
+    var isExpanded by remember { mutableStateOf(false) }
+    IconActionButton(
+        icon = Res.drawable.ic_settings,
+        label = Res.string.action_open_settings,
+        onClick = { isExpanded = true },
+    )
+    DropdownMenu(
+        expanded = isExpanded,
+        onDismissRequest = { isExpanded = false },
+    ) {
+        listOf(
+            Res.string.action_open_project_settings to onOpenProjectSettings,
+            Res.string.action_open_creator_settings to onOpenCreatorSettings,
+        ).forEach { (label, onClick) ->
+            DropdownMenuItem(
+                text = { Text(stringResource(label)) },
+                onClick = {
+                    isExpanded = false
+                    onClick()
+                },
+            )
+        }
+    }
 }
 
 @Composable

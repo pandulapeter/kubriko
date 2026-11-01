@@ -687,7 +687,7 @@
     <string name="assistant_turn_max_turn_requests">The assistant stopped after taking too many steps in one turn.</string>
     <string name="assistant_tool_failed">%1$s (failed)</string>
     <string name="action_open_settings">Settings</string>
-    <string name="settings_title">Settings</string>
+    <string name="settings_title">Kubriko Creator settings</string>
     <string name="settings_section_ai">AI</string>
     <string name="settings_ai_enabled">AI features</string>
     <string name="settings_ai_enabled_description">When off, Kubriko Creator shows no AI panel or AI activity, serves no tools to AI apps, starts no agent, and sends nothing anywhere. Projects made with AI open as usual.</string>
@@ -701,4 +701,24 @@
     <string name="settings_default_project_folder">New projects go in</string>
     <string name="action_use_home_folder">Use the home folder</string>
     <string name="description_hint_without_ai">What it is for in the game, in one line</string>
+    <string name="action_open_project_settings">Project settings</string>
+    <string name="action_open_creator_settings">Kubriko Creator settings</string>
+    <string name="command_set_project_settings">Change the project settings</string>
+    <string name="command_get_project_settings">Read the project settings</string>
+    <string name="error_command_project_settings_empty">Name at least one setting to change.</string>
+    <string name="error_command_project_settings_unavailable">This project's build doesn't read its name and version from gradle.properties yet. Upgrade its template files first.</string>
+    <string name="error_identity_name_invalid">The game's name is one line of at most %1$s characters.</string>
+    <string name="error_identity_version_name_invalid">"%1$s" isn't a version name installers accept: one to three numbers, like 1.2.0, the first not 0.</string>
+    <string name="error_identity_version_number_invalid">The version number is a whole number from 1 to %1$s.</string>
+    <string name="error_identity_application_id_invalid">"%1$s" isn't an application ID: at least two parts joined by dots, like com.example.mygame, each starting with a letter.</string>
+    <string name="error_identity_text_invalid">The vendor and the description are one line of at most %1$s characters each.</string>
+    <string name="project_settings_title">Project settings</string>
+    <string name="project_settings_section_identity">Identity</string>
+    <string name="project_settings_identity_description">Kept in gradle.properties, where the build reads them, so they are committed and shared with everyone working on the game.</string>
+    <string name="project_settings_name">Name</string>
+    <string name="project_settings_version_name">Version name</string>
+    <string name="project_settings_version_number">Version number</string>
+    <string name="project_settings_application_id">Application ID</string>
+    <string name="project_settings_vendor">Vendor</string>
+    <string name="project_settings_description">Description</string>
 </resources>

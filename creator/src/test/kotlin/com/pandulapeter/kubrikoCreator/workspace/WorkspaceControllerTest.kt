@@ -786,7 +786,11 @@ class WorkspaceControllerTest {
         try {
             File(root, ".kubriko").mkdirs()
             File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
-            File(root, "gradle.properties").writeText("org.gradle.caching=true\norg.gradle.configuration-cache=true\n")
+            File(root, "gradle.properties").writeText(
+                "org.gradle.caching=true\norg.gradle.configuration-cache=true\n" +
+                    "game.name=Game\ngame.versionName=1.0.0\ngame.versionNumber=1\ngame.applicationId=com.example.game\ngame.vendor=\ngame.description=\n",
+            )
+            File(root, "build.gradle.kts").writeText("// Reads game.name.\n")
             val game = File(root, "src/commonMain/kotlin/com/example/game/Game.kt").apply { parentFile.mkdirs() }
             game.writeText("package com.example.game\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
             File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled and KubrikoWiring.firstSceneOverride.\n")

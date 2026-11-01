@@ -28,8 +28,9 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-Project settings in `03-settings.md` (identity as a template upgrade, icons, targets, game, release, signing, and their AI
-tools); Creator settings are built (see To check by hand), with what is left of them waiting for other plans.
+Project settings in `03-settings.md`: Identity is built (template version 9, the dialog behind the toolbar's settings menu,
+and `get_project_settings` / `set_project_settings`; see To check by hand). Next are Game (first Scene, aspect ratio, frame
+rate, why each plugin is there), then Targets, Release, Icons, and Signing, each extending the same dialog and tools.
 Then `04` to `07` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for
 the benchmarks. A new AI surface reads `LocalIsAiEnabled` and joins `AiFeaturesOffTest`.
 
@@ -48,6 +49,13 @@ the benchmarks. A new AI surface reads `LocalIsAiEnabled` and joins `AiFeaturesO
 - **Templates for real**: the integration test in `../CLAUDE.md` → Running and testing builds every template.
 
 ## To check by hand
+
+**Project settings: Identity (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- The template version 9 upgrade on a fresh scratch Breakout copy: the diff names Breakout (from `Main.kt`), applying it builds,
+  the played game's window says the name from `gradle.properties`, and the web page's title too (`wasmJsBrowserDevelopmentRun`).
+- The settings menu's two entries, the dialog's fields (typing one undo step per field, an invalid version shown in red and not
+  applied, undo while it is open updating it), and an edit of `gradle.properties` by hand showing when it opens again.
+- `createDistributable` on a new project (`packageVersion` and the vendor reaching the installer), and a name with an accent.
 
 **Creator settings (built and unit-tested on 2026-11-01, not yet seen in the app)**
 - The dialog from the welcome screen and the toolbar; theme and interface size changing the whole window at once (the title

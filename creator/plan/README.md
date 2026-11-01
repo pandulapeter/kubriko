@@ -75,6 +75,7 @@ compatibility or a copy of its look, icons, or action set; running Creator itsel
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff (`11-project-upkeep.md`). |
 | The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
+| The `game.*` keys of `gradle.properties` (the game's identity) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
 | `.kubriko/local/` | Creator | Git-ignored. |
 
 ## Terminology

@@ -1,0 +1,50 @@
+val gameName = providers.gradleProperty("game.name").orElse(rootProject.name)
+val gameVersionName = providers.gradleProperty("game.versionName").orElse("1.0.0")
+val gameVersionNumber = providers.gradleProperty("game.versionNumber").orElse("1")
+val gameApplicationId = providers.gradleProperty("game.applicationId").orElse("{{PACKAGE}}")
+val gameVendor = providers.gradleProperty("game.vendor").orElse("")
+val gameDescription = providers.gradleProperty("game.description").orElse("")
+
+val generateGameInfo by tasks.registering {
+    val directory = layout.buildDirectory.dir("generated/gameInfo")
+    val texts = mapOf(
+        "NAME" to gameName,
+        "VERSION_NAME" to gameVersionName,
+        "APPLICATION_ID" to gameApplicationId,
+        "VENDOR" to gameVendor,
+        "DESCRIPTION" to gameDescription,
+    )
+    val versionNumber = gameVersionNumber
+    texts.forEach { (key, value) -> inputs.property(key, value) }
+    inputs.property("VERSION_NUMBER", versionNumber)
+    outputs.dir(directory)
+    doLast {
+        fun literal(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$") + "\""
+        val constants = texts.entries.joinToString("") { (key, value) -> "    const val $key = ${literal(value.get())}\n" } +
+            "    const val VERSION_NUMBER = ${versionNumber.get().trim().toInt()}\n"
+        directory.get().file("GameInfo.kt").asFile.apply {
+            parentFile.mkdirs()
+            writeText("package {{PACKAGE}}\n\nobject GameInfo {\n${constants}}\n")
+        }
+    }
+}
+
+kotlin.sourceSets.commonMain {
+    kotlin.srcDir(generateGameInfo)
+}
+
+compose.desktop.application.nativeDistributions {
+    packageName = gameName.get()
+    packageVersion = gameVersionName.get()
+    vendor = gameVendor.get()
+    description = gameDescription.get()
+    macOS.bundleID = gameApplicationId.get()
+}
+
+tasks.named<ProcessResources>("wasmJsProcessResources") {
+    val title = gameName.map { it.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") }
+    inputs.property("title", title)
+    filesMatching("index.html") {
+        filter { it.replace("@GAME_NAME@", title.get()) }
+    }
+}

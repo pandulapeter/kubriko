@@ -9,7 +9,7 @@ fun main() {
     KubrikoWiring.firstSceneOverride = System.getProperty("kubriko.creator.scene")
     application {
         Window(
-            title = "{{PROJECT_NAME}}",
+            title = GameInfo.NAME,
             onCloseRequest = ::exitApplication,
         ) {
             Game()

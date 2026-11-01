@@ -68,6 +68,41 @@ class ProjectUpgraderTest {
     }
 
     @Test
+    fun upgradingAVersion8ProjectReadsTheGamesNameAndVersionFromGradleProperties() {
+        val build = File(directory, "build.gradle.kts")
+        val properties = File(directory, "gradle.properties")
+        val page = File(directory, "src/wasmJsMain/resources/index.html")
+        val newBuild = build.readText()
+        val newProperties = properties.readText()
+        val newPage = page.readText()
+        build.writeText(newBuild.substringBefore("\nval gameName"))
+        properties.writeText(newProperties.lines().filterNot { it.startsWith("game.") }.joinToString("\n"))
+        page.writeText(newPage.replace("@GAME_NAME@", "My Game"))
+        mainFile.writeText(newMain.replace("GameInfo.NAME", "\"My Game\""))
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 8 }""")
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf(MAIN_PATH, "build.gradle.kts", "src/wasmJsMain/resources/index.html", "gradle.properties"), upgrade.changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newBuild, build.readText())
+        assertEquals(newProperties, properties.readText())
+        assertEquals(newPage, page.readText())
+        assertEquals(newMain, mainFile.readText())
+        assertContains(newProperties, "game.name=My Game\n")
+    }
+
+    @Test
+    fun theGamesNameComesFromTheProjectWhenNoTitleNamesIt() {
+        val properties = File(directory, "gradle.properties")
+        properties.writeText("")
+        File(directory, "src/wasmJsMain/resources/index.html").delete()
+        mainFile.writeText(newMain.replace("GameInfo.NAME", "name"))
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 8 }""")
+        assertEquals(listOf("gradle.properties"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
+        ProjectUpgrader(directory).apply()
+        assertContains(properties.readText(), "game.name=my-game\n")
+    }
+
+    @Test
     fun aProjectThatHasNotOptedInHasNothingToUpgrade() {
         settingsFile.delete()
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
@@ -141,11 +176,15 @@ class ProjectUpgraderTest {
         val properties = File(directory, "gradle.properties")
         val newProperties = properties.readText()
         assertContains(newProperties, "org.gradle.configuration-cache=true\n")
-        properties.writeText(newProperties.replace("org.gradle.configuration-cache=true\n", "").replace("org.gradle.caching=true\n", "org.gradle.caching = false\n\n"))
+        properties.writeText(newProperties.replace("org.gradle.configuration-cache=true\n", "").replace("org.gradle.caching=true\n", "org.gradle.caching = false\n"))
         settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 5 }""")
         assertEquals(listOf("gradle.properties"), assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check()).changes.map { it.path })
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
-        assertEquals(newProperties.replace("org.gradle.caching=true", "org.gradle.caching = false"), properties.readText(), "a cache turned off by hand stays off")
+        assertEquals(
+            newProperties.replace("org.gradle.caching=true", "org.gradle.caching = false").replace("org.gradle.configuration-cache=true\n", "") + "org.gradle.configuration-cache=true\n",
+            properties.readText(),
+            "a cache turned off by hand stays off",
+        )
     }
 
     @Test

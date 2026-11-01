@@ -1,0 +1,91 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.commands.project
+
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
+import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import kotlinx.coroutines.test.runTest
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_command_project_settings_empty
+import kubriko.creator.generated.resources.error_command_project_settings_unavailable
+import kubriko.creator.generated.resources.error_identity_version_name_invalid
+import java.io.File
+import kotlin.io.path.createTempDirectory
+import kotlin.test.AfterTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
+
+class ProjectSettingsCommandsTest {
+    private val root = createTempDirectory().toFile()
+    private val properties = File(root, "gradle.properties")
+    private val identity = GameIdentity("My Game", "1.0.0", 1, "com.example.mygame", "", "")
+
+    private fun projectReadingItsIdentity() {
+        File(root, "build.gradle.kts").writeText("val gameName = providers.gradleProperty(\"game.name\")\n")
+        properties.writeText(identity.writtenTo("org.gradle.caching=true\n"))
+    }
+
+    @AfterTest
+    fun tearDown() {
+        root.deleteRecursively()
+    }
+
+    @Test
+    fun settingsAreReadForTheAi() = runTest {
+        projectReadingItsIdentity()
+        val result = assertIs<CommandOutcome.Success>(GetProjectSettings.read(commandContext(rootDirectory = root), NoInput)).result
+        assertEquals(
+            """{"name":"My Game","versionName":"1.0.0","versionNumber":1,"applicationId":"com.example.mygame","vendor":"","description":""}""",
+            result.toString(),
+        )
+    }
+
+    @Test
+    fun changingSettingsWritesOnlyThoseAndIsUndone() = runTest {
+        projectReadingItsIdentity()
+        val context = commandContext(rootDirectory = root)
+        val input = SetProjectSettings.Input(name = "Brick Breaker", versionNumber = 2)
+        val after = context.assertRoundTrip(Invocation(SetProjectSettings, input)) { properties.readText() }
+        assertEquals(identity.copy(name = "Brick Breaker", versionNumber = 2), GameIdentity.of(after))
+        assertEquals("org.gradle.caching=true\n", after.lines().first() + "\n")
+    }
+
+    @Test
+    fun invalidOrEmptyChangesAreRejected() = runTest {
+        projectReadingItsIdentity()
+        val context = commandContext(rootDirectory = root)
+        assertEquals(Rejection(Res.string.error_command_project_settings_empty), Invocation(SetProjectSettings, SetProjectSettings.Input()).validate(context))
+        assertEquals(
+            Rejection(Res.string.error_identity_version_name_invalid, "1.0.0.0"),
+            Invocation(SetProjectSettings, SetProjectSettings.Input(versionName = "1.0.0.0")).validate(context),
+        )
+    }
+
+    @Test
+    fun aProjectWhoseBuildDoesNotReadSettingsSaysToUpgrade() = runTest {
+        val context = commandContext(rootDirectory = root)
+        val rejection = Rejection(Res.string.error_command_project_settings_unavailable)
+        assertEquals(rejection, Invocation(SetProjectSettings, SetProjectSettings.Input(name = "Game")).validate(context))
+        assertEquals(CommandOutcome.Rejected(rejection), GetProjectSettings.read(context, NoInput))
+    }
+
+    @Test
+    fun typingIntoOneFieldIsOneStep() {
+        assertEquals(SetProjectSettings.mergeKey(SetProjectSettings.Input(name = "A")), SetProjectSettings.mergeKey(SetProjectSettings.Input(name = "AB")))
+        assertNotEquals(SetProjectSettings.mergeKey(SetProjectSettings.Input(name = "A")), SetProjectSettings.mergeKey(SetProjectSettings.Input(vendor = "A")))
+    }
+}

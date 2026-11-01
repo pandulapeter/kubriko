@@ -29,18 +29,12 @@ What `../CLAUDE.md` → Creator settings describes, and:
 
 ## Project settings
 
-Opened from the toolbar of an open project. Every value lives where the build reads it, so the project still builds the same in IntelliJ
-and without `.kubriko/` (Principle 2): `.kubriko/project.json` only holds what Creator needs for itself.
+What `../CLAUDE.md` → Project settings describes (the dialog and Identity), and the sections below. Every value lives where the
+build reads it, so the project still builds the same in IntelliJ and without `.kubriko/` (Principle 2): `.kubriko/project.json` only
+holds what Creator needs for itself.
 
-- **Identity:** game name (window title, web page title, installer and app names), version name, and version number (raised by one with
-  each release export, as `showcase.buildNumber` is here), application ID / bundle ID, vendor, and description.
-  - A template change: these become keys in `gradle.properties` (`game.name`, `game.versionName`, `game.versionNumber`,
-    `game.applicationId`), read by `build.gradle.kts` for `nativeDistributions`, the Android `defaultConfig`, and the iOS `Info.plist`,
-    and turned into a generated `GameInfo` constant for the game's own code (the desktop `Main.kt`'s `Window(title = …)`, an about
-    screen) by a small task in the build file, so there is one source. `index.html`'s title is filled in by the same task.
-    `{{PROJECT_NAME}}` stops being baked into `Main.kt` and `index.html`. Shipped as a template upgrade (`ProjectUpgrader`).
-  - Creator edits only those keys, line by line (as `VersionCatalog` does), so they count as Creator-owned in the README's ownership table
-    and need no diff each time; a value changed by hand in the file shows up in the panel.
+- **Identity, still to come:** raising the version number with each release export (`10-export-and-distribution.md`), and the
+  Android `defaultConfig` and iOS `Info.plist` reading the keys once those targets exist (Targets below).
 - **Icons:** one square source image, from which every platform's icon is generated (Android adaptive, `.icns`, `.ico`, PNG sizes,
   the web favicon).
 - **Targets:** desktop, web, Android, and iOS, each turned on or off, as a confirmed diff of the build file (Principle 4). Android needs the
@@ -61,5 +55,6 @@ platform details are in `10-export-and-distribution.md`.
 
 ## AI tools
 
-`get_project_settings` and `set_project_settings` (identity, targets, game, release), with the same diffs and confirmations as the panel.
+`get_project_settings` and `set_project_settings` exist for Identity; Targets, Game, and Release join them, with the same diffs and
+confirmations as the panel (the tool list's budget in `TokenBudgetTest` will need raising).
 Signing and Creator settings get no tools: one is secret, the other is the user's own.

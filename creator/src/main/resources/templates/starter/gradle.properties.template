@@ -2,3 +2,9 @@ kotlin.code.style=official
 org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8
 org.gradle.caching=true
 org.gradle.configuration-cache=true
+game.name={{GAME_NAME}}
+game.versionName=1.0.0
+game.versionNumber=1
+game.applicationId={{PACKAGE}}
+game.vendor=
+game.description=

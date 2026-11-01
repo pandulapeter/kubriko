@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.template
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
+import com.pandulapeter.kubrikoCreator.project.GradleProperties
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import kubriko.creator.generated.resources.Res
@@ -77,6 +78,7 @@ internal class ProjectGenerator(
 
     internal fun placeholderValues(request: NewProjectRequest) = mapOf(
         "PROJECT_NAME" to request.name.trim(),
+        "GAME_NAME" to GradleProperties.escape(request.name.trim()),
         "PROJECT_ID" to request.projectId,
         "PACKAGE" to request.packageName,
         "KUBRIKO_VERSION" to configuration.kubrikoVersion,

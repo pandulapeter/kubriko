@@ -70,6 +70,7 @@ import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
+import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettings
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
@@ -130,6 +131,21 @@ internal fun WorkspaceScreen(
         )
     }
     var isReviewingUpgrade by remember { mutableStateOf(false) }
+    var isShowingProjectSettings by remember { mutableStateOf(false) }
+    if (isShowingProjectSettings) {
+        ProjectSettings(
+            rootDirectory = controller.project.rootDirectory,
+            history = controller.commands.history,
+            onCommand = controller.commands::dispatch,
+            onReviewUpgrade = projectUpgrade?.let {
+                {
+                    isShowingProjectSettings = false
+                    isReviewingUpgrade = true
+                }
+            },
+            onDismiss = { isShowingProjectSettings = false },
+        )
+    }
     val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)
     if (projectUpgrade != null && isReviewingUpgrade) {
         ProjectUpgradeDialog(
@@ -175,6 +191,7 @@ internal fun WorkspaceScreen(
                 onPlay = controller::play,
                 onStop = controller::stopSession,
                 onRefresh = controller::refreshResources,
+                onOpenProjectSettings = { isShowingProjectSettings = true },
                 onOpenSettings = onOpenSettings,
                 onCloseProject = onCloseProject,
             )

@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -68,10 +70,19 @@ internal class ProjectUpgrader(
         propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it && RunningInstancesUpgrade.isEntryPointDone(it) }) { text ->
             (if (ManagerTypeCodeGenerator.WIRING_NAME in text) text else withManagersHandedToTheSceneEditor(text, wiringImport))?.let(RunningInstancesUpgrade::entryPoint)
         }
-        val desktopPackagePath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}"
-        propose("$desktopPackagePath/$MAIN_FILE", { turnsLoggingOn(it) && overridesFirstScene(it) }) { withFirstSceneOverride(it, wiringImport) }
+        val mainPath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}/$MAIN_FILE"
+        val pagePath = "${sourceDirectory.replace("commonMain", "wasmJsMain").removeSuffix("/kotlin")}/resources/$PAGE_FILE"
+        val gameName = read(mainPath)?.let(GameIdentityUpgrade::windowTitleOf) ?: read(pagePath)?.let(GameIdentityUpgrade::pageTitleOf)
+            ?: ProjectInspector.nameOf(rootDirectory)
+        propose(mainPath, { turnsLoggingOn(it) && overridesFirstScene(it) && GameIdentityUpgrade.isMainDone(it) }) {
+            withFirstSceneOverride(it, wiringImport)?.let(GameIdentityUpgrade::main)
+        }
+        propose(GameIdentity.BUILD_FILE, GameIdentityUpgrade::isBuildFileDone) { GameIdentityUpgrade.buildFile(it, packageName) }
+        if (read(pagePath) != null) propose(pagePath, GameIdentityUpgrade::isPageDone, GameIdentityUpgrade::page)
         val properties = read(GRADLE_PROPERTIES_FILE).orEmpty()
-        if (!setsCaches(properties)) changes += ProposedFileChange(GRADLE_PROPERTIES_FILE, properties, withCaches(properties))
+        if (!setsCaches(properties) || !GameIdentityUpgrade.isPropertiesDone(properties)) {
+            changes += ProposedFileChange(GRADLE_PROPERTIES_FILE, properties, GameIdentityUpgrade.properties(withCaches(properties), gameName, packageName))
+        }
         val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
         read(sceneLoaderPath)?.takeIf { isGameUpgraded && it.trimEnd() == templateSceneLoader(packageName)?.trimEnd() }?.let { text ->
             changes += ProposedFileChange(sceneLoaderPath, text, after = null)
@@ -117,8 +128,9 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 8
-        private const val GRADLE_PROPERTIES_FILE = "gradle.properties"
+        const val CURRENT_VERSION = 9
+        private const val GRADLE_PROPERTIES_FILE = GameIdentity.GRADLE_PROPERTIES_FILE
+        private const val PAGE_FILE = "index.html"
         private val cacheProperties = listOf("org.gradle.configuration-cache", "org.gradle.caching")
         private const val GAME_FILE = "Game.kt"
         private const val MAIN_FILE = "Main.kt"

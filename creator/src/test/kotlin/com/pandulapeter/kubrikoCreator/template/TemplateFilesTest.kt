@@ -18,6 +18,7 @@ import kotlin.test.assertTrue
 class TemplateFilesTest {
     private val values = mapOf(
         "PROJECT_NAME" to "My Game",
+        "GAME_NAME" to "My Game",
         "PROJECT_ID" to "my-game",
         "PACKAGE" to "com.example.mygame",
         "KUBRIKO_VERSION" to "1.0.0",

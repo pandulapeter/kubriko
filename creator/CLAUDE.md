@@ -289,7 +289,11 @@ decode is rejected with `InputProblem`'s one sentence
   for playing from a Scene. Version 8 has `Game.kt` add its instance to the generated `KubrikoWiring.runningInstances` while
   it is shown and `GameEntryPoint` report them (`getRunningInstances`), so that `start_game` waits until the game has drawn its
   Actors (`RunningInstancesUpgrade`; a file that doesn't look like the template's counts as done, since `start_game` only skips
-  the wait without it). A change's `after` is null for a file it deletes.
+  the wait without it). Version 9 (`GameIdentityUpgrade`) keeps the game's identity in `gradle.properties` (below, Project settings):
+  the keys it lacks are added (the name taken from `Main.kt`'s window title, the page title, or the root project's name), the build
+  file gains the block that reads them (`upgrades/GameIdentity-9.gradle.kts.template`, which the template's build file ends with too),
+  `Main.kt`'s title becomes `GameInfo.NAME`, and `index.html`'s `@GAME_NAME@`; a title that isn't plain text counts as done.
+  A change's `after` is null for a file it deletes.
 - **Parent Actor types** (`ActorTypeFamily`, `set_parent`): an Actor type may name a `parent`, like GameMaker's parent objects
   (cycles and a parent named nowhere count as none). A child gets its ancestors' Properties (one of its own with the same name
   and kind only changes the initial value; another kind is rejected) and Events (one of its own of the same kind, key, other
@@ -384,7 +388,7 @@ decode is rejected with `InputProblem`'s one sentence
 - **Token budgets** (`TokenBudgetTest`, about four characters a token): the tool list, and on `BreakoutFixture` (a Breakout grown
   to five types and a 42-Actor level) the digest, `read_actor_type` of Ball (Blocks and JSON), and `read_scene` of the level (a
   page and the summary) each stay under a budget set just above what they cost, so that none can creep up unnoticed. The tool
-  list is about 16,000 tokens.
+  list is about 17,000 tokens.
 
 ## AI connection (MCP)
 
@@ -565,12 +569,26 @@ This user's settings on this computer (`settings/`): `CreatorSettings` in `setti
   and the interface scale (`ProvideInterfaceScale`, 75% to 130%, Campfire's 85% by default).
 - **Editor:** the folder New project creates projects in (the home folder by default).
 
+## Project settings
+
+The game's settings, kept in the project where its build reads them, so it builds the same without Creator. Opened from the
+workspace toolbar's settings menu (`ProjectSettingsDialog`, `ui/settings`), read again after every change and each time it opens.
+
+- **Identity** (`GameIdentity`): the name, version name (one to three numbers, as installers take it), version number,
+  application ID, vendor, and description, as `game.*` keys in `gradle.properties`, edited line by line (`GradleProperties`:
+  other lines untouched, values escaped as Gradle reads the file, ISO-8859-1). From template version 9 the build file reads
+  them (with fallbacks) for `nativeDistributions` and the macOS bundle ID, generates a `GameInfo` object into
+  `build/generated/gameInfo` (`generateGameInfo`, configuration-cache safe), and fills `index.html`'s `@GAME_NAME@` when
+  the web resources are processed. A project whose build doesn't read them (`GameIdentity.isReadByBuild`) offers the template
+  upgrade instead. `get_project_settings` and `set_project_settings` (settings left out stay; typing into one field is one undo
+  step) read and change them; the dialog's fields apply what is typed while it is valid (`IdentityField`) and say why otherwise.
+
 ## Packages (`com.pandulapeter.kubrikoCreator`)
 
 | Package | What it holds |
 |---|---|
 | (root) | `AppController` (screens, creating/opening/closing projects, recent projects, and the app-wide `scope`), `unexpectedProblemHandler` (on that scope and each workspace's: an uncaught exception is printed and reported in the open project's console, "Kubriko Creator ran into a problem", and the rest keeps running), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
-| `project` | Project inspection (`ProjectInspector`: the build files and name, and the desktop module through `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s poll of each file's `FileStamp` in `.kubriko/actors`, `.kubriko/managers`, Scenes, and sources, excluding generated code; files as Creator left them, which `BlockTypeStore` and `SceneStore` note in the workspace's `OwnWrites`, don't count as changed, so Creator's own writes don't reload anything), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`; each source file's libraries kept by length and modification time), `ExpectDeclarations` (whether the sources declare an `expect`, kept the same way), `writeTextAtomically` (how every store, the build file sync, and template upgrades write: a sibling temporary file moved into place, so a crash leaves the old content or the new, never half; the watcher ignores its temporary files). |
+| `project` | Project inspection (`ProjectInspector`: the build files and name, and the desktop module through `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s poll of each file's `FileStamp` in `.kubriko/actors`, `.kubriko/managers`, Scenes, and sources, excluding generated code; files as Creator left them, which `BlockTypeStore` and `SceneStore` note in the workspace's `OwnWrites`, don't count as changed, so Creator's own writes don't reload anything), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`; each source file's libraries kept by length and modification time), `ExpectDeclarations` (whether the sources declare an `expect`, kept the same way), `GameIdentity` and `GradleProperties` (Project settings), `writeTextAtomically` (how every store, the build file sync, and template upgrades write: a sibling temporary file moved into place, so a crash leaves the old content or the new, never half; the watcher ignores its temporary files). |
 | `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `SpriteFiles`, `GeneratedFile` (checksummed header), `BlockTypeStore` (writes definitions; `regenerate` turns the types in memory into code, writing only files whose code changed, which it knows without reading them while their length and modification time are the ones it left; skips hand-edited files and reports them; deletes the generated files of types that no longer exist, such as one a git checkout removed, unless they were changed by hand, and the workspace names both kinds in the console; keeps each Scene's music the same way), `ActorTypeFamily` (built once per regeneration and passed to every scope, since building it costs more than generating a type). |
 | `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
 | `ai/assistant` | The in-app assistant (see Assistant): `Assistant`, the ACP client (`AcpAgent`, `AgentConversation`, `AgentLauncher`), the agents (`AgentChoice`, `RegistryAgent`, `AgentRegistry`, `AgentRegistryStore`, `BinaryAgentInstaller`, `CustomAgentCommand`, `AgentProfile`), `ClaudeAgentOptions`, `AssistantSystemPrompt`, signing in (`SignInMethod`, `AuthStatus`, `SignInSession`, `TerminalText`, `SecretStore`), and the panel's state (`AssistantController`, `AssistantChat`, `AssistantTranscript`, `ClaudeConfiguration`). |
