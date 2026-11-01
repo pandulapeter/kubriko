@@ -173,6 +173,7 @@ internal class McpToolServer(
         options = ServerOptions(capabilities = ServerCapabilities(tools = ServerCapabilities.Tools(listChanged = false))),
         instructions = INSTRUCTIONS,
     ) {
+        val server = this
         registry.tools.forEach { tool ->
             val isRemembered = conversationId != null && tool.isReadOnly
             val properties = tool.inputSchema["properties"]?.jsonObject
@@ -186,11 +187,12 @@ internal class McpToolServer(
                 toolAnnotations = ToolAnnotations(readOnlyHint = tool.isReadOnly, destructiveHint = tool.isDestructive, openWorldHint = false),
             ) { request ->
                 val origin = conversationId?.let { AiStepOrigin(conversationId = it, toolCallId = (request.meta?.json?.get(TOOL_USE_ID_META) as? JsonPrimitive)?.contentOrNull) }
+                val clientName = server.sessions[sessionId]?.clientVersion?.name
                 val arguments = request.arguments ?: JsonObject(emptyMap())
                 if (isRemembered) {
-                    runTool(tool.name, JsonObject(arguments - FULL_PARAMETER), origin, isFull = (arguments[FULL_PARAMETER] as? JsonPrimitive)?.booleanOrNull == true)
+                    runTool(tool.name, JsonObject(arguments - FULL_PARAMETER), origin, clientName, isFull = (arguments[FULL_PARAMETER] as? JsonPrimitive)?.booleanOrNull == true)
                 } else {
-                    runTool(tool.name, arguments, origin)
+                    runTool(tool.name, arguments, origin, clientName)
                 }
             }
         }
@@ -200,9 +202,9 @@ internal class McpToolServer(
      * @param isFull Whether a conversation's read returns the whole result, even if it has read it before; null for a
      *   call whose result isn't remembered.
      */
-    private suspend fun runTool(toolName: String, arguments: JsonObject, origin: AiStepOrigin?, isFull: Boolean? = null): CallToolResult {
+    private suspend fun runTool(toolName: String, arguments: JsonObject, origin: AiStepOrigin?, clientName: String?, isFull: Boolean? = null): CallToolResult {
         val outcome = try {
-            withContext(callDispatcher) { executor()?.call(toolName, arguments, origin) }
+            withContext(callDispatcher) { executor()?.call(toolName, arguments, origin, clientName) }
         } catch (exception: CancellationException) {
             throw exception
         } catch (throwable: Throwable) {

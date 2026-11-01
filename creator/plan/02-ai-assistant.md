@@ -17,8 +17,8 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
   (`09-debugger.md`) exists.
-- **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), numbering steps per project rather than
-  per run of Creator, and naming the client (from MCP's `clientInfo`) when two are connected.
+- **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), and numbering steps per project
+  rather than per run of Creator.
 
 ## Next: in-app assistant panel
 

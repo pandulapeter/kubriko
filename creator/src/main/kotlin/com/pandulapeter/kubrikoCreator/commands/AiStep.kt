@@ -18,6 +18,7 @@ import org.jetbrains.compose.resources.StringResource
  * @param target What the call reads or changes, if anything in particular.
  * @param rejection Why the call failed, once it has.
  * @param origin Which of the assistant's conversations made the call, and the client's own ID for it, if known.
+ * @param clientName The name the MCP client gave itself, if it gave one.
  */
 internal data class AiStep(
     val id: Int,
@@ -27,4 +28,5 @@ internal data class AiStep(
     val isRunning: Boolean,
     val rejection: Rejection? = null,
     val origin: AiStepOrigin? = null,
+    val clientName: String? = null,
 )

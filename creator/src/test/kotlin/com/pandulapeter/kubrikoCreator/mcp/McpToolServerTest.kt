@@ -124,6 +124,14 @@ class McpToolServerTest {
     }
 
     @Test
+    fun eachStepNamesTheClientThatMadeIt() = runTest {
+        val executor = CommandExecutor(commandContext(ActorTypeDefinition("Ball")), testScope())
+        val started = start(executor)
+        connected(started) { callTool("list_scenes", emptyMap()) }
+        assertEquals("test", executor.aiSteps.value.single().clientName)
+    }
+
+    @Test
     fun rejectionsAreErrorsInPlainWordsAndEveryCallIsLogged() = runTest {
         val started = start(CommandExecutor(commandContext(ActorTypeDefinition("Ball")), testScope()))
         val result = connected(started) { callTool("create_actor_type", mapOf("name" to "Ball")) }

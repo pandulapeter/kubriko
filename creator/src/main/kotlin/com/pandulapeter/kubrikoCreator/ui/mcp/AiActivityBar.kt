@@ -46,6 +46,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ai_activity_follow
 import kubriko.creator.generated.resources.ai_activity_step
 import kubriko.creator.generated.resources.ai_activity_step_with_target
+import kubriko.creator.generated.resources.console_with_prefix
 import kubriko.creator.generated.resources.ic_ai
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -90,11 +91,13 @@ internal fun AiActivityBar(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            val showsClients = showsClientNames(steps)
             steps.getOrNull(steps.lastIndex - 1)?.let { previous ->
                 StepText(
                     modifier = Modifier.alpha(0.55f),
                     step = previous,
                     isCurrent = false,
+                    showsClient = showsClients,
                 )
                 Text(
                     text = "→",
@@ -105,6 +108,7 @@ internal fun AiActivityBar(
                 modifier = Modifier.weight(1f),
                 step = current,
                 isCurrent = true,
+                showsClient = showsClients,
             )
             FilterChip(
                 selected = isFollowing,
@@ -136,10 +140,12 @@ private fun PulsingIcon(
 private fun StepText(
     step: AiStep,
     isCurrent: Boolean,
+    showsClient: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val title = stringResource(step.title)
-    val text = step.target?.description()?.let { stringResource(Res.string.ai_activity_step_with_target, title, it) } ?: title
+    val described = step.target?.description()?.let { stringResource(Res.string.ai_activity_step_with_target, title, it) } ?: title
+    val text = step.clientName?.takeIf { showsClient }?.let { stringResource(Res.string.console_with_prefix, it, described) } ?: described
     Text(
         modifier = modifier,
         text = text,
@@ -150,6 +156,11 @@ private fun StepText(
         overflow = TextOverflow.Ellipsis,
     )
 }
+
+/**
+ * Whether [steps] come from more than one MCP client, so that each step says which.
+ */
+internal fun showsClientNames(steps: List<AiStep>) = steps.mapNotNullTo(HashSet()) { it.clientName }.size > 1
 
 private const val VISIBLE_AFTER_LAST_STEP = 6_000L
 private const val PULSE_DURATION = 600
