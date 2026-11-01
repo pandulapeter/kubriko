@@ -19,7 +19,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
-import com.pandulapeter.kubrikoCreator.scenes.createOffMainThread
+import com.pandulapeter.kubrikoCreator.scenes.createDisposingIfCancelled
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 
@@ -43,7 +43,7 @@ internal fun rememberSceneView(
     val currentOnFailed by rememberUpdatedState(onFailed)
     LaunchedEffect(state.scene.file, state.revision) {
         val next = try {
-            createOffMainThread(Dispatchers.Default, create = { SceneView(state.entryPoint) }, dispose = SceneView::dispose)
+            createDisposingIfCancelled(Dispatchers.Default, create = { SceneView(state.entryPoint) }, dispose = SceneView::dispose)
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {

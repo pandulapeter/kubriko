@@ -14,12 +14,13 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 /**
- * Runs [create] on [dispatcher], where what it throws can't take the user interface down with it, and disposes what it
- * created if the caller was cancelled meanwhile, so nothing is left undisposed.
+ * Runs [create] on [dispatcher] (off the main thread, where what the project's code throws can't take the user
+ * interface down with it), and disposes what it created if the caller was cancelled meanwhile, which would otherwise
+ * throw it away undisposed.
  *
  * @throws Exception What [create] threw, and [LinkageError]s too (a project class that is gone or changed since).
  */
-internal suspend fun <T : Any> createOffMainThread(
+internal suspend fun <T : Any> createDisposingIfCancelled(
     dispatcher: CoroutineDispatcher,
     create: () -> T,
     dispose: (T) -> Unit,

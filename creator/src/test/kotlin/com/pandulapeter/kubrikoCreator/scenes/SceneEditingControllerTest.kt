@@ -18,6 +18,8 @@ import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -72,7 +74,9 @@ class SceneEditingControllerTest {
         root.deleteRecursively()
     }
 
-    private fun TestScope.createController() = SceneEditingController(
+    private fun TestScope.createController(
+        scope: CoroutineScope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
+    ) = SceneEditingController(
         creatorKubrikoVersion = "1.0.0",
         runTask = { taskName, properties ->
             tasks += taskName to properties
@@ -81,7 +85,8 @@ class SceneEditingControllerTest {
             isBuildSuccessful
         },
         entryPointLoader = { loader.load(it) },
-        scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
+        scope = scope,
+        releaseScope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         report = { reports += it },
         readScene = { resource ->
@@ -109,6 +114,33 @@ class SceneEditingControllerTest {
         assertEquals("classpath", tasks.single().second["kubrikoCreatorMode"])
         assertEquals(listOf(File("/game/build/libs/game.jar")), loadedClasspaths.single().files)
         assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf("1.5"))), reports)
+    }
+
+    @Test
+    fun classesReleasedAsTheWorkspaceClosesAreClosedThoughItsScopeIsCancelled() = runTest {
+        val workspaceScope = CoroutineScope(backgroundScope.coroutineContext + Job(backgroundScope.coroutineContext[Job]) + UnconfinedTestDispatcher(testScheduler))
+        val controller = createController(scope = workspaceScope)
+        controller.open(scene)
+        controller.dispose()
+        workspaceScope.cancel()
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount)
+    }
+
+    @Test
+    fun classesLoadedWhileTheWorkspaceClosesAreClosedOnce() = runTest {
+        val workspaceScope = CoroutineScope(backgroundScope.coroutineContext + Job(backgroundScope.coroutineContext[Job]) + UnconfinedTestDispatcher(testScheduler))
+        loader = EntryPointLoader {
+            workspaceScope.cancel()
+            LoadedEntryPoint(entryPoint = entryPoint, close = { closedCount++ })
+        }
+        val controller = createController(scope = workspaceScope)
+        controller.open(scene)
+        controller.dispose()
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount)
     }
 
     @Test

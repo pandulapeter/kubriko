@@ -179,6 +179,7 @@ internal class WorkspaceController(
         entryPointLoader = entryPointLoader,
         classpathFile = SessionInitScript.classpathFileOf(project.rootDirectory),
         scope = scope,
+        releaseScope = parentScope,
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
         readScene = { scenes.actors(SceneStore.nameOf(it.file)).orEmpty() },

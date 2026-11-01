@@ -86,9 +86,10 @@ lives in `plan/` (start with `plan/README.md`).
   project's `CreatorEntryPoint` through `ServiceLoader`, and `SceneView` creates the Scene's Actors from the file's states with the
   project's `SerializationManager` and Managers in a Kubriko instance of its own that never runs (one Actor per entry, kept by
   the Actor's ID), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). Creating a `SceneView` runs the project's code (its
-  Managers' constructors), so `rememberSceneView` does it off the main thread (`createOffMainThread`), and what that code throws
+  Managers' constructors), so `rememberSceneView` does it off the main thread (`createDisposingIfCancelled`), and what that code throws
   (a `NoClassDefFoundError` too) fails the Scene with the problem (`SceneEditingController.onViewFailed`), or, for newer classes,
-  leaves the older ones shown as outdated. The header's Actors button shows the Scene's
+  leaves the older ones shown as outdated. Classes are loaded the same way, so a load cancelled midway closes what it loaded, and released classes
+  are closed a few seconds later on a scope that outlives the workspace (`releaseScope`). The header's Actors button shows the Scene's
   Actors in a list beside it (`SceneActorList`: in their order, by type and ID, filtered by what is typed, lazily composed),
   where a click selects one and centers the camera on it (`SceneView.centerOn`). A click selects the Actor on top (`SceneHitTest`:
   lowest drawing order, then the later one; the Scene settings only where nothing else is), looking only at the Actors near

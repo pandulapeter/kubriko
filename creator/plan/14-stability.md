@@ -15,12 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Processes, threads, and lifecycles
 
-- **Class loaders leak.** A load cancelled while `ClassLoaderEntryPointLoader.load` runs (a change, Reload, or closing during it)
-  throws its result away without closing it, and `SceneEditingController.dispose` closes the loaded classes five seconds later in a
-  scope `WorkspaceController.close` cancels first, so the `URLClassLoader` and its copied jars in the temporary folder stay for the
-  process (and `deleteOnExit` can't remove a folder that isn't empty). Over a long session of project switches this adds up.
-  Direction: run the load under `NonCancellable` and close the result if the caller was cancelled, and close released classes on a
-  scope that outlives the workspace (or right away on `dispose`).
 - **Out-of-order results.** `SceneEditingController.onScenesChanged` starts an untracked read per call, and
   `WorkspaceController.refreshResources` an untracked full scan; when two overlap (an AI batch, repeated undo), the older result can
   land last and show a removed Actor or Scene again until the next change. Direction: one conflated worker each, or ignore results

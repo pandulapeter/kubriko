@@ -20,19 +20,19 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class OffMainThreadCreationTest {
+class CreateDisposingIfCancelledTest {
     private val disposed = mutableListOf<String>()
 
     @Test
     fun whatIsCreatedIsReturned() = runTest {
-        assertEquals("view", createOffMainThread(StandardTestDispatcher(testScheduler), create = { "view" }, dispose = { disposed += it }))
+        assertEquals("view", createDisposingIfCancelled(StandardTestDispatcher(testScheduler), create = { "view" }, dispose = { disposed += it }))
         assertTrue(disposed.isEmpty())
     }
 
     @Test
     fun whatTheCreationThrowsReachesTheCaller() = runTest {
         assertFailsWith<IllegalStateException> {
-            createOffMainThread<String>(StandardTestDispatcher(testScheduler), create = { error("Broken.") }, dispose = { disposed += it })
+            createDisposingIfCancelled<String>(StandardTestDispatcher(testScheduler), create = { error("Broken.") }, dispose = { disposed += it })
         }
     }
 
@@ -41,7 +41,7 @@ class OffMainThreadCreationTest {
         val isCreating = CountDownLatch(1)
         val mayFinish = CountDownLatch(1)
         val creation = async(Dispatchers.Default) {
-            createOffMainThread(
+            createDisposingIfCancelled(
                 Dispatchers.IO,
                 create = {
                     isCreating.countDown()

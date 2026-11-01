@@ -49,6 +49,8 @@ import java.io.IOException
  * @param warmUpCompiler Gets the compiler ready for the first change, once [prepare] has loaded the classes.
  * @param actorTypeLooks The looks of the block-built Actor types as they are now, whose changes the open Scene shows
  *   before they are compiled ([SceneEditingState.Open.previews], kept current by [onActorTypesChanged]).
+ * @param releaseScope Where released classes are closed, a few seconds later: one that outlives [scope], which closing the
+ *   workspace cancels first, so that they are closed even then.
  * @param awaitWrites Returns once the Actor types are loaded and their changes written, so that a build knows which
  *   looks it compiles.
  */
@@ -57,6 +59,7 @@ internal class SceneEditingController(
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
     private val entryPointLoader: EntryPointLoader,
     private val scope: CoroutineScope,
+    private val releaseScope: CoroutineScope = scope,
     private val ioDispatcher: CoroutineDispatcher,
     private val report: (ConsoleEntry) -> Unit,
     private val readScene: (ProjectResource) -> List<SceneActorEntry>,
@@ -220,7 +223,7 @@ internal class SceneEditingController(
             classpath == null -> LoadResult.Failed(Res.string.scene_build_failed)
             classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(classpath.kubrikoVersion)
             else -> try {
-                LoadResult.Loaded(withContext(ioDispatcher) { entryPointLoader.load(classpath) }, looks)
+                LoadResult.Loaded(createDisposingIfCancelled(ioDispatcher, create = { entryPointLoader.load(classpath) }, dispose = { it.close() }), looks)
             } catch (exception: EntryPointLoadingException) {
                 if (exception.cause != null) requestCleanBuild()
                 report(ConsoleEntry.Status(exception.reason, isError = true))
@@ -312,7 +315,7 @@ internal class SceneEditingController(
 
     private fun release(released: Deferred<LoadResult>) {
         released.cancel()
-        scope.launch {
+        releaseScope.launch {
             val loaded = try {
                 released.await() as? LoadResult.Loaded
             } catch (_: CancellationException) {
