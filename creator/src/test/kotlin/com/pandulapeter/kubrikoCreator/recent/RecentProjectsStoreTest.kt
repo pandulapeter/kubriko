@@ -51,13 +51,20 @@ class RecentProjectsStoreTest {
     }
 
     @Test
-    fun projectsWhoseFolderIsGoneAreLeftOutAndForgotten() {
+    fun projectsWhoseFolderIsGoneAreKeptForADriveThatIsntMounted() {
         val gone = project("gone")
         store.add(gone, "Gone")
         store.add(project("kept"), "Kept")
         gone.deleteRecursively()
-        assertEquals(listOf("Kept"), store.load().map { it.name })
-        assertTrue("Gone" !in file.readText())
+        assertEquals(listOf("Kept", "Gone"), store.load().map { it.name })
+        assertTrue("Gone" in file.readText())
+    }
+
+    @Test
+    fun changesFromSeveralThreadsAtOnceAreAllKept() {
+        val projects = (0 until RecentProjectsStore.MAXIMUM_COUNT).map { project("game$it") }
+        projects.map { directory -> Thread { store.add(directory, directory.name) }.apply { start() } }.forEach(Thread::join)
+        assertEquals(projects.map { it.name }.toSet(), store.load().map { it.name }.toSet())
     }
 
     @Test

@@ -18,8 +18,9 @@ import java.io.File
 import java.io.IOException
 
 /**
- * Remembers the projects opened recently, newest first, in [file]. Projects whose folder is gone are left out (and
- * forgotten), and a file that can't be read counts as an empty list rather than an error.
+ * Remembers the projects opened recently, newest first, in [file]. Projects whose folder is gone are kept (the folder may
+ * be on a drive that isn't mounted), and a file that can't be read counts as an empty list rather than an error. Reading,
+ * changing, and writing the file happen one call at a time, whichever thread calls.
  */
 internal class RecentProjectsStore(
     private val file: File,
@@ -31,22 +32,18 @@ internal class RecentProjectsStore(
         ignoreUnknownKeys = true
     }
 
-    fun load(): List<RecentProject> {
-        val stored = read()
-        val available = stored.filter { it.directory.isDirectory }
-        if (available.size != stored.size) write(available)
-        return available
-    }
+    private val lock = Any()
 
-    fun add(directory: File, name: String): List<RecentProject> {
+    fun load(): List<RecentProject> = synchronized(lock) { read() }
+
+    fun add(directory: File, name: String): List<RecentProject> = synchronized(lock) {
         val path = directory.absoluteFile.normalize().path
-        val updated = (listOf(RecentProject(path = path, name = name, lastOpened = currentTimeMillis())) + load().filter { it.path != path })
+        (listOf(RecentProject(path = path, name = name, lastOpened = currentTimeMillis())) + read().filter { it.path != path })
             .take(MAXIMUM_COUNT)
-        write(updated)
-        return updated
+            .also(::write)
     }
 
-    fun remove(path: String): List<RecentProject> = load().filter { it.path != path }.also(::write)
+    fun remove(path: String): List<RecentProject> = synchronized(lock) { read().filter { it.path != path }.also(::write) }
 
     private fun read() = try {
         if (file.isFile) json.decodeFromString(serializer, file.readText()).sortedByDescending { it.lastOpened } else emptyList()

@@ -13,13 +13,6 @@ What breaks, hangs, or loses work today when files are broken, a process misbeha
 the code, why it matters, and the direction; none of it is built yet. The user put stability before new features, so this file
 comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
 
-## Processes, threads, and lifecycles
-
-- **Recent projects** (`RecentProjectsStore`) read, change, and write the file without a lock from several IO threads (the
-  command-line project races the welcome screen's load), and `load` forgets projects whose folder is missing, so one on an
-  unmounted drive is lost for good. Direction: synchronize the store and show missing projects greyed
-  with Remove instead of forgetting them.
-
 ## Generated code
 
 - **Manager lookup fields can clash.** `BlockScope.managerField` (`actors/BlockScope.kt`) names the field an Actor looks a Manager up

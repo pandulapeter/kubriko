@@ -54,7 +54,7 @@ internal class AppController(
     private val _recentProjects = MutableStateFlow(emptyList<RecentProject>())
 
     /**
-     * The projects opened recently whose folders still exist, newest first.
+     * The projects opened recently, newest first, those whose folders are gone too, which the welcome screen shows greyed.
      */
     val recentProjects = _recentProjects.asStateFlow()
 
