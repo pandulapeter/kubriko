@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +50,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
+import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_conversation
 import kubriko.creator.generated.resources.action_install_node
@@ -71,6 +73,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * @param aiSteps The open project's AI steps, which the tool call cards tie into.
  * @param onShowStep Goes to what a step worked on, in the editor.
  * @param attention What the user is looking at, offered with the next message.
+ * @param captureScreen Takes a screenshot of the running game, for [AttentionChip.GameScreen].
  */
 @Composable
 internal fun AssistantPanel(
@@ -79,6 +82,7 @@ internal fun AssistantPanel(
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
     attention: List<AttentionChip> = emptyList(),
+    captureScreen: suspend () -> ByteArray? = { null },
 ) {
     val agent by controller.agent.collectAsState()
     CompositionLocalProvider(LocalAgent provides agent) {
@@ -87,6 +91,7 @@ internal fun AssistantPanel(
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,
+            captureScreen = captureScreen,
             modifier = modifier,
         )
     }
@@ -98,6 +103,7 @@ private fun AssistantPanelContent(
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     attention: List<AttentionChip>,
+    captureScreen: suspend () -> ByteArray?,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
@@ -190,6 +196,7 @@ private fun AssistantPanelContent(
             chat = current,
             download = controller.download.collectAsState().value,
             attention = attention,
+            captureScreen = captureScreen,
             isBilledToApiKey = hasApiKey,
             onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
@@ -216,6 +223,7 @@ private fun AssistantPanelContent(
 private fun ChatContent(
     chat: AssistantChat,
     attention: List<AttentionChip>,
+    captureScreen: suspend () -> ByteArray?,
     download: AgentDownload?,
     isBilledToApiKey: Boolean,
     onOpenLog: (() -> Unit)?,
@@ -267,6 +275,7 @@ private fun ChatContent(
         )
     }
     var leftOut by remember(chat) { mutableStateOf(emptySet<String>()) }
+    val sendScope = rememberCoroutineScope()
     AttentionChips(
         chips = attention,
         leftOut = leftOut,
@@ -281,7 +290,10 @@ private fun ChatContent(
         commands = chat.availableCommands.collectAsState().value,
         isEnabled = state == ChatState.Ready,
         isBusy = isBusy,
-        onSend = { text -> chat.send(text, attention.filter { it.key !in leftOut }.map { it.toContent() }) },
+        onSend = { text ->
+            val chips = attention.filter { it.key !in leftOut }
+            sendScope.launch { chat.send(text, AttentionChip.contentOf(chips, captureScreen)) }
+        },
         onStop = chat::stop,
     )
 }

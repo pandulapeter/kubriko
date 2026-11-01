@@ -43,4 +43,16 @@ class AttentionChipTest {
         assertEquals(true, type.description?.contains("read_actor_type"))
         assertEquals("The latest problem in the console: Ball.kt:12: Unresolved reference: speed", (AttentionChip.Problem(problem.message, problem.location).toContent() as ContentBlock.Text).text)
     }
+
+    @Test
+    fun theGameScreenIsOfferedOnlyWhenItCanBeSentAndIsCapturedWhenSent() = kotlinx.coroutines.test.runTest {
+        assertEquals(listOf<AttentionChip>(AttentionChip.GameScreen), AttentionChip.of(null, null, false, emptyList(), canSendGameScreen = true))
+        val png = byteArrayOf(1, 2, 3)
+        val sent = AttentionChip.contentOf(listOf(AttentionChip.Scene("main"), AttentionChip.GameScreen)) { png }
+        assertEquals(3, sent.size)
+        val image = sent.last() as ContentBlock.Image
+        assertEquals("image/png", image.mimeType)
+        assertEquals(java.util.Base64.getEncoder().encodeToString(png), image.data)
+        assertEquals(1, AttentionChip.contentOf(listOf(AttentionChip.Scene("main"), AttentionChip.GameScreen)) { null }.size)
+    }
 }

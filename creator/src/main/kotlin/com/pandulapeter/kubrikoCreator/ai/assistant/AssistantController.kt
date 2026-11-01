@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -135,6 +136,13 @@ internal class AssistantController(
      */
     val signInMethods = assistant.flatMapLatest { it?.signInMethods ?: flowOf(emptyList()) }.stateIn(scope, SharingStarted.Eagerly, emptyList())
     private val statusBeforeSignIn = MutableStateFlow<AuthStatus?>(null)
+
+    /**
+     * Whether the agent takes images in prompts, once it has started.
+     */
+    val acceptsImages = assistant.flatMapLatest { it?.capabilities ?: flowOf(null) }
+        .map { it?.promptCapabilities?.image == true }
+        .stateIn(scope, SharingStarted.Eagerly, false)
 
     /**
      * Whether the agent said it isn't signed in, and the user hasn't signed in since. Claude Agent reports a new sign-in

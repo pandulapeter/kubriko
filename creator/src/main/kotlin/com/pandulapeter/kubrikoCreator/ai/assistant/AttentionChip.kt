@@ -11,10 +11,12 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import java.util.Base64
 
 /**
  * What the user is looking at, offered to the agent with their next message: as links the agent follows with Creator's
- * read tools when it needs them, rather than pasted content, except for a console problem, which is short.
+ * read tools when it needs them, rather than pasted content, except for a console problem, which is short, and the running
+ * game's screen, sent as an image to agents that take images.
  */
 internal sealed interface AttentionChip {
 
@@ -50,6 +52,15 @@ internal sealed interface AttentionChip {
         )
     }
 
+    /**
+     * What the running game shows, captured when the message is sent ([contentOf]).
+     */
+    data object GameScreen : AttentionChip {
+        override val key get() = "game"
+
+        override fun toContent() = ContentBlock.Text("A screenshot of the running game follows.")
+    }
+
     data class Problem(
         val message: String,
         val location: String?,
@@ -66,11 +77,30 @@ internal sealed interface AttentionChip {
          * The chips for the editor's state: the open Scene, otherwise the selected type, and the console's latest problem,
          * unless something went well after it.
          */
-        fun of(openScene: String?, selectedType: String?, isSelectedTypeManager: Boolean, console: List<ConsoleEntry>): List<AttentionChip> = listOfNotNull(
+        fun of(
+            openScene: String?,
+            selectedType: String?,
+            isSelectedTypeManager: Boolean,
+            console: List<ConsoleEntry>,
+            canSendGameScreen: Boolean = false,
+        ): List<AttentionChip> = listOfNotNull(
             openScene?.let(::Scene),
             selectedType?.takeIf { openScene == null }?.let { BlockType(it, isSelectedTypeManager) },
             latestProblemOf(console),
+            GameScreen.takeIf { canSendGameScreen },
         )
+
+        /**
+         * What [chips] send: each one's content, and for [GameScreen] the screenshot [captureScreen] takes, left out if it
+         * takes none.
+         */
+        suspend fun contentOf(chips: List<AttentionChip>, captureScreen: suspend () -> ByteArray?): List<ContentBlock> = chips.flatMap { chip ->
+            if (chip == GameScreen) {
+                captureScreen()?.let { png -> listOf(chip.toContent(), ContentBlock.Image(data = Base64.getEncoder().encodeToString(png), mimeType = "image/png")) }.orEmpty()
+            } else {
+                listOf(chip.toContent())
+            }
+        }
 
         private fun latestProblemOf(console: List<ConsoleEntry>): Problem? {
             for (index in console.indices.reversed()) {

@@ -74,8 +74,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    with the user able to allow it.
 6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
-7. **The panel** (see `../CLAUDE.md` → Assistant): a Scene or game screenshot attached as an image where `promptCapabilities.image`
-   allows; conversations kept per
+7. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists); conversations kept per
    project after it closes and resumed after a restart with `session/load` where the agent offers it.
 8. **Keep and Undo:** before each prompt Creator commits a checkpoint ("Before Claude's changes") when the project is under version
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.

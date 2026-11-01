@@ -41,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
@@ -67,6 +68,7 @@ import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
+import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
 import kubriko.creator.generated.resources.Res
@@ -292,7 +294,9 @@ internal fun WorkspaceScreen(
                             selectedType = selectedBlockType?.name,
                             isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
                             console = controller.console.collectAsState().value,
+                            canSendGameScreen = sessionState is SessionState.Running && assistant.acceptsImages.collectAsState().value,
                         ),
+                        captureScreen = { (controller.commands.context.runner.captureScreen() as? GameStep.Done)?.png },
                     )
                 }
                 if (openPanel == SidePanel.VERSION_CONTROL) {

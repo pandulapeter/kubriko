@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_chip_actor_type
+import kubriko.creator.generated.resources.assistant_chip_game_screen
 import kubriko.creator.generated.resources.assistant_chip_hint
 import kubriko.creator.generated.resources.assistant_chip_manager_type
 import kubriko.creator.generated.resources.assistant_chip_problem
@@ -60,4 +61,5 @@ private fun AttentionChip.label() = when (this) {
     is AttentionChip.Scene -> stringResource(Res.string.assistant_chip_scene, name)
     is AttentionChip.BlockType -> stringResource(if (isManager) Res.string.assistant_chip_manager_type else Res.string.assistant_chip_actor_type, name)
     is AttentionChip.Problem -> stringResource(Res.string.assistant_chip_problem)
+    AttentionChip.GameScreen -> stringResource(Res.string.assistant_chip_game_screen)
 }

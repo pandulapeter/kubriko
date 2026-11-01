@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
  *
  * @param digest What the AI is told about the game, read only while that view is shown.
  * @param attention What the user is looking at, which the assistant offers with the next message.
+ * @param captureScreen Takes a screenshot of the running game.
  */
 @Composable
 internal fun AiPanel(
@@ -46,6 +47,7 @@ internal fun AiPanel(
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     attention: List<AttentionChip>,
+    captureScreen: suspend () -> ByteArray?,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
@@ -63,6 +65,7 @@ internal fun AiPanel(
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,
+            captureScreen = captureScreen,
         )
         AiPanelView.OWN_TOOL -> AiConnectionPanel(
             modifier = content,

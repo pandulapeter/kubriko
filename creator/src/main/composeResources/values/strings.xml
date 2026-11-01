@@ -619,6 +619,7 @@
     <string name="assistant_chip_scene">Scene %1$s</string>
     <string name="assistant_chip_actor_type">Actor type %1$s</string>
     <string name="assistant_chip_manager_type">Manager type %1$s</string>
+    <string name="assistant_chip_game_screen">Game screenshot</string>
     <string name="assistant_chip_problem">The latest problem</string>
     <string name="assistant_chip_hint">Sent with your next message, so the assistant knows what you mean. Click to leave it out.</string>
     <string name="assistant_starting_download">The first time, it is downloaded, which can take a minute.</string>

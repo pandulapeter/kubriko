@@ -95,6 +95,12 @@ internal class AcpAgent(
      * The ways of signing in the agent offered when it last started.
      */
     val signInMethods = _signInMethods.asStateFlow()
+    private val _capabilities = MutableStateFlow<AgentCapabilities?>(null)
+
+    /**
+     * What the agent said it can do when it last started.
+     */
+    val capabilities = _capabilities.asStateFlow()
     private val lifecycle = Mutex()
 
     @Volatile
@@ -261,6 +267,7 @@ internal class AcpAgent(
         }
         exit.cancel()
         _signInMethods.value = SignInMethod.of(info.authMethods, command)
+        _capabilities.value = info.capabilities
         return Connection(channel, connectionScope, client, info, errorReader, timeSource.markNow())
     }
 

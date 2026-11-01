@@ -43,6 +43,7 @@ internal class Assistant(
     private val toolConversations = ConcurrentHashMap<AgentConversation, String>()
     val authStatus get() = agent.authStatus
     val signInMethods get() = agent.signInMethods
+    val capabilities get() = agent.capabilities
 
     /**
      * Signs in with [method], which the agent runs by itself.
