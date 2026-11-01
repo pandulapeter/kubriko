@@ -175,7 +175,6 @@ understand the game is shown to the user too.
   sign-in.
 - An opt-in live test per profile, as `ClaudeAgentLiveTest` is for Claude, with that agent's account variable: one tool call through
   the conversation's address, and nothing written to the project folder.
-- A small eval set of realistic requests ("make the Ball faster", "add a Paddle moved with A and D", "remove Bricks the Ball hits", and the
-  requests real sessions were given: "log when the game starts", "stop the paddle on key release and show a score") replayed
-  against the tools with recorded model responses, so tool changes are checked without spending tokens; a live run is opt-in, like the
-  template integration test.
+- The eval set (`EvalSetTest`) with calls recorded from real sessions rather than written by hand, more requests ("stop the paddle on
+  key release"), and an opt-in live run that has a real agent answer each request against a scratch project, like the template
+  integration test.
