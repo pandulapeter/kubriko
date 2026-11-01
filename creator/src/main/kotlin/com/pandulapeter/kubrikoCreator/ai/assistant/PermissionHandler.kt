@@ -33,6 +33,15 @@ internal fun interface PermissionHandler {
                 ?: RequestPermissionOutcome.Cancelled
         }
 
+        /**
+         * Allows Kubriko Creator's own tools ([CreatorToolName]) once, since their changes show up in the editor and can be
+         * undone, and leaves the rest to [other]: what Claude Agent's `allowedTools` does, for agents that ask.
+         */
+        fun allowingCreatorTools(other: PermissionHandler) = PermissionHandler { toolCall, options ->
+            val allow = options.firstOrNull { it.kind == PermissionOptionKind.ALLOW_ONCE } ?: options.firstOrNull { it.kind == PermissionOptionKind.ALLOW_ALWAYS }
+            if (allow != null && CreatorToolName.of(toolCall.title) != null) RequestPermissionOutcome.Selected(allow.optionId) else other.answer(toolCall, options)
+        }
+
         private val changingKinds = setOf(ToolKind.EDIT, ToolKind.DELETE, ToolKind.MOVE, ToolKind.EXECUTE)
 
         /**

@@ -66,7 +66,7 @@ internal class Assistant(
                     listOf(ConversationToolServer.of(capabilities, profile, "http://${McpToolServer.HOST}:$port${tools.path}", tools.token, npx))
                 },
                 meta = prompt?.let { profile.sessionMeta?.invoke(it) },
-                permissions = if (profile.keepsOffFiles) permissions else PermissionHandler.rejectingChanges(permissions),
+                permissions = PermissionHandler.allowingCreatorTools(if (profile.keepsOffFiles) permissions else PermissionHandler.rejectingChanges(permissions)),
                 firstPromptLead = prompt.takeIf { profile.sessionMeta == null },
             )
         } catch (exception: Exception) {

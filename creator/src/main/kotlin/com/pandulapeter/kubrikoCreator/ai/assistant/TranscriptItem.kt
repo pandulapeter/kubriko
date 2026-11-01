@@ -13,7 +13,6 @@ import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
 import com.agentclientprotocol.model.ToolKind
-import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 
 /**
  * One entry of a conversation as the assistant panel shows it.
@@ -48,11 +47,7 @@ internal sealed interface TranscriptItem {
         /**
          * The name of the Kubriko Creator tool the call runs, or null if it runs one of the agent's own.
          */
-        val creatorToolName get() = title.removePrefix(CREATOR_TOOL_PREFIX).takeIf { title.startsWith(CREATOR_TOOL_PREFIX) }
-
-        private companion object {
-            val CREATOR_TOOL_PREFIX = "mcp__${McpToolServer.SERVER_NAME}__"
-        }
+        val creatorToolName get() = CreatorToolName.of(title)
     }
 
     /**
