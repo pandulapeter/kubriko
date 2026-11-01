@@ -16,6 +16,7 @@ import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
+import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.protocol.JsonRpcException
 import com.agentclientprotocol.rpc.JsonRpcErrorCode
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
@@ -40,17 +41,20 @@ import kotlinx.coroutines.launch
  * everything the panel shows of it.
  *
  * @param parentScope Where the conversation's work runs: the main thread, which the panel's state is read on.
+ * @param start Starts the conversation, or continues an earlier one, handing what came before to its second argument.
  * @param end Ends the conversation [start] started.
  * @param toolsIdOf The ID of the address at which a conversation reaches Kubriko Creator's tools.
+ * @param onTurnEnded Called after each turn with the conversation's ID and title, so that it can be continued later.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
  *   its last turn ([ChangesSummary]).
  */
 internal class AssistantChat(
     parentScope: CoroutineScope,
-    private val start: suspend (PermissionHandler) -> AgentConversation,
+    private val start: suspend (PermissionHandler, onHistory: suspend (SessionUpdate) -> Unit) -> AgentConversation,
     private val end: suspend (AgentConversation) -> Unit,
     private val toolsIdOf: (AgentConversation) -> String? = { null },
     private val changeLog: () -> ChangeLog? = { null },
+    private val onTurnEnded: suspend (id: String, title: String) -> Unit = { _, _ -> },
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private val _state = MutableStateFlow<ChatState>(ChatState.Starting)
@@ -81,6 +85,12 @@ internal class AssistantChat(
      * The agent's options for the conversation, such as its model.
      */
     val configOptions: StateFlow<List<SessionConfigOption>> = _configOptions.asStateFlow()
+    private val _conversationId = MutableStateFlow<String?>(null)
+
+    /**
+     * The agent's ID of the conversation, which continues it after a restart, once it has started.
+     */
+    val conversationId = _conversationId.asStateFlow()
     private val _toolsId = MutableStateFlow<String?>(null)
 
     /**
@@ -155,6 +165,8 @@ internal class AssistantChat(
                 val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
                 _transcript.update { it.withTurnEnd(response.stopReason) }
+                val title = _transcript.value.title
+                if (title != null) onTurnEnded(conversation.id.value, title)
             } catch (exception: CancellationException) {
                 if (!currentCoroutineContext().isActive) throw exception
                 _transcript.update { it.withFailure(FailureReason.AGENT_STOPPED) }
@@ -218,11 +230,14 @@ internal class AssistantChat(
         _state.value = ChatState.Starting
         scope.launch {
             val started = try {
-                start(permissions)
+                start(permissions) { update -> _transcript.update { it.withUpdate(update) } }
             } catch (exception: CancellationException) {
                 throw exception
             } catch (_: NodeMissingException) {
                 _state.value = ChatState.Failed(FailureReason.NODE_MISSING)
+                return@launch
+            } catch (_: ConversationLostException) {
+                _state.value = ChatState.Failed(FailureReason.CONVERSATION_LOST)
                 return@launch
             } catch (_: UvMissingException) {
                 _state.value = ChatState.Failed(FailureReason.UV_MISSING)
@@ -236,6 +251,7 @@ internal class AssistantChat(
             }
             conversation = started
             _toolsId.value = toolsIdOf(started)
+            _conversationId.value = started.id.value
             seenRevision = changeLog()?.revision ?: 0
             _state.value = ChatState.Ready
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.updates.collect { update -> _transcript.update { it.withUpdate(update) } } }

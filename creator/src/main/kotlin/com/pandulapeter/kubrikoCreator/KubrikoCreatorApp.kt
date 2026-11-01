@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSystemPrompt
 import com.pandulapeter.kubrikoCreator.ai.assistant.BinaryAgentInstaller
 import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
+import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversationStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.context.DigestText
@@ -180,5 +181,6 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         registry = AgentRegistryStore.default(),
         installer = BinaryAgentInstaller.default(),
         errorLogFile = errorLog.file,
+        conversations = SavedConversationStore.default(),
     )
 }

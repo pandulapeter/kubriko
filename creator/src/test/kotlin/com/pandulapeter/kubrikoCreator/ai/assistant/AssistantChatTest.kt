@@ -64,7 +64,7 @@ class AssistantChatTest {
     private suspend fun newChat(changeLog: ChangeLog? = null) = withContext(mainThread) {
         AssistantChat(
             parentScope = scope,
-            start = { permissions -> agent.newConversation(File("/projects/breakout"), permissions = permissions) },
+            start = { permissions, _ -> agent.newConversation(File("/projects/breakout"), permissions = permissions) },
             end = { conversation ->
                 ended += conversation
                 conversation.close()

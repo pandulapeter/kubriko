@@ -22,6 +22,8 @@ import com.agentclientprotocol.model.ClientCapabilities
 import com.agentclientprotocol.model.Implementation
 import com.agentclientprotocol.model.McpServer
 import com.agentclientprotocol.model.PROTOCOL_VERSION_V1
+import com.agentclientprotocol.model.SessionId
+import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.protocol.Protocol
 import com.agentclientprotocol.transport.StdioTransport
 import kotlinx.coroutines.CancellationException
@@ -147,6 +149,36 @@ internal class AcpAgent(
         val session = connection.client.newSession(parameters) { sessionId, _ ->
             conversation = AgentConversation(sessionId, parameters, this, permissions, firstPromptLead)
             conversation.operations
+        }
+        conversation.attach(session)
+        conversations += conversation
+        conversation
+    }
+
+    /**
+     * Continues the conversation [id], which an earlier run of the agent started, with `session/load`, handing its
+     * history to [onHistory] as the agent replays it.
+     *
+     * @throws ConversationLostException If the agent can't load conversations, or couldn't load this one.
+     * @throws AgentStartException If the agent couldn't be started.
+     */
+    suspend fun resumeConversation(
+        id: SessionId,
+        workingDirectory: File,
+        mcpServers: (AgentCapabilities) -> List<McpServer> = { emptyList() },
+        meta: JsonElement? = null,
+        permissions: PermissionHandler = PermissionHandler.Reject,
+        onHistory: suspend (SessionUpdate) -> Unit = {},
+    ): AgentConversation = lifecycle.withLock {
+        val connection = connected()
+        if (!connection.info.capabilities.loadSession) throw ConversationLostException()
+        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(connection.info.capabilities), _meta = meta)
+        val conversation = AgentConversation(id, parameters, this, permissions)
+        val session = try {
+            conversation.collectingHistory(onHistory) { connection.client.loadSession(id, parameters, conversation.operations) }
+        } catch (exception: Exception) {
+            if (exception is CancellationException) throw exception
+            throw ConversationLostException()
         }
         conversation.attach(session)
         conversations += conversation

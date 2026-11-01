@@ -1,0 +1,57 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ai.assistant
+
+import java.io.File
+import kotlin.io.path.createTempDirectory
+import kotlin.test.AfterTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class SavedConversationStoreTest {
+    private val directory = createTempDirectory().toFile()
+    private val file = File(directory, "conversations.json")
+    private val breakout = File("/projects/breakout")
+
+    @AfterTest
+    fun tearDown() {
+        directory.deleteRecursively()
+    }
+
+    private fun saved(id: String, updatedAt: Long, agentId: String = "claude-acp", project: File = breakout) =
+        SavedConversation(project.absolutePath, agentId, id, "Title $id", updatedAt)
+
+    @Test
+    fun conversationsAreKeptPerProjectAndAgentNewestFirst() {
+        val store = SavedConversationStore(file)
+        store.save(saved("a", 1))
+        store.save(saved("b", 2))
+        store.save(saved("c", 3, agentId = "antigravity-acp"))
+        store.save(saved("d", 4, project = File("/projects/other")))
+        assertEquals(listOf("b", "a"), SavedConversationStore(file).of(breakout, "claude-acp").map { it.id })
+        assertEquals(listOf("c"), store.of(breakout, "antigravity-acp").map { it.id })
+    }
+
+    @Test
+    fun savingAgainReplacesItAndOnlyTheNewestStay() {
+        val store = SavedConversationStore(file, conversationsPerProject = 2)
+        store.save(saved("a", 1))
+        store.save(saved("b", 2))
+        store.save(saved("a", 3))
+        store.save(saved("c", 4))
+        assertEquals(listOf("c", "a"), store.of(breakout, "claude-acp").map { it.id })
+    }
+
+    @Test
+    fun anUnreadableFileMeansNone() {
+        file.writeText("nope")
+        assertEquals(emptyList(), SavedConversationStore(file).of(breakout, "claude-acp"))
+    }
+}

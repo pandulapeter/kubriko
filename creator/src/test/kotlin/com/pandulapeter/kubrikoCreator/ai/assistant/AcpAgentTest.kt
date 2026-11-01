@@ -15,6 +15,7 @@ import com.agentclientprotocol.model.HttpHeader
 import com.agentclientprotocol.model.McpServer
 import com.agentclientprotocol.model.PermissionOptionKind
 import com.agentclientprotocol.model.RequestPermissionOutcome
+import com.agentclientprotocol.model.SessionId
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.StopReason
 import kotlinx.coroutines.CoroutineScope
@@ -344,6 +345,21 @@ class AcpAgentTest {
         val agent = agent(launcher)
         agent.authenticate(AuthMethodId(FakeAgent.AGENT_LOGIN))
         assertEquals(listOf(AuthMethodId(FakeAgent.AGENT_LOGIN)), launcher.agents.single().authenticated)
+    }
+
+    @Test
+    fun anEarlierConversationIsContinuedWithItsHistory() = test {
+        val launcher = launcher()
+        val history = mutableListOf<SessionUpdate>()
+        val conversation = agent(launcher).resumeConversation(SessionId("earlier"), workingDirectory, onHistory = { history += it })
+        assertEquals(listOf(SessionId("earlier")), launcher.agents.single().loadedSessions)
+        assertEquals(listOf<SessionUpdate>(FakeAgent.message(FakeAgent.HISTORY)), history)
+        assertEquals(StopReason.END_TURN, conversation.prompt(text("hello")).stopReason)
+    }
+
+    @Test
+    fun anAgentThatCantLoadConversationsCantContinueOne() = test {
+        assertFailsWith<ConversationLostException> { agent(launcher { FakeAgent(supportsLoading = false) }).resumeConversation(SessionId("earlier"), workingDirectory) }
     }
 
     private companion object {

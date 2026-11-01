@@ -74,12 +74,11 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    with the user able to allow it.
 6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
-7. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists); conversations kept per
-   project after it closes and resumed after a restart with `session/load` where the agent offers it.
+7. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists).
 8. **Keep and Undo:** before each prompt Creator commits a checkpoint ("Before Claude's changes") when the project is under version
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 
-**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); and the MCP server items above.
+**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); Keep and Undo (8); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.

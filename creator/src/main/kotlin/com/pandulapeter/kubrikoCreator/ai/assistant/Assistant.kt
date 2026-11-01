@@ -9,6 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.AgentCapabilities
+import com.agentclientprotocol.model.McpServer
+import com.agentclientprotocol.model.SessionId
+import com.agentclientprotocol.model.SessionUpdate
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
@@ -46,6 +50,12 @@ internal class Assistant(
     val capabilities get() = agent.capabilities
 
     /**
+     * Whether the agent forgets the conversations closed, so that they can be continued later in the same run; otherwise
+     * the agent's own client keeps their IDs taken until the agent starts again.
+     */
+    val canCloseConversations get() = agent.capabilities.value?.sessionCapabilities?.close != null
+
+    /**
      * Signs in with [method], which the agent runs by itself.
      *
      * @throws AgentStartException If the agent couldn't be started.
@@ -60,18 +70,58 @@ internal class Assistant(
      * @throws java.io.IOException If the tools couldn't be served.
      */
     suspend fun newConversation(projectDirectory: File, permissions: PermissionHandler = PermissionHandler.Reject, projectContext: String? = null): AgentConversation {
+        val prompt = systemPrompt(projectContext)
+        return withTools(projectDirectory, permissions) { workingDirectory, mcpServers, guarded ->
+            agent.newConversation(
+                workingDirectory = workingDirectory,
+                mcpServers = mcpServers,
+                meta = prompt?.let { profile.sessionMeta?.invoke(it) },
+                permissions = guarded,
+                firstPromptLead = prompt.takeIf { profile.sessionMeta == null },
+            )
+        }
+    }
+
+    /**
+     * Continues the conversation [id] about the project in [projectDirectory], which an earlier run started, handing its
+     * history to [onHistory].
+     *
+     * @throws ConversationLostException If the agent can't continue it.
+     * @throws AgentStartException If the agent couldn't be started.
+     * @throws java.io.IOException If the tools couldn't be served.
+     */
+    suspend fun resumeConversation(
+        projectDirectory: File,
+        id: String,
+        permissions: PermissionHandler = PermissionHandler.Reject,
+        onHistory: suspend (SessionUpdate) -> Unit = {},
+    ): AgentConversation = withTools(projectDirectory, permissions) { workingDirectory, mcpServers, guarded ->
+        agent.resumeConversation(
+            id = SessionId(id),
+            workingDirectory = workingDirectory,
+            mcpServers = mcpServers,
+            meta = systemPrompt(null)?.let { profile.sessionMeta?.invoke(it) },
+            permissions = guarded,
+            onHistory = onHistory,
+        )
+    }
+
+    /**
+     * Opens an address of the tools for the conversation [start] starts in the agent's working folder, with the
+     * permissions the agent's profile calls for, and closes it again if starting fails.
+     */
+    private suspend fun withTools(
+        projectDirectory: File,
+        permissions: PermissionHandler,
+        start: suspend (workingDirectory: File, mcpServers: (AgentCapabilities) -> List<McpServer>, permissions: PermissionHandler) -> AgentConversation,
+    ): AgentConversation {
         val port = toolServerPort()
         val tools = toolServer.openConversation()
-        val prompt = systemPrompt(projectContext)
         val conversation = try {
-            agent.newConversation(
-                workingDirectory = if (profile.usesProjectFolder) projectDirectory else agentFolderOf(projectDirectory),
-                mcpServers = { capabilities ->
-                    listOf(ConversationToolServer.of(capabilities, profile, "http://${McpToolServer.HOST}:$port${tools.path}", tools.token, npx))
-                },
-                meta = prompt?.let { profile.sessionMeta?.invoke(it) },
-                permissions = PermissionHandler.allowingCreatorTools(if (profile.keepsOffFiles) permissions else PermissionHandler.rejectingChanges(permissions)),
-                firstPromptLead = prompt.takeIf { profile.sessionMeta == null },
+            start(
+                if (profile.usesProjectFolder) projectDirectory else agentFolderOf(projectDirectory),
+                { capabilities -> listOf(ConversationToolServer.of(capabilities, profile, "http://${McpToolServer.HOST}:$port${tools.path}", tools.token, npx)) },
+                PermissionHandler.allowingCreatorTools(if (profile.keepsOffFiles) permissions else PermissionHandler.rejectingChanges(permissions)),
             )
         } catch (exception: Exception) {
             toolServer.closeConversation(tools.id)

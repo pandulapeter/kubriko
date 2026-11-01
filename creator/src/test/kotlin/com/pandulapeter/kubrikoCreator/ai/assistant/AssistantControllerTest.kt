@@ -81,6 +81,8 @@ class AssistantControllerTest {
         home = "/Users/me",
         registry = registry,
         installer = installer,
+        conversations = SavedConversationStore(File(settingsDirectory, "conversations.json")),
+        clock = { 1_000 },
     ).also { controllers += it }
 
     private fun registry(vararg agents: String) = AgentRegistryStore(File(settingsDirectory, "agent-registry.json"), "darwin-aarch64") {
@@ -180,6 +182,38 @@ class AssistantControllerTest {
         chat.state.first { it == ChatState.Ready }
         assertEquals("/opt/tools/bin/uvx", commands.single().program)
         assertEquals(listOf("fast-agent-acp==0.10.1"), commands.single().arguments)
+    }
+
+    @Test
+    fun aConversationClosedInThisRunIsReopenedAsItWas() = test {
+        val controller = controller()
+        val chat = controller.startChat()
+        chat.state.first { it == ChatState.Ready }
+        onMain { chat.send("hello") }
+        chat.isBusy.first { !it }
+        onMain { controller.close(chat) }
+        val saved = controller.savedConversations.first { it.isNotEmpty() }.single()
+        assertEquals("hello", saved.title)
+        onMain { controller.resume(saved) }
+        assertSame(chat, controller.currentChat.value)
+        assertEquals(emptyList(), controller.savedConversations.value)
+    }
+
+    @Test
+    fun aConversationOfAnEarlierRunIsContinuedWithItsHistory() = test {
+        val earlier = controller()
+        val chat = earlier.startChat()
+        chat.state.first { it == ChatState.Ready }
+        onMain { chat.send("hello") }
+        chat.isBusy.first { !it }
+        val controller = controller()
+        onMain { controller.setProject(projectDirectory) }
+        val saved = controller.savedConversations.first { it.isNotEmpty() }.single()
+        onMain { controller.resume(saved) }
+        val resumed = controller.currentChat.value!!
+        resumed.state.first { it == ChatState.Ready }
+        assertEquals(TranscriptItem.AgentMessage(FakeAgent.HISTORY), resumed.transcript.value.items.single())
+        assertEquals(chat.conversationId.value, launcher.agents.last().loadedSessions.single().value)
     }
 
     @Test

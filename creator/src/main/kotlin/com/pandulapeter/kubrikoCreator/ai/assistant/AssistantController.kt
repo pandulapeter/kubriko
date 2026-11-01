@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.SessionUpdate
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.mcp.clients.ProcessRunner
 import kotlinx.coroutines.CancellationException
@@ -51,6 +52,7 @@ import java.io.IOException
  * @param registry Where the registry's agents come from, or null for Claude Agent alone.
  * @param installer Downloads the agents the registry distributes as archives.
  * @param errorLogFile Where agents' standard error is kept ([AgentErrorLog]), for the user to open.
+ * @param conversations Where the conversations are kept per project, to be continued later.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
@@ -67,6 +69,8 @@ internal class AssistantController(
     private val registry: AgentRegistryStore? = null,
     private val installer: BinaryAgentInstaller? = null,
     val errorLogFile: File? = null,
+    private val conversations: SavedConversationStore? = null,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
     private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))
@@ -100,18 +104,22 @@ internal class AssistantController(
      * The Claude Code configuration the assistant uses.
      */
     val configuration = _configuration.asStateFlow()
-    private val _chats = MutableStateFlow(emptyList<AssistantChat>())
+    private val chatList = AssistantChats(scope, ioDispatcher, conversations)
 
     /**
      * The conversations about the open project, oldest first.
      */
-    val chats = _chats.asStateFlow()
-    private val _currentChat = MutableStateFlow<AssistantChat?>(null)
+    val chats = chatList.open
+
+    /**
+     * The earlier conversations about the open project with the agent chosen, newest first, which can be continued.
+     */
+    val savedConversations = chatList.saved
 
     /**
      * The conversation the panel shows.
      */
-    val currentChat = _currentChat.asStateFlow()
+    val currentChat = chatList.current
     private val assistantLock = Mutex()
     private val assistant = MutableStateFlow<Assistant?>(null)
     private val agentsLoaded = CompletableDeferred<Unit>()
@@ -207,37 +215,40 @@ internal class AssistantController(
     /**
      * Starts a conversation about the open project and shows it.
      */
-    fun newChat() {
+    fun newChat() = openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, projectDigest()) }
+
+    /**
+     * Continues [conversation], an earlier one about the open project, and shows it.
+     */
+    fun resume(conversation: SavedConversation) {
+        if (chatList.reopen(conversation.id)) return
+        openChat { owner, directory, permissions, onHistory -> owner.resumeConversation(directory, conversation.id, permissions, onHistory) }
+    }
+
+    private fun openChat(start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
         val directory = project ?: return
+        val agentId = _agent.value.id
         var owner: Assistant? = null
         val chat = AssistantChat(
             parentScope = scope,
-            start = { permissions -> assistant().also { owner = it }.newConversation(directory, permissions, projectDigest()) },
+            start = { permissions, onHistory -> start(assistant().also { owner = it }, directory, permissions, onHistory) },
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
             changeLog = changeLog,
+            onTurnEnded = { id, title -> withContext(ioDispatcher) { conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock())) } },
         )
-        _chats.update { it + chat }
-        _currentChat.value = chat
+        chatList.add(chat)
     }
 
     /**
      * Shows the conversation [chat] instead.
      */
-    fun select(chat: AssistantChat) {
-        if (chat in _chats.value) _currentChat.value = chat
-    }
+    fun select(chat: AssistantChat) = chatList.select(chat)
 
     /**
-     * Ends [chat], showing the conversation before it.
+     * Closes [chat], showing the conversation before it; one with something in it can be continued later.
      */
-    fun close(chat: AssistantChat) {
-        val index = _chats.value.indexOf(chat)
-        if (index < 0) return
-        _chats.update { it - chat }
-        if (_currentChat.value === chat) _currentChat.value = _chats.value.getOrNull((index - 1).coerceAtLeast(0))
-        scope.launch { chat.close() }
-    }
+    fun close(chat: AssistantChat) = chatList.close(chat, project, _agent.value.id)
 
     /**
      * Runs [choice] from now on, which ends every conversation and starts a new one.
@@ -271,7 +282,7 @@ internal class AssistantController(
             scope.launch {
                 try {
                     assistant().authenticate(method)
-                    _chats.value.forEach { it.resendAfterSignIn() }
+                    chats.value.forEach { it.resendAfterSignIn() }
                 } catch (exception: CancellationException) {
                     if (!currentCoroutineContext().isActive) throw exception
                 } catch (_: Exception) {
@@ -291,7 +302,7 @@ internal class AssistantController(
             if (session.exitCode.first { it != null } == 0 && _signIn.value === session) {
                 statusBeforeSignIn.value = authStatus.value
                 _signIn.value = null
-                _chats.value.forEach { it.resendAfterSignIn() }
+                chats.value.forEach { it.resendAfterSignIn() }
             }
         }
     }
@@ -350,10 +361,13 @@ internal class AssistantController(
     }
 
     private fun endChats() {
-        val ended = _chats.value
-        _chats.value = emptyList()
-        _currentChat.value = null
-        scope.launch { ended.forEach { it.close() } }
+        val ended = chatList.takeAll()
+        scope.launch {
+            ended.forEach { it.close() }
+            // The agent's client keeps the IDs of conversations it couldn't close, and continuing one needs it to let go.
+            if (ended.isNotEmpty() && assistant.value?.canCloseConversations == false) replaceAssistant()
+            chatList.refreshSaved(project, _agent.value.id)
+        }
     }
 
     private suspend fun replaceAssistant() {

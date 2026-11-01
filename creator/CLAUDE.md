@@ -479,8 +479,13 @@ at once, opening on Your own AI tool when the MCP server is on, with the map beh
 `Assistant` from first use until Creator quits, created with the user's `npx` (`ProcessRunner.locate`: the login shell's `command -v`, or on Windows the `.exe`, `.cmd`, or
 `.bat` that `where` lists, a batch file started through `cmd /c`; without it a conversation
 fails with `NodeMissingException` and the panel links Node.js's download), and the conversations about the open project
-(`AssistantChat`, one per ACP conversation, started as soon as it is made), which all end when the project closes or changes,
-since their tools work on whatever project is open. The agent menu chooses the agent (kept as `agentId` in `assistant.json`, with
+(`AssistantChat`, one per ACP conversation, started as soon as it is made, listed by `AssistantChats`), which all end when the
+project closes or changes, since their tools work on whatever project is open. After each turn a conversation is kept per project
+and agent (`SavedConversationStore`, `conversations.json` in the settings folder, the newest 20 of each project), so the
+conversation menu offers earlier ones: one closed during this run is reopened as it was (it keeps running, since the SDK's client
+refuses `session/load` for an ID it still holds), one of an earlier run is continued with `AcpAgent.resumeConversation`
+(`session/load`, its replayed history going into the transcript). Ending them all restarts an agent that can't close conversations,
+so that their IDs can be loaded later. The agent menu chooses the agent (kept as `agentId` in `assistant.json`, with
 the custom agent's command line, entered in `CustomAgentForm`); choosing another ends the conversations and starts a new one, and
 the panel's texts name it through `LocalAgent`. The Claude Code configuration menu and the API key are Claude Agent's alone. The
 Claude Code configuration is the default one or one of a shell alias's

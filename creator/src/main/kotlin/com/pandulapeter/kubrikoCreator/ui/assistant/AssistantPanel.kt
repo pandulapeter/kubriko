@@ -147,18 +147,13 @@ private fun AssistantPanelContent(
             )
         }
     }
-    if (chats.size > 1) {
-        chat?.let { current ->
-            Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                MenuButton(
-                    label = current.title(),
-                    options = chats.asReversed(),
-                    optionText = { it.title() },
-                    onSelected = controller::select,
-                )
-            }
-        }
-    }
+    ConversationMenu(
+        chats = chats,
+        current = chat,
+        savedConversations = controller.savedConversations.collectAsState().value,
+        onSelected = controller::select,
+        onResume = controller::resume,
+    )
     AssistantOptionsRow(
         configuration = controller.configuration.collectAsState().value,
         configurations = controller.configurations.collectAsState().value.takeIf { isClaude }.orEmpty(),
@@ -357,10 +352,6 @@ private fun Failure(
         }
     }
 }
-
-@Composable
-private fun AssistantChat.title() = transcript.collectAsState().value.title?.let(::conversationTitle)
-    ?: stringResource(Res.string.action_new_conversation)
 
 /**
  * The first line of what the user first asked, cut short at a word, as the conversation's name in the menu.

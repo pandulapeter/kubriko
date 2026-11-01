@@ -77,6 +77,9 @@ internal class AgentConversation internal constructor(
     @Volatile
     private var isReplaying = false
 
+    @Volatile
+    private var historyCollector: (suspend (SessionUpdate) -> Unit)? = null
+
     internal val operations = object : ClientSessionOperations {
         override suspend fun requestPermissions(
             toolCall: SessionUpdate.ToolCallUpdate,
@@ -86,6 +89,10 @@ internal class AgentConversation internal constructor(
 
         override suspend fun notify(notification: SessionUpdate, _meta: JsonElement?) {
             note(notification)
+            historyCollector?.let { collect ->
+                collect(notification)
+                return
+            }
             if (!isReplaying) _updates.emit(notification)
         }
     }
@@ -150,6 +157,18 @@ internal class AgentConversation internal constructor(
             return load()
         } finally {
             isReplaying = false
+        }
+    }
+
+    /**
+     * Runs [load], handing what the agent replays meanwhile (the conversation's history) to [collect] rather than [updates].
+     */
+    internal suspend fun <T> collectingHistory(collect: suspend (SessionUpdate) -> Unit, load: suspend () -> T): T {
+        historyCollector = collect
+        try {
+            return load()
+        } finally {
+            historyCollector = null
         }
     }
 
