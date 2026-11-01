@@ -434,8 +434,10 @@ without one, the fallbacks chosen from its `initialize` answer (`AgentProfile.fa
 `mcpCapabilities.http`, otherwise through `mcp-remote` run by the user's `npx` with the token in its environment
 (`ConversationToolServer`); the system prompt as the first prompt's leading text (`firstPromptLead`, not sent again once a turn has
 started); and its permission requests for edit, delete, move, and execute tool calls rejected whatever the user would choose
-(`PermissionHandler.rejectingChanges`). The one agent so far is the built-in
-`RegistryAgent.claude` with `AgentProfile.claude` (the ACP Registry's `claude-acp`, run through the user's `npx` with its folder
+(`PermissionHandler.rejectingChanges`). The agent is an `AgentChoice`: a `RegistryAgent` (with its `AgentDistribution`) or a custom
+command line (`CustomAgentCommand`: variables set in front, then the program, found through the login shell when named without a
+folder, and its arguments); only Claude Agent is tested (`RegistryAgent.isTested`), and every other agent shows as untested. The
+built-in agent is `RegistryAgent.claude` with `AgentProfile.claude` (the ACP Registry's `claude-acp`, run through the user's `npx` with its folder
 first on the `PATH`, and `CLAUDE_CONFIG_DIR` for a Claude Code configuration other than the default). Its conversations start with
 `ClaudeAgentOptions.sessionMeta`: `AssistantSystemPrompt` (Creator's MCP instructions, its terminology, and the Block catalog,
 under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `Edit`, and `NotebookEdit` disallowed, and
@@ -463,7 +465,10 @@ environment, which outranks a Claude Code login; giving or removing it starts th
 `.bat` that `where` lists, a batch file started through `cmd /c`; without it a conversation
 fails with `NodeMissingException` and the panel links Node.js's download), and the conversations about the open project
 (`AssistantChat`, one per ACP conversation, started as soon as it is made), which all end when the project closes or changes,
-since their tools work on whatever project is open. The Claude Code configuration is the default one or one of a shell alias's
+since their tools work on whatever project is open. The agent menu chooses the agent (kept as `agentId` in `assistant.json`, with
+the custom agent's command line, entered in `CustomAgentForm`); choosing another ends the conversations and starts a new one, and
+the panel's texts name it through `LocalAgent`. The Claude Code configuration menu and the API key are Claude Agent's alone. The
+Claude Code configuration is the default one or one of a shell alias's
 (`ClaudeConfiguration`: the variables the alias sets in front of `claude`, `ShellAliases.environmentOf`); the choice is kept in
 `assistant.json` in the settings folder, a remembered alias is resolved before the agent starts (falling back to the default once
 it is gone), and choosing another ends the conversations, replaces the agent, and starts a new one. A chat builds its

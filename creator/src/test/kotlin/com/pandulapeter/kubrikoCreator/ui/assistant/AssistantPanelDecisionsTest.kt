@@ -18,6 +18,8 @@ import com.agentclientprotocol.model.SessionConfigSelectOption
 import com.agentclientprotocol.model.SessionConfigSelectOptions
 import com.agentclientprotocol.model.SessionConfigValueId
 import com.agentclientprotocol.model.ToolCallId
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
+import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
@@ -88,5 +90,18 @@ class AssistantPanelDecisionsTest {
         assertEquals(SignInAreaContent.API_KEY, signInAreaContent(isSigningIn = false, isEnteringApiKey = true, needsSignIn = true))
         assertEquals(SignInAreaContent.METHODS, signInAreaContent(isSigningIn = false, isEnteringApiKey = false, needsSignIn = true))
         assertNull(signInAreaContent(isSigningIn = false, isEnteringApiKey = false, needsSignIn = false))
+    }
+
+    @Test
+    fun theAgentMenuOffersTheRegistrysAgentsThenTheCustomOneThenEnteringOne() {
+        val claude = RegistryAgent.claude
+        assertEquals(
+            listOf(AgentMenuItem.Agent(AgentChoice.Registry(claude)), AgentMenuItem.EnterCustom),
+            agentMenuItems(listOf(claude), customAgentCommand = null),
+        )
+        assertEquals(
+            listOf(AgentMenuItem.Agent(AgentChoice.Registry(claude)), AgentMenuItem.Agent(AgentChoice.Custom("goose acp")), AgentMenuItem.EnterCustom),
+            agentMenuItems(listOf(claude), customAgentCommand = "goose acp"),
+        )
     }
 }

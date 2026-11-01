@@ -45,6 +45,7 @@ class AssistantControllerTest {
     private val runner = FakeProcessRunner(installed = mutableSetOf("npx"))
     private val settingsDirectory = createTempDirectory().toFile()
     private val commands = CopyOnWriteArrayList<AgentCommand>()
+    private val profiles = CopyOnWriteArrayList<AgentProfile>()
     private val controllers = mutableListOf<AssistantController>()
     private val projectDirectory = File("/projects/breakout")
 
@@ -66,7 +67,8 @@ class AssistantControllerTest {
         secrets = secrets,
         signInLauncher = terminals,
         ioDispatcher = Dispatchers.IO,
-        createAssistant = { command, _ ->
+        createAssistant = { command, _, profile ->
+            profiles += profile
             commands += command
             Assistant(
                 agent = AcpAgent(command, launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO),
@@ -99,8 +101,27 @@ class AssistantControllerTest {
         val chat = controller().startChat()
         chat.state.first { it == ChatState.Ready }
         assertEquals("/opt/tools/bin/npx", commands.single().program)
-        assertEquals(RegistryAgent.claude.npxPackage, commands.single().arguments.last())
+        assertEquals((RegistryAgent.claude.distribution as AgentDistribution.Npx).packageName, commands.single().arguments.last())
+        assertEquals(listOf(AgentProfile.claude), profiles)
         assertEquals(projectDirectory.absolutePath, launcher.agents.single().newSessions.single().cwd)
+    }
+
+    @Test
+    fun aCustomAgentRunsItsCommandWithTheFallbacksAndIsRemembered() = test {
+        runner.installed += "goose"
+        val controller = controller()
+        controller.startChat().state.first { it == ChatState.Ready }
+        onMain { controller.selectAgent(AgentChoice.Custom("GOOSE_MODE=chat goose acp")) }
+        controller.currentChat.value!!.state.first { it == ChatState.Ready }
+        val command = commands.last()
+        assertEquals("/opt/tools/bin/goose", command.program)
+        assertEquals(listOf("acp"), command.arguments)
+        assertEquals("chat", command.environment["GOOSE_MODE"])
+        assertEquals(AgentProfile.fallback, profiles.last())
+        assertEquals(AgentChoice.Custom("GOOSE_MODE=chat goose acp"), controller().agent.value)
+        onMain { controller.selectAgent(AgentChoice.Registry(RegistryAgent.claude)) }
+        assertEquals("GOOSE_MODE=chat goose acp", controller().customAgentCommand)
+        assertTrue(controller().agent.value.isClaude)
     }
 
     @Test

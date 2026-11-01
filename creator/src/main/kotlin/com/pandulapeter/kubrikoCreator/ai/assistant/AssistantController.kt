@@ -35,14 +35,16 @@ import java.io.File
 import java.io.IOException
 
 /**
- * The assistant panel's state for as long as Kubriko Creator runs: the one [Assistant], created on first use and held
- * until Creator quits, the Claude Code configuration it signs in with, and the conversations about the open project,
+ * The assistant panel's state for as long as Kubriko Creator runs: the agent chosen, the one [Assistant] running it,
+ * created on first use and held until Creator quits or another agent is chosen, the Claude Code configuration Claude
+ * Agent signs in with, and the conversations about the open project,
  * which end when the project closes, since their tools work on whatever project is open.
  *
  * @param scope Where conversations run: the main thread, which the panel's state is read on.
  * @param secrets Where the API key is kept.
  * @param signInLauncher Runs the sign-in commands of an agent's terminal sign-in methods.
- * @param createAssistant Creates the assistant running [AgentCommand], the agent through the user's `npx`, which it is given too.
+ * @param createAssistant Creates the assistant running [AgentCommand] with [AgentProfile], given the user's `npx` where
+ *   there is one.
  * @param projectDigest The digest of the open project, which a new conversation starts with.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
  */
@@ -54,12 +56,29 @@ internal class AssistantController(
     private val secrets: SecretStore,
     private val signInLauncher: AgentLauncher,
     private val ioDispatcher: CoroutineDispatcher,
-    private val createAssistant: (AgentCommand, npx: File) -> Assistant,
+    private val createAssistant: (AgentCommand, npx: File?, AgentProfile) -> Assistant,
     private val projectDigest: suspend () -> String? = { null },
     private val changeLog: () -> ChangeLog? = { null },
     private val home: String = System.getProperty("user.home"),
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
+    private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))
+
+    /**
+     * The registry's agents this computer can run, Claude Agent first.
+     */
+    val agents = _agents.asStateFlow()
+    private val _agent = MutableStateFlow(choiceOf(settings.value, _agents.value))
+
+    /**
+     * The agent the assistant runs.
+     */
+    val agent = _agent.asStateFlow()
+
+    /**
+     * The command line of the custom agent, whether or not it is the one chosen.
+     */
+    val customAgentCommand get() = settings.value.customAgentCommand
     private val _configurations = MutableStateFlow(listOf(ClaudeConfiguration.default))
 
     /**
@@ -196,6 +215,17 @@ internal class AssistantController(
     }
 
     /**
+     * Runs [choice] from now on, which ends every conversation and starts a new one.
+     */
+    fun selectAgent(choice: AgentChoice) {
+        if (choice == _agent.value) return
+        _agent.value = choice
+        settings.update { it.copy(agentId = choice.id.takeUnless { choice.isClaude }, customAgentCommand = (choice as? AgentChoice.Custom)?.commandLine ?: it.customAgentCommand) }
+        store.save(settings.value)
+        restartAgent()
+    }
+
+    /**
      * Uses [configuration] from now on: its own agent, so every conversation ends, and a new one starts.
      */
     fun selectConfiguration(configuration: ClaudeConfiguration) {
@@ -308,17 +338,31 @@ internal class AssistantController(
 
     private suspend fun assistant(): Assistant = assistantLock.withLock {
         assistant.value ?: run {
-            if (_configuration.value.alias != null) {
-                findConfigurations()
-                discovery.await()
+            val choice = _agent.value
+            val npx = withContext(ioDispatcher) { runner.locate(NPX) }?.let(::File)
+            val command = when (choice) {
+                is AgentChoice.Registry -> when (val distribution = choice.agent.distribution) {
+                    is AgentDistribution.Npx -> RegistryAgent.npxCommand(distribution, npx ?: throw NodeMissingException(), if (choice.isClaude) claudeEnvironment() else emptyMap())
+                }
+                is AgentChoice.Custom -> withContext(ioDispatcher) { CustomAgentCommand.of(choice.commandLine, home, runner::locate) }
+                    ?: throw AgentStartException(exitCode = null, errorOutput = emptyList())
             }
-            lookUpApiKey()
-            apiKeyLookup.await()
-            val apiKey = if (_hasApiKey.value) withContext(ioDispatcher) { secrets.read(API_KEY) } else null
-            val npx = withContext(ioDispatcher) { runner.locate(NPX) } ?: throw NodeMissingException()
-            val environment = _configuration.value.environment + listOfNotNull(apiKey?.let { ANTHROPIC_API_KEY to it })
-            createAssistant(RegistryAgent.claude.command(File(npx), environment), File(npx)).also { assistant.value = it }
+            createAssistant(command, npx, choice.profile).also { assistant.value = it }
         }
+    }
+
+    /**
+     * What Claude Agent is started with: the chosen Claude Code configuration's variables and the API key, if given.
+     */
+    private suspend fun claudeEnvironment(): Map<String, String> {
+        if (_configuration.value.alias != null) {
+            findConfigurations()
+            discovery.await()
+        }
+        lookUpApiKey()
+        apiKeyLookup.await()
+        val apiKey = if (_hasApiKey.value) withContext(ioDispatcher) { secrets.read(API_KEY) } else null
+        return _configuration.value.environment + listOfNotNull(apiKey?.let { ANTHROPIC_API_KEY to it })
     }
 
     /**
@@ -332,6 +376,14 @@ internal class AssistantController(
 
     private companion object {
         const val NPX = "npx"
+
+        /**
+         * The agent [settings] remember, out of [agents]: Claude Agent if it isn't among them.
+         */
+        fun choiceOf(settings: AssistantSettings, agents: List<RegistryAgent>): AgentChoice = when (val id = settings.agentId) {
+            AgentChoice.Custom.ID -> settings.customAgentCommand?.let(AgentChoice::Custom)
+            else -> agents.firstOrNull { it.id == id }?.let(AgentChoice::Registry)
+        } ?: AgentChoice.Registry(RegistryAgent.claude)
         const val API_KEY = "anthropic-api-key"
         const val ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY"
     }

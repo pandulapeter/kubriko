@@ -1,0 +1,70 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ui.assistant
+
+import androidx.compose.runtime.Composable
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
+import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
+import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
+import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.assistant_agent_custom
+import kubriko.creator.generated.resources.assistant_agent_menu
+import kubriko.creator.generated.resources.assistant_agent_untested
+import org.jetbrains.compose.resources.stringResource
+
+/**
+ * The agent the assistant runs, as a menu of the registry's agents, the custom one if the user entered it, and entering
+ * a custom agent.
+ */
+@Composable
+internal fun AgentMenu(
+    agent: AgentChoice,
+    agents: List<RegistryAgent>,
+    customAgentCommand: String?,
+    onSelected: (AgentChoice) -> Unit,
+    onEnterCustomAgent: () -> Unit,
+) = WithTooltip(stringResource(Res.string.assistant_agent_menu)) {
+    MenuButton(
+        label = agent.label(),
+        options = agentMenuItems(agents, customAgentCommand),
+        optionText = { item ->
+            when (item) {
+                is AgentMenuItem.Agent -> item.choice.label()
+                AgentMenuItem.EnterCustom -> stringResource(Res.string.assistant_agent_custom)
+            }
+        },
+        onSelected = { item ->
+            when (item) {
+                is AgentMenuItem.Agent -> onSelected(item.choice)
+                AgentMenuItem.EnterCustom -> onEnterCustomAgent()
+            }
+        },
+    )
+}
+
+internal sealed interface AgentMenuItem {
+    data class Agent(
+        val choice: AgentChoice,
+    ) : AgentMenuItem
+
+    data object EnterCustom : AgentMenuItem
+}
+
+/**
+ * What the agent menu offers: the registry's agents in their order, the custom agent once there is one, and entering one.
+ */
+internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: String?): List<AgentMenuItem> =
+    agents.map { AgentMenuItem.Agent(AgentChoice.Registry(it)) } +
+        listOfNotNull(customAgentCommand?.let { AgentMenuItem.Agent(AgentChoice.Custom(it)) }) +
+        AgentMenuItem.EnterCustom
+
+@Composable
+private fun AgentChoice.label() = if (this is AgentChoice.Registry && agent.isTested) name else stringResource(Res.string.assistant_agent_untested, name)

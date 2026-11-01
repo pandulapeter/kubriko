@@ -39,7 +39,7 @@ internal fun AssistantAccountMenu(
     onRemoveApiKey: () -> Unit,
 ) {
     if (status == null && !hasApiKey) return
-    WithTooltip(stringResource(Res.string.assistant_account_menu)) {
+    WithTooltip(stringResource(Res.string.assistant_account_menu, LocalAgent.current.name)) {
         MenuButton(
             label = status.label(),
             options = accountActions(methods, hasApiKey, canKeepApiKey),

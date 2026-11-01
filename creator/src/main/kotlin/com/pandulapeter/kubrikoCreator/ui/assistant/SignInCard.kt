@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_account_use_api_key
 import kubriko.creator.generated.resources.assistant_sign_in_note
+import kubriko.creator.generated.resources.assistant_sign_in_note_other
 import kubriko.creator.generated.resources.assistant_sign_in_title
 import org.jetbrains.compose.resources.stringResource
 
@@ -51,12 +52,12 @@ internal fun SignInCard(
     verticalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     Text(
-        text = stringResource(Res.string.assistant_sign_in_title),
+        text = stringResource(Res.string.assistant_sign_in_title, LocalAgent.current.name),
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.onSecondaryContainer,
     )
     Text(
-        text = stringResource(Res.string.assistant_sign_in_note),
+        text = if (LocalAgent.current.isClaude) stringResource(Res.string.assistant_sign_in_note) else stringResource(Res.string.assistant_sign_in_note_other, LocalAgent.current.name),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSecondaryContainer,
     )

@@ -12,30 +12,19 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 import java.io.File
 
 /**
- * An agent of the [ACP Registry](https://agentclientprotocol.com/registry), distributed as an npm package that `npx` runs.
+ * An agent of the [ACP Registry](https://agentclientprotocol.com/registry).
  *
  * @param id The registry's id of the agent.
- * @param arguments What the package's program is started with.
+ * @param isTested Whether the agent was checked in a real session with Kubriko Creator; every other one runs on the
+ *   fallbacks alone ([AgentProfile.fallback]).
  */
 internal data class RegistryAgent(
     val id: String,
     val name: String,
     val version: String,
-    val npxPackage: String,
-    val arguments: List<String> = emptyList(),
+    val distribution: AgentDistribution,
+    val isTested: Boolean = false,
 ) {
-
-    /**
-     * Runs the agent through [npx], with the folder it is in (which holds Node.js) first on the `PATH`, since an app
-     * started from the Finder lacks the user's shell's `PATH`.
-     *
-     * @param environment More variables for the agent, such as the configuration folder it should use.
-     */
-    fun command(npx: File, environment: Map<String, String> = emptyMap()) = AgentCommand(
-        program = npx.path,
-        arguments = listOf("--yes", npxPackage) + arguments,
-        environment = mapOf(PATH to listOfNotNull(npx.parent, System.getenv(PATH)).joinToString(File.pathSeparator)) + environment,
-    )
 
     companion object {
         private const val PATH = "PATH"
@@ -48,7 +37,25 @@ internal data class RegistryAgent(
             id = "claude-acp",
             name = "Claude Agent",
             version = "0.99.0",
-            npxPackage = "@agentclientprotocol/claude-agent-acp@0.99.0",
+            distribution = AgentDistribution.Npx("@agentclientprotocol/claude-agent-acp@0.99.0"),
+            isTested = true,
         )
+
+        /**
+         * Runs [distribution] through [npx], with the folder it is in (which holds Node.js) first on the `PATH`, since an
+         * app started from the Finder lacks the user's shell's `PATH`.
+         *
+         * @param environment More variables for the agent, such as the configuration folder it should use.
+         */
+        fun npxCommand(distribution: AgentDistribution.Npx, npx: File, environment: Map<String, String> = emptyMap()) = AgentCommand(
+            program = npx.path,
+            arguments = listOf("--yes", distribution.packageName) + distribution.arguments,
+            environment = withFolderOnPath(npx) + distribution.environment + environment,
+        )
+
+        /**
+         * The `PATH` with [program]'s folder first, so that what it starts in turn is found next to it.
+         */
+        fun withFolderOnPath(program: File) = mapOf(PATH to listOfNotNull(program.parent, System.getenv(PATH)).joinToString(File.pathSeparator))
     }
 }

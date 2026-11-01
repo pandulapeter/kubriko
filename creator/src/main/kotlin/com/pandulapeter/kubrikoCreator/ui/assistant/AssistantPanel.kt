@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.SessionConfigOptionValue
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
@@ -49,10 +51,11 @@ import kubriko.creator.generated.resources.action_close_conversation
 import kubriko.creator.generated.resources.action_install_node
 import kubriko.creator.generated.resources.action_new_conversation
 import kubriko.creator.generated.resources.action_try_again
-import kubriko.creator.generated.resources.assistant_agent
 import kubriko.creator.generated.resources.assistant_empty
 import kubriko.creator.generated.resources.assistant_note
+import kubriko.creator.generated.resources.assistant_note_untested
 import kubriko.creator.generated.resources.assistant_starting
+import kubriko.creator.generated.resources.assistant_starting_download
 import kubriko.creator.generated.resources.assistant_title
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_chat
@@ -61,7 +64,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * The in-app assistant: conversations about the open project with Claude Agent, which works through the same
+ * The in-app assistant: conversations about the open project with the agent chosen, which works through the same
  * commands as the editor.
  *
  * @param aiSteps The open project's AI steps, which the tool call cards tie into.
@@ -73,6 +76,24 @@ internal fun AssistantPanel(
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
+) {
+    val agent by controller.agent.collectAsState()
+    CompositionLocalProvider(LocalAgent provides agent) {
+        AssistantPanelContent(
+            controller = controller,
+            aiSteps = aiSteps,
+            onShowStep = onShowStep,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun AssistantPanelContent(
+    controller: AssistantController,
+    aiSteps: List<AiStep>,
+    onShowStep: (AiStep) -> Unit,
+    modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
 ) {
@@ -80,8 +101,10 @@ internal fun AssistantPanel(
     val chat by controller.currentChat.collectAsState()
     val authStatus by controller.authStatus.collectAsState()
     val signInMethods by controller.signInMethods.collectAsState()
-    val hasApiKey by controller.hasApiKey.collectAsState()
+    val isClaude = LocalAgent.current.isClaude
+    val hasApiKey = controller.hasApiKey.collectAsState().value && isClaude
     var isEnteringApiKey by remember { mutableStateOf(false) }
+    var isEnteringCustomAgent by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         controller.findConfigurations()
         if (controller.currentChat.value == null) controller.newChat()
@@ -117,19 +140,38 @@ internal fun AssistantPanel(
     }
     AssistantOptionsRow(
         configuration = controller.configuration.collectAsState().value,
-        configurations = controller.configurations.collectAsState().value,
+        configurations = controller.configurations.collectAsState().value.takeIf { isClaude }.orEmpty(),
         configOptions = chat?.configOptions?.collectAsState()?.value.orEmpty(),
         onConfigurationSelected = controller::selectConfiguration,
         onConfigOptionSelected = { option, choice -> chat?.setConfigOption(option.id, SessionConfigOptionValue.of(choice.value.value)) },
+        agentMenu = {
+            AgentMenu(
+                agent = LocalAgent.current,
+                agents = controller.agents.collectAsState().value,
+                customAgentCommand = controller.customAgentCommand,
+                onSelected = controller::selectAgent,
+                onEnterCustomAgent = { isEnteringCustomAgent = true },
+            )
+        },
     ) {
         AssistantAccountMenu(
             status = authStatus,
             methods = signInMethods,
             hasApiKey = hasApiKey,
-            canKeepApiKey = controller.canKeepApiKey,
+            canKeepApiKey = controller.canKeepApiKey && isClaude,
             onSignIn = controller::signIn,
             onUseApiKey = { isEnteringApiKey = true },
             onRemoveApiKey = controller::removeApiKey,
+        )
+    }
+    if (isEnteringCustomAgent) {
+        CustomAgentForm(
+            initialCommand = controller.customAgentCommand,
+            onSave = { command ->
+                isEnteringCustomAgent = false
+                controller.selectAgent(AgentChoice.Custom(command))
+            },
+            onCancel = { isEnteringCustomAgent = false },
         )
     }
     HorizontalDivider()
@@ -148,7 +190,7 @@ internal fun AssistantPanel(
                 isEnteringApiKey = isEnteringApiKey,
                 needsSignIn = needsSignIn || isPromptRefused,
                 methods = signInMethods,
-                canKeepApiKey = controller.canKeepApiKey,
+                canKeepApiKey = controller.canKeepApiKey && isClaude,
                 hasApiKeyFailed = hasApiKeyFailed,
                 onSignIn = controller::signIn,
                 onCloseSignIn = controller::closeSignIn,
@@ -227,7 +269,7 @@ private fun Hint(
     verticalArrangement = Arrangement.spacedBy(12.dp),
 ) {
     Text(
-        text = stringResource(Res.string.assistant_agent),
+        text = LocalAgent.current.name,
         style = MaterialTheme.typography.titleSmall,
     )
     Text(
@@ -235,7 +277,7 @@ private fun Hint(
         style = MaterialTheme.typography.bodyMedium,
     )
     Text(
-        text = stringResource(Res.string.assistant_note),
+        text = if (LocalAgent.current.isClaude) stringResource(Res.string.assistant_note) else stringResource(Res.string.assistant_note_untested, LocalAgent.current.name),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -251,7 +293,10 @@ private fun Starting() = Column(
         strokeWidth = 2.dp,
     )
     Text(
-        text = stringResource(Res.string.assistant_starting),
+        text = listOfNotNull(
+            stringResource(Res.string.assistant_starting, LocalAgent.current.name),
+            stringResource(Res.string.assistant_starting_download).takeIf { LocalAgent.current is AgentChoice.Registry },
+        ).joinToString(" "),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

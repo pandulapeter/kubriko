@@ -49,7 +49,7 @@ class ClaudeAgentLiveTest {
         val toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0")
         val assistant = Assistant(
             agent = AcpAgent(
-                command = RegistryAgent.claude.command(File(npx), listOfNotNull(configDirectory?.let { "CLAUDE_CONFIG_DIR" to it }).toMap()),
+                command = RegistryAgent.npxCommand(RegistryAgent.claude.distribution as AgentDistribution.Npx, File(npx), listOfNotNull(configDirectory?.let { "CLAUDE_CONFIG_DIR" to it }).toMap()),
                 launcher = ProcessAgentLauncher(projectDirectory),
                 clientInfo = AcpAgent.clientInfo("1.0.0"),
                 scope = scope,

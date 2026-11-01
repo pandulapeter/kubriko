@@ -304,11 +304,14 @@ private fun FailureNotice(
  * What the panel says about [this] failure, in one plain sentence; the error's own words go under it ([FailureDetails]).
  */
 @Composable
-internal fun FailureReason.description(): String = when (this) {
-    FailureReason.NODE_MISSING -> stringResource(Res.string.assistant_failure_node_missing)
-    FailureReason.AGENT_NOT_STARTED -> stringResource(Res.string.assistant_failure_agent_not_started)
-    FailureReason.AGENT_STOPPED -> stringResource(Res.string.assistant_failure_agent_stopped)
-    FailureReason.CONVERSATION_LOST -> stringResource(Res.string.assistant_failure_conversation_lost)
-    FailureReason.AUTH_REQUIRED -> stringResource(Res.string.assistant_failure_auth_required)
-    FailureReason.PROMPT_FAILED -> stringResource(Res.string.assistant_failure_prompt_failed)
-}
+internal fun FailureReason.description(): String = stringResource(
+    when (this) {
+        FailureReason.NODE_MISSING -> Res.string.assistant_failure_node_missing
+        FailureReason.AGENT_NOT_STARTED -> Res.string.assistant_failure_agent_not_started
+        FailureReason.AGENT_STOPPED -> Res.string.assistant_failure_agent_stopped
+        FailureReason.CONVERSATION_LOST -> Res.string.assistant_failure_conversation_lost
+        FailureReason.AUTH_REQUIRED -> Res.string.assistant_failure_auth_required
+        FailureReason.PROMPT_FAILED -> Res.string.assistant_failure_prompt_failed
+    },
+    LocalAgent.current.name,
+)

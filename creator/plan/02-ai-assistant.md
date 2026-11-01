@@ -83,9 +83,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services), choosing an agent first; Codex's
-profile once it can be checked; the registry, the Node.js download, and binary agents (2,
-3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
+**Order:** alongside `04` to `07`, the registry list and binary agents (2, 3), for Google Antigravity; what is left of the
+fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
@@ -132,8 +131,6 @@ code of its own.
 `AcpAgent` speaks to any ACP agent, and `AgentProfile` holds what an agent needs beyond the fallbacks (see `../CLAUDE.md` →
 Assistant, for the fallbacks that exist): Claude's is the only one. What is left:
 
-- **Choosing an agent:** nothing selects `AgentProfile.fallback` yet. The agent list (2) and a custom agent (a command line the user
-  enters, kept in `assistant.json`) make it reachable; the panel's strings name "Claude Agent" and need the agent's name instead.
 - **System prompt:** ACP's own `systemPrompt` where `sessionCapabilities.systemPrompt` is advertised, once the Kotlin SDK has the
   field.
 - **Staying off the files:** a read-only mode or sandbox where the agent offers one (a session mode or config option), before

@@ -15,8 +15,12 @@ import kotlinx.serialization.Serializable
  * What the assistant panel remembers between runs of Kubriko Creator.
  *
  * @param claudeConfigurationAlias The shell alias whose Claude Code configuration Claude Agent uses, or null for the default one.
+ * @param agentId The agent chosen ([AgentChoice.id]), or null for Claude Agent.
+ * @param customAgentCommand The command line of the custom agent, kept while another agent is chosen.
  */
 @Serializable
 internal data class AssistantSettings(
     val claudeConfigurationAlias: String? = null,
+    val agentId: String? = null,
+    val customAgentCommand: String? = null,
 )

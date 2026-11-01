@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
-import com.pandulapeter.kubrikoCreator.ai.assistant.AgentProfile
 import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
@@ -155,7 +154,7 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         secrets = SystemSecretStore(),
         signInLauncher = ProcessAgentLauncher(File(System.getProperty("user.home"))),
         ioDispatcher = Dispatchers.IO,
-        createAssistant = { command, npx ->
+        createAssistant = { command, npx, profile ->
             Assistant(
                 agent = AcpAgent(
                     command = command,
@@ -166,7 +165,7 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
                 ),
                 toolServer = McpToolServer(executor = executor, callDispatcher = Dispatchers.Main, version = version),
                 ioDispatcher = Dispatchers.IO,
-                profile = AgentProfile.claude,
+                profile = profile,
                 systemPrompt = AssistantSystemPrompt::withProject,
                 npx = npx,
             )
