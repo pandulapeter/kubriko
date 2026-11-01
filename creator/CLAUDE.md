@@ -480,7 +480,10 @@ first on the `PATH`, and `CLAUDE_CONFIG_DIR` for a Claude Code configuration oth
 under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `Edit`, and `NotebookEdit` disallowed,
 `mcp__kubriko-creator` allowed without asking, and a `game-explorer` subagent that answers questions about the game with Creator's
 read tools alone (`ClaudeAgentOptions.explorerTools`), which the system prompt points to along with planning big requests first. `ClaudeAgentLiveTest` runs the real adapter when `KUBRIKO_CREATOR_CLAUDE_AGENT=true`
-(`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks the configuration), on an existing login; it costs a request.
+(`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks the configuration), on an existing login; it costs a request. With the same switch,
+`AssistantLiveScenariosTest` has real conversations through `AssistantChat` on the Breakout fixture, headless: a change made and
+undone from its card, a question answered without changes, a conversation continued after the agent starts again, and the health
+checks and `check_change` used; each checks what the project became, not the words, and the four cost a few requests.
 
 **Signing in** never passes through Creator: the agent signs in by itself. `AcpAgent.signInMethods` are its `initialize` answer's
 `authMethods` (`SignInMethod`): a terminal method runs the command its `_meta["terminal-auth"]` names (otherwise the agent's own

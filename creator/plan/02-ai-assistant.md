@@ -173,8 +173,8 @@ understand the game is shown to the user too.
 
 - `FakeAgent` variants for the fallbacks still to come: an advertised `systemPrompt`, a read-only mode, and environment variable
   sign-in.
-- An opt-in live test per profile, as `ClaudeAgentLiveTest` is for Claude, with that agent's account variable: one tool call through
-  the conversation's address, and nothing written to the project folder.
+- More live scenarios (`AssistantLiveScenariosTest`): the chips' links followed, game notes proposed after a settled decision,
+  the `game-explorer` subagent used, and a scenario per profile once there is another (with that agent's account variable).
 - The eval set (`EvalSetTest`) with calls recorded from real sessions rather than written by hand, more requests ("stop the paddle on
   key release"), and an opt-in live run that has a real agent answer each request against a scratch project, like the template
   integration test.
