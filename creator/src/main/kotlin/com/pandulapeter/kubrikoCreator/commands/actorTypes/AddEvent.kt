@@ -40,6 +40,8 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType)
         ?: validateEvent(input.event, context.scopeOf(context.requireType(input.actorType)))
 
+    override fun validateRestoring(context: CommandContext, input: Input) = context.validateType(input.actorType)
+
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
         val eventIndex = input.index?.coerceIn(0, definition.events.size) ?: definition.events.size

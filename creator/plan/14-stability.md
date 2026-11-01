@@ -15,12 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Undo history
 
-- **Undoing can fail on data that is valid to keep.** Blocks and Events keep references to deleted types, Scenes, and sounds (they
-  generate comments), but inverses go through the creation-time checks: `CreateActorType`, `AddEvent`, and `AddBlock` reject them
-  (`commands/actorTypes/ActorTypeValidation.kt`), so deleting `Bat`, then `Player` (whose collision Event named `Bat`), then
-  undoing drops the step (`CommandExecutor.step`) and `Player` is gone. `DeleteScene`'s inverse `CreateScene` rejects a Scene file
-  that isn't valid, and `RestoreActors` an unparsable state. Direction: inverses restore exactly what was there, checking only
-  structure (a restore flag on the inputs that skips reference and content checks, set only by `apply`'s inverses).
 - **Merged property edits undo wrongly.** `EditProperty.mergeKey` is `actorType to name` (`commands/actorTypes/EditProperty.kt`), and
   a merge keeps the first step's inverse. Renaming `hp` to `health` by typing keeps an inverse that names `hh`, which no longer
   exists, so the whole rename can't be undone; editing `speed` right after `health` merges both and undo reverts only one.

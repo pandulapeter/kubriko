@@ -88,11 +88,11 @@ internal fun TestScope.commandContext(
 internal suspend fun <T> CommandContext.assertRoundTrip(invocation: Invocation<*>, snapshot: () -> T): T {
     val before = snapshot()
     assertNull(invocation.validate(this), "${invocation.command.name} was rejected.")
-    val inverse = assertNotNull(invocation.apply(this).inverse)
+    val inverse = assertNotNull(invocation.apply(this).inverse).copy(isRestoring = true)
     val after = snapshot()
     assertNotEquals(before, after, "${invocation.command.name} changed nothing.")
     assertNull(inverse.validate(this), "The inverse of ${invocation.command.name} was rejected.")
-    val reapply = assertNotNull(inverse.apply(this).inverse)
+    val reapply = assertNotNull(inverse.apply(this).inverse).copy(isRestoring = true)
     assertEquals(before, snapshot(), "The inverse of ${invocation.command.name} didn't revert it.")
     assertNull(reapply.validate(this))
     reapply.apply(this)

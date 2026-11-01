@@ -26,6 +26,13 @@ internal interface WriteCommand<I> : EditorCommand<I> {
     fun validate(context: CommandContext, input: I): Rejection?
 
     /**
+     * Why [input], made by undoing or redoing a change, can't restore what was there before. What was there may refer to
+     * types, Scenes, or sounds deleted since, which is valid to keep though not to create, so a command whose input holds
+     * such content checks only the structure here (that its type, Event, or Scene exists, and that names don't clash).
+     */
+    fun validateRestoring(context: CommandContext, input: I): Rejection? = validate(context, input)
+
+    /**
      * Makes the change [input] describes, which [validate] has accepted.
      */
     suspend fun apply(context: CommandContext, input: I): Applied

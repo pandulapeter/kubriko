@@ -37,10 +37,12 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = when {
+    override fun validate(context: CommandContext, input: Input): Rejection? = validateRestoring(context, input)
+        ?: if (!SceneDocument.isValid(input.content)) Rejection(Res.string.error_command_scene_content_invalid) else null
+
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = when {
         !SceneNaming.isValid(input.scene) -> Rejection(Res.string.error_scene_name_invalid)
         context.scenes.names().any { it.equals(input.scene, ignoreCase = true) } -> Rejection(Res.string.error_scene_name_taken)
-        !SceneDocument.isValid(input.content) -> Rejection(Res.string.error_command_scene_content_invalid)
         else -> null
     }
 

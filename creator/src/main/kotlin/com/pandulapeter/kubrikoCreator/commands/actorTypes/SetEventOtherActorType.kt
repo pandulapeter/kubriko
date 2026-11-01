@@ -41,6 +41,9 @@ internal object SetEventOtherActorType : WriteCommand<SetEventOtherActorType.Inp
         else -> null
     }
 
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
+        ?: if (context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION) Rejection(Res.string.error_command_other_actor_type_not_allowed) else null
+
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
         val previous = definition.events[input.eventIndex].otherActorType

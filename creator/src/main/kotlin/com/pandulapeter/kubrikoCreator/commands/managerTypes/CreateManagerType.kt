@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.managerTypes
 
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -20,9 +19,9 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateContents
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateNewTypeName
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_create_manager_type
-import kubriko.creator.generated.resources.error_command_no_actor_types
 
 @OptIn(EditorMutation::class)
 internal object CreateManagerType : WriteCommand<ManagerTypeDefinition> {
@@ -36,11 +35,10 @@ internal object CreateManagerType : WriteCommand<ManagerTypeDefinition> {
 
     override fun target(context: CommandContext, input: ManagerTypeDefinition) = CommandTarget.BlockType(input.name)
 
-    override fun validate(context: CommandContext, input: ManagerTypeDefinition): Rejection? {
-        val types = context.blockTypes ?: return Rejection(Res.string.error_command_no_actor_types)
-        return BlockTypeNaming.validate(input.name, types.takenNames)?.let(::Rejection)
-            ?: input.validateContents(types.actorTypes.value.map { it.name }, types.managerTypes.value)
-    }
+    override fun validate(context: CommandContext, input: ManagerTypeDefinition): Rejection? = validateRestoring(context, input)
+        ?: context.requireBlockTypes.let { types -> input.validateContents(types.actorTypes.value.map { it.name }, types.managerTypes.value) }
+
+    override fun validateRestoring(context: CommandContext, input: ManagerTypeDefinition) = context.validateNewTypeName(input.name)
 
     override suspend fun apply(context: CommandContext, input: ManagerTypeDefinition): Applied {
         context.requireBlockTypes.put(input)

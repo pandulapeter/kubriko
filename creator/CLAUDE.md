@@ -147,6 +147,10 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   with the same `mergeKey`, like typing into one field, are one step; a step that no longer validates is dropped), and decodes
   AI tool calls (`call(name, JsonObject)`). UI callbacks use `dispatch`, which starts undispatched, so in-memory changes show
   before it returns. Rejections of dispatched changes and of undo steps go to the console.
+- **Undo and redo restore** what was there: their steps are `Invocation`s marked `isRestoring`, validated by
+  `WriteCommand.validateRestoring`. What they bring back may name types, Scenes, or sounds deleted since (valid to keep, though not
+  to create), so creating a type, adding an Event or a Block, editing a Block, a collision Event's other type, and creating a Scene
+  check only the structure there: the type, Event, or Block exists, and the name is free.
 - **Enforced by tests** (`CommandRegistryTest`): every `EditorCommand` class is registered, tool names are snake_case, every
   part of every schema is described, and nothing outside `commands/` opts in to `@EditorMutation`, the `RequiresOptIn` marker on
   every controller and store function that changes the project. A new mutation is marked, so only a command can call it.

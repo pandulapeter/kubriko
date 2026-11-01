@@ -26,7 +26,7 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`14-stability.md`, from its first item (now Undo history), since the user put stability before new features. Its unreadable type file, crash-safe write, type file name, leftover generated file, and format version items were built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
+`14-stability.md`, from its first item (now Undo history → Merged property edits), since the user put stability before new features. Its unreadable type file, crash-safe write, type file name, leftover generated file, format version, and undo-restoring items were built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
 its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
 built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
 `claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic

@@ -11,16 +11,20 @@ package com.pandulapeter.kubrikoCreator.commands
 
 /**
  * A [WriteCommand] together with its input, ready to be validated and applied.
+ *
+ * @param isRestoring Whether it undoes or redoes a change, restoring what was there ([WriteCommand.validateRestoring]),
+ *   rather than being a new one.
  */
 internal data class Invocation<I>(
     val command: WriteCommand<I>,
     val input: I,
+    val isRestoring: Boolean = false,
 ) {
     val title get() = command.title
 
     val mergeKey get() = command.mergeKey(input)
 
-    fun validate(context: CommandContext) = command.validate(context, input)
+    fun validate(context: CommandContext) = if (isRestoring) command.validateRestoring(context, input) else command.validate(context, input)
 
     suspend fun apply(context: CommandContext) = command.apply(context, input)
 }

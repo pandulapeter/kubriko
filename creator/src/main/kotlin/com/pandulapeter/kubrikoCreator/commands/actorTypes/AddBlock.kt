@@ -36,6 +36,8 @@ internal object AddBlock : WriteCommand<AddBlock.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: context.requireType(input.actorType).let { validateBlock(input.block, it.events[input.eventIndex].type, context.scopeOf(it)) }
 
+    override fun validateRestoring(context: CommandContext, input: Input) = context.validateEvent(input.actorType, input.eventIndex)
+
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
         val blocks = definition.events[input.eventIndex].blocks
