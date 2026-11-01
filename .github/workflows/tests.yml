@@ -76,6 +76,27 @@ jobs:
           name: test-reports
           path: '**/build/reports/tests/'
 
+  creator-windows:
+    name: Kubriko Creator on Windows
+    # Kubriko Creator is a desktop app for Windows too, whose paths, shells, and processes differ from the Linux runner's
+    # (finding npx through where, starting batch files through cmd); the unit tests job covers Linux.
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
+      - name: Run Kubriko Creator's unit tests
+        shell: bash
+        run: ./gradlew :creator:test --continue --no-configuration-cache
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: creator-windows-test-reports
+          path: 'creator/build/reports/tests/'
+
   stress-tests:
     name: Stress tests
     # A called workflow sees its caller's event, so a release dispatched by hand would run these too without the input.
