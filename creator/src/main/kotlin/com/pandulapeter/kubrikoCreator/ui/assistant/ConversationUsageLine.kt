@@ -34,7 +34,7 @@ internal fun ConversationUsageLine(
 ) {
     val parts = listOfNotNull(
         usage?.takeIf { it.contextTokens > 0 }?.let {
-            stringResource(Res.string.assistant_usage_context, contextPercent(it.usedTokens, it.contextTokens), shortTokenCount(it.contextTokens))
+            stringResource(Res.string.assistant_usage_context, "${contextPercent(it.usedTokens, it.contextTokens)}%", shortTokenCount(it.contextTokens))
         },
         usage?.cost?.let { stringResource(Res.string.assistant_usage_cost, formattedCost(it, usage.currency)) },
         stringResource(Res.string.assistant_usage_billed_to_key).takeIf { isBilledToApiKey },

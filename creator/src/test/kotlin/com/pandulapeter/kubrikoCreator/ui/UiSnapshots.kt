@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorTheme
 import com.pandulapeter.kubrikoCreator.window.ProvideInterfaceScale
@@ -52,13 +52,21 @@ internal fun ComposeUiTest.showing(content: @Composable () -> Unit) = setContent
 }
 
 /**
- * Saves what is shown now as `build/ui-snapshots/<name>.png`.
+ * Saves what is shown now as `build/ui-snapshots/<name>.png`, and an open menu or popup, which is a root of its own, as
+ * `<name>-popup.png` (numbered after the first).
  */
 @OptIn(ExperimentalTestApi::class)
 internal fun ComposeUiTest.saveSnapshot(name: String) {
-    val bitmap = onRoot().captureToImage().asSkiaBitmap()
-    val png = Image.makeFromBitmap(bitmap).encodeToData(EncodedImageFormat.PNG) ?: return
-    File("build/ui-snapshots").apply { mkdirs() }.resolve("$name.png").writeBytes(png.bytes)
+    val roots = onAllNodes(isRoot())
+    roots.fetchSemanticsNodes().indices.forEach { index ->
+        val png = Image.makeFromBitmap(roots[index].captureToImage().asSkiaBitmap()).encodeToData(EncodedImageFormat.PNG) ?: return@forEach
+        val suffix = when (index) {
+            0 -> ""
+            1 -> "-popup"
+            else -> "-popup$index"
+        }
+        File("build/ui-snapshots").apply { mkdirs() }.resolve("$name$suffix.png").writeBytes(png.bytes)
+    }
 }
 
 private const val PANEL_WIDTH = 360
