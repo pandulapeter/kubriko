@@ -21,8 +21,8 @@ The files are numbered in the order they are worked on.
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
    flooded console, long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.
-2. [AI assistant](02-ai-assistant.md) - an in-app chat panel hosting Claude (on the user's own subscription or API key), Codex, Gemini
-   CLI, or any ACP Registry agent, as Android Studio does. Creator is an AI-centric tool, so the panel's remaining steps come right
+2. [AI assistant](02-ai-assistant.md) - an in-app chat panel hosting Claude (on the user's own subscription or API key) or, through
+   generic fallbacks, any other ACP Registry agent, as Android Studio does. Creator is an AI-centric tool, so the panel's remaining steps come right
    after `01`; the rest of the file (more agents, resuming, Keep and Undo, more for the MCP server) goes alongside `04` to `07`.
    **Every new editor feature lands with its command, its AI tool, and their tests,** and every AI surface disappears when AI features
    are turned off (`03-settings.md`), so build the panel against that switch from its first step.

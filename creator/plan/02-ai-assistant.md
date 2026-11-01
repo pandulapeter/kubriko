@@ -27,7 +27,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 ## Next: in-app assistant panel
 
 A chat panel inside Creator, built in Compose, hosting the agent the user picks: Claude by default, signed in with the user's own Claude
-subscription or their API key, and Codex, Gemini CLI, or any other agent of the ACP Registry beside it. Creator becomes an Agent Client
+subscription or their API key, and any other agent of the ACP Registry beside it. Creator becomes an Agent Client
 Protocol (ACP) client, exactly as Android Studio is.
 
 ### How Android Studio does it
@@ -38,7 +38,7 @@ Read from Android Studio 2026.2.2's running processes and settings on October 29
   (`https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json`): its settings remember `lastSelectedAgentId` `claude-acp`,
   and it starts that entry's `distribution`, `npx` → `@agentclientprotocol/claude-agent-acp@0.99.0`, as `npm exec` with the user's own
   Node.js. Each entry has an `id`, `name`, `version`, `description`, `icon`, `license`, and a `distribution` of `npx` (package and args),
-  per-platform `binary` archives, or `uvx`. Codex is `codex-acp` (npx), Gemini CLI is `gemini` (npx, `--acp`); 43 agents in all.
+  per-platform `binary` archives, or `uvx`. Codex is `codex-acp` (npx); 43 agents in all.
 - **The adapter** (`claude-agent-acp`, by Anthropic, Zed, and JetBrains, Apache-2.0; listed as "proprietary" because of what it runs)
   speaks ACP over stdio and drives Claude Code through the Agent SDK, which starts the unmodified `claude` binary shipped in
   `@anthropic-ai/claude-agent-sdk-<platform>` with `--input-format stream-json --output-format stream-json
@@ -63,7 +63,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): the agent's standard error in a log the user can open. Move to protocol
    version 2 once it is final (the adapter serves its draft).
 2. **The agent list:** the registry fetched at start and cached in the settings folder (so it works offline), filtered to distributions
-   Creator can run on this platform. Claude Agent first, then Codex and Gemini CLI, built in as a fallback list before the first fetch.
+   Creator can run on this platform. Claude Agent alone is built in as the list before the first fetch.
    Versions are pinned to the registry's and offered as an update when it moves. A custom agent is a command line the user enters.
 3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients
    do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK.
@@ -83,8 +83,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, agent profiles and the fallbacks
-(Other agents and services), Codex first, then Gemini CLI and Copilot; the registry, the Node.js download, and binary agents (2,
+**Order:** alongside `04` to `07`, the generic fallbacks (Other agents and services), tested with `FakeAgent` variants; Codex's
+profile once it can be checked; the registry, the Node.js download, and binary agents (2,
 3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
@@ -123,11 +123,16 @@ adapter needs to accept the Commercial Terms itself, naming Android Studio as th
 
 ### Other agents and services
 
-`AcpAgent` speaks to any ACP agent; what differs between agents goes into an **agent profile**, of which Claude's is the first
-(`RegistryAgent.claude` and `ClaudeAgentOptions`): how the agent starts (the registry's `npx`, per-platform `binary`, or `uvx`
-distribution), how it reaches Creator's tools, how it gets the system prompt, how it is kept off the project's files, how it signs
-in, and which account it uses. Where a profile has nothing better, the panel falls back on what the agent's `initialize` answer
-advertises:
+Agents come and go faster than Creator can follow them: Gemini CLI, listed in the registry in October 2026, stopped serving
+individuals by November 2026 in favor of Antigravity. So Creator writes as little per-agent code as it can. Claude Agent is the one
+agent it fully supports. Every other agent runs on generic fallbacks, chosen from what its `initialize` answer advertises, and is
+marked untested in the list; when a vendor renames, retires, or replaces an agent, the registry changes and Creator follows without
+code of its own.
+
+`AcpAgent` speaks to any ACP agent; what an agent needs beyond the fallbacks goes into an **agent profile**, of which Claude's is
+the only one (`RegistryAgent.claude` and `ClaudeAgentOptions`): how the agent starts (the registry's `npx`, per-platform `binary`,
+or `uvx` distribution), how it reaches Creator's tools, how it gets the system prompt, how it is kept off the project's files, how
+it signs in, and which account it uses. Without a profile, the panel falls back on what the agent's `initialize` answer advertises:
 
 - **Tools:** an HTTP MCP server where `mcpCapabilities.http` is set; otherwise a stdio one running `mcp-remote` through the user's
   `npx`, as Claude Desktop's entry does, with the conversation's token in its environment.
@@ -143,17 +148,15 @@ advertises:
   offered from the user's shell aliases (`ShellAliases`) as the MCP clients' setups are, so `claude-personal` and `claude-flashfood`
   each become an account to choose.
 
-The first profiles after Claude, each checked in a real session before it is listed as built in:
+A profile is written only for an agent that is popular, stable, and checked in a real session, and only for what the fallbacks
+can't do. The one candidate so far:
 
 | Agent | Known (read October 29, 2026) | To check |
 |---|---|---|
 | Codex (`codex-acp` 2.4.0, npx, Apache-2.0) | Takes client MCP servers over HTTP; ChatGPT login, `CODEX_API_KEY` / `OPENAI_API_KEY`, or a custom gateway; `INITIAL_AGENT_MODE=read-only` and a sandbox mode; `CODEX_CONFIG` merged into its session config; ships its own `@openai/codex`. | The system prompt through `CODEX_CONFIG` (Codex's developer instructions) or leading text; whether read-only still lets MCP tools run; `CODEX_HOME` for accounts. Out of quota on this Mac until November 21, 2026. |
-| Gemini CLI (`gemini` 0.66.0, npx, `--acp`) | Apache-2.0. | Client MCP servers over HTTP; the system prompt (`GEMINI_SYSTEM_MD` replaces Gemini's own rather than appending, so leading text may be better); excluding its edit and shell tools; Google login and `GEMINI_API_KEY`. Not installed on this Mac. |
-| GitHub Copilot CLI (`github-copilot-cli`, npx, `--acp`) | Proprietary. | The same four, and signing in with a Copilot subscription. |
-| Cursor, OpenCode, goose, Junie (`binary`) | Per-platform archives in the registry. | Unpacking per version under Creator's tools folder (3); OpenCode and goose with a local model (Ollama, LM Studio). |
 
-The registry's other agents (43 in all) are listed with the fallbacks alone and marked untested, and a custom agent (2) gets them
-too.
+Binary agents (Cursor, OpenCode, goose, Junie) need unpacking per version under Creator's tools folder (3), not profiles. The
+registry's other agents are listed with the fallbacks alone and marked untested, and a custom agent (2) gets them too.
 
 **Model services** need no agents of their own: Claude through Amazon Bedrock, Google Vertex AI, or a company gateway is Claude
 Agent's gateway sign-in (offered when the client advertises `auth._meta.gateway`) or Claude Code's own environment
@@ -161,7 +164,7 @@ Agent's gateway sign-in (offered when the client advertises `auth._meta.gateway`
 OpenCode or goose. Creator keeps only the keys and addresses the user gives it, in the keychain, never a login.
 
 **Terms per vendor:** before a profile offers an agent's subscription sign-in, its vendor's terms for hosting it are read and summed
-up here, as Claude Code's are above (OpenAI's for Codex with a ChatGPT login, Google's for Gemini CLI, GitHub's for Copilot), and its
+up here, as Claude Code's are above (OpenAI's for Codex with a ChatGPT login), and its
 name and icon follow that vendor's trademark rules.
 
 ## Holding up
