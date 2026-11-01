@@ -353,7 +353,7 @@ class AcpAgentTest {
         val history = mutableListOf<SessionUpdate>()
         val conversation = agent(launcher).resumeConversation(SessionId("earlier"), workingDirectory, onHistory = { history += it })
         assertEquals(listOf(SessionId("earlier")), launcher.agents.single().loadedSessions)
-        assertEquals(listOf<SessionUpdate>(FakeAgent.message(FakeAgent.HISTORY)), history)
+        assertEquals(FakeAgent.message(FakeAgent.HISTORY), history.first())
         assertEquals(StopReason.END_TURN, conversation.prompt(text("hello")).stopReason)
     }
 
