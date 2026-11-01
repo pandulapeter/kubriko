@@ -49,6 +49,8 @@ class McpControllerTest {
 
     private fun freePort() = ServerSocket(0).use { it.localPort }
 
+    private fun unusedPortAbove(start: Int) = generateSequence(start) { it + ROUNDS * 3 }.first { port -> runCatching { ServerSocket(port).close() }.isSuccess }
+
     private suspend fun McpController.awaitState(expected: McpServerState) = withContext(Dispatchers.IO) {
         withTimeoutOrNull(5_000) { state.first { it == expected } } ?: state.value
     }
@@ -82,8 +84,9 @@ class McpControllerTest {
     @Test
     fun quickChangesEndWithOnlyTheLastServerRunning() = runTest {
         val controller = controller()
-        // Each round has ports of its own, since binding a port again right after it was let go may fail.
-        val rounds = List(ROUNDS) { List(3) { freePort() } }
+        // Each round has ports of its own, since binding a port again right after it was let go may fail, taken outside
+        // the range the system hands out for port 0, which other tests' servers listen on.
+        val rounds = List(ROUNDS) { round -> List(3) { index -> unusedPortAbove(RESERVED_PORTS_START + round * 3 + index) } }
         rounds.forEachIndexed { round, ports ->
             controller.setEnabled(true)
             ports.forEach { port ->
@@ -95,7 +98,7 @@ class McpControllerTest {
         val last = rounds.last().last()
         val listening = withContext(Dispatchers.IO) {
             withTimeoutOrNull(5_000) {
-                while (!isListening(last) || controller.state.value != McpServerState.Running(last)) delay(10)
+                while (!isListening(last) || controller.state.value != McpServerState.Running(last) || rounds.flatten().any { it != last && isListening(it) }) delay(10)
             }
             rounds.flatten().filter(::isListening)
         }
@@ -124,5 +127,6 @@ class McpControllerTest {
 
     private companion object {
         const val ROUNDS = 20
+        const val RESERVED_PORTS_START = 24_000
     }
 }
