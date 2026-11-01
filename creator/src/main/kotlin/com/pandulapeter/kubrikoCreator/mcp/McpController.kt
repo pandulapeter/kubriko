@@ -39,6 +39,7 @@ internal class McpController(
     val calls = server.calls
     private var job: Job? = null
     private val saves = Mutex()
+    private val restarts = Mutex()
 
     init {
         apply(_settings.value)
@@ -89,23 +90,24 @@ internal class McpController(
     }
 
     private fun apply(settings: McpSettings) {
-        val previous = job
-        previous?.cancel()
+        job?.cancel()
         job = scope.launch {
-            // The server isn't safe to start and stop from two places at once.
-            previous?.join()
-            withContext(ioDispatcher) { server.stop() }
-            if (!settings.isEnabled) {
-                _state.value = McpServerState.Off
-                return@launch
-            }
-            _state.value = McpServerState.Starting
-            _state.value = try {
-                // A start cancelled half-way can leave the engine binding after it was stopped, so it runs to its end and the next
-                // change, which waits for this one, stops it.
-                McpServerState.Running(withContext(ioDispatcher + NonCancellable) { server.start(settings.port, settings.token) }.also { ensureActive() })
-            } catch (_: IOException) {
-                McpServerState.Failed(settings.port)
+            // The server isn't safe to start and stop from two places at once. A lock rather than joining the change before
+            // keeps every earlier change out, since the one before may have been cancelled while an older one still runs.
+            restarts.withLock {
+                withContext(ioDispatcher) { server.stop() }
+                if (!settings.isEnabled) {
+                    _state.value = McpServerState.Off
+                    return@launch
+                }
+                _state.value = McpServerState.Starting
+                _state.value = try {
+                    // A start cancelled half-way can leave the engine binding after it was stopped, so it runs to its end and the
+                    // next change, which waits for this one, stops it.
+                    McpServerState.Running(withContext(ioDispatcher + NonCancellable) { server.start(settings.port, settings.token) }.also { ensureActive() })
+                } catch (_: IOException) {
+                    McpServerState.Failed(settings.port)
+                }
             }
         }
     }
