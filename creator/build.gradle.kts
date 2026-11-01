@@ -72,6 +72,11 @@ sourceSets.main {
     resources.srcDir(generateCreatorProperties)
 }
 
+// The engine's overview, which get_kubriko_api hands the AI.
+tasks.processResources {
+    from(rootProject.file("CLAUDE.md")) { rename { "kubriko-overview.md" } }
+}
+
 compose.desktop {
     application {
         mainClass = "com.pandulapeter.kubrikoCreator.KubrikoCreatorAppKt"

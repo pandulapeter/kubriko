@@ -341,6 +341,10 @@ decode is rejected with `InputProblem`'s one sentence
   Kotlin naming types, and Scenes placing Actors), each a `Relation` written `Ball#1.2 reads Game.score` (indexes from 0, as the tools
   take them); a Property belongs to the type declaring it, through parents. `get_relations` lists what a type, Property, or Scene
   uses and what uses it.
+- **Kubriko's API** (`get_kubriko_api`): without a class name, the root `CLAUDE.md`'s sections on using Kubriko
+  (`KubrikoApi`, bundled as `kubriko-overview.md` by `processResources`); with one, the source file declaring it, with its KDoc,
+  from the sources jars of Creator's Kubriko version (`KubrikoSources`: Maven Local, Gradle's cache, or downloaded from Maven
+  Central into `tools/kubriko-sources`), the engine searched first.
 - **The game's notes** (`GameNotes`): `AGENTS.md` at the project's root (with a `CLAUDE.md` importing it, created when the
   project has none), which agents read by themselves; `read_game_notes` and `set_game_notes` (an undoable command, so the
   turn's Keep and Undo covers it), and every assistant conversation starts with them after the digest (`ConversationStart`).

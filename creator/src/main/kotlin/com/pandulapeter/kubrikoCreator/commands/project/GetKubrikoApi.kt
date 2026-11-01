@@ -1,0 +1,55 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.commands.project
+
+import com.pandulapeter.kubrikoCreator.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.Description
+import com.pandulapeter.kubrikoCreator.commands.ReadCommand
+import com.pandulapeter.kubrikoCreator.context.KubrikoApi
+import com.pandulapeter.kubrikoCreator.context.KubrikoSources
+import com.pandulapeter.kubrikoCreator.settingsDirectory
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_get_kubriko_api
+import java.io.File
+
+internal object GetKubrikoApi : ReadCommand<GetKubrikoApi.Input> {
+    override val name = "get_kubriko_api"
+    override val description = "Reads Kubriko's API, for writing Kotlin Blocks and Kotlin UI: without className, an overview of the engine (its " +
+        "instance, Managers, Actors and their Traits, scene units) and its plugins; with one, the source file declaring that class, interface, or " +
+        "object, with its documentation, at the project's Kubriko version."
+    override val inputSerializer = Input.serializer()
+    override val title = Res.string.command_get_kubriko_api
+    private val sources by lazy { KubrikoSources(CreatorConfiguration.load().kubrikoVersion, File(settingsDirectory(), "tools/kubriko-sources")) }
+
+    override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
+        val className = input.className?.trim()?.substringAfterLast('.')?.takeIf { it.isNotEmpty() } ?: return CommandOutcome.Success(JsonPrimitive(KubrikoApi.overview))
+        val found = withContext(context.ioDispatcher) { sources.find(className) }
+        return CommandOutcome.Success(
+            JsonPrimitive(
+                found?.let { "${it.artifact.artifactId}: ${it.path}\n\n" + it.text.take(MAXIMUM_LENGTH) + if (it.text.length > MAXIMUM_LENGTH) "\n…" else "" }
+                    ?: "No class, interface, or object called $className was found in Kubriko's sources.",
+            ),
+        )
+    }
+
+    private const val MAXIMUM_LENGTH = 16_000
+
+    @Serializable
+    data class Input(
+        @Description("The simple name of a Kubriko class, interface, or object, like ActorManager or BoxBody, or none for the overview.")
+        @SerialName("className") val className: String? = null,
+    )
+}

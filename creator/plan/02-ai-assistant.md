@@ -15,8 +15,6 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 
 ## More for the MCP server
 
-- **Kubriko's API as a read tool** (the root `CLAUDE.md`'s overview, or the KDoc of a named class): real sessions read Kubriko's sources
-  jars with their own shell to write Kotlin Blocks.
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
   (`09-debugger.md`) exists.
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), numbering steps per project rather than
@@ -64,7 +62,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    first), and Claude Agent's version, pinned to the one checked, offered as an update once the registry's moves and it is checked.
 4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is the operating system's terminal as a fallback for a sign-in command
    that turns out to need a terminal device.
-5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
+5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): see whether Claude still reaches for its own Read for Kubriko's sources now that
+   `get_kubriko_api` exists (it keeps Read for the game's own Kotlin). Other agents
    have no portable switch, so their `session/request_permission` for edits and commands is rejected by default (`PermissionHandler.Reject`),
    with the user able to allow it.
 6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it

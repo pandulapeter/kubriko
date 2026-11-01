@@ -33,10 +33,9 @@ import kubriko.creator.generated.resources.error_command_page_invalid
 
 internal object ReadScene : ReadCommand<ReadScene.Input> {
     override val name = "read_scene"
-    override val description = "Reads the Actors of a Scene, in order, a page at a time: the ID of each one (actorId, how Actors are addressed), " +
-        "its index in the Scene's list, its type ID (the name of its Actor type), its position when it has one, and its whole saved state. " +
-        "total counts the Actors that match, and nextOffset, when there are more, is the offset of the next page. " +
-        "Narrow it to an Actor type or to a rectangle, or ask for a summary first in a large Scene: the number of Actors of each type and the bounds of their positions."
+    override val description = "Reads a Scene's Actors in order, a page at a time: each one's actorId (how Actors are addressed), index, type ID, " +
+        "position, and saved state, with total and, when there are more, nextOffset. Narrow it to an Actor type or a rectangle, or ask for a summary " +
+        "first in a large Scene: Actors per type and the bounds of their positions."
     override val inputSerializer = Input.serializer()
     override val title = Res.string.command_read_scene
 
