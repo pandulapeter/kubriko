@@ -30,7 +30,10 @@ lives in `plan/` (start with `plan/README.md`).
 - **Every change ships with solid unit tests**: controllers against fakes (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`,
   `FakeGitRepository`), file code against real temporary folders, git against real temporary repositories (JGit needs no installed git),
   sockets over real localhost connections. `StringResourcesTest` fails on any string or icon nothing uses, and on escaped apostrophes.
-- UI changes are checked with a window-only screenshot (`screencapture -l <window id>`) before they are called done.
+- UI is checked offscreen in tests (`uiTest`, `showing`, `saveSnapshot` in `ui/UiSnapshots.kt`): rendered in the app's theme and
+  interface scale without a window, its texts and clicks asserted, and a PNG of each root (an open menu is one) saved under
+  `build/ui-snapshots` to look at. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
+  (`screencapture -l <window id>`) before it is called done.
 
 ## Processes
 
