@@ -13,6 +13,7 @@ import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PermissionOptionKind
 import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionUpdate
+import com.agentclientprotocol.model.ToolKind
 
 /**
  * Answers an agent asking whether it may run a tool call.
@@ -30,6 +31,16 @@ internal fun interface PermissionHandler {
             options.firstOrNull { it.kind == PermissionOptionKind.REJECT_ONCE }
                 ?.let { RequestPermissionOutcome.Selected(it.optionId) }
                 ?: RequestPermissionOutcome.Cancelled
+        }
+
+        private val changingKinds = setOf(ToolKind.EDIT, ToolKind.DELETE, ToolKind.MOVE, ToolKind.EXECUTE)
+
+        /**
+         * Rejects requests for tool calls that edit, delete, or move files or run commands, and leaves the rest to
+         * [other]: how an agent that has no switch for its own tools is kept off the project's files.
+         */
+        fun rejectingChanges(other: PermissionHandler) = PermissionHandler { toolCall, options ->
+            if (toolCall.kind in changingKinds) Reject.answer(toolCall, options) else other.answer(toolCall, options)
         }
     }
 }

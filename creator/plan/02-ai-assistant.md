@@ -83,7 +83,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, the generic fallbacks (Other agents and services), tested with `FakeAgent` variants; Codex's
+**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services), choosing an agent first; Codex's
 profile once it can be checked; the registry, the Node.js download, and binary agents (2,
 3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
@@ -129,21 +129,18 @@ agent it fully supports. Every other agent runs on generic fallbacks, chosen fro
 marked untested in the list; when a vendor renames, retires, or replaces an agent, the registry changes and Creator follows without
 code of its own.
 
-`AcpAgent` speaks to any ACP agent; what an agent needs beyond the fallbacks goes into an **agent profile**, of which Claude's is
-the only one (`RegistryAgent.claude` and `ClaudeAgentOptions`): how the agent starts (the registry's `npx`, per-platform `binary`,
-or `uvx` distribution), how it reaches Creator's tools, how it gets the system prompt, how it is kept off the project's files, how
-it signs in, and which account it uses. Without a profile, the panel falls back on what the agent's `initialize` answer advertises:
+`AcpAgent` speaks to any ACP agent, and `AgentProfile` holds what an agent needs beyond the fallbacks (see `../CLAUDE.md` →
+Assistant, for the fallbacks that exist): Claude's is the only one. What is left:
 
-- **Tools:** an HTTP MCP server where `mcpCapabilities.http` is set; otherwise a stdio one running `mcp-remote` through the user's
-  `npx`, as Claude Desktop's entry does, with the conversation's token in its environment.
-- **System prompt:** ACP's own `systemPrompt` where `sessionCapabilities.systemPrompt` is advertised (once the Kotlin SDK has the
-  field), the profile's own way otherwise, and as a last resort the first prompt's leading text (not repeated after `session/load`).
-- **Staying off the files:** the agent's own switch for its tools where it has one; otherwise a read-only mode or sandbox where the
-  agent offers one (a session mode or config option); otherwise every permission request for an `edit`, `delete`, `move`, or `execute`
-  tool call is rejected (`PermissionHandler.Reject`). An agent that changes files without asking is marked as such in the list, and its
+- **Choosing an agent:** nothing selects `AgentProfile.fallback` yet. The agent list (2) and a custom agent (a command line the user
+  enters, kept in `assistant.json`) make it reachable; the panel's strings name "Claude Agent" and need the agent's name instead.
+- **System prompt:** ACP's own `systemPrompt` where `sessionCapabilities.systemPrompt` is advertised, once the Kotlin SDK has the
+  field.
+- **Staying off the files:** a read-only mode or sandbox where the agent offers one (a session mode or config option), before
+  falling back on rejecting permission requests. An agent that changes files without asking is marked as such in the list, and its
   conversations suggest version control, so that Keep and Undo (8) can take its changes back.
-- **Sign-in:** every kind of `authMethods` entry: agent (`authenticate`), terminal (the sign-in terminal, `SignInSession`), and environment
-  variable (`EnvVarAuth`, whose `vars` name the fields; the values kept in the OS keychain per agent).
+- **Sign-in:** environment variable methods (`EnvVarAuth`, whose `vars` name the fields; the values kept in the OS keychain per
+  agent), beside the agent and terminal methods that work today.
 - **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for Codex),
   offered from the user's shell aliases (`ShellAliases`) as the MCP clients' setups are, so `claude-personal` and `claude-flashfood`
   each become an account to choose.
@@ -197,8 +194,8 @@ understand the game is shown to the user too.
 
 ## Testing
 
-- `FakeAgent` variants for each fallback: no HTTP MCP, no system prompt capability, no `session/load`, restricted only by permission
-  requests, and each kind of sign-in method.
+- `FakeAgent` variants for the fallbacks still to come: an advertised `systemPrompt`, a read-only mode, and environment variable
+  sign-in.
 - An opt-in live test per profile, as `ClaudeAgentLiveTest` is for Claude, with that agent's account variable: one tool call through
   the conversation's address, and nothing written to the project folder.
 - A small eval set of realistic requests ("make the Ball faster", "add a Paddle moved with A and D", "remove Bricks the Ball hits", and the

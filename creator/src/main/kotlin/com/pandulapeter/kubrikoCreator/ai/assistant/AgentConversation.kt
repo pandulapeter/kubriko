@@ -42,6 +42,7 @@ internal class AgentConversation internal constructor(
     internal val parameters: SessionCreationParameters,
     private val agent: AcpAgent,
     private val permissions: PermissionHandler,
+    @Volatile private var firstPromptLead: String? = null,
 ) {
     private val _updates = MutableSharedFlow<SessionUpdate>(extraBufferCapacity = UPDATE_BUFFER_SIZE)
 
@@ -98,7 +99,9 @@ internal class AgentConversation internal constructor(
      */
     suspend fun prompt(content: List<ContentBlock>, onUpdate: (suspend (SessionUpdate) -> Unit)? = null): PromptResponse {
         var response: PromptResponse? = null
-        agent.sessionOf(this).prompt(content).collect { event ->
+        val lead = firstPromptLead
+        agent.sessionOf(this).prompt(listOfNotNull(lead?.let(ContentBlock::Text)) + content).collect { event ->
+            firstPromptLead = null
             when (event) {
                 is Event.SessionUpdateEvent -> {
                     note(event.update)

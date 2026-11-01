@@ -9,14 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
-import com.agentclientprotocol.model.HttpHeader
-import com.agentclientprotocol.model.McpServer
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonElement
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -26,14 +23,17 @@ import java.util.concurrent.ConcurrentHashMap
  * switch says. Closing a conversation turns its tools off.
  *
  * @param toolServer A server of its own, not the one outside clients connect to.
- * @param sessionMeta The `_meta` a conversation is started with, through which an agent takes its own options, given
- *   what the conversation is told about the project at its start.
+ * @param profile What the agent gets beyond the fallbacks chosen from its `initialize` answer.
+ * @param systemPrompt What a conversation is told at its start, given what it is told about the project.
+ * @param npx Runs `mcp-remote` for an agent that takes no HTTP MCP servers.
  */
 internal class Assistant(
     private val agent: AcpAgent,
     private val toolServer: McpToolServer,
     private val ioDispatcher: CoroutineDispatcher,
-    private val sessionMeta: (projectContext: String?) -> JsonElement? = { null },
+    private val profile: AgentProfile = AgentProfile.fallback,
+    private val systemPrompt: (projectContext: String?) -> String? = { null },
+    private val npx: File? = null,
 ) : AutoCloseable {
     private val serverStart = Mutex()
     private var port: Int? = null
@@ -58,18 +58,16 @@ internal class Assistant(
     suspend fun newConversation(projectDirectory: File, permissions: PermissionHandler = PermissionHandler.Reject, projectContext: String? = null): AgentConversation {
         val port = toolServerPort()
         val tools = toolServer.openConversation()
+        val prompt = systemPrompt(projectContext)
         val conversation = try {
             agent.newConversation(
                 workingDirectory = projectDirectory,
-                mcpServers = listOf(
-                    McpServer.Http(
-                        name = McpToolServer.SERVER_NAME,
-                        url = "http://${McpToolServer.HOST}:$port${tools.path}",
-                        headers = listOf(HttpHeader("Authorization", "Bearer ${tools.token}")),
-                    ),
-                ),
-                meta = sessionMeta(projectContext),
-                permissions = permissions,
+                mcpServers = { capabilities ->
+                    listOf(ConversationToolServer.of(capabilities, profile, "http://${McpToolServer.HOST}:$port${tools.path}", tools.token, npx))
+                },
+                meta = prompt?.let { profile.sessionMeta?.invoke(it) },
+                permissions = if (profile.keepsOffFiles) permissions else PermissionHandler.rejectingChanges(permissions),
+                firstPromptLead = prompt.takeIf { profile.sessionMeta == null },
             )
         } catch (exception: Exception) {
             toolServer.closeConversation(tools.id)

@@ -66,7 +66,7 @@ class AssistantControllerTest {
         secrets = secrets,
         signInLauncher = terminals,
         ioDispatcher = Dispatchers.IO,
-        createAssistant = { command ->
+        createAssistant = { command, _ ->
             commands += command
             Assistant(
                 agent = AcpAgent(command, launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO),

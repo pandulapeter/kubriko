@@ -42,7 +42,7 @@ import java.io.IOException
  * @param scope Where conversations run: the main thread, which the panel's state is read on.
  * @param secrets Where the API key is kept.
  * @param signInLauncher Runs the sign-in commands of an agent's terminal sign-in methods.
- * @param createAssistant Creates the assistant running [AgentCommand], the agent through the user's `npx`.
+ * @param createAssistant Creates the assistant running [AgentCommand], the agent through the user's `npx`, which it is given too.
  * @param projectDigest The digest of the open project, which a new conversation starts with.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
  */
@@ -54,7 +54,7 @@ internal class AssistantController(
     private val secrets: SecretStore,
     private val signInLauncher: AgentLauncher,
     private val ioDispatcher: CoroutineDispatcher,
-    private val createAssistant: (AgentCommand) -> Assistant,
+    private val createAssistant: (AgentCommand, npx: File) -> Assistant,
     private val projectDigest: suspend () -> String? = { null },
     private val changeLog: () -> ChangeLog? = { null },
     private val home: String = System.getProperty("user.home"),
@@ -317,7 +317,7 @@ internal class AssistantController(
             val apiKey = if (_hasApiKey.value) withContext(ioDispatcher) { secrets.read(API_KEY) } else null
             val npx = withContext(ioDispatcher) { runner.locate(NPX) } ?: throw NodeMissingException()
             val environment = _configuration.value.environment + listOfNotNull(apiKey?.let { ANTHROPIC_API_KEY to it })
-            createAssistant(RegistryAgent.claude.command(File(npx), environment)).also { assistant.value = it }
+            createAssistant(RegistryAgent.claude.command(File(npx), environment), File(npx)).also { assistant.value = it }
         }
     }
 

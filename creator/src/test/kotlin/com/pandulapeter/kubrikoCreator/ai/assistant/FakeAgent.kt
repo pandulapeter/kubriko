@@ -22,6 +22,7 @@ import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.AuthenticateResponse
 import com.agentclientprotocol.model.AvailableCommand
 import com.agentclientprotocol.model.ContentBlock
+import com.agentclientprotocol.model.McpCapabilities
 import com.agentclientprotocol.model.PermissionOption
 import com.agentclientprotocol.model.PermissionOptionId
 import com.agentclientprotocol.model.PermissionOptionKind
@@ -42,6 +43,7 @@ import com.agentclientprotocol.model.SetSessionConfigOptionResponse
 import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
+import com.agentclientprotocol.model.ToolKind
 import com.agentclientprotocol.protocol.JsonRpcException
 import com.agentclientprotocol.rpc.JsonRpcErrorCode
 import kotlinx.coroutines.CoroutineScope
@@ -75,10 +77,12 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * Every conversation offers a `model` option, `sonnet` or `opus`, and announces a `compact` slash command as soon as it starts.
  *
+ * @param supportsHttpMcp Whether the agent advertises taking HTTP MCP servers.
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
  */
 internal class FakeAgent(
     private val supportsLoading: Boolean = true,
+    private val supportsHttpMcp: Boolean = false,
     val exitsAtStart: Int? = null,
     private val answersInitialize: Boolean = true,
     private val isSignedIn: AtomicBoolean = AtomicBoolean(true),
@@ -100,7 +104,7 @@ internal class FakeAgent(
             if (!answersInitialize) awaitCancellation()
             channel.writeError("Fake agent started.")
             return AgentInfo(
-                capabilities = AgentCapabilities(loadSession = supportsLoading),
+                capabilities = AgentCapabilities(loadSession = supportsLoading, mcpCapabilities = McpCapabilities(http = supportsHttpMcp)),
                 authMethods = listOf(
                     AuthMethod.AgentAuth(AuthMethodId(AGENT_LOGIN), "Fake login"),
                     AuthMethod.TerminalAuth(
@@ -183,7 +187,7 @@ internal class FakeAgent(
                 }
                 "edit" -> {
                     val outcome = currentCoroutineContext().client.requestPermissions(
-                        SessionUpdate.ToolCallUpdate(ToolCallId("edit-1"), title = "Edit Game.kt"),
+                        SessionUpdate.ToolCallUpdate(ToolCallId("edit-1"), title = "Edit Game.kt", kind = ToolKind.EDIT),
                         listOf(
                             PermissionOption(PermissionOptionId("allow"), "Allow", PermissionOptionKind.ALLOW_ONCE),
                             PermissionOption(PermissionOptionId("reject"), "Reject", PermissionOptionKind.REJECT_ONCE),

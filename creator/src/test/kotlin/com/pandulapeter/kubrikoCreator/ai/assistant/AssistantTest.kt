@@ -9,7 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.McpServer
+import com.agentclientprotocol.model.PermissionOptionKind
+import com.agentclientprotocol.model.RequestPermissionOutcome
+import com.agentclientprotocol.model.SessionUpdate
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import io.ktor.client.HttpClient
@@ -31,29 +35,37 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import java.io.File
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 class AssistantTest {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val launcher = FakeAgentLauncher()
+    private val assistants = mutableListOf<Assistant>()
     private val httpClient = HttpClient(CIO) { install(SSE) }
-    private val sessionMeta = buildJsonObject { put("systemPrompt", JsonPrimitive("prompt")) }
-    private val assistant = Assistant(
+    private val profile = AgentProfile(sessionMeta = { JsonPrimitive(it) }, alwaysUsesHttpTools = true, keepsOffFiles = true)
+    private val assistant = assistant(profile)
+
+    private fun assistant(profile: AgentProfile, launcher: FakeAgentLauncher = this.launcher) = Assistant(
         agent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO),
         toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
         ioDispatcher = Dispatchers.IO,
-        sessionMeta = { projectContext -> if (projectContext == null) sessionMeta else JsonPrimitive(projectContext) },
-    )
+        profile = profile,
+        systemPrompt = { projectContext -> projectContext ?: SYSTEM_PROMPT },
+        npx = NPX,
+    ).also { assistants += it }
     private val projectDirectory = File("/projects/breakout")
 
     @AfterTest
     fun tearDown() {
-        assistant.close()
+        assistants.forEach { it.close() }
         launcher.close()
         httpClient.close()
         scope.cancel()
@@ -85,7 +97,7 @@ class AssistantTest {
         assistant.newConversation(projectDirectory)
         val parameters = launcher.agents.single().newSessions
         assertEquals(projectDirectory.absolutePath, parameters[0].cwd)
-        assertEquals(sessionMeta, parameters[0]._meta)
+        assertEquals(JsonPrimitive(SYSTEM_PROMPT), parameters[0]._meta)
         val first = toolsOf(0)
         val second = toolsOf(1)
         assertEquals(McpToolServer.SERVER_NAME, first.name)
@@ -113,5 +125,55 @@ class AssistantTest {
     fun outsideClientsCantUseTheAssistantsServer() = test {
         assistant.newConversation(projectDirectory)
         assertEquals(HttpStatusCode.Unauthorized, status(toolsOf(0).url.substringBefore("/conversations/"), toolsOf(0).headers.single().value))
+    }
+
+    @Test
+    fun anAgentWithoutAProfileGetsTheSystemPromptAheadOfItsFirstPromptOnly() = test {
+        val conversation = assistant(AgentProfile.fallback).newConversation(projectDirectory)
+        conversation.prompt(listOf(ContentBlock.Text("hello")))
+        conversation.prompt(listOf(ContentBlock.Text("hello")))
+        val agent = launcher.agents.single()
+        assertNull(agent.newSessions.single()._meta)
+        assertEquals(listOf(SYSTEM_PROMPT), agent.leadingTexts)
+    }
+
+    @Test
+    fun anAgentWithoutHttpMcpReachesTheToolsThroughMcpRemote() = test {
+        assistant(AgentProfile.fallback).newConversation(projectDirectory)
+        val tools = launcher.agents.single().newSessions.single().mcpServers.single() as McpServer.Stdio
+        assertEquals(McpToolServer.SERVER_NAME, tools.name)
+        assertEquals(NPX.path, tools.command)
+        assertTrue(tools.args.any { it.startsWith("http://") && "/conversations/" in it })
+        assertTrue(tools.env.single().value.startsWith("Bearer "))
+        assertFalse(tools.args.any { it.startsWith("Bearer ") })
+    }
+
+    @Test
+    fun anAgentAdvertisingHttpMcpGetsTheToolsOverHttp() = test {
+        val httpLauncher = FakeAgentLauncher({ FakeAgent(supportsHttpMcp = true) })
+        try {
+            assistant(AgentProfile.fallback, httpLauncher).newConversation(projectDirectory)
+            assertIs<McpServer.Http>(httpLauncher.agents.single().newSessions.single().mcpServers.single())
+        } finally {
+            httpLauncher.close()
+        }
+    }
+
+    @Test
+    fun anAgentWithoutAProfileIsKeptOffTheFilesWhateverTheUserWouldAllow() = test {
+        val allow = PermissionHandler { _, options -> RequestPermissionOutcome.Selected(options.first { it.kind == PermissionOptionKind.ALLOW_ONCE }.optionId) }
+        val fallback = assistant(AgentProfile.fallback).newConversation(projectDirectory, permissions = allow)
+        val profiled = assistant.newConversation(projectDirectory, permissions = allow)
+        assertEquals("reject", fallback.reply("edit"))
+        assertEquals("allow", profiled.reply("edit"))
+    }
+
+    private suspend fun AgentConversation.reply(text: String) = buildString {
+        prompt(listOf(ContentBlock.Text(text))) { update -> ((update as? SessionUpdate.AgentMessageChunk)?.content as? ContentBlock.Text)?.let { append(it.text) } }
+    }
+
+    private companion object {
+        const val SYSTEM_PROMPT = "prompt"
+        val NPX = File("/usr/local/bin/npx")
     }
 }

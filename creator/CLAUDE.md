@@ -429,9 +429,14 @@ can't be started, fails with `AgentStartException` (its exit code and last stand
 
 `Assistant` pairs an agent with an `McpToolServer` of its own, started on a free port with no outside token, so it serves only
 conversation addresses: each conversation gets `/mcp/conversations/<id>` with a token of its own (`openConversation`), handed to
-the agent as its `kubriko-creator` HTTP MCP server, and closing it turns those tools off. The one agent so far is the built-in
-`RegistryAgent.claude` (the ACP Registry's `claude-acp`, run through the user's `npx` with its folder first on the `PATH`, and
-`CLAUDE_CONFIG_DIR` for a Claude Code configuration other than the default). Its conversations start with
+the agent as its `kubriko-creator` MCP server, and closing it turns those tools off. What an agent gets is its `AgentProfile` or,
+without one, the fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`): the tools over HTTP where it advertises
+`mcpCapabilities.http`, otherwise through `mcp-remote` run by the user's `npx` with the token in its environment
+(`ConversationToolServer`); the system prompt as the first prompt's leading text (`firstPromptLead`, not sent again once a turn has
+started); and its permission requests for edit, delete, move, and execute tool calls rejected whatever the user would choose
+(`PermissionHandler.rejectingChanges`). The one agent so far is the built-in
+`RegistryAgent.claude` with `AgentProfile.claude` (the ACP Registry's `claude-acp`, run through the user's `npx` with its folder
+first on the `PATH`, and `CLAUDE_CONFIG_DIR` for a Claude Code configuration other than the default). Its conversations start with
 `ClaudeAgentOptions.sessionMeta`: `AssistantSystemPrompt` (Creator's MCP instructions, its terminology, and the Block catalog,
 under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `Edit`, and `NotebookEdit` disallowed, and
 `mcp__kubriko-creator` allowed without asking. `ClaudeAgentLiveTest` runs the real adapter when `KUBRIKO_CREATOR_CLAUDE_AGENT=true`

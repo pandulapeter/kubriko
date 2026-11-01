@@ -22,11 +22,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentProfile
 import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSystemPrompt
-import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeAgentOptions
 import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -155,7 +155,7 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         secrets = SystemSecretStore(),
         signInLauncher = ProcessAgentLauncher(File(System.getProperty("user.home"))),
         ioDispatcher = Dispatchers.IO,
-        createAssistant = { command ->
+        createAssistant = { command, npx ->
             Assistant(
                 agent = AcpAgent(
                     command = command,
@@ -166,7 +166,9 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
                 ),
                 toolServer = McpToolServer(executor = executor, callDispatcher = Dispatchers.Main, version = version),
                 ioDispatcher = Dispatchers.IO,
-                sessionMeta = { digest -> ClaudeAgentOptions.sessionMeta(AssistantSystemPrompt.withProject(digest)) },
+                profile = AgentProfile.claude,
+                systemPrompt = AssistantSystemPrompt::withProject,
+                npx = npx,
             )
         },
         projectDigest = { executor()?.context?.let { DigestText.of(it.projectDigest()) } },

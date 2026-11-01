@@ -16,6 +16,7 @@ import com.agentclientprotocol.client.ClientSession
 import com.agentclientprotocol.common.SessionCreationParameters
 import com.agentclientprotocol.model.AcpMethod
 import com.agentclientprotocol.model.AcpNotification
+import com.agentclientprotocol.model.AgentCapabilities
 import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.ClientCapabilities
 import com.agentclientprotocol.model.Implementation
@@ -119,21 +120,24 @@ internal class AcpAgent(
     suspend fun start(): AgentInfo = lifecycle.withLock { connected().info }
 
     /**
-     * Starts a conversation in [workingDirectory], with [mcpServers] as the agent's tools.
+     * Starts a conversation in [workingDirectory], with [mcpServers] as the agent's tools, chosen from what it advertises.
      *
      * @param meta The `_meta` of `session/new`, through which agents take options of their own.
+     * @param firstPromptLead Sent ahead of the first prompt's own content, for an agent that takes no system prompt.
      * @throws AgentStartException If the agent couldn't be started.
      */
     suspend fun newConversation(
         workingDirectory: File,
-        mcpServers: List<McpServer> = emptyList(),
+        mcpServers: (AgentCapabilities) -> List<McpServer> = { emptyList() },
         meta: JsonElement? = null,
         permissions: PermissionHandler = PermissionHandler.Reject,
+        firstPromptLead: String? = null,
     ): AgentConversation = lifecycle.withLock {
-        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers, _meta = meta)
+        val connection = connected()
+        val parameters = SessionCreationParameters(workingDirectory.absolutePath, mcpServers(connection.info.capabilities), _meta = meta)
         lateinit var conversation: AgentConversation
-        val session = connected().client.newSession(parameters) { sessionId, _ ->
-            conversation = AgentConversation(sessionId, parameters, this, permissions)
+        val session = connection.client.newSession(parameters) { sessionId, _ ->
+            conversation = AgentConversation(sessionId, parameters, this, permissions, firstPromptLead)
             conversation.operations
         }
         conversation.attach(session)

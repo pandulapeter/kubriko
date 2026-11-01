@@ -57,7 +57,8 @@ class ClaudeAgentLiveTest {
             ),
             toolServer = toolServer,
             ioDispatcher = Dispatchers.IO,
-            sessionMeta = { ClaudeAgentOptions.sessionMeta(AssistantSystemPrompt.text) },
+            profile = AgentProfile.claude,
+            systemPrompt = { AssistantSystemPrompt.text },
         )
         try {
             runBlocking(Dispatchers.IO) {
