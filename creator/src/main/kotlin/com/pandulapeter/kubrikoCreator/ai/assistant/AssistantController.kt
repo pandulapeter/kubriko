@@ -48,6 +48,7 @@ import java.io.IOException
  * @param projectDigest The digest of the open project, which a new conversation starts with.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
  * @param registry Where the registry's agents come from, or null for Claude Agent alone.
+ * @param installer Downloads the agents the registry distributes as archives.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
@@ -62,6 +63,7 @@ internal class AssistantController(
     private val changeLog: () -> ChangeLog? = { null },
     private val home: String = System.getProperty("user.home"),
     private val registry: AgentRegistryStore? = null,
+    private val installer: BinaryAgentInstaller? = null,
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
     private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))
@@ -357,7 +359,7 @@ internal class AssistantController(
     }
 
     private fun updateAgents(agents: List<RegistryAgent>) {
-        _agents.value = agents.filter { it.distribution !is AgentDistribution.Binary }
+        _agents.value = agents
         if (assistant.value == null) _agent.value = choiceOf(settings.value, _agents.value)
     }
 
@@ -370,13 +372,29 @@ internal class AssistantController(
                 is AgentChoice.Registry -> when (val distribution = choice.agent.distribution) {
                     is AgentDistribution.Npx -> RegistryAgent.npxCommand(distribution, npx ?: throw NodeMissingException(), if (choice.isClaude) claudeEnvironment() else emptyMap())
                     is AgentDistribution.Uvx -> RegistryAgent.uvxCommand(distribution, withContext(ioDispatcher) { runner.locate(UVX) }?.let(::File) ?: throw UvMissingException())
-                    is AgentDistribution.Binary -> throw AgentStartException(exitCode = null, errorOutput = emptyList())
+                    is AgentDistribution.Binary -> binaryCommand(choice.agent, distribution)
                 }
                 is AgentChoice.Custom -> withContext(ioDispatcher) { CustomAgentCommand.of(choice.commandLine, home, runner::locate) }
                     ?: throw AgentStartException(exitCode = null, errorOutput = emptyList())
             }
             createAssistant(command, npx, choice.profile).also { assistant.value = it }
         }
+    }
+
+    /**
+     * Runs the program of [agent]'s archive, downloaded first unless it already is, with its folder first on the `PATH`.
+     */
+    private suspend fun binaryCommand(agent: RegistryAgent, distribution: AgentDistribution.Binary): AgentCommand {
+        val program = try {
+            withContext(ioDispatcher) { installer?.install(agent, distribution) }
+        } catch (exception: IOException) {
+            throw AgentStartException(exitCode = null, errorOutput = listOfNotNull(exception.message), cause = exception)
+        } ?: throw AgentStartException(exitCode = null, errorOutput = emptyList())
+        return AgentCommand(
+            program = program.path,
+            arguments = distribution.arguments,
+            environment = RegistryAgent.withFolderOnPath(program) + distribution.environment,
+        )
     }
 
     /**

@@ -27,11 +27,9 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`02-ai-assistant.md` → Other agents and services: choosing an agent first (a custom agent's command line, then the registry list),
-since nothing selects `AgentProfile.fallback` yet, and the panel's strings still say "Claude Agent". Alongside `04` to `07`.
-Built on 2026-11-01, unit-tested, not yet seen in the app: the tool list cut from about 34,000 to 16,000 tokens, `InputProblem`
-rejections, `read_scene` without `content`, everything under Holding up (an agent stopping mid-turn, the MCP server restart race,
-streaming long replies, the call log, failure details, and Node.js on Windows), and agent profiles with the generic fallbacks.
+Try Google Antigravity in the app with the user (it needs their Google account): choose it in the assistant's agent menu, let it
+download, sign in the way it offers, and see whether it uses Creator's tools and is kept off the files. Read Google's terms for
+hosting it first (`02-ai-assistant.md` → Terms per vendor). Then `02-ai-assistant.md` → Order, alongside `04` to `07`.
 What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
@@ -79,6 +77,14 @@ What is left in `01-large-projects.md` waits for other plans (Traits, UI element
   each Block it adds.
 - The Block tools without the Block schema: whether the AI calls `get_block_catalog` before its first Block rather than guessing
   properties, and whether a rejection such as "There is no property called 'speed'." gets it right on the next try.
+
+**Choosing an agent (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- The agent menu: Claude Agent first and the registry's others marked untested, the list there offline after one start (from
+  `agent-registry.json`), and a custom agent entered (`goose acp` or similar) and remembered across restarts.
+- Every text naming the agent (the empty conversation, Starting, failures, the sign-in card, the account menu), and the Claude
+  Code configuration menu and API key hidden for other agents.
+- Google Antigravity: the download into `tools/agents/antigravity-acp/1.4.5` (checked against its SHA-256), its program starting,
+  and a second start not downloading again; an npx agent other than Claude (Codex) and a uvx one without uv (Install uv).
 
 **Holding up and fallbacks (built and unit-tested on 2026-11-01, not yet seen in the app)**
 - A long streaming reply (ask for a 300-line explanation): smooth while it streams, scrolling up stays put while it goes on, and

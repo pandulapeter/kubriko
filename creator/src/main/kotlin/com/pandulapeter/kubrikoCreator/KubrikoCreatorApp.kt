@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSystemPrompt
+import com.pandulapeter.kubrikoCreator.ai.assistant.BinaryAgentInstaller
 import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -174,5 +175,6 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         projectDigest = { executor()?.context?.let { DigestText.of(it.projectDigest()) } },
         changeLog = { executor()?.changeLog },
         registry = AgentRegistryStore.default(),
+        installer = BinaryAgentInstaller.default(),
     )
 }

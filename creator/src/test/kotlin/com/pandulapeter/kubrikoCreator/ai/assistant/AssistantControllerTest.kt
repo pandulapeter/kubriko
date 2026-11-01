@@ -60,7 +60,7 @@ class AssistantControllerTest {
 
     private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
 
-    private fun controller(registry: AgentRegistryStore? = null) = AssistantController(
+    private fun controller(registry: AgentRegistryStore? = null, installer: BinaryAgentInstaller? = null) = AssistantController(
         scope = scope,
         runner = runner,
         store = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
@@ -78,6 +78,7 @@ class AssistantControllerTest {
         },
         home = "/Users/me",
         registry = registry,
+        installer = installer,
     ).also { controllers += it }
 
     private fun registry(vararg agents: String) = AgentRegistryStore(File(settingsDirectory, "agent-registry.json"), "darwin-aarch64") {
@@ -140,6 +141,29 @@ class AssistantControllerTest {
         assertEquals(listOf("--yes", "@zed-industries/codex-acp@2.4.0"), commands.single().arguments)
         assertEquals(listOf(AgentProfile.fallback), profiles)
         assertEquals(listOf("Claude Agent", "Codex"), controller.agents.value.map { it.name })
+    }
+
+    @Test
+    fun aBinaryAgentIsDownloadedThenRunFromItsFolder() = test {
+        val registry = registry(ANTIGRAVITY)
+        registry.refresh()
+        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "antigravity-acp"))
+        val served = File(settingsDirectory, "served").also { it.writeText("program") }
+        val installer = BinaryAgentInstaller(File(settingsDirectory, "tools"), download = { _, target -> served.copyTo(target, overwrite = true) })
+        val controller = controller(registry, installer)
+        controller.startChat().state.first { it == ChatState.Ready }
+        assertEquals(File(settingsDirectory, "tools/antigravity-acp/1.4.5/agy_acp_server.par").path, commands.single().program)
+        assertEquals("Google Antigravity", controller.agent.value.name)
+    }
+
+    @Test
+    fun aBinaryAgentThatCantBeDownloadedSaysWhy() = test {
+        val registry = registry(ANTIGRAVITY)
+        registry.refresh()
+        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "antigravity-acp"))
+        val installer = BinaryAgentInstaller(File(settingsDirectory, "tools"), download = { _, _ -> throw java.io.IOException("Offline.") })
+        val failed = controller(registry, installer).startChat().state.first { it is ChatState.Failed }
+        assertEquals(ChatState.Failed(FailureReason.AGENT_NOT_STARTED, listOf("Offline.")), failed)
     }
 
     @Test
@@ -326,6 +350,7 @@ class AssistantControllerTest {
 
     private companion object {
         const val CODEX = """{"id": "codex-acp", "name": "Codex", "version": "2.4.0", "distribution": {"npx": {"package": "@zed-industries/codex-acp@2.4.0"}}}"""
+        const val ANTIGRAVITY = """{"id": "antigravity-acp", "name": "Google Antigravity", "version": "1.4.5", "distribution": {"binary": {"darwin-aarch64": {"archive": "https://dl.google.com/agy_acp_server.par", "cmd": "./agy_acp_server.par"}}}}"""
         const val FAST_AGENT = """{"id": "fast-agent", "name": "fast-agent", "version": "0.10.1", "distribution": {"uvx": {"package": "fast-agent-acp==0.10.1"}}}"""
     }
 }

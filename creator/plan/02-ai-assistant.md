@@ -65,8 +65,9 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 2. **The agent list** (see `../CLAUDE.md` → Assistant): the registry's icons in the menu (checked against each vendor's trademark rules
    first), and Claude Agent's version, pinned to the one checked, offered as an update once the registry's moves and it is checked.
 3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients
-   do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK.
-   Binary agents are unpacked per version under Creator's tools folder.
+   do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK
+   (`BinaryAgentInstaller` already downloads, checks, and unpacks per version). A binary agent's first start shows only
+   "Starting…" while it downloads; show the download's progress.
 4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is other agents' own key variables (`EnvVarAuth`, under Other
    agents), and the operating system's terminal as a fallback for a sign-in command that turns out to need a terminal device.
 5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
@@ -82,8 +83,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, binary agents (3), for Google Antigravity; what is left of the
-fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
+**Order:** alongside `04` to `07`, Google Antigravity checked in a real session with the user (and Google's terms for hosting it
+read, see Terms per vendor); what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
@@ -148,8 +149,7 @@ can't do. The one candidate so far:
 |---|---|---|
 | Codex (`codex-acp` 2.4.0, npx, Apache-2.0) | Takes client MCP servers over HTTP; ChatGPT login, `CODEX_API_KEY` / `OPENAI_API_KEY`, or a custom gateway; `INITIAL_AGENT_MODE=read-only` and a sandbox mode; `CODEX_CONFIG` merged into its session config; ships its own `@openai/codex`. | The system prompt through `CODEX_CONFIG` (Codex's developer instructions) or leading text; whether read-only still lets MCP tools run; `CODEX_HOME` for accounts. Out of quota on this Mac until November 21, 2026. |
 
-Binary agents (Cursor, OpenCode, goose, Junie) need unpacking per version under Creator's tools folder (3), not profiles. The
-registry's other agents are listed with the fallbacks alone and marked untested, and a custom agent (2) gets them too.
+The registry's other agents are listed with the fallbacks alone and marked untested, and a custom agent gets them too.
 
 **Model services** need no agents of their own: Claude through Amazon Bedrock, Google Vertex AI, or a company gateway is Claude
 Agent's gateway sign-in (offered when the client advertises `auth._meta.gateway`) or Claude Code's own environment
