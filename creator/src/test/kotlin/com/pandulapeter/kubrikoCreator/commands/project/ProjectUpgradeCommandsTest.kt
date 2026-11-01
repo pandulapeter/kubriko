@@ -29,6 +29,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ProjectUpgradeCommandsTest {
     private val root = createTempDirectory().toFile()
@@ -63,7 +64,7 @@ class ProjectUpgradeCommandsTest {
         var upgradedCount = 0
         val context = commandContext(rootDirectory = root, onProjectUpgraded = { upgradedCount++ })
         assertNull(Invocation(UpgradeProject, NoInput).validate(context))
-        assertNull(Invocation(UpgradeProject, NoInput).apply(context).inverse)
+        assertTrue(Invocation(UpgradeProject, NoInput).apply(context).let { it.inverse == null && it.isRewritingFiles })
         assertContains(game.readText(), "import com.example.game.generated.KubrikoWiring\n")
         assertContains(entryPoint.readText(), "    override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)\n")
         assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 7")

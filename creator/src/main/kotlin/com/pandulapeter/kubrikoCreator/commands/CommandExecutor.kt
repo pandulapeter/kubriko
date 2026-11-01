@@ -66,6 +66,7 @@ internal class CommandExecutor(
         validate(invocation)?.let { return@withLock CommandOutcome.Rejected(it) }
         val applied = invocation.apply(context)
         applied.failure?.let { return@withLock CommandOutcome.Rejected(it) }
+        if (applied.isRewritingFiles) _history.value = CommandHistory()
         applied.inverse?.let { inverse -> record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true))) }
         CommandOutcome.Success(applied.result)
     }

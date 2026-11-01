@@ -19,11 +19,15 @@ import org.jetbrains.compose.resources.StringResource
  * @param inverse The command that reverts the change, or null if it can't be undone (a git commit, for example).
  * @param result What the change produced, for the AI (the index of a placed Actor, for example).
  * @param failure Why the change couldn't be made after all, though it was valid (the disk or git failed, for example).
+ * @param isRewritingFiles Whether the change rewrote the project's files without an inverse (discarding changes through
+ *   git, for example), which leaves the steps recorded against the files before it pointless or wrong, so the history is
+ *   cleared.
  */
 internal data class Applied(
     val inverse: Invocation<*>?,
     val result: JsonElement = JsonNull,
     val failure: Rejection? = null,
+    val isRewritingFiles: Boolean = false,
 ) {
     companion object {
 

@@ -52,4 +52,12 @@ internal class CommandContext(
     suspend fun awaitWrites() {
         blockTypes?.awaitWrites()
     }
+
+    /**
+     * Reads the types again after a change rewrote their files, returning once they are in memory, so that the next
+     * command doesn't write the old ones back.
+     */
+    suspend fun reloadTypes() {
+        blockTypes?.reload()
+    }
 }

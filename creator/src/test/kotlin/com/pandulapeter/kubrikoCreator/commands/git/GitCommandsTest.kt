@@ -9,11 +9,15 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.git
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
+import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.gitController
 import com.pandulapeter.kubrikoCreator.commands.testScope
@@ -22,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
+import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_already_under_version_control
@@ -91,5 +96,18 @@ class GitCommandsTest {
         assertIs<CommandOutcome.Success>(outcome)
         assertEquals(listOf<Collection<String>>(listOf("README.md")), repository.discarded)
         assertTrue(assertIs<GitState.Ready>(context.git.state.value).changes.none { it.title == "README.md" })
+    }
+
+    @Test
+    fun discardingClearsTheHistoryAndReadsTheTypesBackBeforeTheNextChange() = runTest {
+        val repository = changed(".kubriko/actors/Wall.json")
+        val types = FakeBlockTypeRepository()
+        val context = commandContext(git = gitController(repository), blockTypes = blockTypesController(repository = types))
+        val executor = CommandExecutor(context, testScope())
+        executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Wall")))
+        types.stored.remove("Wall")
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(DiscardChanges, DiscardChanges.Input(listOf(".kubriko/actors/Wall.json")))))
+        assertEquals(CommandHistory(), executor.history.value)
+        assertEquals(emptyList(), context.blockTypes!!.types.value)
     }
 }

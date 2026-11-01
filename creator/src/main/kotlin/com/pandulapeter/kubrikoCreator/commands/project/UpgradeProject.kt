@@ -47,6 +47,6 @@ internal object UpgradeProject : WriteCommand<NoInput> {
     override suspend fun apply(context: CommandContext, input: NoInput): Applied {
         withContext(context.ioDispatcher) { ProjectUpgrader(context.project.rootDirectory).apply() }
         context.onProjectUpgraded()
-        return Applied(inverse = null)
+        return Applied(inverse = null, isRewritingFiles = true)
     }
 }

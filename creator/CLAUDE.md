@@ -141,7 +141,9 @@ path. `CommandRegistry.editor` lists them all; the AI tool list (`ToolDefinition
 from it, each input schema from the input class's serial descriptor (`JsonSchema`, with `@Description` on every property).
 
 - **Kinds:** `ReadCommand` (reports, never recorded), `WriteCommand` (`validate` returns a `Rejection` with a user-facing
-  `StringResource`; `apply` returns `Applied` with the inverse `Invocation`, or none for git operations, which can't be undone),
+  `StringResource`; `apply` returns `Applied` with the inverse `Invocation`, or none for git operations, which can't be undone;
+  one that rewrites files without an inverse, discarding changes or the template upgrade, says `isRewritingFiles`, which clears the
+  history, and discarding reads the types back before it returns),
   and `ActionCommand` (build, play; run outside the change lock).
 - **`CommandExecutor`** (one per workspace): applies changes one at a time, keeps the undo and redo history (consecutive changes
   with the same `mergeKey`, like typing into one field, are one step, or those `mergesWith` joins, like the renames of one Property,

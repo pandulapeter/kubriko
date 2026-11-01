@@ -13,14 +13,6 @@ What breaks, hangs, or loses work today when files are broken, a process misbeha
 the code, why it matters, and the direction; none of it is built yet. The user put stability before new features, so this file
 comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
 
-## Undo history
-
-- **Changes outside the history leave it stale.** `discard_changes` and `upgrade_project` rewrite files and return no inverse, but
-  the history keeps steps recorded against the old files, which may still validate and then change the wrong thing; and the types in
-  memory are only reloaded by the watcher a second later, so a command right after a discard writes the old definition back.
-  Direction: after such a command, clear the history (`CommandExecutor.clearHistory`) and await a reload of the types before
-  returning.
-
 ## Processes, threads, and lifecycles
 
 - **No handler for uncaught exceptions.** The app's and each workspace's scopes have no `CoroutineExceptionHandler`, so anything a

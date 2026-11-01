@@ -45,7 +45,9 @@ internal object DiscardChanges : WriteCommand<DiscardChanges.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.awaitWrites()
-        return if (context.git.discard(input.paths)) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
+        if (!context.git.discard(input.paths)) return Applied.failed(Res.string.status_git_failed)
+        context.reloadTypes()
+        return Applied(inverse = null, isRewritingFiles = true)
     }
 
     @Serializable

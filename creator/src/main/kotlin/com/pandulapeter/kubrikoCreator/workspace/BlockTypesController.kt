@@ -239,20 +239,26 @@ internal class BlockTypesController(
      */
     fun reloadFromDisk() {
         if (pendingWriteCount.value > 0) return
-        scope.launch {
-            val (loaded, storedFolders) = try {
-                withContext(ioDispatcher) { repository.load() to BlockTypeKind.entries.associateWith(repository::folders) }
-            } catch (exception: Exception) {
-                if (exception is CancellationException) throw exception
-                return@launch
-            }
-            if (pendingWriteCount.value == 0 && (loaded.types != _types.value || storedFolders != emptyFolders || loaded.unreadableFiles != _unreadableFiles.value)) {
-                emptyFolders = storedFolders
-                setUnreadableFiles(loaded.unreadableFiles)
-                setTypes(loaded.types)
-                if (_selectedName.value !in loaded.types.map { it.name }) _selectedName.value = null
-                queue(PendingWrite.Regenerate)
-            }
+        scope.launch { reload() }
+    }
+
+    /**
+     * Reads the definitions again, as [reloadFromDisk] does, returning once they are in memory.
+     */
+    suspend fun reload() {
+        if (pendingWriteCount.value > 0) return
+        val (loaded, storedFolders) = try {
+            withContext(ioDispatcher) { repository.load() to BlockTypeKind.entries.associateWith(repository::folders) }
+        } catch (exception: Exception) {
+            if (exception is CancellationException) throw exception
+            return
+        }
+        if (pendingWriteCount.value == 0 && (loaded.types != _types.value || storedFolders != emptyFolders || loaded.unreadableFiles != _unreadableFiles.value)) {
+            emptyFolders = storedFolders
+            setUnreadableFiles(loaded.unreadableFiles)
+            setTypes(loaded.types)
+            if (_selectedName.value !in loaded.types.map { it.name }) _selectedName.value = null
+            queue(PendingWrite.Regenerate)
         }
     }
 
