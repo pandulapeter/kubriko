@@ -27,11 +27,11 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`02-ai-assistant.md` → Order: the five "First" items of Context for large games (the project digest with descriptions, compact
-Block notation and zoom levels, reads that know what was seen, `get_relations`, and token budgets as tests), then the files in
-order, with the rest of `02-ai-assistant.md` alongside them. The panel's tool call cards were tied into the activity view on
-2026-11-01 (see To check by hand). What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for
-the benchmarks.
+`02-ai-assistant.md` → Order: the small tool list first (about 34,000 tokens, most of it the Block schema five write tools each
+repeat; `TokenBudgetTest` measures it), then agent profiles and the rest, alongside `04` to `07`. The panel's tool call cards and
+the five "First" items of Context for large games (relations, Block notation and zoom levels, descriptions with the digest and the
+Map panel, reads that know what was seen, and token budgets) were built on 2026-11-01 and are unit-tested, not yet seen in the app.
+What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
 
@@ -65,6 +65,17 @@ the benchmarks.
   `generated/<Name>.kt` goes, the console says so, and the build works; the same with that file edited by hand first (kept,
   named in the console as an error once).
 - Crash-safe writes on Windows (a Scene the running game holds open, which a move may be refused for) and on a network drive.
+
+**Context for large games (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- The Map panel on the scratch Breakout copy: types by section with descriptions and references, Scenes with what they place, a
+  click opening each, and it following a change (an inspector edit, a Scene opened, an AI step).
+- The description field under a type's header and, with nothing selected, in the Scene inspector: typing (one undo step), a
+  description set by the AI showing up, and `.kubriko/scenes.json` after renaming and deleting a Scene (and undoing that).
+- A real conversation: whether it uses the digest it starts with rather than reading everything, reads `detail` outline then one
+  Event, `get_relations`, and whether a repeated read's "unchanged" or delta (and `full: true`) confuses it. Change something by
+  hand between two prompts and see whether the next answer knows (the summary goes before the message, not in the transcript).
+- Write tools now return `{"revision", "changed", "event"}` instead of "Done.": whether the AI stops reading the type again after
+  each Block it adds.
 
 **Tool call cards (built and unit-tested on 2026-11-01, not yet seen in the app)**
 - In a real conversation, each Creator tool call card names what it worked on (`Ball, Event 2`), clicking one about a type or a

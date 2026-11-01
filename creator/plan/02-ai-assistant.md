@@ -83,10 +83,9 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** first the five "First" items of Context for large games. Then
-alongside `04` to `07`: agent profiles and the fallbacks (Other agents and services), Codex first, then Gemini CLI and Copilot;
-the registry, the Node.js download, and binary agents (2, 3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP
-server items above.
+**Order:** alongside `04` to `07`, first the small tool list (Context for large games), then agent profiles and the fallbacks
+(Other agents and services), Codex first, then Gemini CLI and Copilot; the registry, the Node.js download, and binary agents (2,
+3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
@@ -201,27 +200,6 @@ follows, so it can hand an agent exact, compact, and always fresh context that i
 its way to understanding and the model pays for it. These serve the panel and outside MCP clients alike. Whatever helps the AI
 understand the game is shown to the user too.
 
-**First,** with the panel's first steps:
-
-1. **The project digest:** about 1,000 to 2,000 tokens that Creator builds, not the model, and refreshes on every change: types by
-   folder with a one-line role each, Manager types, Scenes, and who spawns, collides with, reads, or goes to whom. It opens every
-   conversation through the system prompt (step 6 above), in an order that stays the same between requests, so prompt caching keeps
-   hitting. Optional one-line **descriptions** on Actor types, Manager types, and Scenes, filled in by the user or the AI, give each
-   its role. The same digest is shown to the user as a map of the game.
-2. **Compact Block notation and zoom levels:** tool results write Blocks as the editor shows them (`on Collision with Brick: destroy
-   other; add 10 to score of Game`) rather than JSON, leaving out defaults and shortening IDs. Reads zoom in: the digest, a type's outline
-   (its Events and their Block counts, a `detail` level on `read_actor_type`), then one Event in full.
-3. **Reads that know what was seen:** the per-conversation MCP address lets Creator remember what each conversation has read, so a
-   repeated read answers "unchanged since you read it" and a changed object returns only what changed. Write results return the
-   revision and the change, not the whole object. The user's own edits between two prompts reach the next one as a short summary ("you
-   added a Collision with Brick Event to Ball"), so the agent stays in sync without reading everything again.
-4. **`get_relations`:** what references an Actor type, Manager type, Property, or Scene, and what it references, from the model; it
-   replaces chains of reads, and `search_project` and `find_usages` (`04-resource-organization.md`) build on it.
-5. **Token budgets as tests**, like the size checks and the build benchmark: the whole tool list, and each read tool on the Breakout
-   copy (`read_actor_type` of the Ball, `read_scene` of a level, the digest), stay under a budget, so their cost can't creep up.
-
-**Then:**
-
 - **Following the user's attention:** context chips filled in on their own (the open Scene, the selected Actor type and Event, the
   last build failure or console exception), sent as links the agent follows when it needs them rather than as pasted text.
 - **A game notes file:** the game's design notes (mechanics, naming, and decisions) as a plain committed file, the project's
@@ -229,8 +207,11 @@ understand the game is shown to the user too.
   After a conversation the AI proposes updates as a diff, which the user confirms (Principle 4).
 - **"Last time" summaries:** a new conversation may start from a short summary of the project's previous one, rather than the user
   explaining again.
-- **A small tool list:** about 6,000 tokens today and growing with every feature: terse descriptions, related tools grouped, and
-  Claude Code's tool search, which loads tool schemas only when they are needed.
+- **A small tool list:** about 34,000 tokens (measured by `TokenBudgetTest`, November 2026), most of it the Block schema that
+  `create_actor_type`, `create_manager_type`, `add_event`, `add_block`, and `edit_block` each repeat whole (4,000 to 5,000 tokens
+  apiece): one shared definition or a reference to `get_block_catalog`, terse descriptions, related tools grouped, and Claude Code's
+  tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it. `read_scene`'s whole-Scene
+  page also carries every state twice (in `actors` and the raw `content`).
 - **Exploring in subagents:** questions such as "which types change the score?" go to a subagent, defined through the session options
   rather than files in the project, so the conversation's context stays clean.
 - **Health checks** computed from the model: unused types, Scenes nothing goes to, Properties never read, and Events that can never

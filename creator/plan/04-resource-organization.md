@@ -31,7 +31,8 @@ files where the format allows it, so the project stays readable in IntelliJ and 
   to it, each one clickable (opening the type at that Event and Block, or the Scene with that Actor selected). The rename logic already
   finds these (`KotlinIdentifiers`, the Block reference edits); this lists them instead of changing them.
 - **Search in Blocks:** texts in Log Blocks, screen texts, and Kotlin Blocks, from the same panel.
-- AI tools: `search_project` (names and Block texts, with paths) and `find_usages`, read-only.
+- AI tools: `search_project` (names and Block texts, with paths) and `find_usages`, read-only; `find_usages` builds on
+  `ProjectRelations`, which `get_relations` already reads types, Properties, and Scenes from (sprites and sounds are left).
 
 ## Order
 

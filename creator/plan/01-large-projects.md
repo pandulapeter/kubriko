@@ -23,8 +23,8 @@ plans named there.
 
 ## AI tools at scale
 
-- The project digest, compact Block notation, and the rest of keeping a large game in an agent's context cheaply are in
-  `02-ai-assistant.md` → Context for large games.
+- The rest of keeping a large game in an agent's context cheaply (a smaller tool list first) is in `02-ai-assistant.md` → Context
+  for large games.
 - Paging `list_manager_types` and `list_scenes` like `list_actor_types`, once a project has enough of them to need it.
 
 ## No caps

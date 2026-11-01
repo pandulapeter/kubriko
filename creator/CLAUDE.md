@@ -357,6 +357,10 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   result of its own. `CommandExecutor.changeLog` (`ChangeLog`) raises the revision on every change, undo and redo included, and keeps
   the newest 200 (`ChangeRecord`); before each prompt, `AssistantChat` sends `ChangesSummary` of what anyone but that conversation
   changed since its last prompt, ahead of the user's text.
+- **Token budgets** (`TokenBudgetTest`, about four characters a token): the tool list, and on `BreakoutFixture` (a Breakout grown
+  to five types and a 42-Actor level) the digest, `read_actor_type` of Ball (Blocks and JSON), and `read_scene` of the level (a
+  page and the summary) each stay under a budget set just above what they cost, so that none can creep up unnoticed. The tool
+  list is about 34,000 tokens, most of it the Block schema that five write tools each repeat.
 
 ## AI connection (MCP)
 
