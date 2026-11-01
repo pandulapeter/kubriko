@@ -36,9 +36,11 @@ internal object DeleteScene : WriteCommand<DeleteScene.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = if (context.scenes.exists(input.scene)) null else Rejection(Res.string.error_command_scene_missing, input.scene)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val content = withContext(context.ioDispatcher) { context.scenes.read(input.scene).orEmpty().also { context.scenes.delete(input.scene) } }
+        val (content, description) = withContext(context.ioDispatcher) {
+            (context.scenes.read(input.scene).orEmpty() to context.scenes.descriptions.of(input.scene)).also { context.scenes.delete(input.scene) }
+        }
         context.onScenesChanged(listOf(input.scene))
-        return Applied(inverse = Invocation(CreateScene, CreateScene.Input(input.scene, content)))
+        return Applied(inverse = Invocation(CreateScene, CreateScene.Input(input.scene, content, description)))
     }
 
     @Serializable

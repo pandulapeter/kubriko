@@ -19,6 +19,11 @@ internal sealed interface BlockTypeDefinition {
      * Also the name of the generated Kotlin class.
      */
     val name: String
+
+    /**
+     * What the type is for in the game, in one line, filled in by the user or the AI.
+     */
+    val description: String?
     val properties: List<PropertyDefinition>
     val events: List<EventDefinition>
     val kind: BlockTypeKind
@@ -30,6 +35,8 @@ internal sealed interface BlockTypeDefinition {
     val folder: String
 
     fun withName(name: String): BlockTypeDefinition
+
+    fun withDescription(description: String?): BlockTypeDefinition
 
     fun withFolder(folder: String): BlockTypeDefinition
 

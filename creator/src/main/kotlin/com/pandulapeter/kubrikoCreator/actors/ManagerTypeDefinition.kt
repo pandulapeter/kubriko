@@ -23,6 +23,8 @@ import kotlinx.serialization.Transient
 internal data class ManagerTypeDefinition(
     @Description("The name of the Manager type, and of its generated Kotlin class: an uppercase letter, then letters and numbers. Actor types and Manager types can't share a name.")
     @SerialName("name") override val name: String,
+    @Description("What the Manager type is for in the game, in one short line (\"the ball the player bounces off the paddle\"), or none.")
+    @SerialName("description") override val description: String? = null,
     @Description("The game-wide values it keeps, like a score, which Blocks of any type can change.")
     @SerialName("properties") override val properties: List<PropertyDefinition> = emptyList(),
     @Description("The Events it reacts to, in order. Each runs its Blocks in order.")
@@ -36,6 +38,8 @@ internal data class ManagerTypeDefinition(
     override val kind get() = BlockTypeKind.MANAGER
 
     override fun withName(name: String) = copy(name = name)
+
+    override fun withDescription(description: String?) = copy(description = description)
 
     override fun withFolder(folder: String) = copy(folder = folder)
 

@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -48,6 +49,8 @@ import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
+import com.pandulapeter.kubrikoCreator.context.ProjectDigest
+import com.pandulapeter.kubrikoCreator.context.projectDigest
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
@@ -61,6 +64,7 @@ import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantPanel
+import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
@@ -93,6 +97,7 @@ internal fun WorkspaceScreen(
     val selectedBlockType = blockTypes.firstOrNull { it.name == selectedBlockTypeName }
     val blockTypesChangedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
+    val sceneDescriptions by controller.scenes.descriptions.current.collectAsState()
     var openPanel by remember { mutableStateOf<SidePanel?>(null) }
     val mcpState by mcp.state.collectAsState()
     val aiSteps by controller.commands.aiSteps.collectAsState()
@@ -204,6 +209,7 @@ internal fun WorkspaceScreen(
                         actorTypeDragState = sidebarDragState,
                         actorTypes = actorTypes,
                         music = remember(resources) { AudioFiles.of(resources).music },
+                        description = sceneDescriptions[state.sceneName],
                         onPlay = { controller.play(firstScene = state.sceneName) },
                         onReload = controller.sceneEditing::reload,
                         onClose = controller.sceneEditing::close,
@@ -273,6 +279,18 @@ internal fun WorkspaceScreen(
                                 else -> Unit
                             }
                         },
+                    )
+                }
+                if (openPanel == SidePanel.GAME_MAP) {
+                    VerticalDivider()
+                    val digest by produceState<ProjectDigest?>(null, blockTypes, resources, sceneDescriptions, latestAiStep?.id, sceneEditing) {
+                        value = controller.commands.context.projectDigest()
+                    }
+                    GameMapPanel(
+                        modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                        digest = digest,
+                        onTypeSelected = { folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, it) },
+                        onSceneSelected = { if (openSceneName != it) folderTreeActions.onSelected(FolderGroup.SCENES, it) },
                     )
                 }
                 if (openPanel == SidePanel.AI_CONNECTION) {

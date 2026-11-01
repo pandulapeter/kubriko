@@ -80,6 +80,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param actorTypes The project's block-built Actor types.
  * @param music The project's music files, by their path from `composeResources`.
+ * @param description What the Scene is for.
  * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
  */
 @Composable
@@ -89,6 +90,7 @@ internal fun SceneEditorPane(
     actorTypeDragState: SidebarDragState,
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>,
+    description: String?,
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onClose: () -> Unit,
@@ -162,6 +164,7 @@ internal fun SceneEditorPane(
             selectedId = selectedId,
             actorTypes = actorTypes,
             music = music,
+            description = description,
             onSelect = { selectedId = it },
             onCommand = onCommand,
             onRemove = onRemove,

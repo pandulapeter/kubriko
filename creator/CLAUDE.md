@@ -340,6 +340,15 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   descriptions), at a `detail` (`ReadDetail`): `outline` (Events by title with Block counts), `blocks` (the default), or `json` (the
   definition the write tools take), and `eventIndex` narrows it to one Event. Defaults are left out (`parent`, an empty list,
   `isChangedByHand` unless true).
+- **Descriptions and the digest:** Actor types and Manager types have an optional one-line `description` in their file (older
+  Creators ignore it), and Scenes theirs in `.kubriko/scenes.json` (`SceneDescriptions`, kept by `SceneStore`, moved and deleted with
+  the Scene, and given back by `create_scene` when a deletion is undone); `set_description` sets either (typing is one undo step),
+  from the type editor's header or, with nothing selected, the Scene inspector. `ProjectDigest` sums the game up from the model
+  (types by folder with description, parent, Properties, and Event titles; Scenes with what they place; and what each type refers to),
+  and `DigestText` writes it under about 2,000 tokens (`BUDGET`), dropping Properties and Events, then descriptions, then cutting it
+  short with where the rest is. `get_project_digest` returns it as plain text (a string result is sent as it is), every assistant
+  conversation starts with it after the fixed system prompt (`AssistantSystemPrompt.withProject`, so the cached prefix stays the same),
+  and the toolbar's Map panel (`ui/gameMap`) shows it to the user, opening a type or Scene on a click.
 
 ## AI connection (MCP)
 

@@ -195,7 +195,11 @@ internal class McpToolServer(
         }
         val (result, isError) = when (outcome) {
             null -> getString(Res.string.error_mcp_no_project) to true
-            is CommandOutcome.Success -> (if (outcome.result == JsonNull) getString(Res.string.mcp_tool_done) else outcome.result.toString()) to false
+            is CommandOutcome.Success -> when (val result = outcome.result) {
+                JsonNull -> getString(Res.string.mcp_tool_done)
+                is JsonPrimitive if result.isString -> result.content
+                else -> result.toString()
+            } to false
             is CommandOutcome.Rejected -> getString(outcome.rejection.reason, *outcome.rejection.arguments.toTypedArray()) to true
         }
         return result(toolName, arguments, result, isError, image = (outcome as? CommandOutcome.Success)?.image)
@@ -225,7 +229,7 @@ internal class McpToolServer(
         val INSTRUCTIONS = """
             Kubriko Creator edits games made with Kubriko, a 2D game engine for Kotlin. Actor types are built from Events
             (when something happens) and Blocks (what happens then), and Kubriko Creator generates Kotlin from them.
-            Scenes place Actors of those types. Start with get_project_overview and get_block_catalog. Every change shows
+            Scenes place Actors of those types. Start with get_project_digest and get_block_catalog. Every change shows
             up in Kubriko Creator right away and can be undone there. Changes reach the game through a build: try them with
             start_game, press_keys, take_screenshot, and stop_game, and use read_console for what the game logged. Make
             every change through these tools, never by editing the project's files in other ways: Kubriko Creator owns the

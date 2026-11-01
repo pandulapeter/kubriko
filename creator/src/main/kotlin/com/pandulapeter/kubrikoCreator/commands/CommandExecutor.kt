@@ -32,7 +32,7 @@ import kubriko.creator.generated.resources.error_command_unknown
  *   Creator), or null if changes may be made.
  */
 internal class CommandExecutor(
-    private val context: CommandContext,
+    val context: CommandContext,
     private val scope: CoroutineScope,
     private val onRejected: (Rejection) -> Unit = {},
     private val rejectChanges: () -> Rejection? = { null },

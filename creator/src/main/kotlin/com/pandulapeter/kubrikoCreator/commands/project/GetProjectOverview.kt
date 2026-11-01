@@ -26,7 +26,7 @@ import kubriko.creator.generated.resources.command_get_project_overview
 internal object GetProjectOverview : ReadCommand<NoInput> {
     override val name = "get_project_overview"
     override val description = "Describes the open project: its name, its block-built Actor types and Manager types (or that it doesn't use them), " +
-        "its Scenes, and whether its template files need an upgrade (see get_project_upgrade). A good first call, before reading anything else."
+        "its Scenes, and whether its template files need an upgrade (see get_project_upgrade). get_project_digest says much more about the game."
     override val inputSerializer = NoInput.serializer()
     override val title = Res.string.command_get_project_overview
 

@@ -13,8 +13,9 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.GetBlockCatalog
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 
 /**
- * What the assistant's agents are told about Kubriko Creator, after their own system prompt. It stays the same between
- * conversations, so that the agent's prompt cache keeps hitting.
+ * What the assistant's agents are told about Kubriko Creator, after their own system prompt. Its [text] stays the same
+ * between conversations, and the project's digest comes after it ([withProject]), so that the agent's prompt cache
+ * keeps hitting.
  */
 internal object AssistantSystemPrompt {
 
@@ -34,5 +35,15 @@ internal object AssistantSystemPrompt {
         |The Block catalog, as get_block_catalog returns it:
         |${GetBlockCatalog.catalog}
         """.trimMargin()
+    }
+
+    /**
+     * [text], then the digest of the project as it was when the conversation started, if there is one.
+     */
+    fun withProject(digest: String?) = if (digest == null) {
+        text
+    } else {
+        "$text\n\nThe project as it was when this conversation started (get_project_digest has it as it is now, and the user's own changes since " +
+            "your last turn come before their message):\n$digest"
     }
 }

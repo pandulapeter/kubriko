@@ -50,6 +50,7 @@ internal class AssistantController(
     private val signInLauncher: AgentLauncher,
     private val ioDispatcher: CoroutineDispatcher,
     private val createAssistant: (AgentCommand) -> Assistant,
+    private val projectDigest: suspend () -> String? = { null },
     private val home: String = System.getProperty("user.home"),
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
@@ -161,7 +162,7 @@ internal class AssistantController(
         var owner: Assistant? = null
         val chat = AssistantChat(
             parentScope = scope,
-            start = { permissions -> assistant().also { owner = it }.newConversation(directory, permissions) },
+            start = { permissions -> assistant().also { owner = it }.newConversation(directory, permissions, projectDigest()) },
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
         )

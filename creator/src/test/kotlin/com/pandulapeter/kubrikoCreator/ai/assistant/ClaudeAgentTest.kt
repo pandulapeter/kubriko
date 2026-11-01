@@ -58,6 +58,14 @@ class ClaudeAgentTest {
         assertTrue(prompt.length < SYSTEM_PROMPT_BUDGET_IN_CHARACTERS, "The system prompt grew to ${prompt.length} characters.")
     }
 
+    @Test
+    fun theProjectsDigestComesAfterThePromptThatStaysTheSame() {
+        assertEquals(AssistantSystemPrompt.text, AssistantSystemPrompt.withProject(null))
+        val prompt = AssistantSystemPrompt.withProject("Project breakout.")
+        assertTrue(prompt.startsWith(AssistantSystemPrompt.text))
+        assertTrue(prompt.endsWith("Project breakout."))
+    }
+
     private companion object {
         /**
          * About 10,000 tokens, which the system prompt costs on every request that misses the prompt cache.

@@ -14,6 +14,7 @@ package com.pandulapeter.kubrikoCreator.ui
  */
 internal enum class SidePanel {
     ASSISTANT,
+    GAME_MAP,
     VERSION_CONTROL,
     AI_CONNECTION,
 }

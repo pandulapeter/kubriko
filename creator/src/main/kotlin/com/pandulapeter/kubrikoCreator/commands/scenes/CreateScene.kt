@@ -47,7 +47,10 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        withContext(context.ioDispatcher) { context.scenes.write(input.scene, input.content) }
+        withContext(context.ioDispatcher) {
+            context.scenes.write(input.scene, input.content)
+            context.scenes.descriptions.set(input.scene, input.description)
+        }
         context.onScenesChanged(listOf(input.scene))
         return Applied(inverse = Invocation(DeleteScene, DeleteScene.Input(input.scene)))
     }
@@ -58,5 +61,7 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
         @SerialName("scene") val scene: String,
         @Description("The content of the Scene file, as read_scene returns it in its raw form. An empty Scene if left out.")
         @SerialName("content") val content: String = "[]",
+        @Description("What the Scene is for in the game, in one short line (\"the first level\"), or none.")
+        @SerialName("description") val description: String? = null,
     )
 }

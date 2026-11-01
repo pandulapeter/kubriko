@@ -74,7 +74,9 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
+import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
+import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
@@ -145,6 +147,12 @@ internal fun BlockTypeEditor(
                     is ManagerTypeDefinition -> onCommand(Invocation(DeleteManagerType, DeleteManagerType.Input(name)))
                 }
             },
+        )
+        DescriptionField(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+            key = name,
+            description = definition.description,
+            onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(type = name, description = it))) },
         )
         if (isChangedByHand) {
             ChangedByHandNotice(

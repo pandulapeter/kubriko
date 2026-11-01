@@ -26,13 +26,14 @@ import java.util.concurrent.ConcurrentHashMap
  * switch says. Closing a conversation turns its tools off.
  *
  * @param toolServer A server of its own, not the one outside clients connect to.
- * @param sessionMeta The `_meta` a conversation is started with, through which an agent takes its own options.
+ * @param sessionMeta The `_meta` a conversation is started with, through which an agent takes its own options, given
+ *   what the conversation is told about the project at its start.
  */
 internal class Assistant(
     private val agent: AcpAgent,
     private val toolServer: McpToolServer,
     private val ioDispatcher: CoroutineDispatcher,
-    private val sessionMeta: JsonElement? = null,
+    private val sessionMeta: (projectContext: String?) -> JsonElement? = { null },
 ) : AutoCloseable {
     private val serverStart = Mutex()
     private var port: Int? = null
@@ -50,10 +51,11 @@ internal class Assistant(
     /**
      * Starts a conversation about the project in [projectDirectory].
      *
+     * @param projectContext What the conversation is told about the project at its start: its digest.
      * @throws AgentStartException If the agent couldn't be started.
      * @throws java.io.IOException If the tools couldn't be served.
      */
-    suspend fun newConversation(projectDirectory: File, permissions: PermissionHandler = PermissionHandler.Reject): AgentConversation {
+    suspend fun newConversation(projectDirectory: File, permissions: PermissionHandler = PermissionHandler.Reject, projectContext: String? = null): AgentConversation {
         val port = toolServerPort()
         val tools = toolServer.openConversation()
         val conversation = try {
@@ -66,7 +68,7 @@ internal class Assistant(
                         headers = listOf(HttpHeader("Authorization", "Bearer ${tools.token}")),
                     ),
                 ),
-                meta = sessionMeta,
+                meta = sessionMeta(projectContext),
                 permissions = permissions,
             )
         } catch (exception: Exception) {

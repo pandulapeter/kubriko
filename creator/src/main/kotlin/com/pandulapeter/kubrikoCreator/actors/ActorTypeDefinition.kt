@@ -25,6 +25,8 @@ import kotlinx.serialization.Transient
 internal data class ActorTypeDefinition(
     @Description("The name of the Actor type, and of its generated Kotlin class: an uppercase letter, then letters and numbers.")
     @SerialName("name") override val name: String,
+    @Description("What the Actor type is for in the game, in one short line (\"the ball the player bounces off the paddle\"), or none.")
+    @SerialName("description") override val description: String? = null,
     @Description("The Actor type it inherits from, like GameMaker's parent objects: it gets the parent's Properties and Events (an Event of its own of the same kind replaces the parent's), and the parent stands for it in collision Events and other Blocks. None for no parent.")
     @SerialName("parent") val parent: String? = null,
     @Description("The shape its Actors are drawn as, and of their collision mask.")
@@ -46,6 +48,8 @@ internal data class ActorTypeDefinition(
     override val kind get() = BlockTypeKind.ACTOR
 
     override fun withName(name: String) = copy(name = name)
+
+    override fun withDescription(description: String?) = copy(description = description)
 
     override fun withFolder(folder: String) = copy(folder = folder)
 

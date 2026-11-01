@@ -108,6 +108,8 @@
     <string name="error_type_name_reserved">That name is used by Kubriko itself. Pick another one.</string>
     <string name="error_type_name_base_suffix">Names ending in "Base" are kept for the classes Kubriko Creator generates for parent types. Pick another one.</string>
     <string name="error_type_name_taken">There's already an Actor type or Manager type with that name.</string>
+    <string name="description_label">For</string>
+    <string name="description_hint">What it is for in the game, in one line, for you and the AI</string>
     <string name="block_set_velocity">Set velocity</string>
     <string name="block_add_to_velocity">Add to velocity</string>
     <string name="block_run_parent_event">Run the parent's Event</string>
@@ -497,6 +499,7 @@
     <string name="error_command_actor_id_repeated">The Actor %1$s is named more than once.</string>
     <string name="error_command_relations_subject">Name either a type (with a Property of it, optionally) or a Scene.</string>
     <string name="error_command_relations_property_missing">There's no Property called %1$s in %2$s.</string>
+    <string name="error_command_description_invalid">A description is one line of at most %1$s characters.</string>
     <string name="error_command_page_invalid">The offset can't be negative, and the count has to be at least 1.</string>
     <string name="action_new_scene">New Scene</string>
     <string name="new_scene_hint">New Scene name</string>
@@ -544,6 +547,7 @@
     <string name="error_game_duration_invalid">Use between 1 and %1$s milliseconds.</string>
     <string name="ai_client_variant">%1$s (%2$s)</string>
     <string name="command_get_project_overview">Look at the project</string>
+    <string name="command_get_project_digest">Look at the map of the game</string>
     <string name="command_get_block_catalog">Look at the Block catalog</string>
     <string name="command_list_actor_types">List the Actor types</string>
     <string name="command_read_actor_type">Read an Actor type</string>
@@ -553,6 +557,7 @@
     <string name="command_list_scenes">List the Scenes</string>
     <string name="command_read_scene">Read a Scene</string>
     <string name="command_get_relations">Look at what refers to what</string>
+    <string name="command_set_description">Change a description</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>
     <string name="command_build">Build the project</string>
@@ -572,6 +577,23 @@
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
     <string name="action_toggle_assistant">Assistant</string>
+    <string name="action_toggle_game_map">Map</string>
+    <string name="game_map_title">Map of the game</string>
+    <string name="game_map_hint">What Kubriko Creator tells the AI about the game when a conversation starts, worked out from the types and Scenes. Describe each one, so that both of you know what it is for.</string>
+    <string name="game_map_no_description">No description yet</string>
+    <string name="game_map_actor_types">Actor types</string>
+    <string name="game_map_manager_types">Manager types</string>
+    <string name="game_map_scenes">Scenes</string>
+    <string name="game_map_places">Places %1$s</string>
+    <string name="game_map_inherits_from">Based on %1$s</string>
+    <string name="game_map_collides_with">Collides with %1$s</string>
+    <string name="game_map_adds">Adds %1$s</string>
+    <string name="game_map_moves_towards">Moves towards %1$s</string>
+    <string name="game_map_goes_to">Goes to %1$s</string>
+    <string name="game_map_reads">Reads %1$s</string>
+    <string name="game_map_changes">Changes %1$s</string>
+    <string name="game_map_names_in_kotlin">Names %1$s in Kotlin</string>
+    <string name="game_map_empty">Nothing yet: create an Actor type or a Scene, and it shows up here.</string>
     <string name="action_new_conversation">New conversation</string>
     <string name="action_close_conversation">End this conversation</string>
     <string name="action_send">Send</string>

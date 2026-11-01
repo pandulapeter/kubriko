@@ -30,6 +30,8 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeAgentOptions
 import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.context.DigestText
+import com.pandulapeter.kubrikoCreator.context.projectDigest
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
@@ -164,8 +166,9 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
                 ),
                 toolServer = McpToolServer(executor = executor, callDispatcher = Dispatchers.Main, version = version),
                 ioDispatcher = Dispatchers.IO,
-                sessionMeta = ClaudeAgentOptions.sessionMeta(AssistantSystemPrompt.text),
+                sessionMeta = { digest -> ClaudeAgentOptions.sessionMeta(AssistantSystemPrompt.withProject(digest)) },
             )
         },
+        projectDigest = { executor()?.context?.let { DigestText.of(it.projectDigest()) } },
     )
 }

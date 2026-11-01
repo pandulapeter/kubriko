@@ -35,6 +35,11 @@ internal class SceneStore(
     private val sceneResources: () -> List<ProjectResource>,
 ) {
     /**
+     * What each Scene is for, which moves and goes with it.
+     */
+    val descriptions = SceneDescriptions(rootDirectory, ownWrites)
+
+    /**
      * Where new Scenes go: next to the existing ones, or where the project templates keep them.
      */
     private val sceneDirectory get() = sceneResources().firstNotNullOfOrNull { rootOf(it.file) } ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
@@ -91,6 +96,7 @@ internal class SceneStore(
         cache.remove(source)
         ownWrites.record(source)
         ownWrites.record(target)
+        descriptions.move(oldName, newName)
         return true
     }
 
@@ -179,6 +185,7 @@ internal class SceneStore(
             cache.remove(file)
             ownWrites.record(file)
         }
+        descriptions.set(name, null)
     }
 
     /**

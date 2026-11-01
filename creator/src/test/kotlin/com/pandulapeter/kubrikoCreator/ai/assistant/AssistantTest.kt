@@ -47,7 +47,7 @@ class AssistantTest {
         agent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO),
         toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
         ioDispatcher = Dispatchers.IO,
-        sessionMeta = sessionMeta,
+        sessionMeta = { projectContext -> if (projectContext == null) sessionMeta else JsonPrimitive(projectContext) },
     )
     private val projectDirectory = File("/projects/breakout")
 
@@ -93,6 +93,12 @@ class AssistantTest {
         assertEquals(CommandRegistry.editor.tools.size, toolCount(first))
         assertEquals(CommandRegistry.editor.tools.size, toolCount(second))
         assertEquals(HttpStatusCode.Unauthorized, status(first.url, second.headers.single().value))
+    }
+
+    @Test
+    fun aConversationIsStartedWithWhatItIsToldAboutTheProject() = test {
+        assistant.newConversation(projectDirectory, projectContext = "Project breakout.")
+        assertEquals(JsonPrimitive("Project breakout."), launcher.agents.single().newSessions.single()._meta)
     }
 
     @Test
