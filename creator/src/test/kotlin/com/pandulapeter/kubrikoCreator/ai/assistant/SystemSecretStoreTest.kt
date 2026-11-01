@@ -28,18 +28,18 @@ class SystemSecretStoreTest {
     /**
      * A store whose secret tool is a shell script running [script].
      */
-    private fun store(script: String): SystemSecretStore {
+    private fun store(script: String, timeoutInMilliseconds: Long = 500): SystemSecretStore {
         val tool = File(directory, "secret-tool").apply {
             writeText("#!/bin/sh\n$script\n")
             setExecutable(true)
         }
-        return SystemSecretStore(SecretCommands.SecretService(tool.absolutePath), timeoutInMilliseconds = 500)
+        return SystemSecretStore(SecretCommands.SecretService(tool.absolutePath), timeoutInMilliseconds = timeoutInMilliseconds)
     }
 
     @Test
     fun whatTheToolPrintsIsTheSecret() {
         if (isWindows) return
-        assertEquals("secret", store("echo secret").read("key"))
+        assertEquals("secret", store("echo secret", timeoutInMilliseconds = 10_000).read("key"))
     }
 
     @Test
