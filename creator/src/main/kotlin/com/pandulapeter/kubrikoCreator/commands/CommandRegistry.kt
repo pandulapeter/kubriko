@@ -56,6 +56,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectUpgrade
+import com.pandulapeter.kubrikoCreator.commands.project.GetRelations
 import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
 import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
@@ -117,6 +118,7 @@ internal class CommandRegistry(
                 ReadManagerType,
                 ListScenes,
                 ReadScene,
+                GetRelations,
                 ReadConsole,
                 GetVersionControlStatus,
                 GetProjectUpgrade,

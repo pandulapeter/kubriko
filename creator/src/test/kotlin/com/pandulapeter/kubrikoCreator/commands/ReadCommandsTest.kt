@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.ListActorTypes
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
@@ -66,6 +67,31 @@ class ReadCommandsTest {
         CommandRegistry.editor.commands.filterIsInstance<ReadCommand<*>>().forEach { executor.call(it.name, JsonObject(emptyMap())) }
         assertEquals(listOf("regenerate"), repository.writes)
         assertEquals(CommandHistory(), executor.history.value)
+    }
+
+    @Test
+    fun relationsNameWhatATypeUsesAndWhatUsesItAndItsProperties() = runTest {
+        val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score")))
+        val paddle = ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Ball", blocks = listOf(BlockDefinition.ChangeNumber("score", manager = "Game")))))
+        val context = commandContext(ball, paddle, game)
+        @OptIn(EditorMutation::class)
+        context.scenes.write("main", scene)
+        val executor = executor(context)
+        assertEquals(
+            Json.parseToJsonElement("""{"subject":"Ball","uses":[],"usedBy":["Paddle#0 collides with Ball","Scene main places Ball"]}"""),
+            executor.read("get_relations", buildJsonObject { put("type", "Ball") }),
+        )
+        assertEquals(
+            Json.parseToJsonElement("""{"subject":"Game.score","usedBy":["Paddle#0.0 changes Game.score"]}"""),
+            executor.read("get_relations", buildJsonObject { put("type", "Game"); put("property", "score") }),
+        )
+        assertEquals(
+            Json.parseToJsonElement("""{"subject":"Scene main","uses":["Scene main places Ball","Scene main places Music"],"usedBy":[]}"""),
+            executor.read("get_relations", buildJsonObject { put("scene", "main") }),
+        )
+        assertIs<CommandOutcome.Rejected>(executor.call("get_relations", buildJsonObject { put("type", "Game"); put("scene", "main") }))
+        assertIs<CommandOutcome.Rejected>(executor.call("get_relations", buildJsonObject { put("type", "Game"); put("property", "lives") }))
+        assertIs<CommandOutcome.Rejected>(executor.call("get_relations", buildJsonObject { put("type", "Wall") }))
     }
 
     @Test

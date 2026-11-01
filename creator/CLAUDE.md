@@ -330,6 +330,11 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   `remove_actors`, and `restore_actors` (inserted one after another, so its inverse from `remove_actors` lists the original indices
   ascending), `set_actors_values` (`ActorValueChanges` per Actor, validated and applied as `set_actor_values` does), and
   `set_actors_state`. A batch names no Actor twice and at least one.
+- **Context for the AI** (`context/`): `ProjectRelations` reads every reference between types, Properties, and Scenes from the model
+  (parents, collision Events, Blocks that add, move towards, go to, read, or change, Log Blocks and texts showing Properties,
+  Kotlin naming types, and Scenes placing Actors), each a `Relation` written `Ball#1.2 reads Game.score` (indexes from 0, as the tools
+  take them); a Property belongs to the type declaring it, through parents. `get_relations` lists what a type, Property, or Scene
+  uses and what uses it.
 
 ## AI connection (MCP)
 
