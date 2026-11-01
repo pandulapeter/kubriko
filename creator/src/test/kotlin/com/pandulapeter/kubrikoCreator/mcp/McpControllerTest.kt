@@ -82,24 +82,24 @@ class McpControllerTest {
     @Test
     fun quickChangesEndWithOnlyTheLastServerRunning() = runTest {
         val controller = controller()
-        val ports = List(3) { freePort() }
-        controller.setPort(ports[0])
-        repeat(20) { round ->
+        // Each round has ports of its own, since binding a port again right after it was let go may fail.
+        val rounds = List(ROUNDS) { List(3) { freePort() } }
+        rounds.forEachIndexed { round, ports ->
             controller.setEnabled(true)
             ports.forEach { port ->
                 controller.setPort(port)
                 withContext(Dispatchers.IO) { Thread.sleep(round % 4L) }
             }
-            controller.setEnabled(false)
+            if (round < rounds.lastIndex) controller.setEnabled(false)
         }
-        controller.setEnabled(true)
+        val last = rounds.last().last()
         val listening = withContext(Dispatchers.IO) {
             withTimeoutOrNull(5_000) {
-                while (!isListening(ports[2]) || controller.state.value != McpServerState.Running(ports[2])) delay(10)
+                while (!isListening(last) || controller.state.value != McpServerState.Running(last)) delay(10)
             }
-            ports.filter(::isListening)
+            rounds.flatten().filter(::isListening)
         }
-        assertEquals(listOf(ports[2]), listening)
+        assertEquals(listOf(last), listening)
     }
 
     @Test
@@ -120,5 +120,9 @@ class McpControllerTest {
         assertNotEquals(oldToken, controller.settings.value.token)
         withContext(Dispatchers.IO) { Thread.sleep(200) }
         assertEquals(controller.settings.value, store.load())
+    }
+
+    private companion object {
+        const val ROUNDS = 20
     }
 }
