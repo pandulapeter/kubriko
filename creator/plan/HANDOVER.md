@@ -27,10 +27,10 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`02-ai-assistant.md` → Order, alongside `04` to `07`. Google Antigravity was tried with the user on 2026-11-01 on a spare Google
-account: it downloaded, signed in, and made the Ball faster through Creator's tools. Since then its tool calls are allowed without
-asking and it works in a folder of its own (it had written `skills/` into the project); both unit-tested, not yet seen with it.
-What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+`02-ai-assistant.md` is built except what needs a real session or someone else's work: Codex's profile (out of quota until Nov
+21), ACP protocol 2 and its `systemPrompt` field (not final, not in the Kotlin SDK), the Debugger's Actor states (`09`), the registry
+icons (each vendor's trademark rules), and the smaller items it still lists. Next: try what this run built (below) in the app, then
+`04` to `07`. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
 
@@ -77,6 +77,25 @@ What is left in `01-large-projects.md` waits for other plans (Traits, UI element
   each Block it adds.
 - The Block tools without the Block schema: whether the AI calls `get_block_catalog` before its first Block rather than guessing
   properties, and whether a rejection such as "There is no property called 'speed'." gets it right on the next try.
+
+**The rest of the assistant plan (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- The scratch Breakout copy now offers the template version 8 upgrade (Game.kt adds its instance to `KubrikoWiring.runningInstances`,
+  GameEntryPoint reports them): review it, apply it, and see `start_game` wait for drawn Actors.
+- The chips above the composer (the open Scene, or the selected type; the latest console problem; the game's screenshot while it
+  plays, for Claude Agent), turning one off, and the agent reading what a chip links to.
+- After a turn that changed something, the card of what changed with Keep and Undo; Undo after a change of your own (partly undone).
+- Closing a conversation and reopening it from the conversation menu (as it was), and after a restart (continued with its history).
+- The usage line (context, cost, billed to the API key) with Claude Agent and with an API key.
+- The agent menu's "Open the agent's log", and the log after a failed start.
+- A Markdown table in a reply.
+- On a machine without Node.js (a scratch `PATH`): Download Node.js for Kubriko Creator, its progress, and Claude Agent starting
+  with it.
+- An agent offering a sign-in by environment variables (Google Antigravity's "Gemini API key" if its method is that kind): the form,
+  and the agent starting with them.
+- `get_health_checks`, `check_change`, `get_kubriko_api` (with and without a class), `read_game_notes` and `set_game_notes` from a
+  real conversation, and whether Claude uses the `game-explorer` subagent and plans big requests first.
+- The map's Worth a look section, each finding opening what it is about.
+- Two MCP clients at once (Claude Code and the assistant): the activity bar naming each step's client.
 
 **Choosing an agent (built and unit-tested on 2026-11-01, not yet seen in the app)**
 - The agent menu: Claude Agent first and the registry's others marked untested, the list there offline after one start (from
