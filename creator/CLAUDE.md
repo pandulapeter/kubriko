@@ -149,7 +149,8 @@ Every change to a project goes through a command (`commands/`), so the user inte
 path. `CommandRegistry.editor` lists them all; the AI tool list (`ToolDefinition`: name, description, input schema) is generated
 from it, each input schema from the input class's serial descriptor (`JsonSchema`, with `@Description` on every property). A sealed
 type marked `@SummarizedSchema` (`BlockDefinition`) lists only its subclasses' names, which `get_block_catalog` describes once,
-rather than every Block in each tool that takes one. An input that doesn't decode is rejected with `InputProblem`'s one sentence
+rather than every Block in each tool that takes one. `check_change` runs a write tool's decoding and validation on given arguments without applying it. An input that doesn't
+decode is rejected with `InputProblem`'s one sentence
 (the unknown type or property, the value of the wrong kind, or what is missing) instead of kotlinx.serialization's message.
 
 - **Kinds:** `ReadCommand` (reports, never recorded), `WriteCommand` (`validate` returns a `Rejection` with a user-facing

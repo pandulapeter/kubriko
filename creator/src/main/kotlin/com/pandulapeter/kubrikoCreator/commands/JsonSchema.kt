@@ -56,7 +56,7 @@ internal object JsonSchema {
     }
 
     private fun nonNullSchema(descriptor: SerialDescriptor, description: String?): JsonObject = buildJsonObject {
-        when (val kind = descriptor.kind) {
+        if (descriptor.serialName == JsonObject.serializer().descriptor.serialName) put("type", "object") else when (val kind = descriptor.kind) {
             PrimitiveKind.STRING, PrimitiveKind.CHAR -> put("type", "string")
             PrimitiveKind.BOOLEAN -> put("type", "boolean")
             PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG -> put("type", "integer")

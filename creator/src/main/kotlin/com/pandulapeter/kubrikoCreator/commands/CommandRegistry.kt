@@ -54,6 +54,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.Build
+import com.pandulapeter.kubrikoCreator.commands.project.CheckChange
 import com.pandulapeter.kubrikoCreator.commands.project.GetHealthChecks
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectDigest
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
@@ -124,6 +125,7 @@ internal class CommandRegistry(
                 ReadScene,
                 GetRelations,
                 GetHealthChecks,
+                CheckChange,
                 ReadConsole,
                 GetVersionControlStatus,
                 GetProjectUpgrade,

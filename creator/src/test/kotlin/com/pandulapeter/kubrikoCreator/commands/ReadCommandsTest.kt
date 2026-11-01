@@ -32,6 +32,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
@@ -258,5 +259,18 @@ class ReadCommandsTest {
             ),
             executor(commandContext(git = gitController(repository))).read("get_version_control_status"),
         )
+    }
+
+    @Test
+    fun aChangeIsCheckedWithoutBeingMade() = runTest {
+        val context = commandContext(ball)
+        val executor = executor(context)
+        fun check(tool: String, arguments: JsonObject) = buildJsonObject { put("tool", tool); put("arguments", arguments) }
+        assertEquals(JsonPrimitive("It would be accepted."), executor.read("check_change", check("set_appearance", buildJsonObject { put("actorType", "Ball"); put("width", 20) })))
+        assertEquals(80f, (context.blockTypes!!.get("Ball") as ActorTypeDefinition).width)
+        val unknownType = assertIs<CommandOutcome.Rejected>(executor.call("check_change", check("set_appearance", buildJsonObject { put("actorType", "Bat"); put("width", 20) })))
+        assertEquals(assertIs<CommandOutcome.Rejected>(executor.call("set_appearance", buildJsonObject { put("actorType", "Bat"); put("width", 20) })).rejection, unknownType.rejection)
+        assertIs<CommandOutcome.Rejected>(executor.call("check_change", check("set_appearance", buildJsonObject { put("actorType", "Ball"); put("speed", 1) })))
+        assertIs<CommandOutcome.Rejected>(executor.call("check_change", check("read_scene", buildJsonObject { put("scene", "main") })))
     }
 }

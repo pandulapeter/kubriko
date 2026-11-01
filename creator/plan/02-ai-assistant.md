@@ -168,8 +168,8 @@ understand the game is shown to the user too.
   rather than files in the project, so the conversation's context stays clean.
 - **More health checks:** a Scene nothing goes to other than the first (needs the first Scene known from `Game.kt`), and the
   findings shown where their subject is edited, beside the map's list.
-- **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do), and a dry
-  run for write tools.
+- **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do, and
+  `check_change` tries a change without making it).
 - **Cheaper screenshots:** downscaled or cropped to a region or an Actor, and replaced by Actors' states from the debug agent
   (`09-debugger.md`) where those say enough.
 - **Planning first** for big requests, as a checklist the user approves (ACP `plan` updates), and model hints (a smaller model for
