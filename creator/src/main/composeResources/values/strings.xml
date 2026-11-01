@@ -599,6 +599,7 @@
     <string name="action_send">Send</string>
     <string name="action_install_node">Install Node.js</string>
     <string name="action_open_agent_log">Open the agent's log</string>
+    <string name="action_download_node">Download Node.js for Kubriko Creator</string>
     <string name="action_install_uv">Install uv</string>
     <string name="assistant_configuration_default">Claude Code</string>
     <string name="assistant_agent_menu">The agent the assistant runs</string>

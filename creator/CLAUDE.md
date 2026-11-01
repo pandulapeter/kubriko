@@ -480,7 +480,9 @@ environment, which outranks a Claude Code login; giving or removing it starts th
 at once, opening on Your own AI tool when the MCP server is on, with the map behind a button in `AiPanelHeader`): `AssistantController` (app-level, created in `main`) holds the one
 `Assistant` from first use until Creator quits, created with the user's `npx` (`ProcessRunner.locate`: the login shell's `command -v`, or on Windows the `.exe`, `.cmd`, or
 `.bat` that `where` lists, a batch file started through `cmd /c`; without it a conversation
-fails with `NodeMissingException` and the panel links Node.js's download), and the conversations about the open project
+fails with `NodeMissingException`, and the panel offers to download a Node.js for Creator alone, `NodeRuntime`: the newest LTS
+release for this platform from Node's own index, checked against its `SHASUMS256.txt` and unpacked by `BinaryAgentInstaller`,
+whose `npx` `AgentCommands` falls back on from then on, or links Node.js's download), and the conversations about the open project
 (`AssistantChat`, one per ACP conversation, started as soon as it is made, listed by `AssistantChats`), which all end when the
 project closes or changes, since their tools work on whatever project is open. After each turn a conversation is kept per project
 and agent (`SavedConversationStore`, `conversations.json` in the settings folder, the newest 20 of each project), so the

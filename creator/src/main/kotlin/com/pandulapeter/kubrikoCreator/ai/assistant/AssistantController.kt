@@ -54,6 +54,7 @@ import java.io.IOException
  * @param installer Downloads the agents the registry distributes as archives.
  * @param errorLogFile Where agents' standard error is kept ([AgentErrorLog]), for the user to open.
  * @param conversations Where the conversations are kept per project, to be continued later.
+ * @param node Downloads a Node.js of Creator's own for a user without one.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
@@ -73,6 +74,7 @@ internal class AssistantController(
     val errorLogFile: File? = null,
     private val conversations: SavedConversationStore? = null,
     private val clock: () -> Long = System::currentTimeMillis,
+    node: NodeRuntime? = null,
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
     private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))
@@ -92,20 +94,17 @@ internal class AssistantController(
      * The command line of the custom agent, whether or not it is the one chosen.
      */
     val customAgentCommand get() = settings.value.customAgentCommand
-    private val _configurations = MutableStateFlow(listOf(ClaudeConfiguration.default))
+    private val claude = ClaudeAccount(scope, ioDispatcher, runner, secrets, home, settings.value.claudeConfigurationAlias)
 
     /**
      * The Claude Code configurations found on this computer, the default one first.
      */
-    val configurations = _configurations.asStateFlow()
-    private val _configuration = MutableStateFlow(
-        settings.value.claudeConfigurationAlias?.let(ClaudeConfiguration::ofAlias) ?: ClaudeConfiguration.default,
-    )
+    val configurations = claude.configurations
 
     /**
-     * The Claude Code configuration the assistant uses.
+     * The Claude Code configuration Claude Agent uses.
      */
-    val configuration = _configuration.asStateFlow()
+    val configuration = claude.configuration
     private val chatList = AssistantChats(scope, ioDispatcher, conversations)
 
     /**
@@ -125,7 +124,7 @@ internal class AssistantController(
     private val assistantLock = Mutex()
     private val assistant = MutableStateFlow<Assistant?>(null)
     private val agentsLoaded = CompletableDeferred<Unit>()
-    private val commands = AgentCommands(runner, installer, home, ioDispatcher)
+    private val commands = AgentCommands(runner, installer, home, ioDispatcher, node)
     private val agentVariables = AgentVariableStore(secrets)
 
     /**
@@ -179,44 +178,27 @@ internal class AssistantController(
      * The sign-in command running in the panel's terminal.
      */
     val signIn = _signIn.asStateFlow()
-    private val _hasApiKey = MutableStateFlow(false)
 
     /**
-     * Whether Claude Agent uses the user's Anthropic API key, kept in [secrets], rather than a Claude Code login.
+     * Whether Claude Agent uses the user's Anthropic API key, kept in the secret store, rather than a Claude Code login.
      */
-    val hasApiKey = _hasApiKey.asStateFlow()
+    val hasApiKey = claude.hasApiKey
 
     /**
      * Whether this computer has somewhere to keep an API key.
      */
-    val canKeepApiKey get() = secrets.isAvailable
-    private val _apiKeyFailed = MutableStateFlow(false)
+    val canKeepApiKey get() = claude.canKeepApiKey
 
     /**
      * Whether the last API key given couldn't be kept.
      */
-    val apiKeyFailed = _apiKeyFailed.asStateFlow()
-    private val apiKeyLookup = CompletableDeferred<Unit>()
-    private var hasLookedUpApiKey = false
+    val apiKeyFailed = claude.apiKeyFailed
     private var project: File? = null
-    private var hasFoundConfigurations = false
-    private val discovery = CompletableDeferred<Unit>()
 
     /**
-     * Finds the Claude Code configurations of the user's shell aliases, once per run. A remembered configuration whose
-     * alias is gone falls back to the default one.
+     * Finds the Claude Code configurations of the user's shell aliases, once per run.
      */
-    fun findConfigurations() {
-        lookUpApiKey()
-        if (hasFoundConfigurations) return
-        hasFoundConfigurations = true
-        scope.launch {
-            val found = ClaudeConfiguration.discover(withContext(ioDispatcher) { runner.aliases() }, home)
-            _configurations.value = found
-            _configuration.value.alias?.let { alias -> _configuration.value = found.firstOrNull { it.alias == alias } ?: ClaudeConfiguration.default }
-            discovery.complete(Unit)
-        }
-    }
+    fun findConfigurations() = claude.findConfigurations()
 
     /**
      * Makes [directory] the project conversations are about, ending those about the one before.
@@ -281,8 +263,7 @@ internal class AssistantController(
      * Uses [configuration] from now on: its own agent, so every conversation ends, and a new one starts.
      */
     fun selectConfiguration(configuration: ClaudeConfiguration) {
-        if (configuration == _configuration.value) return
-        _configuration.value = configuration
+        if (!claude.select(configuration)) return
         settings.update { it.copy(claudeConfigurationAlias = configuration.alias) }
         store.save(settings.value)
         restartAgent()
@@ -347,6 +328,32 @@ internal class AssistantController(
         }
     }
 
+    /**
+     * Whether Creator can download a Node.js of its own when the user has none.
+     */
+    val canInstallNode get() = commands.canInstallNode
+    private val _nodeInstallFailure = MutableStateFlow<String?>(null)
+
+    /**
+     * Why the last download of Node.js failed, if it did.
+     */
+    val nodeInstallFailure = _nodeInstallFailure.asStateFlow()
+
+    /**
+     * Downloads a Node.js of Creator's own, then starts the conversations that couldn't start for want of one.
+     */
+    fun installNode() {
+        _nodeInstallFailure.value = null
+        scope.launch {
+            try {
+                commands.installNode()
+                chats.value.forEach { it.retry() }
+            } catch (exception: IOException) {
+                _nodeInstallFailure.value = exception.message.orEmpty()
+            }
+        }
+    }
+
     fun closeVariablesForm() {
         _variablesForm.value = null
     }
@@ -369,10 +376,7 @@ internal class AssistantController(
     fun setApiKey(apiKey: String, onKept: () -> Unit = {}) {
         val key = apiKey.trim().takeIf { it.isNotEmpty() } ?: return
         scope.launch {
-            val isKept = withContext(ioDispatcher) { secrets.write(API_KEY, key) }
-            _apiKeyFailed.value = !isKept
-            if (!isKept) return@launch
-            _hasApiKey.value = true
+            if (!claude.keepApiKey(key)) return@launch
             onKept()
             restartAgent()
         }
@@ -383,18 +387,8 @@ internal class AssistantController(
      */
     fun removeApiKey() {
         scope.launch {
-            withContext(ioDispatcher) { secrets.delete(API_KEY) }
-            _hasApiKey.value = false
+            claude.forgetApiKey()
             restartAgent()
-        }
-    }
-
-    private fun lookUpApiKey() {
-        if (hasLookedUpApiKey) return
-        hasLookedUpApiKey = true
-        scope.launch {
-            _hasApiKey.value = withContext(ioDispatcher) { secrets.read(API_KEY) } != null
-            apiKeyLookup.complete(Unit)
         }
     }
 
@@ -442,23 +436,9 @@ internal class AssistantController(
             agentsLoaded.await()
             val choice = _agent.value
             val npx = commands.npx()
-            val environment = if (choice.isClaude) claudeEnvironment() else agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty())
+            val environment = if (choice.isClaude) claude.environment() else agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty())
             createAssistant(commands.of(choice, npx, environment), npx, choice.profile).also { assistant.value = it }
         }
-    }
-
-    /**
-     * What Claude Agent is started with: the chosen Claude Code configuration's variables and the API key, if given.
-     */
-    private suspend fun claudeEnvironment(): Map<String, String> {
-        if (_configuration.value.alias != null) {
-            findConfigurations()
-            discovery.await()
-        }
-        lookUpApiKey()
-        apiKeyLookup.await()
-        val apiKey = if (_hasApiKey.value) withContext(ioDispatcher) { secrets.read(API_KEY) } else null
-        return _configuration.value.environment + listOfNotNull(apiKey?.let { ANTHROPIC_API_KEY to it })
     }
 
     /**
@@ -479,7 +459,5 @@ internal class AssistantController(
             AgentChoice.Custom.ID -> settings.customAgentCommand?.let(AgentChoice::Custom)
             else -> agents.firstOrNull { it.id == id }?.let(AgentChoice::Registry)
         } ?: AgentChoice.Registry(RegistryAgent.claude)
-        const val API_KEY = "anthropic-api-key"
-        const val ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY"
     }
 }

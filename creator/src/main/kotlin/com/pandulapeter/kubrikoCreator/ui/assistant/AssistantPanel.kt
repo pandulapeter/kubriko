@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,7 +32,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.SessionConfigOptionValue
@@ -46,23 +44,18 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
-import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_close_conversation
 import kubriko.creator.generated.resources.action_install_node
 import kubriko.creator.generated.resources.action_install_uv
-import kubriko.creator.generated.resources.action_new_conversation
 import kubriko.creator.generated.resources.action_open_agent_log
 import kubriko.creator.generated.resources.action_try_again
 import kubriko.creator.generated.resources.assistant_empty
 import kubriko.creator.generated.resources.assistant_note
 import kubriko.creator.generated.resources.assistant_note_untested
-import kubriko.creator.generated.resources.ic_add
-import kubriko.creator.generated.resources.ic_close
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -120,33 +113,17 @@ private fun AssistantPanelContent(
         controller.findConfigurations()
         if (controller.currentChat.value == null) controller.newChat()
     }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.weight(1f)) {
-            AgentMenu(
-                agent = LocalAgent.current,
-                agents = controller.agents.collectAsState().value,
-                customAgentCommand = controller.customAgentCommand,
-                onSelected = controller::selectAgent,
-                onEnterCustomAgent = { isEnteringCustomAgent = true },
-                onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
-            )
-        }
-        IconActionButton(
-            icon = Res.drawable.ic_add,
-            label = Res.string.action_new_conversation,
-            onClick = controller::newChat,
-        )
-        chat?.let { current ->
-            IconActionButton(
-                icon = Res.drawable.ic_close,
-                label = Res.string.action_close_conversation,
-                onClick = { controller.close(current) },
-            )
-        }
-    }
+    AgentRow(
+        agent = LocalAgent.current,
+        agents = controller.agents.collectAsState().value,
+        customAgentCommand = controller.customAgentCommand,
+        canClose = chat != null,
+        onAgentSelected = controller::selectAgent,
+        onEnterCustomAgent = { isEnteringCustomAgent = true },
+        onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+        onNewConversation = controller::newChat,
+        onCloseConversation = { chat?.let(controller::close) },
+    )
     ConversationMenu(
         chats = chats,
         current = chat,
@@ -192,6 +169,8 @@ private fun AssistantPanelContent(
             download = controller.download.collectAsState().value,
             attention = attention,
             captureScreen = captureScreen,
+            onInstallNode = controller::installNode.takeIf { controller.canInstallNode },
+            nodeInstallFailure = controller.nodeInstallFailure.collectAsState().value,
             isBilledToApiKey = hasApiKey,
             onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
@@ -221,6 +200,8 @@ private fun AssistantPanelContent(
 @Composable
 private fun ChatContent(
     chat: AssistantChat,
+    onInstallNode: (() -> Unit)?,
+    nodeInstallFailure: String?,
     attention: List<AttentionChip>,
     captureScreen: suspend () -> ByteArray?,
     download: AgentDownload?,
@@ -253,14 +234,16 @@ private fun ChatContent(
                 onUndoChanges = chat::undoChanges,
             )
             state is ChatState.Ready -> Hint(stringResource(Res.string.assistant_empty))
-            state is ChatState.Starting -> AssistantStarting(download)
+            state is ChatState.Starting || download != null -> AssistantStarting(download)
         }
-        (state as? ChatState.Failed)?.takeIf { transcript.items.isEmpty() || it.reason == FailureReason.CONVERSATION_LOST }?.let { failed ->
-            Failure(
+        (state as? ChatState.Failed)?.takeIf { download == null && (transcript.items.isEmpty() || it.reason == FailureReason.CONVERSATION_LOST) }?.let { failed ->
+            AssistantFailure(
                 modifier = Modifier.fillMaxSize(),
                 state = failed,
                 onTryAgain = chat::retry.takeIf { failed.reason != FailureReason.CONVERSATION_LOST },
                 onOpenLog = onOpenLog,
+                onInstallNode = onInstallNode,
+                nodeInstallFailure = nodeInstallFailure,
             )
         }
     }
@@ -321,44 +304,6 @@ private fun Hint(
     )
 }
 
-@Composable
-private fun Failure(
-    state: ChatState.Failed,
-    onTryAgain: (() -> Unit)?,
-    onOpenLog: (() -> Unit)?,
-    modifier: Modifier = Modifier,
-) = Column(
-    modifier = modifier.verticalScroll(rememberScrollState()).padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
-) {
-    Text(
-        text = state.reason.description(),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.error,
-    )
-    if (state.details.isNotEmpty()) FailureDetails(state.details.joinToString("\n"))
-    if (state.reason == FailureReason.NODE_MISSING) {
-        TextButton(onClick = { openInBrowser(NODE_DOWNLOAD_URL) }) {
-            Text(stringResource(Res.string.action_install_node))
-        }
-    }
-    if (state.reason == FailureReason.UV_MISSING) {
-        TextButton(onClick = { openInBrowser(UV_INSTALL_URL) }) {
-            Text(stringResource(Res.string.action_install_uv))
-        }
-    }
-    onOpenLog?.let { openLog ->
-        TextButton(onClick = openLog) {
-            Text(stringResource(Res.string.action_open_agent_log))
-        }
-    }
-    onTryAgain?.let { tryAgain ->
-        FilledTonalButton(onClick = tryAgain) {
-            Text(stringResource(Res.string.action_try_again))
-        }
-    }
-}
-
 /**
  * The first line of what the user first asked, cut short at a word, as the conversation's name in the menu.
  */
@@ -371,8 +316,6 @@ internal fun conversationTitle(firstMessage: String): String {
 
 private const val TITLE_LENGTH = 40
 private const val ELLIPSIS = "…"
-private const val NODE_DOWNLOAD_URL = "https://nodejs.org/en/download"
-private const val UV_INSTALL_URL = "https://docs.astral.sh/uv/getting-started/installation/"
 
 /**
  * How often a streaming reply is drawn again at most, rather than for each chunk.

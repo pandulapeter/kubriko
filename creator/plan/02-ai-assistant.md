@@ -64,9 +64,6 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    draft).
 2. **The agent list** (see `../CLAUDE.md` → Assistant): the registry's icons in the menu (checked against each vendor's trademark rules
    first), and Claude Agent's version, pinned to the one checked, offered as an update once the registry's moves and it is checked.
-3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients
-   do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK
-   (`BinaryAgentInstaller` already downloads, checks, and unpacks per version, showing its progress).
 4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is the operating system's terminal as a fallback for a sign-in command
    that turns out to need a terminal device.
 5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
@@ -76,7 +73,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
 7. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists).
 
-**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); and the MCP server items above.
+**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.

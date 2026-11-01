@@ -18,14 +18,15 @@ import java.io.File
 import java.io.IOException
 
 /**
- * Works out how the agent chosen is started: through the user's `npx` or `uvx`, as a program [installer] downloads, or
- * as the user's own command line.
+ * Works out how the agent chosen is started: through the user's `npx` (or the one of [node], Creator's own Node.js) or
+ * `uvx`, as a program [installer] downloads, or as the user's own command line.
  */
 internal class AgentCommands(
     private val runner: ProcessRunner,
     private val installer: BinaryAgentInstaller?,
     private val home: String,
     private val ioDispatcher: CoroutineDispatcher,
+    private val node: NodeRuntime? = null,
 ) {
     private val _download = MutableStateFlow<AgentDownload?>(null)
 
@@ -35,9 +36,28 @@ internal class AgentCommands(
     val download = _download.asStateFlow()
 
     /**
-     * The user's `npx`, if their shell finds it.
+     * The user's `npx`, if their shell finds it, otherwise the one of the Node.js Creator downloaded, if it did.
      */
-    suspend fun npx() = withContext(ioDispatcher) { runner.locate(NPX) }?.let(::File)
+    suspend fun npx() = withContext(ioDispatcher) { runner.locate(NPX)?.let(::File) ?: node?.installedNpx() }
+
+    /**
+     * Whether Creator can download a Node.js of its own.
+     */
+    val canInstallNode get() = node != null
+
+    /**
+     * Downloads a Node.js of Creator's own, showing its progress as [download].
+     *
+     * @throws IOException If it couldn't be downloaded.
+     */
+    suspend fun installNode() {
+        val runtime = node ?: return
+        try {
+            withContext(ioDispatcher) { runtime.install { downloaded, total -> _download.value = AgentDownload(NODE_NAME, downloaded, total) } }
+        } finally {
+            _download.value = null
+        }
+    }
 
     /**
      * What starts [choice], with [environment] added to what it is started with.
@@ -79,5 +99,6 @@ internal class AgentCommands(
     private companion object {
         const val NPX = "npx"
         const val UVX = "uvx"
+        const val NODE_NAME = "Node.js"
     }
 }

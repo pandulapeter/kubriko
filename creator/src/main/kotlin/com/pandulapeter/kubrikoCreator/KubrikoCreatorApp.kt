@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSystemPrompt
 import com.pandulapeter.kubrikoCreator.ai.assistant.BinaryAgentInstaller
+import com.pandulapeter.kubrikoCreator.ai.assistant.NodeRuntime
 import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversationStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
@@ -152,6 +153,7 @@ fun main(args: Array<String>) {
 private fun assistantController(scope: CoroutineScope, executor: () -> CommandExecutor?): AssistantController {
     val version = CreatorConfiguration.load().kubrikoVersion
     val errorLog = AgentErrorLog.default()
+    val installer = BinaryAgentInstaller.default()
     return AssistantController(
         scope = scope,
         runner = ShellProcessRunner(),
@@ -180,7 +182,8 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         changeLog = { executor()?.changeLog },
         undoTurn = { toolsId, sinceRevision -> executor()?.undoTurn(toolsId, sinceRevision) ?: 0 },
         registry = AgentRegistryStore.default(),
-        installer = BinaryAgentInstaller.default(),
+        installer = installer,
+        node = NodeRuntime(installer, File(BinaryAgentInstaller.defaultDirectory(), NodeRuntime.NODE_ID)),
         errorLogFile = errorLog.file,
         conversations = SavedConversationStore.default(),
     )

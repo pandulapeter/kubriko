@@ -137,7 +137,9 @@ internal class BinaryAgentInstaller(
         private val unsafeCharacters = Regex("[^A-Za-z0-9._-]")
         private val timeout = Duration.ofSeconds(30)
 
-        fun default() = BinaryAgentInstaller(File(settingsDirectory(), "tools/agents"))
+        fun defaultDirectory() = File(settingsDirectory(), "tools/agents")
+
+        fun default() = BinaryAgentInstaller(defaultDirectory())
 
         /**
          * [name] as a folder name: only letters, digits, dots, dashes, and underscores, and never `.` or `..`.
