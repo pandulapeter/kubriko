@@ -20,13 +20,15 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 - The user wants every item of `01-large-projects.md` to `05-reuse-and-traits.md` done, with nothing capped in number.
 - Creator is meant to be AI-centric: the in-app assistant panel (`02-ai-assistant.md`) was moved up to come right after
   `01-large-projects.md`, hosting agents over ACP as Android Studio does.
-- A review on 2026-10-29 fixed small bugs on the spot and planned the rest: `14-stability.md` (new), `01-large-projects.md` →
+- A review on 2026-10-29 fixed small bugs on the spot and planned the rest: a stability plan (all built by 2026-11-01, so the file
+  is gone), `01-large-projects.md` →
   Known costs, `02-ai-assistant.md` → Holding up, `12-onboarding.md` → Mistakes and failures in the first hour, `06-blocks.md` →
   Dangling references, and `08-git.md` → Projects inside a larger repository.
 
 ## Next
 
-`14-stability.md`, from its first item (now Undo history → Merged property edits), since the user put stability before new features. Its unreadable type file, crash-safe write, type file name, leftover generated file, format version, and undo-restoring items were built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
+`02-ai-assistant.md` → Order (every stability item was built and committed on 2026-11-01; the user asked for them
+to be done one after another without waiting for input): the panel's tool call cards tied into the activity view (7), together with the five "First" items of
 its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
 built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
 `claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic
@@ -36,11 +38,27 @@ code field, Close ended it, and the API key form opened and cancelled. What is l
 
 ## To check by hand
 
-**Unreadable type files, crash-safe writes, and leftover generated files (built and unit-tested on 2026-11-01, not yet seen in the app)**
+**Stability (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- Format version 1 on the scratch Breakout copy: opening it records `"formatVersion": 1` and `minimumCreatorVersion`, and Kotlin
+  Blocks or Kotlin UI that named another Manager type's field (`score.value`) now say `scoreManager.value` and build. A Manager
+  type called `Viewport`, `KeyboardInput`, or `Sprite` is reported as a reserved name.
 - A scratch copy whose `.kubriko/project.json` says `"formatVersion": 99, "minimumCreatorVersion": "9.0.0"`, at opening and set
   while open: the red notice names 9.0.0, every change (an inspector edit, a palette drop, the AI's tools, undo) is rejected in the
   console with the same text, no code is regenerated and no upgrade is offered, and building and playing still work. Setting it back
-  to 0 lifts it without reopening. Dragging an Actor there moves it on screen only (the Scene editor's known mismatch).
+  to 1 lifts it without reopening.
+- Undo: delete `Bat`, then a type whose collision Event names it, and undo both; rename a Property by typing, then undo (one step
+  back to the old name), and edit two Properties one after another (two steps). Discard a change in the version control panel,
+  then make one at once (the old definition must not come back), and see the undo history emptied.
+- A hand-written Manager whose constructor throws, opened in a Scene: the Scene shows the failure with the exception (no crash), and
+  for a swap after a change, the old classes stay as outdated. An exception nothing catches shows "Kubriko Creator ran into a problem"
+  in the console.
+- Switching projects many times: the temporary `kubriko-creator-classes` folders go a few seconds after each close.
+- A Scene file broken by hand (not JSON, and an Actor whose state is `[1]`): the red notice with Open in the system editor; an Actor
+  of a type that no longer exists: marked in the Actor list, explained in the inspector, removable. Dragging a hand-written Actor
+  without a saved position pans instead.
+- The recent projects list with a project on an unplugged drive (greyed, Forget works, back when plugged in).
+- On Windows: playing with a long user folder (the classpath `@argfile`), and renaming a Scene (and its folder) while the game has
+  it open: refused in the console, nothing renamed.
 - A broken `.kubriko/actors/*.json` in the scratch copy, at opening and while open: the console names the file and why, the
   other types load, building and playing still work (on the code generated before), closing the window works, and fixing the
   file says the code is up to date again and regenerates it.
