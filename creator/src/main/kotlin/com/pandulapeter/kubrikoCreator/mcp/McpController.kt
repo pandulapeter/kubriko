@@ -13,6 +13,8 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -99,7 +101,9 @@ internal class McpController(
             }
             _state.value = McpServerState.Starting
             _state.value = try {
-                McpServerState.Running(withContext(ioDispatcher) { server.start(settings.port, settings.token) })
+                // A start cancelled half-way can leave the engine binding after it was stopped, so it runs to its end and the next
+                // change, which waits for this one, stops it.
+                McpServerState.Running(withContext(ioDispatcher + NonCancellable) { server.start(settings.port, settings.token) }.also { ensureActive() })
             } catch (_: IOException) {
                 McpServerState.Failed(settings.port)
             }
