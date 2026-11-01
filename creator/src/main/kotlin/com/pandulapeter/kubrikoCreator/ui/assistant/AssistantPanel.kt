@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.SessionConfigOptionValue
@@ -44,7 +46,6 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
-import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_conversation
@@ -57,9 +58,7 @@ import kubriko.creator.generated.resources.assistant_note
 import kubriko.creator.generated.resources.assistant_note_untested
 import kubriko.creator.generated.resources.assistant_starting
 import kubriko.creator.generated.resources.assistant_starting_download
-import kubriko.creator.generated.resources.assistant_title
 import kubriko.creator.generated.resources.ic_add
-import kubriko.creator.generated.resources.ic_chat
 import kubriko.creator.generated.resources.ic_close
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.milliseconds
@@ -110,10 +109,19 @@ private fun AssistantPanelContent(
         controller.findConfigurations()
         if (controller.currentChat.value == null) controller.newChat()
     }
-    PanelHeader(
-        icon = Res.drawable.ic_chat,
-        title = stringResource(Res.string.assistant_title),
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Box(Modifier.weight(1f)) {
+            AgentMenu(
+                agent = LocalAgent.current,
+                agents = controller.agents.collectAsState().value,
+                customAgentCommand = controller.customAgentCommand,
+                onSelected = controller::selectAgent,
+                onEnterCustomAgent = { isEnteringCustomAgent = true },
+            )
+        }
         IconActionButton(
             icon = Res.drawable.ic_add,
             label = Res.string.action_new_conversation,
@@ -129,7 +137,7 @@ private fun AssistantPanelContent(
     }
     if (chats.size > 1) {
         chat?.let { current ->
-            Box(Modifier.padding(horizontal = 12.dp)) {
+            Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
                 MenuButton(
                     label = current.title(),
                     options = chats.asReversed(),
@@ -145,15 +153,6 @@ private fun AssistantPanelContent(
         configOptions = chat?.configOptions?.collectAsState()?.value.orEmpty(),
         onConfigurationSelected = controller::selectConfiguration,
         onConfigOptionSelected = { option, choice -> chat?.setConfigOption(option.id, SessionConfigOptionValue.of(choice.value.value)) },
-        agentMenu = {
-            AgentMenu(
-                agent = LocalAgent.current,
-                agents = controller.agents.collectAsState().value,
-                customAgentCommand = controller.customAgentCommand,
-                onSelected = controller::selectAgent,
-                onEnterCustomAgent = { isEnteringCustomAgent = true },
-            )
-        },
     ) {
         AssistantAccountMenu(
             status = authStatus,

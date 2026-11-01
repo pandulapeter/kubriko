@@ -55,7 +55,6 @@ import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
-import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
@@ -63,11 +62,8 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
-import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantPanel
-import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
-import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
@@ -99,6 +95,7 @@ internal fun WorkspaceScreen(
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     val sceneDescriptions by controller.scenes.descriptions.current.collectAsState()
     var openPanel by remember { mutableStateOf<SidePanel?>(null) }
+    var aiPanelView by remember { mutableStateOf(if (mcp.settings.value.isEnabled) AiPanelView.OWN_TOOL else AiPanelView.ASSISTANT) }
     val mcpState by mcp.state.collectAsState()
     val aiSteps by controller.commands.aiSteps.collectAsState()
     val latestAiStep = aiSteps.lastOrNull()
@@ -178,7 +175,7 @@ internal fun WorkspaceScreen(
                 steps = aiSteps,
                 isFollowing = isFollowingAi,
                 onFollowingChange = { isFollowingAi = it },
-                onClick = { openPanel = SidePanel.AI_CONNECTION },
+                onClick = { openPanel = SidePanel.AI },
             )
             readOnlyReason?.let { ReadOnlyProjectNotice(reason = it) }
             if (projectUpgrade != null && !isUpgradeNoticeDismissed) {
@@ -265,11 +262,18 @@ internal fun WorkspaceScreen(
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
-                if (openPanel == SidePanel.ASSISTANT) {
+                if (openPanel == SidePanel.AI) {
                     VerticalDivider()
-                    AssistantPanel(
+                    val digest by produceState<ProjectDigest?>(null, aiPanelView, blockTypes, resources, sceneDescriptions, latestAiStep?.id, sceneEditing) {
+                        value = if (aiPanelView == AiPanelView.GAME_MAP) controller.commands.context.projectDigest() else null
+                    }
+                    AiPanel(
                         modifier = Modifier.width(360.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                        controller = assistant,
+                        view = aiPanelView,
+                        onViewSelected = { aiPanelView = it },
+                        assistant = assistant,
+                        mcp = mcp,
+                        aiClients = aiClients,
                         aiSteps = aiSteps,
                         onShowStep = { step ->
                             revisitedAiStep = RevisitedAiStep(step, latestStepId = latestAiStep?.id)
@@ -279,39 +283,9 @@ internal fun WorkspaceScreen(
                                 else -> Unit
                             }
                         },
-                    )
-                }
-                if (openPanel == SidePanel.GAME_MAP) {
-                    VerticalDivider()
-                    val digest by produceState<ProjectDigest?>(null, blockTypes, resources, sceneDescriptions, latestAiStep?.id, sceneEditing) {
-                        value = controller.commands.context.projectDigest()
-                    }
-                    GameMapPanel(
-                        modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                         digest = digest,
                         onTypeSelected = { folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, it) },
                         onSceneSelected = { if (openSceneName != it) folderTreeActions.onSelected(FolderGroup.SCENES, it) },
-                    )
-                }
-                if (openPanel == SidePanel.AI_CONNECTION) {
-                    VerticalDivider()
-                    AiConnectionPanel(
-                        modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                        settings = mcp.settings.collectAsState().value,
-                        state = mcpState,
-                        clientSetups = aiClients.setups.collectAsState().value,
-                        configFileClients = AiConfigFileClient.entries,
-                        clientStatuses = aiClients.statuses.collectAsState().value,
-                        calls = mcp.calls.collectAsState().value,
-                        onEnabledChange = mcp::setEnabled,
-                        onRefreshClients = aiClients::refresh,
-                        onConnect = aiClients::connect,
-                        onDisconnect = aiClients::disconnect,
-                        onConnectConfigFile = aiClients::connectConfigFile,
-                        onDisconnectConfigFile = aiClients::disconnectConfigFile,
-                        onPortChange = mcp::setPort,
-                        onRegenerateToken = mcp::regenerateToken,
-                        onCommandChange = aiClients::setCommand,
                     )
                 }
                 if (openPanel == SidePanel.VERSION_CONTROL) {

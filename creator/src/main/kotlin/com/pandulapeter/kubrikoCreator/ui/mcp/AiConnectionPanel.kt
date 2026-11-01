@@ -53,8 +53,6 @@ import kubriko.creator.generated.resources.ai_connection_state_failed
 import kubriko.creator.generated.resources.ai_connection_state_off
 import kubriko.creator.generated.resources.ai_connection_state_running
 import kubriko.creator.generated.resources.ai_connection_state_starting
-import kubriko.creator.generated.resources.ai_connection_title
-import kubriko.creator.generated.resources.ic_ai
 import kubriko.creator.generated.resources.ic_history
 import org.jetbrains.compose.resources.stringResource
 
@@ -86,12 +84,6 @@ internal fun AiConnectionPanel(
     LazyColumn(
         modifier = modifier,
     ) {
-        item {
-            PanelHeader(
-                icon = Res.drawable.ic_ai,
-                title = stringResource(Res.string.ai_connection_title),
-            )
-        }
         item {
             ConnectionSettings(
                 settings = settings,

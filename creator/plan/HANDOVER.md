@@ -66,7 +66,7 @@ What is left in `01-large-projects.md` waits for other plans (Traits, UI element
 - Crash-safe writes on Windows (a Scene the running game holds open, which a move may be refused for) and on a network drive.
 
 **Context for large games (built and unit-tested on 2026-11-01, not yet seen in the app)**
-- The Map panel on the scratch Breakout copy: types by section with descriptions and references, Scenes with what they place, a
+- The map (the AI panel's map button) on the scratch Breakout copy: types by section with descriptions and references, Scenes with what they place, a
   click opening each, and it following a change (an inspector edit, a Scene opened, an AI step).
 - The description field under a type's header and, with nothing selected, in the Scene inspector: typing (one undo step), a
   description set by the AI showing up, and `.kubriko/scenes.json` after renaming and deleting a Scene (and undoing that).

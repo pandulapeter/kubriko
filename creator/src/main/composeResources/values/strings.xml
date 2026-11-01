@@ -507,11 +507,9 @@
     <string name="error_mcp_no_project">No project is open in Kubriko Creator.</string>
     <string name="error_mcp_internal">Kubriko Creator ran into an internal error, so nothing was done: %1$s. This is a problem in Kubriko Creator, not in the request.</string>
     <string name="mcp_tool_done">Done.</string>
-    <string name="action_toggle_ai_connection">AI connection</string>
     <string name="action_copy">Copy</string>
     <string name="action_regenerate_token">Make a new token (clients using the old one stop working)</string>
     <string name="action_apply_port">Use this port</string>
-    <string name="ai_connection_title">AI connection</string>
     <string name="ai_connection_enabled">Let AI clients work on this project</string>
     <string name="ai_connection_state_off">Off. Turned on, Claude Code and other MCP clients can use the same tools you have here.</string>
     <string name="ai_connection_state_starting">Starting…</string>
@@ -576,9 +574,11 @@
     <string name="ai_target_version_control">Version control</string>
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
-    <string name="action_toggle_assistant">Assistant</string>
-    <string name="action_toggle_game_map">Map</string>
-    <string name="game_map_title">Map of the game</string>
+    <string name="game_map_title">What the AI knows about your game</string>
+    <string name="action_toggle_ai">AI</string>
+    <string name="action_show_game_map">What the AI knows about your game: the summary every conversation starts with</string>
+    <string name="ai_panel_assistant">Assistant</string>
+    <string name="ai_panel_own_tool">Your own AI tool</string>
     <string name="game_map_hint">What Kubriko Creator tells the AI about the game when a conversation starts, worked out from the types and Scenes. Describe each one, so that both of you know what it is for.</string>
     <string name="game_map_no_description">No description yet</string>
     <string name="game_map_actor_types">Actor types</string>
@@ -599,7 +599,6 @@
     <string name="action_send">Send</string>
     <string name="action_install_node">Install Node.js</string>
     <string name="action_install_uv">Install uv</string>
-    <string name="assistant_title">Assistant</string>
     <string name="assistant_configuration_default">Claude Code</string>
     <string name="assistant_agent_menu">The agent the assistant runs</string>
     <string name="assistant_agent_untested">%1$s (untested)</string>

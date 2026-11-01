@@ -350,7 +350,8 @@ rather than every Block in each tool that takes one. An input that doesn't decod
   and `DigestText` writes it under about 2,000 tokens (`BUDGET`), dropping Properties and Events, then descriptions, then cutting it
   short with where the rest is. `get_project_digest` returns it as plain text (a string result is sent as it is), every assistant
   conversation starts with it after the fixed system prompt (`AssistantSystemPrompt.withProject`, so the cached prefix stays the same),
-  and the toolbar's Map panel (`ui/gameMap`) shows it to the user, opening a type or Scene on a click.
+  and the AI panel's map button (`ui/gameMap`, "What the AI knows about your game") shows it to the user, opening a type or
+  Scene on a click.
 - **Reads that know what was seen:** a conversation's server (`createServer` with its ID) remembers each read tool's last
   result per arguments (`ConversationReads`, forgotten with the conversation), so reading again returns `ResultDelta`: unchanged,
   the object values and list items (`events[6]`) that changed, or a text's changed lines, and the whole result where that isn't
@@ -392,7 +393,7 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   written. An app counts as installed once its configuration folder exists. Claude Desktop only starts stdio servers, so its entry
   runs `mcp-remote` through the full path of the `npx` the user's shell finds (`ProcessRunner.locate`), with that folder on the
   PATH, and passes the token through the environment; without npx the row asks for Node.js. Cursor gets the URL and header.
-- **The panel** (toolbar → AI connection): a Connect / Disconnect / Install row per client, the on/off switch, the address
+- **The panel** (toolbar → AI → Your own AI tool): a Connect / Disconnect / Install row per client, the on/off switch, the address
   with the token for other MCP clients, Advanced (port, token, commands), and the call log (the newest 200 `McpToolCall`s, each
   keeping only the first 300 characters of its arguments and result, in a lazy list).
 - **Playing the game:** `start_game` (optionally in a `scene`), `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
@@ -467,7 +468,8 @@ macOS keychain through `security`, the Secret Service through `secret-tool`, the
 the key always on the tool's standard input, never its arguments) and reaches the agent only as `ANTHROPIC_API_KEY` in its
 environment, which outranks a Claude Code login; giving or removing it starts the agent again, ending the conversations.
 
-**The panel** (toolbar → Assistant, `ui/assistant`): `AssistantController` (app-level, created in `main`) holds the one
+**The panel** (toolbar → AI → Assistant, `ui/assistant`; `AiPanel` holds both ways of working with AI, since nobody uses them
+at once, opening on Your own AI tool when the MCP server is on, with the map behind a button in `AiPanelHeader`): `AssistantController` (app-level, created in `main`) holds the one
 `Assistant` from first use until Creator quits, created with the user's `npx` (`ProcessRunner.locate`: the login shell's `command -v`, or on Windows the `.exe`, `.cmd`, or
 `.bat` that `where` lists, a batch file started through `cmd /c`; without it a conversation
 fails with `NodeMissingException` and the panel links Node.js's download), and the conversations about the open project

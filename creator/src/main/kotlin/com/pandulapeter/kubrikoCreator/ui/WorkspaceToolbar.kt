@@ -48,17 +48,13 @@ import kubriko.creator.generated.resources.action_redo
 import kubriko.creator.generated.resources.action_redo_named
 import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_stop
-import kubriko.creator.generated.resources.action_toggle_ai_connection
-import kubriko.creator.generated.resources.action_toggle_assistant
-import kubriko.creator.generated.resources.action_toggle_game_map
+import kubriko.creator.generated.resources.action_toggle_ai
 import kubriko.creator.generated.resources.action_toggle_version_control
 import kubriko.creator.generated.resources.action_undo
 import kubriko.creator.generated.resources.action_undo_named
 import kubriko.creator.generated.resources.ic_ai
 import kubriko.creator.generated.resources.ic_branch
-import kubriko.creator.generated.resources.ic_chat
 import kubriko.creator.generated.resources.ic_close
-import kubriko.creator.generated.resources.ic_map
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_redo
 import kubriko.creator.generated.resources.ic_refresh
@@ -133,20 +129,8 @@ internal fun WorkspaceToolbar(
         onRedo = onRedo,
     )
     PanelToggle(
-        isOpen = openPanel == SidePanel.ASSISTANT,
-        onClick = { onPanelToggled(SidePanel.ASSISTANT) },
-    ) {
-        ButtonContent(Res.drawable.ic_chat, Res.string.action_toggle_assistant)
-    }
-    PanelToggle(
-        isOpen = openPanel == SidePanel.GAME_MAP,
-        onClick = { onPanelToggled(SidePanel.GAME_MAP) },
-    ) {
-        ButtonContent(Res.drawable.ic_map, Res.string.action_toggle_game_map)
-    }
-    PanelToggle(
-        isOpen = openPanel == SidePanel.AI_CONNECTION,
-        onClick = { onPanelToggled(SidePanel.AI_CONNECTION) },
+        isOpen = openPanel == SidePanel.AI,
+        onClick = { onPanelToggled(SidePanel.AI) },
     ) {
         Icon(
             modifier = Modifier.size(16.dp),
@@ -156,7 +140,7 @@ internal fun WorkspaceToolbar(
         )
         Text(
             modifier = Modifier.padding(start = 6.dp),
-            text = stringResource(Res.string.action_toggle_ai_connection),
+            text = stringResource(Res.string.action_toggle_ai),
         )
     }
     PanelToggle(

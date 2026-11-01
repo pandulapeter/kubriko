@@ -13,8 +13,6 @@ package com.pandulapeter.kubrikoCreator.ui
  * A panel the workspace can show on its right side, one at a time.
  */
 internal enum class SidePanel {
-    ASSISTANT,
-    GAME_MAP,
+    AI,
     VERSION_CONTROL,
-    AI_CONNECTION,
 }

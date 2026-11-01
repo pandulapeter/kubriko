@@ -29,7 +29,7 @@ import kubriko.creator.generated.resources.assistant_option_value
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The agent the assistant runs ([agentMenu]), who it works as ([account]), the Claude Code configuration Claude Agent signs in with (when
+ * Who the agent works as ([account]), the Claude Code configuration Claude Agent signs in with (when
  * [configurations] holds more than the default one), and the options the agent offers for the conversation
  * (its model, mode, or effort), each as a menu.
  */
@@ -41,14 +41,12 @@ internal fun AssistantOptionsRow(
     onConfigurationSelected: (ClaudeConfiguration) -> Unit,
     onConfigOptionSelected: (SessionConfigOption.Select, SessionConfigSelectOption) -> Unit,
     modifier: Modifier = Modifier,
-    agentMenu: @Composable () -> Unit = {},
     account: @Composable () -> Unit = {},
 ) = FlowRow(
     modifier = modifier.padding(horizontal = 12.dp, vertical = 4.dp),
     horizontalArrangement = Arrangement.spacedBy(6.dp),
     verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
-    agentMenu()
     account()
     if (configurations.size > 1 || (configurations.isNotEmpty() && configuration != ClaudeConfiguration.default)) {
         WithTooltip(stringResource(Res.string.assistant_configuration_menu)) {
