@@ -151,7 +151,7 @@ class AssistantControllerTest {
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "antigravity-acp"))
         val served = File(settingsDirectory, "served").also { it.writeText("program") }
-        val installer = BinaryAgentInstaller(File(settingsDirectory, "tools"), download = { _, target -> served.copyTo(target, overwrite = true) })
+        val installer = BinaryAgentInstaller(File(settingsDirectory, "tools"), download = { _, target, _ -> served.copyTo(target, overwrite = true) })
         val controller = controller(registry, installer)
         controller.startChat().state.first { it == ChatState.Ready }
         assertEquals(File(settingsDirectory, "tools/antigravity-acp/1.4.5/agy_acp_server.par").path, commands.single().program)
@@ -163,7 +163,7 @@ class AssistantControllerTest {
         val registry = registry(ANTIGRAVITY)
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "antigravity-acp"))
-        val installer = BinaryAgentInstaller(File(settingsDirectory, "tools"), download = { _, _ -> throw java.io.IOException("Offline.") })
+        val installer = BinaryAgentInstaller(File(settingsDirectory, "tools"), download = { _, _, _ -> throw java.io.IOException("Offline.") })
         val failed = controller(registry, installer).startChat().state.first { it is ChatState.Failed }
         assertEquals(ChatState.Failed(FailureReason.AGENT_NOT_STARTED, listOf("Offline.")), failed)
     }

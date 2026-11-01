@@ -104,4 +104,12 @@ class AssistantPanelDecisionsTest {
             agentMenuItems(listOf(claude), customAgentCommand = "goose acp"),
         )
     }
+
+    @Test
+    fun downloadsShowHowFarTheyGotInMegabytes() {
+        assertEquals(0.5f, downloadFraction(50, 100))
+        assertEquals(1f, downloadFraction(150, 100))
+        assertEquals(0f, downloadFraction(10, 0))
+        assertEquals(String.format("%.1f", 12.3), megabytes(12_345_678))
+    }
 }

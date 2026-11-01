@@ -112,6 +112,12 @@ internal class AssistantController(
     private val assistantLock = Mutex()
     private val assistant = MutableStateFlow<Assistant?>(null)
     private val agentsLoaded = CompletableDeferred<Unit>()
+    private val _download = MutableStateFlow<AgentDownload?>(null)
+
+    /**
+     * The agent's archive being downloaded on its first start, if one is.
+     */
+    val download = _download.asStateFlow()
 
     init {
         scope.launch { loadAgents() }
@@ -386,9 +392,11 @@ internal class AssistantController(
      */
     private suspend fun binaryCommand(agent: RegistryAgent, distribution: AgentDistribution.Binary): AgentCommand {
         val program = try {
-            withContext(ioDispatcher) { installer?.install(agent, distribution) }
+            withContext(ioDispatcher) { installer?.install(agent, distribution) { downloaded, total -> _download.value = AgentDownload(agent.name, downloaded, total) } }
         } catch (exception: IOException) {
             throw AgentStartException(exitCode = null, errorOutput = listOfNotNull(exception.message), cause = exception)
+        } finally {
+            _download.value = null
         } ?: throw AgentStartException(exitCode = null, errorOutput = emptyList())
         return AgentCommand(
             program = program.path,

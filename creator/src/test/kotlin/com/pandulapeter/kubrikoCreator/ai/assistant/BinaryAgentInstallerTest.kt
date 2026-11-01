@@ -30,7 +30,7 @@ class BinaryAgentInstallerTest {
     private val served = mutableMapOf<String, File>()
     private val downloads = mutableListOf<String>()
     private val isWindows = System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")
-    private val installer = BinaryAgentInstaller(tools, isWindows = isWindows, download = { url, target ->
+    private val installer = BinaryAgentInstaller(tools, isWindows = isWindows, download = { url, target, _ ->
         downloads += url
         served[url]?.copyTo(target, overwrite = true) ?: throw IOException("Not found: $url")
     })
@@ -130,6 +130,16 @@ class BinaryAgentInstallerTest {
         assertEquals(0, ProcessBuilder("tar", "-czf", archive.path, "-C", content.path, ".").start().waitFor())
         served[TAR_URL] = archive
         assertEquals("from tar", installer.install(agent(), binary(TAR_URL)).readText())
+    }
+
+    @Test
+    fun aDownloadReportsItsProgressAsItGoesAndWhenItEnds() {
+        val reports = mutableListOf<Pair<Long, Long?>>()
+        val bytes = ByteArray(600 * 1024)
+        BinaryAgentInstaller.copyReporting(bytes.inputStream(), java.io.ByteArrayOutputStream(), bytes.size.toLong()) { downloaded, total -> reports += downloaded to total }
+        assertEquals(0L to bytes.size.toLong(), reports.first())
+        assertEquals(bytes.size.toLong() to bytes.size.toLong(), reports.last())
+        assertTrue(reports.size in 3..6, "Reported ${reports.size} times")
     }
 
     @Test

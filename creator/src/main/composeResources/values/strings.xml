@@ -610,6 +610,8 @@
     <string name="assistant_note">Claude Agent runs Claude Code, signed in as you are. Its changes go through the editor, so they show up as they happen and can be undone like your own.</string>
     <string name="assistant_note_untested">%1$s works through the editor, so its changes show up as they happen and can be undone like your own. It wasn't tried with Kubriko Creator yet, so some things may not work, and its own edits to files and commands are turned down.</string>
     <string name="assistant_starting">Starting %1$s…</string>
+    <string name="assistant_downloading">Downloading %1$s… %2$s MB</string>
+    <string name="assistant_downloading_of">Downloading %1$s… %2$s of %3$s MB</string>
     <string name="assistant_starting_download">The first time, it is downloaded, which can take a minute.</string>
     <string name="assistant_input_hint">Ask the assistant (Enter sends, Shift+Enter starts a new line)</string>
     <string name="assistant_thinking">Thinking</string>

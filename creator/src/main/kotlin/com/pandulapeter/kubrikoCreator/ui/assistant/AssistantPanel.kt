@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
@@ -56,8 +56,6 @@ import kubriko.creator.generated.resources.action_try_again
 import kubriko.creator.generated.resources.assistant_empty
 import kubriko.creator.generated.resources.assistant_note
 import kubriko.creator.generated.resources.assistant_note_untested
-import kubriko.creator.generated.resources.assistant_starting
-import kubriko.creator.generated.resources.assistant_starting_download
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_close
 import org.jetbrains.compose.resources.stringResource
@@ -182,6 +180,7 @@ private fun AssistantPanelContent(
         ChatContent(
             modifier = Modifier.weight(1f),
             chat = current,
+            download = controller.download.collectAsState().value,
             aiSteps = aiSteps,
             onShowStep = onShowStep,
         ) { isPromptRefused ->
@@ -205,6 +204,7 @@ private fun AssistantPanelContent(
 @Composable
 private fun ChatContent(
     chat: AssistantChat,
+    download: AgentDownload?,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
@@ -230,7 +230,7 @@ private fun ChatContent(
                 onShowStep = onShowStep,
             )
             state is ChatState.Ready -> Hint(stringResource(Res.string.assistant_empty))
-            state is ChatState.Starting -> Starting()
+            state is ChatState.Starting -> AssistantStarting(download)
         }
         (state as? ChatState.Failed)?.takeIf { transcript.items.isEmpty() || it.reason == FailureReason.CONVERSATION_LOST }?.let { failed ->
             Failure(
@@ -279,25 +279,6 @@ private fun Hint(
     Text(
         text = if (LocalAgent.current.isClaude) stringResource(Res.string.assistant_note) else stringResource(Res.string.assistant_note_untested, LocalAgent.current.name),
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-@Composable
-private fun Starting() = Column(
-    modifier = Modifier.padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
-) {
-    CircularProgressIndicator(
-        modifier = Modifier.size(20.dp),
-        strokeWidth = 2.dp,
-    )
-    Text(
-        text = listOfNotNull(
-            stringResource(Res.string.assistant_starting, LocalAgent.current.name),
-            stringResource(Res.string.assistant_starting_download).takeIf { LocalAgent.current is AgentChoice.Registry },
-        ).joinToString(" "),
-        style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
