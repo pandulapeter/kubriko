@@ -125,7 +125,7 @@ class AssistantControllerTest {
         onMain { controller.selectAgent(AgentChoice.Custom("GOOSE_MODE=chat goose acp")) }
         controller.currentChat.value!!.state.first { it == ChatState.Ready }
         val command = commands.last()
-        assertEquals(File("/opt/tools/bin/goose").path, command.program)
+        assertEquals("/opt/tools/bin/goose", command.program)
         assertEquals(listOf("acp"), command.arguments)
         assertEquals("chat", command.environment["GOOSE_MODE"])
         assertEquals(AgentProfile.fallback, profiles.last())
