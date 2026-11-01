@@ -58,6 +58,7 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_chat
 import kubriko.creator.generated.resources.ic_close
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * The in-app assistant: conversations about the open project with Claude Agent, which works through the same
@@ -170,7 +171,7 @@ private fun ChatContent(
     modifier = modifier,
 ) {
     val state by chat.state.collectAsState()
-    val transcript by chat.transcript.collectAsState()
+    val transcript by remember(chat) { chat.transcript.throttled(TRANSCRIPT_PERIOD) }.collectAsState(chat.transcript.value)
     val isBusy by chat.isBusy.collectAsState()
     val permissionRequest by chat.permissionRequest.collectAsState()
     val toolsId by chat.toolsId.collectAsState()
@@ -306,3 +307,8 @@ internal fun conversationTitle(firstMessage: String): String {
 private const val TITLE_LENGTH = 40
 private const val ELLIPSIS = "…"
 private const val NODE_DOWNLOAD_URL = "https://nodejs.org/en/download"
+
+/**
+ * How often a streaming reply is drawn again at most, rather than for each chunk.
+ */
+private val TRANSCRIPT_PERIOD = 50.milliseconds

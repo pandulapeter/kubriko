@@ -43,7 +43,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 
 /**
- * [text], written in Markdown, drawn as the blocks [MarkdownParser] reads from it.
+ * [text], written in Markdown, drawn as the blocks [MarkdownParser] reads from it ([StreamingMarkdown], so a streaming
+ * message isn't read whole again for each chunk).
  */
 @Composable
 internal fun MarkdownText(
@@ -53,7 +54,8 @@ internal fun MarkdownText(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(6.dp),
 ) {
-    val blocks = remember(text) { MarkdownParser.parse(text) }
+    val streaming = remember { StreamingMarkdown() }
+    val blocks = remember(text) { streaming.parse(text) }
     val codeBackground = MaterialTheme.colorScheme.surfaceContainerHighest
     val linkColor = MaterialTheme.colorScheme.primary
     val body = MaterialTheme.typography.bodyMedium

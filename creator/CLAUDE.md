@@ -467,7 +467,9 @@ so they are in the transcript before its turn ends; a turn whose agent process e
 agent's config options (mode, model, effort, and others) are menus labeled with their names, after the account menu (who the
 agent works as, its sign-in methods, and the API key; `accountActions`). Above the composer, `AssistantSignInArea` shows the
 running sign-in, the API key form, or, while signing in is needed, `SignInCard` (`signInAreaContent` decides). The panel draws messages with its own
-Markdown reader (`MarkdownParser`, `InlineMarkdown`, `MarkdownText`), titles Creator's tool calls (`mcp__kubriko-creator__<tool>`)
+Markdown reader (`MarkdownParser`, `InlineMarkdown`, `MarkdownText`; `StreamingMarkdown` reads again only what follows a streaming
+message's last settled paragraph break), redraws a streaming transcript at most every 50 ms (`throttled`), follows its end only
+until the user scrolls up (`followsEnd`), titles Creator's tool calls (`mcp__kubriko-creator__<tool>`)
 with their command's title and what they worked on: `aiStepsOf` ties each to its `AiStep` by that ID (or, for an agent that sends
 none, the conversation's steps of the same tool in order), and clicking a card about a type or a Scene goes there and lights it up
 again (`RevisitedAiStep`, shown until the AI takes another step), and offers slash commands while one is typed (`AgentConversation.availableCommands`, kept from

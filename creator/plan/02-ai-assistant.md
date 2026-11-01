@@ -175,11 +175,6 @@ What the panel and the MCP server get wrong today, found in review; each goes in
   `AiConfigFileClient` falls back from, but `AssistantController.assistant()` turns into `NodeMissingException`, so every chat on
   Windows asks for Node.js even when it is installed. Direction: resolve programs with `where` on Windows (finding `npx.cmd`), and
   start `.cmd` agents through `cmd /c` with their descendants stopped (`ProcessAgentLauncher.stop` already stops them).
-- **Streaming long replies is quadratic.** Each chunk copies the transcript list and the whole message string
-  (`appending` in `AssistantTranscript.kt`), and `MarkdownText` parses the whole message again on the main thread; a 20 KB reply in 2,000
-  chunks copies and parses about 20 MB. The list (`AssistantTranscriptList`) also jumps to the end on every chunk, so nothing can be
-  reread while a reply streams, and its items have no keys. Direction: keep the streaming message as chunks, publish a throttled
-  snapshot, parse only the last Markdown block again, follow the end only while the list was at its end, and key the items.
 - **The call log lays out every result.** `McpToolServer` keeps each call's full arguments and result (a whole project overview), and
   the AI connection panel shows the 200 entries in a scrolling `Column`, measuring every full string on each new call. Direction:
   keep a short preview in the log entry and show it in a `LazyColumn`.

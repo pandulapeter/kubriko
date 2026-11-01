@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,8 +92,17 @@ internal fun AssistantTranscriptList(
 ) {
     val listState = rememberLazyListState()
     val last = items.lastOrNull()
+    var isFollowing by remember { mutableStateOf(true) }
+    LaunchedEffect(listState) {
+        var previous = TranscriptScroll(0, 0)
+        snapshotFlow { TranscriptScroll(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) to listState.canScrollForward }
+            .collect { (current, canScrollForward) ->
+                isFollowing = followsEnd(isFollowing, previous, current, canScrollForward)
+                previous = current
+            }
+    }
     LaunchedEffect(items.size, (last as? TranscriptItem.AgentMessage)?.text?.length, isBusy) {
-        if (items.isNotEmpty()) listState.scrollToItem(items.lastIndex + if (isBusy) 1 else 0, Int.MAX_VALUE)
+        if (isFollowing && items.isNotEmpty()) listState.scrollToItem(items.lastIndex + if (isBusy) 1 else 0, Int.MAX_VALUE)
     }
     LazyColumn(
         modifier = modifier,
@@ -100,7 +110,8 @@ internal fun AssistantTranscriptList(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        itemsIndexed(items) { _, item ->
+        // The list only grows at its end or changes items in place, so their indices are stable keys.
+        itemsIndexed(items, contentType = { _, item -> item::class }) { _, item ->
             when (item) {
                 is TranscriptItem.UserMessage -> UserMessage(item.text)
                 is TranscriptItem.AgentMessage -> SelectionContainer { MarkdownText(item.text) }
