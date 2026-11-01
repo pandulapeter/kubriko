@@ -22,12 +22,12 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
   `01-large-projects.md`, hosting agents over ACP as Android Studio does.
 - A review on 2026-10-29 fixed small bugs on the spot and planned the rest: a stability plan (all built by 2026-11-01, so the file
   is gone), `01-large-projects.md` →
-  Known costs, `02-ai-assistant.md` → Holding up, `12-onboarding.md` → Mistakes and failures in the first hour, `06-blocks.md` →
+  Known costs, `02-ai-assistant.md` → Holding up (all built by 2026-11-01, so the section is gone), `12-onboarding.md` → Mistakes and failures in the first hour, `06-blocks.md` →
   Dangling references, and `08-git.md` → Projects inside a larger repository.
 
 ## Next
 
-`02-ai-assistant.md` → Holding up, then Order: the generic fallbacks (Other agents and services), alongside `04` to `07`. The tool list
+`02-ai-assistant.md` → Order: the generic fallbacks (Other agents and services), alongside `04` to `07`. The tool list
 went from about 34,000 to 16,000 tokens on 2026-11-01: the five tools that take Blocks list only the Blocks' names and point to
 `get_block_catalog`, inputs that don't decode are rejected with one plain sentence (`InputProblem`), and `read_scene` no longer
 repeats the whole Scene as `content`. The panel's tool call cards and the five "First" items of Context for large games were built

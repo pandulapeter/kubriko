@@ -454,7 +454,8 @@ the key always on the tool's standard input, never its arguments) and reaches th
 environment, which outranks a Claude Code login; giving or removing it starts the agent again, ending the conversations.
 
 **The panel** (toolbar → Assistant, `ui/assistant`): `AssistantController` (app-level, created in `main`) holds the one
-`Assistant` from first use until Creator quits, created with the user's `npx` (`ProcessRunner.locate`; without it a conversation
+`Assistant` from first use until Creator quits, created with the user's `npx` (`ProcessRunner.locate`: the login shell's `command -v`, or on Windows the `.exe`, `.cmd`, or
+`.bat` that `where` lists, a batch file started through `cmd /c`; without it a conversation
 fails with `NodeMissingException` and the panel links Node.js's download), and the conversations about the open project
 (`AssistantChat`, one per ACP conversation, started as soon as it is made), which all end when the project closes or changes,
 since their tools work on whatever project is open. The Claude Code configuration is the default one or one of a shell alias's

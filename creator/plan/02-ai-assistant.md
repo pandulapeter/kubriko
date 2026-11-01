@@ -167,15 +167,6 @@ OpenCode or goose. Creator keeps only the keys and addresses the user gives it, 
 up here, as Claude Code's are above (OpenAI's for Codex with a ChatGPT login), and its
 name and icon follow that vendor's trademark rules.
 
-## Holding up
-
-What the panel and the MCP server get wrong today, found in review; each goes in before more agents are added.
-
-- **Windows never finds Node.js.** `ShellProcessRunner.locate` returns null on Windows (`mcp/clients/ShellProcessRunner.kt`), which
-  `AiConfigFileClient` falls back from, but `AssistantController.assistant()` turns into `NodeMissingException`, so every chat on
-  Windows asks for Node.js even when it is installed. Direction: resolve programs with `where` on Windows (finding `npx.cmd`), and
-  start `.cmd` agents through `cmd /c` with their descendants stopped (`ProcessAgentLauncher.stop` already stops them).
-
 ## Context for large games
 
 Creator holds a structured model of the game (Actor types, Events, Blocks, Manager types, and Scenes) from which the generated Kotlin

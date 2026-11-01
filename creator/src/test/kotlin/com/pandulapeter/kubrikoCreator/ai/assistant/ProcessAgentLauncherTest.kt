@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 
@@ -22,6 +23,15 @@ class ProcessAgentLauncherTest {
     @AfterTest
     fun tearDown() {
         directory.deleteRecursively()
+    }
+
+    @Test
+    fun windowsBatchFilesRunThroughCmd() {
+        val npx = AgentCommand("""C:\Program Files\nodejs\npx.cmd""", listOf("--yes", "package"))
+        assertEquals(listOf("cmd", "/c", npx.program, "--yes", "package"), ProcessAgentLauncher.commandLineOf(npx, isWindows = true))
+        assertEquals(listOf(npx.program, "--yes", "package"), ProcessAgentLauncher.commandLineOf(npx, isWindows = false))
+        val exe = AgentCommand("""C:\tools\agent.exe""")
+        assertEquals(listOf(exe.program), ProcessAgentLauncher.commandLineOf(exe, isWindows = true))
     }
 
     @Test

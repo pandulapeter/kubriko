@@ -108,4 +108,13 @@ class ShellProcessRunnerTest {
         assertTrue(actual != null && actual.startsWith("/"), "expected a full path, got $actual")
         assertEquals(File(expected).canonicalPath, File(actual).canonicalPath)
     }
+
+    @Test
+    fun onWindowsTheProgramWhereFindsIsOneWindowsCanRun() {
+        val output = "C:\\Program Files\\nodejs\\npx\r\nC:\\Program Files\\nodejs\\npx.cmd\r\n"
+        assertEquals("C:\\Program Files\\nodejs\\npx.cmd", windowsProgramOf(output))
+        assertEquals("C:\\tools\\node.exe", windowsProgramOf("C:\\tools\\node.cmd\nC:\\tools\\node.exe"))
+        assertNull(windowsProgramOf("C:\\tools\\npx"))
+        assertNull(windowsProgramOf(""))
+    }
 }

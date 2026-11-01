@@ -30,8 +30,10 @@ internal class ShellProcessRunner(
 
     override fun exists(command: String) = if (isWindows) run(listOf("where", executableOf(command))).exitCode == 0 else lookUp(command).exitCode == 0
 
-    override fun locate(command: String) = if (isWindows) null else lookUp(command).let { result ->
-        result.output.lines().lastOrNull()?.trim()?.takeIf { result.exitCode == 0 && it.startsWith("/") }
+    override fun locate(command: String) = if (isWindows) {
+        run(listOf("where", executableOf(command))).let { result -> if (result.exitCode == 0) windowsProgramOf(result.output) else null }
+    } else {
+        lookUp(command).let { result -> result.output.lines().lastOrNull()?.trim()?.takeIf { result.exitCode == 0 && it.startsWith("/") } }
     }
 
     /**
@@ -92,3 +94,14 @@ internal class ShellProcessRunner(
         fun quoted(argument: String) = "'" + argument.replace("'", "'\\''") + "'"
     }
 }
+
+/**
+ * The program Windows would start, out of what `where` printed: npm installs a shell script beside each `.cmd` file,
+ * which `where` lists too but Windows can't run.
+ */
+internal fun windowsProgramOf(whereOutput: String): String? {
+    val paths = whereOutput.lines().map { it.trim() }.filter { it.isNotEmpty() }
+    return windowsProgramExtensions.firstNotNullOfOrNull { extension -> paths.firstOrNull { it.lowercase().endsWith(extension) } }
+}
+
+private val windowsProgramExtensions = listOf(".exe", ".cmd", ".bat")

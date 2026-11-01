@@ -21,7 +21,7 @@ internal class ProcessAgentLauncher(
 ) : AgentLauncher {
 
     override fun launch(command: AgentCommand): AgentChannel {
-        val process = ProcessBuilder(listOf(command.program) + command.arguments)
+        val process = ProcessBuilder(commandLineOf(command))
             .directory(workingDirectory)
             .apply { environment().putAll(command.environment) }
             .start()
@@ -50,7 +50,18 @@ internal class ProcessAgentLauncher(
         }
     }
 
-    private companion object {
-        const val STOP_TIMEOUT_IN_SECONDS = 3L
+    companion object {
+        private const val STOP_TIMEOUT_IN_SECONDS = 3L
+        private val isWindows = System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")
+
+        /**
+         * What starts [command]: a Windows batch file, such as the `npx.cmd` npm installs, only runs through `cmd`.
+         */
+        internal fun commandLineOf(command: AgentCommand, isWindows: Boolean = this.isWindows) =
+            if (isWindows && command.program.lowercase().let { it.endsWith(".cmd") || it.endsWith(".bat") }) {
+                listOf("cmd", "/c", command.program) + command.arguments
+            } else {
+                listOf(command.program) + command.arguments
+            }
     }
 }
