@@ -12,4 +12,6 @@ class GameEntryPoint : CreatorEntryPoint {
     override fun createSerializationManager() = GameSerialization.createSerializationManager()
 
     override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)
+
+    override fun getRunningInstances() = KubrikoWiring.runningInstances
 }

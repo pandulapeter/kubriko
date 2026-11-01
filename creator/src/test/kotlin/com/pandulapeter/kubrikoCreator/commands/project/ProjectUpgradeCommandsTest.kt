@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -67,7 +68,7 @@ class ProjectUpgradeCommandsTest {
         assertTrue(Invocation(UpgradeProject, NoInput).apply(context).let { it.inverse == null && it.isRewritingFiles })
         assertContains(game.readText(), "import com.example.game.generated.KubrikoWiring\n")
         assertContains(entryPoint.readText(), "    override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)\n")
-        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": 7")
+        assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
         assertEquals(1, upgradedCount)
         assertEquals(Rejection(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).validate(context))
     }

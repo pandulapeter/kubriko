@@ -62,8 +62,12 @@ internal class ProjectUpgrader(
             if (text != null && changed != null) changes += ProposedFileChange(path, text, changed) else byHand += path
             return changed != null
         }
-        val isGameUpgraded = propose("$packagePath/$GAME_FILE", ::isGameUpToDate) { upgradedGame(it, wiringImport) }
-        propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it }) { withManagersHandedToTheSceneEditor(it, wiringImport) }
+        val isGameUpgraded = propose("$packagePath/$GAME_FILE", { isGameUpToDate(it) && RunningInstancesUpgrade.isGameDone(it) }) { text ->
+            upgradedGame(text, wiringImport)?.let(RunningInstancesUpgrade::game)
+        }
+        propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it && RunningInstancesUpgrade.isEntryPointDone(it) }) { text ->
+            (if (ManagerTypeCodeGenerator.WIRING_NAME in text) text else withManagersHandedToTheSceneEditor(text, wiringImport))?.let(RunningInstancesUpgrade::entryPoint)
+        }
         val desktopPackagePath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}"
         propose("$desktopPackagePath/$MAIN_FILE", { turnsLoggingOn(it) && overridesFirstScene(it) }) { withFirstSceneOverride(it, wiringImport) }
         val properties = read(GRADLE_PROPERTIES_FILE).orEmpty()
@@ -113,7 +117,7 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 7
+        const val CURRENT_VERSION = 8
         private const val GRADLE_PROPERTIES_FILE = "gradle.properties"
         private val cacheProperties = listOf("org.gradle.configuration-cache", "org.gradle.caching")
         private const val GAME_FILE = "Game.kt"

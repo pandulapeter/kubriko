@@ -63,7 +63,7 @@ class ProjectUpgraderTest {
     @Test
     fun aNewProjectIsUpToDate() {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
+        assertContains(settingsFile.readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
         assertFalse(sceneLoaderFile.exists())
     }
 
@@ -86,7 +86,7 @@ class ProjectUpgraderTest {
         assertEquals(newMain, mainFile.readText())
         assertFalse(sceneLoaderFile.exists())
         val settings = settingsFile.readText()
-        assertContains(settings, "\"templateVersion\": 7")
+        assertContains(settings, "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
         assertContains(settings, "\"extra\": true")
     }
 
@@ -98,7 +98,7 @@ class ProjectUpgraderTest {
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
         assertFalse(sceneLoaderFile.exists())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
+        assertContains(settingsFile.readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
     }
 
     @Test
@@ -113,7 +113,7 @@ class ProjectUpgraderTest {
         assertEquals(listOf("$PACKAGE_PATH/Game.kt", MAIN_PATH), upgrade.changes.map { it.path })
         assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
         assertEquals(newGame, File(packageDirectory, "Game.kt").readText())
-        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
+        assertContains(settingsFile.readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
     }
 
     @Test
@@ -209,7 +209,7 @@ class ProjectUpgraderTest {
         mainFile.writeText(newMain)
         sceneLoaderFile.delete()
         ProjectUpgrader(directory).recordVersionIfUpToDate()
-        assertContains(settingsFile.readText(), "\"templateVersion\": 7")
+        assertContains(settingsFile.readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
     }
 
     @Test

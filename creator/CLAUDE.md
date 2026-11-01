@@ -283,7 +283,10 @@ decode is rejected with `InputProblem`'s one sentence
   configuration cache and build cache on in `gradle.properties` (keeping a property set to any value already, and creating
   the file if there is none). Version 7 has the desktop `Main.kt` also set `KubrikoWiring.firstSceneOverride` from the
   `kubriko.creator.scene` system property (null in a released game), which `createManagers` loads instead of `firstScene`,
-  for playing from a Scene. A change's `after` is null for a file it deletes.
+  for playing from a Scene. Version 8 has `Game.kt` add its instance to the generated `KubrikoWiring.runningInstances` while
+  it is shown and `GameEntryPoint` report them (`getRunningInstances`), so that `start_game` waits until the game has drawn its
+  Actors (`RunningInstancesUpgrade`; a file that doesn't look like the template's counts as done, since `start_game` only skips
+  the wait without it). A change's `after` is null for a file it deletes.
 - **Parent Actor types** (`ActorTypeFamily`, `set_parent`): an Actor type may name a `parent`, like GameMaker's parent objects
   (cycles and a parent named nowhere count as none). A child gets its ancestors' Properties (one of its own with the same name
   and kind only changes the initial value; another kind is rejected) and Events (one of its own of the same kind, key, other

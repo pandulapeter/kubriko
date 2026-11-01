@@ -38,6 +38,12 @@ internal object ManagerTypeCodeGenerator {
     const val LOGGING_FLAG = "isLoggingEnabled"
     const val LOGGING_PROPERTY = "kubriko.creator.logging"
     const val FIRST_SCENE_FLAG = "firstSceneOverride"
+
+    /**
+     * The field of [WIRING_NAME] listing the game's running Kubriko instances, which `GameEntryPoint` reports to Kubriko
+     * Creator.
+     */
+    const val RUNNING_INSTANCES = "runningInstances"
     const val FIRST_SCENE_PROPERTY = "kubriko.creator.scene"
     private const val SCENE_EDITOR_GUARD = "if (isInSceneEditor) return"
     private const val ACTOR_MANAGER_FIELD = "actorManager"
@@ -168,6 +174,7 @@ internal object ManagerTypeCodeGenerator {
         )
         appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
         appendLine()
+        appendLine("import com.pandulapeter.kubriko.Kubriko")
         appendLine("import com.pandulapeter.kubriko.actor.Actor")
         if (pluginManagers.usesAudio) appendLine("import com.pandulapeter.kubriko.audioPlayback.MusicManager")
         if (pluginManagers.usesAudio) appendLine("import com.pandulapeter.kubriko.audioPlayback.SoundManager")
@@ -175,6 +182,7 @@ internal object ManagerTypeCodeGenerator {
         if (pluginManagers.usesKeyboard) appendLine("import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
         appendLine("import com.pandulapeter.kubriko.manager.Manager")
         if (pluginManagers.usesSprites) appendLine("import com.pandulapeter.kubriko.sprites.SpriteManager")
+        appendLine("import kotlin.concurrent.Volatile")
         appendLine()
         appendLine("/**")
         appendLine(" * What Kubriko needs from the types built in Kubriko Creator.")
@@ -192,6 +200,13 @@ internal object ManagerTypeCodeGenerator {
         appendLine("     * reads it from the `$FIRST_SCENE_PROPERTY` system property); null in a released game.")
         appendLine("     */")
         appendLine("    var $FIRST_SCENE_FLAG: String? = null")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * The game's running Kubriko instances: `Game.kt` adds its own while it is shown, and `GameEntryPoint` reports them, so")
+        appendLine("     * that Kubriko Creator can wait until the game has drawn its Actors.")
+        appendLine("     */")
+        appendLine("    @Volatile")
+        appendLine("    var $RUNNING_INSTANCES: List<Kubriko> = emptyList()")
         appendLine()
         appendLine("    /**")
         appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, the one that loads Scenes (and the one that plays")

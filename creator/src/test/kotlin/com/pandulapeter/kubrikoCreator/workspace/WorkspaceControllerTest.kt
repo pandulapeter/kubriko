@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.scenes.LoadedEntryPoint
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
@@ -795,7 +796,7 @@ class WorkspaceControllerTest {
             File(root, "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt").writeText("// Uses KubrikoWiring.\n")
             controller.onProjectChanged(setOf(ProjectChange.SOURCES))
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
-            assertTrue("\"templateVersion\": 7" in File(root, ".kubriko/project.json").readText())
+            assertTrue("\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}" in File(root, ".kubriko/project.json").readText())
         } finally {
             root.deleteRecursively()
         }

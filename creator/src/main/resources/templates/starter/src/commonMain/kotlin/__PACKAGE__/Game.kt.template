@@ -22,7 +22,11 @@ fun Game(
         )
     }
     DisposableEffect(kubriko) {
-        onDispose { kubriko.dispose() }
+        KubrikoWiring.runningInstances += kubriko
+        onDispose {
+            KubrikoWiring.runningInstances -= kubriko
+            kubriko.dispose()
+        }
     }
     KubrikoViewport(
         modifier = modifier,
