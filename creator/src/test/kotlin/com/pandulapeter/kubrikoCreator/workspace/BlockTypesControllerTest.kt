@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CoroutineDispatcher
@@ -39,6 +40,9 @@ class BlockTypesControllerTest {
     private var savedCount = 0
     private val savedTypeChanges = mutableListOf<Boolean>()
     private var failedCount = 0
+    private val unreadableReports = mutableListOf<String>()
+    private var readableAgainCount = 0
+    private val brokenFile = UnreadableBlockTypeFile(".kubriko/actors/Brick.json", "Unexpected JSON token at offset 12")
 
     private fun TestScope.createController(
         repository: FakeBlockTypeRepository,
@@ -55,6 +59,8 @@ class BlockTypesControllerTest {
             savedTypeChanges += it
         },
         onSaveFailed = { failedCount++ },
+        onFileUnreadable = { unreadableReports += it.path },
+        onFilesReadableAgain = { readableAgainCount++ },
         syncBuildFiles = syncBuildFiles,
         onBuildFilesSynced = onBuildFilesSynced,
         writeDelayInMilliseconds = writeDelayInMilliseconds,
@@ -261,5 +267,48 @@ class BlockTypesControllerTest {
         assertEquals(BlockDefinition.ChangeNumber("score", manager = "Match"), controller.actorType("Brick")!!.events.single().blocks.single())
         assertEquals("Match", controller.selectedName.value)
         assertEquals(listOf("save Brick", "save Match", "delete Game"), repository.writes.filter { it != "regenerate" })
+    }
+
+    @Test
+    fun anUnreadableFileIsReportedOnceAndStopsRegeneratingUntilItIsFixed() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball)).apply { unreadableFiles = listOf(brokenFile) }
+        val controller = createController(repository)
+        controller.awaitWrites()
+        assertEquals(listOf(ball), controller.types.value)
+        assertEquals(listOf(brokenFile), controller.unreadableFiles.value)
+        controller.put(ball.copy(width = 5f))
+        controller.awaitWrites()
+        assertEquals(listOf("save Ball"), repository.writes)
+        controller.reloadFromDisk()
+        assertEquals(listOf(brokenFile.path), unreadableReports)
+        repository.unreadableFiles = emptyList()
+        controller.reloadFromDisk()
+        controller.awaitWrites()
+        assertEquals(listOf("save Ball", "regenerate"), repository.writes)
+        assertEquals(1, readableAgainCount)
+        assertEquals(0, failedCount)
+    }
+
+    @Test
+    fun aLoadThatFailsKeepsTheWritesGoingWithoutRegenerating() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball)).apply { loadFailure = IllegalStateException("Broken.") }
+        val controller = createController(repository)
+        controller.awaitWrites()
+        controller.put(wall)
+        controller.awaitWrites()
+        assertEquals(listOf("save Wall"), repository.writes)
+        assertEquals(1, unreadableReports.size)
+    }
+
+    @Test
+    fun anUnexpectedFailureWhileWritingIsAFailedSaveAndLaterWritesStillHappen() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball)).apply { regenerateFailure = IllegalStateException("Unexpected.") }
+        val controller = createController(repository)
+        controller.awaitWrites()
+        assertEquals(1, failedCount)
+        repository.regenerateFailure = null
+        controller.put(wall)
+        controller.awaitWrites()
+        assertEquals(listOf("save Wall", "regenerate"), repository.writes)
     }
 }

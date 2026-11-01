@@ -13,12 +13,15 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
 import com.pandulapeter.kubrikoCreator.actors.withParents
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -29,7 +32,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 /**
  * The block-built Actor types and Manager types of a project that opted in to them, and the one being edited.
@@ -39,8 +41,13 @@ import java.io.IOException
  * several times is written once, and the code is regenerated once per batch, from the types in memory. After each
  * batch, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code.
  *
+ * While a definition file can't be read, the code isn't regenerated, nor are the build files synced, since code generated
+ * without that type would break the build; the file is never written over or deleted.
+ *
  * @param onSaved Called after each batch, with whether the types changed, rather than only the Scenes they were
  *   regenerated for.
+ * @param onFileUnreadable Called for each definition file found unreadable, once until it changes.
+ * @param onFilesReadableAgain Called when no definition file is unreadable any more.
  */
 internal class BlockTypesController(
     private val repository: BlockTypeRepository,
@@ -48,6 +55,8 @@ internal class BlockTypesController(
     private val ioDispatcher: CoroutineDispatcher,
     private val onSaved: (haveTypesChanged: Boolean) -> Unit,
     private val onSaveFailed: () -> Unit,
+    private val onFileUnreadable: (UnreadableBlockTypeFile) -> Unit = {},
+    private val onFilesReadableAgain: () -> Unit = {},
     private val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
     private val writeDelayInMilliseconds: Long = 0,
@@ -71,6 +80,12 @@ internal class BlockTypesController(
      * therefore stopped updating until those changes are discarded ([discardChangesMadeByHand]).
      */
     val changedByHand = _changedByHand.asStateFlow()
+    private val _unreadableFiles = MutableStateFlow(emptyList<UnreadableBlockTypeFile>())
+
+    /**
+     * The definition files that couldn't be read when they were last loaded, which are left out of [types].
+     */
+    val unreadableFiles = _unreadableFiles.asStateFlow()
 
     /**
      * The folders that exist without a type in them, by the kind of type they hold.
@@ -92,9 +107,15 @@ internal class BlockTypesController(
         // before the first build, so no classes loaded from it are outdated.
         queue(PendingWrite.Regenerate, haveTypesChanged = false)
         scope.launch {
-            val types = withContext(ioDispatcher) { repository.load() }
-            emptyFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
-            setTypes(types)
+            try {
+                val loaded = withContext(ioDispatcher) { repository.load() }
+                emptyFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
+                setUnreadableFiles(loaded.unreadableFiles)
+                setTypes(loaded.types)
+            } catch (exception: Exception) {
+                if (exception is CancellationException) throw exception
+                setUnreadableFiles(listOf(UnreadableBlockTypeFile(BlockTypeStore.CREATOR_DIRECTORY, exception.message ?: exception.toString())))
+            }
             for (request in writeRequests) {
                 delay(writeDelayInMilliseconds)
                 writePending()
@@ -199,15 +220,27 @@ internal class BlockTypesController(
     fun reloadFromDisk() {
         if (pendingWriteCount.value > 0) return
         scope.launch {
-            val stored = withContext(ioDispatcher) { repository.load() }
-            val storedFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
-            if (pendingWriteCount.value == 0 && (stored != _types.value || storedFolders != emptyFolders)) {
+            val (loaded, storedFolders) = try {
+                withContext(ioDispatcher) { repository.load() to BlockTypeKind.entries.associateWith(repository::folders) }
+            } catch (exception: Exception) {
+                if (exception is CancellationException) throw exception
+                return@launch
+            }
+            if (pendingWriteCount.value == 0 && (loaded.types != _types.value || storedFolders != emptyFolders || loaded.unreadableFiles != _unreadableFiles.value)) {
                 emptyFolders = storedFolders
-                setTypes(stored)
-                if (_selectedName.value !in stored.map { it.name }) _selectedName.value = null
+                setUnreadableFiles(loaded.unreadableFiles)
+                setTypes(loaded.types)
+                if (_selectedName.value !in loaded.types.map { it.name }) _selectedName.value = null
                 queue(PendingWrite.Regenerate)
             }
         }
+    }
+
+    private fun setUnreadableFiles(files: List<UnreadableBlockTypeFile>) {
+        val previous = _unreadableFiles.value
+        _unreadableFiles.value = files
+        files.filter { it !in previous }.forEach(onFileUnreadable)
+        if (files.isEmpty() && previous.isNotEmpty()) onFilesReadableAgain()
     }
 
     private fun setTypes(types: List<BlockTypeDefinition>) {
@@ -239,6 +272,7 @@ internal class BlockTypesController(
         val haveTypesChanged = havePendingTypesChanged
         havePendingTypesChanged = false
         val types = _types.value
+        val canRegenerate = _unreadableFiles.value.isEmpty()
         var buildFileChanges: KubrikoBuildFileChanges? = null
         val changedByHand = try {
             withContext(ioDispatcher) {
@@ -252,9 +286,14 @@ internal class BlockTypesController(
                             PendingWrite.Regenerate, is PendingWrite.Overwrite -> Unit
                         }
                     }
-                    repository.regenerate(types, overwriting = batch.filterIsInstance<PendingWrite.Overwrite>().mapTo(mutableSetOf()) { it.name })
-                        .also { buildFileChanges = syncBuildFiles() }
-                } catch (_: IOException) {
+                    if (canRegenerate) {
+                        repository.regenerate(types, overwriting = batch.filterIsInstance<PendingWrite.Overwrite>().mapTo(mutableSetOf()) { it.name })
+                            .also { buildFileChanges = syncBuildFiles() }
+                    } else {
+                        _changedByHand.value
+                    }
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
                     null
                 }
             }

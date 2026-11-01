@@ -10,21 +10,11 @@
 # Stability
 
 What breaks, hangs, or loses work today when files are broken, a process misbehaves, or something fails halfway. Each item names
-the code, why it matters, and the direction; none of it is built yet. The first two lose or lock up a user's work, so this file comes
+the code, why it matters, and the direction; none of it is built yet. The first one loses a user's work, so this file comes
 right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
 
 ## Broken and hand-edited files
 
-- **One unreadable type file locks the workspace.** `BlockTypeStore.load` (`actors/BlockTypeStore.kt`) decodes every file in
-  `.kubriko/actors` and `.kubriko/managers` with nothing catching a `SerializationException` or `IllegalArgumentException`. In
-  `BlockTypesController`'s `init` that coroutine dies before its write loop starts, while the `Regenerate` queued just before keeps
-  `pendingWriteCount` at 1, so `awaitWrites` never returns: every build, play, Scene opening, git command, and `close()` waits
-  forever, and `onCloseRequest` (`KubrikoCreatorApp.kt`) waits for `close()`, so the window can't be closed. `reloadFromDisk` throws
-  the same way when the watcher sees such a file. A merge conflict, a crash mid-write, or one typo in a hand edit is enough, and
-  nothing says which file. Direction: load each file on its own, report the ones that can't be read in the console by path and
-  keep them out of the types; while any can't be read, regenerate nothing that depends on them (generating from a partial list
-  would drop the type from `GeneratedActorTypes` and break the build) and never write a definition over the unreadable file. Also
-  give `onCloseRequest` a timeout, and catch failures of the `init` coroutine so `pendingWriteCount` can't stay raised.
 - **Writes aren't crash-safe.** `BlockTypeStore` (definitions and generated code), `SceneStore.write`, and the settings stores
   (`McpSettingsStore`, `AssistantSettingsStore`, `RecentProjectsStore`), and `KubrikoBuildFiles` and `ProjectUpgrader` on the user's build files, use `File.writeText`, which empties the file first:
   a crash, a kill, or a full disk mid-write leaves a truncated type (which then hits the item above), a Scene, or a generated file

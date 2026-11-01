@@ -60,11 +60,11 @@ class BlockTypeStoreTest {
         val store = BlockTypeStore.open(root)!!
         store.saveAndRegenerate(ball.withFolder("toys/round"))
         assertTrue(File(root, ".kubriko/actors/toys/round/Ball.json").isFile)
-        assertEquals(listOf(ball.withFolder("toys/round")), store.load())
+        assertEquals(listOf(ball.withFolder("toys/round")), store.load().types)
         assertEquals(setOf("toys", "toys/round"), store.folders(BlockTypeKind.ACTOR))
         store.saveAndRegenerate(ball.withFolder("toys"))
         assertFalse(File(root, ".kubriko/actors/toys/round/Ball.json").exists())
-        assertEquals(listOf(ball.withFolder("toys")), store.load())
+        assertEquals(listOf(ball.withFolder("toys")), store.load().types)
         store.createFolder(BlockTypeKind.MANAGER, "rules")
         assertEquals(setOf("rules"), store.folders(BlockTypeKind.MANAGER))
         // A folder with a type in it stays; an empty one goes, with its empty folders.
@@ -82,7 +82,7 @@ class BlockTypeStoreTest {
         val wall = ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE, color = 0xFF000000)
         store.saveAndRegenerate(wall)
         store.saveAndRegenerate(ball)
-        assertEquals(listOf(ball, wall), store.load())
+        assertEquals(listOf(ball, wall), store.load().types)
     }
 
     @Test
@@ -91,7 +91,7 @@ class BlockTypeStoreTest {
         val store = BlockTypeStore.open(root)!!
         store.saveAndRegenerate(ball)
         store.saveAndRegenerate(ball.copy(shape = ActorShape.RECTANGLE))
-        assertEquals(listOf(ball.copy(shape = ActorShape.RECTANGLE)), store.load())
+        assertEquals(listOf(ball.copy(shape = ActorShape.RECTANGLE)), store.load().types)
         assertContains(File(generated, "Ball.kt").readText(), "drawRect(")
     }
 
@@ -101,7 +101,7 @@ class BlockTypeStoreTest {
         val store = BlockTypeStore.open(root)!!
         store.saveAndRegenerate(ball)
         store.deleteAndRegenerate("Ball")
-        assertTrue(store.load().isEmpty())
+        assertTrue(store.load().types.isEmpty())
         assertFalse(File(generated, "Ball.kt").exists())
         assertFalse("Ball" in File(generated, "GeneratedActorTypes.kt").readText())
     }
@@ -150,7 +150,7 @@ class BlockTypeStoreTest {
         assertContains(text, "\"color\": \"#6060AA\"")
         assertFalse("null" in text, text)
         file.writeText(text.replace("\"name\": \"Ball\",", "\"name\": \"Ball\", \"addedLater\": true,"))
-        assertEquals(listOf(ball), store.load())
+        assertEquals(listOf(ball), store.load().types)
     }
 
     @Test
@@ -220,7 +220,7 @@ class BlockTypeStoreTest {
         store.saveAndRegenerate(ball)
         store.saveAndRegenerate(game)
         assertTrue(File(root, ".kubriko/managers/Game.json").isFile)
-        assertEquals(listOf(ball, game), store.load())
+        assertEquals(listOf(ball, game), store.load().types)
         assertEquals(ManagerTypeCodeGenerator.generateManagerType(game, "com.example.game", listOf("Ball"), listOf(game)), File(generated, "Game.kt").readText())
         assertContains(File(generated, "KubrikoWiring.kt").readText(), "        Game(isInSceneEditor),\n")
         assertEquals(ScenesCodeGenerator.generate("com.example.game"), File(generated, "GeneratedScenes.kt").readText())
@@ -310,10 +310,10 @@ class BlockTypeStoreTest {
         store.saveAndRegenerate(ball)
         val file = File(generated, "Ball.kt")
         val lastModified = file.lastModified()
-        store.regenerate(store.load())
+        store.regenerate(store.load().types)
         assertEquals(lastModified, file.lastModified())
         store.save(ball.copy(shape = ActorShape.RECTANGLE))
-        store.regenerate(store.load())
+        store.regenerate(store.load().types)
         assertContains(file.readText(), "drawRect")
     }
 
@@ -330,6 +330,42 @@ class BlockTypeStoreTest {
         file.setWritable(true)
         store.regenerate(listOf(changed))
         assertContains(file.readText(), "drawRect")
+    }
+
+    @Test
+    fun anUnreadableFileIsReportedByPathWhileTheOthersLoad() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball)
+        File(root, ".kubriko/actors/bricks/Brick.json").apply { parentFile.mkdirs() }.writeText("{ \"name\": ")
+        File(root, ".kubriko/managers/Game.json").apply { parentFile.mkdirs() }.writeText("{}")
+        val loaded = store.load()
+        assertEquals(listOf(ball), loaded.types)
+        assertEquals(listOf(".kubriko/actors/bricks/Brick.json", ".kubriko/managers/Game.json"), loaded.unreadableFiles.map { it.path })
+        assertTrue(loaded.unreadableFiles.all { it.reason.isNotBlank() && '\n' !in it.reason })
+    }
+
+    @Test
+    fun nothingIsRegeneratedWhileAFileCantBeRead() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball)
+        File(root, ".kubriko/actors/Brick.json").writeText("not JSON")
+        assertEquals(emptySet(), store.regenerateAll())
+        assertFalse(File(generated, "Ball.kt").exists())
+    }
+
+    @Test
+    fun anUnreadableFileIsNeverWrittenOverOrDeleted() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val broken = File(root, ".kubriko/actors/toys/Ball.json").apply { parentFile.mkdirs() }.apply { writeText("not JSON") }
+        store.load()
+        assertFails { store.save(ball.withFolder("toys")) }
+        store.save(ball)
+        store.delete("Ball")
+        assertEquals("not JSON", broken.readText())
+        assertFalse(File(root, ".kubriko/actors/Ball.json").exists())
     }
 
     private fun BlockTypeStore.saveAndRegenerate(definition: BlockTypeDefinition): Set<String> {

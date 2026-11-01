@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.LoadedBlockTypes
+import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import java.io.IOException
 
 internal class FakeBlockTypeRepository(
@@ -21,7 +23,12 @@ internal class FakeBlockTypeRepository(
     val writes = mutableListOf<String>()
     var isFailing = false
 
-    override fun load() = stored.values.sortedBy { it.name }
+    var unreadableFiles = emptyList<UnreadableBlockTypeFile>()
+
+    var loadFailure: Exception? = null
+    var regenerateFailure: Exception? = null
+
+    override fun load() = loadFailure?.let { throw it } ?: LoadedBlockTypes(stored.values.sortedBy { it.name }, unreadableFiles)
 
     var changedByHand = emptySet<String>()
 
@@ -33,6 +40,7 @@ internal class FakeBlockTypeRepository(
 
     override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): Set<String> {
         if (isFailing) throw IOException("Disk full.")
+        regenerateFailure?.let { throw it }
         writes += if (overwriting.isEmpty()) "regenerate" else "regenerate overwriting ${overwriting.sorted().joinToString()}"
         return changedByHand - overwriting
     }

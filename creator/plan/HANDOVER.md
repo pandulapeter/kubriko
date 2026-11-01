@@ -26,7 +26,7 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`14-stability.md`, from its first item, since the user put stability before new features. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
+`14-stability.md`, from its first item (now the crash-safe writes), since the user put stability before new features. Its unreadable type file item was built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
 its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
 built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
 `claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic
@@ -35,6 +35,12 @@ code field, Close ended it, and the API key form opened and cancelled. What is l
 (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
+
+**Unreadable type files (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- A broken `.kubriko/actors/*.json` in the scratch copy, at opening and while open: the console names the file and why, the
+  other types load, building and playing still work (on the code generated before), closing the window works, and fixing the
+  file says the code is up to date again and regenerates it.
+- Creating a type named like the unreadable file's (should fail to save, leaving the file as it was).
 
 **The assistant panel (seen working on 2026-10-29: a change followed in the editor and undone, Stop, Tab completion, Effort,
 several conversations, the default and alias configurations, and closing the project mid-turn)**

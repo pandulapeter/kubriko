@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.IOException
 
 /**
  * Reads and writes the block-built Actor types and Manager types of a project, keeping their generated Kotlin in sync.
@@ -31,10 +32,33 @@ internal class BlockTypeStore private constructor(
     val generatedPath get() = "${settings.sourceDirectory}/${settings.packageName.replace('.', '/')}/${ActorTypeCodeGenerator.GENERATED_PACKAGE}"
     private val generatedDirectory get() = File(rootDirectory, generatedPath)
 
-    override fun load(): List<BlockTypeDefinition> = (
-        definitionFiles(BlockTypeKind.ACTOR).map { json.decodeFromString(ActorTypeDefinition.serializer(), it.readText()).withFolder(folderOf(BlockTypeKind.ACTOR, it)) } +
-            definitionFiles(BlockTypeKind.MANAGER).map { json.decodeFromString(ManagerTypeDefinition.serializer(), it.readText()).withFolder(folderOf(BlockTypeKind.MANAGER, it)) }
-        ).sortedBy { it.name }
+    /**
+     * The definition files the last [load] couldn't read, which [save] and [delete] leave alone.
+     */
+    private var unreadableFiles = emptySet<File>()
+
+    override fun load(): LoadedBlockTypes {
+        val types = ArrayList<BlockTypeDefinition>()
+        val unreadable = ArrayList<UnreadableBlockTypeFile>()
+        val unreadableFiles = HashSet<File>()
+        BlockTypeKind.entries.forEach { kind ->
+            definitionFiles(kind).forEach { file ->
+                try {
+                    types += decode(kind, file.readText()).withFolder(folderOf(kind, file))
+                } catch (exception: Exception) {
+                    unreadable += UnreadableBlockTypeFile(file.relativeTo(rootDirectory).invariantSeparatorsPath, reasonOf(exception))
+                    unreadableFiles += file
+                }
+            }
+        }
+        this.unreadableFiles = unreadableFiles
+        return LoadedBlockTypes(types.sortedBy { it.name }, unreadable.sortedBy { it.path })
+    }
+
+    private fun decode(kind: BlockTypeKind, text: String): BlockTypeDefinition = when (kind) {
+        BlockTypeKind.ACTOR -> json.decodeFromString(ActorTypeDefinition.serializer(), text)
+        BlockTypeKind.MANAGER -> json.decodeFromString(ManagerTypeDefinition.serializer(), text)
+    }
 
     override fun folders(kind: BlockTypeKind): Set<String> = definitionsDirectory(kind).walkTopDown()
         .filter { it.isDirectory && it != definitionsDirectory(kind) }
@@ -58,15 +82,16 @@ internal class BlockTypeStore private constructor(
             is ManagerTypeDefinition -> json.encodeToString(ManagerTypeDefinition.serializer(), definition)
         }
         val file = File(definitionsDirectory(definition.kind), "${definition.folder}/${definition.name}.json".removePrefix("/"))
+        if (file in unreadableFiles) throw IOException("${file.path} couldn't be read, so it isn't written over.")
         // A type moved to another folder leaves its old file behind otherwise.
-        definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file }.forEach { it.delete(); ownWrites.record(it) }
+        definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file && it !in unreadableFiles }.forEach { it.delete(); ownWrites.record(it) }
         file.parentFile.mkdirs()
         file.writeText(text + "\n")
         ownWrites.record(file)
     }
 
     override fun delete(name: String) {
-        BlockTypeKind.entries.forEach { kind -> definitionFiles(kind).filter { it.nameWithoutExtension == name }.forEach { it.delete(); ownWrites.record(it) } }
+        BlockTypeKind.entries.forEach { kind -> definitionFiles(kind).filter { it.nameWithoutExtension == name && it !in unreadableFiles }.forEach { it.delete(); ownWrites.record(it) } }
         generatedFile(name).delete()
         generatedTexts.remove(name)
         changedByHand.remove(name)
@@ -197,6 +222,8 @@ internal class BlockTypeStore private constructor(
     private fun folderOf(kind: BlockTypeKind, file: File) = file.parentFile.relativeTo(definitionsDirectory(kind)).invariantSeparatorsPath
 
     private fun generatedFile(name: String) = File(generatedDirectory, "$name.kt")
+
+    private fun reasonOf(exception: Exception) = exception.message?.lineSequence()?.firstOrNull { it.isNotBlank() }?.trim() ?: exception::class.simpleName.orEmpty()
 
     companion object {
         const val CREATOR_DIRECTORY = ".kubriko"

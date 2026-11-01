@@ -86,6 +86,8 @@
     <string name="status_build_failed">The build failed.</string>
     <string name="status_built">Built in %1$s seconds.</string>
     <string name="status_actor_type_not_saved">An Actor type couldn't be saved.</string>
+    <string name="status_type_file_unreadable">Kubriko Creator couldn't read %1$s, so that type is left out and no code is generated until the file is fixed: %2$s</string>
+    <string name="status_type_files_readable_again">Every type file can be read again, so the generated code is up to date again.</string>
     <string name="status_kubriko_version_changed">The project now uses Kubriko %1$s, the version of this Kubriko Creator, instead of %2$s.</string>
     <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes can't be edited until Kubriko Creator is updated.</string>
     <string name="status_kubriko_libraries_added">The project now depends on %1$s, which its code uses.</string>

@@ -72,6 +72,8 @@ import kubriko.creator.generated.resources.status_kubriko_libraries_removed
 import kubriko.creator.generated.resources.status_kubriko_version_changed
 import kubriko.creator.generated.resources.status_kubriko_version_newer
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
+import kubriko.creator.generated.resources.status_type_file_unreadable
+import kubriko.creator.generated.resources.status_type_files_readable_again
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -189,6 +191,8 @@ internal class WorkspaceController(
                 }
             },
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
+            onFileUnreadable = { file -> appendToConsole(ConsoleEntry.Status(Res.string.status_type_file_unreadable, isError = true, arguments = listOf(file.path, file.reason))) },
+            onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_type_files_readable_again)) },
             syncBuildFiles = syncBuildFiles,
             onBuildFilesSynced = ::reportBuildFileChanges,
             writeDelayInMilliseconds = writeDelayInMilliseconds,

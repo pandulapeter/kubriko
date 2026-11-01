@@ -47,12 +47,18 @@ import com.pandulapeter.kubrikoCreator.window.rememberIsFullscreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_icon
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Dimension
 import java.io.File
+
+/**
+ * How long quitting waits for the open project to finish writing, so that a write that never ends can't keep the window open.
+ */
+private const val CLOSING_TIMEOUT_IN_MILLISECONDS = 10_000L
 
 /**
  * Starts Kubriko Creator. A project folder passed as the first argument is opened right away.
@@ -97,7 +103,7 @@ fun main(args: Array<String>) {
                 assistant.close()
                 val closing = controller.closeProject()
                 scope.launch {
-                    closing?.join()
+                    withTimeoutOrNull(CLOSING_TIMEOUT_IN_MILLISECONDS) { closing?.join() }
                     exitApplication()
                 }
             },

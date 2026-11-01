@@ -14,7 +14,10 @@ package com.pandulapeter.kubrikoCreator.actors
  */
 internal interface BlockTypeRepository {
 
-    fun load(): List<BlockTypeDefinition>
+    /**
+     * Reads every type, each file on its own, so that one that can't be read leaves the others readable.
+     */
+    fun load(): LoadedBlockTypes
 
     /**
      * Writes [definition], leaving its code to [regenerate].
@@ -36,9 +39,12 @@ internal interface BlockTypeRepository {
     fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String> = emptySet()): Set<String>
 
     /**
-     * [regenerate] with the definitions [load] reads.
+     * [regenerate] with the definitions [load] reads, or nothing while any can't be read, since code generated without a
+     * type would break the build of the types that name it.
      */
-    fun regenerateAll(overwriting: Set<String> = emptySet()) = regenerate(load(), overwriting)
+    fun regenerateAll(overwriting: Set<String> = emptySet()) = load().let { loaded ->
+        if (loaded.unreadableFiles.isEmpty()) regenerate(loaded.types, overwriting) else emptySet()
+    }
 
     /**
      * Every folder that holds types of [kind], or held them, as paths (`enemies/flying`), parents included.

@@ -101,7 +101,7 @@ class CreatorBuildBenchmarkTest {
         private val extraArguments = System.getenv("KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS")?.split(' ')?.filter { it.isNotBlank() }.orEmpty()
 
         fun changeActorType(name: String, change: (ActorTypeDefinition) -> ActorTypeDefinition) {
-            store.save(change(store.load().filterIsInstance<ActorTypeDefinition>().single { it.name == name }))
+            store.save(change(store.load().types.filterIsInstance<ActorTypeDefinition>().single { it.name == name }))
             store.regenerateAll()
         }
 
