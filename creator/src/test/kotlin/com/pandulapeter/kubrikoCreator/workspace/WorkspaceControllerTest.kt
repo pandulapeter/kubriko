@@ -74,6 +74,7 @@ import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
+import kubriko.creator.generated.resources.status_unexpected_problem
 import kubriko.creator.generated.resources.status_unsupported_protocol
 import java.io.File
 import java.io.IOException
@@ -144,6 +145,18 @@ class WorkspaceControllerTest {
         val scannedDirectories = mutableListOf<File>()
         val controller = createController(scanResources = { scannedDirectories += it; mapOf(ResourceGroup.SCENES to listOf(scene)) })
         assertEquals(listOf(rootDirectory), scannedDirectories)
+        assertEquals(mapOf(ResourceGroup.SCENES to listOf(scene)), controller.resources.value)
+    }
+
+    @Test
+    fun anUnexpectedFailureInTheBackgroundIsReportedInTheConsoleAndTheRestKeepsWorking() = runTest {
+        var isFailing = false
+        val controller = createController(scanResources = { if (isFailing) throw IllegalStateException("Broken.") else mapOf(ResourceGroup.SCENES to listOf(scene)) })
+        isFailing = true
+        controller.refreshResources()
+        assertContains(controller.statuses, Res.string.status_unexpected_problem)
+        isFailing = false
+        controller.refreshResources()
         assertEquals(mapOf(ResourceGroup.SCENES to listOf(scene)), controller.resources.value)
     }
 

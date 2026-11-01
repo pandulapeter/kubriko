@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,12 +38,17 @@ import java.io.File
  * Creates, opens, and closes projects, deciding which [AppScreen] the window shows.
  */
 internal class AppController(
-    private val scope: CoroutineScope,
+    parentScope: CoroutineScope,
     private val workspaceOpener: WorkspaceOpener = GradleWorkspaceOpener,
     private val projectCreator: ProjectCreator = ProjectGenerator(CreatorConfiguration.load()),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val recentProjectsStore: RecentProjectsStore = RecentProjectsStore.default(),
 ) {
+    /**
+     * Where everything app-wide runs: what one of its coroutines throws unexpectedly is reported
+     * ([reportUnexpectedProblem]), and the others keep running.
+     */
+    val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]) + unexpectedProblemHandler(::reportUnexpectedProblem))
     private val _screen = MutableStateFlow<AppScreen>(AppScreen.Welcome())
     val screen = _screen.asStateFlow()
     private val _recentProjects = MutableStateFlow(emptyList<RecentProject>())
@@ -56,6 +62,13 @@ internal class AppController(
      * The commands of the open project, which the AI connection runs tool calls with.
      */
     val openProjectCommands get() = (_screen.value as? AppScreen.Workspace)?.controller?.commands
+
+    /**
+     * Says in the open project's console, if there is one, that something failed that nothing expected to.
+     */
+    fun reportUnexpectedProblem(exception: Throwable) {
+        (_screen.value as? AppScreen.Workspace)?.controller?.reportUnexpectedProblem(exception)
+    }
 
     init {
         scope.launch {

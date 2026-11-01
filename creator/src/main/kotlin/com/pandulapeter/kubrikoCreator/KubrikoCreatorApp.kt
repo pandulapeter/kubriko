@@ -68,8 +68,9 @@ fun main(args: Array<String>) {
     // A Gradle or IDE run has no app bundle, so macOS would show the Java launcher's name in the menu bar.
     System.setProperty("apple.awt.application.name", "Kubriko Creator")
     application {
-        val scope = rememberCoroutineScope()
-        val controller = remember { AppController(scope) }
+        val compositionScope = rememberCoroutineScope()
+        val controller = remember { AppController(compositionScope) }
+        val scope = controller.scope
         val mcp = remember {
             McpController(
                 server = McpToolServer(

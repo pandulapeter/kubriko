@@ -15,10 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Processes, threads, and lifecycles
 
-- **No handler for uncaught exceptions.** The app's and each workspace's scopes have no `CoroutineExceptionHandler`, so anything a
-  launch doesn't catch (the item above, an unexpected `RuntimeException` from JGit, Gradle, or a project class) goes to the default
-  handler and is lost or ends the app. Direction: a handler on both scopes that logs and reports it in the console ("Kubriko
-  Creator ran into a problem: …"), so the failure is visible and the rest keeps working.
 - **The project's code runs during composition.** `rememberSceneView` (`ui/scenes/RememberSceneView.kt`) constructs `SceneView`,
   which calls the project's `createSerializationManager` and `createCustomManagers`, inside `remember`: a hand-written Manager whose
   constructor throws, or a stale class (`NoClassDefFoundError`), throws out of composition on the UI thread, every time the Scene

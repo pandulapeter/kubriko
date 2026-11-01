@@ -46,6 +46,7 @@ import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import com.pandulapeter.kubrikoCreator.unexpectedProblemHandler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +70,7 @@ import kubriko.creator.generated.resources.status_kubriko_version_changed
 import kubriko.creator.generated.resources.status_kubriko_version_newer
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_type_files_readable_again
+import kubriko.creator.generated.resources.status_unexpected_problem
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.io.IOException
@@ -106,7 +108,7 @@ internal class WorkspaceController(
     /**
      * Everything the workspace starts runs here, and stops when it is closed.
      */
-    private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
+    private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]) + unexpectedProblemHandler(::reportUnexpectedProblem))
 
     /**
      * The Gradle path of the module that runs the game on desktop, asked from Gradle in the background as soon as the
@@ -403,6 +405,13 @@ internal class WorkspaceController(
     }
 
     fun stopSession() = sessions.stop()
+
+    /**
+     * Says in the console that something failed that nothing expected to, naming the exception.
+     */
+    fun reportUnexpectedProblem(exception: Throwable) {
+        appendToConsole(ConsoleEntry.Status(Res.string.status_unexpected_problem, isError = true, arguments = listOf(exception.toString())))
+    }
 
     fun clearConsole() = consoleLog.clear()
 

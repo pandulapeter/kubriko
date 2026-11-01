@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
+import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.workspace.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.workspace.FakeSessionChannel
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
@@ -23,6 +24,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -32,6 +34,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_not_a_gradle_project
 import kubriko.creator.generated.resources.error_project_folder_not_empty
+import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -59,7 +62,7 @@ class AppControllerTest {
         ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
         opener: WorkspaceOpener = WorkspaceOpener { directory, scope -> openedDirectories += directory; workspace(scope) },
     ) = AppController(
-        scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
+        parentScope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         workspaceOpener = opener,
         projectCreator = creator,
         ioDispatcher = ioDispatcher,
@@ -77,6 +80,21 @@ class AppControllerTest {
     @AfterTest
     fun tearDown() {
         temporaryDirectory.deleteRecursively()
+    }
+
+    @Test
+    fun anUnexpectedFailureIsReportedInTheOpenProjectsConsoleAndTheRestKeepsRunning() = runTest {
+        val controller = createController()
+        controller.openProject(directory)
+        val workspace = assertIs<AppScreen.Workspace>(controller.screen.value).controller
+        controller.scope.launch { throw IllegalStateException("Broken.") }
+        var hasRun = false
+        controller.scope.launch { hasRun = true }
+        assertTrue(hasRun)
+        assertEquals(
+            listOf(ConsoleEntry.Status(Res.string.status_unexpected_problem, isError = true, arguments = listOf("java.lang.IllegalStateException: Broken."))),
+            workspace.console.value,
+        )
     }
 
     @Test
