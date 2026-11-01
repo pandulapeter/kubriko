@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.AuthEnvVar
 import com.agentclientprotocol.model.AuthMethod
 import com.agentclientprotocol.model.AuthMethodId
 import kotlinx.serialization.json.Json
@@ -75,15 +76,21 @@ class SignInPartsTest {
     }
 
     @Test
-    fun agentMethodsAreKeptAndVariableMethodsLeftOut() {
+    fun agentMethodsAndVariableMethodsAreKept() {
         val methods = SignInMethod.of(
             listOf(
                 AuthMethod.AgentAuth(AuthMethodId("gateway"), "Gateway", "Use a gateway"),
-                AuthMethod.EnvVarAuth(AuthMethodId("variables"), "Variables", vars = emptyList()),
+                AuthMethod.EnvVarAuth(AuthMethodId("variables"), "Variables", vars = listOf(AuthEnvVar("GEMINI_API_KEY", "Key")), link = "https://example.com/keys"),
             ),
             agent,
         )
-        assertEquals(listOf(SignInMethod(AuthMethodId("gateway"), "Gateway", "Use a gateway")), methods)
+        assertEquals(
+            listOf(
+                SignInMethod(AuthMethodId("gateway"), "Gateway", "Use a gateway"),
+                SignInMethod(AuthMethodId("variables"), "Variables", variables = listOf(SignInMethod.Variable("GEMINI_API_KEY", "Key")), link = "https://example.com/keys"),
+            ),
+            methods,
+        )
     }
 
     @Test

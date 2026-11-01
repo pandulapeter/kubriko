@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -168,6 +169,25 @@ class AssistantControllerTest {
         val installer = BinaryAgentInstaller(File(settingsDirectory, "tools"), download = { _, _, _ -> throw java.io.IOException("Offline.") })
         val failed = controller(registry, installer).startChat().state.first { it is ChatState.Failed }
         assertEquals(ChatState.Failed(FailureReason.AGENT_NOT_STARTED, listOf("Offline.")), failed)
+    }
+
+    @Test
+    fun variablesGivenForSigningInAreKeptAndTheAgentStartsAgainWithThem() = test {
+        val registry = registry(CODEX)
+        registry.refresh()
+        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "codex-acp"))
+        val controller = controller(registry)
+        controller.startChat().state.first { it == ChatState.Ready }
+        val method = controller.signInMethods.first { methods -> methods.any { it.variables != null } }.single { it.variables != null }
+        onMain { controller.signIn(method) }
+        assertEquals(method, controller.variablesForm.value)
+        onMain { controller.setVariables(method, mapOf("FAKE_API_KEY" to " secret ")) }
+        while (commands.size < 2) delay(10)
+        assertEquals("secret", commands.last().environment["FAKE_API_KEY"])
+        assertEquals(null, controller.variablesForm.value)
+        val afterRestart = controller(registry)
+        afterRestart.startChat().state.first { it == ChatState.Ready }
+        assertEquals("secret", commands.last().environment["FAKE_API_KEY"])
     }
 
     @Test
@@ -378,7 +398,7 @@ class AssistantControllerTest {
         chat.state.first { it == ChatState.Ready }
         onMain { chat.send("hello") }
         chat.transcript.first { it.needsSignIn }
-        val method = controller.signInMethods.value.single { it.terminal == null }
+        val method = controller.signInMethods.value.single { it.terminal == null && it.variables == null }
         onMain { controller.signIn(method) }
         chat.transcript.first { it.items.lastOrNull() == TranscriptItem.AgentMessage("Hi there") }
         assertEquals(listOf(method.id), launcher.agents.single().authenticated)

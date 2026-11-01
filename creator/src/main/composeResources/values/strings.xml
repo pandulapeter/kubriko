@@ -656,6 +656,10 @@
     <string name="assistant_sign_in_failed">Signing in with %1$s didn't work (exit code %2$d).</string>
     <string name="assistant_sign_in_code_hint">Paste the code from the browser here, if it asks for one</string>
     <string name="assistant_api_key_note">Your key is kept in your system's keychain and given only to Claude Agent. Every conversation is billed to it, and the agent starts again with it.</string>
+    <string name="assistant_variables_note">%1$s: kept in your system's keychain and given only to %2$s, which starts again with them.</string>
+    <string name="assistant_variables_optional">%1$s (optional)</string>
+    <string name="assistant_variables_failed">They couldn't be kept in your system's keychain.</string>
+    <string name="assistant_variables_link">Where to find them</string>
     <string name="assistant_api_key_hint">sk-ant-…</string>
     <string name="assistant_api_key_failed">The key couldn't be kept in your system's keychain.</string>
     <string name="action_save">Save</string>

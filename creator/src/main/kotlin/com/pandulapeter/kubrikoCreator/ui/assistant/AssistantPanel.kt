@@ -209,6 +209,10 @@ private fun AssistantPanelContent(
                 onUseApiKey = { isEnteringApiKey = true },
                 onSaveApiKey = { key -> controller.setApiKey(key) { isEnteringApiKey = false } },
                 onCancelApiKey = { isEnteringApiKey = false },
+                variablesForm = controller.variablesForm.collectAsState().value,
+                hasVariablesFailed = controller.variablesFailed.collectAsState().value,
+                onSaveVariables = controller::setVariables,
+                onCancelVariables = controller::closeVariablesForm,
             )
         }
     }

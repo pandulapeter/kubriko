@@ -461,7 +461,9 @@ under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `E
 **Signing in** never passes through Creator: the agent signs in by itself. `AcpAgent.signInMethods` are its `initialize` answer's
 `authMethods` (`SignInMethod`): a terminal method runs the command its `_meta["terminal-auth"]` names (otherwise the agent's own
 program with the method's arguments), in the agent's environment so that it signs in to the same Claude Code configuration; an
-agent method is `authenticate`; methods taking variables are left out for now. `AcpAgent.authStatus` is what the agent last pushed
+agent method is `authenticate`; a method taking environment variables (an agent's own API key) asks for them in
+`SignInVariablesForm`, keeps them in the secret store per agent (`AgentVariableStore`, their names in `assistant.json`'s
+`agentVariables`), and starts the agent again with them. How the agent chosen is started is `AgentCommands`'. `AcpAgent.authStatus` is what the agent last pushed
 with `_auth/status_update` (`AuthStatus`: none, a subscription account with its email, an API key, a gateway, or cloud
 credentials). A prompt the agent refuses with `authRequired` ends in an `AUTH_REQUIRED` failure, and `AssistantChat.resendAfterSignIn`
 sends it again (without a second user message) once the user has signed in. Terminal methods run in the panel's sign-in terminal

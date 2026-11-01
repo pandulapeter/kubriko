@@ -20,20 +20,35 @@ import kotlinx.serialization.json.contentOrNull
  * A way of signing in that an agent offers, as the assistant panel shows it.
  *
  * @param terminal What runs in the panel's sign-in terminal, or null if the agent signs in by itself (`authenticate`).
+ * @param variables What the user gives for a method that takes environment variables (an agent's own API key), which
+ *   the agent is then started with, or null for another kind of method.
+ * @param link Where the values can be found, for such a method.
  */
 internal data class SignInMethod(
     val id: AuthMethodId,
     val name: String,
     val description: String? = null,
     val terminal: AgentCommand? = null,
+    val variables: List<Variable>? = null,
+    val link: String? = null,
 ) {
+    /**
+     * @param label What the field is called, if the agent says; otherwise the variable's name is shown.
+     */
+    data class Variable(
+        val name: String,
+        val label: String? = null,
+        val isSecret: Boolean = true,
+        val isOptional: Boolean = false,
+    )
+
     companion object {
 
         /**
          * The methods of [methods] Kubriko Creator can run for the agent started with [agent]. A terminal method runs the
          * command of its `_meta["terminal-auth"]` where it names one (Claude Agent's does), and otherwise the agent's own
          * program with the method's arguments; either way with the agent's environment, so that it signs in to the same
-         * configuration. Methods that take variables are left out, since the panel doesn't ask for them yet.
+         * configuration. A method that takes variables asks the user for them.
          */
         fun of(methods: List<AuthMethod>, agent: AgentCommand): List<SignInMethod> = methods.mapNotNull { method ->
             when (method) {
@@ -46,6 +61,13 @@ internal data class SignInMethod(
                         arguments = agent.arguments + method.args.orEmpty(),
                         environment = agent.environment + method.env.orEmpty(),
                     ),
+                )
+                is AuthMethod.EnvVarAuth -> SignInMethod(
+                    id = method.id,
+                    name = method.name,
+                    description = method.description,
+                    variables = method.vars.map { Variable(it.name, it.label, it.secret, it.optional) },
+                    link = method.link,
                 )
                 else -> null
             }

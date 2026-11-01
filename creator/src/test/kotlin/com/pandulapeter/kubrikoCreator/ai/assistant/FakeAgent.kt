@@ -17,6 +17,7 @@ import com.agentclientprotocol.client.ClientInfo
 import com.agentclientprotocol.common.Event
 import com.agentclientprotocol.common.SessionCreationParameters
 import com.agentclientprotocol.model.AgentCapabilities
+import com.agentclientprotocol.model.AuthEnvVar
 import com.agentclientprotocol.model.AuthMethod
 import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.AuthenticateResponse
@@ -123,7 +124,7 @@ internal class FakeAgent(
                             }
                         },
                     ),
-                    AuthMethod.EnvVarAuth(AuthMethodId("variables"), "Variables", vars = emptyList()),
+                    AuthMethod.EnvVarAuth(AuthMethodId("variables"), "Variables", vars = listOf(AuthEnvVar("FAKE_API_KEY"))),
                 ),
             )
         }

@@ -17,10 +17,13 @@ import kotlinx.serialization.Serializable
  * @param claudeConfigurationAlias The shell alias whose Claude Code configuration Claude Agent uses, or null for the default one.
  * @param agentId The agent chosen ([AgentChoice.id]), or null for Claude Agent.
  * @param customAgentCommand The command line of the custom agent, kept while another agent is chosen.
+ * @param agentVariables The names of the environment variables each agent ([AgentChoice.id]) was given for signing in,
+ *   whose values are kept in the operating system's secret store.
  */
 @Serializable
 internal data class AssistantSettings(
     val claudeConfigurationAlias: String? = null,
     val agentId: String? = null,
     val customAgentCommand: String? = null,
+    val agentVariables: Map<String, List<String>> = emptyMap(),
 )

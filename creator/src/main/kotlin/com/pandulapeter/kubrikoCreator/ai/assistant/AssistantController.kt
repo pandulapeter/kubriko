@@ -125,12 +125,25 @@ internal class AssistantController(
     private val assistantLock = Mutex()
     private val assistant = MutableStateFlow<Assistant?>(null)
     private val agentsLoaded = CompletableDeferred<Unit>()
-    private val _download = MutableStateFlow<AgentDownload?>(null)
+    private val commands = AgentCommands(runner, installer, home, ioDispatcher)
+    private val agentVariables = AgentVariableStore(secrets)
 
     /**
      * The agent's archive being downloaded on its first start, if one is.
      */
-    val download = _download.asStateFlow()
+    val download = commands.download
+    private val _variablesForm = MutableStateFlow<SignInMethod?>(null)
+
+    /**
+     * The sign-in method taking environment variables the user is giving them for.
+     */
+    val variablesForm = _variablesForm.asStateFlow()
+    private val _variablesFailed = MutableStateFlow(false)
+
+    /**
+     * Whether the last variables given couldn't be kept.
+     */
+    val variablesFailed = _variablesFailed.asStateFlow()
 
     init {
         scope.launch { loadAgents() }
@@ -280,6 +293,11 @@ internal class AssistantController(
      * terminal method succeeds, prompts refused for want of a sign-in are sent again.
      */
     fun signIn(method: SignInMethod) {
+        if (method.variables != null) {
+            _variablesFailed.value = false
+            _variablesForm.value = method
+            return
+        }
         val command = method.terminal
         if (command == null) {
             scope.launch {
@@ -308,6 +326,29 @@ internal class AssistantController(
                 chats.value.forEach { it.resendAfterSignIn() }
             }
         }
+    }
+
+    /**
+     * Gives the agent chosen the [values] of [method]'s variables, kept in the operating system's secret store, which
+     * starts it again (ending every conversation) and a new conversation.
+     */
+    fun setVariables(method: SignInMethod, values: Map<String, String>) {
+        val agentId = _agent.value.id
+        val given = values.filterValues { it.isNotBlank() }.mapValues { it.value.trim() }
+        if (method.variables.orEmpty().any { !it.isOptional && it.name !in given }) return
+        scope.launch {
+            val isKept = withContext(ioDispatcher) { agentVariables.write(agentId, given) }
+            _variablesFailed.value = !isKept
+            if (!isKept) return@launch
+            _variablesForm.value = null
+            settings.update { it.copy(agentVariables = it.agentVariables + (agentId to (it.agentVariables[agentId].orEmpty() + given.keys).distinct())) }
+            store.save(settings.value)
+            restartAgent()
+        }
+    }
+
+    fun closeVariablesForm() {
+        _variablesForm.value = null
     }
 
     /**
@@ -400,36 +441,10 @@ internal class AssistantController(
         assistant.value ?: run {
             agentsLoaded.await()
             val choice = _agent.value
-            val npx = withContext(ioDispatcher) { runner.locate(NPX) }?.let(::File)
-            val command = when (choice) {
-                is AgentChoice.Registry -> when (val distribution = choice.agent.distribution) {
-                    is AgentDistribution.Npx -> RegistryAgent.npxCommand(distribution, npx ?: throw NodeMissingException(), if (choice.isClaude) claudeEnvironment() else emptyMap())
-                    is AgentDistribution.Uvx -> RegistryAgent.uvxCommand(distribution, withContext(ioDispatcher) { runner.locate(UVX) }?.let(::File) ?: throw UvMissingException())
-                    is AgentDistribution.Binary -> binaryCommand(choice.agent, distribution)
-                }
-                is AgentChoice.Custom -> withContext(ioDispatcher) { CustomAgentCommand.of(choice.commandLine, home, runner::locate) }
-                    ?: throw AgentStartException(exitCode = null, errorOutput = emptyList())
-            }
-            createAssistant(command, npx, choice.profile).also { assistant.value = it }
+            val npx = commands.npx()
+            val environment = if (choice.isClaude) claudeEnvironment() else agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty())
+            createAssistant(commands.of(choice, npx, environment), npx, choice.profile).also { assistant.value = it }
         }
-    }
-
-    /**
-     * Runs the program of [agent]'s archive, downloaded first unless it already is, with its folder first on the `PATH`.
-     */
-    private suspend fun binaryCommand(agent: RegistryAgent, distribution: AgentDistribution.Binary): AgentCommand {
-        val program = try {
-            withContext(ioDispatcher) { installer?.install(agent, distribution) { downloaded, total -> _download.value = AgentDownload(agent.name, downloaded, total) } }
-        } catch (exception: IOException) {
-            throw AgentStartException(exitCode = null, errorOutput = listOfNotNull(exception.message), cause = exception)
-        } finally {
-            _download.value = null
-        } ?: throw AgentStartException(exitCode = null, errorOutput = emptyList())
-        return AgentCommand(
-            program = program.path,
-            arguments = distribution.arguments,
-            environment = RegistryAgent.withFolderOnPath(program) + distribution.environment,
-        )
     }
 
     /**
@@ -456,8 +471,6 @@ internal class AssistantController(
     }
 
     private companion object {
-        const val NPX = "npx"
-        const val UVX = "uvx"
 
         /**
          * The agent [settings] remember, out of [agents]: Claude Agent if it isn't among them.

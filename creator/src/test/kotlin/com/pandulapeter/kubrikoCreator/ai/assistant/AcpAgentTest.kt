@@ -332,8 +332,8 @@ class AcpAgentTest {
         val agent = agent(launcher)
         agent.start()
         val methods = agent.signInMethods.value
-        assertEquals(listOf(FakeAgent.AGENT_LOGIN, "terminal-login"), methods.map { it.id.value })
-        assertEquals(FakeAgent.TERMINAL_LOGIN, methods.last().terminal?.program)
+        assertEquals(listOf(FakeAgent.AGENT_LOGIN, "terminal-login", "variables"), methods.map { it.id.value })
+        assertEquals(FakeAgent.TERMINAL_LOGIN, methods.single { it.id.value == "terminal-login" }.terminal?.program)
         assertNull(agent.authStatus.value)
         launcher.channels.single().pushAuthStatus("account", "Claude Max", "me@example.com")
         assertEquals(AuthStatus(AuthStatus.Kind.ACCOUNT, "Claude Max", email = "me@example.com"), agent.authStatus.await { it != null })

@@ -67,8 +67,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients
    do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK
    (`BinaryAgentInstaller` already downloads, checks, and unpacks per version, showing its progress).
-4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is other agents' own key variables (`EnvVarAuth`, under Other
-   agents), and the operating system's terminal as a fallback for a sign-in command that turns out to need a terminal device.
+4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is the operating system's terminal as a fallback for a sign-in command
+   that turns out to need a terminal device.
 5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
    have no portable switch, so their `session/request_permission` for edits and commands is rejected by default (`PermissionHandler.Reject`),
    with the user able to allow it.
@@ -129,8 +129,6 @@ Assistant, for the fallbacks that exist): Claude's is the only one. What is left
 - **Staying off the files:** a read-only mode or sandbox where the agent offers one (a session mode or config option), before
   falling back on rejecting permission requests. An agent that changes files without asking is marked as such in the list, and its
   conversations suggest version control, since the turn's Undo only reverts changes made through Creator's tools.
-- **Sign-in:** environment variable methods (`EnvVarAuth`, whose `vars` name the fields; the values kept in the OS keychain per
-  agent), beside the agent and terminal methods that work today.
 - **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for Codex),
   offered from the user's shell aliases (`ShellAliases`) as the MCP clients' setups are, so `claude-personal` and `claude-flashfood`
   each become an account to choose.

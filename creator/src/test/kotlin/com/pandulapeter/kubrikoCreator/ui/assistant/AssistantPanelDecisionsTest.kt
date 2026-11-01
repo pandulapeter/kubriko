@@ -90,6 +90,8 @@ class AssistantPanelDecisionsTest {
         assertEquals(SignInAreaContent.API_KEY, signInAreaContent(isSigningIn = false, isEnteringApiKey = true, needsSignIn = true))
         assertEquals(SignInAreaContent.METHODS, signInAreaContent(isSigningIn = false, isEnteringApiKey = false, needsSignIn = true))
         assertNull(signInAreaContent(isSigningIn = false, isEnteringApiKey = false, needsSignIn = false))
+        assertEquals(SignInAreaContent.VARIABLES, signInAreaContent(isSigningIn = false, isEnteringApiKey = true, needsSignIn = true, isEnteringVariables = true))
+        assertEquals(SignInAreaContent.TERMINAL, signInAreaContent(isSigningIn = true, isEnteringApiKey = false, needsSignIn = true, isEnteringVariables = true))
     }
 
     @Test
@@ -122,5 +124,12 @@ class AssistantPanelDecisionsTest {
         assertEquals("1M", shortTokenCount(1_000_000))
         assertEquals("$" + String.format("%.2f", 0.5), formattedCost(0.5, "usd"))
         assertEquals(String.format("%.2f", 2.0) + " EUR", formattedCost(2.0, "EUR"))
+    }
+
+    @Test
+    fun variablesCanBeSavedOnceEveryOneThatIsntOptionalHasAValue() {
+        val variables = listOf(SignInMethod.Variable("KEY"), SignInMethod.Variable("REGION", isOptional = true))
+        assertEquals(false, canSaveVariables(variables, mapOf("KEY" to " ")))
+        assertEquals(true, canSaveVariables(variables, mapOf("KEY" to "abc")))
     }
 }

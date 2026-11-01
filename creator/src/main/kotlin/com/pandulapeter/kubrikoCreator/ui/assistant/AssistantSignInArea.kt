@@ -14,8 +14,8 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInSession
 
 /**
- * Whatever of signing in the panel shows above the composer: the running sign-in command, the API key form, or, while
- * the agent isn't signed in, the ways of signing in.
+ * Whatever of signing in the panel shows above the composer: the running sign-in command, the form of a method taking
+ * variables, the API key form, or, while the agent isn't signed in, the ways of signing in.
  */
 @Composable
 internal fun AssistantSignInArea(
@@ -30,21 +30,29 @@ internal fun AssistantSignInArea(
     onUseApiKey: () -> Unit,
     onSaveApiKey: (String) -> Unit,
     onCancelApiKey: () -> Unit,
-) = when (signInAreaContent(session != null, isEnteringApiKey, needsSignIn)) {
+    variablesForm: SignInMethod? = null,
+    hasVariablesFailed: Boolean = false,
+    onSaveVariables: (SignInMethod, Map<String, String>) -> Unit = { _, _ -> },
+    onCancelVariables: () -> Unit = {},
+) = when (signInAreaContent(session != null, isEnteringApiKey, needsSignIn, isEnteringVariables = variablesForm != null)) {
     SignInAreaContent.TERMINAL -> session?.let { SignInTerminal(session = it, onClose = onCloseSignIn) }
+    SignInAreaContent.VARIABLES -> variablesForm?.let { method ->
+        SignInVariablesForm(method = method, hasFailed = hasVariablesFailed, onSave = { onSaveVariables(method, it) }, onCancel = onCancelVariables)
+    }
     SignInAreaContent.API_KEY -> ApiKeyForm(hasFailed = hasApiKeyFailed, onSave = onSaveApiKey, onCancel = onCancelApiKey)
     SignInAreaContent.METHODS -> SignInCard(methods = methods, canKeepApiKey = canKeepApiKey, onSignIn = onSignIn, onUseApiKey = onUseApiKey)
     null -> Unit
 }
 
-internal enum class SignInAreaContent { TERMINAL, API_KEY, METHODS }
+internal enum class SignInAreaContent { TERMINAL, VARIABLES, API_KEY, METHODS }
 
 /**
- * What the sign-in area shows: a running sign-in first, then the API key form the user asked for, then the methods
+ * What the sign-in area shows: a running sign-in first, then the variables or the API key form the user asked for, then the methods
  * while signing in is needed.
  */
-internal fun signInAreaContent(isSigningIn: Boolean, isEnteringApiKey: Boolean, needsSignIn: Boolean) = when {
+internal fun signInAreaContent(isSigningIn: Boolean, isEnteringApiKey: Boolean, needsSignIn: Boolean, isEnteringVariables: Boolean = false) = when {
     isSigningIn -> SignInAreaContent.TERMINAL
+    isEnteringVariables -> SignInAreaContent.VARIABLES
     isEnteringApiKey -> SignInAreaContent.API_KEY
     needsSignIn -> SignInAreaContent.METHODS
     else -> null
