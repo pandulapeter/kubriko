@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.mcp
 
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -92,10 +93,13 @@ class McpControllerTest {
             controller.setEnabled(false)
         }
         controller.setEnabled(true)
-        assertEquals(McpServerState.Running(ports[2]), controller.awaitState(McpServerState.Running(ports[2])))
-        assertTrue(isListening(ports[2]))
-        assertFalse(isListening(ports[0]))
-        assertFalse(isListening(ports[1]))
+        val listening = withContext(Dispatchers.IO) {
+            withTimeoutOrNull(5_000) {
+                while (!isListening(ports[2]) || controller.state.value != McpServerState.Running(ports[2])) delay(10)
+            }
+            ports.filter(::isListening)
+        }
+        assertEquals(listOf(ports[2]), listening)
     }
 
     @Test
