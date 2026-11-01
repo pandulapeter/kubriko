@@ -28,13 +28,16 @@ internal sealed interface SceneEditingState {
     ) : SceneEditingState
 
     /**
-     * The Scene couldn't be opened: the project didn't build, or its entry point couldn't be loaded.
+     * The Scene couldn't be opened: the project didn't build, its entry point couldn't be loaded, or its code threw while
+     * the Scene's view was being created.
      *
      * @param reason What went wrong, for the user.
+     * @param arguments The values of the [reason]'s placeholders.
      */
     data class Failed(
         val scene: ProjectResource,
         val reason: StringResource,
+        val arguments: List<String> = emptyList(),
     ) : SceneEditingState
 
     /**

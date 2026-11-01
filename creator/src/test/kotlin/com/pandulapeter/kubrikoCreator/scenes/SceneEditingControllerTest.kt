@@ -26,6 +26,7 @@ import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
 import kubriko.creator.generated.resources.error_entry_point_not_loaded
+import kubriko.creator.generated.resources.error_scene_view_failed
 import kubriko.creator.generated.resources.scene_build_failed
 import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
@@ -108,6 +109,28 @@ class SceneEditingControllerTest {
         assertEquals("classpath", tasks.single().second["kubrikoCreatorMode"])
         assertEquals(listOf(File("/game/build/libs/game.jar")), loadedClasspaths.single().files)
         assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf("1.5"))), reports)
+    }
+
+    @Test
+    fun aSceneWhoseViewTheProjectsCodeBreaksFailsWithTheProblem() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        val open = assertIs<SceneEditingState.Open>(controller.state.value)
+        reports.clear()
+        controller.onViewFailed(open.revision - 1, IllegalStateException("Stale."), isShowingOlderClasses = false)
+        assertEquals(open, controller.state.value)
+        controller.onViewFailed(open.revision, IllegalStateException("Broken."), isShowingOlderClasses = false)
+        assertEquals(SceneEditingState.Failed(scene, Res.string.error_scene_view_failed, listOf("java.lang.IllegalStateException: Broken.")), controller.state.value)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.error_scene_view_failed, isError = true, arguments = listOf("java.lang.IllegalStateException: Broken."))), reports)
+    }
+
+    @Test
+    fun newerClassesWhoseViewTheProjectsCodeBreaksLeaveTheOlderOnesShownAsOutdated() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        val open = assertIs<SceneEditingState.Open>(controller.state.value)
+        controller.onViewFailed(open.revision, NoClassDefFoundError("com/example/Gone"), isShowingOlderClasses = true)
+        assertEquals(open.copy(isOutdated = true), controller.state.value)
     }
 
     @Test

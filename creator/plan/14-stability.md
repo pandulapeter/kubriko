@@ -15,11 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Processes, threads, and lifecycles
 
-- **The project's code runs during composition.** `rememberSceneView` (`ui/scenes/RememberSceneView.kt`) constructs `SceneView`,
-  which calls the project's `createSerializationManager` and `createCustomManagers`, inside `remember`: a hand-written Manager whose
-  constructor throws, or a stale class (`NoClassDefFoundError`), throws out of composition on the UI thread, every time the Scene
-  opens. Direction: create the `SceneView` off the main thread in `SceneEditingController` (it already loads classes there) and turn
-  a failure into `SceneEditingState.Failed` with its own message.
 - **Class loaders leak.** A load cancelled while `ClassLoaderEntryPointLoader.load` runs (a change, Reload, or closing during it)
   throws its result away without closing it, and `SceneEditingController.dispose` closes the loaded classes five seconds later in a
   scope `WorkspaceController.close` cancels first, so the `URLClassLoader` and its copied jars in the temporary folder stay for the

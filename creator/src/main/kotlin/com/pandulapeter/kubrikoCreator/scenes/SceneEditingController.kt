@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_scene_view_failed
 import kubriko.creator.generated.resources.scene_build_failed
 import kubriko.creator.generated.resources.status_scene_opened
 import org.jetbrains.compose.resources.StringResource
@@ -176,6 +177,18 @@ internal class SceneEditingController(
                 }
             }
         }
+    }
+
+    /**
+     * Notes that the project's code threw while the view of [revision]'s classes was being created: the Scene can't be
+     * shown with them, or, while a view of older classes [isShowingOlderClasses], stays on those as outdated.
+     */
+    fun onViewFailed(revision: Int, exception: Throwable, isShowingOlderClasses: Boolean) {
+        val open = _state.value as? SceneEditingState.Open ?: return
+        if (open.revision != revision) return
+        val problem = exception.toString()
+        report(ConsoleEntry.Status(Res.string.error_scene_view_failed, isError = true, arguments = listOf(problem)))
+        _state.value = if (isShowingOlderClasses) open.copy(isOutdated = true) else SceneEditingState.Failed(open.scene, Res.string.error_scene_view_failed, listOf(problem))
     }
 
     private fun currentPreviews() = ActorTypeLook.previewsOf(actorTypeLooks(), shownLooks)

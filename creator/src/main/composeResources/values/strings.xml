@@ -321,6 +321,7 @@
     <string name="error_entry_point_missing">The project has no CreatorEntryPoint, so its Scenes can't be edited.</string>
     <string name="error_entry_point_multiple">The project registers more than one CreatorEntryPoint.</string>
     <string name="error_entry_point_not_loaded">The project's CreatorEntryPoint couldn't be loaded.</string>
+    <string name="error_scene_view_failed">The project's code failed while the Scene was being shown: %1$s</string>
     <string name="scene_preparing">Preparing %1$s…</string>
     <string name="scene_outdated">The project doesn't build, so this Scene shows it as it last built.</string>
     <string name="scene_updating">Updating…</string>

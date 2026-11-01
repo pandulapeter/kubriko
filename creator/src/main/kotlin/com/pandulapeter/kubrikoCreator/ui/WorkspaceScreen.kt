@@ -203,6 +203,7 @@ internal fun WorkspaceScreen(
                         onPlay = { controller.play(firstScene = state.sceneName) },
                         onReload = controller.sceneEditing::reload,
                         onClose = controller.sceneEditing::close,
+                        onViewFailed = { exception, isShowingOlderClasses -> controller.sceneEditing.onViewFailed(state.revision, exception, isShowingOlderClasses) },
                     )
                     is SceneEditingState.Unsupported -> SceneNotice(
                         modifier = centerModifier,
@@ -213,7 +214,7 @@ internal fun WorkspaceScreen(
                     is SceneEditingState.Failed -> SceneNotice(
                         modifier = centerModifier,
                         sceneName = state.scene.name,
-                        message = stringResource(state.reason),
+                        message = stringResource(state.reason, *state.arguments.toTypedArray()),
                         onClose = controller.sceneEditing::close,
                         onTryAgain = controller.sceneEditing::reload,
                     )

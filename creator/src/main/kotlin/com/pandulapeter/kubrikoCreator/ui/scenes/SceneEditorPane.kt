@@ -44,6 +44,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.ui.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
@@ -66,6 +67,7 @@ import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_zoom_in
 import kubriko.creator.generated.resources.ic_zoom_out
 import kubriko.creator.generated.resources.scene_outdated
+import kubriko.creator.generated.resources.scene_preparing
 import kubriko.creator.generated.resources.scene_updating
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -77,6 +79,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param actorTypes The project's block-built Actor types.
  * @param music The project's music files, by their path from `composeResources`.
+ * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
  */
 @Composable
 internal fun SceneEditorPane(
@@ -88,11 +91,12 @@ internal fun SceneEditorPane(
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onClose: () -> Unit,
+    onViewFailed: (exception: Throwable, isShowingOlderClasses: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
 ) {
-    val view = rememberSceneView(state)
+    val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     var selectedId by remember(state.scene.file) { mutableStateOf<String?>(null) }
     var isActorListShown by remember { mutableStateOf(false) }
     SceneHeader(
