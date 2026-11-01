@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.RegeneratedCode
 import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
@@ -49,6 +50,9 @@ import kotlinx.coroutines.withContext
  *   regenerated for.
  * @param onFileUnreadable Called for each definition file found unreadable, once until it changes.
  * @param onFilesReadableAgain Called when no definition file is unreadable any more.
+ * @param onLeftoversRemoved Called with the generated files (by path) a regeneration deleted, since their types no longer exist.
+ * @param onLeftoverChangedByHand Called for each generated file (by path) whose type no longer exists but which was
+ *   changed by hand, so it was kept, once until it is gone.
  */
 internal class BlockTypesController(
     private val repository: BlockTypeRepository,
@@ -58,6 +62,8 @@ internal class BlockTypesController(
     private val onSaveFailed: () -> Unit,
     private val onFileUnreadable: (UnreadableBlockTypeFile) -> Unit = {},
     private val onFilesReadableAgain: () -> Unit = {},
+    private val onLeftoversRemoved: (List<String>) -> Unit = {},
+    private val onLeftoverChangedByHand: (String) -> Unit = {},
     private val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
     private val writeDelayInMilliseconds: Long = 0,
@@ -98,6 +104,11 @@ internal class BlockTypesController(
      * Every folder of each kind of type, as paths (`enemies/flying`), parents included: those types are in, and empty ones.
      */
     val folders = _folders.asStateFlow()
+
+    /**
+     * The generated files of types that no longer exist that the last regeneration kept, since they were changed by hand.
+     */
+    private var leftoversChangedByHand = emptySet<String>()
     private val pendingWrites = ArrayList<PendingWrite>()
     private var havePendingTypesChanged = false
     private val writeRequests = Channel<Unit>(Channel.CONFLATED)
@@ -281,7 +292,7 @@ internal class BlockTypesController(
         val types = _types.value
         val canRegenerate = _unreadableFiles.value.isEmpty()
         var buildFileChanges: KubrikoBuildFileChanges? = null
-        val changedByHand = try {
+        val regenerated = try {
             withContext(ioDispatcher) {
                 try {
                     PendingWrite.withoutOverwrittenSaves(batch).forEach { write ->
@@ -297,7 +308,7 @@ internal class BlockTypesController(
                         repository.regenerate(types, overwriting = batch.filterIsInstance<PendingWrite.Overwrite>().mapTo(mutableSetOf()) { it.name })
                             .also { buildFileChanges = syncBuildFiles() }
                     } else {
-                        _changedByHand.value
+                        RegeneratedCode(changedByHand = _changedByHand.value, leftoversChangedByHand = leftoversChangedByHand)
                     }
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
@@ -307,10 +318,13 @@ internal class BlockTypesController(
         } finally {
             pendingWriteCount.update { it - batch.size }
         }
-        if (changedByHand == null) {
+        if (regenerated == null) {
             onSaveFailed()
         } else {
-            _changedByHand.value = changedByHand
+            _changedByHand.value = regenerated.changedByHand
+            if (regenerated.removedLeftovers.isNotEmpty()) onLeftoversRemoved(regenerated.removedLeftovers)
+            regenerated.leftoversChangedByHand.filter { it !in leftoversChangedByHand }.sorted().forEach(onLeftoverChangedByHand)
+            leftoversChangedByHand = regenerated.leftoversChangedByHand
             buildFileChanges?.let(onBuildFilesSynced)
             onSaved(haveTypesChanged)
         }

@@ -26,7 +26,7 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`14-stability.md`, from its first item (now the generated files of types deleted outside Creator), since the user put stability before new features. Its unreadable type file, crash-safe write, and type file name items were built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
+`14-stability.md`, from its first item (now Format versions), since the user put stability before new features. Its unreadable type file, crash-safe write, type file name, and leftover generated file items were built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
 its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
 built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
 `claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic
@@ -36,12 +36,15 @@ code field, Close ended it, and the API key form opened and cancelled. What is l
 
 ## To check by hand
 
-**Unreadable type files and crash-safe writes (built and unit-tested on 2026-11-01, not yet seen in the app)**
+**Unreadable type files, crash-safe writes, and leftover generated files (built and unit-tested on 2026-11-01, not yet seen in the app)**
 - A broken `.kubriko/actors/*.json` in the scratch copy, at opening and while open: the console names the file and why, the
   other types load, building and playing still work (on the code generated before), closing the window works, and fixing the
   file says the code is up to date again and regenerates it.
 - Creating or renaming a type to the name of an unreadable file (rejected as taken), and a type file renamed in the file manager,
   one copied into another folder, and one whose name was edited to `my enemy` (each reported, nothing deleted).
+- A type deleted by a git checkout (or in the file manager) while the project is open and while it is closed: its
+  `generated/<Name>.kt` goes, the console says so, and the build works; the same with that file edited by hand first (kept,
+  named in the console as an error once).
 - Crash-safe writes on Windows (a Scene the running game holds open, which a move may be refused for) and on a network drive.
 
 **The assistant panel (seen working on 2026-10-29: a change followed in the editor and undone, Stop, Tab completion, Effort,

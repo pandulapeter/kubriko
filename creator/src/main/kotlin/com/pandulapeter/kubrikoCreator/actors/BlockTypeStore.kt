@@ -133,10 +133,10 @@ internal class BlockTypeStore private constructor(
      */
     private var lastGeneration: Pair<List<BlockTypeDefinition>, Set<String>>? = null
 
-    override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): Set<String> {
+    override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): RegeneratedCode {
         val sceneMusic = sceneMusic()
         val typeNames = definitions.mapTo(HashSet()) { it.name }
-        if (overwriting.isEmpty() && lastGeneration == definitions to sceneMusic && generatedFilesAreAsLeft()) return changedByHand.filterTo(HashSet()) { it in typeNames }
+        if (overwriting.isEmpty() && lastGeneration == definitions to sceneMusic && generatedFilesAreAsLeft()) return found(typeNames, removeLeftovers(typeNames))
         lastGeneration = null
         val actorTypes = definitions.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
@@ -170,8 +170,42 @@ internal class BlockTypeStore private constructor(
             AudioCodeGenerator.AUDIO_NAME,
             if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music) else null,
         )
+        val removedLeftovers = removeLeftovers(typeNames)
         lastGeneration = definitions to sceneMusic
-        return changedByHand.filterTo(HashSet()) { it in typeNames }
+        return found(typeNames, removedLeftovers)
+    }
+
+    private fun found(typeNames: Set<String>, removedLeftovers: List<String> = emptyList()) = RegeneratedCode(
+        changedByHand = changedByHand.filterTo(HashSet()) { it in typeNames },
+        removedLeftovers = removedLeftovers,
+        leftoversChangedByHand = leftoversChangedByHand,
+    )
+
+    /**
+     * The generated files the last [removeLeftovers] kept because they were changed by hand, by path from the project root.
+     */
+    private var leftoversChangedByHand = emptySet<String>()
+
+    /**
+     * Deletes the generated files that belong to none of [typeNames] and aren't one of the files every project has,
+     * unless they were changed by hand, and returns their paths from the project root. Names are compared ignoring case,
+     * since on most file systems a file differing only in case is the type's own.
+     */
+    private fun removeLeftovers(typeNames: Set<String>): List<String> {
+        val currentNames = (typeNames + FIXED_FILE_NAMES).mapTo(HashSet()) { it.lowercase() }
+        val removed = ArrayList<String>()
+        val keptChangedByHand = HashSet<String>()
+        generatedDirectory.listFiles().orEmpty().filter { it.isFile && it.extension == "kt" && it.nameWithoutExtension.lowercase() !in currentNames }.forEach { file ->
+            val path = file.relativeTo(rootDirectory).invariantSeparatorsPath
+            when {
+                !GeneratedFile.isUnchanged(file.readText()) -> keptChangedByHand += path
+                file.delete() -> removed += path
+            }
+            generatedTexts.remove(file.nameWithoutExtension)
+            changedByHand.remove(file.nameWithoutExtension)
+        }
+        leftoversChangedByHand = keptChangedByHand
+        return removed.sorted()
     }
 
     /**
@@ -253,6 +287,17 @@ internal class BlockTypeStore private constructor(
             BlockTypeKind.MANAGER -> "managers"
         }
         const val SETTINGS_FILE = "$CREATOR_DIRECTORY/project.json"
+
+        /**
+         * The generated files every project has, whatever its types.
+         */
+        private val FIXED_FILE_NAMES = setOf(
+            ActorTypeCodeGenerator.REGISTRY_NAME,
+            ScenesCodeGenerator.SCENES_NAME,
+            SceneSettingsCodeGenerator.SETTINGS_NAME,
+            ManagerTypeCodeGenerator.WIRING_NAME,
+            AudioCodeGenerator.AUDIO_NAME,
+        )
 
         private val json = Json {
             prettyPrint = true

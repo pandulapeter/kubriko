@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.LoadedBlockTypes
+import com.pandulapeter.kubrikoCreator.actors.RegeneratedCode
 import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import java.io.IOException
 
@@ -38,11 +39,14 @@ internal class FakeBlockTypeRepository(
         stored[definition.name] = definition
     }
 
-    override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): Set<String> {
+    var removedLeftovers = emptyList<String>()
+    var leftoversChangedByHand = emptySet<String>()
+
+    override fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String>): RegeneratedCode {
         if (isFailing) throw IOException("Disk full.")
         regenerateFailure?.let { throw it }
         writes += if (overwriting.isEmpty()) "regenerate" else "regenerate overwriting ${overwriting.sorted().joinToString()}"
-        return changedByHand - overwriting
+        return RegeneratedCode(changedByHand - overwriting, removedLeftovers, leftoversChangedByHand)
     }
 
     val folders = mutableMapOf<BlockTypeKind, MutableSet<String>>()

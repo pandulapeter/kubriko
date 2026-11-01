@@ -92,6 +92,8 @@
     <string name="status_type_file_name_reserved">%1$s holds a type named %2$s, a name Kubriko itself uses, so that type is left out and no code is generated until it is renamed.</string>
     <string name="status_type_file_name_duplicate">%1$s holds a type of the same name as %2$s, so those types are left out and no code is generated until all but one are renamed or removed.</string>
     <string name="status_type_files_readable_again">Every type file can be read again, so the generated code is up to date again.</string>
+    <string name="status_generated_leftovers_removed">Deleted the generated code of types that no longer exist: %1$s</string>
+    <string name="status_generated_leftover_changed_by_hand">%1$s is the generated code of a type that no longer exists, but it was changed by hand, so Kubriko Creator kept it. Delete it once nothing needs it, since it may break the build.</string>
     <string name="status_kubriko_version_changed">The project now uses Kubriko %1$s, the version of this Kubriko Creator, instead of %2$s.</string>
     <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes can't be edited until Kubriko Creator is updated.</string>
     <string name="status_kubriko_libraries_added">The project now depends on %1$s, which its code uses.</string>

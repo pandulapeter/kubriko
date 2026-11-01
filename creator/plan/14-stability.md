@@ -15,10 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Broken and hand-edited files
 
-- **Generated files of types deleted outside Creator stay.** Only `delete(name)` removes a generated file; a type removed by a git
-  checkout, IntelliJ, or the file manager leaves its `generated/<Name>.kt`, which still names other types and Managers and breaks the
-  build once they change. Direction: after regenerating, delete generated files that are unchanged (`GeneratedFile.isUnchanged`), not
-  a current type, and not one of the fixed generated files; report those changed by hand instead.
 - **Format versions.** `.kubriko/*.json` and Scene files carry no format version; compatibility lives in scattered lenient
   serializers (`TimerNameSerializer`, old key names). A file written by a newer Creator fails to load or loses fields when saved by
   an older one. Direction: a `formatVersion` in `.kubriko/project.json` (one number for the project's Creator files, raised only by

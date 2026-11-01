@@ -32,18 +32,17 @@ internal interface BlockTypeRepository {
     /**
      * Brings the generated code of [definitions] (every type of the project, as they are now) in line with them and with
      * what this version of Kubriko Creator generates, except where it was changed by hand, unless that type is in
-     * [overwriting]. Code that didn't change isn't written.
-     *
-     * @return The types whose generated code was changed by hand, and so wasn't updated.
+     * [overwriting]. Code that didn't change isn't written, and generated files of types that no longer exist are deleted,
+     * unless they were changed by hand.
      */
-    fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String> = emptySet()): Set<String>
+    fun regenerate(definitions: List<BlockTypeDefinition>, overwriting: Set<String> = emptySet()): RegeneratedCode
 
     /**
      * [regenerate] with the definitions [load] reads, or nothing while any can't be read, since code generated without a
      * type would break the build of the types that name it.
      */
     fun regenerateAll(overwriting: Set<String> = emptySet()) = load().let { loaded ->
-        if (loaded.unreadableFiles.isEmpty()) regenerate(loaded.types, overwriting) else emptySet()
+        if (loaded.unreadableFiles.isEmpty()) regenerate(loaded.types, overwriting) else RegeneratedCode()
     }
 
     /**

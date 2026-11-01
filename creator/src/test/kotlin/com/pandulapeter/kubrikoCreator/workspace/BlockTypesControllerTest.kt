@@ -43,6 +43,8 @@ class BlockTypesControllerTest {
     private var failedCount = 0
     private val unreadableReports = mutableListOf<String>()
     private var readableAgainCount = 0
+    private val removedLeftoverReports = mutableListOf<List<String>>()
+    private val leftoverChangedByHandReports = mutableListOf<String>()
     private val brokenFile = UnreadableBlockTypeFile(".kubriko/actors/Brick.json", BlockTypeFileProblem.Unparsable("Unexpected JSON token at offset 12"))
 
     private fun TestScope.createController(
@@ -62,6 +64,8 @@ class BlockTypesControllerTest {
         onSaveFailed = { failedCount++ },
         onFileUnreadable = { unreadableReports += it.path },
         onFilesReadableAgain = { readableAgainCount++ },
+        onLeftoversRemoved = { removedLeftoverReports += it },
+        onLeftoverChangedByHand = { leftoverChangedByHandReports += it },
         syncBuildFiles = syncBuildFiles,
         onBuildFilesSynced = onBuildFilesSynced,
         writeDelayInMilliseconds = writeDelayInMilliseconds,
@@ -82,6 +86,25 @@ class BlockTypesControllerTest {
         repository.isFailing = true
         controller.put(ball.copy(width = 5f))
         assertEquals(2, syncCount)
+    }
+
+    @Test
+    fun leftoverCodeIsReportedWhenRemovedAndOnceWhileKeptForChangesMadeByHand() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(wall))
+        val controller = createController(repository)
+        repository.removedLeftovers = listOf("generated/Ball.kt")
+        repository.leftoversChangedByHand = setOf("generated/Brick.kt")
+        controller.onScenesChanged()
+        repository.removedLeftovers = emptyList()
+        controller.onScenesChanged()
+        repository.leftoversChangedByHand = setOf("generated/Brick.kt", "generated/Bat.kt")
+        controller.onScenesChanged()
+        repository.leftoversChangedByHand = emptySet()
+        controller.onScenesChanged()
+        repository.leftoversChangedByHand = setOf("generated/Brick.kt")
+        controller.onScenesChanged()
+        assertEquals(listOf(listOf("generated/Ball.kt")), removedLeftoverReports)
+        assertEquals(listOf("generated/Brick.kt", "generated/Bat.kt", "generated/Brick.kt"), leftoverChangedByHandReports)
     }
 
     @Test

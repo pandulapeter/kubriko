@@ -67,6 +67,8 @@ import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_built
+import kubriko.creator.generated.resources.status_generated_leftover_changed_by_hand
+import kubriko.creator.generated.resources.status_generated_leftovers_removed
 import kubriko.creator.generated.resources.status_kubriko_libraries_added
 import kubriko.creator.generated.resources.status_kubriko_libraries_removed
 import kubriko.creator.generated.resources.status_kubriko_version_changed
@@ -192,6 +194,8 @@ internal class WorkspaceController(
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
             onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
             onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_type_files_readable_again)) },
+            onLeftoversRemoved = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftovers_removed, arguments = listOf(it.joinToString()))) },
+            onLeftoverChangedByHand = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftover_changed_by_hand, isError = true, arguments = listOf(it))) },
             syncBuildFiles = syncBuildFiles,
             onBuildFilesSynced = ::reportBuildFileChanges,
             writeDelayInMilliseconds = writeDelayInMilliseconds,
