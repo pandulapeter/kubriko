@@ -34,6 +34,7 @@ import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
+import kubriko.creator.generated.resources.error_project_newer_format
 import kubriko.creator.generated.resources.error_type_name_taken
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -177,5 +178,23 @@ class CommandExecutorTest {
             assertEquals(Res.string.error_command_input_invalid, outcome.rejection.reason)
         }
         assertNull(executor.history.value.nextUndoTitle)
+    }
+
+    @Test
+    fun changesAreRejectedWhileTheProjectMayNotBeChangedAndReadsStillWork() = runTest {
+        val readOnly = Rejection(Res.string.error_project_newer_format, "2.0.0")
+        var rejection: Rejection? = null
+        val context = commandContext(ball)
+        val executor = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it }, rejectChanges = { rejection })
+        executor.execute(width(10f))
+        rejection = readOnly
+        val create = Invocation(CreateActorType, ActorTypeDefinition("Wall"))
+        assertEquals(readOnly, executor.validate(create))
+        assertEquals(CommandOutcome.Rejected(readOnly), executor.execute(create))
+        assertEquals(CommandOutcome.Rejected(readOnly), executor.step(isUndo = true))
+        assertIs<CommandOutcome.Success>(executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball") }))
+        assertEquals(listOf("Ball"), context.names())
+        rejection = null
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
     }
 }

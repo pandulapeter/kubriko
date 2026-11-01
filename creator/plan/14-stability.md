@@ -13,16 +13,6 @@ What breaks, hangs, or loses work today when files are broken, a process misbeha
 the code, why it matters, and the direction; none of it is built yet. The user put stability before new features, so this file
 comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
 
-## Broken and hand-edited files
-
-- **Format versions.** `.kubriko/*.json` and Scene files carry no format version; compatibility lives in scattered lenient
-  serializers (`TimerNameSerializer`, old key names). A file written by a newer Creator fails to load or loses fields when saved by
-  an older one. Direction: a `formatVersion` in `.kubriko/project.json` (one number for the project's Creator files, raised only by
-  changes an older Creator can't read), migrations applied on load, and a project whose version is newer opened read-only: a
-  notice says which Creator version it needs, every `WriteCommand` is rejected with the same message, and nothing regenerates code,
-  syncs the build files, or offers a template upgrade, while browsing, building, and playing still work. Lands before the first
-  public release, since every project made before it is unversioned and counts as version 0.
-
 ## Undo history
 
 - **Undoing can fail on data that is valid to keep.** Blocks and Events keep references to deleted types, Scenes, and sounds (they
@@ -79,7 +69,7 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
   Manager hides `Manager.scope`; adding a Property `score` later silently renames the field, breaking Kotlin Blocks that say
   `score.value`. Direction: always name the field `<name>Manager` (`scoreManager`), whatever the type's Properties, and reserve
   Property names ending in `Manager` (`PropertyNaming`) so nothing can clash with it. Kotlin Blocks and Kotlin UI name these fields,
-  so the change is a format migration (Format versions above) that renames them through `KotlinIdentifiers`, as Manager renames do.
+  so the change is a format migration (a `FormatMigration`, the first to raise the format version) that renames them through `KotlinIdentifiers`, as Manager renames do.
 
 ## Scene editor
 

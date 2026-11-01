@@ -20,6 +20,11 @@ internal enum class ProjectChange {
     BLOCK_TYPE_DEFINITIONS,
 
     /**
+     * `.kubriko/project.json`.
+     */
+    SETTINGS,
+
+    /**
      * Scene files.
      */
     SCENES,

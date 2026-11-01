@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -87,6 +88,7 @@ internal class ProjectWatcher(
 
         internal fun areaOf(path: String) = when {
             path.endsWith(ATOMIC_WRITE_SUFFIX) -> null
+            path == BlockTypeStore.SETTINGS_FILE -> ProjectChange.SETTINGS
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
             path.startsWith("src/") || "/src/" in path -> ProjectChange.SOURCES

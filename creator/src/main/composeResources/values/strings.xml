@@ -48,6 +48,10 @@
     <string name="resource_group_music">Music</string>
     <string name="resource_group_kotlin">Kotlin files</string>
     <string name="resource_group_empty">Nothing here yet.</string>
+    <string name="error_project_newer_format">This project was saved by Kubriko Creator %1$s or newer, so this one can only browse, build, and play it. Open it in that version to change it.</string>
+    <string name="error_project_newer_format_unknown_version">This project was saved by a newer Kubriko Creator, so this one can only browse, build, and play it. Open it in a newer version to change it.</string>
+    <string name="error_project_format_not_upgraded_on_open">Kubriko Creator couldn't bring this project's files up to its format, since one of them couldn't be written.</string>
+    <string name="error_project_format_not_upgraded">Kubriko Creator couldn't bring this project's files up to its format: %1$s</string>
     <string name="project_upgrade_notice">This project was made by an older Kubriko Creator, and its template files need a few small changes for what this version generates.</string>
     <string name="project_upgrade_title">Upgrade the template files</string>
     <string name="project_upgrade_message">These files belong to you, so nothing changes until you apply this. Commit first to be able to go back with version control.</string>

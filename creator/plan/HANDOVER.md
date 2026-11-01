@@ -26,7 +26,7 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`14-stability.md`, from its first item (now Format versions), since the user put stability before new features. Its unreadable type file, crash-safe write, type file name, and leftover generated file items were built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
+`14-stability.md`, from its first item (now Undo history), since the user put stability before new features. Its unreadable type file, crash-safe write, type file name, leftover generated file, and format version items were built on 2026-11-01. Then `02-ai-assistant.md` → Order: the panel's tool call cards tied into the activity view (7), together with the five "First" items of
 its Context for large games, then the files in order, with the rest of `02-ai-assistant.md` alongside them. Signing in (4) was
 built on 2026-10-29 and seen in the app on the scratch Breakout copy: the account menu showed "Claude Max (email)" for
 `claude-personal` and "Not signed in" for a signed-out configuration, the sign-in card listed Claude Subscription and Anthropic
@@ -37,6 +37,10 @@ code field, Close ended it, and the API key form opened and cancelled. What is l
 ## To check by hand
 
 **Unreadable type files, crash-safe writes, and leftover generated files (built and unit-tested on 2026-11-01, not yet seen in the app)**
+- A scratch copy whose `.kubriko/project.json` says `"formatVersion": 99, "minimumCreatorVersion": "9.0.0"`, at opening and set
+  while open: the red notice names 9.0.0, every change (an inspector edit, a palette drop, the AI's tools, undo) is rejected in the
+  console with the same text, no code is regenerated and no upgrade is offered, and building and playing still work. Setting it back
+  to 0 lifts it without reopening. Dragging an Actor there moves it on screen only (the Scene editor's known mismatch).
 - A broken `.kubriko/actors/*.json` in the scratch copy, at opening and while open: the console names the file and why, the
   other types load, building and playing still work (on the code generated before), closing the window works, and fixing the
   file says the code is up to date again and regenerates it.

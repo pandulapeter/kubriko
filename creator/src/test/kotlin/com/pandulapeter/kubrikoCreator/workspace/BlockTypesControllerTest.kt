@@ -94,15 +94,15 @@ class BlockTypesControllerTest {
         val controller = createController(repository)
         repository.removedLeftovers = listOf("generated/Ball.kt")
         repository.leftoversChangedByHand = setOf("generated/Brick.kt")
-        controller.onScenesChanged()
+        controller.regenerate()
         repository.removedLeftovers = emptyList()
-        controller.onScenesChanged()
+        controller.regenerate()
         repository.leftoversChangedByHand = setOf("generated/Brick.kt", "generated/Bat.kt")
-        controller.onScenesChanged()
+        controller.regenerate()
         repository.leftoversChangedByHand = emptySet()
-        controller.onScenesChanged()
+        controller.regenerate()
         repository.leftoversChangedByHand = setOf("generated/Brick.kt")
-        controller.onScenesChanged()
+        controller.regenerate()
         assertEquals(listOf(listOf("generated/Ball.kt")), removedLeftoverReports)
         assertEquals(listOf("generated/Brick.kt", "generated/Bat.kt", "generated/Brick.kt"), leftoverChangedByHandReports)
     }
@@ -111,7 +111,7 @@ class BlockTypesControllerTest {
     fun regeneratingForChangedScenesSaysTheTypesDidNotChange() = runTest {
         val controller = createController(FakeBlockTypeRepository(listOf(wall)))
         controller.put(ball)
-        controller.onScenesChanged()
+        controller.regenerate()
         assertEquals(listOf(true, false), savedTypeChanges.takeLast(2))
     }
 

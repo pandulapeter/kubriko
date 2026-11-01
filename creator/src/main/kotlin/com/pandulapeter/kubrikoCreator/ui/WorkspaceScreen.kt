@@ -51,6 +51,7 @@ import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
+import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
@@ -64,6 +65,7 @@ import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
+import com.pandulapeter.kubrikoCreator.workspace.toRejection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.project_upgrade_commit_message
 import kubriko.creator.generated.resources.scene_preparing
@@ -95,6 +97,7 @@ internal fun WorkspaceScreen(
     val latestAiStep = aiSteps.lastOrNull()
     var isFollowingAi by remember { mutableStateOf(true) }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
+    val readOnlyReason = (controller.formatStatus.collectAsState().value as? ProjectFormatStatus.ReadOnly)?.toRejection()
     var isUpgradeNoticeDismissed by remember { mutableStateOf(false) }
     val sidebarDragState = rememberSidebarDragState(controller)
     val folderTreeActions = rememberFolderTreeActions(controller)
@@ -168,6 +171,7 @@ internal fun WorkspaceScreen(
                 onFollowingChange = { isFollowingAi = it },
                 onClick = { openPanel = SidePanel.AI_CONNECTION },
             )
+            readOnlyReason?.let { ReadOnlyProjectNotice(reason = it) }
             if (projectUpgrade != null && !isUpgradeNoticeDismissed) {
                 ProjectUpgradeNotice(
                     onReview = { isReviewingUpgrade = true },

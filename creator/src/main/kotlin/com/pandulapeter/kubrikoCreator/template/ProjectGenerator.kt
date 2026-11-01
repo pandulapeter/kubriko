@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
+import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_project_not_created
@@ -79,6 +80,7 @@ internal class ProjectGenerator(
         "PROJECT_ID" to request.projectId,
         "PACKAGE" to request.packageName,
         "KUBRIKO_VERSION" to configuration.kubrikoVersion,
+        "FORMAT_VERSION" to ProjectFormat.CURRENT_VERSION.toString(),
         "KOTLIN_VERSION" to configuration.kotlinVersion,
         "COMPOSE_VERSION" to configuration.composeVersion,
         "EXTRA_REPOSITORIES" to if (configuration.useMavenLocal) KubrikoBuildFiles.MAVEN_LOCAL_REPOSITORY else "",

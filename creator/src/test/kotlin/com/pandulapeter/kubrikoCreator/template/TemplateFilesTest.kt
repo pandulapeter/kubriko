@@ -21,6 +21,7 @@ class TemplateFilesTest {
         "PROJECT_ID" to "my-game",
         "PACKAGE" to "com.example.mygame",
         "KUBRIKO_VERSION" to "1.0.0",
+        "FORMAT_VERSION" to "0",
         "KOTLIN_VERSION" to "2.4.21",
         "COMPOSE_VERSION" to "1.12.1",
         "EXTRA_REPOSITORIES" to "",

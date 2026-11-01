@@ -44,7 +44,8 @@ import kotlinx.coroutines.withContext
  * batch, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code.
  *
  * While a definition file can't be read, the code isn't regenerated, nor are the build files synced, since code generated
- * without that type would break the build; the file is never written over or deleted.
+ * without that type would break the build; the file is never written over or deleted. Neither happens while [isReadOnly]
+ * either: the project was saved by a newer Kubriko Creator, whose code this one would generate wrongly.
  *
  * @param onSaved Called after each batch, with whether the types changed, rather than only the Scenes they were
  *   regenerated for.
@@ -67,6 +68,7 @@ internal class BlockTypesController(
     private val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
     private val writeDelayInMilliseconds: Long = 0,
+    private val isReadOnly: () -> Boolean = { false },
 ) {
     private val _types = MutableStateFlow(emptyList<BlockTypeDefinition>())
 
@@ -226,10 +228,10 @@ internal class BlockTypesController(
     fun discardChangesMadeByHand(name: String) = queue(PendingWrite.Overwrite(name))
 
     /**
-     * Brings the generated code in line with the project's Scenes after they changed, since a Scene's music decides
-     * whether the game plays audio.
+     * Brings the generated code in line with the types and the project's Scenes: after the Scenes changed, since a Scene's
+     * music decides whether the game plays audio, and once the project may be changed again.
      */
-    fun onScenesChanged() = queue(PendingWrite.Regenerate, haveTypesChanged = false)
+    fun regenerate() = queue(PendingWrite.Regenerate, haveTypesChanged = false)
 
     /**
      * Reads the definitions again after they changed outside Kubriko Creator (in IntelliJ, or through git), unless one
@@ -290,7 +292,7 @@ internal class BlockTypesController(
         val haveTypesChanged = havePendingTypesChanged
         havePendingTypesChanged = false
         val types = _types.value
-        val canRegenerate = _unreadableFiles.value.isEmpty()
+        val canRegenerate = _unreadableFiles.value.isEmpty() && !isReadOnly()
         var buildFileChanges: KubrikoBuildFileChanges? = null
         val regenerated = try {
             withContext(ioDispatcher) {

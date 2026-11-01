@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
@@ -25,7 +26,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_not_a_gradle_project
+import kubriko.creator.generated.resources.error_project_format_not_upgraded_on_open
 import java.io.File
+import java.io.IOException
 
 /**
  * Opens a workspace through the project's own Gradle build, without waiting for Gradle: only the project's files are
@@ -39,8 +42,14 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
         if (!withContext(Dispatchers.IO) { ProjectInspector.isGradleProject(directory) }) throw ProjectInspectionException(Res.string.error_not_a_gradle_project)
         val project = withContext(Dispatchers.IO) { CreatorProject(rootDirectory = directory, name = ProjectInspector.nameOf(directory)) }
         val ownWrites = OwnWrites()
-        val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory, ownWrites) }
         val configuration = CreatorConfiguration.load()
+        val projectFormat = ProjectFormat(directory, configuration.kubrikoVersion)
+        val formatStatus = try {
+            withContext(Dispatchers.IO) { projectFormat.prepare() }
+        } catch (_: IOException) {
+            throw ProjectInspectionException(Res.string.error_project_format_not_upgraded_on_open)
+        }
+        val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory, ownWrites) }
         val connection = GradleProjectConnection(directory)
         return WorkspaceController(
             project = project,
@@ -52,6 +61,8 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
             blockTypeRepository = blockTypeStore,
             syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
             creatorKubrikoVersion = configuration.kubrikoVersion,
+            initialFormatStatus = formatStatus,
+            projectFormat = projectFormat,
             generatedPath = blockTypeStore?.generatedPath,
             writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
             ownWrites = ownWrites,

@@ -30,6 +30,8 @@ import com.pandulapeter.kubrikoCreator.project.ExpectDeclarations
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
+import com.pandulapeter.kubrikoCreator.project.ProjectFormat
+import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -57,6 +59,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_project_format_not_upgraded
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_generated_leftover_changed_by_hand
 import kubriko.creator.generated.resources.status_generated_leftovers_removed
@@ -68,10 +71,14 @@ import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_type_files_readable_again
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Holds the state of an open project: its resources, its console, and the session process that runs or edits it.
+ *
+ * @param initialFormatStatus Whether the project may be changed, as [projectFormat] found it while opening it, which it
+ *   checks again whenever `.kubriko/project.json` changes.
  */
 internal class WorkspaceController(
     val project: CreatorProject,
@@ -87,6 +94,8 @@ internal class WorkspaceController(
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     val creatorKubrikoVersion: String = "",
+    initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
+    private val projectFormat: ProjectFormat = ProjectFormat(project.rootDirectory, creatorKubrikoVersion),
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
     startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
     generatedPath: String? = null,
@@ -125,6 +134,13 @@ internal class WorkspaceController(
         awaitWrites = { blockTypes?.awaitWrites() },
         currentTimeMillis = currentTimeMillis,
     )
+    private val _formatStatus = MutableStateFlow(initialFormatStatus)
+
+    /**
+     * Whether this Kubriko Creator may change the project: one saved by a newer Kubriko Creator is only browsed, built,
+     * and played, rejecting every change, and generating no code.
+     */
+    val formatStatus = _formatStatus.asStateFlow()
 
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     val console = consoleLog.entries
@@ -194,6 +210,7 @@ internal class WorkspaceController(
             syncBuildFiles = syncBuildFiles,
             onBuildFilesSynced = ::reportBuildFileChanges,
             writeDelayInMilliseconds = writeDelayInMilliseconds,
+            isReadOnly = { _formatStatus.value is ProjectFormatStatus.ReadOnly },
         )
     }
 
@@ -271,7 +288,7 @@ internal class WorkspaceController(
             onScenesChanged = { names ->
                 refreshResources()
                 sceneEditing.onScenesChanged(names)
-                blockTypes?.onScenesChanged()
+                blockTypes?.regenerate()
                 gameBuilds.onCodeChanged()
             },
             onSceneRenamed = { oldName, newName ->
@@ -283,6 +300,7 @@ internal class WorkspaceController(
         ),
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
+        rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
     )
 
     private val upgrader = ProjectUpgrader(project.rootDirectory)
@@ -310,13 +328,14 @@ internal class WorkspaceController(
      * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them.
      */
     fun onProjectChanged(changes: Set<ProjectChange>) {
+        if (ProjectChange.SETTINGS in changes) refreshFormatStatus()
         if (ProjectChange.BLOCK_TYPE_DEFINITIONS in changes) blockTypes?.reloadFromDisk()
         if (ProjectChange.SOURCES in changes) {
             sceneEditing.markOutdated()
             refreshProjectUpgrade()
         }
         if (ProjectChange.SCENES in changes) {
-            blockTypes?.onScenesChanged()
+            blockTypes?.regenerate()
             sceneEditing.onScenesChangedOnDisk()
         }
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
@@ -327,13 +346,40 @@ internal class WorkspaceController(
     }
 
     /**
-     * Checks the template files again, recording the new template version if they were upgraded by hand.
+     * Checks the template files again, recording the new template version if they were upgraded by hand. A project that
+     * may not be changed is offered no upgrade.
      */
     fun refreshProjectUpgrade() {
         scope.launch {
             _projectUpgrade.value = withContext(ioDispatcher) {
-                upgrader.recordVersionIfUpToDate()
-                upgrader.check()
+                if (_formatStatus.value is ProjectFormatStatus.ReadOnly) {
+                    TemplateUpgrade.UpToDate
+                } else {
+                    upgrader.recordVersionIfUpToDate()
+                    upgrader.check()
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks the project's format version again after `.kubriko/project.json` changed (a git checkout of a branch a newer
+     * Kubriko Creator saved, for example), migrating an older one; the files a migration rewrites are then reloaded as
+     * any other change on disk.
+     */
+    private fun refreshFormatStatus() {
+        scope.launch {
+            val status = try {
+                withContext(ioDispatcher) { projectFormat.prepare() }
+            } catch (exception: IOException) {
+                appendToConsole(ConsoleEntry.Status(Res.string.error_project_format_not_upgraded, isError = true, arguments = listOf(exception.message ?: exception.toString())))
+                return@launch
+            }
+            val previous = _formatStatus.value
+            _formatStatus.value = status
+            if (status != previous) {
+                refreshProjectUpgrade()
+                if (status == ProjectFormatStatus.Writable) blockTypes?.regenerate()
             }
         }
     }

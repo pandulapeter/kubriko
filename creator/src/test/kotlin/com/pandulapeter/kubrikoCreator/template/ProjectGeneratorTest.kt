@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
+import com.pandulapeter.kubrikoCreator.project.ProjectFormat
+import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_project_not_created
@@ -136,6 +138,8 @@ class ProjectGeneratorTest {
             File(directory, "src/desktopMain/resources/META-INF/services/com.pandulapeter.kubriko.creator.CreatorEntryPoint").readText().trim(),
         )
         assertTrue("kubriko = \"1.0.0\"" in File(directory, "gradle/libs.versions.toml").readText())
+        assertEquals(ProjectFormatStatus.Writable, ProjectFormat(directory, creatorVersion = "1.0.0").prepare())
+        assertTrue("\"formatVersion\": ${ProjectFormat.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
     }
 
     @Test

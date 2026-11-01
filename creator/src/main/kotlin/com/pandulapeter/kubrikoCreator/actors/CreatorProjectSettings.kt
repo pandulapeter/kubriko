@@ -21,10 +21,15 @@ import kotlinx.serialization.Serializable
  * @param templateVersion The version of the template files (`Game.kt` and its neighbors) the project has, which Kubriko
  *   Creator offers to bring up to date when it needs something newer (`template/ProjectUpgrader`). Projects from before
  *   it was recorded have version 1.
+ * @param formatVersion The format version of the project's Kubriko Creator files (`project/ProjectFormat`), which
+ *   decides whether this Kubriko Creator may change them. Projects from before it was recorded have version 0.
+ * @param minimumCreatorVersion The version of the Kubriko Creator that raised [formatVersion] last, which reads the project.
  */
 @Serializable
 internal data class CreatorProjectSettings(
     @SerialName("packageName") val packageName: String,
     @SerialName("sourceDirectory") val sourceDirectory: String = "src/commonMain/kotlin",
     @SerialName("templateVersion") val templateVersion: Int = 1,
+    @SerialName("formatVersion") val formatVersion: Int = 0,
+    @SerialName("minimumCreatorVersion") val minimumCreatorVersion: String? = null,
 )

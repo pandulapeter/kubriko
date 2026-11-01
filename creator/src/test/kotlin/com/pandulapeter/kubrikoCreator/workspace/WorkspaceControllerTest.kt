@@ -19,6 +19,8 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
+import com.pandulapeter.kubrikoCreator.project.ProjectFormat
+import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -57,6 +59,8 @@ import kubriko.creator.generated.resources.error_game_no_answer
 import kubriko.creator.generated.resources.error_game_not_running
 import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_no_desktop_module
+import kubriko.creator.generated.resources.error_project_newer_format
+import kubriko.creator.generated.resources.error_project_newer_format_unknown_version
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.status_actor_type_not_saved
@@ -104,6 +108,7 @@ class WorkspaceControllerTest {
         rootDirectory: File = this@WorkspaceControllerTest.rootDirectory,
         entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
         runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
+        initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -119,6 +124,7 @@ class WorkspaceControllerTest {
             creatorKubrikoVersion = CREATOR_KUBRIKO_VERSION,
             entryPointLoader = entryPointLoader,
             runGame = runGame,
+            initialFormatStatus = initialFormatStatus,
         )
     }
 
@@ -777,6 +783,45 @@ class WorkspaceControllerTest {
             controller.onProjectChanged(setOf(ProjectChange.SOURCES))
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
             assertTrue("\"templateVersion\": 7" in File(root, ".kubriko/project.json").readText())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun aProjectSavedByANewerCreatorIsOnlyBrowsedUntilItsFormatIsOneThisCreatorWrites() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            val settingsFile = File(root, ".kubriko/project.json").apply { parentFile.mkdirs() }
+            settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": 99, "minimumCreatorVersion": "9.0.0" }""")
+            val repository = FakeBlockTypeRepository()
+            val controller = createController(blockTypeRepository = repository, rootDirectory = root, initialFormatStatus = ProjectFormatStatus.ReadOnly(99, "9.0.0"))
+            controller.onProjectChanged(setOf(ProjectChange.SCENES))
+            assertEquals(emptyList(), repository.writes)
+            assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
+            assertEquals(Res.string.error_project_newer_format, controller.createActorType("Ball"))
+            settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": ${ProjectFormat.CURRENT_VERSION} }""")
+            controller.onProjectChanged(setOf(ProjectChange.SETTINGS))
+            assertEquals(ProjectFormatStatus.Writable, controller.formatStatus.value)
+            assertEquals(listOf("regenerate"), repository.writes)
+            assertIs<TemplateUpgrade.Needed>(controller.projectUpgrade.value)
+            assertNull(controller.createActorType("Ball"))
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun aProjectCheckedOutAtANewerFormatWhileOpenStopsBeingChanged() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            val settingsFile = File(root, ".kubriko/project.json").apply { parentFile.mkdirs() }
+            settingsFile.writeText("""{ "packageName": "com.example.game" }""")
+            val controller = createController(blockTypeRepository = FakeBlockTypeRepository(), rootDirectory = root)
+            settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": 99 }""")
+            controller.onProjectChanged(setOf(ProjectChange.SETTINGS))
+            assertEquals(ProjectFormatStatus.ReadOnly(99, null), controller.formatStatus.value)
+            assertEquals(Res.string.error_project_newer_format_unknown_version, controller.createScene("level"))
         } finally {
             root.deleteRecursively()
         }
