@@ -87,6 +87,10 @@
     <string name="status_built">Built in %1$s seconds.</string>
     <string name="status_actor_type_not_saved">An Actor type couldn't be saved.</string>
     <string name="status_type_file_unreadable">Kubriko Creator couldn't read %1$s, so that type is left out and no code is generated until the file is fixed: %2$s</string>
+    <string name="status_type_file_name_mismatch">%1$s holds a type named %2$s rather than after the file, so that type is left out and no code is generated until the two names match.</string>
+    <string name="status_type_file_name_invalid">%1$s holds a type named %2$s, which can't be a type's name (it starts with an uppercase letter and uses only letters and numbers), so that type is left out and no code is generated until it is renamed.</string>
+    <string name="status_type_file_name_reserved">%1$s holds a type named %2$s, a name Kubriko itself uses, so that type is left out and no code is generated until it is renamed.</string>
+    <string name="status_type_file_name_duplicate">%1$s holds a type of the same name as %2$s, so those types are left out and no code is generated until all but one are renamed or removed.</string>
     <string name="status_type_files_readable_again">Every type file can be read again, so the generated code is up to date again.</string>
     <string name="status_kubriko_version_changed">The project now uses Kubriko %1$s, the version of this Kubriko Creator, instead of %2$s.</string>
     <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes can't be edited until Kubriko Creator is updated.</string>

@@ -39,20 +39,36 @@ internal class BlockTypeStore private constructor(
     private var unreadableFiles = emptySet<File>()
 
     override fun load(): LoadedBlockTypes {
-        val types = ArrayList<BlockTypeDefinition>()
+        val readable = ArrayList<Pair<String, BlockTypeDefinition>>()
         val unreadable = ArrayList<UnreadableBlockTypeFile>()
-        val unreadableFiles = HashSet<File>()
         BlockTypeKind.entries.forEach { kind ->
             definitionFiles(kind).forEach { file ->
-                try {
-                    types += decode(kind, file.readText()).withFolder(folderOf(kind, file))
+                val path = file.relativeTo(rootDirectory).invariantSeparatorsPath
+                val definition = try {
+                    decode(kind, file.readText()).withFolder(folderOf(kind, file))
                 } catch (exception: Exception) {
-                    unreadable += UnreadableBlockTypeFile(file.relativeTo(rootDirectory).invariantSeparatorsPath, reasonOf(exception))
-                    unreadableFiles += file
+                    unreadable += UnreadableBlockTypeFile(path, BlockTypeFileProblem.Unparsable(reasonOf(exception)))
+                    return@forEach
                 }
+                when {
+                    definition.name != file.nameWithoutExtension -> BlockTypeFileProblem.NameMismatch(definition.name)
+                    !BlockTypeNaming.isWellFormed(definition.name) -> BlockTypeFileProblem.InvalidName(definition.name)
+                    BlockTypeNaming.isReserved(definition.name) -> BlockTypeFileProblem.ReservedName(definition.name)
+                    else -> null
+                }?.let { unreadable += UnreadableBlockTypeFile(path, it) } ?: run { readable += path to definition }
             }
         }
-        this.unreadableFiles = unreadableFiles
+        val pathsByName = readable.groupBy({ it.second.name.lowercase() }, { it.first })
+        val types = readable.mapNotNull { (path, definition) ->
+            val paths = pathsByName.getValue(definition.name.lowercase())
+            if (paths.size == 1) {
+                definition
+            } else {
+                unreadable += UnreadableBlockTypeFile(path, BlockTypeFileProblem.DuplicateName((paths - path).sorted()))
+                null
+            }
+        }
+        unreadableFiles = unreadable.mapTo(HashSet()) { File(rootDirectory, it.path) }
         return LoadedBlockTypes(types.sortedBy { it.name }, unreadable.sortedBy { it.path })
     }
 

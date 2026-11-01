@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -42,7 +43,7 @@ class BlockTypesControllerTest {
     private var failedCount = 0
     private val unreadableReports = mutableListOf<String>()
     private var readableAgainCount = 0
-    private val brokenFile = UnreadableBlockTypeFile(".kubriko/actors/Brick.json", "Unexpected JSON token at offset 12")
+    private val brokenFile = UnreadableBlockTypeFile(".kubriko/actors/Brick.json", BlockTypeFileProblem.Unparsable("Unexpected JSON token at offset 12"))
 
     private fun TestScope.createController(
         repository: FakeBlockTypeRepository,
@@ -276,6 +277,7 @@ class BlockTypesControllerTest {
         controller.awaitWrites()
         assertEquals(listOf(ball), controller.types.value)
         assertEquals(listOf(brokenFile), controller.unreadableFiles.value)
+        assertEquals(listOf("Ball", "Brick"), controller.takenNames)
         controller.put(ball.copy(width = 5f))
         controller.awaitWrites()
         assertEquals(listOf("save Ball"), repository.writes)

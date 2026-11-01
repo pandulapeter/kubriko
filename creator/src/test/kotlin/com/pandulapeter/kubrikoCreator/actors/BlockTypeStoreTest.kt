@@ -342,7 +342,58 @@ class BlockTypeStoreTest {
         val loaded = store.load()
         assertEquals(listOf(ball), loaded.types)
         assertEquals(listOf(".kubriko/actors/bricks/Brick.json", ".kubriko/managers/Game.json"), loaded.unreadableFiles.map { it.path })
-        assertTrue(loaded.unreadableFiles.all { it.reason.isNotBlank() && '\n' !in it.reason })
+        assertTrue(loaded.unreadableFiles.all { (it.problem as BlockTypeFileProblem.Unparsable).message.let { message -> message.isNotBlank() && '\n' !in message } })
+    }
+
+    @Test
+    fun aTypeNamedOtherThanItsFileIsReportedRatherThanLoaded() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball)
+        File(root, ".kubriko/actors/Ball.json").renameTo(File(root, ".kubriko/actors/Puck.json"))
+        val loaded = store.load()
+        assertEquals(emptyList(), loaded.types)
+        assertEquals(listOf(UnreadableBlockTypeFile(".kubriko/actors/Puck.json", BlockTypeFileProblem.NameMismatch("Ball"))), loaded.unreadableFiles)
+        assertEquals("Puck", loaded.unreadableFiles.single().name)
+    }
+
+    @Test
+    fun namesThatCantBeClassNamesAreReported() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        File(root, ".kubriko/actors/my enemy.json").apply { parentFile.mkdirs() }.writeText("""{ "name": "my enemy" }""")
+        File(root, ".kubriko/managers/Color.json").apply { parentFile.mkdirs() }.writeText("""{ "name": "Color" }""")
+        assertEquals(
+            listOf(
+                UnreadableBlockTypeFile(".kubriko/actors/my enemy.json", BlockTypeFileProblem.InvalidName("my enemy")),
+                UnreadableBlockTypeFile(".kubriko/managers/Color.json", BlockTypeFileProblem.ReservedName("Color")),
+            ),
+            store.load().unreadableFiles,
+        )
+    }
+
+    @Test
+    fun typesOfOneNameAreAllReportedAndNoneIsDeletedBySaving() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball)
+        File(root, ".kubriko/actors/Ball.json").copyTo(File(root, ".kubriko/actors/toys/Ball.json"))
+        File(root, ".kubriko/managers/BALL.json").apply { parentFile.mkdirs() }.writeText("""{ "name": "BALL" }""")
+        val wall = ActorTypeDefinition(name = "Wall")
+        store.save(wall)
+        val loaded = store.load()
+        assertEquals(listOf(wall), loaded.types)
+        assertEquals(
+            listOf(
+                UnreadableBlockTypeFile(".kubriko/actors/Ball.json", BlockTypeFileProblem.DuplicateName(listOf(".kubriko/actors/toys/Ball.json", ".kubriko/managers/BALL.json"))),
+                UnreadableBlockTypeFile(".kubriko/actors/toys/Ball.json", BlockTypeFileProblem.DuplicateName(listOf(".kubriko/actors/Ball.json", ".kubriko/managers/BALL.json"))),
+                UnreadableBlockTypeFile(".kubriko/managers/BALL.json", BlockTypeFileProblem.DuplicateName(listOf(".kubriko/actors/Ball.json", ".kubriko/actors/toys/Ball.json"))),
+            ),
+            loaded.unreadableFiles,
+        )
+        store.save(wall.withFolder("walls"))
+        assertTrue(File(root, ".kubriko/actors/toys/Ball.json").isFile)
+        assertTrue(File(root, ".kubriko/actors/Ball.json").isFile)
     }
 
     @Test

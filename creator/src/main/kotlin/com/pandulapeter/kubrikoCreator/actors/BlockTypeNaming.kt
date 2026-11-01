@@ -46,12 +46,22 @@ internal object BlockTypeNaming {
     )
 
     /**
+     * Whether [name] can be a Kotlin class name the way a type's name has to be.
+     */
+    fun isWellFormed(name: String) = namePattern.matches(name)
+
+    /**
+     * Whether [name] is used by Kubriko or by the code Kubriko Creator generates, so a type of that name wouldn't compile.
+     */
+    fun isReserved(name: String) = name in reservedNames
+
+    /**
      * Why [name] can't be a new Actor type's or Manager type's name, or null if it can. Names that differ only in case
      * are taken too, since they would clash on case-insensitive file systems.
      */
     fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
-        !namePattern.matches(name) -> Res.string.error_type_name_invalid
-        name in reservedNames -> Res.string.error_type_name_reserved
+        !isWellFormed(name) -> Res.string.error_type_name_invalid
+        isReserved(name) -> Res.string.error_type_name_reserved
         name.endsWith(BASE_SUFFIX) -> Res.string.error_type_name_base_suffix
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_type_name_taken
         else -> null

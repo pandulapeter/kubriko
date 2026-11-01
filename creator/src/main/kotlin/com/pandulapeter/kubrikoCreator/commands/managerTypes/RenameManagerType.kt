@@ -35,7 +35,7 @@ internal object RenameManagerType : WriteCommand<RenameManagerType.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(if (context.blockTypes?.managerType(input.newName) != null) input.newName else input.managerType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateManagerType(input.managerType)
-        ?: BlockTypeNaming.validate(input.newName, context.requireBlockTypes.types.value.map { it.name })?.let(::Rejection)
+        ?: BlockTypeNaming.validate(input.newName, context.requireBlockTypes.takenNames)?.let(::Rejection)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.requireBlockTypes.rename(input.managerType, input.newName)

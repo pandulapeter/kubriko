@@ -15,12 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Broken and hand-edited files
 
-- **Names in type files are trusted.** A type's name comes from its JSON, not its file name, and isn't validated on load. `Foo.json`
-  holding `"name": "Bar"` is saved as `Bar.json` beside it (two `Bar`s on the next load); `"name": "my enemy"` generates
-  `class my enemy`; and two files of one name in different folders (a copy, a merge) both load, the registry lists the type twice,
-  and saving either one deletes the other (`BlockTypeStore.save`, which removes same-named files in other folders). Direction: on
-  load, take the name from the file name (or report a mismatch), report names `BlockTypeNaming` refuses, and report duplicates
-  without loading either rather than deleting one.
 - **Generated files of types deleted outside Creator stay.** Only `delete(name)` removes a generated file; a type removed by a git
   checkout, IntelliJ, or the file manager leaves its `generated/<Name>.kt`, which still names other types and Managers and breaks the
   build once they change. Direction: after regenerating, delete generated files that are unchanged (`GeneratedFile.isUnchanged`), not

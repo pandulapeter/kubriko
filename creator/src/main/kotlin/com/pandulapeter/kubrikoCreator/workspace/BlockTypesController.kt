@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
@@ -114,7 +115,7 @@ internal class BlockTypesController(
                 setTypes(loaded.types)
             } catch (exception: Exception) {
                 if (exception is CancellationException) throw exception
-                setUnreadableFiles(listOf(UnreadableBlockTypeFile(BlockTypeStore.CREATOR_DIRECTORY, exception.message ?: exception.toString())))
+                setUnreadableFiles(listOf(UnreadableBlockTypeFile(BlockTypeStore.CREATOR_DIRECTORY, BlockTypeFileProblem.Unparsable(exception.message ?: exception.toString()))))
             }
             for (request in writeRequests) {
                 delay(writeDelayInMilliseconds)
@@ -133,6 +134,12 @@ internal class BlockTypesController(
     fun select(name: String?) {
         _selectedName.value = name
     }
+
+    /**
+     * The names no new type may have: every type's, and those of the files that couldn't be read, which would clash with
+     * it once fixed.
+     */
+    val takenNames get() = _types.value.map { it.name } + _unreadableFiles.value.map { it.name }
 
     /**
      * The Actor type or Manager type called [name].

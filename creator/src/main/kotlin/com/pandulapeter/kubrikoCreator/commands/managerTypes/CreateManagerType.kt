@@ -38,7 +38,7 @@ internal object CreateManagerType : WriteCommand<ManagerTypeDefinition> {
 
     override fun validate(context: CommandContext, input: ManagerTypeDefinition): Rejection? {
         val types = context.blockTypes ?: return Rejection(Res.string.error_command_no_actor_types)
-        return BlockTypeNaming.validate(input.name, types.types.value.map { it.name })?.let(::Rejection)
+        return BlockTypeNaming.validate(input.name, types.takenNames)?.let(::Rejection)
             ?: input.validateContents(types.actorTypes.value.map { it.name }, types.managerTypes.value)
     }
 

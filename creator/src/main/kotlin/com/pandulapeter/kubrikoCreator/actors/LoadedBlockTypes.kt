@@ -18,12 +18,47 @@ internal data class LoadedBlockTypes(
 )
 
 /**
- * A type definition that couldn't be read (a merge conflict, a crash mid-write, or a typo in a hand edit).
+ * A type definition that couldn't be read (a merge conflict, a crash mid-write, or a hand edit) or can't be used as it is.
  *
  * @param path The file's path, relative to the project root.
- * @param reason Why it couldn't be read, on one line.
  */
 internal data class UnreadableBlockTypeFile(
     val path: String,
-    val reason: String,
-)
+    val problem: BlockTypeFileProblem,
+) {
+    /**
+     * The name the file gives its type, which stays taken while the file is unreadable.
+     */
+    val name get() = path.substringAfterLast('/').substringBeforeLast('.')
+}
+
+/**
+ * Why an [UnreadableBlockTypeFile] was left out.
+ */
+internal sealed interface BlockTypeFileProblem {
+
+    /**
+     * The file isn't a definition at all; [message] says why, on one line.
+     */
+    data class Unparsable(val message: String) : BlockTypeFileProblem
+
+    /**
+     * The type inside is called [name], which isn't the file's name.
+     */
+    data class NameMismatch(val name: String) : BlockTypeFileProblem
+
+    /**
+     * [name] can't be a Kotlin class name the way a type's name has to be.
+     */
+    data class InvalidName(val name: String) : BlockTypeFileProblem
+
+    /**
+     * [name] is used by Kubriko or by the code Kubriko Creator generates.
+     */
+    data class ReservedName(val name: String) : BlockTypeFileProblem
+
+    /**
+     * Other files, at [otherPaths], hold a type of the same name (ignoring case), so none of them is loaded.
+     */
+    data class DuplicateName(val otherPaths: List<String>) : BlockTypeFileProblem
+}
