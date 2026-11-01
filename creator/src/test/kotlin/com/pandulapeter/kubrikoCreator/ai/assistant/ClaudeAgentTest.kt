@@ -11,6 +11,10 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.GetBlockCatalog
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -32,22 +36,20 @@ class ClaudeAgentTest {
     @Test
     fun claudesConversationsAppendTheSystemPromptAndUseOnlyCreatorsToolsForChanges() {
         val meta = ClaudeAgentOptions.sessionMeta("Be helpful.")
-        assertEquals(
-            Json.parseToJsonElement(
-                """
-                {
-                  "systemPrompt": {"append": "Be helpful."},
-                  "claudeCode": {
-                    "options": {
-                      "disallowedTools": ["Bash", "Write", "Edit", "NotebookEdit"],
-                      "allowedTools": ["mcp__kubriko-creator"]
-                    }
-                  }
-                }
-                """,
-            ),
-            meta,
-        )
+        assertEquals(JsonPrimitive("Be helpful."), meta.getValue("systemPrompt").jsonObject.getValue("append"))
+        val options = meta.getValue("claudeCode").jsonObject.getValue("options").jsonObject
+        assertEquals(Json.parseToJsonElement("""["Bash", "Write", "Edit", "NotebookEdit"]"""), options.getValue("disallowedTools"))
+        assertEquals(Json.parseToJsonElement("""["mcp__kubriko-creator"]"""), options.getValue("allowedTools"))
+    }
+
+    @Test
+    fun claudeHasASubagentThatExploresTheGameWithReadToolsAlone() {
+        val explorer = ClaudeAgentOptions.sessionMeta("").getValue("claudeCode").jsonObject.getValue("options").jsonObject
+            .getValue("agents").jsonObject.getValue(ClaudeAgentOptions.EXPLORER_NAME).jsonObject
+        val tools = explorer.getValue("tools").jsonArray.map { it.jsonPrimitive.content }
+        assertContains(tools, "mcp__kubriko-creator__get_relations")
+        assertTrue(tools.none { it.endsWith("__add_block") || it.endsWith("__start_game") })
+        assertTrue(explorer.getValue("description").jsonPrimitive.content.isNotBlank())
     }
 
     @Test

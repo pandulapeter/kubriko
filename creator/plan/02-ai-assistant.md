@@ -163,16 +163,14 @@ understand the game is shown to the user too.
 - **A smaller tool list:** about 16,000 tokens (measured by `TokenBudgetTest`, November 2026) since the Block schema went to
   `get_block_catalog`: terser descriptions, related tools grouped (the single and batch Scene tools),
   and Claude Code's tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it.
-- **Exploring in subagents:** questions such as "which types change the score?" go to a subagent, defined through the session options
-  rather than files in the project, so the conversation's context stays clean.
 - **More health checks:** a Scene nothing goes to other than the first (needs the first Scene known from `Game.kt`), and the
   findings shown where their subject is edited, beside the map's list.
 - **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do, and
   `check_change` tries a change without making it).
 - **Cheaper screenshots:** cropped to an Actor (the region crop exists), and replaced by Actors' states from the debug agent
   (`09-debugger.md`) where those say enough.
-- **Planning first** for big requests, as a checklist the user approves (ACP `plan` updates), and model hints (a smaller model for
-  small edits) that the user decides on, since they pay.
+- **Planning first:** approving a plan from its checklist (an Approve button that answers the agent), rather than in a reply,
+  and model hints (a smaller model for small edits) that the user decides on, since they pay.
 
 ## Testing
 

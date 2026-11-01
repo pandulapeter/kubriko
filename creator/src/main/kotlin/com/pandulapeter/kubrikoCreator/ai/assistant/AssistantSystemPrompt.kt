@@ -35,6 +35,9 @@ internal object AssistantSystemPrompt {
         |The game's notes (AGENTS.md) keep its mechanics, naming, and decisions between conversations. When a conversation
         |settles something worth keeping, say what you would add and add it with set_game_notes; the user keeps or undoes it.
         |
+        |For a question that takes many reads, ask the ${ClaudeAgentOptions.EXPLORER_NAME} subagent where you have it. For a request
+        |that takes many changes, lay out a short plan first (your plan updates show as a checklist) and ask before going on.
+        |
         |The Block catalog, as get_block_catalog returns it:
         |${GetBlockCatalog.catalog}
         """.trimMargin()

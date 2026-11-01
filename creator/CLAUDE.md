@@ -463,8 +463,9 @@ system's `tar`, anything else taken as the program), once per version, removing 
 built-in agent is `RegistryAgent.claude` with `AgentProfile.claude` (the ACP Registry's `claude-acp`, run through the user's `npx` with its folder
 first on the `PATH`, and `CLAUDE_CONFIG_DIR` for a Claude Code configuration other than the default). Its conversations start with
 `ClaudeAgentOptions.sessionMeta`: `AssistantSystemPrompt` (Creator's MCP instructions, its terminology, and the Block catalog,
-under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `Edit`, and `NotebookEdit` disallowed, and
-`mcp__kubriko-creator` allowed without asking. `ClaudeAgentLiveTest` runs the real adapter when `KUBRIKO_CREATOR_CLAUDE_AGENT=true`
+under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `Edit`, and `NotebookEdit` disallowed,
+`mcp__kubriko-creator` allowed without asking, and a `game-explorer` subagent that answers questions about the game with Creator's
+read tools alone (`ClaudeAgentOptions.explorerTools`), which the system prompt points to along with planning big requests first. `ClaudeAgentLiveTest` runs the real adapter when `KUBRIKO_CREATOR_CLAUDE_AGENT=true`
 (`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks the configuration), on an existing login; it costs a request.
 
 **Signing in** never passes through Creator: the agent signs in by itself. `AcpAgent.signInMethods` are its `initialize` answer's
