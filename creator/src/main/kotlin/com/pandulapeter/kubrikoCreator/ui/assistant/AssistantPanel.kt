@@ -49,6 +49,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_conversation
 import kubriko.creator.generated.resources.action_install_node
+import kubriko.creator.generated.resources.action_install_uv
 import kubriko.creator.generated.resources.action_new_conversation
 import kubriko.creator.generated.resources.action_try_again
 import kubriko.creator.generated.resources.assistant_empty
@@ -322,6 +323,11 @@ private fun Failure(
             Text(stringResource(Res.string.action_install_node))
         }
     }
+    if (state.reason == FailureReason.UV_MISSING) {
+        TextButton(onClick = { openInBrowser(UV_INSTALL_URL) }) {
+            Text(stringResource(Res.string.action_install_uv))
+        }
+    }
     onTryAgain?.let { tryAgain ->
         FilledTonalButton(onClick = tryAgain) {
             Text(stringResource(Res.string.action_try_again))
@@ -346,6 +352,7 @@ internal fun conversationTitle(firstMessage: String): String {
 private const val TITLE_LENGTH = 40
 private const val ELLIPSIS = "…"
 private const val NODE_DOWNLOAD_URL = "https://nodejs.org/en/download"
+private const val UV_INSTALL_URL = "https://docs.astral.sh/uv/getting-started/installation/"
 
 /**
  * How often a streaming reply is drawn again at most, rather than for each chunk.

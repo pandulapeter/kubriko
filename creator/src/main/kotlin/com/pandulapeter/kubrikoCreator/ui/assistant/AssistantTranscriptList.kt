@@ -59,6 +59,7 @@ import kubriko.creator.generated.resources.assistant_failure_auth_required
 import kubriko.creator.generated.resources.assistant_failure_conversation_lost
 import kubriko.creator.generated.resources.assistant_failure_node_missing
 import kubriko.creator.generated.resources.assistant_failure_prompt_failed
+import kubriko.creator.generated.resources.assistant_failure_uv_missing
 import kubriko.creator.generated.resources.assistant_thinking
 import kubriko.creator.generated.resources.assistant_tool_failed
 import kubriko.creator.generated.resources.assistant_turn_cancelled
@@ -307,6 +308,7 @@ private fun FailureNotice(
 internal fun FailureReason.description(): String = stringResource(
     when (this) {
         FailureReason.NODE_MISSING -> Res.string.assistant_failure_node_missing
+        FailureReason.UV_MISSING -> Res.string.assistant_failure_uv_missing
         FailureReason.AGENT_NOT_STARTED -> Res.string.assistant_failure_agent_not_started
         FailureReason.AGENT_STOPPED -> Res.string.assistant_failure_agent_stopped
         FailureReason.CONVERSATION_LOST -> Res.string.assistant_failure_conversation_lost

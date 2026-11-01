@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentRegistryStore
 import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
@@ -172,5 +173,6 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         },
         projectDigest = { executor()?.context?.let { DigestText.of(it.projectDigest()) } },
         changeLog = { executor()?.changeLog },
+        registry = AgentRegistryStore.default(),
     )
 }

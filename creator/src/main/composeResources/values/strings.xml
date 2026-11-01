@@ -598,6 +598,7 @@
     <string name="action_close_conversation">End this conversation</string>
     <string name="action_send">Send</string>
     <string name="action_install_node">Install Node.js</string>
+    <string name="action_install_uv">Install uv</string>
     <string name="assistant_title">Assistant</string>
     <string name="assistant_configuration_default">Claude Code</string>
     <string name="assistant_agent_menu">The agent the assistant runs</string>
@@ -618,6 +619,7 @@
     <string name="assistant_plan">Plan</string>
     <string name="assistant_permission">The assistant asks to use %1$s.</string>
     <string name="assistant_failure_node_missing">%1$s needs Node.js, which your shell can't find. Install it, then try again.</string>
+    <string name="assistant_failure_uv_missing">%1$s needs uv, which your shell can't find. Install it, then try again.</string>
     <string name="assistant_failure_agent_not_started">%1$s couldn't be started.</string>
     <string name="assistant_failure_agent_stopped">%1$s stopped while answering. Send your message again to go on.</string>
     <string name="assistant_failure_conversation_lost">%1$s restarted and couldn't continue this conversation. Start a new one.</string>

@@ -60,7 +60,7 @@ class AssistantControllerTest {
 
     private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
 
-    private fun controller() = AssistantController(
+    private fun controller(registry: AgentRegistryStore? = null) = AssistantController(
         scope = scope,
         runner = runner,
         store = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
@@ -77,7 +77,12 @@ class AssistantControllerTest {
             )
         },
         home = "/Users/me",
+        registry = registry,
     ).also { controllers += it }
+
+    private fun registry(vararg agents: String) = AgentRegistryStore(File(settingsDirectory, "agent-registry.json"), "darwin-aarch64") {
+        """{"agents": [${agents.joinToString(",")}]}"""
+    }
 
     private suspend fun <T> onMain(block: suspend () -> T) = withContext(mainThread) { block() }
 
@@ -122,6 +127,33 @@ class AssistantControllerTest {
         onMain { controller.selectAgent(AgentChoice.Registry(RegistryAgent.claude)) }
         assertEquals("GOOSE_MODE=chat goose acp", controller().customAgentCommand)
         assertTrue(controller().agent.value.isClaude)
+    }
+
+    @Test
+    fun aRememberedRegistryAgentRunsThroughItsDistributionWithTheFallbacks() = test {
+        val registry = registry(CODEX)
+        registry.refresh()
+        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "codex-acp"))
+        val controller = controller(registry)
+        controller.startChat().state.first { it == ChatState.Ready }
+        assertEquals("Codex", controller.agent.value.name)
+        assertEquals(listOf("--yes", "@zed-industries/codex-acp@2.4.0"), commands.single().arguments)
+        assertEquals(listOf(AgentProfile.fallback), profiles)
+        assertEquals(listOf("Claude Agent", "Codex"), controller.agents.value.map { it.name })
+    }
+
+    @Test
+    fun anAgentRunByUvxNeedsUv() = test {
+        val registry = registry(FAST_AGENT)
+        registry.refresh()
+        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "fast-agent"))
+        val chat = controller(registry).startChat()
+        assertEquals(ChatState.Failed(FailureReason.UV_MISSING), chat.state.first { it is ChatState.Failed })
+        runner.installed += "uvx"
+        onMain { chat.retry() }
+        chat.state.first { it == ChatState.Ready }
+        assertEquals("/opt/tools/bin/uvx", commands.single().program)
+        assertEquals(listOf("fast-agent-acp==0.10.1"), commands.single().arguments)
     }
 
     @Test
@@ -290,5 +322,10 @@ class AssistantControllerTest {
         onMain { controller.signIn(method) }
         chat.transcript.first { it.items.lastOrNull() == TranscriptItem.AgentMessage("Hi there") }
         assertEquals(listOf(method.id), launcher.agents.single().authenticated)
+    }
+
+    private companion object {
+        const val CODEX = """{"id": "codex-acp", "name": "Codex", "version": "2.4.0", "distribution": {"npx": {"package": "@zed-industries/codex-acp@2.4.0"}}}"""
+        const val FAST_AGENT = """{"id": "fast-agent", "name": "fast-agent", "version": "0.10.1", "distribution": {"uvx": {"package": "fast-agent-acp==0.10.1"}}}"""
     }
 }

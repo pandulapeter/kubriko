@@ -47,6 +47,7 @@ import java.io.IOException
  *   there is one.
  * @param projectDigest The digest of the open project, which a new conversation starts with.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
+ * @param registry Where the registry's agents come from, or null for Claude Agent alone.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
@@ -60,6 +61,7 @@ internal class AssistantController(
     private val projectDigest: suspend () -> String? = { null },
     private val changeLog: () -> ChangeLog? = { null },
     private val home: String = System.getProperty("user.home"),
+    private val registry: AgentRegistryStore? = null,
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
     private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))
@@ -107,6 +109,11 @@ internal class AssistantController(
     val currentChat = _currentChat.asStateFlow()
     private val assistantLock = Mutex()
     private val assistant = MutableStateFlow<Assistant?>(null)
+    private val agentsLoaded = CompletableDeferred<Unit>()
+
+    init {
+        scope.launch { loadAgents() }
+    }
 
     /**
      * Who the agent works as, once it has said so.
@@ -336,13 +343,34 @@ internal class AssistantController(
         withContext(ioDispatcher) { replaced.close() }
     }
 
+    /**
+     * The cached registry first, so that a remembered agent is known before the first conversation starts, then a fresh one.
+     */
+    private suspend fun loadAgents() {
+        if (registry == null) {
+            agentsLoaded.complete(Unit)
+            return
+        }
+        updateAgents(withContext(ioDispatcher) { registry.cached() })
+        agentsLoaded.complete(Unit)
+        withContext(ioDispatcher) { registry.refresh() }?.let(::updateAgents)
+    }
+
+    private fun updateAgents(agents: List<RegistryAgent>) {
+        _agents.value = agents.filter { it.distribution !is AgentDistribution.Binary }
+        if (assistant.value == null) _agent.value = choiceOf(settings.value, _agents.value)
+    }
+
     private suspend fun assistant(): Assistant = assistantLock.withLock {
         assistant.value ?: run {
+            agentsLoaded.await()
             val choice = _agent.value
             val npx = withContext(ioDispatcher) { runner.locate(NPX) }?.let(::File)
             val command = when (choice) {
                 is AgentChoice.Registry -> when (val distribution = choice.agent.distribution) {
                     is AgentDistribution.Npx -> RegistryAgent.npxCommand(distribution, npx ?: throw NodeMissingException(), if (choice.isClaude) claudeEnvironment() else emptyMap())
+                    is AgentDistribution.Uvx -> RegistryAgent.uvxCommand(distribution, withContext(ioDispatcher) { runner.locate(UVX) }?.let(::File) ?: throw UvMissingException())
+                    is AgentDistribution.Binary -> throw AgentStartException(exitCode = null, errorOutput = emptyList())
                 }
                 is AgentChoice.Custom -> withContext(ioDispatcher) { CustomAgentCommand.of(choice.commandLine, home, runner::locate) }
                     ?: throw AgentStartException(exitCode = null, errorOutput = emptyList())
@@ -376,6 +404,7 @@ internal class AssistantController(
 
     private companion object {
         const val NPX = "npx"
+        const val UVX = "uvx"
 
         /**
          * The agent [settings] remember, out of [agents]: Claude Agent if it isn't among them.

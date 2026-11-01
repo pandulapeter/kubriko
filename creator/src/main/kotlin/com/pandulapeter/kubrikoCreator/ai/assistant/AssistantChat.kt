@@ -221,6 +221,9 @@ internal class AssistantChat(
             } catch (_: NodeMissingException) {
                 _state.value = ChatState.Failed(FailureReason.NODE_MISSING)
                 return@launch
+            } catch (_: UvMissingException) {
+                _state.value = ChatState.Failed(FailureReason.UV_MISSING)
+                return@launch
             } catch (exception: AgentStartException) {
                 _state.value = ChatState.Failed(FailureReason.AGENT_NOT_STARTED, exception.errorOutput)
                 return@launch

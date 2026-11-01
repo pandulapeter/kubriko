@@ -62,9 +62,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 
 1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): the agent's standard error in a log the user can open. Move to protocol
    version 2 once it is final (the adapter serves its draft).
-2. **The agent list:** the registry fetched at start and cached in the settings folder (so it works offline), filtered to distributions
-   Creator can run on this platform. Claude Agent alone is built in as the list before the first fetch.
-   Versions are pinned to the registry's and offered as an update when it moves. A custom agent is a command line the user enters.
+2. **The agent list** (see `../CLAUDE.md` → Assistant): the registry's icons in the menu (checked against each vendor's trademark rules
+   first), and Claude Agent's version, pinned to the one checked, offered as an update once the registry's moves and it is checked.
 3. **Runtimes:** npx agents need Node.js. Creator finds the user's through the login shell (`ProcessRunner.locate`, as the MCP clients
    do) and otherwise offers to download a Node.js LTS into its tools folder with the downloader `12-onboarding.md` builds for the JDK.
    Binary agents are unpacked per version under Creator's tools folder.
@@ -83,7 +82,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, the registry list and binary agents (2, 3), for Google Antigravity; what is left of the
+**Order:** alongside `04` to `07`, binary agents (3), for Google Antigravity; what is left of the
 fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's

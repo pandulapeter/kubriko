@@ -19,6 +19,11 @@ internal enum class FailureReason {
     NODE_MISSING,
 
     /**
+     * uv, which runs the agent through `uvx`, isn't installed.
+     */
+    UV_MISSING,
+
+    /**
      * The agent's process couldn't be started, or ended before answering.
      */
     AGENT_NOT_STARTED,

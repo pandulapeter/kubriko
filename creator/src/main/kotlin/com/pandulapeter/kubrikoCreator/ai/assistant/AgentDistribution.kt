@@ -24,4 +24,28 @@ internal sealed interface AgentDistribution {
         val arguments: List<String> = emptyList(),
         val environment: Map<String, String> = emptyMap(),
     ) : AgentDistribution
+
+    /**
+     * A Python package that the user's `uvx` (from uv) runs.
+     */
+    data class Uvx(
+        val packageName: String,
+        val arguments: List<String> = emptyList(),
+        val environment: Map<String, String> = emptyMap(),
+    ) : AgentDistribution
+
+    /**
+     * An archive of this platform's build, unpacked under Kubriko Creator's tools folder ([BinaryAgentInstaller]).
+     *
+     * @param url Where the archive is downloaded from: a `.zip`, a `.tar.gz`, a `.tar.bz2`, or the program itself.
+     * @param command The program in the archive, relative to its root (`./agy_acp_server.par`).
+     * @param sha256 The archive's checksum, which it is checked against where the registry gives one.
+     */
+    data class Binary(
+        val url: String,
+        val command: String,
+        val arguments: List<String> = emptyList(),
+        val environment: Map<String, String> = emptyMap(),
+        val sha256: String? = null,
+    ) : AgentDistribution
 }

@@ -54,6 +54,15 @@ internal data class RegistryAgent(
         )
 
         /**
+         * Runs [distribution] through [uvx], with its folder first on the `PATH`.
+         */
+        fun uvxCommand(distribution: AgentDistribution.Uvx, uvx: File) = AgentCommand(
+            program = uvx.path,
+            arguments = listOf(distribution.packageName) + distribution.arguments,
+            environment = withFolderOnPath(uvx) + distribution.environment,
+        )
+
+        /**
          * The `PATH` with [program]'s folder first, so that what it starts in turn is found next to it.
          */
         fun withFolderOnPath(program: File) = mapOf(PATH to listOfNotNull(program.parent, System.getenv(PATH)).joinToString(File.pathSeparator))

@@ -86,6 +86,8 @@ compose.desktop {
         nativeDistributions {
             packageName = "Kubriko Creator"
             packageVersion = "1.0.0"
+            // The assistant downloads the ACP Registry's agent list and agents.
+            modules("java.net.http")
         }
     }
 }

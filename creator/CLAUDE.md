@@ -436,7 +436,10 @@ without one, the fallbacks chosen from its `initialize` answer (`AgentProfile.fa
 started); and its permission requests for edit, delete, move, and execute tool calls rejected whatever the user would choose
 (`PermissionHandler.rejectingChanges`). The agent is an `AgentChoice`: a `RegistryAgent` (with its `AgentDistribution`) or a custom
 command line (`CustomAgentCommand`: variables set in front, then the program, found through the login shell when named without a
-folder, and its arguments); only Claude Agent is tested (`RegistryAgent.isTested`), and every other agent shows as untested. The
+folder, and its arguments); only Claude Agent is tested (`RegistryAgent.isTested`), and every other agent shows as untested. The registry's agents
+(`AgentRegistry`: npx first, then this platform's build, then uvx, Claude Agent pinned to its checked version and first) come from
+`AgentRegistryStore`, cached as `agent-registry.json` in the settings folder and fetched again at every start; a remembered agent is
+resolved from the cache before the first conversation starts. A uvx agent without `uvx` fails with `UV_MISSING`. The
 built-in agent is `RegistryAgent.claude` with `AgentProfile.claude` (the ACP Registry's `claude-acp`, run through the user's `npx` with its folder
 first on the `PATH`, and `CLAUDE_CONFIG_DIR` for a Claude Code configuration other than the default). Its conversations start with
 `ClaudeAgentOptions.sessionMeta`: `AssistantSystemPrompt` (Creator's MCP instructions, its terminology, and the Block catalog,
