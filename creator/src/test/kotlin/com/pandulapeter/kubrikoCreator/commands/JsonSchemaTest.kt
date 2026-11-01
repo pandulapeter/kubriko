@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.serialName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -23,6 +24,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class JsonSchemaTest {
 
@@ -51,6 +53,20 @@ class JsonSchemaTest {
         SECOND,
     }
 
+    @Serializable
+    private sealed interface Shape {
+
+        @Serializable
+        @SerialName("circle")
+        data class Circle(
+            @SerialName("radius") val radius: Float,
+        ) : Shape
+
+        @Serializable
+        @SerialName("square")
+        data object Square : Shape
+    }
+
     @Test
     fun classesBecomeClosedObjectsWhosePropertiesWithoutDefaultsAreRequired() {
         val expected = """
@@ -67,12 +83,20 @@ class JsonSchemaTest {
 
     @Test
     fun sealedTypesBecomeOneSchemaPerSubclassTellingThemApartByType() {
+        val options = JsonSchema.of(Shape.serializer().descriptor)["oneOf"]!!.jsonArray.map { it.jsonObject }
+        assertEquals(listOf("circle", "square"), options.map { it["properties"]!!.jsonObject["type"]!!.jsonObject["const"]!!.jsonPrimitive.content })
+        assertEquals(listOf("type", "radius"), options[0]["required"]!!.jsonArray.map { it.jsonPrimitive.content })
+        assertEquals(listOf("type", "radius"), options[0]["properties"]!!.jsonObject.keys.toList())
+    }
+
+    @Test
+    fun summarizedSealedTypesListOnlyTheirSubclassNames() {
         val block = JsonSchema.of(AddBlock.Input.serializer().descriptor)["properties"]!!.jsonObject["block"]!!.jsonObject
-        val options = block["oneOf"]!!.jsonArray.map { it.jsonObject }
-        assertEquals(BlockKind.entries.size, options.size)
-        val setVelocity = options.single { it["properties"]!!.jsonObject["type"]!!.jsonObject["const"]!!.jsonPrimitive.content == "setVelocity" }
-        assertEquals(listOf("type"), setVelocity["required"]!!.jsonArray.map { it.jsonPrimitive.content })
-        assertEquals(listOf("type", "x", "y"), setVelocity["properties"]!!.jsonObject.keys.toList())
+        assertNull(block["oneOf"])
+        assertNull(block["additionalProperties"])
+        val type = block["properties"]!!.jsonObject.getValue("type").jsonObject
+        assertEquals(BlockKind.entries.map { it.serialName }.sorted(), type["enum"]!!.jsonArray.map { it.jsonPrimitive.content }.sorted())
+        assertEquals(listOf("type"), block["required"]!!.jsonArray.map { it.jsonPrimitive.content })
     }
 
     @Test

@@ -70,7 +70,7 @@ internal object JsonSchema {
                 put("items", schema(descriptor.getElementDescriptor(0), descriptor.getElementDescriptor(0).description))
             }
             StructureKind.CLASS, StructureKind.OBJECT -> putObjectProperties(descriptor, discriminator = null)
-            PolymorphicKind.SEALED -> put("oneOf", buildJsonArray {
+            PolymorphicKind.SEALED -> descriptor.summary?.let { summary -> putSummary(descriptor, summary) } ?: put("oneOf", buildJsonArray {
                 descriptor.getElementDescriptor(1).elementDescriptors.forEach { subclass ->
                     add(buildJsonObject {
                         putObjectProperties(subclass, discriminator = subclass.serialName)
@@ -98,11 +98,25 @@ internal object JsonSchema {
         put("additionalProperties", false)
     }
 
+    private fun JsonObjectBuilder.putSummary(descriptor: SerialDescriptor, summary: String) {
+        put("type", "object")
+        putJsonObject("properties") {
+            putJsonObject(TYPE_PROPERTY) {
+                put("type", "string")
+                putJsonArray("enum") { descriptor.getElementDescriptor(1).elementDescriptors.forEach { add(it.serialName) } }
+                put("description", summary)
+            }
+        }
+        putJsonArray("required") { add(TYPE_PROPERTY) }
+    }
+
     private fun SerialDescriptor.enumValueDescriptions() = if (kind == SerialKind.ENUM) {
         (0 until elementsCount).mapNotNull { index -> elementDescription(index)?.let { "${getElementName(index)}: $it" } }.joinToString(" ").ifEmpty { null }
     } else {
         null
     }
+
+    private val SerialDescriptor.summary get() = annotations.filterIsInstance<SummarizedSchema>().firstOrNull()?.text
 
     private val SerialDescriptor.description get() = annotations.filterIsInstance<Description>().firstOrNull()?.text
 

@@ -27,10 +27,11 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Next
 
-`02-ai-assistant.md` → Order: the small tool list first (about 34,000 tokens, most of it the Block schema five write tools each
-repeat; `TokenBudgetTest` measures it), then agent profiles and the rest, alongside `04` to `07`. The panel's tool call cards and
-the five "First" items of Context for large games (relations, Block notation and zoom levels, descriptions with the digest and the
-Map panel, reads that know what was seen, and token budgets) were built on 2026-11-01 and are unit-tested, not yet seen in the app.
+`02-ai-assistant.md` → Order: agent profiles and the fallbacks (Other agents and services), alongside `04` to `07`. The tool list
+went from about 34,000 to 16,000 tokens on 2026-11-01: the five tools that take Blocks list only the Blocks' names and point to
+`get_block_catalog`, inputs that don't decode are rejected with one plain sentence (`InputProblem`), and `read_scene` no longer
+repeats the whole Scene as `content`. The panel's tool call cards and the five "First" items of Context for large games were built
+the same day. All of it is unit-tested, not yet seen in the app.
 What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
@@ -76,6 +77,8 @@ What is left in `01-large-projects.md` waits for other plans (Traits, UI element
   hand between two prompts and see whether the next answer knows (the summary goes before the message, not in the transcript).
 - Write tools now return `{"revision", "changed", "event"}` instead of "Done.": whether the AI stops reading the type again after
   each Block it adds.
+- The Block tools without the Block schema: whether the AI calls `get_block_catalog` before its first Block rather than guessing
+  properties, and whether a rejection such as "There is no property called 'speed'." gets it right on the next try.
 
 **Tool call cards (built and unit-tested on 2026-11-01, not yet seen in the app)**
 - In a real conversation, each Creator tool call card names what it worked on (`Ball, Event 2`), clicking one about a type or a

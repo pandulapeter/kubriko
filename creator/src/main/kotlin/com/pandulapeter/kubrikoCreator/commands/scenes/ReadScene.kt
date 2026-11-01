@@ -36,8 +36,7 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
     override val description = "Reads the Actors of a Scene, in order, a page at a time: the ID of each one (actorId, how Actors are addressed), " +
         "its index in the Scene's list, its type ID (the name of its Actor type), its position when it has one, and its whole saved state. " +
         "total counts the Actors that match, and nextOffset, when there are more, is the offset of the next page. " +
-        "Narrow it to an Actor type or to a rectangle, or ask for a summary first in a large Scene: the number of Actors of each type and the bounds of their positions. " +
-        "content, the raw Scene file, is there only when the page holds the whole Scene."
+        "Narrow it to an Actor type or to a rectangle, or ask for a summary first in a large Scene: the number of Actors of each type and the bounds of their positions."
     override val inputSerializer = Input.serializer()
     override val title = Res.string.command_read_scene
 
@@ -53,7 +52,7 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
         val actors = context.readScene(input.scene)
         val isFiltered = input.actorType != null || input.left != null || input.top != null || input.right != null || input.bottom != null
         val matching = if (isFiltered) actors.withIndex().filter { (_, actor) -> input.matches(actor) } else actors.withIndex().toList()
-        CommandOutcome.Success(if (input.summary) summaryOf(matching) else pageOf(actors, matching, input, isFiltered))
+        CommandOutcome.Success(if (input.summary) summaryOf(matching) else pageOf(matching, input))
     }
 
     private fun Input.matches(actor: SceneActorEntry): Boolean {
@@ -63,7 +62,7 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
         return (left == null || x >= left) && (top == null || y >= top) && (right == null || x <= right) && (bottom == null || y <= bottom)
     }
 
-    private fun pageOf(actors: List<SceneActorEntry>, matching: List<IndexedValue<SceneActorEntry>>, input: Input, isFiltered: Boolean): JsonObject {
+    private fun pageOf(matching: List<IndexedValue<SceneActorEntry>>, input: Input): JsonObject {
         val end = (input.offset.toLong() + input.count).coerceAtMost(matching.size.toLong()).toInt()
         val page = if (input.offset < end) matching.subList(input.offset, end) else emptyList()
         return buildJsonObject {
@@ -83,7 +82,6 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
                 }
             }
             if (end < matching.size) put("nextOffset", end)
-            if (!isFiltered && page.size == actors.size) put("content", SceneDocument.format(actors))
         }
     }
 

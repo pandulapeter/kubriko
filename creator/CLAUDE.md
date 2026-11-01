@@ -147,7 +147,10 @@ lives in `plan/` (start with `plan/README.md`).
 
 Every change to a project goes through a command (`commands/`), so the user interface, undo and redo, and the AI share one
 path. `CommandRegistry.editor` lists them all; the AI tool list (`ToolDefinition`: name, description, input schema) is generated
-from it, each input schema from the input class's serial descriptor (`JsonSchema`, with `@Description` on every property).
+from it, each input schema from the input class's serial descriptor (`JsonSchema`, with `@Description` on every property). A sealed
+type marked `@SummarizedSchema` (`BlockDefinition`) lists only its subclasses' names, which `get_block_catalog` describes once,
+rather than every Block in each tool that takes one. An input that doesn't decode is rejected with `InputProblem`'s one sentence
+(the unknown type or property, the value of the wrong kind, or what is missing) instead of kotlinx.serialization's message.
 
 - **Kinds:** `ReadCommand` (reports, never recorded), `WriteCommand` (`validate` returns a `Rejection` with a user-facing
   `StringResource`; `apply` returns `Applied` with the inverse `Invocation`, or none for git operations, which can't be undone;
@@ -324,8 +327,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   order Actors are added in (so, of two with the same drawing order, the later is drawn on top); the inspector's header sends
   the selected one to the start or the end.
 - **At scale:** `read_scene` returns a page (`offset`, `count`, 100 by default; `total` and `nextOffset`), narrowed to an Actor
-  type (not its children) or to a rectangle of positions, or a summary (Actors per type and the bounds of their positions); the raw
-  `content` only comes with a page holding the whole Scene. `list_actor_types` pages the same way, narrowed to a folder and its
+  type (not its children) or to a rectangle of positions, or a summary (Actors per type and the bounds of their positions). `list_actor_types` pages the same way, narrowed to a folder and its
   folders, and lists the folders (`folders`, empty ones too). The batch commands are each one undo step: `place_actors`,
   `remove_actors`, and `restore_actors` (inserted one after another, so its inverse from `remove_actors` lists the original indices
   ascending), `set_actors_values` (`ActorValueChanges` per Actor, validated and applied as `set_actor_values` does), and
@@ -360,7 +362,7 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
 - **Token budgets** (`TokenBudgetTest`, about four characters a token): the tool list, and on `BreakoutFixture` (a Breakout grown
   to five types and a 42-Actor level) the digest, `read_actor_type` of Ball (Blocks and JSON), and `read_scene` of the level (a
   page and the summary) each stay under a budget set just above what they cost, so that none can creep up unnoticed. The tool
-  list is about 34,000 tokens, most of it the Block schema that five write tools each repeat.
+  list is about 16,000 tokens.
 
 ## AI connection (MCP)
 

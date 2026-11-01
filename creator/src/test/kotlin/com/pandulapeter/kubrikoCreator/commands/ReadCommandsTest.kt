@@ -164,7 +164,7 @@ class ReadCommandsTest {
             Json.parseToJsonElement("""[{"actorId":"i0","index":0,"typeId":"Ball","x":1.0,"y":2.0,"state":"{\"body\":{\"position\":{\"x\":1.0,\"y\":2.0}}}"},{"actorId":"i1","index":1,"typeId":"Music","state":"{}"}]"""),
             read.getValue("actors"),
         )
-        assertEquals(SceneDocument.format(SceneDocument.parse(scene)), read.getValue("content").jsonPrimitive.content)
+        assertEquals(setOf("total", "actors"), read.keys)
         assertEquals(2, read.getValue("total").jsonPrimitive.int)
         assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_scene_missing, "other")), executor.call("read_scene", buildJsonObject { put("scene", "other") }))
     }

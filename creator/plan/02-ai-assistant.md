@@ -83,7 +83,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, first the small tool list (Context for large games), then agent profiles and the fallbacks
+**Order:** alongside `04` to `07`, agent profiles and the fallbacks
 (Other agents and services), Codex first, then Gemini CLI and Copilot; the registry, the Node.js download, and binary agents (2,
 3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
@@ -207,16 +207,15 @@ understand the game is shown to the user too.
   After a conversation the AI proposes updates as a diff, which the user confirms (Principle 4).
 - **"Last time" summaries:** a new conversation may start from a short summary of the project's previous one, rather than the user
   explaining again.
-- **A small tool list:** about 34,000 tokens (measured by `TokenBudgetTest`, November 2026), most of it the Block schema that
-  `create_actor_type`, `create_manager_type`, `add_event`, `add_block`, and `edit_block` each repeat whole (4,000 to 5,000 tokens
-  apiece): one shared definition or a reference to `get_block_catalog`, terse descriptions, related tools grouped, and Claude Code's
-  tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it. `read_scene`'s whole-Scene
-  page also carries every state twice (in `actors` and the raw `content`).
+- **A smaller tool list:** about 16,000 tokens (measured by `TokenBudgetTest`, November 2026) since the Block schema went to
+  `get_block_catalog`: terser descriptions, related tools grouped (the single and batch Scene tools),
+  and Claude Code's tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it.
 - **Exploring in subagents:** questions such as "which types change the score?" go to a subagent, defined through the session options
   rather than files in the project, so the conversation's context stays clean.
 - **Health checks** computed from the model: unused types, Scenes nothing goes to, Properties never read, and Events that can never
   fire. Shown in the editor and readable by the AI.
-- **Fewer retries:** rejections that say precisely what to change, and a dry run for write tools.
+- **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do), and a dry
+  run for write tools.
 - **Cheaper screenshots:** downscaled or cropped to a region or an Actor, and replaced by Actors' states from the debug agent
   (`09-debugger.md`) where those say enough.
 - **Planning first** for big requests, as a checklist the user approves (ACP `plan` updates), and model hints (a smaller model for

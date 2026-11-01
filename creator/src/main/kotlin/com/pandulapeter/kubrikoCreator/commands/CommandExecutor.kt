@@ -159,7 +159,7 @@ internal class CommandExecutor(
     }
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?): CommandOutcome {
-        val rejection = Rejection(Res.string.error_command_input_invalid, exception.message.orEmpty())
+        val rejection = Rejection(Res.string.error_command_input_invalid, InputProblem.describe(exception.message))
         publish(AiStep(id = nextAiStepId++, toolName = name, title = command.title, target = null, isRunning = false, rejection = rejection, origin = origin))
         return CommandOutcome.Rejected(rejection)
     }

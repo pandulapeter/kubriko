@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.commands.Description
+import com.pandulapeter.kubrikoCreator.commands.SummarizedSchema
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -19,7 +20,8 @@ import kotlinx.serialization.Serializable
  * Speeds and velocities are in scene units per second.
  */
 @Serializable
-@Description("One statement an Event runs. The type property says which Block it is.")
+@Description("One statement an Event runs: its type and that type's properties.")
+@SummarizedSchema("Which Block it is. get_block_catalog lists each one's properties and the Events that allow it.")
 internal sealed interface BlockDefinition {
 
     @Serializable

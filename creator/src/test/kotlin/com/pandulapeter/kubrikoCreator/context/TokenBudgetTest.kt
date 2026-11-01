@@ -75,18 +75,14 @@ class TokenBudgetTest {
         const val CHARACTERS_PER_TOKEN = 4
 
         /**
-         * Most of it is the Block schema, which create_actor_type, create_manager_type, add_event, add_block, and edit_block
-         * each repeat whole.
+         * The tools that take a Block list only the Blocks' names, so get_block_catalog describes them once.
          */
-        const val TOOL_LIST_BUDGET = 36_000
+        const val TOOL_LIST_BUDGET = 17_000
         const val DIGEST_BUDGET = 300
         const val ACTOR_TYPE_BUDGET = 200
         const val ACTOR_TYPE_JSON_BUDGET = 300
 
-        /**
-         * Each Actor's state is in it twice, the second time as the raw Scene file.
-         */
-        const val SCENE_BUDGET = 4_000
+        const val SCENE_BUDGET = 2_000
         const val SCENE_SUMMARY_BUDGET = 100
     }
 }
