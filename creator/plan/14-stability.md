@@ -15,10 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Processes, threads, and lifecycles
 
-- **Out-of-order results.** `SceneEditingController.onScenesChanged` starts an untracked read per call, and
-  `WorkspaceController.refreshResources` an untracked full scan; when two overlap (an AI batch, repeated undo), the older result can
-  land last and show a removed Actor or Scene again until the next change. Direction: one conflated worker each, or ignore results
-  older than the latest request.
 - **Game launches on Windows** put the whole classpath on the command line (`session/GameLaunch.kt`), which Windows caps at 32,767
   characters; a long user folder with the usual jars gets close. Direction: pass it through a Java `@argfile`, as Hot Reload's
   launch already does.

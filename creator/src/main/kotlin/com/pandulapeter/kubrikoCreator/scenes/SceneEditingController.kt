@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.scenes
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.workspace.LatestRequests
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -93,6 +94,7 @@ internal class SceneEditingController(
     private var shownLooks: Map<String, ActorTypeLook> = emptyMap()
     private var isLoadingOutdated = false
     private var revision = 0
+    private val sceneReads = LatestRequests()
 
     /**
      * Builds and loads the project's classes in the background, so that the first Scene opened doesn't wait for a build,
@@ -263,9 +265,12 @@ internal class SceneEditingController(
         val open = _state.value as? SceneEditingState.Open ?: return
         when {
             open.sceneName !in names -> Unit
-            open.scene.file.isFile -> scope.launch {
-                val actors = withContext(ioDispatcher) { readScene(open.scene) }
-                _state.update { if (it is SceneEditingState.Open && it.scene == open.scene) it.copy(actors = actors) else it }
+            open.scene.file.isFile -> {
+                val request = sceneReads.start()
+                scope.launch {
+                    val actors = withContext(ioDispatcher) { readScene(open.scene) }
+                    if (sceneReads.isLatest(request)) _state.update { if (it is SceneEditingState.Open && it.scene == open.scene) it.copy(actors = actors) else it }
+                }
             }
             else -> close()
         }

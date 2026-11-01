@@ -118,6 +118,7 @@ internal class WorkspaceController(
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
     private val _sceneFolders = MutableStateFlow(emptySet<String>())
+    private val resourceScans = LatestRequests()
 
     /**
      * The folders of the Scenes folder, empty ones too.
@@ -388,9 +389,13 @@ internal class WorkspaceController(
     }
 
     fun refreshResources() {
+        val request = resourceScans.start()
         scope.launch {
-            _resources.value = withContext(ioDispatcher) { scanResources(project.rootDirectory) }
-            _sceneFolders.value = withContext(ioDispatcher) { scenes.folders() }
+            val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory) to scenes.folders() }
+            if (resourceScans.isLatest(request)) {
+                _resources.value = resources
+                _sceneFolders.value = folders
+            }
         }
     }
 
