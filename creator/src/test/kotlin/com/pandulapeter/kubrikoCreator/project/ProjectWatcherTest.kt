@@ -43,6 +43,8 @@ class ProjectWatcherTest {
         assertEquals(ProjectChange.SOURCES, ProjectWatcher.areaOf("app/src/commonMain/composeResources/drawable/ball.png"))
         assertNull(ProjectWatcher.areaOf("build.gradle.kts"))
         assertNull(ProjectWatcher.areaOf(".kubriko/local/window.json"))
+        assertNull(ProjectWatcher.areaOf(".kubriko/actors/.Ball.json.1a2b3c4d$ATOMIC_WRITE_SUFFIX"))
+        assertNull(ProjectWatcher.areaOf("src/commonMain/kotlin/game/generated/.Ball.kt.1a2b3c4d$ATOMIC_WRITE_SUFFIX"))
     }
 
     @Test

@@ -10,17 +10,11 @@
 # Stability
 
 What breaks, hangs, or loses work today when files are broken, a process misbehaves, or something fails halfway. Each item names
-the code, why it matters, and the direction; none of it is built yet. The first one loses a user's work, so this file comes
-right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
+the code, why it matters, and the direction; none of it is built yet. The user put stability before new features, so this file
+comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
 
 ## Broken and hand-edited files
 
-- **Writes aren't crash-safe.** `BlockTypeStore` (definitions and generated code), `SceneStore.write`, and the settings stores
-  (`McpSettingsStore`, `AssistantSettingsStore`, `RecentProjectsStore`), and `KubrikoBuildFiles` and `ProjectUpgrader` on the user's build files, use `File.writeText`, which empties the file first:
-  a crash, a kill, or a full disk mid-write leaves a truncated type (which then hits the item above), a Scene, or a generated file
-  that fails its checksum and counts as changed by hand forever, and resets the MCP token. `McpConfigFile.write` already replaces
-  files atomically. Direction: one helper (write a sibling temporary file, then `Files.move` with `ATOMIC_MOVE`, falling back to a
-  plain replace where the file system can't), used by every writer, with `OwnWrites` recording the final file.
 - **Names in type files are trusted.** A type's name comes from its JSON, not its file name, and isn't validated on load. `Foo.json`
   holding `"name": "Bar"` is saved as `Bar.json` beside it (two `Bar`s on the next load); `"name": "my enemy"` generates
   `class my enemy`; and two files of one name in different folders (a copy, a merge) both load, the registry lists the type twice,
@@ -84,7 +78,7 @@ right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
   launch already does.
 - **Recent projects** (`RecentProjectsStore`) read, change, and write the file without a lock from several IO threads (the
   command-line project races the welcome screen's load), and `load` forgets projects whose folder is missing, so one on an
-  unmounted drive is lost for good. Direction: synchronize the store, write atomically (above), and show missing projects greyed
+  unmounted drive is lost for good. Direction: synchronize the store and show missing projects greyed
   with Remove instead of forgetting them.
 
 ## Generated code

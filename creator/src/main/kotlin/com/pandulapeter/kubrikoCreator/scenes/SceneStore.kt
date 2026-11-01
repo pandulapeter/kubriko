@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.scenes
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import java.io.File
@@ -109,7 +110,7 @@ internal class SceneStore(
     private fun write(name: String, content: String, actors: List<SceneActorEntry>?) {
         val file = file(name) ?: File(sceneDirectory, "$name.$EXTENSION")
         file.parentFile.mkdirs()
-        file.writeText(content)
+        file.writeTextAtomically(content)
         ownWrites.record(file)
         cache[file] = CachedScene(content, file.length(), file.lastModified(), actors)
     }

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -86,7 +87,7 @@ internal class BlockTypeStore private constructor(
         // A type moved to another folder leaves its old file behind otherwise.
         definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file && it !in unreadableFiles }.forEach { it.delete(); ownWrites.record(it) }
         file.parentFile.mkdirs()
-        file.writeText(text + "\n")
+        file.writeTextAtomically(text + "\n")
         ownWrites.record(file)
     }
 
@@ -185,7 +186,7 @@ internal class BlockTypeStore private constructor(
             file.delete()
             generatedTexts.remove(name)
         } else {
-            if (current != text) file.writeText(text)
+            if (current != text) file.writeTextAtomically(text)
             generatedTexts[name] = KnownFile(text, file.length(), file.lastModified())
         }
     }

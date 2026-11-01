@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -86,7 +87,7 @@ internal class ProjectUpgrader(
             upgrade.changes.forEach { change ->
                 val file = File(rootDirectory, change.path)
                 if ((if (file.isFile) file.readText() else "") == change.before) {
-                    if (change.after == null) file.delete() else file.writeText(change.after)
+                    if (change.after == null) file.delete() else file.writeTextAtomically(change.after)
                 }
             }
         }
@@ -108,7 +109,7 @@ internal class ProjectUpgrader(
 
     private fun recordVersion() {
         val settings = readSettings() ?: return
-        settingsFile.writeText(json.encodeToString(JsonObject.serializer(), JsonObject(settings + ("templateVersion" to JsonPrimitive(CURRENT_VERSION)))) + "\n")
+        settingsFile.writeTextAtomically(json.encodeToString(JsonObject.serializer(), JsonObject(settings + ("templateVersion" to JsonPrimitive(CURRENT_VERSION)))) + "\n")
     }
 
     companion object {

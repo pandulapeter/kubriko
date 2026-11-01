@@ -86,6 +86,7 @@ internal class ProjectWatcher(
         }
 
         internal fun areaOf(path: String) = when {
+            path.endsWith(ATOMIC_WRITE_SUFFIX) -> null
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
             path.startsWith("src/") || "/src/" in path -> ProjectChange.SOURCES

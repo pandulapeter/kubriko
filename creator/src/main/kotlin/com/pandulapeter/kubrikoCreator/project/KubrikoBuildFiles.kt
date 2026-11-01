@@ -86,7 +86,7 @@ internal class KubrikoBuildFiles(
     private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()
 
     private fun write(path: String, before: String, after: String) {
-        if (after != before) File(rootDirectory, path).writeText(after)
+        if (after != before) File(rootDirectory, path).writeTextAtomically(after)
     }
 
     companion object {

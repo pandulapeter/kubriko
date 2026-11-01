@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.settingsDirectory
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -39,7 +40,7 @@ internal class AssistantSettingsStore(
     fun save(settings: AssistantSettings) {
         try {
             file.parentFile?.mkdirs()
-            file.writeText(json.encodeToString(AssistantSettings.serializer(), settings))
+            file.writeTextAtomically(json.encodeToString(AssistantSettings.serializer(), settings))
         } catch (_: IOException) {
             // The settings still apply until Kubriko Creator quits.
         }

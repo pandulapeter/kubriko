@@ -324,10 +324,10 @@ class BlockTypeStoreTest {
         store.saveAndRegenerate(ball)
         val file = File(generated, "Ball.kt")
         val changed = ball.copy(shape = ActorShape.RECTANGLE)
-        file.setWritable(false)
-        if (file.canWrite()) return
+        generated.setWritable(false)
+        if (generated.canWrite()) return
         assertFails { store.regenerate(listOf(changed)) }
-        file.setWritable(true)
+        generated.setWritable(true)
         store.regenerate(listOf(changed))
         assertContains(file.readText(), "drawRect")
     }

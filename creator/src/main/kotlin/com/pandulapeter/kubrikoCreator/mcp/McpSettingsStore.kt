@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp
 
+import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.settingsDirectory
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -32,7 +33,7 @@ internal class McpSettingsStore(
     fun save(settings: McpSettings) {
         try {
             file.parentFile?.mkdirs()
-            file.writeText(json.encodeToString(McpSettings.serializer(), settings))
+            file.writeTextAtomically(json.encodeToString(McpSettings.serializer(), settings))
         } catch (_: IOException) {
             // The settings still apply until Kubriko Creator quits.
         }

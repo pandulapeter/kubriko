@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.recent
 
+import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.settingsDirectory
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
@@ -60,7 +61,7 @@ internal class RecentProjectsStore(
     private fun write(projects: List<RecentProject>) {
         try {
             file.parentFile?.mkdirs()
-            file.writeText(json.encodeToString(serializer, projects))
+            file.writeTextAtomically(json.encodeToString(serializer, projects))
         } catch (_: IOException) {
             // Forgetting the list is not worth interrupting anyone for.
         }
