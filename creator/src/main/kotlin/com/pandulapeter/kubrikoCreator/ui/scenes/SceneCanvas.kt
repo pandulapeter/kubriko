@@ -54,17 +54,20 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 
 /**
  * The Scene as the game draws it, with the selected Actor outlined. A click selects the Actor on top, dragging it moves
- * it ([onMove] when it is let go), dragging elsewhere (or with the middle button) moves the camera, scrolling moves it
+ * it ([onMove] when it is let go, so only one whose position the Scene file saves, [canDragActor]), dragging elsewhere
+ * (or with the middle button, or on an Actor that can't be moved) moves the camera, scrolling moves it
  * too, and with Ctrl or Cmd, zooms. Delete or Backspace removes the selected Actor, and an Actor type dragged in from the
  * sidebar is placed where it is dropped ([onPlace], in scene units).
  *
  * @param actors The Scene's Actors, which [view] loads again whenever they change.
  * @param previews The looks of the Actor types whose Actors [view] draws itself until they are compiled.
+ * @param isSceneReadable Whether the Scene file can be changed at all, which one that can't be read can't.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -72,6 +75,7 @@ internal fun SceneCanvas(
     view: SceneView,
     actors: List<SceneActorEntry>,
     previews: Map<String, ActorTypeLook>,
+    isSceneReadable: Boolean,
     selectedId: String?,
     onSelect: (String?) -> Unit,
     onMove: (actorId: String, x: Float, y: Float) -> Unit,
@@ -94,6 +98,7 @@ internal fun SceneCanvas(
     val currentSelectedId by rememberUpdatedState(selectedId)
     val currentOnSelect by rememberUpdatedState(onSelect)
     val currentOnMove by rememberUpdatedState(onMove)
+    val currentIsSceneReadable by rememberUpdatedState(isSceneReadable)
     val selectionColor = MaterialTheme.colorScheme.primary
     Box(
         modifier = modifier
@@ -134,7 +139,7 @@ internal fun SceneCanvas(
                     val isPrimary = press.buttons.isPrimaryPressed
                     val pickedId = if (isPrimary) view.actorIdAt(down.position) else null
                     if (isPrimary) currentOnSelect(pickedId)
-                    val actor = pickedId?.takeIf { !view.isBackground(it) }?.let(view::actorOf)
+                    val actor = pickedId?.takeIf { !view.isBackground(it) && canDragActor(view.entryOf(it), currentIsSceneReadable) }?.let(view::actorOf)
                     val startPosition = actor?.body?.position ?: SceneOffset.Zero
                     var lastPosition = down.position
                     var isDragging = false
@@ -185,6 +190,12 @@ internal fun SceneCanvas(
         }
     }
 }
+
+/**
+ * Whether dragging the Actor of [entry] moves it: only when its state saves a position the move can change, in a Scene
+ * file that can be changed, so that what the canvas shows and what the file says never disagree.
+ */
+internal fun canDragActor(entry: SceneActorEntry?, isSceneReadable: Boolean) = isSceneReadable && entry != null && SceneDocument.positionOf(entry.state) != null
 
 private const val ZOOM_PER_SCROLL = 0.05f
 private const val PAN_PER_SCROLL = 20f

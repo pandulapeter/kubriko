@@ -142,6 +142,7 @@ internal fun SceneEditorPane(
         view = view,
         actors = state.actors,
         previews = state.previews,
+        isSceneReadable = state.problem == null,
         selectedId = selectedId,
         onSelect = { selectedId = it },
         onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },

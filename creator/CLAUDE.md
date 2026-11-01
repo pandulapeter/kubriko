@@ -99,7 +99,8 @@ lives in `plan/` (start with `plan/README.md`).
   lowest drawing order, then the later one; the Scene settings only where nothing else is), looking only at the Actors near
   it (`SceneBoundsGrid`, a uniform grid of their bounds, updated in place when Actors only move or change and built again on
   the next click after Actors are added, removed, or reordered), dragging it moves it live and dispatches
-  `move_actor` when let go, dragging elsewhere or scrolling pans, Ctrl/Cmd+scroll and the header zoom (`SceneFraming` shows the
+  `move_actor` when let go (only an Actor whose state saves a position, in a Scene file that can be read, `canDragActor`; on any
+  other the press pans), dragging elsewhere or scrolling pans, Ctrl/Cmd+scroll and the header zoom (`SceneFraming` shows the
   Scene settings' bounds, or every Actor), Delete or Backspace dispatches `remove_actor`, and an Actor type dragged from the sidebar
   (`SidebarDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). The inspector beside it
   (`SceneInspector`) shows the selected Actor's position, size, rotation in degrees, and scale (`ActorBodyValues`, read from the live
