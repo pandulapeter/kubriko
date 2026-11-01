@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.scenes.sceneNotMoved
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
@@ -41,7 +42,7 @@ internal object RenameFolder : WriteCommand<RenameFolder.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val newPath = renamed(input)
-        context.moveFolder(input.group, input.path, newPath)
+        context.moveFolder(input.group, input.path, newPath)?.let { scene -> return Applied(inverse = null, failure = sceneNotMoved(scene)) }
         return Applied(inverse = Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path))))
     }
 

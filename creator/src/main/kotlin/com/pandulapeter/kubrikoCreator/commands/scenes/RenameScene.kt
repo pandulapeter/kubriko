@@ -44,7 +44,7 @@ internal object RenameScene : WriteCommand<RenameScene.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.renameScene(input.scene, input.newName)
+        if (!context.renameScene(input.scene, input.newName)) return Applied(inverse = null, failure = sceneNotMoved(input.scene))
         return Applied(inverse = Invocation(RenameScene, Input(input.newName, input.scene)))
     }
 

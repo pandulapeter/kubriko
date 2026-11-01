@@ -300,7 +300,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   (`levels/1-1`, `SceneStore.nameOf`; goToScene and every Scene command take that path). `create_folder`, `rename_folder` (moving
   everything in it, Scenes through renames), and `delete_folder` (only an empty one, so undo is exact) take a group
   (`FolderGroup`), `move_to_folder` moves a type, and `rename_scene` renames or moves a Scene: goToScene Blocks follow, the open
-  Scene follows, and the console names hand-written Kotlin that still names the old Scene (like the template's `Game.kt`). The
+  Scene follows, and the console names hand-written Kotlin that still names the old Scene (like the template's `Game.kt`). A Scene
+  file that can't be moved (Windows refuses while the game has it open) fails the rename before anything else changes, and a
+  folder rename stops there too, moving the Scenes moved before it back. The
   sidebar shows the three groups as trees (`folderTreeSection`, `folderTreeRows`): folders first, each with a menu (new folder,
   rename, delete when empty), and types and Scenes dragged into a folder or onto the group's header (`SidebarDragState`, which
   also carries Actor types into the open Scene). Clicking the selected type or Scene again, or empty space in the

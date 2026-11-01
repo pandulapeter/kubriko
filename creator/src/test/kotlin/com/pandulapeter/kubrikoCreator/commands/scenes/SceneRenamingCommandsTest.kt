@@ -32,6 +32,7 @@ import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_folder_not_empty
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
+import kubriko.creator.generated.resources.error_scene_not_moved
 import kubriko.creator.generated.resources.warning_scene_named_in_code
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -79,5 +80,41 @@ class SceneRenamingCommandsTest {
         assertEquals(Rejection(Res.string.error_folder_not_empty, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))) { context.scenes.names() }
         assertEquals(listOf("main", "world/2"), renamed)
+    }
+
+    @Test
+    fun aSceneThatCantBeMovedIsRenamedNowhereAndSaysSo() = runTest {
+        val context = context()
+        val folder = context.scenes.fileOf("main").parentFile
+        folder.setWritable(false)
+        try {
+            if (folder.canWrite()) return@runTest
+            val applied = RenameScene.apply(context, RenameScene.Input("main", "start"))
+            assertEquals(Rejection(Res.string.error_scene_not_moved, "main"), applied.failure)
+            assertEquals(listOf("level-2", "main"), context.scenes.names())
+            assertEquals("main", context.goToScene())
+            assertEquals(emptyList(), renames)
+        } finally {
+            folder.setWritable(true)
+        }
+    }
+
+    @Test
+    fun aFolderWhoseSceneCantBeMovedMovesTheOthersBack() = runTest {
+        val context = context()
+        RenameScene.apply(context, RenameScene.Input("main", "levels/1"))
+        RenameScene.apply(context, RenameScene.Input("level-2", "levels/deep/2"))
+        val deep = context.scenes.fileOf("levels/deep/2").parentFile
+        deep.setWritable(false)
+        try {
+            if (deep.canWrite()) return@runTest
+            val applied = RenameFolder.apply(context, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))
+            assertEquals(Rejection(Res.string.error_scene_not_moved, "levels/deep/2"), applied.failure)
+            assertEquals(listOf("levels/1", "levels/deep/2"), context.scenes.names())
+            assertEquals("levels/1", context.goToScene())
+            assertEquals(listOf("levels", "levels/deep"), context.foldersOf(FolderGroup.SCENES).sorted())
+        } finally {
+            deep.setWritable(true)
+        }
     }
 }

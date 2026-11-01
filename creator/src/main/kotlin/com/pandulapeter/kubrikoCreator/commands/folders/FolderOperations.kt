@@ -39,15 +39,29 @@ internal suspend fun CommandContext.deleteFolder(group: FolderGroup, path: Strin
 }
 
 /**
- * Moves the folder at [path] of [group], and everything in it, to [newPath].
+ * Moves the folder at [path] of [group], and everything in it, to [newPath]. It stops at the first Scene that can't be
+ * moved, moving back the ones moved before it, so that nothing changes.
+ *
+ * @return The Scene that couldn't be moved, or null if everything was.
  */
 @EditorMutation
-internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String, newPath: String) {
+internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String, newPath: String): String? {
     fun moved(oldPath: String) = newPath + oldPath.removePrefix(path)
     foldersOf(group).filter { FolderPaths.isWithin(it, path) }.forEach { createFolder(group, moved(it)) }
     when (val kind = group.kind) {
-        null -> scenes.names().filter { FolderPaths.isWithin(FolderPaths.parentOf(it), path) }.forEach { renameScene(it, moved(it)) }
+        null -> {
+            val movedScenes = ArrayList<String>()
+            scenes.names().filter { FolderPaths.isWithin(FolderPaths.parentOf(it), path) }.forEach { scene ->
+                if (!renameScene(scene, moved(scene))) {
+                    movedScenes.asReversed().forEach { renameScene(moved(it), it) }
+                    deleteFolder(group, newPath)
+                    return scene
+                }
+                movedScenes += scene
+            }
+        }
         else -> requireBlockTypes.types.value.filter { it.kind == kind && FolderPaths.isWithin(it.folder, path) }.forEach { requireBlockTypes.put(it.withFolder(moved(it.folder))) }
     }
     deleteFolder(group, path)
+    return null
 }
