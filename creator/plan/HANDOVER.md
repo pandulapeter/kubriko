@@ -30,8 +30,6 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 `02-ai-assistant.md` → Order, alongside `04` to `07`. Google Antigravity was tried with the user on 2026-11-01 on a spare Google
 account: it downloaded, signed in, and made the Ball faster through Creator's tools. Since then its tool calls are allowed without
 asking and it works in a folder of its own (it had written `skills/` into the project); both unit-tested, not yet seen with it.
-Google's terms bar "third party software, tools, or services to access the Service" while Google lists the same ACP server for
-JetBrains, Zed, Xcode, and Eclipse; ask Google before offering Antigravity as anything but untested.
 What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand

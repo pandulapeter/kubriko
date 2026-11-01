@@ -83,8 +83,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** alongside `04` to `07`, Google Antigravity checked in a real session with the user (and Google's terms for hosting it
-read, see Terms per vendor); what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
+**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
@@ -157,9 +156,9 @@ Agent's gateway sign-in (offered when the client advertises `auth._meta.gateway`
 (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`); Codex has a gateway of its own; local OpenAI-compatible servers go through
 OpenCode or goose. Creator keeps only the keys and addresses the user gives it, in the keychain, never a login.
 
-**Terms per vendor:** before a profile offers an agent's subscription sign-in, its vendor's terms for hosting it are read and summed
-up here, as Claude Code's are above (OpenAI's for Codex with a ChatGPT login), and its
-name and icon follow that vendor's trademark rules.
+**Terms per vendor:** an agent a vendor publishes in the ACP Registry is taken as meant for hosting in clients like Creator, so its
+terms don't gate it (the user's decision, November 2026, after Google Antigravity's terms turned out to bar "third party software"
+while Google lists the same server for other editors). Names and icons still follow each vendor's trademark rules.
 
 ## Context for large games
 
