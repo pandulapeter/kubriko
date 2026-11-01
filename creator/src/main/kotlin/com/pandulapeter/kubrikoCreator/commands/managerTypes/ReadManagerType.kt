@@ -15,38 +15,37 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireManagerType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.typeReadResult
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateManagerType
+import com.pandulapeter.kubrikoCreator.context.ReadDetail
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonObject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_read_manager_type
 
 internal object ReadManagerType : ReadCommand<ReadManagerType.Input> {
     override val name = "read_manager_type"
-    override val description = "Reads a block-built Manager type: its Properties, its Events with their Blocks, in order, and the texts it shows. " +
-        "Events, Blocks, and texts are addressed by their index in these lists. isChangedByHand tells whether its generated Kotlin class was edited outside Kubriko Creator."
+    override val description = "Reads a block-built Manager type: its Properties, its Events with their Blocks, in order, the texts it shows, and its Kotlin UI, " +
+        "written as the editor shows them (detail json returns the JSON the write tools take). Events, Blocks, and texts are addressed by their index, written before each. " +
+        "isChangedByHand, there when true, says that its generated Kotlin class was edited outside Kubriko Creator."
     override val inputSerializer = Input.serializer()
     override val title = Res.string.command_read_manager_type
 
-    private val json = Json { encodeDefaults = true; explicitNulls = false }
-
-    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.managerType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.managerType, input.eventIndex)
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         context.validateManagerType(input.managerType)?.let { return CommandOutcome.Rejected(it) }
-        val definition = json.encodeToJsonElement(ManagerTypeDefinition.serializer(), context.requireManagerType(input.managerType)).jsonObject
-        return CommandOutcome.Success(JsonObject(definition + ("isChangedByHand" to JsonPrimitive(input.managerType in context.requireBlockTypes.changedByHand.value))))
+        return context.typeReadResult(context.requireManagerType(input.managerType), ManagerTypeDefinition.serializer(), input.detail, input.eventIndex)
     }
 
     @Serializable
     data class Input(
         @Description("The name of the Manager type.")
         @SerialName("managerType") val managerType: String,
+        @Description("How much of it to return: outline (Events by title), blocks (Events with their Blocks, the default), or json (everything, as the write tools take it).")
+        @SerialName("detail") val detail: ReadDetail = ReadDetail.BLOCKS,
+        @Description("Only the Event at this index, in full, and nothing else of the type.")
+        @SerialName("eventIndex") val eventIndex: Int? = null,
     )
 }

@@ -335,6 +335,11 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Kotlin naming types, and Scenes placing Actors), each a `Relation` written `Ball#1.2 reads Game.score` (indexes from 0, as the tools
   take them); a Property belongs to the type declaring it, through parents. `get_relations` lists what a type, Property, or Scene
   uses and what uses it.
+- **Reads zoom in:** `read_actor_type` and `read_manager_type` write a type as the editor shows it (`BlockNotation`, `TypeNotation`:
+  `0 When it collides with Brick` with its Blocks indexed and indented below, `Change score of Game by 10`, in English like the tool
+  descriptions), at a `detail` (`ReadDetail`): `outline` (Events by title with Block counts), `blocks` (the default), or `json` (the
+  definition the write tools take), and `eventIndex` narrows it to one Event. Defaults are left out (`parent`, an empty list,
+  `isChangedByHand` unless true).
 
 ## AI connection (MCP)
 

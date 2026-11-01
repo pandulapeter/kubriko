@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.context.ReadDetail
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -145,7 +146,10 @@ class ManagerTypeCommandsTest {
         assertEquals("Game", list.single().jsonObject.getValue("name").jsonPrimitive.content)
         assertEquals("""[{"name":"score","kind":"number"},{"name":"isOver","kind":"toggle"}]""", list.single().jsonObject.getValue("properties").toString())
         val read = assertIs<CommandOutcome.Success>(ReadManagerType.read(context, ReadManagerType.Input("Game"))).result as JsonObject
-        assertEquals("Score: {score}", (read.getValue("texts") as JsonArray).single().jsonObject.getValue("text").jsonPrimitive.content)
-        assertEquals("false", read.getValue("isChangedByHand").jsonPrimitive.content)
+        assertEquals("""["score: number = 0","isOver: toggle = off"]""", read.getValue("properties").toString())
+        assertEquals("0 \"Score: {score}\" (topLeft, 24, #202020)", (read.getValue("texts") as JsonArray).single().jsonPrimitive.content)
+        assertNull(read["isChangedByHand"])
+        val json = assertIs<CommandOutcome.Success>(ReadManagerType.read(context, ReadManagerType.Input("Game", detail = ReadDetail.JSON))).result as JsonObject
+        assertEquals("Score: {score}", (json.getValue("texts") as JsonArray).single().jsonObject.getValue("text").jsonPrimitive.content)
     }
 }

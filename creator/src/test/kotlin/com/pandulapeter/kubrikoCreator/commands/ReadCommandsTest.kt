@@ -127,9 +127,22 @@ class ReadCommandsTest {
             Json.parseToJsonElement("""{"total":1,"actorTypes":[{"name":"Ball","events":["edgeTouched"],"isChangedByHand":false}],"folders":[]}"""),
             executor.read("list_actor_types"),
         )
-        val definition = executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball") }).jsonObject
+        assertEquals(
+            Json.parseToJsonElement("""{"name":"Ball","appearance":"circle, 80×80, #112233","events":["0 When an edge of the screen is touched\n  0 Bounce off the edge"]}"""),
+            executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball") }),
+        )
+        assertEquals(
+            Json.parseToJsonElement("""{"name":"Ball","appearance":"circle, 80×80, #112233","events":["0 When an edge of the screen is touched (1 Block)"]}"""),
+            executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("detail", "outline") }),
+        )
+        val definition = executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("detail", "json") }).jsonObject
         assertEquals("#112233", definition.getValue("color").jsonPrimitive.content)
         assertEquals("bounceOffEdge", definition.getValue("events").jsonArray[0].jsonObject.getValue("blocks").jsonArray[0].jsonObject.getValue("type").jsonPrimitive.content)
+        assertEquals(
+            Json.parseToJsonElement("""{"name":"Ball","eventIndex":0,"event":{"type":"edgeTouched","blocks":[{"type":"bounceOffEdge"}]}}"""),
+            executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("detail", "json"); put("eventIndex", 0) }),
+        )
+        assertIs<CommandOutcome.Rejected>(executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("eventIndex", 1) }))
         assertEquals(
             CommandOutcome.Rejected(Rejection(Res.string.error_command_actor_type_missing, "Wall")),
             executor.call("read_actor_type", buildJsonObject { put("actorType", "Wall") }),

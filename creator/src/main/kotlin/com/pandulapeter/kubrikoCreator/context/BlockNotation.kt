@@ -1,0 +1,125 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.context
+
+import com.pandulapeter.kubrikoCreator.actors.Axis
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockNesting
+import com.pandulapeter.kubrikoCreator.actors.Comparison
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.PauseAction
+
+/**
+ * Events and Blocks written as the editor shows them, one short line each, for tool results that are cheaper to read than
+ * their JSON: `When it collides with Brick` and `Change score of Game by 10`. Values left at nothing read `(none)`.
+ * It is for the AI, so it stays in English, like the tools' descriptions.
+ */
+internal object BlockNotation {
+
+    fun of(event: EventDefinition): String = when (event.type) {
+        EventType.GAME_STARTED -> "When the game starts"
+        EventType.ADDED_TO_SCENE -> "When added to the Scene"
+        EventType.EVERY_FRAME -> "Every frame"
+        EventType.KEY_PRESSED -> "When ${event.key?.composeKeyName ?: NONE} is pressed"
+        EventType.EDGE_TOUCHED -> "When an edge of the screen is touched"
+        EventType.COLLISION -> "When it collides with ${event.otherActorType ?: NONE}"
+        EventType.TIMER_FINISHED -> "When Timer ${event.timer ?: NONE} finishes"
+    }
+
+    /**
+     * The Event's title and its Blocks, each on a line of its own after its index, indented by the if and repeat Blocks
+     * it is in.
+     */
+    fun withBlocks(event: EventDefinition): String {
+        val (nesting, _) = BlockNesting.of(event.blocks)
+        return buildString {
+            append(of(event))
+            event.blocks.forEachIndexed { index, block ->
+                append('\n')
+                append("  ".repeat(nesting[index].depth + 1))
+                append(index)
+                append(' ')
+                append(of(block))
+            }
+        }
+    }
+
+    fun of(block: BlockDefinition): String = when (block) {
+        is BlockDefinition.SetVelocity -> "Set velocity to ${point(block.x, block.y)}"
+        is BlockDefinition.AddToVelocity -> "Add ${point(block.x, block.y)} to velocity"
+        BlockDefinition.Stop -> "Stop"
+        BlockDefinition.RunParentEvent -> "Run the parent's Event"
+        is BlockDefinition.JumpTo -> "Jump to position ${point(block.x, block.y)}"
+        BlockDefinition.BounceOffEdge -> "Bounce off the edge"
+        BlockDefinition.RemoveSelf -> "Remove this Actor"
+        BlockDefinition.BounceOffOther -> "Bounce off it"
+        BlockDefinition.RemoveOther -> "Remove the other Actor"
+        is BlockDefinition.SetNumber -> "Set ${property(block.property, block.manager)} to ${number(block.value)}"
+        is BlockDefinition.ChangeNumber -> "Change ${property(block.property, block.manager)} by ${number(block.by)}"
+        is BlockDefinition.SetText -> "Set ${property(block.property, block.manager)} to ${text(block.value)}"
+        is BlockDefinition.SetToggle -> "Turn ${property(block.property, block.manager)} ${if (block.value) "on" else "off"}"
+        is BlockDefinition.AddActor -> "Add an Actor of ${name(block.actorType)} at ${point(block.x, block.y)} " + if (block.isRelative) "from this Actor" else "from the center"
+        is BlockDefinition.MoveTowardsNearest -> "Move towards the nearest ${name(block.actorType)} at speed ${number(block.speed)}"
+        is BlockDefinition.StartTimer -> "Start Timer ${block.timer} for ${number(block.seconds)} s" + if (block.isRepeating) ", repeating" else ""
+        is BlockDefinition.StopTimer -> "Stop Timer ${block.timer}"
+        is BlockDefinition.GoToScene -> "Go to Scene ${name(block.scene)}"
+        BlockDefinition.RestartScene -> "Restart the Scene"
+        is BlockDefinition.PauseGame -> when (block.action) {
+            PauseAction.PAUSE -> "Pause the game"
+            PauseAction.RESUME -> "Resume the game"
+            PauseAction.TOGGLE -> "Pause or resume the game"
+        }
+        is BlockDefinition.PlaySound -> "Play sound ${name(block.sound)}"
+        is BlockDefinition.PlayMusic -> "Play music ${name(block.music)}" + if (block.isLooping) "" else ", once"
+        BlockDefinition.StopMusic -> "Stop the music"
+        is BlockDefinition.If -> "If ${of(block.condition)}"
+        BlockDefinition.Else -> "Else"
+        is BlockDefinition.Repeat -> "Repeat ${block.times} times"
+        BlockDefinition.End -> "End"
+        is BlockDefinition.Log -> "Write to the console ${text(block.message)}"
+        is BlockDefinition.Kotlin -> "Run Kotlin code ${text(block.code)}"
+    }
+
+    fun of(condition: ConditionDefinition): String = when (condition) {
+        is ConditionDefinition.Number -> "${property(condition.property, condition.manager)} ${of(condition.comparison)} ${number(condition.value)}"
+        is ConditionDefinition.Text -> "${property(condition.property, condition.manager)} ${if (condition.isEqual) "is" else "isn't"} ${text(condition.value)}"
+        is ConditionDefinition.Toggle -> "${property(condition.property, condition.manager)} ${if (condition.isOn) "is on" else "is off"}"
+        is ConditionDefinition.KeyHeld -> "${condition.key.composeKeyName} ${if (condition.isHeld) "is held" else "isn't held"}"
+        is ConditionDefinition.Velocity -> "the ${if (condition.axis == Axis.HORIZONTAL) "horizontal" else "vertical"} velocity ${of(condition.comparison)} ${number(condition.value)}"
+        is ConditionDefinition.Chance -> "by chance (${number(condition.percent)}%)"
+        is ConditionDefinition.Paused -> if (condition.isPaused) "the game is paused" else "the game isn't paused"
+    }
+
+    /**
+     * [value] without a fraction when it has none: `200`, not `200.0`.
+     */
+    fun number(value: Float) = if (value.isFinite() && value == value.toLong().toFloat()) value.toLong().toString() else value.toString()
+
+    private fun of(comparison: Comparison) = when (comparison) {
+        Comparison.LESS -> "is less than"
+        Comparison.LESS_OR_EQUAL -> "is at most"
+        Comparison.EQUAL -> "is"
+        Comparison.NOT_EQUAL -> "isn't"
+        Comparison.GREATER_OR_EQUAL -> "is at least"
+        Comparison.GREATER -> "is more than"
+    }
+
+    private fun point(x: Float, y: Float) = "(${number(x)}, ${number(y)})"
+
+    private fun property(name: String, manager: String?) = name(name) + (manager?.let { " of $it" } ?: "")
+
+    private fun name(value: String) = value.ifEmpty { NONE }
+
+    private fun text(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
+
+    private const val NONE = "(none)"
+}
