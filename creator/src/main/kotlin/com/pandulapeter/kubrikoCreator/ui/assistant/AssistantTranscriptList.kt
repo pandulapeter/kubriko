@@ -52,6 +52,7 @@ import com.pandulapeter.kubrikoCreator.ui.canBeShown
 import com.pandulapeter.kubrikoCreator.ui.description
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_failure_agent_not_started
+import kubriko.creator.generated.resources.assistant_failure_agent_stopped
 import kubriko.creator.generated.resources.assistant_failure_auth_required
 import kubriko.creator.generated.resources.assistant_failure_conversation_lost
 import kubriko.creator.generated.resources.assistant_failure_node_missing
@@ -281,6 +282,7 @@ private fun StopReason.description() = when (this) {
 internal fun FailureReason.description(details: String? = null): String = when (this) {
     FailureReason.NODE_MISSING -> stringResource(Res.string.assistant_failure_node_missing)
     FailureReason.AGENT_NOT_STARTED -> stringResource(Res.string.assistant_failure_agent_not_started)
+    FailureReason.AGENT_STOPPED -> stringResource(Res.string.assistant_failure_agent_stopped)
     FailureReason.CONVERSATION_LOST -> stringResource(Res.string.assistant_failure_conversation_lost)
     FailureReason.AUTH_REQUIRED -> stringResource(Res.string.assistant_failure_auth_required)
     FailureReason.PROMPT_FAILED -> details?.let { stringResource(Res.string.assistant_failure_prompt_failed, it) }

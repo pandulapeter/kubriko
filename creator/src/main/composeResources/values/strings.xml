@@ -613,6 +613,7 @@
     <string name="assistant_permission">The assistant asks to use %1$s.</string>
     <string name="assistant_failure_node_missing">Claude Agent needs Node.js, which your shell can't find. Install it, then try again.</string>
     <string name="assistant_failure_agent_not_started">Claude Agent couldn't be started.</string>
+    <string name="assistant_failure_agent_stopped">Claude Agent stopped while answering. Send your message again to go on.</string>
     <string name="assistant_failure_conversation_lost">Claude Agent restarted and couldn't continue this conversation. Start a new one.</string>
     <string name="assistant_failure_auth_required">Claude Agent isn't signed in. Sign in below, and your message is sent again.</string>
     <string name="assistant_account_menu">Who Claude Agent works as</string>

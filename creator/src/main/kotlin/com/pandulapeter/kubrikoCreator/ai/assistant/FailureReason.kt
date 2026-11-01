@@ -24,6 +24,11 @@ internal enum class FailureReason {
     AGENT_NOT_STARTED,
 
     /**
+     * The agent's process ended while it answered, so the turn ended unfinished.
+     */
+    AGENT_STOPPED,
+
+    /**
      * The agent restarted without being able to load the conversation again.
      */
     CONVERSATION_LOST,

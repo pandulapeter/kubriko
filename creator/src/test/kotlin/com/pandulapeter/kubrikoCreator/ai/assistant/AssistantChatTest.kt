@@ -208,6 +208,15 @@ class AssistantChatTest {
     }
 
     @Test
+    fun anAgentThatStopsMidTurnEndsItWithAFailureAndTheConversationGoesOn() = test {
+        val chat = readyChat()
+        chat.sendAndWait("crash")
+        assertEquals(TranscriptItem.Failure(FailureReason.AGENT_STOPPED), chat.transcript.value.items.last())
+        chat.sendAndWait("hello")
+        assertEquals(TranscriptItem.AgentMessage("Hi there"), chat.transcript.value.items.last())
+    }
+
+    @Test
     fun onlyARefusedPromptIsSentAgain() = test {
         val chat = readyChat()
         chat.sendAndWait("hello")

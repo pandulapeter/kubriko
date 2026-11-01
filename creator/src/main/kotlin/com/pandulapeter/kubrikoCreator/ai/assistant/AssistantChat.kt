@@ -27,10 +27,12 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -151,7 +153,8 @@ internal class AssistantChat(
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
                 _transcript.update { it.withTurnEnd(response.stopReason) }
             } catch (exception: CancellationException) {
-                throw exception
+                if (!currentCoroutineContext().isActive) throw exception
+                _transcript.update { it.withFailure(FailureReason.AGENT_STOPPED) }
             } catch (_: ConversationLostException) {
                 _transcript.update { it.withFailure(FailureReason.CONVERSATION_LOST) }
                 _state.value = ChatState.Failed(FailureReason.CONVERSATION_LOST)
@@ -189,7 +192,8 @@ internal class AssistantChat(
             try {
                 conversation.setConfigOption(id, value)
             } catch (exception: CancellationException) {
-                throw exception
+                if (!currentCoroutineContext().isActive) throw exception
+                _transcript.update { it.withFailure(FailureReason.AGENT_STOPPED) }
             } catch (exception: Exception) {
                 _transcript.update { it.withFailure(FailureReason.PROMPT_FAILED, exception.message) }
             }

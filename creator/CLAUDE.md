@@ -462,7 +462,8 @@ since their tools work on whatever project is open. The Claude Code configuratio
 it is gone), and choosing another ends the conversations, replaces the agent, and starts a new one. A chat builds its
 `AssistantTranscript` (messages and thoughts with their chunks joined, tool calls updated in place by ID, the latest plan and slash
 commands, and turns that ended other than by the agent finishing them); a prompt's own updates come through `prompt`'s `onUpdate`,
-so they are in the transcript before its turn ends. Permission requests wait for the user's answer (Stop cancels one), and the
+so they are in the transcript before its turn ends; a turn whose agent process ends mid-way ends in an `AGENT_STOPPED` failure
+(the conversation goes on once the agent has loaded it again). Permission requests wait for the user's answer (Stop cancels one), and the
 agent's config options (mode, model, effort, and others) are menus labeled with their names, after the account menu (who the
 agent works as, its sign-in methods, and the API key; `accountActions`). Above the composer, `AssistantSignInArea` shows the
 running sign-in, the API key form, or, while signing in is needed, `SignInCard` (`signInAreaContent` decides). The panel draws messages with its own

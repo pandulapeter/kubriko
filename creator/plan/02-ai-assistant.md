@@ -175,11 +175,6 @@ What the panel and the MCP server get wrong today, found in review; each goes in
   `AiConfigFileClient` falls back from, but `AssistantController.assistant()` turns into `NodeMissingException`, so every chat on
   Windows asks for Node.js even when it is installed. Direction: resolve programs with `where` on Windows (finding `npx.cmd`), and
   start `.cmd` agents through `cmd /c` with their descendants stopped (`ProcessAgentLauncher.stop` already stops them).
-- **An agent that dies mid-turn ends it without a word.** The SDK fails a pending request with its own `CancellationException`
-  when the agent's streams close (`AcpAgent` notes it), and `AssistantChat.prompt`, `setConfigOption`, and
-  `AssistantController.signIn` rethrow every `CancellationException`, so the turn just stops: no failure, no turn end in the
-  transcript. Direction: rethrow only when the caller's own coroutine was cancelled (`currentCoroutineContext().isActive`, as
-  `AcpAgent.connect` checks), otherwise record `CONVERSATION_LOST` or `PROMPT_FAILED`; a `FakeAgent` that exits mid-turn tests it.
 - **Restarting the MCP server can race.** `McpController.apply` cancels the previous job without joining it, so a quick toggle or a
   port change right after enabling runs the old `start` and the new `stop`/`start` at once on two IO threads over the unsynchronized
   `McpToolServer.server`, and a start cancelled inside `startSuspend` throws before stopping what it started. The port then shows as
