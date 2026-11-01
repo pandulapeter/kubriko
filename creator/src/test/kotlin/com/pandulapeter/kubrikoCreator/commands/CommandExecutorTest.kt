@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -164,6 +165,25 @@ class CommandExecutorTest {
         executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball") }, origin)
         executor.call("set_appearance", buildJsonObject { put("width", "wide") }, origin)
         assertEquals(listOf(origin, origin), executor.aiSteps.value.map { it.origin })
+    }
+
+    @Test
+    fun aConversationsTurnIsUndoneUpToSomeoneElsesLaterChange() = runTest {
+        val (executor, context) = executor(ball)
+        val origin = AiStepOrigin(conversationId = "conversation")
+        executor.execute(width(10f))
+        val turnStart = executor.changeLog.revision
+        executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("width", 20) }, origin)
+        executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("height", 30) }, origin)
+        assertEquals(0, executor.undoTurn("conversation", turnStart))
+        val ballNow = context.requireType("Ball") as ActorTypeDefinition
+        assertEquals(10f, ballNow.width)
+        assertEquals(Res.string.command_set_appearance, executor.history.value.nextUndoTitle)
+
+        executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("width", 40) }, origin)
+        executor.execute(width(50f))
+        assertEquals(1, executor.undoTurn("conversation", turnStart))
+        assertEquals(50f, (context.requireType("Ball") as ActorTypeDefinition).width)
     }
 
     @Test

@@ -178,6 +178,7 @@ private fun assistantController(scope: CoroutineScope, executor: () -> CommandEx
         },
         projectDigest = { executor()?.context?.let { DigestText.of(it.projectDigest()) } },
         changeLog = { executor()?.changeLog },
+        undoTurn = { toolsId, sinceRevision -> executor()?.undoTurn(toolsId, sinceRevision) ?: 0 },
         registry = AgentRegistryStore.default(),
         installer = BinaryAgentInstaller.default(),
         errorLogFile = errorLog.file,

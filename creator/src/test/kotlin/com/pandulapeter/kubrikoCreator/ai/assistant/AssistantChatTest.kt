@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -61,6 +62,8 @@ class AssistantChatTest {
 
     private suspend fun readyChat() = newChat().also { chat -> chat.state.first { it == ChatState.Ready } }
 
+    private val undoneTurns = CopyOnWriteArrayList<Pair<String, Int>>()
+
     private suspend fun newChat(changeLog: ChangeLog? = null) = withContext(mainThread) {
         AssistantChat(
             parentScope = scope,
@@ -71,6 +74,10 @@ class AssistantChatTest {
             },
             toolsIdOf = { "tools" },
             changeLog = { changeLog },
+            undoTurn = { toolsId, sinceRevision ->
+                undoneTurns += toolsId to sinceRevision
+                0
+            },
         )
     }
 
@@ -224,6 +231,24 @@ class AssistantChatTest {
         chat.isBusy.first { !it }
         assertEquals<List<ContentBlock>>(listOf(AttentionChip.Scene("level-1").toContent()), launcher.agents.single().leadingBlocks)
         assertEquals(listOf("hello"), launcher.agents.single().prompts)
+    }
+
+    @Test
+    fun whatATurnChangedIsOfferedToKeepOrUndo() = test {
+        val changeLog = ChangeLog()
+        changeLog.record(Res.string.command_add_block, null)
+        val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
+        withContext(mainThread) { chat.send("wait") }
+        while ("wait" !in launcher.agents.single().prompts) delay(10)
+        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 0), origin = AiStepOrigin("tools"), isByAi = true)
+        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Brick", 0), origin = AiStepOrigin("other"), isByAi = true)
+        withContext(mainThread) { chat.stop() }
+        chat.isBusy.first { !it }
+        val changes = chat.transcript.value.items.filterIsInstance<TranscriptItem.TurnChanges>().single()
+        assertEquals(listOf<CommandTarget?>(CommandTarget.BlockType("Ball", 0)), changes.changes.map { it.target })
+        withContext(mainThread) { chat.undoChanges(changes.sinceRevision) }
+        chat.transcript.first { transcript -> transcript.items.any { it is TranscriptItem.TurnChanges && it.state == TranscriptItem.TurnChanges.State.UNDONE } }
+        assertEquals(listOf("tools" to 1), undoneTurns)
     }
 
     @Test

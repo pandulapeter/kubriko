@@ -75,10 +75,8 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
 6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
 7. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists).
-8. **Keep and Undo:** before each prompt Creator commits a checkpoint ("Before Claude's changes") when the project is under version
-   control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 
-**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); Keep and Undo (8); and the MCP server items above.
+**Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; the Node.js download (3); and the MCP server items above.
 
 **The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
 commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
@@ -130,7 +128,7 @@ Assistant, for the fallbacks that exist): Claude's is the only one. What is left
   Claude Agent does, worth trying in place of leading text.
 - **Staying off the files:** a read-only mode or sandbox where the agent offers one (a session mode or config option), before
   falling back on rejecting permission requests. An agent that changes files without asking is marked as such in the list, and its
-  conversations suggest version control, so that Keep and Undo (8) can take its changes back.
+  conversations suggest version control, since the turn's Undo only reverts changes made through Creator's tools.
 - **Sign-in:** environment variable methods (`EnvVarAuth`, whose `vars` name the fields; the values kept in the OS keychain per
   agent), beside the agent and terminal methods that work today.
 - **Accounts:** the variable that picks an agent's configuration folder (`CLAUDE_CONFIG_DIR` for Claude Code, `CODEX_HOME` for Codex),

@@ -11,10 +11,15 @@ package com.pandulapeter.kubrikoCreator.commands
 
 /**
  * One step of the undo or redo history: the change that [revert] reverts and [reapply] makes again.
+ *
+ * @param conversationId The tool address of the assistant's conversation that made the change, if one did.
+ * @param revision The project's revision once the change was made ([ChangeLog]).
  */
 internal data class HistoryEntry(
     val revert: Invocation<*>,
     val reapply: Invocation<*>,
+    val conversationId: String? = null,
+    val revision: Int = 0,
 ) {
     /**
      * The change the user made, which names the step in both directions.

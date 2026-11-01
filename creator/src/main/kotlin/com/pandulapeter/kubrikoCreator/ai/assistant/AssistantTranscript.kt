@@ -13,6 +13,7 @@ import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.PlanEntry
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.StopReason
+import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 
 /**
  * A conversation as the assistant panel shows it, built up from what the user sends and the agent reports.
@@ -64,6 +65,19 @@ internal data class AssistantTranscript(
      * Notes how a turn ended, unless the agent simply finished it.
      */
     fun withTurnEnd(reason: StopReason) = if (reason == StopReason.END_TURN) this else copy(items = items + TranscriptItem.TurnEnded(reason))
+
+    /**
+     * Offers to keep or undo [changes], unless there are none.
+     */
+    fun withTurnChanges(sinceRevision: Int, changes: List<ChangeRecord>) =
+        if (changes.isEmpty()) this else copy(items = items + TranscriptItem.TurnChanges(sinceRevision, changes))
+
+    /**
+     * Marks the changes of the turn that began at [sinceRevision] as [state].
+     */
+    fun withTurnChangesState(sinceRevision: Int, state: TranscriptItem.TurnChanges.State) = copy(
+        items = items.map { if (it is TranscriptItem.TurnChanges && it.sinceRevision == sinceRevision) it.copy(state = state) else it },
+    )
 
     fun withFailure(reason: FailureReason, details: String? = null) = copy(items = items + TranscriptItem.Failure(reason, details))
 

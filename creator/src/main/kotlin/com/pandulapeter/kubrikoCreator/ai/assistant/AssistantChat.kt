@@ -44,6 +44,8 @@ import kotlinx.coroutines.launch
  * @param start Starts the conversation, or continues an earlier one, handing what came before to its second argument.
  * @param end Ends the conversation [start] started.
  * @param toolsIdOf The ID of the address at which a conversation reaches Kubriko Creator's tools.
+ * @param undoTurn Reverts what the conversation at a tool address changed after a revision, returning how many of its
+ *   changes stay ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]).
  * @param onTurnEnded Called after each turn with the conversation's ID and title, so that it can be continued later.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
  *   its last turn ([ChangesSummary]).
@@ -55,6 +57,7 @@ internal class AssistantChat(
     private val toolsIdOf: (AgentConversation) -> String? = { null },
     private val changeLog: () -> ChangeLog? = { null },
     private val onTurnEnded: suspend (id: String, title: String) -> Unit = { _, _ -> },
+    private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private val _state = MutableStateFlow<ChatState>(ChatState.Starting)
@@ -158,6 +161,7 @@ internal class AssistantChat(
         _isBusy.value = true
         val log = changeLog()
         val since = seenRevision
+        val turnStart = log?.revision
         log?.let { seenRevision = it.revision }
         scope.launch {
             try {
@@ -165,6 +169,10 @@ internal class AssistantChat(
                 val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
                 _transcript.update { it.withTurnEnd(response.stopReason) }
+                if (log != null && turnStart != null) {
+                    val toolsId = _toolsId.value
+                    _transcript.update { transcript -> transcript.withTurnChanges(turnStart, log.since(turnStart).filter { it.step == null && it.origin?.conversationId == toolsId }) }
+                }
                 val title = _transcript.value.title
                 if (title != null) onTurnEnded(conversation.id.value, title)
             } catch (exception: CancellationException) {
@@ -182,6 +190,23 @@ internal class AssistantChat(
             } finally {
                 _isBusy.value = false
             }
+        }
+    }
+
+    /**
+     * Keeps what the turn that began at [sinceRevision] changed.
+     */
+    fun keepChanges(sinceRevision: Int) = _transcript.update { it.withTurnChangesState(sinceRevision, TranscriptItem.TurnChanges.State.KEPT) }
+
+    /**
+     * Reverts what the turn that began at [sinceRevision] changed, up to a later change of someone else's.
+     */
+    fun undoChanges(sinceRevision: Int) {
+        val toolsId = _toolsId.value ?: return
+        scope.launch {
+            val remaining = undoTurn(toolsId, sinceRevision)
+            val state = if (remaining == 0) TranscriptItem.TurnChanges.State.UNDONE else TranscriptItem.TurnChanges.State.PARTLY_UNDONE
+            _transcript.update { it.withTurnChangesState(sinceRevision, state) }
         }
     }
 

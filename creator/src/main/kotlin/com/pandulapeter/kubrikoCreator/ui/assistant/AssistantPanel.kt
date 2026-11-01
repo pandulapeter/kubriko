@@ -245,6 +245,8 @@ private fun ChatContent(
                 isBusy = isBusy,
                 steps = steps,
                 onShowStep = onShowStep,
+                onKeepChanges = chat::keepChanges,
+                onUndoChanges = chat::undoChanges,
             )
             state is ChatState.Ready -> Hint(stringResource(Res.string.assistant_empty))
             state is ChatState.Starting -> AssistantStarting(download)

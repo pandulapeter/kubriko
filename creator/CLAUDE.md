@@ -494,7 +494,11 @@ Claude Code configuration is the default one or one of a shell alias's
 it is gone), and choosing another ends the conversations, replaces the agent, and starts a new one. A chat builds its
 `AssistantTranscript` (messages and thoughts with their chunks joined, tool calls updated in place by ID, the latest plan and slash
 commands, and turns that ended other than by the agent finishing them); a prompt's own updates come through `prompt`'s `onUpdate`,
-so they are in the transcript before its turn ends; a turn whose agent process ends mid-way ends in an `AGENT_STOPPED` failure
+so they are in the transcript before its turn ends; a turn that changed the project ends with a card of what it changed (`TranscriptItem.TurnChanges`, `TurnChangesCard`:
+the conversation's own `ChangeRecord`s since the turn began) with Keep and Undo, which reverts them through the undo history as long
+as they are the newest (`CommandExecutor.undoTurn`; `HistoryEntry` keeps the conversation and revision of each step, and steps of
+different conversations, or of a conversation and the user, never merge); a turn whose agent process ends mid-way ends in an
+`AGENT_STOPPED` failure
 (the conversation goes on once the agent has loaded it again). Permission requests wait for the user's answer (Stop cancels one), and the
 agent's config options (mode, model, effort, and others) are menus labeled with their names, after the account menu (who the
 agent works as, its sign-in methods, and the API key; `accountActions`). Above the composer, `AssistantSignInArea` shows the

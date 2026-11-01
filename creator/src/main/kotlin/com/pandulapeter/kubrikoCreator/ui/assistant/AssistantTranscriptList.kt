@@ -82,6 +82,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param isBusy Whether the agent works on a turn, shown at the end until it writes something.
  * @param steps The AI step each of Kubriko Creator's tool calls made, by the call's ID ([aiStepsOf]).
  * @param onShowStep Goes to what a step worked on, in the editor.
+ * @param onKeepChanges Keeps what the turn that began at a revision changed.
+ * @param onUndoChanges Reverts what the turn that began at a revision changed.
  */
 @Composable
 internal fun AssistantTranscriptList(
@@ -90,6 +92,8 @@ internal fun AssistantTranscriptList(
     steps: Map<ToolCallId, AiStep>,
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
+    onKeepChanges: (sinceRevision: Int) -> Unit = {},
+    onUndoChanges: (sinceRevision: Int) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val last = items.lastOrNull()
@@ -121,6 +125,11 @@ internal fun AssistantTranscriptList(
                     toolCall = item,
                     step = steps[item.id],
                     onShowStep = onShowStep,
+                )
+                is TranscriptItem.TurnChanges -> TurnChangesCard(
+                    changes = item,
+                    onKeep = { onKeepChanges(item.sinceRevision) },
+                    onUndo = { onUndoChanges(item.sinceRevision) },
                 )
                 is TranscriptItem.TurnEnded -> Notice(stringResource(item.reason.description()))
                 is TranscriptItem.Failure -> FailureNotice(

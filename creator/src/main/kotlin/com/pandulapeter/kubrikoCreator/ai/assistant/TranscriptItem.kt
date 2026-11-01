@@ -13,6 +13,7 @@ import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
 import com.agentclientprotocol.model.ToolKind
+import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 
 /**
  * One entry of a conversation as the assistant panel shows it.
@@ -48,6 +49,28 @@ internal sealed interface TranscriptItem {
          * The name of the Kubriko Creator tool the call runs, or null if it runs one of the agent's own.
          */
         val creatorToolName get() = CreatorToolName.of(title)
+    }
+
+    /**
+     * What a turn changed in the project, offered to keep or undo.
+     *
+     * @param sinceRevision The project's revision when the turn began.
+     */
+    data class TurnChanges(
+        val sinceRevision: Int,
+        val changes: List<ChangeRecord>,
+        val state: State = State.OFFERED,
+    ) : TranscriptItem {
+        enum class State {
+            OFFERED,
+            KEPT,
+            UNDONE,
+
+            /**
+             * Undone up to a later change of someone else's, which stopped it.
+             */
+            PARTLY_UNDONE,
+        }
     }
 
     /**

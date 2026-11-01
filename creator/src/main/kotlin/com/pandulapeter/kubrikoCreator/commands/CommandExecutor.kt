@@ -80,9 +80,11 @@ internal class CommandExecutor(
         val applied = invocation.apply(context)
         applied.failure?.let { return@withLock CommandOutcome.Rejected(it) }
         if (applied.isRewritingFiles) _history.value = CommandHistory()
-        applied.inverse?.let { inverse -> record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true))) }
         val target = invocation.target(context)
         val revision = changeLog.record(invocation.title, target, origin, isByAi)
+        applied.inverse?.let { inverse ->
+            record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision))
+        }
         CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.title, target) else applied.result)
     }
 
@@ -127,9 +129,9 @@ internal class CommandExecutor(
             _history.value = remaining
             return@withLock CommandOutcome.Rejected(it)
         }
-        changeLog.record(invocation.title, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
+        val revision = changeLog.record(invocation.title, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
         val stepped = applied.inverse?.copy(isRestoring = true)?.let { inverse ->
-            if (isUndo) HistoryEntry(revert = invocation, reapply = inverse) else HistoryEntry(revert = inverse, reapply = invocation)
+            if (isUndo) HistoryEntry(invocation, inverse, entry.conversationId, revision) else HistoryEntry(inverse, invocation, entry.conversationId, revision)
         }
         _history.value = when {
             stepped == null -> remaining
@@ -137,6 +139,21 @@ internal class CommandExecutor(
             else -> remaining.copy(undoable = remaining.undoable + stepped)
         }
         CommandOutcome.Success(applied.result)
+    }
+
+    /**
+     * Reverts what the assistant's conversation at the tool address [conversationId] changed after [sinceRevision], as
+     * long as its changes are the newest: a later change of anyone else's stops it, so nothing else is reverted with them.
+     *
+     * @return How many of the conversation's changes are still there after it.
+     */
+    suspend fun undoTurn(conversationId: String, sinceRevision: Int): Int {
+        while (true) {
+            val newest = _history.value.undoable.lastOrNull()
+            if (newest == null || newest.conversationId != conversationId || newest.revision <= sinceRevision) break
+            if (step(isUndo = true) !is CommandOutcome.Success) break
+        }
+        return _history.value.undoable.count { it.conversationId == conversationId && it.revision > sinceRevision }
     }
 
     private suspend fun <I> call(name: String, command: EditorCommand<I>, arguments: JsonObject, origin: AiStepOrigin?): CommandOutcome {
@@ -177,8 +194,8 @@ internal class CommandExecutor(
         val undoable = _history.value.undoable
         val previous = undoable.lastOrNull()
         _history.value = CommandHistory(
-            undoable = if (previous != null && _history.value.redoable.isEmpty() && previous.reapply.mergesWith(entry.reapply)) {
-                undoable.dropLast(1) + HistoryEntry(revert = previous.revert.mergedWith(entry.revert), reapply = entry.reapply)
+            undoable = if (previous != null && _history.value.redoable.isEmpty() && previous.conversationId == entry.conversationId && previous.reapply.mergesWith(entry.reapply)) {
+                undoable.dropLast(1) + entry.copy(revert = previous.revert.mergedWith(entry.revert))
             } else {
                 (undoable + entry).takeLast(HISTORY_SIZE)
             },

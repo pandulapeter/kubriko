@@ -49,6 +49,7 @@ import java.io.IOException
  *   there is one.
  * @param projectDigest The digest of the open project, which a new conversation starts with.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
+ * @param undoTurn Reverts what a conversation changed after a revision ([AssistantChat]'s Undo).
  * @param registry Where the registry's agents come from, or null for Claude Agent alone.
  * @param installer Downloads the agents the registry distributes as archives.
  * @param errorLogFile Where agents' standard error is kept ([AgentErrorLog]), for the user to open.
@@ -65,6 +66,7 @@ internal class AssistantController(
     private val createAssistant: (AgentCommand, npx: File?, AgentProfile) -> Assistant,
     private val projectDigest: suspend () -> String? = { null },
     private val changeLog: () -> ChangeLog? = { null },
+    private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
     private val home: String = System.getProperty("user.home"),
     private val registry: AgentRegistryStore? = null,
     private val installer: BinaryAgentInstaller? = null,
@@ -235,6 +237,7 @@ internal class AssistantController(
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
             changeLog = changeLog,
+            undoTurn = undoTurn,
             onTurnEnded = { id, title -> withContext(ioDispatcher) { conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock())) } },
         )
         chatList.add(chat)

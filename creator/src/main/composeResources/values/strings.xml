@@ -623,6 +623,12 @@
     <string name="assistant_chip_problem">The latest problem</string>
     <string name="assistant_chip_hint">Sent with your next message, so the assistant knows what you mean. Click to leave it out.</string>
     <string name="assistant_conversation_earlier">%1$s (earlier)</string>
+    <string name="assistant_changes_title">What changed</string>
+    <string name="assistant_changes_more">and %1$d more</string>
+    <string name="assistant_changes_kept">Kept.</string>
+    <string name="assistant_changes_undone">Undone.</string>
+    <string name="assistant_changes_partly_undone">Undone up to a later change of yours, which stays. Undo it first to undo the rest.</string>
+    <string name="action_keep">Keep</string>
     <string name="assistant_starting_download">The first time, it is downloaded, which can take a minute.</string>
     <string name="assistant_input_hint">Ask the assistant (Enter sends, Shift+Enter starts a new line)</string>
     <string name="assistant_thinking">Thinking</string>
