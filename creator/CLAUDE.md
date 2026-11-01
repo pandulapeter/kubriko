@@ -249,12 +249,14 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   placeholders (`PropertyPlaceholders`). Kotlin Blocks and Kotlin UI follow renames too (`KotlinIdentifiers`: identifiers outside
   strings and comments, string templates included; an own Property bare or after `this.`, another Manager's after its field, type names
   bare), though, knowing no grammar, a local variable of the same name is renamed with them. `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the
-  editor's Property choices alike: an Actor looks the Managers it uses up in `onAdded` (a field named after the type, unless a
-  Property has that name), a Manager through `manager<T>()`, and a Manager naming itself means its own Properties. Renaming a
+  editor's Property choices alike: an Actor looks the Managers it uses up in `onAdded`, a Manager through `manager<T>()`, both in a
+  field named after the type with `Manager` after it (`scoreManager` for `Score`, `BlockScope.managerField`; no Property may end
+  with `Manager`, and no Manager type be called `Viewport`, `KeyboardInput`, or `Sprite`, so it clashes with nothing), and a Manager naming itself means its own Properties. Renaming a
   Manager type or one of its Properties follows every Block, placeholder, and text of every type.
 - **Format versions** (`project/ProjectFormat`): `.kubriko/project.json` records one `formatVersion` for all of a project's Creator
   files (type definitions and Scenes), raised only by a change an older Creator can't read, with the `minimumCreatorVersion` that raised
-  it; projects from before it was recorded are version 0, which is still the current one. Each raise is a `FormatMigration` in
+  it; projects from before it was recorded are version 0. Version 1 is the Manager fields' `Manager` suffix
+  (`ManagerFieldMigration` renames the old fields in Kotlin Blocks and Kotlin UI, leaving unreadable type files alone). Each raise is a `FormatMigration` in
   `ProjectFormat.MIGRATIONS` (their count is the current version), applied at opening, and again when `project.json` changes on disk
   (`ProjectChange.SETTINGS`), recording the version after each, so one that fails is carried on next time (failing at opening fails
   the opening). A project whose version is newer opens read-only (`WorkspaceController.formatStatus`): `ReadOnlyProjectNotice` says

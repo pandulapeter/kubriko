@@ -46,6 +46,11 @@ internal object BlockTypeNaming {
     )
 
     /**
+     * Manager type names whose lookup field ([BlockScope.managerField]) would be one the generated code has already.
+     */
+    private val reservedManagerTypeNames = setOf("Viewport", "KeyboardInput", "Sprite")
+
+    /**
      * Whether [name] can be a Kotlin class name the way a type's name has to be.
      */
     fun isWellFormed(name: String) = namePattern.matches(name)
@@ -53,15 +58,15 @@ internal object BlockTypeNaming {
     /**
      * Whether [name] is used by Kubriko or by the code Kubriko Creator generates, so a type of that name wouldn't compile.
      */
-    fun isReserved(name: String) = name in reservedNames
+    fun isReserved(name: String, kind: BlockTypeKind) = name in reservedNames || (kind == BlockTypeKind.MANAGER && name in reservedManagerTypeNames)
 
     /**
      * Why [name] can't be a new Actor type's or Manager type's name, or null if it can. Names that differ only in case
      * are taken too, since they would clash on case-insensitive file systems.
      */
-    fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
+    fun validate(name: String, existingNames: Collection<String>, kind: BlockTypeKind = BlockTypeKind.ACTOR): StringResource? = when {
         !isWellFormed(name) -> Res.string.error_type_name_invalid
-        isReserved(name) -> Res.string.error_type_name_reserved
+        isReserved(name, kind) -> Res.string.error_type_name_reserved
         name.endsWith(BASE_SUFFIX) -> Res.string.error_type_name_base_suffix
         existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_type_name_taken
         else -> null

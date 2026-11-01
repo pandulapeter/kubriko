@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.managerTypes
 
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -38,7 +39,7 @@ internal object CreateManagerType : WriteCommand<ManagerTypeDefinition> {
     override fun validate(context: CommandContext, input: ManagerTypeDefinition): Rejection? = validateRestoring(context, input)
         ?: context.requireBlockTypes.let { types -> input.validateContents(types.actorTypes.value.map { it.name }, types.managerTypes.value) }
 
-    override fun validateRestoring(context: CommandContext, input: ManagerTypeDefinition) = context.validateNewTypeName(input.name)
+    override fun validateRestoring(context: CommandContext, input: ManagerTypeDefinition) = context.validateNewTypeName(input.name, BlockTypeKind.MANAGER)
 
     override suspend fun apply(context: CommandContext, input: ManagerTypeDefinition): Applied {
         context.requireBlockTypes.put(input)

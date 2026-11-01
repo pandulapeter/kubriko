@@ -297,7 +297,7 @@ class BlockTypeStoreTest {
         store.saveAndRegenerate(brick)
         assertContains(File(generated, "Brick.kt").readText(), "// Choose a Property for this Block.")
         store.saveAndRegenerate(ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score"))))
-        assertContains(File(generated, "Brick.kt").readText(), "game.score += 1f")
+        assertContains(File(generated, "Brick.kt").readText(), "gameManager.score += 1f")
     }
 
     @Test

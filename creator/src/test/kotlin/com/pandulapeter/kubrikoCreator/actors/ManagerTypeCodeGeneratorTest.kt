@@ -120,9 +120,9 @@ class ManagerTypeCodeGeneratorTest {
             ),
             managerTypes = listOf(game, level),
         )
-        assertContains(code, "    private val level by manager<Level>()\n")
-        assertContains(code, "        level.number += 1f\n        score = 0f\n")
-        assertContains(code, "text = \"Level \${level.number.asText()}\",")
+        assertContains(code, "    private val levelManager by manager<Level>()\n")
+        assertContains(code, "        levelManager.number += 1f\n        score = 0f\n")
+        assertContains(code, "text = \"Level \${levelManager.number.asText()}\",")
         assertFalse("manager<Game>" in code)
     }
 
@@ -131,13 +131,13 @@ class ManagerTypeCodeGeneratorTest {
         val level = ManagerTypeDefinition("Level", properties = listOf(PropertyDefinition.Number("number")))
         val hud = ManagerTypeDefinition("Hud")
         val code = generate(
-            game.copy(kotlinUi = "import androidx.compose.foundation.layout.Column\nColumn {\n    if (!stateManager.isRunning.value) BasicText(\"\${level.number}\")\n}\n"),
+            game.copy(kotlinUi = "import androidx.compose.foundation.layout.Column\nColumn {\n    if (!stateManager.isRunning.value) BasicText(\"\${levelManager.number}\")\n}\n"),
             managerTypes = listOf(game, level, hud),
         )
-        assertContains(code, "    @Composable\n    override fun Composable(windowInsets: WindowInsets) {\n        Column {\n            if (!stateManager.isRunning.value) BasicText(\"\${level.number}\")\n        }\n    }\n")
+        assertContains(code, "    @Composable\n    override fun Composable(windowInsets: WindowInsets) {\n        Column {\n            if (!stateManager.isRunning.value) BasicText(\"\${levelManager.number}\")\n        }\n    }\n")
         assertContains(code, "import androidx.compose.foundation.layout.Column\n")
         assertContains(code, "import androidx.compose.foundation.layout.WindowInsets\n")
-        assertContains(code, "    private val stateManager by manager<StateManager>()\n    private val level by manager<Level>()\n")
+        assertContains(code, "    private val stateManager by manager<StateManager>()\n    private val levelManager by manager<Level>()\n")
         assertFalse("manager<Hud>" in code)
         assertFalse("ActorManager" in code)
         assertFalse("ViewportManager" in code)

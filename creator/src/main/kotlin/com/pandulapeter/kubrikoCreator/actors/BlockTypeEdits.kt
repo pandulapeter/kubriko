@@ -147,6 +147,19 @@ private fun BlockTypeDefinition.withBlocks(change: (BlockDefinition) -> BlockDef
 )
 
 /**
+ * Kotlin code that named another Manager type by the field generated code looked it up in before format version 1 (`score`
+ * for `Score`, unless one of the type's Properties, inherited ones included, had that name) names it by the one it has
+ * since (`scoreManager`, [BlockScope.managerField]).
+ */
+internal fun BlockTypeDefinition.withManagerFieldsSuffixed(types: List<BlockTypeDefinition>): BlockTypeDefinition {
+    val propertyNames = BlockScope.of(this, types).properties.mapTo(HashSet()) { it.name }
+    return types.filterIsInstance<ManagerTypeDefinition>().filter { it.name != name }.fold(this) { definition, manager ->
+        val oldField = manager.name.replaceFirstChar { it.lowercase() }
+        if (oldField in propertyNames) definition else definition.withKotlinCode { KotlinIdentifiers.withRenamed(it, oldField, scope.managerField(manager.name)) }
+    }
+}
+
+/**
  * A Manager type's texts changed by [change]; other types have none.
  */
 private fun BlockTypeDefinition.withTexts(change: (String) -> String) = when (this) {

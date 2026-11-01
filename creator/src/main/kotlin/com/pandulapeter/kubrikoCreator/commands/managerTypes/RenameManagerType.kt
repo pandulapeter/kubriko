@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.managerTypes
 
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -35,7 +36,7 @@ internal object RenameManagerType : WriteCommand<RenameManagerType.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(if (context.blockTypes?.managerType(input.newName) != null) input.newName else input.managerType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateManagerType(input.managerType)
-        ?: BlockTypeNaming.validate(input.newName, context.requireBlockTypes.takenNames)?.let(::Rejection)
+        ?: BlockTypeNaming.validate(input.newName, context.requireBlockTypes.takenNames, BlockTypeKind.MANAGER)?.let(::Rejection)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.requireBlockTypes.rename(input.managerType, input.newName)

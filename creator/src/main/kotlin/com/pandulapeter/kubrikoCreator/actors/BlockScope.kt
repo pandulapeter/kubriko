@@ -50,12 +50,17 @@ internal data class BlockScope(
     fun hasProperty(reference: PropertyReference) = propertiesOf(reference.manager)?.any { it.name == reference.name && PropertyKind.of(it) == reference.kind } == true
 
     /**
-     * How the generated code reaches the Properties of [manager]: `this` for the type's own, otherwise a field named
-     * after the Manager type, unless one of the type's Properties is called that already.
+     * How the generated code reaches the Properties of [manager]: `this` for the type's own, otherwise the field it looks
+     * the Manager up in ([managerField]).
      */
     fun ownerOf(manager: String?) = if (isOwn(manager)) "this" else managerField(checkNotNull(manager))
 
-    fun managerField(manager: String) = manager.replaceFirstChar { it.lowercase() }.let { field -> if (properties.any { it.name == field }) field + "Manager" else field }
+    /**
+     * The field the generated code looks [manager] up in: `scoreManager` for `Score`. No Property can end with `Manager`
+     * ([PropertyNaming]), and no Manager type is named after a lookup every type may have (`ViewportManager`), so it
+     * clashes with nothing.
+     */
+    fun managerField(manager: String) = manager.replaceFirstChar { it.lowercase() } + MANAGER_FIELD_SUFFIX
 
     /**
      * The other Manager types that [blocks] and [texts] use, which the generated class has to look up.
@@ -82,6 +87,11 @@ internal data class BlockScope(
     private fun isOwn(manager: String?) = manager == null || (kind == BlockTypeKind.MANAGER && manager == typeName)
 
     companion object {
+
+        /**
+         * What the field a type looks another Manager type up in ends with, after the Manager type's name.
+         */
+        const val MANAGER_FIELD_SUFFIX = "Manager"
 
         /**
          * The scope of [definition] in a project with [types], [sceneNames], and [audioFiles], whose Actor types make up

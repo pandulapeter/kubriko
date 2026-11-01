@@ -247,7 +247,7 @@ class ProjectTemplateIntegrationTest {
         name = "EveryBlock",
         shape = ActorShape.RECTANGLE,
         sprite = "drawable/every-block.png",
-        properties = properties + PropertyDefinition.Number("everyManager"),
+        properties = properties + PropertyDefinition.Number("every"),
         events = everyEvent(everyBlock),
     )
 
@@ -303,7 +303,7 @@ class ProjectTemplateIntegrationTest {
 
             Column(modifier = Modifier.windowInsetsPadding(windowInsets)) {
                 if (!stateManager.isRunning.collectAsState().value && !isInSceneEditor) BasicText("Paused: ${'$'}title")
-                BasicText("${'$'}{everyManager.score + score} ${'$'}{actorManager.allActors.collectAsState().value.size} ${'$'}{viewportManager.size.collectAsState().value}")
+                BasicText("${'$'}{everyManagerManager.score + score} ${'$'}{actorManager.allActors.collectAsState().value.size} ${'$'}{viewportManager.size.collectAsState().value}")
             }
         """.trimIndent(),
     )

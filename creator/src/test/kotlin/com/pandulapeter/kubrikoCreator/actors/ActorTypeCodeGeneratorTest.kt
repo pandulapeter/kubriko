@@ -525,14 +525,14 @@ class ActorTypeCodeGeneratorTest {
             ),
         )
         val code = ActorTypeCodeGenerator.generateActorType(brick, "com.example.game", listOf("Brick"), listOf(game))
-        assertContains(code, "    private lateinit var game: Game\n")
-        assertContains(code, "        game = kubriko.get()\n")
-        assertContains(code, "        if (game.isOver) {\n            game.score += 10f\n            if (KubrikoWiring.isLoggingEnabled) Logger.log(message = \"Score: \${game.score.asText()}\", source = \"Brick\")\n            // Choose a Property for this Block.\n        }\n")
+        assertContains(code, "    private lateinit var gameManager: Game\n")
+        assertContains(code, "        gameManager = kubriko.get()\n")
+        assertContains(code, "        if (gameManager.isOver) {\n            gameManager.score += 10f\n            if (KubrikoWiring.isLoggingEnabled) Logger.log(message = \"Score: \${gameManager.score.asText()}\", source = \"Brick\")\n            // Choose a Property for this Block.\n        }\n")
         assertFalse("Missing" in code.substringAfter("\n"))
     }
 
     @Test
-    fun aManagerFieldStepsAsideForAPropertyOfTheSameName() {
+    fun aManagerFieldNeverClashesWithAPropertyOfTheManagersName() {
         val scope = BlockScope("Brick", properties = listOf(PropertyDefinition.Number("game")), managerTypes = listOf(ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score")))))
         assertEquals(listOf("gameManager.score = 1f"), BlockCodeGenerator.blockLines(BlockDefinition.SetNumber("score", 1f, manager = "Game"), EventType.EVERY_FRAME, scope))
         assertEquals(listOf("game = 1f"), BlockCodeGenerator.blockLines(BlockDefinition.SetNumber("game", 1f), EventType.EVERY_FRAME, scope))

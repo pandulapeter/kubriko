@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
@@ -88,9 +89,9 @@ internal fun CommandContext.validateType(name: String): Rejection? = when {
 /**
  * Why a new Actor type or Manager type can't be called [name].
  */
-internal fun CommandContext.validateNewTypeName(name: String): Rejection? {
+internal fun CommandContext.validateNewTypeName(name: String, kind: BlockTypeKind): Rejection? {
     val types = blockTypes ?: return Rejection(Res.string.error_command_no_actor_types)
-    return BlockTypeNaming.validate(name, types.takenNames)?.let(::Rejection)
+    return BlockTypeNaming.validate(name, types.takenNames, kind)?.let(::Rejection)
 }
 
 internal fun CommandContext.validateActorType(name: String): Rejection? = when {

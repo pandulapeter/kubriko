@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.ManagerFieldMigration
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -76,7 +77,7 @@ internal class ProjectFormat(
         /**
          * Every change to the format so far, oldest first.
          */
-        val MIGRATIONS = emptyList<FormatMigration>()
+        val MIGRATIONS = listOf<FormatMigration>(ManagerFieldMigration)
 
         /**
          * The format version this Kubriko Creator reads and writes.

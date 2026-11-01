@@ -122,8 +122,8 @@ class BlockTypeEditsTest {
         val hud = ManagerTypeDefinition(
             name = "Hud",
             properties = listOf(PropertyDefinition.Number("match")),
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("if (actor is Ball) game.score = 0f")))),
-            kotlinUi = "BasicText(\"Game: \${game.score}\")\nval x: Game = game",
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("if (actor is Ball) gameManager.score = 0f")))),
+            kotlinUi = "BasicText(\"Game: \${gameManager.score}\")\nval x: Game = gameManager",
         )
         val renamed = hud.withManagerRenamed("Game", "Match").withOtherActorTypeRenamed("Ball", "Puck") as ManagerTypeDefinition
         assertEquals(BlockDefinition.Kotlin("if (actor is Puck) matchManager.score = 0f"), renamed.events.single().blocks.single())
@@ -137,14 +137,14 @@ class BlockTypeEditsTest {
         val game = ManagerTypeDefinition(
             name = "Game",
             properties = listOf(PropertyDefinition.Number("score")),
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("score += hud.score")))),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("score += hudManager.score")))),
             kotlinUi = "BasicText(\"\$score\")",
         )
         val renamed = game.withPropertyReplaced("score", PropertyDefinition.Number("points")).withManagerPropertyRenamed("Game", "score", "points") as ManagerTypeDefinition
-        assertEquals(BlockDefinition.Kotlin("points += hud.score"), renamed.events.single().blocks.single())
+        assertEquals(BlockDefinition.Kotlin("points += hudManager.score"), renamed.events.single().blocks.single())
         assertEquals("BasicText(\"\$points\")", renamed.kotlinUi)
-        val hud = ManagerTypeDefinition("Hud", properties = listOf(PropertyDefinition.Number("score")), kotlinUi = "BasicText(\"\${game.score} \$score\")")
-        assertEquals("BasicText(\"\${game.points} \$score\")", (hud.withManagerPropertyRenamed("Game", "score", "points") as ManagerTypeDefinition).kotlinUi)
+        val hud = ManagerTypeDefinition("Hud", properties = listOf(PropertyDefinition.Number("score")), kotlinUi = "BasicText(\"\${gameManager.score} \$score\")")
+        assertEquals("BasicText(\"\${gameManager.points} \$score\")", (hud.withManagerPropertyRenamed("Game", "score", "points") as ManagerTypeDefinition).kotlinUi)
     }
 
     @Test
@@ -154,5 +154,23 @@ class BlockTypeEditsTest {
         assertEquals(listOf("A", "B"), withTexts.texts.map { it.text })
         assertEquals(listOf("A", "C"), withTexts.withTextReplaced(1, ScreenTextDefinition("C")).texts.map { it.text })
         assertEquals(listOf("B"), withTexts.withTextRemoved(0).texts.map { it.text })
+    }
+
+    @Test
+    fun kotlinCodeNamingTheOldManagerFieldsNamesTheNewOnes() {
+        val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score")), kotlinUi = "BasicText(\"\${level.number} \$score\")\nval game = this")
+        val level = ManagerTypeDefinition("Level", properties = listOf(PropertyDefinition.Number("number")))
+        val brick = ActorTypeDefinition(
+            name = "Brick",
+            properties = listOf(PropertyDefinition.Number("level")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("game.score += level\nlevelManager.number = 1f // game")))),
+        )
+        val types = listOf(brick, game, level)
+        assertEquals("BasicText(\"\${levelManager.number} \$score\")\nval game = this", (game.withManagerFieldsSuffixed(types) as ManagerTypeDefinition).kotlinUi)
+        assertEquals(
+            BlockDefinition.Kotlin("gameManager.score += level\nlevelManager.number = 1f // game"),
+            brick.withManagerFieldsSuffixed(types).events.single().blocks.single(),
+        )
+        assertEquals(level, level.withManagerFieldsSuffixed(types))
     }
 }

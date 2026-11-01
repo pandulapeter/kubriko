@@ -30,7 +30,7 @@ internal object SetKotlinUi : WriteCommand<SetKotlinUi.Input> {
     override val description = "Replaces the Kotlin UI of a block-built Manager type: Compose code inserted verbatim into its generated Composable, " +
         "drawn on top of the game after its texts, for UI the texts can't express (menus, bars, layouts). In scope: windowInsets (the WindowInsets " +
         "of the game's view), the Manager type's Properties (Compose state, so the UI follows them; numbers are Floats), isInSceneEditor, every other " +
-        "Manager type as a field named after it with a lowercase first letter (Lives as lives, unless a Property has that name, then livesManager), " +
+        "Manager type as a field named after it with a lowercase first letter and Manager after it (Lives as livesManager), " +
         "actorManager, viewportManager, and stateManager (isRunning tells whether the game is paused). Read their StateFlows with collectAsState() " +
         "(imported from androidx.compose.runtime), or the UI won't follow them. Import lines at the start of the code become " +
         "the generated file's imports; nothing else is imported for it. Renaming a type or a Property renames it in the code too, outside strings and comments. Empty code removes it."

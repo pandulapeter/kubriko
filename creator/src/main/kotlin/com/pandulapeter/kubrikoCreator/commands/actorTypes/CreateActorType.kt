@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -33,7 +34,7 @@ internal object CreateActorType : WriteCommand<ActorTypeDefinition> {
     override fun validate(context: CommandContext, input: ActorTypeDefinition): Rejection? = validateRestoring(context, input)
         ?: context.requireBlockTypes.let { types -> input.validateContents(types.actorTypes.value.map { it.name }, types.managerTypes.value) }
 
-    override fun validateRestoring(context: CommandContext, input: ActorTypeDefinition) = context.validateNewTypeName(input.name)
+    override fun validateRestoring(context: CommandContext, input: ActorTypeDefinition) = context.validateNewTypeName(input.name, BlockTypeKind.ACTOR)
 
     override suspend fun apply(context: CommandContext, input: ActorTypeDefinition): Applied {
         context.requireBlockTypes.put(input)

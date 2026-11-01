@@ -13,16 +13,6 @@ What breaks, hangs, or loses work today when files are broken, a process misbeha
 the code, why it matters, and the direction; none of it is built yet. The user put stability before new features, so this file
 comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md`.
 
-## Generated code
-
-- **Manager lookup fields can clash.** `BlockScope.managerField` (`actors/BlockScope.kt`) names the field an Actor looks a Manager up
-  in after the Manager (`score` for `Score`), falling back to `scoreManager` only for the type's own Properties. A Manager type
-  named `Velocity`, `Body`, `IsRemoved`, `Sprite`, `Other`, or `Index` clashes with generated members and locals, and `Scope` in a
-  Manager hides `Manager.scope`; adding a Property `score` later silently renames the field, breaking Kotlin Blocks that say
-  `score.value`. Direction: always name the field `<name>Manager` (`scoreManager`), whatever the type's Properties, and reserve
-  Property names ending in `Manager` (`PropertyNaming`) so nothing can clash with it. Kotlin Blocks and Kotlin UI name these fields,
-  so the change is a format migration (a `FormatMigration`, the first to raise the format version) that renames them through `KotlinIdentifiers`, as Manager renames do.
-
 ## Scene editor
 
 - **A broken Scene looks empty.** A Scene file that doesn't parse opens with no Actors (`WorkspaceController`'s `readScene` uses

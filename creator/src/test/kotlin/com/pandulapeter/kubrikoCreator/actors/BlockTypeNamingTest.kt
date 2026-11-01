@@ -35,6 +35,14 @@ class BlockTypeNamingTest {
     }
 
     @Test
+    fun managerTypesCantBeNamedAfterALookupTheGeneratedCodeHasAlready() {
+        listOf("Viewport", "KeyboardInput", "Sprite").forEach { name ->
+            assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(name, emptyList(), BlockTypeKind.MANAGER), name)
+            assertNull(BlockTypeNaming.validate(name, emptyList(), BlockTypeKind.ACTOR), name)
+        }
+    }
+
+    @Test
     fun kotlinsOwnTypesAndEveryClassTheGeneratedCodeImportsAreReserved() {
         val imported = ActorTypeCodeGenerator.BASE_IMPORTS + ActorTypeCodeGenerator.SPRITE_IMPORTS + ActorTypeCodeGenerator.KEYBOARD_IMPORTS +
             ActorTypeCodeGenerator.KEYBOARD_MANAGER_IMPORTS

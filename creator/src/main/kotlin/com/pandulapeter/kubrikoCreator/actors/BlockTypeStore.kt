@@ -53,7 +53,7 @@ internal class BlockTypeStore private constructor(
                 when {
                     definition.name != file.nameWithoutExtension -> BlockTypeFileProblem.NameMismatch(definition.name)
                     !BlockTypeNaming.isWellFormed(definition.name) -> BlockTypeFileProblem.InvalidName(definition.name)
-                    BlockTypeNaming.isReserved(definition.name) -> BlockTypeFileProblem.ReservedName(definition.name)
+                    BlockTypeNaming.isReserved(definition.name, kind) -> BlockTypeFileProblem.ReservedName(definition.name)
                     else -> null
                 }?.let { unreadable += UnreadableBlockTypeFile(path, it) } ?: run { readable += path to definition }
             }
