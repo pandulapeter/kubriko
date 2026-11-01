@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap
  * @param profile What the agent gets beyond the fallbacks chosen from its `initialize` answer.
  * @param systemPrompt What a conversation is told at its start, given what it is told about the project.
  * @param npx Runs `mcp-remote` for an agent that takes no HTTP MCP servers.
+ * @param agentFolders Where an agent that doesn't work in the project's folder ([AgentProfile.usesProjectFolder]) gets
+ *   one of its own per project.
  */
 internal class Assistant(
     private val agent: AcpAgent,
@@ -34,6 +36,7 @@ internal class Assistant(
     private val profile: AgentProfile = AgentProfile.fallback,
     private val systemPrompt: (projectContext: String?) -> String? = { null },
     private val npx: File? = null,
+    private val agentFolders: File = File(System.getProperty("java.io.tmpdir"), "kubriko-creator-agents"),
 ) : AutoCloseable {
     private val serverStart = Mutex()
     private var port: Int? = null
@@ -61,7 +64,7 @@ internal class Assistant(
         val prompt = systemPrompt(projectContext)
         val conversation = try {
             agent.newConversation(
-                workingDirectory = projectDirectory,
+                workingDirectory = if (profile.usesProjectFolder) projectDirectory else agentFolderOf(projectDirectory),
                 mcpServers = { capabilities ->
                     listOf(ConversationToolServer.of(capabilities, profile, "http://${McpToolServer.HOST}:$port${tools.path}", tools.token, npx))
                 },
@@ -75,6 +78,11 @@ internal class Assistant(
         }
         toolConversations[conversation] = tools.id
         return conversation
+    }
+
+    private suspend fun agentFolderOf(projectDirectory: File) = withContext(ioDispatcher) {
+        val name = BinaryAgentInstaller.safeName(projectDirectory.name) + "-" + Integer.toHexString(projectDirectory.absolutePath.hashCode())
+        File(agentFolders, name).also { it.mkdirs() }
     }
 
     /**

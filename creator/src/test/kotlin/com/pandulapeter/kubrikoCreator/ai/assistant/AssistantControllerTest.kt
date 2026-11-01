@@ -74,6 +74,8 @@ class AssistantControllerTest {
                 agent = AcpAgent(command, launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO),
                 toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
                 ioDispatcher = Dispatchers.IO,
+                profile = profile,
+                agentFolders = File(settingsDirectory, "agents"),
             )
         },
         home = "/Users/me",

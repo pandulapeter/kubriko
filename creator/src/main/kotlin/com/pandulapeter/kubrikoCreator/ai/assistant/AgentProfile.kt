@@ -21,22 +21,27 @@ import kotlinx.serialization.json.JsonElement
  * @param keepsOffFiles Whether [sessionMeta] already turns off the agent's own edits and commands, so that what it asks
  *   to do goes to the user; otherwise its requests for tool calls that edit, delete, move, or run something are rejected
  *   ([PermissionHandler.rejectingChanges]).
+ * @param usesProjectFolder Whether the agent works in the project's folder; otherwise it gets a folder of its own, since
+ *   some agents write files of their own where they start (Google Antigravity its skills) without asking.
  */
 internal data class AgentProfile(
     val sessionMeta: ((systemPrompt: String) -> JsonElement)?,
     val alwaysUsesHttpTools: Boolean,
     val keepsOffFiles: Boolean,
+    val usesProjectFolder: Boolean,
 ) {
     companion object {
         val claude = AgentProfile(
             sessionMeta = ClaudeAgentOptions::sessionMeta,
             alwaysUsesHttpTools = true,
             keepsOffFiles = true,
+            usesProjectFolder = true,
         )
         val fallback = AgentProfile(
             sessionMeta = null,
             alwaysUsesHttpTools = false,
             keepsOffFiles = false,
+            usesProjectFolder = false,
         )
     }
 }

@@ -434,8 +434,12 @@ the agent as its `kubriko-creator` MCP server, and closing it turns those tools 
 without one, the fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`): the tools over HTTP where it advertises
 `mcpCapabilities.http`, otherwise through `mcp-remote` run by the user's `npx` with the token in its environment
 (`ConversationToolServer`); the system prompt as the first prompt's leading text (`firstPromptLead`, not sent again once a turn has
-started); and its permission requests for edit, delete, move, and execute tool calls rejected whatever the user would choose
-(`PermissionHandler.rejectingChanges`). The agent is an `AgentChoice`: a `RegistryAgent` (with its `AgentDistribution`) or a custom
+started); its permission requests for edit, delete, move, and execute tool calls rejected whatever the user would choose
+(`PermissionHandler.rejectingChanges`); and a working folder of its own per project in the temporary folder
+(`kubriko-creator-agents`) instead of the project's, since an agent may write files where it starts without asking (Google
+Antigravity writes its skills there). Every agent's requests for Creator's own tools are allowed without asking
+(`PermissionHandler.allowingCreatorTools`), recognized however the agent names them (`CreatorToolName`: Claude Code's
+`mcp__kubriko-creator__read_scene`, Antigravity's `kubriko-creator_read_scene`), which the tool call cards use too. The agent is an `AgentChoice`: a `RegistryAgent` (with its `AgentDistribution`) or a custom
 command line (`CustomAgentCommand`: variables set in front, then the program, found through the login shell when named without a
 folder, and its arguments); only Claude Agent is tested (`RegistryAgent.isTested`), and every other agent shows as untested. The registry's agents
 (`AgentRegistry`: npx first, then this platform's build, then uvx, Claude Agent pinned to its checked version and first) come from

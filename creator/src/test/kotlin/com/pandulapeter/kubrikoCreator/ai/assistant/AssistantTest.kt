@@ -36,6 +36,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
+import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -50,7 +51,8 @@ class AssistantTest {
     private val launcher = FakeAgentLauncher()
     private val assistants = mutableListOf<Assistant>()
     private val httpClient = HttpClient(CIO) { install(SSE) }
-    private val profile = AgentProfile(sessionMeta = { JsonPrimitive(it) }, alwaysUsesHttpTools = true, keepsOffFiles = true)
+    private val profile = AgentProfile(sessionMeta = { JsonPrimitive(it) }, alwaysUsesHttpTools = true, keepsOffFiles = true, usesProjectFolder = true)
+    private val agentFolders = createTempDirectory().toFile()
     private val assistant = assistant(profile)
 
     private fun assistant(profile: AgentProfile, launcher: FakeAgentLauncher = this.launcher) = Assistant(
@@ -60,12 +62,14 @@ class AssistantTest {
         profile = profile,
         systemPrompt = { projectContext -> projectContext ?: SYSTEM_PROMPT },
         npx = NPX,
+        agentFolders = agentFolders,
     ).also { assistants += it }
     private val projectDirectory = File("/projects/breakout")
 
     @AfterTest
     fun tearDown() {
         assistants.forEach { it.close() }
+        agentFolders.deleteRecursively()
         launcher.close()
         httpClient.close()
         scope.cancel()
@@ -166,6 +170,15 @@ class AssistantTest {
         val profiled = assistant.newConversation(projectDirectory, permissions = allow)
         assertEquals("reject", fallback.reply("edit"))
         assertEquals("allow", profiled.reply("edit"))
+    }
+
+    @Test
+    fun anAgentWithoutAProfileWorksInAFolderOfItsOwnRatherThanTheProjects() = test {
+        assistant(AgentProfile.fallback).newConversation(projectDirectory)
+        val folder = File(launcher.agents.single().newSessions.single().cwd)
+        assertTrue(folder.isDirectory)
+        assertEquals(agentFolders.canonicalFile, folder.parentFile.canonicalFile)
+        assertTrue(folder.name.startsWith("breakout-"))
     }
 
     private suspend fun AgentConversation.reply(text: String) = buildString {

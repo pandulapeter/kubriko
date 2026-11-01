@@ -132,7 +132,8 @@ code of its own.
 Assistant, for the fallbacks that exist): Claude's is the only one. What is left:
 
 - **System prompt:** ACP's own `systemPrompt` where `sessionCapabilities.systemPrompt` is advertised, once the Kotlin SDK has the
-  field.
+  field. Google Antigravity advertises `_meta.antigravity.systemPrompt.append` in its `initialize` answer, a way to append it as
+  Claude Agent does, worth trying in place of leading text.
 - **Staying off the files:** a read-only mode or sandbox where the agent offers one (a session mode or config option), before
   falling back on rejecting permission requests. An agent that changes files without asking is marked as such in the list, and its
   conversations suggest version control, so that Keep and Undo (8) can take its changes back.
