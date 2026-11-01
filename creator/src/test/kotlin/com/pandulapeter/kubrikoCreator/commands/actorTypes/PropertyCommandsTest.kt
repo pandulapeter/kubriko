@@ -16,11 +16,14 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.TestScope
@@ -33,6 +36,7 @@ import kubriko.creator.generated.resources.error_property_name_invalid
 import kubriko.creator.generated.resources.error_property_name_taken
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class PropertyCommandsTest {
@@ -110,6 +114,38 @@ class PropertyCommandsTest {
         assertEquals(Rejection(Res.string.error_command_property_kind_changed), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Text("score"))))
         assertEquals(Rejection(Res.string.error_property_name_taken), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Number("title"))))
         assertNull(EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Number("score", 1f))))
-        assertEquals(EditProperty.mergeKey(EditProperty.Input("Player", "score", score)), EditProperty.mergeKey(EditProperty.Input("Player", "points", score)))
+    }
+
+    @Test
+    fun renamingAPropertyByTypingIsOneStepThatUndoes() = runTest {
+        val context = context(SceneActorEntry("Player", """{"score":7.0}""", "p"))
+        val executor = CommandExecutor(context, testScope())
+        var name = "score"
+        listOf("scor", "sco", "s", "sp", "spe", "spee", "speed").forEach { typed ->
+            assertIs<CommandOutcome.Success>(executor.execute(Invocation(EditProperty, EditProperty.Input("Player", name, score.copy(name = typed)))))
+            name = typed
+        }
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "speed", score.copy(name = "speed", initialValue = 9f)))))
+        assertEquals(1, executor.history.value.undoable.size)
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(player, context.player())
+        assertEquals(listOf("""{"score":7.0}"""), context.states())
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = false))
+        assertEquals(listOf(score.copy(name = "speed", initialValue = 9f), title), context.player().properties)
+    }
+
+    @Test
+    fun editingAnotherPropertyIsAStepOfItsOwn() = runTest {
+        val context = context()
+        val executor = CommandExecutor(context, testScope())
+        executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "score", score.copy(initialValue = 1f))))
+        executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "title", title.copy(initialValue = "Hi"))))
+        executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "score", score.copy(initialValue = 2f))))
+        assertEquals(3, executor.history.value.undoable.size)
+        executor.step(isUndo = true)
+        assertEquals(listOf(score.copy(initialValue = 1f), title.copy(initialValue = "Hi")), context.player().properties)
+        executor.step(isUndo = true)
+        executor.step(isUndo = true)
+        assertEquals(player, context.player())
     }
 }

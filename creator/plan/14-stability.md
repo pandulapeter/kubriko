@@ -15,11 +15,6 @@ comes right after `01-large-projects.md`, before the rest of `02-ai-assistant.md
 
 ## Undo history
 
-- **Merged property edits undo wrongly.** `EditProperty.mergeKey` is `actorType to name` (`commands/actorTypes/EditProperty.kt`), and
-  a merge keeps the first step's inverse. Renaming `hp` to `health` by typing keeps an inverse that names `hh`, which no longer
-  exists, so the whole rename can't be undone; editing `speed` right after `health` merges both and undo reverts only one.
-  Direction: let a `WriteCommand` combine two inverses when steps merge (address the latest name, restore the first one's value),
-  and include a stable Property identity in the key.
 - **Changes outside the history leave it stale.** `discard_changes` and `upgrade_project` rewrite files and return no inverse, but
   the history keeps steps recorded against the old files, which may still validate and then change the wrong thing; and the types in
   memory are only reloaded by the watcher a second later, so a command right after a discard writes the old definition back.

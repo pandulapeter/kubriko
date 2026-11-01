@@ -157,10 +157,9 @@ internal class CommandExecutor(
     private fun record(entry: HistoryEntry) {
         val undoable = _history.value.undoable
         val previous = undoable.lastOrNull()
-        val mergeKey = entry.reapply.mergeKey
         _history.value = CommandHistory(
-            undoable = if (mergeKey != null && previous != null && previous.reapply.command == entry.reapply.command && previous.reapply.mergeKey == mergeKey && _history.value.redoable.isEmpty()) {
-                undoable.dropLast(1) + previous.copy(reapply = entry.reapply)
+            undoable = if (previous != null && _history.value.redoable.isEmpty() && previous.reapply.mergesWith(entry.reapply)) {
+                undoable.dropLast(1) + HistoryEntry(revert = previous.revert.mergedWith(entry.revert), reapply = entry.reapply)
             } else {
                 (undoable + entry).takeLast(HISTORY_SIZE)
             },

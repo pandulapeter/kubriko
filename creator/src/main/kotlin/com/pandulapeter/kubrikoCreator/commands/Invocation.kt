@@ -22,7 +22,18 @@ internal data class Invocation<I>(
 ) {
     val title get() = command.title
 
-    val mergeKey get() = command.mergeKey(input)
+    /**
+     * Whether [next], made right after this, is undone together with it ([WriteCommand.mergesWith]).
+     */
+    fun mergesWith(next: Invocation<*>): Boolean = next.command == command && command.mergesWith(input, castInput(next))
+
+    /**
+     * What reverts this change together with the one reverted by [latest], made after it ([WriteCommand.mergeReverts]).
+     */
+    fun mergedWith(latest: Invocation<*>): Invocation<I> = copy(input = command.mergeReverts(input, castInput(latest)))
+
+    @Suppress("UNCHECKED_CAST")
+    private fun castInput(other: Invocation<*>) = other.input as I
 
     fun validate(context: CommandContext) = if (isRestoring) command.validateRestoring(context, input) else command.validate(context, input)
 

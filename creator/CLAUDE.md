@@ -144,7 +144,8 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   `StringResource`; `apply` returns `Applied` with the inverse `Invocation`, or none for git operations, which can't be undone),
   and `ActionCommand` (build, play; run outside the change lock).
 - **`CommandExecutor`** (one per workspace): applies changes one at a time, keeps the undo and redo history (consecutive changes
-  with the same `mergeKey`, like typing into one field, are one step; a step that no longer validates is dropped), and decodes
+  with the same `mergeKey`, like typing into one field, are one step, or those `mergesWith` joins, like the renames of one Property,
+  each naming it as the one before left it, with `mergeReverts` combining their inverses; a step that no longer validates is dropped), and decodes
   AI tool calls (`call(name, JsonObject)`). UI callbacks use `dispatch`, which starts undispatched, so in-memory changes show
   before it returns. Rejections of dispatched changes and of undo steps go to the console.
 - **Undo and redo restore** what was there: their steps are `Invocation`s marked `isRestoring`, validated by

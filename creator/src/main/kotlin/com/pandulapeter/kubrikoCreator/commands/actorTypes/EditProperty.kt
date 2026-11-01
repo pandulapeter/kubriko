@@ -66,7 +66,12 @@ internal object EditProperty : WriteCommand<EditProperty.Input> {
         return Applied(inverse = Invocation(EditProperty, Input(input.actorType, input.newProperty.name, previous)))
     }
 
-    override fun mergeKey(input: Input) = input.actorType to name
+    /**
+     * Typing into one Property's field: each change names the Property as the one before left it.
+     */
+    override fun mergesWith(previous: Input, next: Input) = next.actorType == previous.actorType && next.property == previous.newProperty.name
+
+    override fun mergeReverts(first: Input, latest: Input) = first.copy(property = latest.property)
 
     @Serializable
     data class Input(
