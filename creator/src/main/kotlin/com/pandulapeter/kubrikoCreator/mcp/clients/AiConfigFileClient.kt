@@ -32,7 +32,7 @@ internal enum class AiConfigFileClient(
     /**
      * Claude Desktop only starts local servers that talk over standard input and output, so `mcp-remote` (run by npx)
      * passes the requests on. An app started from the Finder lacks the shell's PATH, so npx is named by its full path,
-     * with its folder (where node is too) put first on the PATH. The token goes into the environment because Claude
+     * with its folder (where node is too) put first on the PATH (except on Windows, whose apps get the user's PATH). The token goes into the environment because Claude
      * Desktop on Windows doesn't quote arguments with spaces.
      */
     CLAUDE_DESKTOP("claudeDesktop", "Claude Desktop", "https://claude.ai/download") {
@@ -55,7 +55,7 @@ internal enum class AiConfigFileClient(
             }
             putJsonObject("env") {
                 put(AUTHORIZATION_VARIABLE, "Bearer ${settings.token}")
-                programPath?.let { path -> File(path).parent?.let { put("PATH", "$it:/usr/local/bin:/usr/bin:/bin") } }
+                if (!isWindows) programPath?.let { path -> File(path).parent?.let { put("PATH", "$it:/usr/local/bin:/usr/bin:/bin") } }
             }
         }
     },
@@ -104,5 +104,6 @@ internal enum class AiConfigFileClient(
     private companion object {
         const val MCP_REMOTE = "mcp-remote@0.15"
         const val AUTHORIZATION_VARIABLE = "KUBRIKO_CREATOR_AUTHORIZATION"
+        val isWindows = System.getProperty("os.name").orEmpty().lowercase().contains("windows")
     }
 }
