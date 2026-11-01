@@ -22,6 +22,8 @@ internal data class Invocation<I>(
 ) {
     val title get() = command.title
 
+    fun target(context: CommandContext) = command.target(context, input)
+
     /**
      * Whether [next], made right after this, is undone together with it ([WriteCommand.mergesWith]).
      */

@@ -10,6 +10,9 @@
 package com.pandulapeter.kubrikoCreator.mcp
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
@@ -17,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
+import com.pandulapeter.kubrikoCreator.context.ResultDelta
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.sse.SSE
@@ -29,6 +33,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.StreamableHttpClientTransport
+import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.types.ImageContent
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
@@ -43,6 +48,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -103,7 +109,7 @@ class McpToolServerTest {
         val port = start(executor)
         val result = connected(port) { callTool("create_actor_type", mapOf("name" to "Ball", "shape" to "rectangle")) }
         assertEquals(false, result.isError)
-        assertEquals("Done.", (result.content.single() as TextContent).text)
+        assertEquals("""{"revision":1,"changed":"Create Actor type at Ball"}""", (result.content.single() as TextContent).text)
         assertEquals(listOf("Ball"), context.blockTypes!!.actorTypes.value.map { it.name })
         executor.step(isUndo = true)
         assertTrue(context.blockTypes.actorTypes.value.isEmpty())
@@ -244,4 +250,29 @@ class McpToolServerTest {
             executor.aiSteps.value.map { it.origin },
         )
     }
+
+    @Test
+    fun aConversationRereadingSomethingGetsOnlyWhatChangedUnlessItAsksForAll() = runTest {
+        val events = (1..6).map { EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("A line long enough to make the whole type worth not sending again: $it"))) }
+        val context = commandContext(ActorTypeDefinition("Ball", events = events))
+        val executor = CommandExecutor(context, testScope())
+        val port = start(executor)
+        val conversation = server!!.openConversation()
+        val read = mapOf("actorType" to "Ball")
+        connected(port, conversation.path, conversation.token) {
+            assertContains(text(callTool("read_actor_type", read)), "appearance")
+            assertEquals(ResultDelta.UNCHANGED, text(callTool("read_actor_type", read)))
+            callTool("add_event", mapOf("actorType" to "Ball", "type" to "keyPressed"))
+            assertEquals(
+                """{"sinceYourLastRead":"Only what changed since you last read it in this conversation. Pass full: true for the whole result.","changed":{"events[6]":"6 When Spacebar is pressed"}}""",
+                text(callTool("read_actor_type", read)),
+            )
+            assertContains(text(callTool("read_actor_type", read + ("full" to true))), "appearance")
+            assertTrue(listTools().tools.single { it.name == "read_actor_type" }.inputSchema.properties.orEmpty().containsKey("full"))
+            assertFalse(listTools().tools.single { it.name == "add_event" }.inputSchema.properties.orEmpty().containsKey("full"))
+        }
+        connected(port) { assertContains(text(callTool("read_actor_type", read)), "appearance") }
+    }
+
+    private fun text(result: CallToolResult) = (result.content.first() as TextContent).text
 }

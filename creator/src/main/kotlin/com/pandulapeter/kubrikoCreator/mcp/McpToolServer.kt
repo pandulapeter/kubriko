@@ -43,10 +43,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_mcp_no_project
@@ -85,6 +88,7 @@ internal class McpToolServer(
     val calls = _calls.asStateFlow()
     private var server: EmbeddedServer<*, *>? = null
     private val conversationTokens = ConcurrentHashMap<String, ByteArray>()
+    private val conversationReads = ConversationReads()
 
     /**
      * An address of the tools for one conversation of the assistant.
@@ -157,6 +161,7 @@ internal class McpToolServer(
      */
     fun closeConversation(id: String) {
         conversationTokens.remove(id)
+        conversationReads.forget(id)
     }
 
     private fun isAuthorized(authorization: String?, queryToken: String?, expectedToken: ByteArray) =
@@ -169,22 +174,33 @@ internal class McpToolServer(
         instructions = INSTRUCTIONS,
     ) {
         registry.tools.forEach { tool ->
+            val isRemembered = conversationId != null && tool.isReadOnly
+            val properties = tool.inputSchema["properties"]?.jsonObject
             addTool(
                 name = tool.name,
                 description = tool.description,
                 inputSchema = ToolSchema(
-                    properties = tool.inputSchema["properties"]?.jsonObject,
+                    properties = if (isRemembered) JsonObject(properties.orEmpty() + (FULL_PARAMETER to fullSchema)) else properties,
                     required = tool.inputSchema["required"]?.jsonArray?.map { it.jsonPrimitive.content },
                 ),
                 toolAnnotations = ToolAnnotations(readOnlyHint = tool.isReadOnly, destructiveHint = tool.isDestructive, openWorldHint = false),
             ) { request ->
                 val origin = conversationId?.let { AiStepOrigin(conversationId = it, toolCallId = (request.meta?.json?.get(TOOL_USE_ID_META) as? JsonPrimitive)?.contentOrNull) }
-                runTool(tool.name, request.arguments ?: JsonObject(emptyMap()), origin)
+                val arguments = request.arguments ?: JsonObject(emptyMap())
+                if (isRemembered) {
+                    runTool(tool.name, JsonObject(arguments - FULL_PARAMETER), origin, isFull = (arguments[FULL_PARAMETER] as? JsonPrimitive)?.booleanOrNull == true)
+                } else {
+                    runTool(tool.name, arguments, origin)
+                }
             }
         }
     }
 
-    private suspend fun runTool(toolName: String, arguments: JsonObject, origin: AiStepOrigin?): CallToolResult {
+    /**
+     * @param isFull Whether a conversation's read returns the whole result, even if it has read it before; null for a
+     *   call whose result isn't remembered.
+     */
+    private suspend fun runTool(toolName: String, arguments: JsonObject, origin: AiStepOrigin?, isFull: Boolean? = null): CallToolResult {
         val outcome = try {
             withContext(callDispatcher) { executor()?.call(toolName, arguments, origin) }
         } catch (exception: CancellationException) {
@@ -195,7 +211,7 @@ internal class McpToolServer(
         }
         val (result, isError) = when (outcome) {
             null -> getString(Res.string.error_mcp_no_project) to true
-            is CommandOutcome.Success -> when (val result = outcome.result) {
+            is CommandOutcome.Success -> when (val result = remembered(outcome, toolName, arguments, origin, isFull)) {
                 JsonNull -> getString(Res.string.mcp_tool_done)
                 is JsonPrimitive if result.isString -> result.content
                 else -> result.toString()
@@ -204,6 +220,13 @@ internal class McpToolServer(
         }
         return result(toolName, arguments, result, isError, image = (outcome as? CommandOutcome.Success)?.image)
     }
+
+    private fun remembered(outcome: CommandOutcome.Success, toolName: String, arguments: JsonObject, origin: AiStepOrigin?, isFull: Boolean?) =
+        if (origin == null || isFull == null || outcome.image != null) {
+            outcome.result
+        } else {
+            conversationReads.answer(origin.conversationId, toolName, arguments, outcome.result, isFull)
+        }
 
     private fun result(toolName: String, arguments: JsonObject, text: String, isError: Boolean, image: ByteArray? = null): CallToolResult {
         _calls.update { (it + McpToolCall(toolName, arguments.toString(), text, isError)).takeLast(LOG_SIZE) }
@@ -223,6 +246,15 @@ internal class McpToolServer(
          * Where Claude Code puts the ID of its tool use in a call's `_meta`, which is also the ID of the ACP tool call.
          */
         private const val TOOL_USE_ID_META = "claudecode/toolUseId"
+
+        /**
+         * The parameter a conversation's read tools take on top of their own, to get the whole result again.
+         */
+        private const val FULL_PARAMETER = "full"
+        private val fullSchema = buildJsonObject {
+            put("type", "boolean")
+            put("description", "Whether to return the whole result even if this conversation has read it before, rather than what changed since.")
+        }
         const val TOKEN_PARAMETER = "token"
         const val SERVER_NAME = "kubriko-creator"
         private const val LOG_SIZE = 200
@@ -231,7 +263,8 @@ internal class McpToolServer(
             (when something happens) and Blocks (what happens then), and Kubriko Creator generates Kotlin from them.
             Scenes place Actors of those types. Start with get_project_digest and get_block_catalog. Every change shows
             up in Kubriko Creator right away and can be undone there. Changes reach the game through a build: try them with
-            start_game, press_keys, take_screenshot, and stop_game, and use read_console for what the game logged. Make
+            start_game, press_keys, take_screenshot, and stop_game, and use read_console for what the game logged. Places are
+            written Type#event.block, with indexes from 0. Make
             every change through these tools, never by editing the project's files in other ways: Kubriko Creator owns the
             generated code, and the user can't see or undo such edits in it. When a request needs something no Event or
             Block offers, a Kotlin Block can run a short snippet inside an Event; when even that isn't enough, do what the

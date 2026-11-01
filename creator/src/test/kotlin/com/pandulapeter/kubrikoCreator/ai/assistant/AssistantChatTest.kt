@@ -14,6 +14,9 @@ import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallStatus
+import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
+import com.pandulapeter.kubrikoCreator.commands.ChangeLog
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,12 +26,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_add_block
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -54,7 +60,7 @@ class AssistantChatTest {
 
     private suspend fun readyChat() = newChat().also { chat -> chat.state.first { it == ChatState.Ready } }
 
-    private suspend fun newChat() = withContext(mainThread) {
+    private suspend fun newChat(changeLog: ChangeLog? = null) = withContext(mainThread) {
         AssistantChat(
             parentScope = scope,
             start = { permissions -> agent.newConversation(File("/projects/breakout"), permissions = permissions) },
@@ -62,12 +68,30 @@ class AssistantChatTest {
                 ended += conversation
                 conversation.close()
             },
+            toolsIdOf = { "tools" },
+            changeLog = { changeLog },
         )
     }
 
     private suspend fun AssistantChat.sendAndWait(text: String) {
         withContext(mainThread) { send(text) }
         isBusy.first { !it }
+    }
+
+    @Test
+    fun theUsersChangesSinceTheLastTurnAreSummedUpBeforeTheNextMessage() = test {
+        val changeLog = ChangeLog()
+        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball"))
+        val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
+        chat.sendAndWait("hello")
+        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 1, 0))
+        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 1, 1), origin = AiStepOrigin("tools"), isByAi = true)
+        chat.sendAndWait("hello")
+        chat.sendAndWait("hello")
+        val summary = launcher.agents.single().leadingTexts.single()
+        assertContains(summary, "Add Block at Ball#1.0")
+        assertFalse("Ball#1.1" in summary)
+        assertEquals(listOf("hello", "hello", "hello"), launcher.agents.single().prompts)
     }
 
     @Test

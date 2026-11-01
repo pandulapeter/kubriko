@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.mcp.clients.ProcessRunner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -40,6 +41,8 @@ import java.io.IOException
  * @param secrets Where the API key is kept.
  * @param signInLauncher Runs the sign-in commands of an agent's terminal sign-in methods.
  * @param createAssistant Creates the assistant running [AgentCommand], the agent through the user's `npx`.
+ * @param projectDigest The digest of the open project, which a new conversation starts with.
+ * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class AssistantController(
@@ -51,6 +54,7 @@ internal class AssistantController(
     private val ioDispatcher: CoroutineDispatcher,
     private val createAssistant: (AgentCommand) -> Assistant,
     private val projectDigest: suspend () -> String? = { null },
+    private val changeLog: () -> ChangeLog? = { null },
     private val home: String = System.getProperty("user.home"),
 ) : AutoCloseable {
     private val settings = MutableStateFlow(store.load())
@@ -165,6 +169,7 @@ internal class AssistantController(
             start = { permissions -> assistant().also { owner = it }.newConversation(directory, permissions, projectDigest()) },
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
+            changeLog = changeLog,
         )
         _chats.update { it + chat }
         _currentChat.value = chat

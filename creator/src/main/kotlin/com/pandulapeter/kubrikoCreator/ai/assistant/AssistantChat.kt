@@ -18,6 +18,8 @@ import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.agentclientprotocol.protocol.JsonRpcException
 import com.agentclientprotocol.rpc.JsonRpcErrorCode
+import com.pandulapeter.kubrikoCreator.commands.ChangeLog
+import com.pandulapeter.kubrikoCreator.context.ChangesSummary
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -38,12 +40,15 @@ import kotlinx.coroutines.launch
  * @param parentScope Where the conversation's work runs: the main thread, which the panel's state is read on.
  * @param end Ends the conversation [start] started.
  * @param toolsIdOf The ID of the address at which a conversation reaches Kubriko Creator's tools.
+ * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
+ *   its last turn ([ChangesSummary]).
  */
 internal class AssistantChat(
     parentScope: CoroutineScope,
     private val start: suspend (PermissionHandler) -> AgentConversation,
     private val end: suspend (AgentConversation) -> Unit,
     private val toolsIdOf: (AgentConversation) -> String? = { null },
+    private val changeLog: () -> ChangeLog? = { null },
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private val _state = MutableStateFlow<ChatState>(ChatState.Starting)
@@ -84,6 +89,7 @@ internal class AssistantChat(
 
     @Volatile
     private var conversation: AgentConversation? = null
+    private var seenRevision = 0
     private var pendingAnswer: CompletableDeferred<RequestPermissionOutcome>? = null
     private var isClosed = false
 
@@ -135,9 +141,14 @@ internal class AssistantChat(
     private fun prompt(text: String) {
         val conversation = conversation ?: return
         _isBusy.value = true
+        val log = changeLog()
+        val since = seenRevision
+        log?.let { seenRevision = it.revision }
         scope.launch {
             try {
-                val response = conversation.prompt(listOf(ContentBlock.Text(text))) { update -> _transcript.update { it.withUpdate(update) } }
+                val changes = log?.let { ChangesSummary.of(it.since(since), since, _toolsId.value) }
+                val content = listOfNotNull(changes?.let(ContentBlock::Text), ContentBlock.Text(text))
+                val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
                 _transcript.update { it.withTurnEnd(response.stopReason) }
             } catch (exception: CancellationException) {
                 throw exception
@@ -215,6 +226,7 @@ internal class AssistantChat(
             }
             conversation = started
             _toolsId.value = toolsIdOf(started)
+            seenRevision = changeLog()?.revision ?: 0
             _state.value = ChatState.Ready
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.updates.collect { update -> _transcript.update { it.withUpdate(update) } } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.configOptions.collect { _configOptions.value = it } }

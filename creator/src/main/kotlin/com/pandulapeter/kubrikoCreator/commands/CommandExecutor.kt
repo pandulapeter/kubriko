@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.context.writeSummary
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_input_invalid
@@ -50,6 +52,11 @@ internal class CommandExecutor(
     private val changes = Mutex()
 
     /**
+     * The project's revision and its newest changes, for telling an agent what changed between two of its turns.
+     */
+    val changeLog = ChangeLog()
+
+    /**
      * Why [invocation] can't be applied right now, or null if it can.
      */
     fun validate(invocation: Invocation<*>) = rejectChanges() ?: invocation.validate(context)
@@ -62,13 +69,21 @@ internal class CommandExecutor(
         scope.launch(start = CoroutineStart.UNDISPATCHED) { execute(invocation).report(onSuccess) }
     }
 
-    suspend fun execute(invocation: Invocation<*>): CommandOutcome = changes.withLock {
+    suspend fun execute(invocation: Invocation<*>): CommandOutcome = execute(invocation, origin = null, isByAi = false)
+
+    /**
+     * Applies [invocation] for an AI client ([isByAi]) or the user. A change that leaves no result of its own returns,
+     * for an AI client, the revision it made and what it changed ([writeSummary]).
+     */
+    private suspend fun execute(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome = changes.withLock {
         validate(invocation)?.let { return@withLock CommandOutcome.Rejected(it) }
         val applied = invocation.apply(context)
         applied.failure?.let { return@withLock CommandOutcome.Rejected(it) }
         if (applied.isRewritingFiles) _history.value = CommandHistory()
         applied.inverse?.let { inverse -> record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true))) }
-        CommandOutcome.Success(applied.result)
+        val target = invocation.target(context)
+        val revision = changeLog.record(invocation.title, target, origin, isByAi)
+        CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.title, target) else applied.result)
     }
 
     /**
@@ -112,6 +127,7 @@ internal class CommandExecutor(
             _history.value = remaining
             return@withLock CommandOutcome.Rejected(it)
         }
+        changeLog.record(invocation.title, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
         val stepped = applied.inverse?.copy(isRestoring = true)?.let { inverse ->
             if (isUndo) HistoryEntry(revert = invocation, reapply = inverse) else HistoryEntry(revert = inverse, reapply = invocation)
         }
@@ -135,7 +151,7 @@ internal class CommandExecutor(
         publish(step)
         val outcome = when (command) {
             is ReadCommand -> command.read(context, input)
-            is WriteCommand -> execute(Invocation(command, input))
+            is WriteCommand -> execute(Invocation(command, input), origin, isByAi = true)
             is ActionCommand -> command.run(context, input)
         }
         publish(step.copy(target = command.target(context, input) ?: step.target, isRunning = false, rejection = (outcome as? CommandOutcome.Rejected)?.rejection))

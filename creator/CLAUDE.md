@@ -349,6 +349,14 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   short with where the rest is. `get_project_digest` returns it as plain text (a string result is sent as it is), every assistant
   conversation starts with it after the fixed system prompt (`AssistantSystemPrompt.withProject`, so the cached prefix stays the same),
   and the toolbar's Map panel (`ui/gameMap`) shows it to the user, opening a type or Scene on a click.
+- **Reads that know what was seen:** a conversation's server (`createServer` with its ID) remembers each read tool's last
+  result per arguments (`ConversationReads`, forgotten with the conversation), so reading again returns `ResultDelta`: unchanged,
+  the object values and list items (`events[6]`) that changed, or a text's changed lines, and the whole result where that isn't
+  shorter; its read tools take `full: true` on top of their own schema for the whole result. Outside clients always get it whole.
+  A write tool returns `writeSummary` (the revision, what changed at which place, and the changed Event in notation) where it has no
+  result of its own. `CommandExecutor.changeLog` (`ChangeLog`) raises the revision on every change, undo and redo included, and keeps
+  the newest 200 (`ChangeRecord`); before each prompt, `AssistantChat` sends `ChangesSummary` of what anyone but that conversation
+  changed since its last prompt, ahead of the user's text.
 
 ## AI connection (MCP)
 

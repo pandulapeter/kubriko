@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -163,6 +164,21 @@ class CommandExecutorTest {
         executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball") }, origin)
         executor.call("set_appearance", buildJsonObject { put("width", "wide") }, origin)
         assertEquals(listOf(origin, origin), executor.aiSteps.value.map { it.origin })
+    }
+
+    @Test
+    fun aWriteToolSaysTheRevisionAndWhatItChangedWithTheEventAsItIsNow() = runTest {
+        val (executor, _) = executor(ball)
+        executor.execute(width(10f))
+        val result = assertIs<CommandOutcome.Success>(executor.call("add_block", buildJsonObject { put("actorType", "Ball"); put("eventIndex", 0); put("block", buildJsonObject { put("type", "stop") }) })).result
+        assertEquals(
+            Json.parseToJsonElement("""{"revision":2,"changed":"Add Block at Ball#0.1","event":"0 Every frame\n  0 Set velocity to (1, 1)\n  1 Stop"}"""),
+            result,
+        )
+        executor.step(isUndo = true)
+        assertEquals(listOf(false, true, false), executor.changeLog.since(0).map { it.isByAi })
+        assertEquals(ChangeRecord.Step.UNDO, executor.changeLog.since(0).last().step)
+        assertEquals(3, executor.changeLog.revision)
     }
 
     @Test
