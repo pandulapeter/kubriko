@@ -14,23 +14,39 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Status
 
-- Ask before pushing.
+- Ask before every push (`git log origin/main..HEAD` shows what would go). Everything up to 2026-11-01 evening is pushed.
 - `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
   its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
 - The user wants every item of `01-large-projects.md` to `05-reuse-and-traits.md` done, with nothing capped in number.
-- Creator is meant to be AI-centric: the in-app assistant panel (`02-ai-assistant.md`) was moved up to come right after
-  `01-large-projects.md`, hosting agents over ACP as Android Studio does.
-- A review on 2026-10-29 fixed small bugs on the spot and planned the rest: a stability plan (all built by 2026-11-01, so the file
-  is gone), `01-large-projects.md` →
-  Known costs, `02-ai-assistant.md` → Holding up (all built by 2026-11-01, so the section is gone), `12-onboarding.md` → Mistakes and failures in the first hour, `06-blocks.md` →
-  Dangling references, and `08-git.md` → Projects inside a larger repository.
+- Creator is AI-centric. `02-ai-assistant.md` is built (2026-11-01) except what needs a real session or someone else's work:
+  Codex's profile (Codex is out of quota until Nov 21, 2026), ACP protocol 2 and its `systemPrompt` field (not final, not in the
+  Kotlin SDK), Actors' states for the AI (needs `09-debugger.md`), the registry's icons (each vendor's trademark rules), and the
+  smaller follow-ups the file lists.
+- User decisions to keep: Claude Agent is the one fully supported agent; every other ACP Registry agent runs on generic fallbacks
+  with as little per-agent code as possible, and vendors' terms don't gate an agent (no "ask the vendor" steps). The AI connection
+  and the assistant are one AI panel; the map ("What the AI knows about your game") stays behind a button in it, not on the toolbar.
 
 ## Next
 
-`02-ai-assistant.md` is built except what needs a real session or someone else's work: Codex's profile (out of quota until Nov
-21), ACP protocol 2 and its `systemPrompt` field (not final, not in the Kotlin SDK), the Debugger's Actor states (`09`), the registry
-icons (each vendor's trademark rules), and the smaller items it still lists. Next: try what this run built (below) in the app, then
-`04` to `07`. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+`03-settings.md` (Creator settings with the switch that turns every AI feature off, and Project settings), then `04` to `07` in
+order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+The AI switch's test can walk the AI panel's parts offscreen (`uiTest`) with it off and find no AI string; the AI
+surfaces today are `AiPanel` (and its toolbar button), `AiActivityBar` with the AI following and flashing (`ui/AiFollowing.kt`),
+`McpController`, and `AssistantController`.
+
+## How to check work
+
+- `./gradlew :creator:test`: unit tests, also on Windows and Linux in the `Tests` workflow (the Windows job since 2026-11-01).
+  Run the whole suite before every commit, not only the tests you touched: tests elsewhere catch leaks and races (a server
+  left running, an exception escaping a scope), and Windows paths differ (write expected paths with `File`, not `/`).
+- **UI offscreen**: `uiTest { showing { … }; saveSnapshot("name") }` (`ui/UiSnapshots.kt`) renders any composable in the app's theme
+  and scale without a window; assert texts and clicks, then look at `creator/build/ui-snapshots/name.png`. Every new UI gets one.
+  Use the real app (below) only for what needs windows, focus, or a live agent.
+- **Live agent**: `KUBRIKO_CREATOR_CLAUDE_AGENT=true KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR=$HOME/.claude-personal ./gradlew :creator:test
+  --tests "*AssistantLiveScenariosTest*" --rerun` holds real Claude Agent conversations on the Breakout fixture (a change and its
+  Undo, a read-only question, resuming after a restart, health checks and `check_change`); a few requests on the user's
+  subscription, so run it when the assistant's behavior changed. `EvalSetTest` replays recorded tool calls for free.
+- **Templates for real**: the integration test in `../CLAUDE.md` → Running and testing builds every template.
 
 ## To check by hand
 
@@ -82,15 +98,15 @@ icons (each vendor's trademark rules), and the smaller items it still lists. Nex
 - The scratch Breakout copy now offers the template version 8 upgrade (Game.kt adds its instance to `KubrikoWiring.runningInstances`,
   GameEntryPoint reports them): review it, apply it, and see `start_game` wait for drawn Actors.
 - Whether the agent reads what a chip links to (the chips themselves are checked offscreen, `AssistantPanelPartsTest`).
-- Undo of a real turn after a change of your own (the card is checked offscreen, `TurnChangesCardTest`).
-- Closing a conversation and reopening it from the conversation menu (as it was), and after a restart (continued with its history).
+- Undo of a real turn after a change of your own (a plain Undo is covered by `AssistantLiveScenariosTest`).
+- Closing a conversation and reopening it from the conversation menu (resuming after a restart is covered by `AssistantLiveScenariosTest`).
 - Whether Claude Agent sends usage reports at all (the usage line is checked offscreen).
 - On a machine without Node.js (a scratch `PATH`): Download Node.js for Kubriko Creator, its progress, and Claude Agent starting
   with it.
 - An agent offering a sign-in by environment variables (Google Antigravity's "Gemini API key" if its method is that kind): the form,
   and the agent starting with them.
-- `get_health_checks`, `check_change`, `get_kubriko_api` (with and without a class), `read_game_notes` and `set_game_notes` from a
-  real conversation, and whether Claude uses the `game-explorer` subagent and plans big requests first.
+- `get_kubriko_api` (with and without a class), `read_game_notes` and `set_game_notes` from a real conversation, and whether Claude
+  uses the `game-explorer` subagent and plans big requests first (`get_health_checks` and `check_change` are covered live).
 - Two MCP clients at once (Claude Code and the assistant): the activity bar naming each step's client.
 
 **Choosing an agent (built and unit-tested on 2026-11-01, not yet seen in the app)**
@@ -109,7 +125,8 @@ icons (each vendor's trademark rules), and the smaller items it still lists. Nex
 - The AI connection panel's switch and port toggled quickly: one server left, on the last port; the call log scrolling smoothly
   after many `read_scene` calls.
 - A failure's details under its sentence: the client row's output after a failed Connect, and an agent that can't start.
-- On Windows: the assistant finding `npx.cmd` and starting Claude Agent through `cmd /c`, and Stop ending `node` and `claude` too.
+- On a real Windows machine: the assistant finding `npx.cmd` and starting Claude Agent through `cmd /c`, and Stop ending `node`
+  and `claude` too (the unit tests run on Windows in CI, but no agent does).
 - Claude Agent unchanged by the profiles: its `_meta`, HTTP tools, and permission requests as before (`ClaudeAgentLiveTest`).
 
 **Tool call cards (built and unit-tested on 2026-11-01, not yet seen in the app)**

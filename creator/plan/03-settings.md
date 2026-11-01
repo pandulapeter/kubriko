@@ -17,22 +17,23 @@ with everyone who clones it. Anything that is both per-project and private (sign
 
 Opened from the toolbar and from the welcome screen, so they work without a project.
 
-- **AI features (on or off).** Off removes every AI surface: the AI connection panel and its toolbar button, the assistant panel
-  (`02-ai-assistant.md`), `AiActivityBar` and the AI's highlighted targets, AI hints and empty-state suggestions, and AI mentions in
+- **AI features (on or off).** Off removes every AI surface: the AI panel (Assistant, Your own AI tool, and the map) and its toolbar
+  button, `AiActivityBar` and the AI's highlighted targets, AI hints and empty-state suggestions, and AI mentions in
   onboarding and the template's README. It is a guarantee, not just hiding: the MCP server is stopped, no agent process is started, and
   nothing is sent anywhere. Commands, the undo history, and command titles stay, since they aren't AI features.
   - One check (`CreatorSettings.isAiEnabled`, observed) that every AI surface reads, so a new one can't forget it; a UI test walks the
     screens with it off and finds no AI string.
   - Asked once on first run (`12-onboarding.md`), defaulting to on, and changeable later. Turning it back on restores the MCP settings
     and connected clients as they were.
-  - Per user, never per project: a project made with AI opens normally with it off (its `AGENTS.md`/`CLAUDE.md`, if `02-ai-assistant.md`
-    generates one, is just a file).
+  - Per user, never per project: a project made with AI opens normally with it off (its `AGENTS.md` and `CLAUDE.md`
+    (`GameNotes`) are just files).
 - **Appearance:** theme (system, light, or dark) and UI scale (Campfire's 0.85 by default).
 - **Editor:** default project folder, Scene grid and snapping defaults (`06-blocks.md`), whether Play saves first, and confirmation
   prompts that were turned off with "Don't ask again", listed so they can be turned back on.
 - **Components:** the JDK, Gradle, and Android SDK (`12-onboarding.md` → Settings → Components).
 - **Updates:** whether Creator checks for updates (`10-export-and-distribution.md`).
-- **AI connection** moves here as a section once Settings exists (hidden with the rest when AI is off).
+- **AI:** the defaults behind the AI panel that aren't about one conversation (the MCP server's port, token, and commands from
+  Advanced; the agent and Claude Code configuration) may move here as a section, hidden with the rest when AI is off.
 
 ## Project settings
 
