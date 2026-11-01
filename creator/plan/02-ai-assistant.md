@@ -170,7 +170,7 @@ understand the game is shown to the user too.
   findings shown where their subject is edited, beside the map's list.
 - **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do, and
   `check_change` tries a change without making it).
-- **Cheaper screenshots:** downscaled or cropped to a region or an Actor, and replaced by Actors' states from the debug agent
+- **Cheaper screenshots:** cropped to an Actor (the region crop exists), and replaced by Actors' states from the debug agent
   (`09-debugger.md`) where those say enough.
 - **Planning first** for big requests, as a checklist the user approves (ACP `plan` updates), and model hints (a smaller model for
   small edits) that the user decides on, since they pay.

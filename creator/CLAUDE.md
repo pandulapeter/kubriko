@@ -403,7 +403,8 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   keeping only the first 300 characters of its arguments and result, in a lazy list).
 - **Playing the game:** `start_game` (optionally in a `scene`), `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
   `SessionCommand`s Creator sends back on the session's connection, answered by id: keys go to the AWT event
-  listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), and every step first
+  listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), cropped to a region and narrowed to a width when
+asked (`ScreenshotImage`), and every step first
   brings the window to the front, since Kubriko pauses unfocused games, and waits up to two seconds for the focus to arrive
   (keys aren't pressed without it; `press_keys` fails instead). Unexpected exceptions in a tool are `isError` results that name
   the exception. `start_game` also waits (up to five seconds) until the game has drawn Actors, so a screenshot right after it isn't
