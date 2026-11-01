@@ -372,7 +372,9 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   version a command needs); for protocol 1 (older Kubriko) the game tools say the version is too old.
 - **Showing the AI's work:** every command has a `title` and a `target` (`CommandTarget`: an Actor type with an optional Event
   and Block index, a Scene, version control, or the game), asked before and after it runs. `CommandExecutor.aiSteps` records each
-  AI tool call as a running, then finished (or rejected) `AiStep`. The workspace shows them in `AiActivityBar` (step number, the
+  AI tool call as a running, then finished (or rejected) `AiStep` (the newest 500), with its `AiStepOrigin` when one of the
+  assistant's conversations made it: the conversation's tools ID and Claude Code's `_meta["claudecode/toolUseId"]`, which is
+  also the ACP tool call's ID. The workspace shows them in `AiActivityBar` (step number, the
   step before, the current one pulsing while it runs, a Follow switch), follows the AI to the Actor type and Event it works on,
   and lights up the finished step's target (`rememberFlashColor`) in the editor and the sidebar (`ui/AiFollowing.kt`).
 - Tests talk to a real server on localhost through the SDK's client, run real shell commands, and play a fake session.
@@ -432,7 +434,9 @@ agent's config options (mode, model, effort, and others) are menus labeled with 
 agent works as, its sign-in methods, and the API key; `accountActions`). Above the composer, `AssistantSignInArea` shows the
 running sign-in, the API key form, or, while signing in is needed, `SignInCard` (`signInAreaContent` decides). The panel draws messages with its own
 Markdown reader (`MarkdownParser`, `InlineMarkdown`, `MarkdownText`), titles Creator's tool calls (`mcp__kubriko-creator__<tool>`)
-with their command's title, and offers slash commands while one is typed (`AgentConversation.availableCommands`, kept from
+with their command's title and what they worked on: `aiStepsOf` ties each to its `AiStep` by that ID (or, for an agent that sends
+none, the conversation's steps of the same tool in order), and clicking a card about a type or a Scene goes there and lights it up
+again (`RevisitedAiStep`, shown until the AI takes another step), and offers slash commands while one is typed (`AgentConversation.availableCommands`, kept from
 the agent's first announcement, which comes before anything collects `updates`).
 
 ## Packages (`com.pandulapeter.kubrikoCreator`)

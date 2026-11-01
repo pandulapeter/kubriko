@@ -36,15 +36,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.StopReason
+import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
+import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
+import com.pandulapeter.kubrikoCreator.ui.canBeShown
+import com.pandulapeter.kubrikoCreator.ui.description
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_failure_agent_not_started
 import kubriko.creator.generated.resources.assistant_failure_auth_required
@@ -72,11 +77,15 @@ import org.jetbrains.compose.resources.stringResource
  * A conversation's messages, thoughts, and tool calls, following the newest as it streams in.
  *
  * @param isBusy Whether the agent works on a turn, shown at the end until it writes something.
+ * @param steps The AI step each of Kubriko Creator's tool calls made, by the call's ID ([aiStepsOf]).
+ * @param onShowStep Goes to what a step worked on, in the editor.
  */
 @Composable
 internal fun AssistantTranscriptList(
     items: List<TranscriptItem>,
     isBusy: Boolean,
+    steps: Map<ToolCallId, AiStep>,
+    onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -95,7 +104,11 @@ internal fun AssistantTranscriptList(
                 is TranscriptItem.UserMessage -> UserMessage(item.text)
                 is TranscriptItem.AgentMessage -> SelectionContainer { MarkdownText(item.text) }
                 is TranscriptItem.Thought -> Thought(item.text)
-                is TranscriptItem.ToolCall -> ToolCallCard(item)
+                is TranscriptItem.ToolCall -> ToolCallCard(
+                    toolCall = item,
+                    step = steps[item.id],
+                    onShowStep = onShowStep,
+                )
                 is TranscriptItem.TurnEnded -> Notice(stringResource(item.reason.description()))
                 is TranscriptItem.Failure -> Notice(
                     text = item.reason.description(item.details),
@@ -164,10 +177,14 @@ private fun Thought(
 @Composable
 private fun ToolCallCard(
     toolCall: TranscriptItem.ToolCall,
+    step: AiStep?,
+    onShowStep: (AiStep) -> Unit,
 ) = Row(
     modifier = Modifier
         .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(8.dp))
+        .clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.surfaceContainer)
+        .then(if (step != null && step.canBeShown()) Modifier.clickable { onShowStep(step) } else Modifier)
         .padding(horizontal = 10.dp, vertical = 6.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -178,14 +195,26 @@ private fun ToolCallCard(
         contentDescription = null,
         tint = MaterialTheme.colorScheme.primary,
     )
-    val title = creatorToolTitleOf(toolCall)?.let { stringResource(it) } ?: toolCall.title
-    Text(
+    Column(
         modifier = Modifier.weight(1f),
-        text = if (toolCall.status == ToolCallStatus.FAILED) stringResource(Res.string.assistant_tool_failed, title) else title,
-        style = MaterialTheme.typography.bodySmall,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-    )
+    ) {
+        val title = creatorToolTitleOf(toolCall)?.let { stringResource(it) } ?: toolCall.title
+        Text(
+            text = if (toolCall.status == ToolCallStatus.FAILED) stringResource(Res.string.assistant_tool_failed, title) else title,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        step?.target?.let { target ->
+            Text(
+                text = target.description(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
     when (toolCall.status) {
         ToolCallStatus.COMPLETED -> StatusIcon(Res.drawable.ic_check)
         ToolCallStatus.FAILED -> StatusIcon(Res.drawable.ic_warning, isError = true)

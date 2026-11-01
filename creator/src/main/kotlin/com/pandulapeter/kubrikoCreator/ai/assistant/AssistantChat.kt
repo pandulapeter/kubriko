@@ -37,11 +37,13 @@ import kotlinx.coroutines.launch
  *
  * @param parentScope Where the conversation's work runs: the main thread, which the panel's state is read on.
  * @param end Ends the conversation [start] started.
+ * @param toolsIdOf The ID of the address at which a conversation reaches Kubriko Creator's tools.
  */
 internal class AssistantChat(
     parentScope: CoroutineScope,
     private val start: suspend (PermissionHandler) -> AgentConversation,
     private val end: suspend (AgentConversation) -> Unit,
+    private val toolsIdOf: (AgentConversation) -> String? = { null },
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private val _state = MutableStateFlow<ChatState>(ChatState.Starting)
@@ -72,6 +74,13 @@ internal class AssistantChat(
      * The agent's options for the conversation, such as its model.
      */
     val configOptions: StateFlow<List<SessionConfigOption>> = _configOptions.asStateFlow()
+    private val _toolsId = MutableStateFlow<String?>(null)
+
+    /**
+     * The ID of the address at which the conversation reaches Kubriko Creator's tools, which the AI steps it makes carry,
+     * once it has started.
+     */
+    val toolsId = _toolsId.asStateFlow()
 
     @Volatile
     private var conversation: AgentConversation? = null
@@ -205,6 +214,7 @@ internal class AssistantChat(
                 return@launch
             }
             conversation = started
+            _toolsId.value = toolsIdOf(started)
             _state.value = ChatState.Ready
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.updates.collect { update -> _transcript.update { it.withUpdate(update) } } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.configOptions.collect { _configOptions.value = it } }

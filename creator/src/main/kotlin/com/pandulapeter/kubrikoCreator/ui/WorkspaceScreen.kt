@@ -38,9 +38,11 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
@@ -95,6 +97,8 @@ internal fun WorkspaceScreen(
     val mcpState by mcp.state.collectAsState()
     val aiSteps by controller.commands.aiSteps.collectAsState()
     val latestAiStep = aiSteps.lastOrNull()
+    var revisitedAiStep by remember { mutableStateOf<RevisitedAiStep?>(null) }
+    val shownAiStep = shownAiStep(latestAiStep, revisitedAiStep)
     var isFollowingAi by remember { mutableStateOf(true) }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
     val readOnlyReason = (controller.formatStatus.collectAsState().value as? ProjectFormatStatus.ReadOnly)?.toRejection()
@@ -187,8 +191,8 @@ internal fun WorkspaceScreen(
                     folderGroups = folderGroups,
                     folderActions = folderTreeActions,
                     dragState = sidebarDragState,
-                    flashedName = latestAiStep?.sidebarName(),
-                    flashKey = latestAiStep?.flashKey,
+                    flashedName = shownAiStep?.step?.sidebarName(),
+                    flashKey = shownAiStep?.flashKey,
                 )
                 VerticalDivider()
                 val centerModifier = Modifier.weight(1f).fillMaxHeight()
@@ -248,7 +252,7 @@ internal fun WorkspaceScreen(
                             )
                         },
                         onTypeSelected = blockTypesController::select,
-                        highlight = latestAiStep?.highlightIn(selectedBlockType.name),
+                        highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
                     )
                 } else if (sceneEditing == SceneEditingState.Closed) {
                     WorkspaceHint(
@@ -260,6 +264,15 @@ internal fun WorkspaceScreen(
                     AssistantPanel(
                         modifier = Modifier.width(360.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                         controller = assistant,
+                        aiSteps = aiSteps,
+                        onShowStep = { step ->
+                            revisitedAiStep = RevisitedAiStep(step, latestStepId = latestAiStep?.id)
+                            when (val target = step.target) {
+                                is CommandTarget.BlockType -> if (blockTypesController?.get(target.name) != null) folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, target.name)
+                                is CommandTarget.Scene -> if (openSceneName != target.name) folderTreeActions.onSelected(FolderGroup.SCENES, target.name)
+                                else -> Unit
+                            }
+                        },
                     )
                 }
                 if (openPanel == SidePanel.AI_CONNECTION) {

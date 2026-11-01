@@ -74,10 +74,12 @@ internal class CommandExecutor(
     /**
      * Runs the command called [name] with [arguments] decoded into its input: what an AI tool call does. Changes enter
      * the undo history like the user's own.
+     *
+     * @param origin Which of the assistant's conversations made the call, if one did.
      */
-    suspend fun call(name: String, arguments: JsonObject): CommandOutcome {
+    suspend fun call(name: String, arguments: JsonObject, origin: AiStepOrigin? = null): CommandOutcome {
         val command = registry[name] ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_unknown, name))
-        return call(command, arguments)
+        return call(name, command, arguments, origin)
     }
 
     fun undo() {
@@ -121,15 +123,15 @@ internal class CommandExecutor(
         CommandOutcome.Success(applied.result)
     }
 
-    private suspend fun <I> call(command: EditorCommand<I>, arguments: JsonObject): CommandOutcome {
+    private suspend fun <I> call(name: String, command: EditorCommand<I>, arguments: JsonObject, origin: AiStepOrigin?): CommandOutcome {
         val input = try {
             json.decodeFromJsonElement(command.inputSerializer, arguments)
         } catch (exception: SerializationException) {
-            return rejectInput(command, exception)
+            return rejectInput(name, command, exception, origin)
         } catch (exception: IllegalArgumentException) {
-            return rejectInput(command, exception)
+            return rejectInput(name, command, exception, origin)
         }
-        val step = AiStep(id = nextAiStepId++, title = command.title, target = command.target(context, input), isRunning = true)
+        val step = AiStep(id = nextAiStepId++, toolName = name, title = command.title, target = command.target(context, input), isRunning = true, origin = origin)
         publish(step)
         val outcome = when (command) {
             is ReadCommand -> command.read(context, input)
@@ -140,9 +142,9 @@ internal class CommandExecutor(
         return outcome
     }
 
-    private fun rejectInput(command: EditorCommand<*>, exception: Exception): CommandOutcome {
+    private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?): CommandOutcome {
         val rejection = Rejection(Res.string.error_command_input_invalid, exception.message.orEmpty())
-        publish(AiStep(id = nextAiStepId++, title = command.title, target = null, isRunning = false, rejection = rejection))
+        publish(AiStep(id = nextAiStepId++, toolName = name, title = command.title, target = null, isRunning = false, rejection = rejection, origin = origin))
         return CommandOutcome.Rejected(rejection)
     }
 
@@ -169,7 +171,7 @@ internal class CommandExecutor(
 
     private companion object {
         const val HISTORY_SIZE = 200
-        const val AI_STEP_COUNT = 50
+        const val AI_STEP_COUNT = 500
         val json = Json { ignoreUnknownKeys = false }
     }
 }

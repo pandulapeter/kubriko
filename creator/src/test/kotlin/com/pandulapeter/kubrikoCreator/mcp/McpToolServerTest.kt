@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.mcp
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
@@ -226,5 +227,21 @@ class McpToolServerTest {
         assertEquals(HttpStatusCode.Unauthorized, status(port, "/mcp", ""))
         val result = connected(port, conversation.path, conversation.token) { callTool("list_scenes", emptyMap()) }
         assertEquals("No project is open in Kubriko Creator.", (result.content.single() as TextContent).text)
+    }
+
+    @Test
+    fun conversationsCallsAreStepsThatNameTheConversationAndTheClientsOwnId() = runTest {
+        val executor = CommandExecutor(commandContext(), testScope())
+        val port = start(executor)
+        val conversation = server!!.openConversation()
+        connected(port, conversation.path, conversation.token) {
+            callTool("list_scenes", emptyMap(), meta = mapOf("claudecode/toolUseId" to "toolu_1"))
+            callTool("list_scenes", emptyMap())
+        }
+        connected(port) { callTool("list_scenes", emptyMap()) }
+        assertEquals(
+            listOf(AiStepOrigin(conversation.id, "toolu_1"), AiStepOrigin(conversation.id), null),
+            executor.aiSteps.value.map { it.origin },
+        )
     }
 }

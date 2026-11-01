@@ -40,18 +40,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.AiStep
-import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.ui.description
 import kotlinx.coroutines.delay
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ai_activity_follow
 import kubriko.creator.generated.resources.ai_activity_step
 import kubriko.creator.generated.resources.ai_activity_step_with_target
-import kubriko.creator.generated.resources.ai_target_block
-import kubriko.creator.generated.resources.ai_target_event
-import kubriko.creator.generated.resources.ai_target_game
-import kubriko.creator.generated.resources.ai_target_project
-import kubriko.creator.generated.resources.ai_target_scene
-import kubriko.creator.generated.resources.ai_target_version_control
 import kubriko.creator.generated.resources.ic_ai
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -155,22 +149,6 @@ private fun StepText(
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )
-}
-
-/**
- * What a step works on, in words: `Paddle, Event 2, Block 1`, counting from one.
- */
-@Composable
-internal fun CommandTarget.description(): String = when (this) {
-    is CommandTarget.BlockType -> when {
-        eventIndex == null -> name
-        blockIndex == null -> stringResource(Res.string.ai_target_event, name, (eventIndex + 1).toString())
-        else -> stringResource(Res.string.ai_target_block, name, (eventIndex + 1).toString(), (blockIndex + 1).toString())
-    }
-    is CommandTarget.Scene -> stringResource(Res.string.ai_target_scene, name)
-    CommandTarget.VersionControl -> stringResource(Res.string.ai_target_version_control)
-    CommandTarget.Game -> stringResource(Res.string.ai_target_game)
-    CommandTarget.Project -> stringResource(Res.string.ai_target_project)
 }
 
 private const val VISIBLE_AFTER_LAST_STEP = 6_000L

@@ -14,13 +14,17 @@ import org.jetbrains.compose.resources.StringResource
 /**
  * One tool call of an AI client, as the editor shows the AI's work.
  *
+ * @param toolName The name of the tool the client called.
  * @param target What the call reads or changes, if anything in particular.
  * @param rejection Why the call failed, once it has.
+ * @param origin Which of the assistant's conversations made the call, and the client's own ID for it, if known.
  */
 internal data class AiStep(
     val id: Int,
+    val toolName: String,
     val title: StringResource,
     val target: CommandTarget?,
     val isRunning: Boolean,
     val rejection: Rejection? = null,
+    val origin: AiStepOrigin? = null,
 )

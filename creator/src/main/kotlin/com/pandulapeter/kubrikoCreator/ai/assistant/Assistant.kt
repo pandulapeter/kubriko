@@ -78,6 +78,11 @@ internal class Assistant(
     }
 
     /**
+     * The ID of the address at which [conversation] reaches the tools, which its AI steps carry (`AiStepOrigin`).
+     */
+    fun toolsIdOf(conversation: AgentConversation) = toolConversations[conversation]
+
+    /**
      * Ends [conversation] and turns its tools off.
      */
     suspend fun closeConversation(conversation: AgentConversation) {

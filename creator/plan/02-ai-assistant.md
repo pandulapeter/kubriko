@@ -70,14 +70,12 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    Binary agents are unpacked per version under Creator's tools folder.
 4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is other agents' own key variables (`EnvVarAuth`, under Other
    agents), and the operating system's terminal as a fallback for a sign-in command that turns out to need a terminal device.
-5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): each `AiStep` knowing its conversation, so the panel's tool call
-   cards tie into it; reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
+5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): reading staying allowed for Claude until the Kubriko API read tool replaces its use for Kotlin Blocks. Other agents
    have no portable switch, so their `session/request_permission` for edits and commands is rejected by default (`PermissionHandler.Reject`),
    with the user able to allow it.
 6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
-7. **The panel** (see `../CLAUDE.md` → Assistant): tool call cards naming their `CommandTarget` and tying into the activity view's
-   following and flashing (clicking one goes to what it changed); context chips for the open Scene and the selected Actor type, sent as
+7. **The panel** (see `../CLAUDE.md` → Assistant): context chips for the open Scene and the selected Actor type, sent as
    `resource_link`s; a Scene or game screenshot attached as an image where `promptCapabilities.image` allows; conversations kept per
    project after it closes and resumed after a restart with `session/load` where the agent offers it; Markdown tables, which the
    panel's reader shows as plain lines.
@@ -85,7 +83,7 @@ All of it lives in a new `ai/assistant` package; the MCP connection for outside 
    control; after each turn it lists what changed (grouped like the git panel) with **Keep** and **Undo**.
 9. **Usage:** shown where the agent reports it (ACP usage updates); an API-key conversation says that it is billed to the key.
 
-**Order:** first the tool call cards of the panel (7), together with the five "First" items of Context for large games. Then
+**Order:** first the five "First" items of Context for large games. Then
 alongside `04` to `07`: agent profiles and the fallbacks (Other agents and services), Codex first, then Gemini CLI and Copilot;
 the registry, the Node.js download, and binary agents (2, 3); resuming and attachments; Keep and Undo (8); usage (9); and the MCP
 server items above.

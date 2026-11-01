@@ -163,6 +163,7 @@ internal class AssistantController(
             parentScope = scope,
             start = { permissions -> assistant().also { owner = it }.newConversation(directory, permissions) },
             end = { conversation -> owner?.closeConversation(conversation) },
+            toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
         )
         _chats.update { it + chat }
         _currentChat.value = chat

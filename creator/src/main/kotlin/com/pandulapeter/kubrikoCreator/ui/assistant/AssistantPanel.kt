@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
+import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -61,10 +62,15 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The in-app assistant: conversations about the open project with Claude Agent, which works through the same
  * commands as the editor.
+ *
+ * @param aiSteps The open project's AI steps, which the tool call cards tie into.
+ * @param onShowStep Goes to what a step worked on, in the editor.
  */
 @Composable
 internal fun AssistantPanel(
     controller: AssistantController,
+    aiSteps: List<AiStep>,
+    onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
@@ -133,6 +139,8 @@ internal fun AssistantPanel(
         ChatContent(
             modifier = Modifier.weight(1f),
             chat = current,
+            aiSteps = aiSteps,
+            onShowStep = onShowStep,
         ) { isPromptRefused ->
             AssistantSignInArea(
                 session = session,
@@ -154,6 +162,8 @@ internal fun AssistantPanel(
 @Composable
 private fun ChatContent(
     chat: AssistantChat,
+    aiSteps: List<AiStep>,
+    onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
     signInArea: @Composable (isPromptRefused: Boolean) -> Unit,
 ) = Column(
@@ -163,6 +173,8 @@ private fun ChatContent(
     val transcript by chat.transcript.collectAsState()
     val isBusy by chat.isBusy.collectAsState()
     val permissionRequest by chat.permissionRequest.collectAsState()
+    val toolsId by chat.toolsId.collectAsState()
+    val steps = remember(transcript.items, aiSteps, toolsId) { aiStepsOf(transcript.items, aiSteps, toolsId) }
     Box(
         modifier = Modifier.weight(1f).fillMaxWidth(),
     ) {
@@ -171,6 +183,8 @@ private fun ChatContent(
                 modifier = Modifier.fillMaxSize(),
                 items = transcript.items,
                 isBusy = isBusy,
+                steps = steps,
+                onShowStep = onShowStep,
             )
             state is ChatState.Ready -> Hint(stringResource(Res.string.assistant_empty))
             state is ChatState.Starting -> Starting()

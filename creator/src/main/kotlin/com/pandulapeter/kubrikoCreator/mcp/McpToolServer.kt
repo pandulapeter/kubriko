@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp
 
+import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
@@ -41,6 +42,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -120,7 +123,7 @@ internal class McpToolServer(
                 }
             }
             if (token != null) mcpStreamableHttp(path = PATH) { createServer() }
-            mcpStreamableHttp(path = "$CONVERSATIONS_PATH/{$CONVERSATION_PARAMETER}") { createServer() }
+            mcpStreamableHttp(path = "$CONVERSATIONS_PATH/{$CONVERSATION_PARAMETER}") { createServer(conversationId = call.parameters[CONVERSATION_PARAMETER]) }
         }
         server = started
         try {
@@ -160,7 +163,7 @@ internal class McpToolServer(
         MessageDigest.isEqual(authorization.orEmpty().toByteArray(), "Bearer ".toByteArray() + expectedToken) ||
             MessageDigest.isEqual(queryToken.orEmpty().toByteArray(), expectedToken)
 
-    private fun createServer() = Server(
+    private fun createServer(conversationId: String? = null) = Server(
         serverInfo = Implementation(name = SERVER_NAME, version = version),
         options = ServerOptions(capabilities = ServerCapabilities(tools = ServerCapabilities.Tools(listChanged = false))),
         instructions = INSTRUCTIONS,
@@ -175,14 +178,15 @@ internal class McpToolServer(
                 ),
                 toolAnnotations = ToolAnnotations(readOnlyHint = tool.isReadOnly, destructiveHint = tool.isDestructive, openWorldHint = false),
             ) { request ->
-                runTool(tool.name, request.arguments ?: JsonObject(emptyMap()))
+                val origin = conversationId?.let { AiStepOrigin(conversationId = it, toolCallId = (request.meta?.json?.get(TOOL_USE_ID_META) as? JsonPrimitive)?.contentOrNull) }
+                runTool(tool.name, request.arguments ?: JsonObject(emptyMap()), origin)
             }
         }
     }
 
-    private suspend fun runTool(toolName: String, arguments: JsonObject): CallToolResult {
+    private suspend fun runTool(toolName: String, arguments: JsonObject, origin: AiStepOrigin?): CallToolResult {
         val outcome = try {
-            withContext(callDispatcher) { executor()?.call(toolName, arguments) }
+            withContext(callDispatcher) { executor()?.call(toolName, arguments, origin) }
         } catch (exception: CancellationException) {
             throw exception
         } catch (throwable: Throwable) {
@@ -210,6 +214,11 @@ internal class McpToolServer(
         const val PATH = "/mcp"
         const val CONVERSATIONS_PATH = "$PATH/conversations"
         private const val CONVERSATION_PARAMETER = "conversation"
+
+        /**
+         * Where Claude Code puts the ID of its tool use in a call's `_meta`, which is also the ID of the ACP tool call.
+         */
+        private const val TOOL_USE_ID_META = "claudecode/toolUseId"
         const val TOKEN_PARAMETER = "token"
         const val SERVER_NAME = "kubriko-creator"
         private const val LOG_SIZE = 200

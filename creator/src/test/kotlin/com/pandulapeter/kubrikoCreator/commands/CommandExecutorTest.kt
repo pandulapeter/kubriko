@@ -147,13 +147,22 @@ class CommandExecutorTest {
         collecting.cancel()
         assertEquals(
             listOf(
-                AiStep(0, Res.string.command_add_block, CommandTarget.BlockType("Ball", 0, 1), isRunning = false),
-                AiStep(1, Res.string.command_read_actor_type, CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(Res.string.error_command_actor_type_missing, "Wall")),
+                AiStep(0, "add_block", Res.string.command_add_block, CommandTarget.BlockType("Ball", 0, 1), isRunning = false),
+                AiStep(1, "read_actor_type", Res.string.command_read_actor_type, CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(Res.string.error_command_actor_type_missing, "Wall")),
             ),
             executor.aiSteps.value.take(2),
         )
         assertEquals(Res.string.error_command_input_invalid, executor.aiSteps.value[2].rejection?.reason)
-        assertEquals(listOf(AiStep(0, Res.string.command_add_block, CommandTarget.BlockType("Ball", 0, 0), isRunning = true)), running.take(1))
+        assertEquals(listOf(AiStep(0, "add_block", Res.string.command_add_block, CommandTarget.BlockType("Ball", 0, 0), isRunning = true)), running.take(1))
+    }
+
+    @Test
+    fun stepsKeepWhereTheirCallCameFrom() = runTest {
+        val (executor, _) = executor(ball)
+        val origin = AiStepOrigin(conversationId = "conversation", toolCallId = "toolu_1")
+        executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball") }, origin)
+        executor.call("set_appearance", buildJsonObject { put("width", "wide") }, origin)
+        assertEquals(listOf(origin, origin), executor.aiSteps.value.map { it.origin })
     }
 
     @Test
