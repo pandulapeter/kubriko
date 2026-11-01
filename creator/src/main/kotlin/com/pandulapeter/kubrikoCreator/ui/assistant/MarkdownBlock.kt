@@ -42,4 +42,12 @@ internal sealed interface MarkdownBlock {
     ) : MarkdownBlock
 
     data object Rule : MarkdownBlock
+
+    /**
+     * @param rows The rows under the [header], each with as many cells as the header (missing ones empty, extra ones dropped).
+     */
+    data class Table(
+        val header: List<String>,
+        val rows: List<List<String>>,
+    ) : MarkdownBlock
 }

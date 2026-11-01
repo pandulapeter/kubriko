@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
 /**
- * Reads the Markdown agents write (headings, lists, quotes, fenced code, rules, and paragraphs) into blocks. A code
+ * Reads the Markdown agents write (headings, lists, quotes, fenced code, tables, rules, and paragraphs) into blocks. A code
  * fence that isn't closed yet, as while a message streams in, holds the rest of the text.
  */
 internal object MarkdownParser {
@@ -18,6 +18,7 @@ internal object MarkdownParser {
     private val bullet = Regex("^(\\s*)[-*+]\\s+(.*)$")
     private val numbered = Regex("^(\\s*)(\\d{1,9})[.)]\\s+(.*)$")
     private val rule = Regex("^\\s{0,3}([-*_])(\\s*\\1){2,}\\s*$")
+    private val tableSeparator = Regex("^\\s*\\|?(\\s*:?-+:?\\s*\\|)+(\\s*:?-+:?\\s*)?\\|?\\s*$")
 
     fun parse(text: String): List<MarkdownBlock> {
         val blocks = mutableListOf<MarkdownBlock>()
@@ -47,6 +48,17 @@ internal object MarkdownParser {
                 flush()
                 continue
             }
+            if (trimmed.startsWith("|") && index < lines.size && tableSeparator.matches(lines[index])) {
+                flush()
+                val header = cellsOf(trimmed)
+                index++
+                val rows = mutableListOf<List<String>>()
+                while (index < lines.size && lines[index].trim().startsWith("|")) {
+                    rows += cellsOf(lines[index++].trim()).let { cells -> List(header.size) { cells.getOrElse(it) { "" } } }
+                }
+                blocks += MarkdownBlock.Table(header, rows)
+                continue
+            }
             if (trimmed.startsWith(">")) {
                 if (paragraph.isNotEmpty()) flush()
                 quote += trimmed.removePrefix(">").trimStart()
@@ -72,6 +84,8 @@ internal object MarkdownParser {
         flush()
         return blocks
     }
+
+    private fun cellsOf(line: String) = line.removePrefix("|").removeSuffix("|").split('|').map { it.trim() }
 
     private fun depthOf(indentation: String) = indentation.replace("\t", "    ").length / 2
 

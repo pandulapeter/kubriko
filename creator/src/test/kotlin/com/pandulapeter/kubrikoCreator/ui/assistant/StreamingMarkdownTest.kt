@@ -35,6 +35,10 @@ class StreamingMarkdownTest {
         val y = 2
         ```
 
+        | Type | Speed |
+        |------|-------|
+        | Ball | 240 |
+
         ---
         Done.
         ```

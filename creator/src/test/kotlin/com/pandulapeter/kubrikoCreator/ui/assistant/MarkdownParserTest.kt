@@ -65,4 +65,18 @@ class MarkdownParserTest {
         assertEquals(emptyList(), MarkdownParser.parse(""))
         assertEquals(emptyList(), MarkdownParser.parse("\n\n"))
     }
+
+    @Test
+    fun tablesBecomeAHeaderAndRowsOfAsManyCells() = assertEquals(
+        listOf(
+            MarkdownBlock.Paragraph("Types:"),
+            MarkdownBlock.Table(listOf("Type", "Speed"), listOf(listOf("Ball", "**240**"), listOf("Paddle", ""))),
+            MarkdownBlock.Paragraph("Done."),
+        ),
+        MarkdownParser.parse("Types:\n\n| Type | Speed |\n|:-----|------:|\n| Ball | **240** |\n| Paddle |\n\nDone."),
+    )
+
+    @Test
+    fun aPipeLineWithoutASeparatorStaysAParagraph() =
+        assertEquals(listOf(MarkdownBlock.Paragraph("| not | a table |")), MarkdownParser.parse("| not | a table |"))
 }

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -101,6 +102,37 @@ internal fun MarkdownText(
                 softWrap = false,
             )
             MarkdownBlock.Rule -> HorizontalDivider()
+            is MarkdownBlock.Table -> Table(block, body, codeBackground, linkColor)
+        }
+    }
+}
+
+@Composable
+private fun Table(
+    table: MarkdownBlock.Table,
+    style: TextStyle,
+    codeBackground: Color,
+    linkColor: Color,
+) = Column(
+    modifier = Modifier
+        .fillMaxWidth()
+        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp)),
+) {
+    (listOf(table.header) + table.rows).forEachIndexed { index, cells ->
+        if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            cells.forEach { cell ->
+                InlineText(
+                    modifier = Modifier.weight(1f),
+                    text = cell,
+                    style = if (index == 0) style.copy(fontWeight = FontWeight.SemiBold) else style,
+                    codeBackground = codeBackground,
+                    linkColor = linkColor,
+                )
+            }
         }
     }
 }
