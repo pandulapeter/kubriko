@@ -40,10 +40,10 @@ lives in `plan/` (start with `plan/README.md`).
   The Tooling API connection is made on first use, which is right away: the workspace builds the classpath and loads the
   project's classes in the background as soon as it opens (`SceneEditingController.prepare`), so the Gradle daemon is warm
   and the first Scene opens without a build. Once they are loaded, the init script's `kubrikoCreatorWarmUp` compiles one
-  generated file in a compilation of its own next to the desktop target's code (`WorkspaceController.warmUpCompiler`, silent,
+  generated file in a compilation of its own next to the desktop target's code (`CreatorTaskRunner.warmUpCompiler`, silent,
   never clean, and not a failed build when it fails), since the build at opening starts Kotlin's compile daemon only when
   something needed compiling, and a cold daemon made the first change seconds slower. Builds of the classpath never overlap, and a play session waits for the one
-  running (`classpathBuildLock`), since a build started while another runs needs a daemon of its own; a cancelled build
+  running (`CreatorTaskRunner`'s `classpathBuildLock`), since a build started while another runs needs a daemon of its own; a cancelled build
   returns only once Gradle has stopped it, for the same reason. **Playing** builds the classpath too (into a file of its own,
   `SessionInitScript.playClasspathFileOf`, so the Scene editor's builds don't touch it; a fraction of a second when nothing
   changed), whose `launch.` lines say how `kubrikoCreatorSession` would start the game (`GameLaunch`: the `run` task's Java

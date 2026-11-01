@@ -23,7 +23,6 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.git.GitRepository
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
-import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
@@ -31,7 +30,6 @@ import com.pandulapeter.kubrikoCreator.project.ExpectDeclarations
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
-import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
@@ -46,7 +44,6 @@ import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,15 +55,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_not_a_gradle_project
 import kubriko.creator.generated.resources.status_actor_type_not_saved
-import kubriko.creator.generated.resources.status_build_failed
-import kubriko.creator.generated.resources.status_building
-import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_generated_leftover_changed_by_hand
 import kubriko.creator.generated.resources.status_generated_leftovers_removed
 import kubriko.creator.generated.resources.status_kubriko_libraries_added
@@ -125,17 +116,21 @@ internal class WorkspaceController(
         hasExpectDeclarations = ExpectDeclarations(project.rootDirectory).let { declarations -> { withContext(ioDispatcher) { declarations.any() } } },
     )
     private val consoleLog = ConsoleLog()
+    private val tasks = CreatorTaskRunner(
+        rootDirectory = project.rootDirectory,
+        build = build,
+        desktopModulePath = desktopModulePath,
+        incrementalCompilation = incrementalCompilation,
+        console = consoleLog,
+        awaitWrites = { blockTypes?.awaitWrites() },
+        currentTimeMillis = currentTimeMillis,
+    )
 
-    /**
-     * Keeps builds of the classpath from overlapping each other or the start of a session, since a build that starts
-     * while another one runs needs a Gradle daemon of its own.
-     */
-    private val classpathBuildLock = Mutex()
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     val console = consoleLog.entries
     private val sessions: SessionController = SessionController(
         channel = sessionChannel,
-        runTask = ::runCreatorTask,
+        runTask = tasks::run,
         console = consoleLog,
         scope = scope,
         prepareLaunch = { gameBuilds.prepareLaunch() },
@@ -145,7 +140,7 @@ internal class WorkspaceController(
     private val gameBuilds: GameBuilds = GameBuilds(
         rootDirectory = project.rootDirectory,
         sessions = sessions,
-        runTask = ::runCreatorTask,
+        runTask = tasks::run,
         console = consoleLog,
         scope = scope,
         ioDispatcher = ioDispatcher,
@@ -162,7 +157,7 @@ internal class WorkspaceController(
      */
     val sceneEditing = SceneEditingController(
         creatorKubrikoVersion = creatorKubrikoVersion,
-        runTask = ::runCreatorTask,
+        runTask = tasks::run,
         entryPointLoader = entryPointLoader,
         classpathFile = SessionInitScript.classpathFileOf(project.rootDirectory),
         scope = scope,
@@ -171,7 +166,7 @@ internal class WorkspaceController(
         readScene = { scenes.actors(SceneStore.nameOf(it.file)).orEmpty() },
         spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
         requestCleanBuild = incrementalCompilation::requestCleanBuild,
-        warmUpCompiler = ::warmUpCompiler,
+        warmUpCompiler = tasks::warmUpCompiler,
         actorTypeLooks = { ActorTypeLook.of(blockTypes?.actorTypes?.value.orEmpty(), SpriteFiles.of(_resources.value).files) },
         awaitWrites = { blockTypes?.awaitWrites() },
     )
@@ -266,7 +261,7 @@ internal class WorkspaceController(
             runner = WorkspaceRunner(
                 sessions = sessions,
                 startSession = ::play,
-                runTask = ::runCreatorTask,
+                runTask = tasks::run,
                 console = consoleLog,
                 classpathFile = SessionInitScript.buildClasspathFileOf(project.rootDirectory),
             ),
@@ -365,96 +360,6 @@ internal class WorkspaceController(
 
     fun clearConsole() = consoleLog.clear()
 
-    /**
-     * Runs one of the init script's tasks in the project's desktop module with Kubriko Creator's [properties], reporting
-     * compiler errors (or, when the build reports none, the end of its output) in the console.
-     *
-     * @return Whether the build succeeded.
-     */
-    private suspend fun runCreatorTask(taskName: String, properties: Map<String, String>): Boolean {
-        appendToConsole(ConsoleEntry.Status(Res.string.status_building))
-        blockTypes?.awaitWrites()
-        val modulePath = try {
-            desktopModulePath.await()
-        } catch (exception: ProjectInspectionException) {
-            appendToConsole(ConsoleEntry.Status(exception.reason, isError = true))
-            return false
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (_: Exception) {
-            appendToConsole(ConsoleEntry.Status(Res.string.error_not_a_gradle_project, isError = true))
-            return false
-        }
-        var startTime = 0L
-        val outputTail = ArrayDeque<String>()
-        val hasReportedProblems = AtomicBoolean(false)
-        suspend fun runBuild() = incrementalCompilation.build { mode ->
-            startTime = currentTimeMillis()
-            build.run(
-                taskPath = taskPathOf(modulePath, taskName),
-                arguments = SessionInitScript.gradleArguments(properties, mode),
-                onEvent = { event ->
-                    when (event) {
-                        is GradleBuildEvent.Output -> synchronized(outputTail) {
-                            outputTail.addLast(event.line)
-                            if (outputTail.size > OUTPUT_TAIL_SIZE) outputTail.removeFirst()
-                        }
-                        is GradleBuildEvent.Problem -> {
-                            hasReportedProblems.set(true)
-                            appendToConsole(event.toConsoleEntry())
-                        }
-                    }
-                },
-            )
-        }
-        val isSuccessful = if (taskName != SessionInitScript.SESSION_TASK_NAME) {
-            classpathBuildLock.withLock { runBuild() }
-        } else {
-            // A session's build lasts as long as the game runs, so it only waits for the classpath build before it.
-            classpathBuildLock.withLock {}
-            runBuild()
-        }
-        if (!isSuccessful) {
-            appendToConsole(ConsoleEntry.Status(Res.string.status_build_failed, isError = true))
-            if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { appendToConsole(ConsoleEntry.BuildOutput(it)) }
-        }
-        if (isSuccessful && taskName == SessionInitScript.CLASSPATH_TASK_NAME) {
-            appendToConsole(ConsoleEntry.Status(Res.string.status_built, arguments = listOf(secondsSince(startTime))))
-        }
-        return isSuccessful
-    }
-
-    /**
-     * Compiles one generated file next to the project's code, without a word in the console, so that Kotlin's compile
-     * daemon runs and is warm before the first change: the build at opening starts it only when something needed
-     * compiling, and a cold one makes the first change take seconds longer.
-     */
-    private suspend fun warmUpCompiler() {
-        val modulePath = try {
-            desktopModulePath.await()
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (_: Exception) {
-            return
-        }
-        classpathBuildLock.withLock {
-            build.run(
-                taskPath = taskPathOf(modulePath, SessionInitScript.WARM_UP_TASK_NAME),
-                arguments = SessionInitScript.gradleArguments(mapOf("kubrikoCreatorMode" to "warmUp"), incrementalCompilation.incrementalMode()),
-                onEvent = {},
-            )
-        }
-    }
-
-    private fun taskPathOf(modulePath: String, taskName: String) = if (modulePath == ":") ":$taskName" else "$modulePath:$taskName"
-
-    private fun GradleBuildEvent.Problem.toConsoleEntry() = ConsoleEntry.Problem(
-        message = message,
-        location = file?.let { file ->
-            listOfNotNull(file.relativeToOrSelf(project.rootDirectory).invariantSeparatorsPath, line, column).joinToString(":")
-        },
-    )
-
     private fun appendToConsole(entry: ConsoleEntry) = consoleLog.append(entry)
 
     private fun reportBuildFileChanges(changes: KubrikoBuildFileChanges) {
@@ -484,11 +389,5 @@ internal class WorkspaceController(
             scope.cancel()
             withContext(ioDispatcher) { build.close() }
         }
-    }
-
-    private fun secondsSince(startTime: Long) = ((currentTimeMillis() - startTime) / 100 / 10f).toString()
-
-    private companion object {
-        const val OUTPUT_TAIL_SIZE = 30
     }
 }
