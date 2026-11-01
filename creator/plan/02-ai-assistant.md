@@ -175,10 +175,6 @@ What the panel and the MCP server get wrong today, found in review; each goes in
   `AiConfigFileClient` falls back from, but `AssistantController.assistant()` turns into `NodeMissingException`, so every chat on
   Windows asks for Node.js even when it is installed. Direction: resolve programs with `where` on Windows (finding `npx.cmd`), and
   start `.cmd` agents through `cmd /c` with their descendants stopped (`ProcessAgentLauncher.stop` already stops them).
-- **Restarting the MCP server can race.** `McpController.apply` cancels the previous job without joining it, so a quick toggle or a
-  port change right after enabling runs the old `start` and the new `stop`/`start` at once on two IO threads over the unsynchronized
-  `McpToolServer.server`, and a start cancelled inside `startSuspend` throws before stopping what it started. The port then shows as
-  taken. Direction: `cancelAndJoin` the previous job inside the new one, and stop before rethrowing in `start`'s catch.
 - **Streaming long replies is quadratic.** Each chunk copies the transcript list and the whole message string
   (`appending` in `AssistantTranscript.kt`), and `MarkdownText` parses the whole message again on the main thread; a 20 KB reply in 2,000
   chunks copies and parses about 20 MB. The list (`AssistantTranscriptList`) also jumps to the end on every chunk, so nothing can be

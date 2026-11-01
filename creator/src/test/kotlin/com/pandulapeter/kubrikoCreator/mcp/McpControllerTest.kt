@@ -79,6 +79,26 @@ class McpControllerTest {
     }
 
     @Test
+    fun quickChangesEndWithOnlyTheLastServerRunning() = runTest {
+        val controller = controller()
+        val ports = List(3) { freePort() }
+        controller.setPort(ports[0])
+        repeat(20) { round ->
+            controller.setEnabled(true)
+            ports.forEach { port ->
+                controller.setPort(port)
+                withContext(Dispatchers.IO) { Thread.sleep(round % 4L) }
+            }
+            controller.setEnabled(false)
+        }
+        controller.setEnabled(true)
+        assertEquals(McpServerState.Running(ports[2]), controller.awaitState(McpServerState.Running(ports[2])))
+        assertTrue(isListening(ports[2]))
+        assertFalse(isListening(ports[0]))
+        assertFalse(isListening(ports[1]))
+    }
+
+    @Test
     fun portsOutsideTheUserRangeAreRefused() = runTest {
         val controller = controller()
         assertFalse(controller.setPort(80))

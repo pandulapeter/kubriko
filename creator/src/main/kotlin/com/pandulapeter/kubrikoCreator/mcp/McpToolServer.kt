@@ -134,8 +134,8 @@ internal class McpToolServer(
             started.startSuspend(wait = false)
         } catch (exception: CancellationException) {
             // The CIO engine reports a port it can't bind as a cancellation caused by the BindException.
-            currentCoroutineContext().ensureActive()
             stop()
+            currentCoroutineContext().ensureActive()
             throw generateSequence<Throwable>(exception) { it.cause }.filterIsInstance<IOException>().firstOrNull() ?: exception
         }
         return started.engine.resolvedConnectors().first().port

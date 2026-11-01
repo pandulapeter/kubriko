@@ -87,8 +87,11 @@ internal class McpController(
     }
 
     private fun apply(settings: McpSettings) {
-        job?.cancel()
+        val previous = job
+        previous?.cancel()
         job = scope.launch {
+            // The server isn't safe to start and stop from two places at once.
+            previous?.join()
             withContext(ioDispatcher) { server.stop() }
             if (!settings.isEnabled) {
                 _state.value = McpServerState.Off
