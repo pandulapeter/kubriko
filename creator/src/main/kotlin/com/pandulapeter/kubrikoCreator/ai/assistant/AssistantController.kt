@@ -212,7 +212,9 @@ internal class AssistantController(
     /**
      * Starts a conversation about the open project and shows it.
      */
-    fun newChat() = openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, projectDigest()) }
+    fun newChat() = openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(projectDigest(), lastConversationOf(directory))) }
+
+    private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { conversations?.of(directory, _agent.value.id)?.firstOrNull() }
 
     /**
      * Continues [conversation], an earlier one about the open project, and shows it.
@@ -233,7 +235,9 @@ internal class AssistantController(
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
             changeLog = changeLog,
             undoTurn = undoTurn,
-            onTurnEnded = { id, title -> withContext(ioDispatcher) { conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock())) } },
+            onTurnEnded = { id, title, lastAnswer ->
+                withContext(ioDispatcher) { conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH))) }
+            },
         )
         chatList.add(chat)
     }

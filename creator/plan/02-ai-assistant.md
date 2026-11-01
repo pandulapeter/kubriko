@@ -158,8 +158,8 @@ understand the game is shown to the user too.
 - **Following the user's attention:** the selected Event as a chip too (its index lives in `BlockTypeEditor`'s own state today).
 - **The game's notes in the editor:** a way for the user to open and edit `AGENTS.md` from Creator (the AI's changes already
   go through Keep and Undo), and a diff of what a change to them would be before it is kept.
-- **"Last time" summaries:** a new conversation may start from a short summary of the project's previous one, rather than the user
-  explaining again.
+- **"Last time" summaries:** the agent writing a real summary at the end of a conversation, in place of the start of its last
+  answer that a new conversation hears now.
 - **A smaller tool list:** about 16,000 tokens (measured by `TokenBudgetTest`, November 2026) since the Block schema went to
   `get_block_catalog`: terser descriptions, related tools grouped (the single and batch Scene tools),
   and Claude Code's tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it.

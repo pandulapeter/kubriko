@@ -494,7 +494,8 @@ release for this platform from Node's own index, checked against its `SHASUMS256
 whose `npx` `AgentCommands` falls back on from then on, or links Node.js's download), and the conversations about the open project
 (`AssistantChat`, one per ACP conversation, started as soon as it is made, listed by `AssistantChats`), which all end when the
 project closes or changes, since their tools work on whatever project is open. After each turn a conversation is kept per project
-and agent (`SavedConversationStore`, `conversations.json` in the settings folder, the newest 20 of each project), so the
+and agent (`SavedConversationStore`, `conversations.json` in the settings folder, the newest 20 of each project, with the start of
+the agent's last answer, which a new conversation hears after the digest, `LastConversation`), so the
 conversation menu offers earlier ones: one closed during this run is reopened as it was (it keeps running, since the SDK's client
 refuses `session/load` for an ID it still holds), one of an earlier run is continued with `AcpAgent.resumeConversation`
 (`session/load`, its replayed history going into the transcript). Ending them all restarts an agent that can't close conversations,

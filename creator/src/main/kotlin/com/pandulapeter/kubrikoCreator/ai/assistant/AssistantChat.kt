@@ -46,7 +46,8 @@ import kotlinx.coroutines.launch
  * @param toolsIdOf The ID of the address at which a conversation reaches Kubriko Creator's tools.
  * @param undoTurn Reverts what the conversation at a tool address changed after a revision, returning how many of its
  *   changes stay ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]).
- * @param onTurnEnded Called after each turn with the conversation's ID and title, so that it can be continued later.
+ * @param onTurnEnded Called after each turn with the conversation's ID, title, and the agent's last answer, so that it can
+ *   be continued later.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
  *   its last turn ([ChangesSummary]).
  */
@@ -56,7 +57,7 @@ internal class AssistantChat(
     private val end: suspend (AgentConversation) -> Unit,
     private val toolsIdOf: (AgentConversation) -> String? = { null },
     private val changeLog: () -> ChangeLog? = { null },
-    private val onTurnEnded: suspend (id: String, title: String) -> Unit = { _, _ -> },
+    private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?) -> Unit = { _, _, _ -> },
     private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
@@ -174,7 +175,7 @@ internal class AssistantChat(
                     _transcript.update { transcript -> transcript.withTurnChanges(turnStart, log.since(turnStart).filter { it.step == null && it.origin?.conversationId == toolsId }) }
                 }
                 val title = _transcript.value.title
-                if (title != null) onTurnEnded(conversation.id.value, title)
+                if (title != null) onTurnEnded(conversation.id.value, title, _transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text)
             } catch (exception: CancellationException) {
                 if (!currentCoroutineContext().isActive) throw exception
                 _transcript.update { it.withFailure(FailureReason.AGENT_STOPPED) }
