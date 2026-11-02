@@ -9,6 +9,10 @@ A sweep has two halves. The **review** finds and verifies issues, **fixes the si
 each, and writes a plan for each complex one. The **execution** lands those plans, in a later turn, and only starts
 when the user says so — never roll from the review into it.
 
+**When to run:** at milestones only — after a planned program lands, before a major release, or when the owner asks;
+never after every batch of commits. Between them, the checks in the loop (the edit hook, the pre-commit hook) keep
+quality.
+
 ## 0. Before anything
 
 - Read the memory notes of earlier reviews (`MEMORY.md` lists them). Do not re-review an area the last sweep found
@@ -22,7 +26,11 @@ when the user says so — never roll from the review into it.
 - Agree on the **angle** and the **budget** if the request leaves them open. The yield comes from a new angle (a
   platform barely run, bad network, low-end devices, scale, stress/monkey tapping, a store's rules), not from
   looking harder at the same code. If the user caps tokens or time ("an hour is enough"), size the fan-out to it:
-  fewer reviewers, a cheaper model for the reviewers, one live run at most.
+  fewer reviewers, one live run at most.
+- **Pick each agent's model for its job, without being asked.** Judgement — area reviewers, plan writers, challengers,
+  lane agents — runs on the most capable model. Matching text against the code — the docs check, a regression read of
+  docs-only commits, applying already-written doc fixes, mechanical moves — runs on a cheaper one (`sonnet`; `haiku`
+  for plain grep-and-compare). Prefer doing a small mechanical job yourself over spawning anything.
 
 ## 1. Review
 
