@@ -53,10 +53,10 @@ once these five work, such as one exported to every platform.
 
 What someone who knows neither Kotlin nor Gradle meets when something goes wrong, found in review:
 
-- **Every opening failure says "not a Gradle project".** `AppController.openProject` turns any exception other than a
-  `ProjectInspectionException` into `error_not_a_gradle_project`: an invalid `.kubriko/project.json`, a daemon that can't start, or
-  a sandboxed shell (the case in `HANDOVER.md`) all tell the user their folder isn't a project. Direction: separate messages for
-  an unreadable `.kubriko/project.json` (naming the file) and for Gradle failing, with the cause's own message under them.
+- **An unreadable project file reads as any other opening failure.** `AppController.openProject` turns any exception other than a
+  `ProjectInspectionException` into `error_project_not_opened` with the cause's own message, so an invalid `.kubriko/project.json`
+  says the same as a daemon that can't start. Direction: a message of its own for an unreadable `.kubriko/project.json`, naming the
+  file and what is wrong in it.
 - **Creating a project that fails loses the form.** `AppScreen.NewProject(error = …)` comes back with an empty form, since its
   state lives in `NewProjectScreen`'s `remember`, and `error_project_not_created` never says why. Direction: keep the request in
   `AppScreen.NewProject` and show the cause (network, disk, permission).
