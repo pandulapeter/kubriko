@@ -29,4 +29,11 @@ internal data class ScreenTextDefinition(
     @SerialName("size") val size: Float = 24f,
     @Description("Its color, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
     @SerialName("color") @Serializable(with = HexColorSerializer::class) val color: Long = 0xFF202020,
-)
+) {
+    companion object {
+        private const val DEFAULT_PROPERTY_NAME = "score"
+
+        /** A new text showing the Manager's first Property ([properties]), or `{score}` when it has none yet. */
+        fun defaultFor(properties: List<PropertyDefinition>) = ScreenTextDefinition(text = "{${properties.firstOrNull()?.name ?: DEFAULT_PROPERTY_NAME}}")
+    }
+}

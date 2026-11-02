@@ -35,37 +35,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveBlock
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveEvent
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetParent
-import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
-import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
-import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
-import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
-import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
-import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import kubriko.creator.generated.resources.Res
@@ -103,51 +77,21 @@ internal fun BlockTypeEditor(
     LaunchedEffect(highlight?.key) { highlight?.eventIndex?.let { requestedEventIndex = it } }
     val eventIndex = selectedEventIndex(requestedEventIndex, definition.events.size)
     val event = eventIndex?.let { definition.events[it] }
-    val currentEventIndex by rememberUpdatedState(eventIndex)
-    val currentOnCommand by rememberUpdatedState(onCommand)
+    val actions = remember(definition, onCommand) { BlockTypeEditorActions(definition, onCommand) }
     var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
     val propertyItemKeys = remember(name) { ListItemKeys<PropertyDefinition>() }
     val propertyKeys = remember(propertyItemKeys, definition.properties) { propertyItemKeys.update(definition.properties) }
-    val dragState = remember(name) {
-        BlockDragState(
-            onDrop = { block, gap ->
-                currentEventIndex?.let { index ->
-                    when (block) {
-                        is DraggedBlock.New -> currentOnCommand(Invocation(AddBlock, AddBlock.Input(name, index, block.kind.createDefault(), index = gap)))
-                        is DraggedBlock.Existing -> moveTarget(block.index, gap)?.let { currentOnCommand(Invocation(MoveBlock, MoveBlock.Input(name, index, block.index, it))) }
-                    }
-                }
-            },
-        )
-    }
+    val dragState = rememberBlockDragState(name, eventIndex, actions)
     Column {
-        BlockTypeHeader(
+        TypeDetails(
             definition = definition,
             inheritance = inheritance,
+            isChangedByHand = isChangedByHand,
             flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
             onRename = onRename,
-            onParentChange = { onCommand(Invocation(SetParent, SetParent.Input(name, it))) },
             onTypeSelected = onTypeSelected,
-            onDelete = {
-                when (definition) {
-                    is ActorTypeDefinition -> onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name)))
-                    is ManagerTypeDefinition -> onCommand(Invocation(DeleteManagerType, DeleteManagerType.Input(name)))
-                }
-            },
+            actions = actions,
         )
-        DescriptionField(
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-            key = name,
-            description = definition.description,
-            onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(type = name, description = it))) },
-        )
-        if (isChangedByHand) {
-            ChangedByHandNotice(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                actorTypeName = definition.name,
-                onDiscard = { onCommand(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name))) },
-            )
-        }
         HorizontalDivider()
         BoxWithConstraints(
             modifier = Modifier.fillMaxWidth().weight(1f),
@@ -156,50 +100,14 @@ internal fun BlockTypeEditor(
             Row(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                LazyColumn(
+                PropertiesColumn(
                     modifier = Modifier.width(columns.properties).fillMaxHeight(),
-                ) {
-                    if (definition is ActorTypeDefinition) {
-                        item {
-                            Column {
-                                AppearanceColumn(
-                                    definition = definition,
-                                    sprites = sprites,
-                                    onChange = { onCommand(Invocation(SetAppearance, it)) },
-                                )
-                                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                            }
-                        }
-                    }
-                    propertyListItems(
-                        properties = definition.properties,
-                        propertyKeys = propertyKeys,
-                        inheritedProperties = inheritance.properties,
-                        emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
-                        onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
-                        onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
-                        onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
-                    )
-                    if (definition is ManagerTypeDefinition) {
-                        item {
-                            Column {
-                                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                                ScreenTextList(
-                                    texts = definition.texts,
-                                    onAdded = { onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition(text = "{${definition.properties.firstOrNull()?.name ?: "score"}}")))) },
-                                    onChanged = { index, text -> onCommand(Invocation(EditText, EditText.Input(name, index, text))) },
-                                    onRemoved = { index -> onCommand(Invocation(RemoveText, RemoveText.Input(name, index))) },
-                                )
-                                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                                KotlinUiSection(
-                                    managerTypeName = name,
-                                    code = definition.kotlinUi,
-                                    onCodeChange = { onCommand(Invocation(SetKotlinUi, SetKotlinUi.Input(name, it))) },
-                                )
-                            }
-                        }
-                    }
-                }
+                    definition = definition,
+                    sprites = sprites,
+                    propertyKeys = propertyKeys,
+                    inheritedProperties = inheritance.properties,
+                    actions = actions,
+                )
                 VerticalDivider()
                 EventList(
                     modifier = Modifier.width(columns.events).fillMaxHeight(),
@@ -208,21 +116,21 @@ internal fun BlockTypeEditor(
                     listIdentity = name,
                     inheritedEvents = inheritance.events,
                     onOverride = { event ->
-                        onCommand(Invocation(AddEvent, AddEvent.Input(name, event.type, event.key, event.otherActorType, event.timer, listOf(BlockDefinition.RunParentEvent))))
+                        actions.overrideEvent(event)
                         requestedEventIndex = definition.events.size
                     },
                     selectedIndex = eventIndex,
                     onSelected = { requestedEventIndex = it },
                     onAdded = { type ->
-                        onCommand(Invocation(AddEvent, AddEvent.Input(name, type)))
+                        actions.addEvent(type)
                         requestedEventIndex = definition.events.size
                     },
                     onMoved = { index, targetIndex ->
-                        onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
+                        actions.moveEvent(index, targetIndex)
                         requestedEventIndex = selectedEventIndexAfterMove(eventIndex, index, targetIndex)
                     },
                     onRemoved = { index ->
-                        onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
+                        actions.removeEvent(index)
                         if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
                     },
                     highlight = highlight,
@@ -232,13 +140,13 @@ internal fun BlockTypeEditor(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     event = event,
                     scope = scope,
-                    onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
-                    onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
-                    onTimerRename = { oldName, newName -> onCommand(Invocation(RenameTimer, RenameTimer.Input(name, oldName, newName))) },
-                    onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
-                    onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
+                    onKeyChange = { key -> eventIndex?.let { actions.setEventKey(it, key) } },
+                    onTimerChange = { timer -> eventIndex?.let { actions.setEventTimer(it, timer) } },
+                    onTimerRename = actions::renameTimer,
+                    onOtherActorTypeChange = { other -> eventIndex?.let { actions.setEventOtherActorType(it, other) } },
+                    onBlockChange = { blockIndex, block -> eventIndex?.let { actions.editBlock(it, blockIndex, block) } },
                     dragState = dragState,
-                    onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
+                    onBlockRemoved = { blockIndex -> eventIndex?.let { actions.removeBlock(it, blockIndex) } },
                     highlight = highlight?.takeIf { it.eventIndex == eventIndex },
                     listIdentity = name to eventIndex,
                     scrollToEndRequest = blockListScrollToEndRequest,
@@ -251,7 +159,7 @@ internal fun BlockTypeEditor(
                     dragState = dragState,
                     onBlockKindSelected = { kind ->
                         eventIndex?.let {
-                            onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault())))
+                            actions.addBlock(it, kind)
                             blockListScrollToEndRequest++
                         }
                     },
@@ -260,6 +168,123 @@ internal fun BlockTypeEditor(
         }
     }
     DragPreview(dragState)
+}
+
+/**
+ * The drag state of the type [name]'s Blocks, which outlives the definitions it is composed with, so it drops into the
+ * latest [eventIndex] through the latest [actions].
+ */
+@Composable
+private fun rememberBlockDragState(name: String, eventIndex: Int?, actions: BlockTypeEditorActions): BlockDragState {
+    val currentEventIndex by rememberUpdatedState(eventIndex)
+    val currentActions by rememberUpdatedState(actions)
+    return remember(name) {
+        BlockDragState(
+            onDrop = { block, gap ->
+                currentEventIndex?.let { index ->
+                    when (block) {
+                        is DraggedBlock.New -> currentActions.addBlock(index, block.kind, gap)
+                        is DraggedBlock.Existing -> currentActions.moveBlock(index, block.index, gap)
+                    }
+                }
+            },
+        )
+    }
+}
+
+/**
+ * The header, description, and (when [isChangedByHand]) the notice about hand-made changes of [definition], one under the
+ * other in the caller's column.
+ */
+@Composable
+private fun TypeDetails(
+    definition: BlockTypeDefinition,
+    inheritance: Inheritance,
+    isChangedByHand: Boolean,
+    flashKey: Any?,
+    onRename: (String) -> StringResource?,
+    onTypeSelected: (String) -> Unit,
+    actions: BlockTypeEditorActions,
+) {
+    BlockTypeHeader(
+        definition = definition,
+        inheritance = inheritance,
+        flashKey = flashKey,
+        onRename = onRename,
+        onParentChange = actions::setParent,
+        onTypeSelected = onTypeSelected,
+        onDelete = actions::delete,
+    )
+    DescriptionField(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+        key = definition.name,
+        description = definition.description,
+        onDescriptionChange = actions::setDescription,
+    )
+    if (isChangedByHand) {
+        ChangedByHandNotice(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            actorTypeName = definition.name,
+            onDiscard = actions::discardChangesMadeByHand,
+        )
+    }
+}
+
+/**
+ * The column of [definition]'s appearance (for an Actor type), its Properties, and (for a Manager type) the texts and Kotlin UI
+ * it shows.
+ */
+@Composable
+private fun PropertiesColumn(
+    definition: BlockTypeDefinition,
+    sprites: List<String>,
+    propertyKeys: List<Long>,
+    inheritedProperties: List<PropertyDefinition>,
+    actions: BlockTypeEditorActions,
+    modifier: Modifier = Modifier,
+) = LazyColumn(
+    modifier = modifier,
+) {
+    if (definition is ActorTypeDefinition) {
+        item {
+            Column {
+                AppearanceColumn(
+                    definition = definition,
+                    sprites = sprites,
+                    onChange = actions::setAppearance,
+                )
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+            }
+        }
+    }
+    propertyListItems(
+        properties = definition.properties,
+        propertyKeys = propertyKeys,
+        inheritedProperties = inheritedProperties,
+        emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
+        onAdded = actions::addProperty,
+        onChanged = actions::editProperty,
+        onRemoved = actions::removeProperty,
+    )
+    if (definition is ManagerTypeDefinition) {
+        item {
+            Column {
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                ScreenTextList(
+                    texts = definition.texts,
+                    onAdded = actions::addText,
+                    onChanged = actions::editText,
+                    onRemoved = actions::removeText,
+                )
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                KotlinUiSection(
+                    managerTypeName = definition.name,
+                    code = definition.kotlinUi,
+                    onCodeChange = actions::setKotlinUi,
+                )
+            }
+        }
+    }
 }
 
 /**

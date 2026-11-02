@@ -162,3 +162,12 @@ Review fixes: 212578617 (merged Save keeps its first place), 04cd99656 (JsonFile
 - Deviation: `PanelSide` has a file of its own (code-style: one file per type), and a `PanelWidthState` keeps the dragged width until the settings hold a new one (it is remembered by the kept width), so letting go doesn't flash the old width.
 - Deviation: PanelSplitterTest drags with `performTouchInput { swipeRight(…) }` (the plan's first option): a mouse press and moves in the test didn't start a drag.
 - Extra fixes: none
+
+# Phase 3, batch 4 (H07a, H07b)
+
+## H07a — see next commit
+"Move Kubriko Creator's type editor commands into a tested BlockTypeEditorActions and the default screen text into ScreenTextDefinition.defaultFor." — verified: ./gradlew :creator:test (1,570 tests, none failed), ./gradlew :creator:spotlessApply, BlockTypeEditorActionsTest and ScreenTextDefinitionTest fail to compile with BlockTypeEditorActions.kt, BlockTypeEditor.kt, and ScreenTextDefinition.kt set aside; skipped manual: none named
+- New ui/actorTypes/BlockTypeEditorActions.kt (`BlockTypeEditorActions(definition, onCommand: (Invocation<*>) -> Unit)`: delete, setParent, setDescription, discardChangesMadeByHand, setAppearance, addProperty, editProperty, removeProperty, addText, editText, removeText, setKotlinUi, addEvent, overrideEvent, moveEvent, removeEvent, setEventKey, setEventTimer, setEventOtherActorType, renameTimer, addBlock(eventIndex, kind, gap = null), moveBlock, editBlock, removeBlock). `ScreenTextDefinition.defaultFor(properties)` (companion, private `DEFAULT_PROPERTY_NAME = "score"`). `BlockTypeEditor` builds `actions` with `remember(definition, onCommand)`; the event index bookkeeping (`requestedEventIndex`, `selectedEventIndexAfterMove`) is unchanged for H07b.
+- Deviation: to bring `BlockTypeEditor` under 120 lines, the same file got three private parts: `rememberBlockDragState(name, eventIndex, actions)` (holds the `rememberUpdatedState`s of the event index and `actions` the drop reads), `TypeDetails` (header, description, changed-by-hand notice, layout-transparent), and `PropertiesColumn` (the appearance, Properties, texts, and Kotlin UI `LazyColumn`).
+- Deviation: changes set aside for the failing-test check went to the git-ignored `build/scratch/`, as in earlier batches.
+- Extra fixes: none
