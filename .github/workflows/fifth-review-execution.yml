@@ -1,0 +1,90 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
+# Lands the fifth review's remaining plans (phases 3 and 4 of issues/EXECUTION.md) on the fifth-review-execution branch,
+# one batch per job in the brief's order, and opens a pull request at the end. Every plan is pushed as soon as it is
+# committed; rerunning the workflow (or its failed jobs) continues from the first plan file still in issues/.
+# Dispatched with `gh workflow run fifth-review-execution.yml --ref fifth-review-execution`.
+name: '[Review] Fifth review execution'
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: fifth-review-execution
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  h1:
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'H01 H02a H02b', budget: '10' }
+  h2:
+    needs: h1
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'H03a H03b H04', budget: '10' }
+  h3:
+    needs: h2
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'H05 H06a H06b', budget: '10' }
+  h4:
+    needs: h3
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'H07a H07b', budget: '8' }
+  review-h:
+    needs: h4
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: review, plans: 'H01 H02a H02b H03a H03b H04 H05 H06a H06b H07a H07b', budget: '6' }
+  m1:
+    needs: review-h
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'M01 M02a M02b', budget: '10' }
+  m2:
+    needs: m1
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'M03 M04 M05', budget: '10' }
+  m3:
+    needs: m2
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'M06 M07 M08', budget: '10' }
+  m4:
+    needs: m3
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'M09 M10 M11', budget: '10' }
+  m5:
+    needs: m4
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'M12 M13 M14', budget: '10' }
+  review-m:
+    needs: m5
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: review, plans: 'M01 M02a M02b M03 M04 M05 M06 M07 M08 M09 M10 M11 M12 M13 M14', budget: '6' }
+  d:
+    needs: review-m
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: batch, plans: 'D01 P03', budget: '8' }
+  finish:
+    needs: d
+    uses: ./.github/workflows/fifth-review-step.yml
+    secrets: inherit
+    with: { kind: finish, budget: '6', runner: 'macos-latest' }
