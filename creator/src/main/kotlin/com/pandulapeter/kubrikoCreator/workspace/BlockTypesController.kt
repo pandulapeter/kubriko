@@ -344,19 +344,22 @@ internal class BlockTypesController(
         } finally {
             pendingWriteCount.update { it - batch.size }
         }
-        if (regenerated == null) {
-            onSaveFailed()
-        } else {
-            _changedByHand.value = regenerated.changedByHand
-            if (regenerated.removedLeftovers.isNotEmpty()) onLeftoversRemoved(regenerated.removedLeftovers)
-            regenerated.leftoversChangedByHand.filter { it !in leftoversChangedByHand }.sorted().forEach(onLeftoverChangedByHand)
-            leftoversChangedByHand = regenerated.leftoversChangedByHand
-            buildFileChanges?.let(onBuildFilesSynced)
-            onSaved(haveTypesChanged)
-        }
-        if (isReloadRequested && pendingWriteCount.value == 0) {
-            isReloadRequested = false
-            scope.launch { reload() }
+        try {
+            if (regenerated == null) {
+                onSaveFailed()
+            } else {
+                _changedByHand.value = regenerated.changedByHand
+                if (regenerated.removedLeftovers.isNotEmpty()) onLeftoversRemoved(regenerated.removedLeftovers)
+                regenerated.leftoversChangedByHand.filter { it !in leftoversChangedByHand }.sorted().forEach(onLeftoverChangedByHand)
+                leftoversChangedByHand = regenerated.leftoversChangedByHand
+                buildFileChanges?.let(onBuildFilesSynced)
+                onSaved(haveTypesChanged)
+            }
+        } finally {
+            if (isReloadRequested && pendingWriteCount.value == 0) {
+                isReloadRequested = false
+                scope.launch { reload() }
+            }
         }
     }
 }

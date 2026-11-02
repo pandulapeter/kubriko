@@ -359,6 +359,24 @@ class BlockTypesControllerTest {
     }
 
     @Test
+    fun aChangeOnDiskWhileCreatorsOwnWritesArePendingIsReadEvenWhenReportingTheWriteFails() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createController(
+            repository = repository,
+            writeDelayInMilliseconds = 100,
+            onSaved = { if (savedCount == 2) throw IllegalStateException("Unexpected.") },
+            onUnexpectedProblem = CoroutineExceptionHandler { _, _ -> },
+        )
+        advanceTimeBy(200)
+        controller.put(wall)
+        repository.stored["Brick"] = ActorTypeDefinition(name = "Brick")
+        controller.reloadFromDisk()
+        advanceTimeBy(200)
+        runCurrent()
+        assertEquals(listOf("Ball", "Brick", "Wall"), controller.actorTypes.value.map { it.name })
+    }
+
+    @Test
     fun aFailureAfterWritingDoesNotStopLaterWrites() = runTest {
         val repository = FakeBlockTypeRepository(listOf(ball))
         val reported = mutableListOf<Throwable>()
