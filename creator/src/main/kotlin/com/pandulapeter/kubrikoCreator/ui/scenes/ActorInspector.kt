@@ -27,9 +27,9 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.ColorField
-import com.pandulapeter.kubrikoCreator.ui.actorTypes.NumberField
+import com.pandulapeter.kubrikoCreator.ui.components.ColorField
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.floatOrNull
 import kubriko.creator.generated.resources.Res

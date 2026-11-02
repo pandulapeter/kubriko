@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.ui.actorTypes
+package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,10 +32,6 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ColorHex
-import com.pandulapeter.kubrikoCreator.ui.components.ColorPickerDialog
-import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
-import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
-import com.pandulapeter.kubrikoCreator.ui.components.checkerboard
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_color
 import kubriko.creator.generated.resources.color_picker_title
