@@ -22,7 +22,6 @@ import java.io.File
  * input and output on to the address, with the token in its environment. Without npx, HTTP is the only way left.
  */
 internal object ConversationToolServer {
-    private const val MCP_REMOTE = "mcp-remote@0.15"
     private const val AUTHORIZATION_VARIABLE = "KUBRIKO_CREATOR_AUTHORIZATION"
 
     fun of(capabilities: AgentCapabilities, profile: AgentProfile, url: String, token: String, npx: File?): McpServer =
@@ -36,7 +35,7 @@ internal object ConversationToolServer {
             McpServer.Stdio(
                 name = McpToolServer.SERVER_NAME,
                 command = npx.path,
-                args = listOf("-y", MCP_REMOTE, url, "--header", "Authorization:\${$AUTHORIZATION_VARIABLE}"),
+                args = listOf("-y", McpToolServer.MCP_REMOTE, url, "--header", "Authorization:\${$AUTHORIZATION_VARIABLE}"),
                 env = listOf(EnvVariable(AUTHORIZATION_VARIABLE, "Bearer $token")),
             )
         }

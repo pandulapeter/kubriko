@@ -288,6 +288,12 @@ internal class McpToolServer(
         }
         const val TOKEN_PARAMETER = "token"
         const val SERVER_NAME = "kubriko-creator"
+
+        /**
+         * The `mcp-remote` that clients without HTTP MCP reach the tools through: an exact version, bumped deliberately
+         * after reading its changes, since it runs with the token in its environment.
+         */
+        const val MCP_REMOTE = "mcp-remote@0.15.2"
         private const val LOG_SIZE = 200
         val INSTRUCTIONS = """
             Kubriko Creator edits games made with Kubriko, a 2D game engine for Kotlin. Actor types are built from Events

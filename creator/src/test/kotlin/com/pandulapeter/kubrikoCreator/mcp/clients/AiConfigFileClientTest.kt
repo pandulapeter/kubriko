@@ -41,7 +41,7 @@ class AiConfigFileClientTest {
                 """
                     {
                         "command": "/opt/homebrew/bin/npx",
-                        "args": ["-y", "mcp-remote@0.15", "http://127.0.0.1:7781/mcp", "--header", "Authorization:${'$'}{KUBRIKO_CREATOR_AUTHORIZATION}"],
+                        "args": ["-y", "mcp-remote@0.15.2", "http://127.0.0.1:7781/mcp", "--header", "Authorization:${'$'}{KUBRIKO_CREATOR_AUTHORIZATION}"],
                         "env": {
                             "KUBRIKO_CREATOR_AUTHORIZATION": "Bearer secret",
                             "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"

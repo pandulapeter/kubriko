@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.mcp.clients
 
 import com.pandulapeter.kubrikoCreator.mcp.McpSettings
+import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
@@ -48,7 +49,7 @@ internal enum class AiConfigFileClient(
             put("command", programPath ?: "npx")
             putJsonArray("args") {
                 add("-y")
-                add(MCP_REMOTE)
+                add(McpToolServer.MCP_REMOTE)
                 add(settings.url)
                 add("--header")
                 add("Authorization:\${$AUTHORIZATION_VARIABLE}")
@@ -102,7 +103,6 @@ internal enum class AiConfigFileClient(
     )
 
     private companion object {
-        const val MCP_REMOTE = "mcp-remote@0.15"
         const val AUTHORIZATION_VARIABLE = "KUBRIKO_CREATOR_AUTHORIZATION"
         val isWindows = System.getProperty("os.name").orEmpty().lowercase().contains("windows")
     }

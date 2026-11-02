@@ -34,12 +34,15 @@ internal fun interface PermissionHandler {
         }
 
         /**
-         * Allows Kubriko Creator's own tools ([CreatorToolName]) once, since their changes show up in the editor and can be
-         * undone, and leaves the rest to [other]: what Claude Agent's `allowedTools` does, for agents that ask.
+         * Allows Kubriko Creator's own tools ([CreatorToolName]) once when their kind changes no files and runs nothing,
+         * since their changes show up in the editor and can be undone, and leaves the rest to [other]: what Claude Agent's
+         * `allowedTools` does, for agents that ask. The title is the agent's own, so a call titled as one of Creator's
+         * tools but of a kind that edits, deletes, moves, or runs something is left to [other].
          */
         fun allowingCreatorTools(other: PermissionHandler) = PermissionHandler { toolCall, options ->
             val allow = options.firstOrNull { it.kind == PermissionOptionKind.ALLOW_ONCE } ?: options.firstOrNull { it.kind == PermissionOptionKind.ALLOW_ALWAYS }
-            if (allow != null && CreatorToolName.of(toolCall.title) != null) RequestPermissionOutcome.Selected(allow.optionId) else other.answer(toolCall, options)
+            val isCreatorTool = CreatorToolName.of(toolCall.title) != null && toolCall.kind !in changingKinds
+            if (allow != null && isCreatorTool) RequestPermissionOutcome.Selected(allow.optionId) else other.answer(toolCall, options)
         }
 
         private val changingKinds = setOf(ToolKind.EDIT, ToolKind.DELETE, ToolKind.MOVE, ToolKind.EXECUTE)
