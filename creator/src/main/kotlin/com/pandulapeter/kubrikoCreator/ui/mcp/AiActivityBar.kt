@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.ui.commandTitleText
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.description
 import kotlinx.coroutines.delay
@@ -145,7 +146,7 @@ private fun StepText(
     showsClient: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val title = stringResource(step.title)
+    val title = commandTitleText(step.toolName)
     val described = step.target?.description()?.let { stringResource(Res.string.ai_activity_step_with_target, title, it) } ?: title
     val text = step.clientName?.takeIf { showsClient }?.let { stringResource(Res.string.console_with_prefix, it, described) } ?: described
     Text(

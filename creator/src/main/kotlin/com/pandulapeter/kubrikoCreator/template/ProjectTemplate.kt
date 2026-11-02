@@ -9,22 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.template_starter_description
-import kubriko.creator.generated.resources.template_starter_title
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * The projects Kubriko Creator can create. Each one's files live in the app's resources under `templates/<id>`.
  */
 internal enum class ProjectTemplate(
     val id: String,
-    val title: StringResource,
-    val description: StringResource,
 ) {
     STARTER(
         id = "starter",
-        title = Res.string.template_starter_title,
-        description = Res.string.template_starter_description,
     ),
 }

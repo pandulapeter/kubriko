@@ -20,14 +20,12 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_delete_folder
 import kubriko.creator.generated.resources.error_folder_not_empty
 
 @OptIn(EditorMutation::class)
 internal object DeleteFolder : WriteCommand<DeleteFolder.Input> {
     override val name = "delete_folder"
     override val description = "Deletes an empty folder of Actor types, Manager types, or Scenes. Move what is in it out first."
-    override val title = Res.string.command_delete_folder
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project

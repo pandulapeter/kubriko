@@ -13,7 +13,6 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeHighlight
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -22,7 +21,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AiFollowingTest {
-    private fun step(target: CommandTarget?, isRunning: Boolean = false) = AiStep(id = 4, toolName = "add_block", title = Res.string.command_add_block, target = target, isRunning = isRunning)
+    private fun step(target: CommandTarget?, isRunning: Boolean = false) = AiStep(id = 4, toolName = "add_block", target = target, isRunning = isRunning)
 
     @Test
     fun theEditorFollowsStepsAboutActorTypes() {

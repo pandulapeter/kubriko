@@ -192,15 +192,15 @@ private fun HistoryButtons(
     val history by history.collectAsState()
     IconActionButton(
         icon = Res.drawable.ic_undo,
-        label = history.nextUndoTitle?.let { stringResource(Res.string.action_undo_named, stringResource(it)) } ?: stringResource(Res.string.action_undo),
+        label = history.nextUndoCommandName?.let { stringResource(Res.string.action_undo_named, commandTitleText(it)) } ?: stringResource(Res.string.action_undo),
         onClick = onUndo,
-        isEnabled = history.nextUndoTitle != null,
+        isEnabled = history.nextUndoCommandName != null,
     )
     IconActionButton(
         icon = Res.drawable.ic_redo,
-        label = history.nextRedoTitle?.let { stringResource(Res.string.action_redo_named, stringResource(it)) } ?: stringResource(Res.string.action_redo),
+        label = history.nextRedoCommandName?.let { stringResource(Res.string.action_redo_named, commandTitleText(it)) } ?: stringResource(Res.string.action_redo),
         onClick = onRedo,
-        isEnabled = history.nextRedoTitle != null,
+        isEnabled = history.nextRedoCommandName != null,
     )
 }
 

@@ -15,7 +15,6 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,7 +24,6 @@ class ToolCallStepsTest {
     private fun step(id: Int, tool: String, conversation: String?, toolCallId: String? = null) = AiStep(
         id = id,
         toolName = tool,
-        title = Res.string.command_add_block,
         target = CommandTarget.BlockType("Ball"),
         isRunning = false,
         origin = conversation?.let { AiStepOrigin(it, toolCallId) },

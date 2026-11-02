@@ -27,13 +27,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_event
 
 @OptIn(EditorMutation::class)
 internal object AddEvent : WriteCommand<AddEvent.Input> {
     override val name = "add_event"
     override val description = "Adds an Event to a block-built Actor type or Manager type, optionally with its Blocks. A keyPressed Event reacts to the space key unless another key is given."
-    override val title = Res.string.command_add_event
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.lastIndex)

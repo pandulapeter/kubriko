@@ -23,7 +23,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_rename_scene
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
@@ -34,7 +33,6 @@ internal object RenameScene : WriteCommand<RenameScene.Input> {
     override val name = "rename_scene"
     override val description = "Renames a Scene, or moves it into another folder: a Scene's name is its path, like levels/1-1. Every goToScene Block " +
         "follows; hand-written Kotlin that names the Scene doesn't, and the console says where it is."
-    override val title = Res.string.command_rename_scene
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.newName)

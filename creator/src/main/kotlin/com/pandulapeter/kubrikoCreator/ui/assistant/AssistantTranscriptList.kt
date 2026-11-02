@@ -48,8 +48,8 @@ import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.AiStep
-import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import com.pandulapeter.kubrikoCreator.ui.canBeShown
+import com.pandulapeter.kubrikoCreator.ui.commandTitle
 import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.description
 import kubriko.creator.generated.resources.Res
@@ -287,7 +287,7 @@ private fun Notice(
 /**
  * The title of the Kubriko Creator command [toolCall] runs, or null if it runs a tool of the agent's own.
  */
-internal fun creatorToolTitleOf(toolCall: TranscriptItem.ToolCall) = toolCall.creatorToolName?.let { CommandRegistry.editor[it]?.title }
+internal fun creatorToolTitleOf(toolCall: TranscriptItem.ToolCall) = toolCall.creatorToolName?.let(::commandTitle)
 
 private fun StopReason.description() = when (this) {
     StopReason.REFUSAL -> Res.string.assistant_turn_refused

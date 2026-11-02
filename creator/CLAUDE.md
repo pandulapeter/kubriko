@@ -305,7 +305,9 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
   and when a turn is cancelled) and answer again with what changed (`ResultDelta`; `full: true` for the whole); outside clients
   always get it whole. Every delta tells the agent to read again with `full: true` when it no longer has the earlier result, since
   a subagent (Claude Agent's game explorer) reads through the same address and compaction drops old results. Before each prompt
-  the conversation hears what anyone else changed since its last one (`ChangesSummary`).
+  the conversation hears what anyone else changed since its last one (`ChangesSummary`). What the AI reads is never a UI string:
+  changes are named by their tool names (`ChangesSummary`, `writeSummary`), and the UI maps names and model enums to its strings
+  (`ui/CommandTitles.kt`, `ui/actorTypes/KindTitles.kt`).
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
   without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
   cost.

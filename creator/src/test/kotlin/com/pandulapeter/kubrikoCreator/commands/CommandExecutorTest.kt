@@ -45,12 +45,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
-import kubriko.creator.generated.resources.command_create_actor_type
-import kubriko.creator.generated.resources.command_edit_block
-import kubriko.creator.generated.resources.command_read_actor_type
-import kubriko.creator.generated.resources.command_read_console
-import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_failed
@@ -100,17 +94,17 @@ class CommandExecutorTest {
         val (executor, context) = executor()
         executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
         executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Wall")))
-        assertEquals(Res.string.command_create_actor_type, executor.history.value.nextUndoTitle)
+        assertEquals("create_actor_type", executor.history.value.nextUndoCommandName)
         executor.undo()
         assertEquals(listOf("Ball"), context.names())
         executor.undo()
         assertEquals(emptyList(), context.names())
-        assertNull(executor.history.value.nextUndoTitle)
+        assertNull(executor.history.value.nextUndoCommandName)
         executor.redo()
         assertEquals(listOf("Ball"), context.names())
         executor.redo()
         assertEquals(listOf("Ball", "Wall"), context.names())
-        assertNull(executor.history.value.nextRedoTitle)
+        assertNull(executor.history.value.nextRedoCommandName)
     }
 
     @Test
@@ -118,9 +112,9 @@ class CommandExecutorTest {
         val (executor, context) = executor(ball)
         executor.execute(width(10f))
         executor.undo()
-        assertEquals(Res.string.command_set_appearance, executor.history.value.nextRedoTitle)
+        assertEquals("set_appearance", executor.history.value.nextRedoCommandName)
         executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Wall")))
-        assertNull(executor.history.value.nextRedoTitle)
+        assertNull(executor.history.value.nextRedoCommandName)
         assertEquals(listOf("Ball", "Wall"), context.names())
     }
 
@@ -131,7 +125,7 @@ class CommandExecutorTest {
         executor.execute(Invocation(SetAppearance, SetAppearance.Input("Ball", height = 5f)))
         listOf(2f, 3f).forEach { executor.execute(Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(it, 1f)))) }
         assertEquals(3, executor.history.value.undoable.size)
-        assertEquals(Res.string.command_edit_block, executor.history.value.nextUndoTitle)
+        assertEquals("edit_block", executor.history.value.nextUndoCommandName)
         executor.undo()
         assertEquals(ball.events, context.blockTypes!!["Ball"]!!.events)
         executor.undo()
@@ -147,7 +141,7 @@ class CommandExecutorTest {
         val outcome = executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball", width = 5f)))
         assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_type_name_taken)), outcome)
         assertEquals(listOf(ball), context.blockTypes!!.actorTypes.value)
-        assertNull(executor.history.value.nextUndoTitle)
+        assertNull(executor.history.value.nextUndoCommandName)
     }
 
     @Test
@@ -159,8 +153,8 @@ class CommandExecutorTest {
         context.blockTypes!!.delete("Ball")
         executor.undo()
         assertEquals(listOf(Rejection(Res.string.error_command_changed_outside, "Ball")), rejections)
-        assertEquals(Res.string.command_create_actor_type, executor.history.value.nextUndoTitle)
-        assertNull(executor.history.value.nextRedoTitle)
+        assertEquals("create_actor_type", executor.history.value.nextUndoCommandName)
+        assertNull(executor.history.value.nextRedoCommandName)
         executor.undo()
         assertEquals(emptyList(), context.names())
     }
@@ -171,7 +165,7 @@ class CommandExecutorTest {
         val outcome = executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("color", "#112233"); put("shape", "rectangle") })
         assertIs<CommandOutcome.Success>(outcome)
         assertEquals(0xFF112233, context.blockTypes!!.actorType("Ball")!!.color)
-        assertEquals(Res.string.command_set_appearance, executor.history.value.nextUndoTitle)
+        assertEquals("set_appearance", executor.history.value.nextUndoCommandName)
         val event = buildJsonObject { put("actorType", "Ball"); put("eventIndex", 0); put("blockIndex", 0); put("block", buildJsonObject { put("type", "jumpTo"); put("x", 5) }) }
         assertIs<CommandOutcome.Success>(executor.call("edit_block", event))
         assertEquals(BlockDefinition.JumpTo(5f, 0f), context.blockTypes["Ball"]!!.events[0].blocks[0])
@@ -188,13 +182,13 @@ class CommandExecutorTest {
         collecting.cancel()
         assertEquals(
             listOf(
-                AiStep(0, "add_block", Res.string.command_add_block, CommandTarget.BlockType("Ball", 0, 1), isRunning = false),
-                AiStep(1, "read_actor_type", Res.string.command_read_actor_type, CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(Res.string.error_command_actor_type_missing, "Wall")),
+                AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 1), isRunning = false),
+                AiStep(1, "read_actor_type", CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(Res.string.error_command_actor_type_missing, "Wall")),
             ),
             executor.aiSteps.value.take(2),
         )
         assertEquals(Res.string.error_command_input_invalid, executor.aiSteps.value[2].rejection?.reason)
-        assertEquals(listOf(AiStep(0, "add_block", Res.string.command_add_block, CommandTarget.BlockType("Ball", 0, 0), isRunning = true)), running.take(1))
+        assertEquals(listOf(AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 0), isRunning = true)), running.take(1))
     }
 
     @Test
@@ -217,7 +211,7 @@ class CommandExecutorTest {
         assertEquals(0, executor.undoTurn("conversation", turnStart))
         val ballNow = context.requireType("Ball") as ActorTypeDefinition
         assertEquals(10f, ballNow.width)
-        assertEquals(Res.string.command_set_appearance, executor.history.value.nextUndoTitle)
+        assertEquals("set_appearance", executor.history.value.nextUndoCommandName)
 
         executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("width", 40) }, origin)
         executor.execute(width(50f))
@@ -231,7 +225,7 @@ class CommandExecutorTest {
         executor.execute(width(10f))
         val result = assertIs<CommandOutcome.Success>(executor.call("add_block", buildJsonObject { put("actorType", "Ball"); put("eventIndex", 0); put("block", buildJsonObject { put("type", "stop") }) })).result
         assertEquals(
-            Json.parseToJsonElement("""{"revision":2,"changed":"Add Block at Ball#0.1","event":"0 Every frame\n  0 Set velocity to (1, 1)\n  1 Stop"}"""),
+            Json.parseToJsonElement("""{"revision":2,"changed":"add_block at Ball#0.1","event":"0 Every frame\n  0 Set velocity to (1, 1)\n  1 Stop"}"""),
             result,
         )
         executor.step(isUndo = true)
@@ -246,7 +240,6 @@ class CommandExecutorTest {
             override val name = "fail"
             override val description = "Fails."
             override val inputSerializer = NoInput.serializer()
-            override val title = Res.string.command_set_appearance
 
             override fun validate(context: CommandContext, input: NoInput): Rejection? = null
 
@@ -291,7 +284,7 @@ class CommandExecutorTest {
             val outcome = assertIs<CommandOutcome.Rejected>(executor.call("set_appearance", arguments))
             assertEquals(Res.string.error_command_input_invalid, outcome.rejection.reason)
         }
-        assertNull(executor.history.value.nextUndoTitle)
+        assertNull(executor.history.value.nextUndoCommandName)
     }
 
     @Test
@@ -318,7 +311,6 @@ class CommandExecutorTest {
         override val name = name
         override val description = name
         override val inputSerializer = NoInput.serializer()
-        override val title = Res.string.command_set_appearance
 
         override fun validate(context: CommandContext, input: NoInput): Rejection? = null
 
@@ -491,7 +483,6 @@ class CommandExecutorTest {
         override val name = "gated"
         override val description = "gated"
         override val inputSerializer = NoInput.serializer()
-        override val title = Res.string.command_set_appearance
 
         override fun validate(context: CommandContext, input: NoInput): Rejection? = null
 
@@ -546,7 +537,6 @@ class CommandExecutorTest {
             override val name = "own_knowledge"
             override val description = "own_knowledge"
             override val inputSerializer = NoInput.serializer()
-            override val title = Res.string.command_read_console
             override val readsProject = false
 
             override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(JsonPrimitive("known"))

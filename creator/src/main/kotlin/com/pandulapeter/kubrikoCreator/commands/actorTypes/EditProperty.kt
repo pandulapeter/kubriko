@@ -31,7 +31,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_edit_property
 import kubriko.creator.generated.resources.error_command_property_inherited
 import kubriko.creator.generated.resources.error_command_property_kind_changed
 
@@ -44,7 +43,6 @@ internal object EditProperty : WriteCommand<EditProperty.Input> {
     override val description = "Renames a Property of a block-built Actor type or Manager type, or changes its initial value. Renaming also updates the Blocks " +
         "and texts that use it (in every Actor type that inherits it, or in every type, for a Manager type's Property) and the values Actors keep in Scenes. " +
         "A Property an Actor type inherits is renamed in the type it comes from. Its kind (number, text, or toggle) can't change: remove it and add a new one instead."
-    override val title = Res.string.command_edit_property
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)

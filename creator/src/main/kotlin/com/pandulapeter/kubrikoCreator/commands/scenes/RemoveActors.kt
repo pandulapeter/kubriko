@@ -20,12 +20,10 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_remove_actors
 
 internal object RemoveActors : WriteCommand<RemoveActors.Input> {
     override val name = "remove_actors"
     override val description = "Removes many Actors from a Scene at once, as one step to undo."
-    override val title = Res.string.command_remove_actors
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

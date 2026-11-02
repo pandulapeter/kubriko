@@ -22,7 +22,8 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
-import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_list_scenes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -64,7 +65,7 @@ class AssistantPanelDecisionsTest {
 
     @Test
     fun creatorToolCallsAreTitledAsTheirCommands() {
-        assertEquals(ListScenes.title, creatorToolTitleOf(TranscriptItem.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__list_scenes")))
+        assertEquals(Res.string.command_list_scenes, creatorToolTitleOf(TranscriptItem.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__list_scenes")))
         assertNull(creatorToolTitleOf(TranscriptItem.ToolCall(ToolCallId("2"), "mcp__kubriko-creator__no_such_tool")))
         assertNull(creatorToolTitleOf(TranscriptItem.ToolCall(ToolCallId("3"), "Read Game.kt")))
     }

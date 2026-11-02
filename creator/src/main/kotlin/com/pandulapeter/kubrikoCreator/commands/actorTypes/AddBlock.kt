@@ -23,13 +23,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
 
 @OptIn(EditorMutation::class)
 internal object AddBlock : WriteCommand<AddBlock.Input> {
     override val name = "add_block"
     override val description = "Adds a Block to an Event of a block-built Actor type or Manager type. Some Blocks are only allowed in some Events; the Block catalog says which."
-    override val title = Res.string.command_add_block
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, input.eventIndex, blockIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.getOrNull(input.eventIndex)?.blocks?.lastIndex)

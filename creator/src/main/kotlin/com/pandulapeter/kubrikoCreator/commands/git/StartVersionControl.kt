@@ -18,7 +18,6 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.GitState
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_start_version_control
 import kubriko.creator.generated.resources.error_command_already_under_version_control
 import kubriko.creator.generated.resources.status_git_failed
 
@@ -26,7 +25,6 @@ import kubriko.creator.generated.resources.status_git_failed
 internal object StartVersionControl : WriteCommand<NoInput> {
     override val name = "start_version_control"
     override val description = "Puts the project under version control: makes it a git repository on a main branch, with everything in it in a first commit."
-    override val title = Res.string.command_start_version_control
     override val inputSerializer = NoInput.serializer()
 
     override fun target(context: CommandContext, input: NoInput) = CommandTarget.VersionControl

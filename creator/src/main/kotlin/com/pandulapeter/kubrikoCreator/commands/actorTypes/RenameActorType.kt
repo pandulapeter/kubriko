@@ -22,13 +22,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_rename_actor_type
 
 @OptIn(EditorMutation::class)
 internal object RenameActorType : WriteCommand<RenameActorType.Input> {
     override val name = "rename_actor_type"
     override val description = "Renames a block-built Actor type, its generated Kotlin class, and every reference to it in collision Events and Scenes."
-    override val title = Res.string.command_rename_actor_type
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(if (context.blockTypes?.actorType(input.newName) != null) input.newName else input.actorType)

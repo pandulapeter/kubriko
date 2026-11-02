@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * The project's revision, raised by every change a command makes (undoing and redoing included), and the newest of
  * those changes, so that the assistant can tell an agent what changed between two of its turns.
@@ -28,9 +26,9 @@ internal class ChangeLog(
         private set
 
     @Synchronized
-    fun record(title: StringResource, target: CommandTarget?, origin: AiStepOrigin? = null, isByAi: Boolean = false, step: ChangeRecord.Step? = null): Int {
+    fun record(commandName: String, target: CommandTarget?, origin: AiStepOrigin? = null, isByAi: Boolean = false, step: ChangeRecord.Step? = null): Int {
         revision += 1
-        records.addLast(ChangeRecord(revision, title, target, origin, isByAi, step))
+        records.addLast(ChangeRecord(revision, commandName, target, origin, isByAi, step))
         if (records.size > capacity) records.removeFirst()
         return revision
     }

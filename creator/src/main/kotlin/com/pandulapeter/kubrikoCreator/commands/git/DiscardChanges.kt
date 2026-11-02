@@ -20,7 +20,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_discard_changes
 import kubriko.creator.generated.resources.error_command_change_missing
 import kubriko.creator.generated.resources.error_command_no_repository
 import kubriko.creator.generated.resources.status_git_failed
@@ -29,7 +28,6 @@ import kubriko.creator.generated.resources.status_git_failed
 internal object DiscardChanges : WriteCommand<DiscardChanges.Input> {
     override val name = "discard_changes"
     override val description = "Restores files to how the last commit has them, deleting the ones it doesn't have. This can't be undone."
-    override val title = Res.string.command_discard_changes
     override val inputSerializer = Input.serializer()
     override val isDestructive = true
 

@@ -26,7 +26,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_rename_timer
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_taken
 import kubriko.creator.generated.resources.error_command_timer_unknown
@@ -36,7 +35,6 @@ internal object RenameTimer : WriteCommand<RenameTimer.Input> {
     override val name = "rename_timer"
     override val description = "Renames a Timer of a block-built Actor type or Manager type in every timerFinished Event and Timer Block that names it. " +
         "An Actor type shares its Timers with its whole family (its ancestors and their descendants), so they are renamed in all of them."
-    override val title = Res.string.command_rename_timer
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)

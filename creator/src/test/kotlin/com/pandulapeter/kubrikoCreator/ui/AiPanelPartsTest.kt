@@ -26,7 +26,6 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantTranscriptList
 import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_edit_block
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -56,7 +55,7 @@ class AiPanelPartsTest {
                     TranscriptItem.UserMessage("Make the Ball faster"),
                     TranscriptItem.ToolCall(ToolCallId("1"), "kubriko-creator_edit_block", status = ToolCallStatus.COMPLETED),
                     TranscriptItem.AgentMessage("Done: the Ball now starts at **360**."),
-                    TranscriptItem.TurnChanges(4, listOf(ChangeRecord(5, Res.string.command_edit_block, CommandTarget.BlockType("Ball", 0, 0)))),
+                    TranscriptItem.TurnChanges(4, listOf(ChangeRecord(5, "edit_block", CommandTarget.BlockType("Ball", 0, 0)))),
                 ),
                 isBusy = false,
                 steps = emptyMap(),

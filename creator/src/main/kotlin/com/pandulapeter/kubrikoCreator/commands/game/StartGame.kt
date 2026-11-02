@@ -20,7 +20,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_start_game
 import kubriko.creator.generated.resources.error_command_scene_missing
 
 internal object StartGame : ActionCommand<StartGame.Input> {
@@ -30,7 +29,6 @@ internal object StartGame : ActionCommand<StartGame.Input> {
         "(compiler problems, the game's logs). Stop it with stop_game. A game that was already running is restarted. Give a scene to start " +
         "there instead of in the game's first Scene."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_start_game
 
     @Serializable
     data class Input(

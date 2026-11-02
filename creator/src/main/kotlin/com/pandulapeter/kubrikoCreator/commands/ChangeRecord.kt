@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * One change made to the project through a command, as the AI is told about the changes it didn't make.
  *
@@ -21,7 +19,7 @@ import org.jetbrains.compose.resources.StringResource
  */
 internal data class ChangeRecord(
     val revision: Int,
-    val title: StringResource,
+    val commandName: String,
     val target: CommandTarget?,
     val origin: AiStepOrigin? = null,
     val isByAi: Boolean = false,

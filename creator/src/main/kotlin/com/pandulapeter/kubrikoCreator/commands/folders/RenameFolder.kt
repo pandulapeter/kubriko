@@ -22,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_rename_folder
 import kubriko.creator.generated.resources.error_folder_name_invalid
 
 @OptIn(EditorMutation::class)
@@ -30,7 +29,6 @@ internal object RenameFolder : WriteCommand<RenameFolder.Input> {
     override val name = "rename_folder"
     override val description = "Renames a folder of Actor types, Manager types, or Scenes, keeping everything in it where it is in it. A Scene's name " +
         "is its path, so renaming its folder renames the Scene, and every goToScene Block follows."
-    override val title = Res.string.command_rename_folder
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project

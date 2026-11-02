@@ -26,7 +26,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_scene_settings
 import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_size_invalid
@@ -38,7 +37,6 @@ internal object SetSceneSettings : WriteCommand<SetSceneSettings.Input> {
         "screen) and are filled with the background color; the camera starts at the camera start, and the music plays, when the " +
         "Scene does. Positions " +
         "are in scene units, with y growing downwards. Values left out stay as they are."
-    override val title = Res.string.command_set_scene_settings
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

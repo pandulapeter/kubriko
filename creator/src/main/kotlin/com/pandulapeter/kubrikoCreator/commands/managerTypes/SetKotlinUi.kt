@@ -23,7 +23,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_kotlin_ui
 
 @OptIn(EditorMutation::class)
 internal object SetKotlinUi : WriteCommand<SetKotlinUi.Input> {
@@ -35,7 +34,6 @@ internal object SetKotlinUi : WriteCommand<SetKotlinUi.Input> {
         "actorManager, viewportManager, and stateManager (isRunning tells whether the game is paused). Read their StateFlows with collectAsState() " +
         "(imported from androidx.compose.runtime), or the UI won't follow them. Import lines at the start of the code become " +
         "the generated file's imports; nothing else is imported for it. Renaming a type or a Property renames it in the code too, outside strings and comments. Empty code removes it."
-    override val title = Res.string.command_set_kotlin_ui
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.managerType)

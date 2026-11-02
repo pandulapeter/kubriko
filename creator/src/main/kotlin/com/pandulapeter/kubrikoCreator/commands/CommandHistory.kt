@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * What can be undone and redone, newest last.
  */
@@ -18,7 +16,7 @@ internal data class CommandHistory(
     val undoable: List<HistoryEntry> = emptyList(),
     val redoable: List<HistoryEntry> = emptyList(),
 ) {
-    val nextUndoTitle: StringResource? get() = undoable.lastOrNull()?.title
+    val nextUndoCommandName: String? get() = undoable.lastOrNull()?.commandName
 
-    val nextRedoTitle: StringResource? get() = redoable.lastOrNull()?.title
+    val nextRedoCommandName: String? get() = redoable.lastOrNull()?.commandName
 }

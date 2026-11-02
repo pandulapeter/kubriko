@@ -23,14 +23,12 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_place_actors
 
 internal object PlaceActors : WriteCommand<PlaceActors.Input> {
     override val name = "place_actors"
     override val description = "Places many Actors of block-built Actor types in a Scene at once, like a grid of bricks, as one step to undo. " +
         "Each one gets the size its Actor type gives it, and they are added at the end of the Scene in the order given. Returns their actorIds in that order. " +
         "Scene coordinates are in scene units, with 0, 0 in the center of the Scene and y growing downwards."
-    override val title = Res.string.command_place_actors
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

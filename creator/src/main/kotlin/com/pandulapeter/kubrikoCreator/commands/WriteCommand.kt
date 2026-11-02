@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * A command that changes the project. It is validated before it is applied, and applying it returns the command that
  * reverts it, which is what undo and redo run.
@@ -23,9 +21,9 @@ internal interface WriteCommand<I> : EditorCommand<I> {
     val isDestructive: Boolean get() = false
 
     /**
-     * How the user interface names the change [input] describes: [title], unless it depends on the input.
+     * The tool name the change [input] describes is recorded and named under: [name], unless it depends on the input.
      */
-    fun title(input: I): StringResource = title
+    fun commandName(input: I): String = name
 
     /**
      * Everything the command with [input] changes: its [target], unless it changes more than one thing.

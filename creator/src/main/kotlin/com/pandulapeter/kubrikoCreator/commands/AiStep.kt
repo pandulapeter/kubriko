@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * One tool call of an AI client, as the editor shows the AI's work.
  *
@@ -23,7 +21,6 @@ import org.jetbrains.compose.resources.StringResource
 internal data class AiStep(
     val id: Int,
     val toolName: String,
-    val title: StringResource,
     val target: CommandTarget?,
     val isRunning: Boolean,
     val rejection: Rejection? = null,

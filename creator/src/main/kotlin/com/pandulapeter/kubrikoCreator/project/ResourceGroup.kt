@@ -9,23 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.resource_group_kotlin
-import kubriko.creator.generated.resources.resource_group_music
-import kubriko.creator.generated.resources.resource_group_scenes
-import kubriko.creator.generated.resources.resource_group_sounds
-import kubriko.creator.generated.resources.resource_group_sprites
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * The groups of the resource tree, in display order.
  */
-internal enum class ResourceGroup(
-    val title: StringResource,
-) {
-    SCENES(Res.string.resource_group_scenes),
-    SPRITES(Res.string.resource_group_sprites),
-    SOUNDS(Res.string.resource_group_sounds),
-    MUSIC(Res.string.resource_group_music),
-    KOTLIN(Res.string.resource_group_kotlin),
+internal enum class ResourceGroup {
+    SCENES,
+    SPRITES,
+    SOUNDS,
+    MUSIC,
+    KOTLIN,
 }

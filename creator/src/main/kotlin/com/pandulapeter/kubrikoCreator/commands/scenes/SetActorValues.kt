@@ -21,13 +21,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_actor_values
 
 internal object SetActorValues : WriteCommand<SetActorValues.Input> {
     override val name = "set_actor_values"
     override val description = "Changes values of one Actor of a Scene: where it is, its size, rotation, and scale, and for block-built Actor types, " +
         "its color and the values of its Properties (each Actor keeps its own). Values left out stay as they are."
-    override val title = Res.string.command_set_actor_values
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

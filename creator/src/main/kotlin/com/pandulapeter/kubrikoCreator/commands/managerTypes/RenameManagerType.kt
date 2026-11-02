@@ -24,13 +24,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_rename_manager_type
 
 @OptIn(EditorMutation::class)
 internal object RenameManagerType : WriteCommand<RenameManagerType.Input> {
     override val name = "rename_manager_type"
     override val description = "Renames a block-built Manager type, its generated Kotlin class, and every Block, log message, and text of every type that uses its Properties."
-    override val title = Res.string.command_rename_manager_type
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(if (context.blockTypes?.managerType(input.newName) != null) input.newName else input.managerType)

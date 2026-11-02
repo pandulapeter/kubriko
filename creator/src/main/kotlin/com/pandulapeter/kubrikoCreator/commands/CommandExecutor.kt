@@ -102,11 +102,11 @@ internal class CommandExecutor(
         applied.failure?.let { return CommandOutcome.Rejected(it) }
         if (applied.isRewritingFiles) _history.value = CommandHistory()
         val target = invocation.target(context)
-        val revision = changeLog.record(invocation.title, target, origin, isByAi)
+        val revision = changeLog.record(invocation.commandName, target, origin, isByAi)
         applied.inverse?.let { inverse ->
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
-        return CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.title, target) else applied.result)
+        return CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.commandName, target) else applied.result)
     }
 
     /**
@@ -167,7 +167,7 @@ internal class CommandExecutor(
             _history.value = remaining
             return CommandOutcome.Rejected(it)
         }
-        val revision = changeLog.record(invocation.title, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
+        val revision = changeLog.record(invocation.commandName, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
         val stepped = applied.inverse?.copy(isRestoring = true)?.let { inverse ->
             if (isUndo) HistoryEntry(invocation, inverse, entry.conversationId, revision, isByAi = entry.isByAi) else HistoryEntry(inverse, invocation, entry.conversationId, revision, isByAi = entry.isByAi)
         }?.withContentHashes()
@@ -202,7 +202,7 @@ internal class CommandExecutor(
         } catch (exception: IllegalArgumentException) {
             return rejectInput(name, command, exception, origin, clientName)
         }
-        val step = AiStep(id = nextAiStepId++, toolName = name, title = command.title, target = command.target(context, input), isRunning = true, origin = origin, clientName = clientName)
+        val step = AiStep(id = nextAiStepId++, toolName = name, target = command.target(context, input), isRunning = true, origin = origin, clientName = clientName)
         publish(step)
         var rejection: Rejection? = null
         try {
@@ -259,7 +259,7 @@ internal class CommandExecutor(
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {
         val rejection = Rejection(Res.string.error_command_input_invalid, InputProblem.describe(exception.message))
-        publish(AiStep(id = nextAiStepId++, toolName = name, title = command.title, target = null, isRunning = false, rejection = rejection, origin = origin, clientName = clientName))
+        publish(AiStep(id = nextAiStepId++, toolName = name, target = null, isRunning = false, rejection = rejection, origin = origin, clientName = clientName))
         return CommandOutcome.Rejected(rejection)
     }
 

@@ -20,7 +20,7 @@ internal data class Invocation<I>(
     val input: I,
     val isRestoring: Boolean = false,
 ) {
-    val title get() = command.title(input)
+    val commandName get() = command.commandName(input)
 
     fun target(context: CommandContext) = command.target(context, input)
 

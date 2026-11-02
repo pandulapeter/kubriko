@@ -20,7 +20,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_get_project_settings
 import kubriko.creator.generated.resources.error_command_project_settings_unavailable
 
 internal object GetProjectSettings : ReadCommand<NoInput> {
@@ -28,7 +27,6 @@ internal object GetProjectSettings : ReadCommand<NoInput> {
     override val description = "Reads the game's name, version name and number, application ID, vendor, and description. A project whose " +
         "template is too old to have them says so (see get_project_upgrade)."
     override val inputSerializer = NoInput.serializer()
-    override val title = Res.string.command_get_project_settings
 
     override fun target(context: CommandContext, input: NoInput) = CommandTarget.Project
 

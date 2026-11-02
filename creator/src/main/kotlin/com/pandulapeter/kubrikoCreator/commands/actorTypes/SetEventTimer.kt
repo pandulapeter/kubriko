@@ -24,7 +24,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_event_timer
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_not_allowed
 
@@ -32,7 +31,6 @@ import kubriko.creator.generated.resources.error_command_timer_not_allowed
 internal object SetEventTimer : WriteCommand<SetEventTimer.Input> {
     override val name = "set_event_timer"
     override val description = "Sets the Timer a timerFinished Event of a block-built Actor type or Manager type reacts to."
-    override val title = Res.string.command_set_event_timer
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)

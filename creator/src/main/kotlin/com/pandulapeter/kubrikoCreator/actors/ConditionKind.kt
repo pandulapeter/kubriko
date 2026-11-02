@@ -9,31 +9,20 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.condition_chance
-import kubriko.creator.generated.resources.condition_key_held
-import kubriko.creator.generated.resources.condition_number
-import kubriko.creator.generated.resources.condition_paused
-import kubriko.creator.generated.resources.condition_text
-import kubriko.creator.generated.resources.condition_toggle
-import kubriko.creator.generated.resources.condition_velocity
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * The kinds of condition an if Block can check, in the order the editor offers them.
  */
 internal enum class ConditionKind(
-    val title: StringResource,
     val createDefault: () -> ConditionDefinition,
     val needsActor: Boolean = false,
 ) {
-    NUMBER(Res.string.condition_number, { ConditionDefinition.Number() }),
-    TEXT(Res.string.condition_text, { ConditionDefinition.Text() }),
-    TOGGLE(Res.string.condition_toggle, { ConditionDefinition.Toggle() }),
-    KEY_HELD(Res.string.condition_key_held, { ConditionDefinition.KeyHeld() }),
-    VELOCITY(Res.string.condition_velocity, { ConditionDefinition.Velocity() }, needsActor = true),
-    CHANCE(Res.string.condition_chance, { ConditionDefinition.Chance() }),
-    PAUSED(Res.string.condition_paused, { ConditionDefinition.Paused() });
+    NUMBER({ ConditionDefinition.Number() }),
+    TEXT({ ConditionDefinition.Text() }),
+    TOGGLE({ ConditionDefinition.Toggle() }),
+    KEY_HELD({ ConditionDefinition.KeyHeld() }),
+    VELOCITY({ ConditionDefinition.Velocity() }, needsActor = true),
+    CHANCE({ ConditionDefinition.Chance() }),
+    PAUSED({ ConditionDefinition.Paused() });
 
     fun isAvailableIn(kind: BlockTypeKind) = !needsActor || kind == BlockTypeKind.ACTOR
 

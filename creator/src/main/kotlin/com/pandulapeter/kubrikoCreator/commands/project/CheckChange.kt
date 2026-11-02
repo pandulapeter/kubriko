@@ -24,7 +24,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_check_change
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_not_a_change
 import kubriko.creator.generated.resources.error_command_unknown
@@ -34,7 +33,6 @@ internal object CheckChange : ReadCommand<CheckChange.Input> {
     override val description = "Tells whether a write tool would accept the given arguments, changing nothing: the rejection it would give, or that it would be " +
         "accepted. For a change built from many parts, checked before making it."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_check_change
     private val json = Json { ignoreUnknownKeys = false }
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {

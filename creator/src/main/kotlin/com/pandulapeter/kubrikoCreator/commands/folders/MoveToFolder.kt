@@ -24,14 +24,12 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_move_to_folder
 
 @OptIn(EditorMutation::class)
 internal object MoveToFolder : WriteCommand<MoveToFolder.Input> {
     override val name = "move_to_folder"
     override val description = "Moves an Actor type or a Manager type into a folder of its group, or out of every folder. Only the sidebar changes: " +
         "the type keeps its name and everything that refers to it. Scenes move with rename_scene."
-    override val title = Res.string.command_move_to_folder
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.type)

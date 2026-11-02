@@ -21,14 +21,12 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_delete_actor_type
 import kubriko.creator.generated.resources.error_command_actor_type_has_children
 
 @OptIn(EditorMutation::class)
 internal object DeleteActorType : WriteCommand<DeleteActorType.Input> {
     override val name = "delete_actor_type"
     override val description = "Deletes a block-built Actor type with its generated Kotlin class."
-    override val title = Res.string.command_delete_actor_type
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)

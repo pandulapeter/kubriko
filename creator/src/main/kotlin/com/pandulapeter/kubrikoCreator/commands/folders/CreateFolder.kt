@@ -20,13 +20,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_create_folder
 
 @OptIn(EditorMutation::class)
 internal object CreateFolder : WriteCommand<CreateFolder.Input> {
     override val name = "create_folder"
     override val description = "Creates a folder in the sidebar for Actor types, Manager types, or Scenes, inside another one if the path has several names."
-    override val title = Res.string.command_create_folder
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project

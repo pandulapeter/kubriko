@@ -27,7 +27,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_property
 
 @OptIn(EditorMutation::class)
 internal object AddProperty : WriteCommand<AddProperty.Input> {
@@ -35,7 +34,6 @@ internal object AddProperty : WriteCommand<AddProperty.Input> {
     override val description = "Adds a Property to a block-built Actor type or Manager type. In an Actor type, it is a value each of its Actors keeps " +
         "(like its health), editable per Actor in Scenes; in a Manager type, a game-wide value (like the score) that the Blocks of every type can use. " +
         "The setNumber, changeNumber, setText, and setToggle Blocks change it, and log Blocks and a Manager's texts can show it."
-    override val title = Res.string.command_add_property
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)

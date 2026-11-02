@@ -16,8 +16,6 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_actors_state
 
 /**
  * Changes made as one step: its parts in order, undone in reverse. Kubriko Creator's own building block for changes no
@@ -26,10 +24,9 @@ import kubriko.creator.generated.resources.command_set_actors_state
 internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
     override val name = "composite"
     override val description = ""
-    override val title = Res.string.command_set_actors_state
     override val inputSerializer: KSerializer<Input> = NotATool
 
-    override fun title(input: Input) = input.parts.first().title
+    override fun commandName(input: Input) = input.parts.first().commandName
 
     override fun target(context: CommandContext, input: Input) = input.parts.first().target(context)
 

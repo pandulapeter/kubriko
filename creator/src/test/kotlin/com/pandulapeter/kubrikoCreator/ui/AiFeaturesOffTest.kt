@@ -34,7 +34,6 @@ import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_edit_block
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -65,7 +64,7 @@ class AiFeaturesOffTest {
             onCloseProject = {},
         )
         AiActivityBar(
-            steps = listOf(AiStep(id = 0, toolName = "edit_block", title = Res.string.command_edit_block, target = null, isRunning = true, clientName = "Claude Code")),
+            steps = listOf(AiStep(id = 0, toolName = "edit_block", target = null, isRunning = true, clientName = "Claude Code")),
             isFollowing = true,
             onFollowingChange = {},
             onClick = {},

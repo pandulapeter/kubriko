@@ -23,14 +23,12 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_restore_actors
 
 internal object RestoreActors : WriteCommand<RestoreActors.Input> {
     override val name = "restore_actors"
     override val description = "Puts many Actors into a Scene at once with their whole saved states, as read_scene returns them, as one step to undo: " +
         "how removed Actors are brought back, and how Actors of hand-written Actor types are copied in bulk. " +
         "They are put in one after another, in the order given, so each index counts the ones put in before it."
-    override val title = Res.string.command_restore_actors
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

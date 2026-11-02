@@ -24,7 +24,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_description
 import kubriko.creator.generated.resources.error_command_description_invalid
 import kubriko.creator.generated.resources.error_command_relations_subject
 import kubriko.creator.generated.resources.error_command_scene_missing
@@ -35,7 +34,6 @@ internal object SetDescription : WriteCommand<SetDescription.Input> {
     override val description = "Says in one short line what an Actor type, a Manager type, or a Scene is for in the game (\"the ball the player " +
         "bounces off the paddle\", \"the first level\"), or takes the description away. The project digest shows it, so describe what " +
         "you create, and what you come to understand, for the next conversation."
-    override val title = Res.string.command_set_description
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = input.type?.let { CommandTarget.BlockType(it) } ?: input.scene?.let { CommandTarget.Scene(it) }

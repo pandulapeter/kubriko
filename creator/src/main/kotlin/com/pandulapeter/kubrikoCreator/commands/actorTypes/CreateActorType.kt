@@ -19,14 +19,12 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_create_actor_type
 
 @OptIn(EditorMutation::class)
 internal object CreateActorType : WriteCommand<ActorTypeDefinition> {
     override val name = "create_actor_type"
     override val description = "Creates a block-built Actor type. Only the name is required: a new Actor type is a circle without Events. " +
         "Kubriko Creator generates its Kotlin class, and it can be placed in Scenes once the project is rebuilt."
-    override val title = Res.string.command_create_actor_type
     override val inputSerializer = ActorTypeDefinition.serializer()
 
     override fun target(context: CommandContext, input: ActorTypeDefinition) = CommandTarget.BlockType(input.name)

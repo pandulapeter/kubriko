@@ -20,7 +20,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_play
 import kubriko.creator.generated.resources.error_command_play_duration_invalid
 
 internal object Play : ActionCommand<Play.Input> {
@@ -28,7 +27,6 @@ internal object Play : ActionCommand<Play.Input> {
     override val description = "Builds the project and plays the game in a window of its own for a few seconds, then stops it. " +
         "Returns whether it started, with what the console showed meanwhile: compiler problems, the game's logs, and errors."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_play
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Game
 

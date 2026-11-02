@@ -22,7 +22,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_get_project_upgrade
 
 internal object GetProjectUpgrade : ReadCommand<NoInput> {
     override val name = "get_project_upgrade"
@@ -30,7 +29,6 @@ internal object GetProjectUpgrade : ReadCommand<NoInput> {
         "Creator relies on: each change it can make (the file before and after; after left out to delete it) and the files changed too much, left to the user. " +
         "Show the changes to the user before upgrade_project."
     override val inputSerializer = NoInput.serializer()
-    override val title = Res.string.command_get_project_upgrade
 
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(
         when (val upgrade = withContext(context.ioDispatcher) { ProjectUpgrader(context.project.rootDirectory).check() }) {

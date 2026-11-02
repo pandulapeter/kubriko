@@ -16,14 +16,12 @@ import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.context.healthFindings
 import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_get_health_checks
 
 internal object GetHealthChecks : ReadCommand<NoInput> {
     override val name = "get_health_checks"
     override val description = "Lists what about the game is worth a look, computed from Kubriko Creator's model of it: Actor types nothing places or adds, " +
         "Scenes nothing goes to, Properties nothing reads, and timerFinished or collision Events that can never fire. Not all are mistakes."
     override val inputSerializer = NoInput.serializer()
-    override val title = Res.string.command_get_health_checks
 
     override suspend fun read(context: CommandContext, input: NoInput) =
         CommandOutcome.Success(JsonPrimitive(context.healthFindings().joinToString("\n").ifEmpty { "Nothing worth a look." }))

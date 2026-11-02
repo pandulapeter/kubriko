@@ -22,7 +22,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_get_kubriko_api
 import java.io.File
 
 internal object GetKubrikoApi : ReadCommand<GetKubrikoApi.Input> {
@@ -31,7 +30,6 @@ internal object GetKubrikoApi : ReadCommand<GetKubrikoApi.Input> {
         "instance, Managers, Actors and their Traits, scene units) and its plugins; with one, the source file declaring that class, interface, or " +
         "object, with its documentation, at the project's Kubriko version."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_get_kubriko_api
     override val readsProject = false
     private val sources by lazy { KubrikoSources(CreatorConfiguration.load().kubrikoVersion, File(settingsDirectory(), "tools/kubriko-sources")) }
 

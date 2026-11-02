@@ -10,11 +10,10 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
-import org.jetbrains.compose.resources.getString
 
 /**
  * What an agent is told, before the user's next message, about the changes made since its last turn by anyone but itself
- * (the user, mostly), so that it stays in step without reading everything again: `Add a Block at Ball#2.1`.
+ * (the user, mostly), so that it stays in step without reading everything again: `add_block at Ball#2.1`.
  */
 internal object ChangesSummary {
 
@@ -23,7 +22,7 @@ internal object ChangesSummary {
      * @param conversationId The conversation the summary is for, whose own changes are left out.
      * @return The summary, or null if nobody else changed anything.
      */
-    suspend fun of(records: List<ChangeRecord>, since: Int, conversationId: String?): String? {
+    fun of(records: List<ChangeRecord>, since: Int, conversationId: String?): String? {
         val others = records.filter { conversationId == null || it.origin?.conversationId != conversationId }
         if (others.isEmpty()) return null
         val forgotten = (records.first().revision - since - 1).coerceAtLeast(0)
@@ -36,7 +35,7 @@ internal object ChangesSummary {
                     ChangeRecord.Step.REDO -> append("redid ")
                     null -> Unit
                 }
-                append(getString(record.title))
+                append(record.commandName)
                 record.target?.let { append(" at ").append(it.notation()) }
             }
         }

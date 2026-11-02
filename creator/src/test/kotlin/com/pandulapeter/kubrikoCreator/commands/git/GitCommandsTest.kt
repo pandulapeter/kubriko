@@ -109,7 +109,7 @@ class GitCommandsTest {
         repository.isFailing = true
         executor.dispatch(Invocation(Commit, Commit.Input("Write the README.")))
         assertEquals(listOf(Rejection(Res.string.status_git_failed)), rejections)
-        assertNull(executor.history.value.nextUndoTitle)
+        assertNull(executor.history.value.nextUndoCommandName)
     }
 
     @Test

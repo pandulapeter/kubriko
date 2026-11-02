@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import kotlinx.serialization.KSerializer
-import org.jetbrains.compose.resources.StringResource
 
 /**
  * One operation of the editor: a [ReadCommand], a [WriteCommand], or an [ActionCommand]. Every command is registered in [CommandRegistry], which the user interface, undo and
@@ -32,11 +31,6 @@ internal sealed interface EditorCommand<I> {
     val description: String
 
     val inputSerializer: KSerializer<I>
-
-    /**
-     * How the user interface names the command: in the titles of undo and redo, and while the AI runs it.
-     */
-    val title: StringResource
 
     /**
      * What the command with [input] reads or changes, so that the editor can show it while the AI runs it. Asked both

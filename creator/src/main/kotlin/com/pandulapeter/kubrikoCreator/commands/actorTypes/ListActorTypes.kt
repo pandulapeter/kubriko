@@ -23,7 +23,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_list_actor_types
 import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_page_invalid
 import kubriko.creator.generated.resources.error_folder_missing
@@ -34,7 +33,6 @@ internal object ListActorTypes : ReadCommand<ListActorTypes.Input> {
         "and the Events it reacts to. total counts the matching types, and nextOffset, when there are more, is the offset of the next page. " +
         "folders lists every Actor type folder (in the folder asked for), empty ones too."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_list_actor_types
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         val actorTypes = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types))
