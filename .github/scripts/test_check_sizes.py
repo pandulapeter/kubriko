@@ -99,6 +99,31 @@ class FunctionsTest(unittest.TestCase):
         )
         self.assertEqual([("Api.run", 4, 2)], functions(text))
 
+    def test_a_nullable_receiver_is_part_of_the_name(self):
+        text = "class Edits {\n    private fun JsonObject?.orEmpty(): Map<String, Int> = this ?: emptyMap()\n}\n"
+        self.assertEqual([("Edits.JsonObject?.orEmpty", 2, 1)], functions(text))
+
+    def test_a_receiver_with_nested_type_arguments_is_part_of_the_name(self):
+        text = "private fun Map<Kind, Set<String>>.withFolder(kind: Kind) = this + (kind to setOf())\n"
+        self.assertEqual([("Map<Kind, Set<String>>.withFolder", 1, 1)], functions(text))
+
+    def test_a_receiver_with_a_function_type_argument_is_part_of_the_name(self):
+        text = "fun Map<String, (Int) -> Unit>.invokeAll() = values.forEach { it(1) }\n"
+        self.assertEqual([("Map<String, (Int) -> Unit>.invokeAll", 1, 1)], functions(text))
+
+    def test_bounded_type_parameters_are_left_out_of_the_name(self):
+        text = (
+            "object Factory {\n"
+            "    fun <MD : Metadata<out T>, T : Serializable<out T>> newInstance(vararg metadata: MD) = 1\n"
+            "    inline operator fun <reified T : Editable<T>> invoke() = 2\n"
+            "    fun <T> Flow<T>.throttled(): Flow<T> = this\n"
+            "}\n"
+        )
+        self.assertEqual(
+            [("Factory.newInstance", 2, 1), ("Factory.invoke", 3, 1), ("Factory.Flow<T>.throttled", 4, 1)],
+            functions(text),
+        )
+
 
 class SizesTest(unittest.TestCase):
 

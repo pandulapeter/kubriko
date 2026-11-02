@@ -46,7 +46,6 @@ CLASS_HEADER = re.compile(
     r"^\s*(?:@[\w.]+(?:\([^)]*\))?\s+)*(?:(?:public|internal|private|protected|inner|value|inline|annotation|abstract|open|"
     r"final|sealed|data|enum|fun|companion|actual|expect|external)\s+)*(?:(?:class|interface)\s+([\w`]+)|object\b\s*([\w`]+)?)"
 )
-FUNCTION_NAME = re.compile(r"fun\s+(?:<[^>]*>\s*)?([\w.`]+(?:<[^>]*>)?[\w.`]*)\s*\(")
 TEST_SOURCES = re.compile(r"/src/\w*[Tt]est(?:Fixtures)?/")
 CONTINUATION = tuple(".?:+-*/&|=")
 
@@ -55,6 +54,37 @@ def is_main_kotlin(path):
     return path.endswith(".kt") and "/src/" in path and not TEST_SOURCES.search(path) and not any(
         fnmatch.fnmatch(path, pattern) for pattern in EXEMPT
     )
+
+
+def angle_brackets_end(line, start):
+    """The index after the ">" closing the "<" at start, function type arrows inside not counted."""
+    depth = 0
+    index = start
+    while index < len(line):
+        if line.startswith("->", index):
+            index += 2
+            continue
+        depth += {"<": 1, ">": -1}.get(line[index], 0)
+        index += 1
+        if depth == 0:
+            break
+    return index
+
+
+def function_name(line):
+    """The name a declaration line gives its function, its receiver included as written ("String?.trimmed",
+    "Map<String, Int>.merged"), its type parameters left out, and the stripped line when it has no name on it."""
+    declaration = DECLARATION.match(line)
+    if not declaration:
+        return line.strip()
+    index = declaration.end()
+    if line.startswith("<", index):
+        index = angle_brackets_end(line, index)
+    start = index
+    while index < len(line) and line[index] != "(":
+        index = angle_brackets_end(line, index) if line[index] == "<" else index + 1
+    name = line[start:index].strip()
+    return name if name and index < len(line) else line.strip()
 
 
 def code_only(lines):
@@ -142,8 +172,7 @@ def functions(text):
     while index < len(code):
         if DECLARATION.match(code[index]):
             end = function_end(code, index)
-            name = FUNCTION_NAME.search(lines[index])
-            name = name.group(1) if name else lines[index].strip()
+            name = function_name(code[index])
             found.append((".".join([outer for outer, _ in enclosing] + [name]), index + 1, end - index + 1))
             braces += sum(line.count("{") - line.count("}") for line in code[index:end + 1])
             pending = None
