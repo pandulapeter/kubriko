@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.foldersOf
+import com.pandulapeter.kubrikoCreator.commands.testDirectory
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.test.TestScope
@@ -37,7 +38,6 @@ import kubriko.creator.generated.resources.error_scene_not_moved
 import kubriko.creator.generated.resources.warning_scene_named_in_code
 import org.junit.Assume.assumeFalse
 import java.io.File
-import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -48,7 +48,7 @@ class SceneRenamingCommandsTest {
 
     @OptIn(EditorMutation::class)
     private fun TestScope.context(): CommandContext {
-        val root = createTempDirectory().toFile()
+        val root = testDirectory()
         File(root, "src/commonMain/kotlin/Game.kt").apply { parentFile.mkdirs() }.writeText("""createManagers(firstScene = "main")""")
         return commandContext(door, rootDirectory = root, onSceneRenamed = { old, new -> renames += old to new }, report = { reports += it }).apply {
             scenes.write("main", "[]")

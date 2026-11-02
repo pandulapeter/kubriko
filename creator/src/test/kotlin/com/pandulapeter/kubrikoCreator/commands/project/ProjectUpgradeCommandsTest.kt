@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testDirectory
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
@@ -24,7 +25,6 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 import java.io.File
-import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -33,7 +33,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProjectUpgradeCommandsTest {
-    private val root = createTempDirectory().toFile()
+    private val root = testDirectory()
     private val game = File(root, "src/commonMain/kotlin/com/example/game/Game.kt")
     private val entryPoint = File(root, "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt")
 

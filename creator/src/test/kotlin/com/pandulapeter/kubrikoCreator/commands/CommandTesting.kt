@@ -27,11 +27,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import java.io.File
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+
+private val testDirectories = ConcurrentLinkedQueue<File>().also { directories ->
+    Runtime.getRuntime().addShutdownHook(Thread { directories.forEach(File::deleteRecursively) })
+}
+
+/**
+ * A new temporary directory, deleted when the tests' JVM exits.
+ */
+internal fun testDirectory(): File = createTempDirectory("kubriko-creator-test").toFile().also(testDirectories::add)
 
 internal fun TestScope.testScope() = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
 
@@ -56,7 +66,7 @@ internal fun TestScope.commandContext(
     vararg definitions: BlockTypeDefinition,
     blockTypes: BlockTypesController? = blockTypesController(*definitions),
     git: GitController = gitController(repository = null),
-    rootDirectory: File = createTempDirectory().toFile(),
+    rootDirectory: File = testDirectory(),
     console: List<ConsoleEntry> = emptyList(),
     runner: ProjectRunner = FakeProjectRunner(),
     audioFiles: AudioFiles? = null,
