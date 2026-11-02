@@ -9,7 +9,8 @@
 -->
 # Kubriko Creator: plan
 
-Only future work lives here; once something is implemented, it is deleted from these files and described in `../CLAUDE.md` instead. Each topic
+Only future work lives here; once something is implemented, it is deleted from these files, and `../CLAUDE.md` gains only the rules it
+introduces that the code can't show. Each topic
 has a file of its own, so a session only needs the one it works on.
 
 [HANDOVER.md](HANDOVER.md) is where the last session stopped: start there.
@@ -23,8 +24,6 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
    what the benchmarks show is needed.
 2. [AI assistant](02-ai-assistant.md) - what is left of the in-app assistant (ACP protocol 2, the registry's icons, other agents'
    fallbacks, Codex's profile), more context for large games, and more for the MCP server, alongside `04` to `07`.
-   **Every new editor feature lands with its command, its AI tool, and their tests,** and every new AI surface disappears when AI
-   features are turned off (it reads `LocalIsAiEnabled` and joins `AiFeaturesOffTest`).
 3. [Settings](03-settings.md) - the rest of Project settings (Game, Targets, Release, Icons, and Signing) and of Creator settings.
 4. [Folders and search](04-resource-organization.md) - the sidebar filter, quick open, find usages, and the search AI tools.
 5. [Reuse, Traits, and bigger games](05-reuse-and-traits.md) - functions, Traits, and what bigger games need.
@@ -82,7 +81,7 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
 ## Open questions
 
 1. The oldest Kubriko version Creator supports for projects that aren't opted in (sessions work from 0.7.4; opted-in projects are raised to
-   Creator's own version, `../CLAUDE.md` → Conventions).
+   Creator's own version, `../CLAUDE.md` → Project files).
 2. Whether the Showcase should become editable in Creator.
 3. Whether web export should offer one-click hosting.
 4. Whether a free, MPL-2.0 desktop app hosting Claude Code over ACP (as Android Studio does) has to accept Anthropic's Commercial Terms

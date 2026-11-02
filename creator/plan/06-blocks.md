@@ -34,7 +34,7 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 
 - **More Properties:** color and Actor type reference Properties.
 - **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
-  live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
+  live in the flat Block list (`BlockNesting`), so drag-and-drop stays a reorder.
 - **More audio:** volume, sounds and music as Properties (so one Block plays the sound an Actor keeps), and adding sound and music
   files from Creator (today they are copied into `composeResources/files` by hand).
 - **Scene settings in the game:** an option that fits the game's view to the Scene's bounds (through
@@ -70,7 +70,7 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 
 ## Scene editor (Creator's own, `ui/scenes`)
 
-Selecting, moving, removing, placing from the sidebar, and the inspector exist (`../CLAUDE.md` → Processes → Scene editing). Next: editors
+Selecting, moving, removing, placing from the sidebar, and the inspector exist (`scenes/`, `ui/scenes/`). Next: editors
 for hand-written types' other state values (through `set_actor_state`), resize and rotate handles, an outline that follows rotation,
 snapping to a grid, keyboard nudging, duplicating, placing hand-written Actor types (their default state through their metadata), sprite
 thumbnails in the sidebar while dragging, multi-select, and layer filtering and locking. None of it needs a library change. A changed

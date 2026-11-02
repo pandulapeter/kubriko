@@ -15,7 +15,7 @@ with everyone who clones it. Anything that is both per-project and private (sign
 
 ## Creator settings
 
-What `../CLAUDE.md` → Creator settings describes, and:
+Beyond the theme, the interface scale, the AI features switch, and the default project folder (`CreatorSettings`):
 
 - **AI features:** asked once on first run (`12-onboarding.md`), defaulting to on; onboarding and any later AI hints or
   empty-state suggestions read `LocalIsAiEnabled` like the rest.
@@ -29,7 +29,7 @@ What `../CLAUDE.md` → Creator settings describes, and:
 
 ## Project settings
 
-What `../CLAUDE.md` → Project settings describes (the dialog and Identity), and the sections below. Every value lives where the
+Beyond the dialog (`ProjectSettingsDialog`) and Identity (`GameIdentity`), the sections below. Every value lives where the
 build reads it, so the project still builds the same in IntelliJ and without `.kubriko/` (`../CLAUDE.md` → Principles 2): `.kubriko/project.json` only
 holds what Creator needs for itself.
 

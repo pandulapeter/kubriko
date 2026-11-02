@@ -10,7 +10,7 @@
 # Handover
 
 Where the next session starts: what to do next and what still has to be checked by hand. Each session rewrites it before it ends.
-What exists is in `../CLAUDE.md`, what is planned in the other files here.
+The rules are in `../CLAUDE.md`, what is planned in the other files here.
 
 ## Status
 
@@ -28,7 +28,7 @@ Project settings in `03-settings.md`: Identity is built (template version 9, the
 and `get_project_settings` / `set_project_settings`; see To check by hand). Next are Game (first Scene, aspect ratio, frame
 rate, why each plugin is there), then Targets, Release, Icons, and Signing, each extending the same dialog and tools.
 Then `04` to `07` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for
-the benchmarks. A new AI surface reads `LocalIsAiEnabled` and joins `AiFeaturesOffTest`.
+the benchmarks.
 
 ## To check by hand
 

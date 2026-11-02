@@ -18,7 +18,7 @@ Every addition lands with its command, AI tool, generator tests, and a case in t
 
 ## Parent Actor types
 
-What they still lack (`../CLAUDE.md` → Commands → Parent Actor types):
+What parent Actor types (`ActorTypeFamily`, `set_parent`) still lack:
 
 - **"Only a parent":** a toggle for a type that is never placed (left out of the sidebar drag and the Scene editor's placing) and
   never created by addActor; addActor of a parent otherwise creates the parent itself.

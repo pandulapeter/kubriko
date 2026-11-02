@@ -66,4 +66,4 @@ signing profile the project names there; keystores and certificates stay outside
 - One installer per OS with `jpackage`. Its bundled runtime can't start Gradle (jpackage strips `bin/`), so Creator downloads a full JDK 21 into
   its data folder on first launch, alongside Gradle, and points the Tooling API at it (the setup screen in `12-onboarding.md`).
 - Update checks that offer, never install silently; its own release workflow and test job.
-- A Creator release follows each Kubriko release, since opted-in projects use Creator's own Kubriko version (`../CLAUDE.md` → Conventions).
+- A Creator release follows each Kubriko release, since opted-in projects use Creator's own Kubriko version (`../CLAUDE.md` → Library side).

@@ -11,7 +11,7 @@
 
 Claude edits Kubriko games through the same validated operations the user has, so its work stays inside the editor's constraints by
 construction, shows up as readable Events and Blocks, and can be inspected, tweaked, or undone like any other change. What exists (the
-commands, the MCP server, one-click setup, the game tools, and the activity view) is in `../CLAUDE.md`.
+commands, the MCP server, one-click setup, the game tools, and the activity view) is in `commands/`, `mcp/`, and `ai/assistant`.
 
 ## More for the MCP server
 
@@ -22,19 +22,19 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 
 ## The assistant panel
 
-1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): move to protocol version 2 once it is final (the adapter serves its
+1. **ACP client** (`AcpAgent`): move to protocol version 2 once it is final (the adapter serves its
    draft).
-2. **The agent list** (see `../CLAUDE.md` → Assistant): the registry's icons in the menu (checked against each vendor's trademark rules
+2. **The agent list** (`AgentRegistry`): the registry's icons in the menu (checked against each vendor's trademark rules
    first), and Claude Agent's version, pinned to the one checked, offered as an update once the registry's moves and it is checked.
-3. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is the operating system's terminal as a fallback for a sign-in command
+3. **Sign-in** (`SignInSession`): what is left is the operating system's terminal as a fallback for a sign-in command
    that turns out to need a terminal device.
-4. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): see whether Claude still reaches for its own Read for Kubriko's sources now that
+4. **Tools** (per conversation, `ConversationToolServer`): see whether Claude still reaches for its own Read for Kubriko's sources now that
    `get_kubriko_api` exists (it keeps Read for the game's own Kotlin). Other agents
    have no portable switch, so their `session/request_permission` for edits and commands is rejected (`PermissionHandler.rejectingChanges`),
    whatever the user would choose; letting the user allow it is still to come.
 5. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
-6. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists).
+6. **The panel** (`ui/assistant`): a screenshot of the open Scene as a chip too (the game's exists).
 
 **Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
 
@@ -64,8 +64,8 @@ agent it fully supports. Every other agent runs on generic fallbacks, chosen fro
 marked untested in the list; when a vendor renames, retires, or replaces an agent, the registry changes and Creator follows without
 code of its own.
 
-`AcpAgent` speaks to any ACP agent, and `AgentProfile` holds what an agent needs beyond the fallbacks (see `../CLAUDE.md` →
-Assistant, for the fallbacks that exist): Claude's is the only one. What is left:
+`AcpAgent` speaks to any ACP agent, and `AgentProfile` holds what an agent needs beyond the fallbacks (`AgentProfile.fallback`
+chooses the fallbacks that exist): Claude's is the only one. What is left:
 
 - **System prompt:** ACP's own `systemPrompt` where `sessionCapabilities.systemPrompt` is advertised, once the Kotlin SDK has the
   field. Google Antigravity advertises `_meta.antigravity.systemPrompt.append` in its `initialize` answer, a way to append it as
@@ -104,8 +104,7 @@ understand the game is shown to the user too.
 - **"Last time" summaries:** the agent writing a real summary at the end of a conversation, in place of the start of its last
   answer that a new conversation hears now.
 - **A smaller tool list:** (the size `TokenBudgetTest` measures) since the Block schema went to
-  `get_block_catalog`: terser descriptions, related tools grouped (the single and batch Scene tools),
-  and Claude Code's tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it.
+  `get_block_catalog`: terser descriptions and Claude Code's tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it.
 - **More health checks:** a Scene nothing goes to other than the first (needs the first Scene known from `Game.kt`), and the
   findings shown where their subject is edited, beside the map's list.
 - **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do, and

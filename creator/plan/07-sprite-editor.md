@@ -58,7 +58,7 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 
 ## Sprites in the game
 
-Actor types already draw a whole image as their sprite (`../CLAUDE.md` → Commands → Sprites), with the sprites plugin coming and going
+Actor types already draw a whole image as their sprite (`set_appearance`, `SpriteFiles`), with the sprites plugin coming and going
 with that code. What the editor adds is used through `06-blocks.md` → Appearance: sprite sheets drawn with `AnimatedSprite`, the size
 defaulting to the frame size, and Blocks to set the animation's frame, speed, and whether it loops, with sprite thumbnails in the
 Scene editor (`06-blocks.md` → Scene editor).
