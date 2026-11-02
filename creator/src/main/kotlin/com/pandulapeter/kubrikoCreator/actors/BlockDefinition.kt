@@ -258,7 +258,7 @@ internal sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("kotlin")
-    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), color, the Actor type's Properties (number Properties are Floats), actorManager, and viewportManager. println doesn't reach the console; use the log Block, or Logger.log.")
+    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: the type's Properties (number Properties are Floats), actorManager, and viewportManager, and in an Actor type also velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), and color. println doesn't reach the console; use the log Block, or Logger.log.")
     data class Kotlin(
         @Description("The Kotlin statements.")
         @SerialName("code") val code: String = "",
