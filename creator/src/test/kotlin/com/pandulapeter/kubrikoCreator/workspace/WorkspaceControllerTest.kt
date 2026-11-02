@@ -524,10 +524,12 @@ class WorkspaceControllerTest {
         assertNull(controller.createActorType("Player"))
         assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
         assertEquals("Player", controller.blockTypes!!.selectedName.value)
+        assertEquals(WorkspaceSelection.BlockType("Player"), controller.selection.current.value)
         controller.sceneEditing.open(scene)
         assertNull(controller.createManagerType("Game"))
         assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
         assertEquals("Game", controller.blockTypes!!.selectedName.value)
+        assertEquals(WorkspaceSelection.BlockType("Game"), controller.selection.current.value)
     }
 
     @Test

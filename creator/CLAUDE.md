@@ -314,6 +314,8 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
 - Beginner-friendly by default: one Block category at a time, Blocks added by a click or a drag, and anything advanced (the package
   of a new project) under More options.
 - The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.
+- What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, or nothing), changed only
+  through `SelectionController`, the one place that pairs selecting a type with closing the Scene.
 
 ## Library side
 

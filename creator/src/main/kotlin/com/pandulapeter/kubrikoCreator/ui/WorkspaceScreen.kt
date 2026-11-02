@@ -43,7 +43,6 @@ import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
-import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
@@ -75,6 +74,7 @@ import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettings
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
+import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.project_upgrade_commit_message
@@ -98,7 +98,8 @@ internal fun WorkspaceScreen(
     val sessionState by controller.sessionState.collectAsState()
     val blockTypesController = controller.blockTypes
     val blockTypes = blockTypesController?.types?.collectAsState()?.value.orEmpty()
-    val selectedBlockTypeName = blockTypesController?.selectedName?.collectAsState()?.value
+    val selection by controller.selection.current.collectAsState()
+    val selectedBlockTypeName = (selection as? WorkspaceSelection.BlockType)?.name
     val selectedBlockType = blockTypes.firstOrNull { it.name == selectedBlockTypeName }
     val blockTypesChangedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
@@ -121,7 +122,7 @@ internal fun WorkspaceScreen(
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
     val family = remember(actorTypes) { ActorTypeFamily(actorTypes) }
-    val openSceneName = (sceneEditing as? SceneEditingState.Open)?.sceneName
+    val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
     val folderGroups = remember(blockTypes, blockTypeFolders, selectedBlockTypeName, sceneNames, sceneFolders, openSceneName, blockTypesController) {
         folderTreeGroups(
             types = blockTypes.takeIf { blockTypesController != null },
@@ -164,10 +165,7 @@ internal fun WorkspaceScreen(
     }
     LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
         val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
-        if (isAiEnabled && isFollowingAi && blockTypesController?.get(name) != null && blockTypesController.selectedName.value != name) {
-            controller.sceneEditing.close()
-            blockTypesController.select(name)
-        }
+        if (isAiEnabled && isFollowingAi && selection != WorkspaceSelection.BlockType(name)) controller.selection.selectType(name)
     }
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -236,20 +234,20 @@ internal fun WorkspaceScreen(
                         description = sceneDescriptions[state.sceneName],
                         onPlay = { controller.play(firstScene = state.sceneName) },
                         onReload = controller.sceneEditing::reload,
-                        onClose = controller.sceneEditing::close,
+                        onClose = controller.selection::clear,
                         onViewFailed = { exception, isShowingOlderClasses -> controller.sceneEditing.onViewFailed(state.revision, exception, isShowingOlderClasses) },
                     )
                     is SceneEditingState.Unsupported -> SceneNotice(
                         modifier = centerModifier,
                         sceneName = state.scene.name,
                         message = stringResource(state.reason, *state.arguments.toTypedArray()),
-                        onClose = controller.sceneEditing::close,
+                        onClose = controller.selection::clear,
                     )
                     is SceneEditingState.Failed -> SceneNotice(
                         modifier = centerModifier,
                         sceneName = state.scene.name,
                         message = stringResource(state.reason, *state.arguments.toTypedArray()),
-                        onClose = controller.sceneEditing::close,
+                        onClose = controller.selection::clear,
                         onTryAgain = controller.sceneEditing::reload,
                     )
                     is SceneEditingState.Preparing -> Box(centerModifier) {
@@ -257,7 +255,8 @@ internal fun WorkspaceScreen(
                     }
                     SceneEditingState.Closed -> Unit
                 }
-                if (sceneEditing == SceneEditingState.Closed && blockTypesController != null && selectedBlockType != null) {
+                // The selection follows the Scene state a dispatch later, so the type editor waits for the Scene to close too.
+                if (selection is WorkspaceSelection.BlockType && sceneEditing == SceneEditingState.Closed && selectedBlockType != null) {
                     key(selectedBlockType.name) {
                         BlockTypeEditor(
                             modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -283,11 +282,11 @@ internal fun WorkspaceScreen(
                                     },
                                 )
                             },
-                            onTypeSelected = blockTypesController::select,
+                            onTypeSelected = { controller.selection.selectType(it) },
                             highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
                         )
                     }
-                } else if (sceneEditing == SceneEditingState.Closed) {
+                } else if (selection == WorkspaceSelection.None) {
                     WorkspaceHint(
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
@@ -324,15 +323,15 @@ internal fun WorkspaceScreen(
                         onShowStep = { step ->
                             revisitedAiStep = RevisitedAiStep(step, latestStepId = latestAiStep?.id)
                             when (val target = step.target) {
-                                is CommandTarget.BlockType -> if (blockTypesController?.get(target.name) != null) folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, target.name)
-                                is CommandTarget.Scene -> if (openSceneName != target.name) folderTreeActions.onSelected(FolderGroup.SCENES, target.name)
+                                is CommandTarget.BlockType -> controller.selection.selectType(target.name)
+                                is CommandTarget.Scene -> controller.selection.openScene(target.name)
                                 else -> Unit
                             }
                         },
                         digest = digest,
                         findings = findings,
-                        onTypeSelected = { folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, it) },
-                        onSceneSelected = { if (openSceneName != it) folderTreeActions.onSelected(FolderGroup.SCENES, it) },
+                        onTypeSelected = { controller.selection.selectType(it) },
+                        onSceneSelected = { controller.selection.openScene(it) },
                         attention = attention,
                         captureScreen = { (controller.commands.context.runner.captureScreen() as? GameStep.Done)?.png },
                     )
