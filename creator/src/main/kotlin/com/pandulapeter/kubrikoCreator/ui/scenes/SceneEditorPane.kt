@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +24,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,9 +44,13 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
-import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths
+import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
+import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
+import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
+import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
@@ -85,6 +89,7 @@ internal fun SceneEditorPane(
     state: SceneEditingState.Open,
     onCommand: (Invocation<*>) -> Unit,
     actorTypeDragState: SidebarDragState,
+    panelLayout: PanelLayout,
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>,
     description: String?,
@@ -118,54 +123,61 @@ internal fun SceneEditorPane(
         selectedId = null
         onCommand(Invocation(RemoveActor, RemoveActor.Input(state.sceneName, actorId)))
     }
-    Row(
+    val actorListWidth = rememberPanelWidth(Panel.SCENE_ACTORS, panelLayout)
+    val inspectorWidth = rememberPanelWidth(Panel.SCENE_INSPECTOR, panelLayout)
+    BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
     ) {
-        if (isActorListShown) {
-            // Read so that the list follows the Actors created from the Scene's content.
-            view.loadRevision.collectAsState().value
-            SceneActorList(
-                modifier = Modifier.sidePanel(PanelWidths.SCENE_ACTORS),
-                entries = view.entries,
-                uncreatedIds = view.uncreatedIds,
+        val row = PanelRow(maxWidth, panelsInRow = if (isActorListShown) 2 else 1)
+        Row(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            if (isActorListShown) {
+                // Read so that the list follows the Actors created from the Scene's content.
+                view.loadRevision.collectAsState().value
+                SceneActorList(
+                    modifier = Modifier.sidePanel(actorListWidth.widthIn(row)),
+                    entries = view.entries,
+                    uncreatedIds = view.uncreatedIds,
+                    selectedId = selectedId,
+                    onSelect = { actorId ->
+                        selectedId = actorId
+                        view.centerOn(actorId)
+                    },
+                )
+                PanelSplitter(actorListWidth, row)
+            }
+            SceneCanvas(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                view = view,
+                actors = state.actors,
+                previews = state.previews,
+                isSceneReadable = state.problem == null,
                 selectedId = selectedId,
-                onSelect = { actorId ->
+                onSelect = { selectedId = it },
+                onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
+                onRemove = onRemove,
+                dragState = actorTypeDragState,
+                onPlace = { actorTypeName, x, y ->
+                    val actorId = SceneDocument.newId(view.entries.map { it.id })
                     selectedId = actorId
-                    view.centerOn(actorId)
+                    onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y, actorId)))
                 },
             )
-            VerticalDivider()
+            PanelSplitter(inspectorWidth, row)
+            SceneInspector(
+                modifier = Modifier.sidePanel(inspectorWidth.widthIn(row)),
+                view = view,
+                sceneName = state.sceneName,
+                selectedId = selectedId,
+                actorTypes = actorTypes,
+                music = music,
+                description = description,
+                onSelect = { selectedId = it },
+                onCommand = onCommand,
+                onRemove = onRemove,
+            )
         }
-        SceneCanvas(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            view = view,
-            actors = state.actors,
-            previews = state.previews,
-            isSceneReadable = state.problem == null,
-            selectedId = selectedId,
-            onSelect = { selectedId = it },
-            onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
-            onRemove = onRemove,
-            dragState = actorTypeDragState,
-            onPlace = { actorTypeName, x, y ->
-                val actorId = SceneDocument.newId(view.entries.map { it.id })
-                selectedId = actorId
-                onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y, actorId)))
-            },
-        )
-        VerticalDivider()
-        SceneInspector(
-            modifier = Modifier.sidePanel(PanelWidths.SCENE_INSPECTOR),
-            view = view,
-            sceneName = state.sceneName,
-            selectedId = selectedId,
-            actorTypes = actorTypes,
-            music = music,
-            description = description,
-            onSelect = { selectedId = it },
-            onCommand = onCommand,
-            onRemove = onRemove,
-        )
     }
 }
 

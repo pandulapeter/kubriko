@@ -315,6 +315,7 @@
     <string name="choice_search">Search</string>
     <string name="choice_none_found">Nothing matches.</string>
     <string name="sidebar_filter">Filter types, Scenes, and files</string>
+    <string name="panel_resize">Drag to resize, double-click for the default width</string>
     <string name="action_new_actor_type">New Actor type</string>
     <string name="action_new_folder">New folder</string>
     <string name="action_rename_folder">Rename</string>

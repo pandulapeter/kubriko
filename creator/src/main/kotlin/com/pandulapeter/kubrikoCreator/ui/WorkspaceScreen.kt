@@ -10,13 +10,13 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -33,14 +34,21 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
-import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths
+import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
+import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
+import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
+import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
 
 /**
  * An open project: the toolbar, the sidebar with the project's contents, the editor of what is selected, and the console.
+ *
+ * @param panelLayout The side panels' widths, which the user drags at their edges.
  */
 @Composable
 internal fun WorkspaceScreen(
@@ -48,6 +56,7 @@ internal fun WorkspaceScreen(
     mcp: McpController,
     aiClients: AiClientsController,
     assistant: AssistantController,
+    panelLayout: PanelLayout,
     onCloseProject: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
@@ -71,10 +80,7 @@ internal fun WorkspaceScreen(
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
     WorkspaceDialogs(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
-    LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
-        val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
-        if (isAiEnabled && uiState.isFollowingAi && selection != WorkspaceSelection.BlockType(name)) controller.selection.selectType(name)
-    }
+    FollowingAiSteps(controller = controller, uiState = uiState, latestAiStep = latestAiStep, selection = selection)
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -84,70 +90,71 @@ internal fun WorkspaceScreen(
                 .historyShortcutTarget()
                 .onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> if (isUndo) controller.commands.undo() else controller.commands.redo() } != null },
         ) {
-            WorkspaceToolbar(
+            WorkspaceToolbarOf(
+                controller = controller,
+                uiState = uiState,
                 sessionState = sessionState,
-                history = controller.commands.history,
-                onUndo = controller.commands::undo,
-                onRedo = controller.commands::redo,
-                gitState = controller.git.state,
                 isAiConnected = mcpState is McpServerState.Running,
-                openPanel = uiState.openPanel,
-                onPanelToggled = { panel -> if (uiState.togglePanel(panel)) controller.git.refresh() },
-                onPlay = controller::play,
-                onStop = controller::stopSession,
-                onRefresh = controller::refreshResources,
-                onOpenProjectSettings = uiState::showProjectSettings,
                 onOpenSettings = onOpenSettings,
                 onCloseProject = onCloseProject,
             )
             HorizontalDivider()
             WorkspaceNotices(uiState = uiState, aiSteps = aiSteps, readOnlyReason = readOnlyReason, isUpgradeNeeded = projectUpgrade != null)
-            Row(
+            val isAiPanelShown = uiState.openPanel == SidePanel.AI && isAiEnabled
+            val isGitPanelShown = uiState.openPanel == SidePanel.VERSION_CONTROL
+            BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
-                ProjectSidebar(
-                    modifier = Modifier.sidePanel(PanelWidths.SIDEBAR),
-                    resources = resources,
-                    folderGroups = rememberFolderTreeGroups(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName),
-                    folderActions = rememberFolderTreeActions(controller),
-                    dragState = sidebarDragState,
-                    flashedName = shownAiStep?.step?.sidebarName(),
-                    flashKey = shownAiStep?.flashKey,
-                )
-                VerticalDivider()
-                WorkspaceCenter(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    selection = selection,
-                    sceneEditing = sceneEditing,
-                    blockTypes = blockTypes,
-                    resources = resources,
-                    sceneNames = sceneNames,
-                    sceneDescriptions = controller.scenes.descriptions.current.collectAsState().value,
-                    changedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty(),
-                    shownAiStep = shownAiStep,
-                    actorTypeDragState = sidebarDragState,
-                    onCommand = { controller.commands.dispatch(it) },
-                    onCommandIfValid = controller::dispatchIfValid,
-                    onTypeSelected = { controller.selection.selectType(it) },
-                    onPlayScene = { controller.play(firstScene = it) },
-                    onReloadScene = controller.sceneEditing::reload,
-                    onCloseScene = controller.selection::clear,
-                    onSceneViewFailed = controller.sceneEditing::onViewFailed,
-                )
-                if (uiState.openPanel == SidePanel.AI && isAiEnabled) {
-                    WorkspaceAiSidePanel(
-                        controller = controller,
-                        uiState = uiState,
-                        mcp = mcp,
-                        aiClients = aiClients,
-                        assistant = assistant,
-                        aiSteps = aiSteps,
-                        openSceneName = openSceneName,
-                        selectedBlockType = selectedBlockType,
-                        sessionState = sessionState,
+                val row = PanelRow(maxWidth, panelsInRow = if (isAiPanelShown || isGitPanelShown) 2 else 1)
+                val sidebarWidth = rememberPanelWidth(Panel.SIDEBAR, panelLayout)
+                Row(Modifier.fillMaxSize()) {
+                    ProjectSidebar(
+                        modifier = Modifier.sidePanel(sidebarWidth.widthIn(row)),
+                        resources = resources,
+                        folderGroups = rememberFolderTreeGroups(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName),
+                        folderActions = rememberFolderTreeActions(controller),
+                        dragState = sidebarDragState,
+                        flashedName = shownAiStep?.step?.sidebarName(),
+                        flashKey = shownAiStep?.flashKey,
                     )
+                    PanelSplitter(sidebarWidth, row)
+                    WorkspaceCenter(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        selection = selection,
+                        sceneEditing = sceneEditing,
+                        blockTypes = blockTypes,
+                        resources = resources,
+                        sceneNames = sceneNames,
+                        sceneDescriptions = controller.scenes.descriptions.current.collectAsState().value,
+                        changedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty(),
+                        shownAiStep = shownAiStep,
+                        actorTypeDragState = sidebarDragState,
+                        panelLayout = panelLayout,
+                        onCommand = { controller.commands.dispatch(it) },
+                        onCommandIfValid = controller::dispatchIfValid,
+                        onTypeSelected = { controller.selection.selectType(it) },
+                        onPlayScene = { controller.play(firstScene = it) },
+                        onReloadScene = controller.sceneEditing::reload,
+                        onCloseScene = controller.selection::clear,
+                        onSceneViewFailed = controller.sceneEditing::onViewFailed,
+                    )
+                    if (isAiPanelShown) {
+                        WorkspaceAiSidePanel(
+                            controller = controller,
+                            uiState = uiState,
+                            mcp = mcp,
+                            aiClients = aiClients,
+                            assistant = assistant,
+                            aiSteps = aiSteps,
+                            openSceneName = openSceneName,
+                            selectedBlockType = selectedBlockType,
+                            sessionState = sessionState,
+                            width = rememberPanelWidth(Panel.AI, panelLayout),
+                            row = row,
+                        )
+                    }
+                    if (isGitPanelShown) WorkspaceGitSidePanel(controller, rememberPanelWidth(Panel.VERSION_CONTROL, panelLayout), row)
                 }
-                if (uiState.openPanel == SidePanel.VERSION_CONTROL) WorkspaceGitSidePanel(controller)
             }
             HorizontalDivider()
             WorkspaceConsole(
@@ -156,5 +163,47 @@ internal fun WorkspaceScreen(
             )
         }
         SidebarDragPreview(sidebarDragState)
+    }
+}
+
+@Composable
+private fun WorkspaceToolbarOf(
+    controller: WorkspaceController,
+    uiState: WorkspaceUiState,
+    sessionState: SessionState,
+    isAiConnected: Boolean,
+    onOpenSettings: () -> Unit,
+    onCloseProject: () -> Unit,
+) = WorkspaceToolbar(
+    sessionState = sessionState,
+    history = controller.commands.history,
+    onUndo = controller.commands::undo,
+    onRedo = controller.commands::redo,
+    gitState = controller.git.state,
+    isAiConnected = isAiConnected,
+    openPanel = uiState.openPanel,
+    onPanelToggled = { panel -> if (uiState.togglePanel(panel)) controller.git.refresh() },
+    onPlay = controller::play,
+    onStop = controller::stopSession,
+    onRefresh = controller::refreshResources,
+    onOpenProjectSettings = uiState::showProjectSettings,
+    onOpenSettings = onOpenSettings,
+    onCloseProject = onCloseProject,
+)
+
+/**
+ * Selects each Actor type the AI changes, while the user follows the AI.
+ */
+@Composable
+private fun FollowingAiSteps(
+    controller: WorkspaceController,
+    uiState: WorkspaceUiState,
+    latestAiStep: AiStep?,
+    selection: WorkspaceSelection,
+) {
+    val isAiEnabled = LocalIsAiEnabled.current
+    LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
+        val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
+        if (isAiEnabled && uiState.isFollowingAi && selection != WorkspaceSelection.BlockType(name)) controller.selection.selectType(name)
     }
 }

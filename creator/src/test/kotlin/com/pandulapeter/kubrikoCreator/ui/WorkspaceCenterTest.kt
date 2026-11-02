@@ -19,6 +19,7 @@ import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
@@ -49,6 +50,7 @@ class WorkspaceCenterTest {
                     changedByHand = emptySet(),
                     shownAiStep = null,
                     actorTypeDragState = SidebarDragState(),
+                    panelLayout = PanelLayout(emptyMap(), onWidthChange = { _, _ -> }, onWidthReset = {}),
                     onCommand = {},
                     onCommandIfValid = { null },
                     onTypeSelected = {},

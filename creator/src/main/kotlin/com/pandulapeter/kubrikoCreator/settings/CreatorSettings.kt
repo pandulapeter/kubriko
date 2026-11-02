@@ -20,6 +20,8 @@ import kotlinx.serialization.Serializable
  *   agent, and sends nothing anywhere.
  * @param interfaceScale How much smaller or larger than Material's own sizes everything is drawn.
  * @param defaultProjectFolder Where New project creates projects unless told otherwise, the home folder when null.
+ * @param panelWidths The widths in dp the user dragged the side panels to, by their `PanelWidths.Panel.id`; the others have
+ *   their default width.
  */
 @Serializable
 internal data class CreatorSettings(
@@ -27,6 +29,7 @@ internal data class CreatorSettings(
     @SerialName("theme") val theme: ThemeChoice = ThemeChoice.SYSTEM,
     @SerialName("interfaceScale") val interfaceScale: Float = DEFAULT_INTERFACE_SCALE,
     @SerialName("defaultProjectFolder") val defaultProjectFolder: String? = null,
+    @SerialName("panelWidths") val panelWidths: Map<String, Float> = emptyMap(),
 ) {
     companion object {
         const val DEFAULT_INTERFACE_SCALE = 0.85f

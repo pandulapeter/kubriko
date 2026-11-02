@@ -63,7 +63,8 @@ Besides its tests passing, a change:
   project, `LatestRequests` for background reads whose results may land out of order; in the UI `BufferedTextField`
   (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, `SearchableChoiceButton` for every
   choice of the project's contents (types, Scenes, sprites, audio files, Properties), which grow without bound (it filters once
-  there are more than eight; `KeyChoiceButton` ranks keys by the same `matchingOptions`), and `PanelWidths` with `sidePanel`; in command tests
+  there are more than eight; `KeyChoiceButton` ranks keys by the same `matchingOptions`), and `PanelWidths` with `sidePanel` and
+  `PanelSplitter` for every side panel; in command tests
   `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
   and their contracts).
 - Has its unhappy paths designed: what happens when it throws, when it is cancelled, when it is called again while the first call
@@ -308,7 +309,9 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
 
 ## Settings
 
-- **Creator settings** (`settings/`) are this user's on this computer; an unreadable file means the defaults.
+- **Creator settings** (`settings/`) are this user's on this computer; an unreadable file means the defaults. The side panels'
+  widths are dragged at their edges and kept per panel (`panelWidths`, by an ID that never changes), saved once per drag, and
+  clamped to the window when drawn, so the panels of a row never take more than half of it.
 - **Project settings** live in the project where its build reads them, so it builds the same without Creator. The game's identity is
   `game.*` keys in `gradle.properties`, edited line by line (`GradleProperties`: other lines untouched, values escaped as Gradle
   reads the ISO-8859-1 file); a project whose build doesn't read them (`GameIdentity.isReadByBuild`) is offered the template upgrade.

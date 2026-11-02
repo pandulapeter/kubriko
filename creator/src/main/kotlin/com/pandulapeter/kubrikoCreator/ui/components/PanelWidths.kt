@@ -9,15 +9,27 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
  * The widths of the side panels beside the workspace's editors.
  */
 internal object PanelWidths {
-    val SIDEBAR = 260.dp
-    val AI = 360.dp
-    val VERSION_CONTROL = 300.dp
-    val SCENE_ACTORS = 220.dp
-    val SCENE_INSPECTOR = 260.dp
+
+    /**
+     * A side panel the user can resize, with its [default] width, the [side] of its splitter it is on, and the [id] its
+     * width is kept under in Creator's settings, which must never change.
+     */
+    enum class Panel(
+        val default: Dp,
+        val id: String,
+        val side: PanelSide,
+    ) {
+        SIDEBAR(260.dp, "sidebar", PanelSide.START),
+        AI(360.dp, "ai", PanelSide.END),
+        VERSION_CONTROL(300.dp, "versionControl", PanelSide.END),
+        SCENE_ACTORS(220.dp, "sceneActors", PanelSide.START),
+        SCENE_INSPECTOR(260.dp, "sceneInspector", PanelSide.END),
+    }
 }

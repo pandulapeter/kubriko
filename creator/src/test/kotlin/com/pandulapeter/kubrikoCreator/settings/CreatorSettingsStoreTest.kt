@@ -52,4 +52,13 @@ class CreatorSettingsStoreTest {
         file.writeText("""{"interfaceScale":0.98,"someLaterSetting":3}""")
         assertEquals(1f, store.load().interfaceScale)
     }
+
+    @Test
+    fun panelWidthsAreKeptAndAnOlderFileWithoutThemLoads() {
+        val settings = CreatorSettings(panelWidths = mapOf("sidebar" to 320f))
+        store.save(settings)
+        assertEquals(settings, CreatorSettingsStore(file).load())
+        file.writeText("""{"isAiEnabled":false,"theme":"DARK","interfaceScale":0.85,"defaultProjectFolder":null}""")
+        assertEquals(emptyMap(), store.load().panelWidths)
+    }
 }
