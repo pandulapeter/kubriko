@@ -323,6 +323,8 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
 - Beginner-friendly by default: one Block category at a time, Blocks added by a click or a drag, and anything advanced (the package
   of a new project) under More options.
 - The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.
+- A field above the sidebar's groups filters everything in it by name, showing the folders that hold matches opened; the folders
+  the user collapsed are left as they were and come back once the filter is cleared.
 - What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, or nothing), changed only
   through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
   own panels, dialogs, and AI-follow state live in `WorkspaceUiState`, a plain class its tests reach without a UI.
