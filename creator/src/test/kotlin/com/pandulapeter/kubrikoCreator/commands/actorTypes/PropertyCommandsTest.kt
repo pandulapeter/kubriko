@@ -196,4 +196,30 @@ class PropertyCommandsTest {
         assertEquals(brick, context.blockTypes["Brick"])
         assertEquals(0, executor.history.value.undoable.size)
     }
+
+    @Test
+    fun undoingAnAddBringsBackTheValuesItDropped() = runTest {
+        val context = context(SceneActorEntry("Player", """{"title":"full"}""", "p"))
+        val original = context.scenes.read("main")
+        val executor = CommandExecutor(context, testScope())
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(RemoveProperty, RemoveProperty.Input("Player", "title"))))
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Number("title")))))
+        val added = context.scenes.read("main")
+        assertEquals(listOf("{}"), context.states())
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(original, context.scenes.fileOf("main").readText())
+        assertEquals(player, context.player())
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = false))
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = false))
+        assertEquals(added, context.scenes.fileOf("main").readText())
+        assertEquals(listOf(score, PropertyDefinition.Number("title")), context.player().properties)
+    }
+
+    @Test
+    fun addingAPropertyThatDropsSceneValuesRoundTrips() = runTest {
+        val context = context(SceneActorEntry("Player", """{"lives":"many"}""", "p"))
+        val added = context.assertRoundTrip(Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Number("lives")))) { context.player() to context.states() }
+        assertEquals(listOf("{}"), added.second)
+    }
 }

@@ -132,6 +132,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   the reason (an undo step that throws is dropped), and commands that change several Scenes write them all or none
   (`SceneStore.writeAll`), putting their type change back when the Scenes can't be written. `dispatch` starts undispatched, so
   in-memory changes show before it returns, and rejections of dispatched changes and undo steps go to the console.
+  `CompositeCommand` (internal, not a tool) makes several invocations one undo step and rolls back the done ones when a later one
+  fails; `add_property`'s undo uses it to bring back the Scene values the add dropped.
 - **Undo and redo restore:** their steps are `isRestoring` and validated by `WriteCommand.validateRestoring`, since what they bring
   back may name types, Scenes, or sounds deleted since; restoring checks only the structure (the type, Event, or Block exists, the
   name is free).

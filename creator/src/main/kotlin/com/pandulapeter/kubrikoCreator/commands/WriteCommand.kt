@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import org.jetbrains.compose.resources.StringResource
+
 /**
  * A command that changes the project. It is validated before it is applied, and applying it returns the command that
  * reverts it, which is what undo and redo run.
@@ -19,6 +21,16 @@ internal interface WriteCommand<I> : EditorCommand<I> {
      * Whether the change throws work away for good (it can't be undone), so that AI clients ask before making it.
      */
     val isDestructive: Boolean get() = false
+
+    /**
+     * How the user interface names the change [input] describes: [title], unless it depends on the input.
+     */
+    fun title(input: I): StringResource = title
+
+    /**
+     * Everything the command with [input] changes: its [target], unless it changes more than one thing.
+     */
+    fun targets(context: CommandContext, input: I): Set<CommandTarget> = setOfNotNull(target(context, input))
 
     /**
      * Why [input] can't be applied to the project as it is now, or null if it can.

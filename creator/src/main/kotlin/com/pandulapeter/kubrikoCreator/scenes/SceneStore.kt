@@ -200,18 +200,18 @@ internal class SceneStore(
      * @return The names of the Scenes that changed.
      */
     @EditorMutation
-    fun renameTypeId(oldTypeId: String, newTypeId: String) = changeActors { actor -> if (actor.typeId == oldTypeId) actor.copy(typeId = newTypeId) else actor }
+    fun renameTypeId(oldTypeId: String, newTypeId: String) = changeActors { actor -> if (actor.typeId == oldTypeId) actor.copy(typeId = newTypeId) else actor }.keys.toList()
 
     /**
      * Changes the state of every Actor of the [typeId] type in every Scene with [change]. States that aren't JSON
      * objects are left alone.
      *
-     * @return The names of the Scenes that changed.
+     * @return The states it replaced, by Actor ID, by the name of the Scene, for the Actors that changed.
      */
     @EditorMutation
-    fun changeStates(typeId: String, change: (JsonObject) -> JsonObject) = changeActors { actor ->
+    fun changeStates(typeId: String, change: (JsonObject) -> JsonObject): Map<String, Map<String, String>> = changeActors { actor ->
         if (actor.typeId == typeId) SceneDocument.withStateChanged(actor.state, change)?.let { actor.copy(state = it) } ?: actor else actor
-    }
+    }.mapValues { (_, changed) -> changed.associate { (before, _) -> before.id to before.state } }
 
     /**
      * Writes every Scene in [changes], or, when one can't be written, puts back those written before it and throws.
@@ -238,16 +238,24 @@ internal class SceneStore(
         }
     }
 
+    /**
+     * Changes the Actors of every Scene with [change], and returns each changed Actor as it was and as it became, by the
+     * name of its Scene.
+     */
     @EditorMutation
-    private fun changeActors(change: (SceneActorEntry) -> SceneActorEntry): List<String> {
+    private fun changeActors(change: (SceneActorEntry) -> SceneActorEntry): Map<String, List<Pair<SceneActorEntry, SceneActorEntry>>> {
         val changes = LinkedHashMap<String, List<SceneActorEntry>>()
+        val changedActors = LinkedHashMap<String, List<Pair<SceneActorEntry, SceneActorEntry>>>()
         names().forEach { name ->
             val actors = actors(name) ?: return@forEach
             val changed = actors.map(change)
-            if (changed != actors) changes[name] = changed
+            if (changed != actors) {
+                changes[name] = changed
+                changedActors[name] = actors.zip(changed).filter { (before, after) -> before != after }
+            }
         }
         writeAll(changes)
-        return changes.keys.toList()
+        return changedActors
     }
 
     private fun file(name: String) = sceneResources().firstOrNull { nameOf(it.file) == name && it.file.isFile }?.file

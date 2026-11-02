@@ -15,10 +15,12 @@ import com.pandulapeter.kubrikoCreator.actors.withPropertyInserted
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.CompositeCommand
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
@@ -44,13 +46,18 @@ internal object AddProperty : WriteCommand<AddProperty.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
         context.requireBlockTypes.put(definition.withPropertyInserted(input.index ?: definition.properties.size, input.property))
-        try {
+        val replaced = try {
             context.changeSceneStates(input.actorType) { it.withoutMismatchedValue(input.property.name, PropertyKind.of(input.property)) }
         } catch (exception: Exception) {
             context.requireBlockTypes.put(definition)
             throw exception
         }
-        return Applied(inverse = Invocation(RemoveProperty, RemoveProperty.Input(input.actorType, input.property.name)))
+        val removal = Invocation(RemoveProperty, RemoveProperty.Input(input.actorType, input.property.name))
+        if (replaced.isEmpty()) return Applied(inverse = removal)
+        val restoredStates = replaced.map { (scene, states) ->
+            Invocation(SetActorsState, SetActorsState.Input(scene, states.map { (id, state) -> SetActorsState.ActorState(id, state) }), isRestoring = true)
+        }
+        return Applied(inverse = Invocation(CompositeCommand, CompositeCommand.Input(listOf(removal.copy(isRestoring = true)) + restoredStates)))
     }
 
     @Serializable

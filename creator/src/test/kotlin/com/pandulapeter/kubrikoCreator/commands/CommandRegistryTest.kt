@@ -35,6 +35,8 @@ class CommandRegistryTest {
             .filter { it.startsWith("com.pandulapeter.kubrikoCreator.") }
             .map { Class.forName(it, false, javaClass.classLoader) }
             .filter { EditorCommand::class.java.isAssignableFrom(it) && !it.isInterface && !Modifier.isAbstract(it.modifiers) }
+            // Internal, not a tool.
+            .filter { it != CompositeCommand::class.java }
             .toSet()
         assertTrue(commandClasses.isNotEmpty())
         assertEquals(commandClasses.map { it.name }.sorted(), registry.commands.map { it.javaClass.name }.sorted())

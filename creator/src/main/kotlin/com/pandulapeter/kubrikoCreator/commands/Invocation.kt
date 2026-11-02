@@ -20,9 +20,11 @@ internal data class Invocation<I>(
     val input: I,
     val isRestoring: Boolean = false,
 ) {
-    val title get() = command.title
+    val title get() = command.title(input)
 
     fun target(context: CommandContext) = command.target(context, input)
+
+    fun targets(context: CommandContext) = command.targets(context, input)
 
     /**
      * Whether [next], made right after this, is undone together with it ([WriteCommand.mergesWith]).
