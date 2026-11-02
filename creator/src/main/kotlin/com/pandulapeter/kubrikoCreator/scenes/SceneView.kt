@@ -107,28 +107,28 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
      * drawn from those looks instead of their classes, and are created again when their type's look changes.
      */
     suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews) {
-        val previous = this.previews
-        this.previews = previews
-        val patch = ScenePatch.between(entries, next) { entry -> previous[entry.typeId] != previews[entry.typeId] }
+        val patch = ScenePatch.between(entries, next) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }
         if (patch == null) {
-            val created = withContext(Dispatchers.Default) { next.map(::createActor) }
+            val created = withContext(Dispatchers.Default) { next.map { createActor(it, previews) } }
+            this.previews = previews
             entries = next
             actors = created
             isBoundsGridOutdated = true
             actorManager.removeAll()
             actorManager.add(created.filterNotNull())
         } else {
-            apply(patch, next)
+            apply(patch, next, previews)
         }
         indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
         uncreatedIds = uncreatedIdsOf(entries, actors)
         _loadRevision.update { it + 1 }
     }
 
-    private suspend fun apply(patch: ScenePatch, next: List<SceneActorEntry>) {
+    private suspend fun apply(patch: ScenePatch, next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook>) {
         val created = withContext(Dispatchers.Default) {
-            next.indices.filter { patch.actions[it] is ScenePatch.Action.Replace || patch.actions[it] == ScenePatch.Action.Add }.associateWith { createActor(next[it]) }
+            next.indices.filter { patch.actions[it] is ScenePatch.Action.Replace || patch.actions[it] == ScenePatch.Action.Add }.associateWith { createActor(next[it], previews) }
         }
+        this.previews = previews
         val removed = ArrayList<Actor>()
         val added = ArrayList<Actor>()
         val nextActors = next.indices.map { index ->
@@ -222,7 +222,7 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
 
     fun dispose() = kubriko.dispose()
 
-    private fun createActor(entry: SceneActorEntry): Editable<*>? = previews[entry.typeId]?.let { look ->
+    private fun createActor(entry: SceneActorEntry, previews: Map<String, ActorTypeLook>): Editable<*>? = previews[entry.typeId]?.let { look ->
         PreviewActor(entry.state, look, look.spriteFile?.let { file -> synchronized(previewSprites) { previewSprites.getOrPut(file) { readSprite(file) } } })
     } ?: try {
         serializationManager.deserializeActors(SceneDocument.format(listOf(entry))).firstOrNull()

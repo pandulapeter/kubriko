@@ -18,6 +18,8 @@ import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.float
@@ -113,6 +115,20 @@ class SceneViewTest {
         view.load(view.entries, previews = emptyMap())
         assertIs<Box>(view.actorOf("a"))
         assertNotSame(real, view.actorOf("b"))
+    }
+
+    @Test
+    fun aLoadCancelledAfterALookChangedLetsTheNextLoadDrawTheNewLook() = runTest {
+        val look = ActorTypeLook(ActorShape.CIRCLE, color = 0xFF112233, width = 50f, height = 50f)
+        val changedLook = look.copy(shape = ActorShape.RECTANGLE)
+        view.load(listOf(box("a", 0f, 0f)), previews = mapOf(TYPE_ID to look))
+        val before = view.actorOf("a")
+        val cancelled = launch { view.load(view.entries, previews = mapOf(TYPE_ID to changedLook)) }
+        runCurrent()
+        cancelled.cancel()
+        view.load(view.entries, previews = mapOf(TYPE_ID to changedLook))
+        cancelled.join()
+        assertNotSame(before, view.actorOf("a"))
     }
 
     @Test
