@@ -81,7 +81,7 @@ internal object ClassLoaderEntryPointLoader : EntryPointLoader {
         urls = files.map { file ->
             if (isProjectOutput(file) && file.isFile) file.copyTo(File(copies, "${copies.list().orEmpty().size}-${file.name}")) else file
         }.map { it.toURI().toURL() }.toTypedArray(),
-        classFiles = files.filter { isProjectOutput(it) && it.isDirectory }.reversed().fold(emptyMap()) { classFiles, folder -> classFiles + classFilesOf(folder) },
+        classFiles = HashMap<String, ByteArray>().apply { files.filter { isProjectOutput(it) && it.isDirectory }.reversed().forEach { putAll(classFilesOf(it)) } },
         parent = parent,
     )
 

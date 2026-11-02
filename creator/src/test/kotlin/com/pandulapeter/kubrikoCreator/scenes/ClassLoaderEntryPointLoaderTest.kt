@@ -21,6 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class ClassLoaderEntryPointLoaderTest {
@@ -108,6 +109,22 @@ class ClassLoaderEntryPointLoaderTest {
             assertEquals(classLoader, classLoader.loadClass(SnapshotProbe::class.java.name).classLoader)
             assertEquals("{ }", classLoader.getResource("files/scene.json")!!.readText())
             assertTrue(copies.list().orEmpty().isEmpty(), "folders aren't copied")
+        }
+    }
+
+    @Test
+    fun aClassLoadedAgainIsTheSameClass() {
+        val classes = File(root, "game/build/classes").apply { mkdirs() }
+        val probePath = SnapshotProbe::class.java.name.replace('.', '/') + ".class"
+        File(classes, probePath).apply {
+            parentFile.mkdirs()
+            writeBytes(checkNotNull(SnapshotProbe::class.java.classLoader.getResourceAsStream(probePath)).use { it.readBytes() })
+        }
+        val copies = File(root, "copies").apply { mkdirs() }
+        ClassLoaderEntryPointLoader.classLoaderOf(listOf(classes), copies, parent = ClassLoader.getPlatformClassLoader()).use { classLoader ->
+            val loaded = classLoader.loadClass(SnapshotProbe::class.java.name)
+            assertSame(loaded, classLoader.loadClass(SnapshotProbe::class.java.name))
+            assertEquals(classLoader, loaded.classLoader)
         }
     }
 }

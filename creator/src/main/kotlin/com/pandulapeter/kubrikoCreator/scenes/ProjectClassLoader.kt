@@ -19,16 +19,21 @@ import java.net.URLClassLoader
  */
 internal class ProjectClassLoader(
     urls: Array<URL>,
-    private val classFiles: Map<String, ByteArray>,
+    private val classFiles: MutableMap<String, ByteArray>,
     parent: ClassLoader,
 ) : URLClassLoader(urls, parent) {
 
     override fun findClass(name: String): Class<*> {
-        val bytes = classFiles[name] ?: return super.findClass(name)
+        val bytes = classFiles.remove(name) ?: return super.findClass(name)
         val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
         if (packageName.isNotEmpty() && getDefinedPackage(packageName) == null) {
             definePackage(packageName, null, null, null, null, null, null, null)
         }
-        return defineClass(name, bytes, 0, bytes.size)
+        return try {
+            defineClass(name, bytes, 0, bytes.size)
+        } catch (error: LinkageError) {
+            classFiles[name] = bytes
+            throw error
+        }
     }
 }
