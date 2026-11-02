@@ -99,7 +99,8 @@ internal class ActorTypeFeatures(
         if (isDynamic) add("com.pandulapeter.kubriko.actor.traits.Dynamic")
         if (usesActorManager) add("com.pandulapeter.kubriko.manager.ActorManager")
         if (usesViewportManager) add("com.pandulapeter.kubriko.manager.ViewportManager")
-        if (lookups.isNotEmpty()) addAll(listOf("com.pandulapeter.kubriko.Kubriko", "com.pandulapeter.kubriko.helpers.extensions.get"))
+        if (lookups.isNotEmpty() || addedEvents.isNotEmpty()) add("com.pandulapeter.kubriko.Kubriko")
+        if (lookups.isNotEmpty()) add("com.pandulapeter.kubriko.helpers.extensions.get")
         if (isDynamic || edgeEvents.isNotEmpty() || generatedBlocks.any { it is BlockDefinition.JumpTo || (it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames) }) {
             add("com.pandulapeter.kubriko.types.SceneOffset")
         }

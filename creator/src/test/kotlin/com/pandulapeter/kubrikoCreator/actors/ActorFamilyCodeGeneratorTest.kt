@@ -53,6 +53,16 @@ class ActorFamilyCodeGeneratorTest {
     }
 
     @Test
+    fun aFamilyWhoseOnlyEventIsAddedToTheSceneImportsKubrikoForItsOnAdded() {
+        val greeter = ActorTypeDefinition(name = "Greeter", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Log("Hello")))))
+        val loudGreeter = ActorTypeDefinition(name = "LoudGreeter", parent = "Greeter")
+        val types = listOf(greeter, loudGreeter)
+        val code = ActorTypeCodeGenerator.generateActorType(definition = greeter, packageName = "com.example.game", knownActorTypeNames = types.map { it.name }, actorTypes = types)
+        assertContains(code, "    override fun onAdded(kubriko: Kubriko) {\n")
+        assertContains(code, "import com.pandulapeter.kubriko.Kubriko\n")
+    }
+
+    @Test
     fun aChildOverridesTheHooksOfItsEventsAndRunsItsParentsWithSuper() {
         val code = generate(bat)
         assertFalse("abstract class" in code)

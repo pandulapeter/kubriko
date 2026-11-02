@@ -76,10 +76,22 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun addedToSceneBlocksRunAfterTheManagersAreResolved() {
-        val code = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(240f, 180f))))
+        val code = generate(
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(240f, 180f))),
+            EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)),
+        )
         val onAdded = code.substringAfter("override fun onAdded(kubriko: Kubriko) {").substringBefore("\n    }")
-        assertTrue(onAdded.indexOf("viewportManager = kubriko.get()") < onAdded.indexOf("velocity = SceneOffset(240f.sceneUnit, 180f.sceneUnit)"), onAdded)
+        val lookup = onAdded.indexOf("viewportManager = kubriko.get()")
+        val block = onAdded.indexOf("velocity = SceneOffset(240f.sceneUnit, 180f.sceneUnit)")
+        assertTrue(lookup >= 0 && lookup < block, onAdded)
         assertContains(onAdded, "// When added to the Scene")
+    }
+
+    @Test
+    fun anAddedToSceneEventWithoutManagerLookupsStillImportsKubriko() {
+        val code = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Log("Hello"))))
+        assertContains(code, "    override fun onAdded(kubriko: Kubriko) {\n")
+        assertContains(code, "import com.pandulapeter.kubriko.Kubriko\n")
     }
 
     @Test
