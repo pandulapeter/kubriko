@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -31,10 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_done
 import kubriko.creator.generated.resources.action_review_upgrade
@@ -60,11 +57,10 @@ internal fun ProjectSettingsDialog(
     onChange: (SetProjectSettings.Input) -> Unit,
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
-) = AlertDialog(
-    modifier = Modifier.widthIn(max = 560.dp).padding(24.dp),
-    properties = DialogProperties(usePlatformDefaultWidth = false),
-    onDismissRequest = onDismiss,
-    title = { Text(stringResource(Res.string.project_settings_title)) },
+) = CreatorDialog(
+    title = stringResource(Res.string.project_settings_title),
+    maxWidth = 560.dp,
+    onDismiss = onDismiss,
     text = {
         Column(
             modifier = Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()),
@@ -93,19 +89,10 @@ internal fun ProjectSettingsDialog(
 private fun IdentitySection(
     identity: GameIdentity,
     onChange: (SetProjectSettings.Input) -> Unit,
-) = Column(
-    verticalArrangement = Arrangement.spacedBy(10.dp),
+) = SettingsSection(
+    title = Res.string.project_settings_section_identity,
+    description = Res.string.project_settings_identity_description,
 ) {
-    Text(
-        text = stringResource(Res.string.project_settings_section_identity),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-    )
-    Text(
-        text = stringResource(Res.string.project_settings_identity_description),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
     IdentityField.entries.forEach { field ->
         IdentityTextField(
             field = field,

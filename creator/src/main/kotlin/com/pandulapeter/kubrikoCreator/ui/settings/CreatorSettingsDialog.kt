@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -30,9 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 import com.pandulapeter.kubrikoCreator.settings.ThemeChoice
+import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import com.pandulapeter.kubrikoCreator.ui.pickFolder
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_browse
@@ -68,11 +65,10 @@ internal fun CreatorSettingsDialog(
     onInterfaceScaleChange: (Float) -> Unit,
     onDefaultProjectFolderChange: (File?) -> Unit,
     onDismiss: () -> Unit,
-) = AlertDialog(
-    modifier = Modifier.widthIn(max = 560.dp).padding(24.dp),
-    properties = DialogProperties(usePlatformDefaultWidth = false),
-    onDismissRequest = onDismiss,
-    title = { Text(stringResource(Res.string.settings_title)) },
+) = CreatorDialog(
+    title = stringResource(Res.string.settings_title),
+    maxWidth = 560.dp,
+    onDismiss = onDismiss,
     text = {
         Column(
             modifier = Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()),
@@ -104,7 +100,7 @@ internal fun CreatorSettingsDialog(
 private fun AiSection(
     isAiEnabled: Boolean,
     onAiEnabledChange: (Boolean) -> Unit,
-) = Section(Res.string.settings_section_ai) {
+) = SettingsSection(Res.string.settings_section_ai) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -134,7 +130,7 @@ private fun AppearanceSection(
     interfaceScale: Float,
     onThemeChange: (ThemeChoice) -> Unit,
     onInterfaceScaleChange: (Float) -> Unit,
-) = Section(Res.string.settings_section_appearance) {
+) = SettingsSection(Res.string.settings_section_appearance) {
     Label(Res.string.settings_theme)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         ThemeChoice.entries.forEach { choice ->
@@ -162,7 +158,7 @@ private fun EditorSection(
     defaultProjectFolder: File,
     isHomeFolder: Boolean,
     onDefaultProjectFolderChange: (File?) -> Unit,
-) = Section(Res.string.settings_section_editor) {
+) = SettingsSection(Res.string.settings_section_editor) {
     Label(Res.string.settings_default_project_folder)
     Text(
         text = defaultProjectFolder.path,
@@ -179,21 +175,6 @@ private fun EditorSection(
             }
         }
     }
-}
-
-@Composable
-private fun Section(
-    title: StringResource,
-    content: @Composable () -> Unit,
-) = Column(
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-) {
-    Text(
-        text = stringResource(title),
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-    )
-    content()
 }
 
 @Composable

@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,8 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
+import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_done
 import kubriko.creator.generated.resources.manager_type_kotlin_ui_hint
@@ -43,11 +40,10 @@ internal fun KotlinUiDialog(
     code: String,
     onCodeChange: (String) -> Unit,
     onDismiss: () -> Unit,
-) = AlertDialog(
-    modifier = Modifier.widthIn(max = 860.dp).padding(24.dp),
-    properties = DialogProperties(usePlatformDefaultWidth = false),
-    onDismissRequest = onDismiss,
-    title = { Text(stringResource(Res.string.manager_type_kotlin_ui_title, managerTypeName)) },
+) = CreatorDialog(
+    title = stringResource(Res.string.manager_type_kotlin_ui_title, managerTypeName),
+    maxWidth = 860.dp,
+    onDismiss = onDismiss,
     text = {
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()),
