@@ -16,9 +16,9 @@ import kotlin.test.assertFailsWith
 class SessionArgumentsTest {
 
     @Test
-    fun editModeTakesASceneFolderAndAnOptionalSceneFile() {
-        assertEquals(SessionArguments.Edit("scenes", null), SessionArguments.parse(listOf("edit", "scenes")))
-        assertEquals(SessionArguments.Edit("scenes", "level.json"), SessionArguments.parse(listOf("edit", "scenes", "level.json")))
+    fun editModeIsStillRecognized() {
+        assertEquals(SessionArguments.Edit, SessionArguments.parse(listOf("edit")))
+        assertEquals(SessionArguments.Edit, SessionArguments.parse(listOf("edit", "scenes", "level.json")))
     }
 
     @Test
@@ -29,7 +29,6 @@ class SessionArgumentsTest {
     @Test
     fun missingOrUnknownArgumentsAreRejected() {
         assertFailsWith<IllegalArgumentException> { SessionArguments.parse(emptyList()) }
-        assertFailsWith<IllegalArgumentException> { SessionArguments.parse(listOf("edit")) }
         assertFailsWith<IllegalArgumentException> { SessionArguments.parse(listOf("play")) }
         assertFailsWith<IllegalArgumentException> { SessionArguments.parse(listOf("debug", "x")) }
     }

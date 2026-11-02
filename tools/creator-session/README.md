@@ -8,14 +8,14 @@
  * https://mozilla.org/MPL/2.0/.
 -->
 # Kubriko Creator tool - Session
-The process Kubriko Creator starts to run a game or edit its Scenes. Kubriko Creator adds this module to the game's own desktop classpath through a
+The process Kubriko Creator starts to run a game. Kubriko Creator adds this module to the game's own desktop classpath through a
 Gradle init script, at the game's Kubriko version, so games never declare it.
 
-- `edit <scene folder> [scene file]` opens the Scene editor with the Actor types of the game's `CreatorEntryPoint` (see `tool-creator-api`).
-- `play <main class>` runs the game through its own main function.
+`play <main class>` runs the game through its own main function; `edit` (the Scene editor, which Kubriko Creator now has in its own window) is
+answered with a failure.
 
-Either way, the session connects to Kubriko Creator on the localhost port given in the `kubriko.creator.port` system property and streams the
-game's log entries to it, one JSON message per line. In play mode it also carries out the commands Kubriko Creator sends back on that connection
+The session connects to Kubriko Creator on the localhost port given in the `kubriko.creator.port` system property and streams the
+game's log entries to it, one JSON message per line. It also carries out the commands Kubriko Creator sends back on that connection
 (`SessionCommand`): pressing keys, capturing the game's window, bringing it to the front, and waiting until the game has drawn its first Actors.
 
 The protocol's types (`SessionProtocol`, `SessionMessage`, `SessionCommand`, `SessionMode`) are common code, so the module builds for every

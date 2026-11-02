@@ -28,7 +28,6 @@ kotlin {
         getByName("desktopMain") {
             dependencies {
                 implementation(projects.tools.creatorApi)
-                implementation(projects.tools.sceneEditor)
             }
         }
     }

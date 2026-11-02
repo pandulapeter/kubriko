@@ -12,16 +12,16 @@ package com.pandulapeter.kubriko.creatorSession.implementation
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 
 /**
- * The command line of a session process: `edit <scene folder> [scene file]` or `play <main class>`.
+ * The command line of a session process: `play <main class>` (or `edit`, which is refused).
  */
 internal sealed interface SessionArguments {
 
     val mode: SessionMode
 
-    data class Edit(
-        val sceneFolderPath: String,
-        val sceneFileName: String?,
-    ) : SessionArguments {
+    /**
+     * Edit mode, which this version no longer hosts: Kubriko Creator edits Scenes in its own window.
+     */
+    data object Edit : SessionArguments {
         override val mode get() = SessionMode.EDIT
     }
 
@@ -34,14 +34,11 @@ internal sealed interface SessionArguments {
     companion object {
 
         fun parse(arguments: List<String>): SessionArguments = when (arguments.firstOrNull()) {
-            "edit" -> Edit(
-                sceneFolderPath = arguments.getOrNull(1) ?: throw IllegalArgumentException("Edit mode needs a scene folder."),
-                sceneFileName = arguments.getOrNull(2),
-            )
+            "edit" -> Edit
             "play" -> Play(
                 mainClassName = arguments.getOrNull(1) ?: throw IllegalArgumentException("Play mode needs a main class."),
             )
-            else -> throw IllegalArgumentException("Unknown mode: ${arguments.firstOrNull()}. Expected edit or play.")
+            else -> throw IllegalArgumentException("Unknown mode: ${arguments.firstOrNull()}. Expected play.")
         }
     }
 }

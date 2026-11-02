@@ -19,7 +19,8 @@ import kotlinx.serialization.Serializable
 enum class SessionMode {
 
     /**
-     * The Scene editor, with the project's placeable Actor types.
+     * The Scene editor, which sessions no longer host (they answer `edit` with a [SessionMessage.Failure]); kept so that
+     * older sessions' messages still decode.
      */
     @SerialName("edit")
     EDIT,
