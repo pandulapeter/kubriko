@@ -126,6 +126,14 @@ class SignInPartsTest {
     }
 
     @Test
+    fun powerShellQuotesInSecretNamesAreEscaped() {
+        listOf(SecretCommands.CredentialLocker.read("a'b’c"), SecretCommands.CredentialLocker.write("a'b’c"), SecretCommands.CredentialLocker.delete("a'b’c")).forEach { command ->
+            assertTrue("'a''b’’c'" in command.last())
+        }
+        assertTrue("'Kubriko Creator', 'anthropic-api-key'" in SecretCommands.CredentialLocker.read("anthropic-api-key").last())
+    }
+
+    @Test
     fun eachPlatformHasItsSecretStore() {
         assertEquals(SecretCommands.MacKeychain, SecretCommands.forThisPlatform("Mac OS X", null))
         assertEquals(SecretCommands.CredentialLocker, SecretCommands.forThisPlatform("Windows 11", null))

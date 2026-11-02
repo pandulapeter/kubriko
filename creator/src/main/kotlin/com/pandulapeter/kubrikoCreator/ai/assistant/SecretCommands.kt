@@ -57,16 +57,18 @@ internal sealed interface SecretCommands {
 
         private fun powerShell(script: String) = listOf("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", LOAD + VAULT + script)
 
-        /** [name] is always one of Kubriko Creator's own constants, so it is safe inside the script's quotes. */
-        override fun read(name: String) = powerShell("\$c = \$v.Retrieve('$SERVICE', '$name'); \$c.RetrievePassword(); \$c.Password")
+        /** [text] as a PowerShell single-quoted string; PowerShell also takes the typographic single quotes as quotes. */
+        private fun quoted(text: String) = "'" + text.replace(Regex("['‘’‚‛]")) { it.value + it.value } + "'"
+
+        override fun read(name: String) = powerShell("\$c = \$v.Retrieve(${quoted(SERVICE)}, ${quoted(name)}); \$c.RetrievePassword(); \$c.Password")
 
         override fun write(name: String) = powerShell(
-            "\$k = [Console]::In.ReadLine(); \$v.Add((New-Object Windows.Security.Credentials.PasswordCredential('$SERVICE', '$name', \$k)))",
+            "\$k = [Console]::In.ReadLine(); \$v.Add((New-Object Windows.Security.Credentials.PasswordCredential(${quoted(SERVICE)}, ${quoted(name)}, \$k)))",
         )
 
         override fun writeInput(value: String) = "$value\n"
 
-        override fun delete(name: String) = powerShell("\$v.Remove(\$v.Retrieve('$SERVICE', '$name'))")
+        override fun delete(name: String) = powerShell("\$v.Remove(\$v.Retrieve(${quoted(SERVICE)}, ${quoted(name)}))")
     }
 
     companion object {
