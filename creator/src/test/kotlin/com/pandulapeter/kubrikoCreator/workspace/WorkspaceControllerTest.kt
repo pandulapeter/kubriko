@@ -56,7 +56,7 @@ import kubriko.creator.generated.resources.error_project_newer_format
 import kubriko.creator.generated.resources.error_project_newer_format_unknown_version
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_type_name_invalid
-import kubriko.creator.generated.resources.status_actor_type_not_saved
+import kubriko.creator.generated.resources.status_block_type_not_saved
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_game_failed
@@ -445,7 +445,7 @@ class WorkspaceControllerTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository().apply { isFailing = true })
         controller.clearConsole()
         controller.createActorType("Player")
-        assertEquals(listOf(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)), controller.console.value)
+        assertEquals(listOf(ConsoleEntry.Status(Res.string.status_block_type_not_saved, isError = true, arguments = listOf("Player", "Disk full."))), controller.console.value)
     }
 
     @Test

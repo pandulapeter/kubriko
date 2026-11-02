@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_format_not_upgraded
-import kubriko.creator.generated.resources.status_actor_type_not_saved
+import kubriko.creator.generated.resources.status_block_types_saved_again
 import kubriko.creator.generated.resources.status_generated_leftover_changed_by_hand
 import kubriko.creator.generated.resources.status_generated_leftovers_removed
 import kubriko.creator.generated.resources.status_kotlin_block_scope_changed
@@ -213,7 +213,8 @@ internal class WorkspaceController(
                     gameBuilds.onCodeChanged()
                 }
             },
-            onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
+            onSaveFailed = { appendToConsole(it.toConsoleEntry()) },
+            onSavedAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_block_types_saved_again)) },
             onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
             onFirstLoaded = ::reportKotlinBlockScopeChanges,
             onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_type_files_readable_again)) },

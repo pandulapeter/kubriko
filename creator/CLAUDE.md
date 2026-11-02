@@ -101,7 +101,7 @@ Besides its tests passing, a change:
 - Workspace state (the `CommandExecutor`, `BlockTypesController`, `SceneEditingController`) is confined to the main thread;
   background work hands its results back there.
 - Each workspace runs in a scope of its own, a child of the app's. `close()` cancels it once the pending writes are done
-  (`BlockTypesController.awaitWrites`, which builds and git commands wait for too), quitting waits for that (at most 10 seconds), and
+  or their latest attempt failed (`BlockTypesController.awaitWrites`, which builds and git commands wait for too), quitting waits for that (at most 10 seconds), and
   an opening that is cancelled closes what it made.
 - `writeTextAtomically` writes a sibling temporary file and moves it into place, so a crash leaves the old content or the new,
   never half; a new file holding a token is readable by its owner only (`isPrivate`), as is Creator's own `mcp.json` even when an older
@@ -160,7 +160,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   `WriteCommand` is rejected with the same message (`check_change` too), and nothing regenerates code, syncs the build files, or
   offers an upgrade, while browsing, building, and playing still work.
 - **Block type files:** `BlockTypesController` writes changes in batches, 100 ms after the last, with one regeneration and build file
-  sync per batch. A definition file that can't be read, holds a type named other than the file or a name another file holds too
+  sync per batch. A write that fails stays queued with everything after it, is retried with the next change or after 2, 10, then every
+  30 seconds, and is named in the console once; nothing is regenerated meanwhile. A definition file that can't be read, holds a type named other than the file or a name another file holds too
   (ignoring case), or has a Property whose name can't be one (`PropertyNaming`) is left out and reported by path; nothing is regenerated or synced until it is fixed, its name stays taken, and
   `BlockTypeStore` never writes over or deletes it.
 - **Template upgrades** (`template/ProjectUpgrader`): template files belong to the user, so an upgrade is shown as a diff, offers to

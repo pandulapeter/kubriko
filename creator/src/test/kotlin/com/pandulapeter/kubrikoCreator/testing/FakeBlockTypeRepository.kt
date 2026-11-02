@@ -24,17 +24,34 @@ internal class FakeBlockTypeRepository(
     val writes = mutableListOf<String>()
     var isFailing = false
 
+    /**
+     * The types whose save or delete throws.
+     */
+    val failingNames = mutableSetOf<String>()
+
+    /**
+     * Called at the end of every [load], after the files were read, as if something happened meanwhile.
+     */
+    var onLoad: () -> Unit = {}
+    var loadCount = 0
+
     var unreadableFiles = emptyList<UnreadableBlockTypeFile>()
 
     var loadFailure: Exception? = null
     var regenerateFailure: Exception? = null
 
-    override fun load() = loadFailure?.let { throw it } ?: LoadedBlockTypes(stored.values.sortedBy { it.name }, unreadableFiles)
+    override fun load(): LoadedBlockTypes {
+        loadCount++
+        val loaded = loadFailure?.let { throw it } ?: LoadedBlockTypes(stored.values.sortedBy { it.name }, unreadableFiles)
+        onLoad()
+        return loaded
+    }
 
     var changedByHand = emptySet<String>()
 
     override fun save(definition: BlockTypeDefinition) {
         if (isFailing) throw IOException("Disk full.")
+        if (definition.name in failingNames) throw IOException("Locked.")
         writes += "save ${definition.name}"
         stored[definition.name]?.takeIf { it.folder != definition.folder }?.let(::keepFolderOf)
         stored[definition.name] = definition
@@ -71,6 +88,7 @@ internal class FakeBlockTypeRepository(
 
     override fun delete(name: String) {
         if (isFailing) throw IOException("Disk full.")
+        if (name in failingNames) throw IOException("Locked.")
         writes += "delete $name"
         stored.remove(name)?.let(::keepFolderOf)
     }

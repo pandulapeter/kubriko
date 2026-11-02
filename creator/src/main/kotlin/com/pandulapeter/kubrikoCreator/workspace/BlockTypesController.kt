@@ -27,13 +27,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -43,7 +43,10 @@ import kotlinx.coroutines.withContext
  * Changes show up immediately; writing them happens in the background, in order, in batches: the changes made within
  * [writeDelayInMilliseconds] of each other (typing into a field, for example) are written together, a type saved
  * several times is written once, and the code is regenerated once per batch, from the types in memory. After each
- * batch, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code.
+ * batch, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code. A write that fails stays queued
+ * with everything after it, in order (so a renamed type's old file is deleted only once the new ones are written, and a
+ * deleted type isn't read back), and is tried again with the next change, or after a while; nothing is regenerated until
+ * it succeeds.
  *
  * While a definition file can't be read, the code isn't regenerated, nor are the build files synced, since code generated
  * without that type would break the build; the file is never written over or deleted. Neither happens while [isReadOnly]
@@ -51,6 +54,8 @@ import kotlinx.coroutines.withContext
  *
  * @param onSaved Called after each batch, with whether the types changed, rather than only the Scenes they were
  *   regenerated for.
+ * @param onSaveFailed Called with what a batch couldn't write, once until the failure changes.
+ * @param onSavedAgain Called when a batch succeeds after one failed.
  * @param onFileUnreadable Called for each definition file found unreadable, once until it changes.
  * @param onFilesReadableAgain Called when no definition file is unreadable any more.
  * @param onLeftoversRemoved Called with the generated files (by path) a regeneration deleted, since their types no longer exist.
@@ -62,7 +67,8 @@ internal class BlockTypesController(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val onSaved: (haveTypesChanged: Boolean) -> Unit,
-    private val onSaveFailed: () -> Unit,
+    private val onSaveFailed: (FailedWrite) -> Unit,
+    private val onSavedAgain: () -> Unit = {},
     private val onFileUnreadable: (UnreadableBlockTypeFile) -> Unit = {},
     private val onFirstLoaded: (List<BlockTypeDefinition>) -> Unit = {},
     private val onFilesReadableAgain: () -> Unit = {},
@@ -115,10 +121,40 @@ internal class BlockTypesController(
      */
     private var leftoversChangedByHand = emptySet<String>()
     private val pendingWrites = ArrayList<PendingWrite>()
+
+    /**
+     * The batch being written, which counts as unwritten until it is back on the main thread.
+     */
+    private var inFlight = emptyList<PendingWrite>()
+    private val hasUnwritten get() = pendingWrites.isNotEmpty() || inFlight.isNotEmpty()
     private var havePendingTypesChanged = false
     private var isReloadRequested = false
     private val writeRequests = Channel<Unit>(Channel.CONFLATED)
-    private val pendingWriteCount = MutableStateFlow(0)
+    private var retryJob: Job? = null
+    private var consecutiveFailures = 0
+
+    /**
+     * Raised for every queued write; a batch covers every generation up to the one current when it was taken.
+     */
+    private var queuedGeneration = 0L
+    private val attemptedGeneration = MutableStateFlow(0L)
+
+    /**
+     * Raised for every queued write that changes a definition or a folder, so a reload knows its result may be outdated.
+     */
+    private var typeGeneration = 0L
+    private val _unwrittenCount = MutableStateFlow(0)
+
+    /**
+     * How many queued writes aren't on disk yet, the failed and the one being written included.
+     */
+    val unwrittenCount = _unwrittenCount.asStateFlow()
+    private val _failure = MutableStateFlow<FailedWrite?>(null)
+
+    /**
+     * What the last batch couldn't write, or null if it succeeded.
+     */
+    val failure = _failure.asStateFlow()
 
     init {
         // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away,
@@ -148,11 +184,17 @@ internal class BlockTypesController(
     }
 
     /**
-     * Returns once every change made so far is written.
+     * Returns once every change made so far is written, or the latest attempt to write them failed.
      */
     suspend fun awaitWrites() {
-        pendingWriteCount.first { it == 0 }
+        val wanted = queuedGeneration
+        attemptedGeneration.first { it >= wanted }
     }
+
+    /**
+     * The types whose changes aren't on disk yet, sorted.
+     */
+    fun unsavedNames() = (inFlight + pendingWrites).mapNotNull { (it.subject as? FailedWrite.Subject.Type)?.name }.distinct().sorted()
 
     fun select(name: String?) {
         _selectedName.value = name
@@ -245,10 +287,11 @@ internal class BlockTypesController(
 
     /**
      * Reads the definitions again after they changed outside Kubriko Creator (in IntelliJ, or through git), unless one
-     * of Creator's own changes is still being written, in which case they are read once it is.
+     * of Creator's own changes is still being written, in which case they are read once it is. While a write keeps
+     * failing, they are read only after it succeeds, so the retried write wins over an outside change to the same file.
      */
     fun reloadFromDisk() {
-        if (pendingWriteCount.value > 0) {
+        if (hasUnwritten) {
             isReloadRequested = true
             return
         }
@@ -256,30 +299,34 @@ internal class BlockTypesController(
     }
 
     /**
-     * Reads the definitions again, as [reloadFromDisk] does, returning once they are in memory.
+     * Reads the definitions again, as [reloadFromDisk] does, returning once they are in memory, unless a change of a type
+     * was queued while they were read, which is then read again.
      */
     suspend fun reload() {
-        if (pendingWriteCount.value > 0) {
-            isReloadRequested = true
-            return
+        repeat(RELOAD_ATTEMPTS) {
+            if (hasUnwritten) {
+                isReloadRequested = true
+                return
+            }
+            val generation = typeGeneration
+            val (loaded, storedFolders) = try {
+                withContext(ioDispatcher) { repository.load() to BlockTypeKind.entries.associateWith(repository::folders) }
+            } catch (exception: Exception) {
+                if (exception is CancellationException) throw exception
+                return
+            }
+            if (generation == typeGeneration && pendingWrites.none { it.subject != null }) {
+                if (loaded.types != _types.value || storedFolders != emptyFolders || loaded.unreadableFiles != _unreadableFiles.value) {
+                    emptyFolders = storedFolders
+                    setUnreadableFiles(loaded.unreadableFiles)
+                    setTypes(loaded.types)
+                    if (_selectedName.value !in loaded.types.map { it.name }) _selectedName.value = null
+                    queue(PendingWrite.Regenerate)
+                }
+                return
+            }
         }
-        val (loaded, storedFolders) = try {
-            withContext(ioDispatcher) { repository.load() to BlockTypeKind.entries.associateWith(repository::folders) }
-        } catch (exception: Exception) {
-            if (exception is CancellationException) throw exception
-            return
-        }
-        if (pendingWriteCount.value > 0) {
-            isReloadRequested = true
-            return
-        }
-        if (loaded.types != _types.value || storedFolders != emptyFolders || loaded.unreadableFiles != _unreadableFiles.value) {
-            emptyFolders = storedFolders
-            setUnreadableFiles(loaded.unreadableFiles)
-            setTypes(loaded.types)
-            if (_selectedName.value !in loaded.types.map { it.name }) _selectedName.value = null
-            queue(PendingWrite.Regenerate)
-        }
+        isReloadRequested = true
     }
 
     private fun setUnreadableFiles(files: List<UnreadableBlockTypeFile>) {
@@ -304,8 +351,15 @@ internal class BlockTypesController(
     private fun queue(write: PendingWrite, haveTypesChanged: Boolean = true) {
         pendingWrites += write
         if (haveTypesChanged) havePendingTypesChanged = true
-        pendingWriteCount.update { it + 1 }
+        queuedGeneration++
+        if (write.subject != null) typeGeneration++
+        updateUnwrittenCount()
+        retryJob?.cancel()
         writeRequests.trySend(Unit)
+    }
+
+    private fun updateUnwrittenCount() {
+        _unwrittenCount.value = pendingWrites.size + inFlight.size
     }
 
     /**
@@ -313,55 +367,129 @@ internal class BlockTypesController(
      */
     private suspend fun writePending() {
         if (pendingWrites.isEmpty()) return
-        val batch = pendingWrites.toList()
+        val batch = PendingWrite.withoutOverwrittenSaves(pendingWrites.toList())
         pendingWrites.clear()
+        // This batch covers the requests made so far, so a failed one waits for its retry rather than going again at once.
+        writeRequests.tryReceive()
+        inFlight = batch
+        val takenGeneration = queuedGeneration
         val haveTypesChanged = havePendingTypesChanged
         havePendingTypesChanged = false
-        var buildFileChanges: KubrikoBuildFileChanges? = null
-        val regenerated = try {
+        var result: BatchResult? = null
+        try {
             val types = _types.value
-            val canRegenerate = _unreadableFiles.value.isEmpty() && !isReadOnly()
-            withContext(ioDispatcher) {
-                try {
-                    PendingWrite.withoutOverwrittenSaves(batch).forEach { write ->
-                        when (write) {
-                            is PendingWrite.Save -> repository.save(write.definition)
-                            is PendingWrite.Delete -> repository.delete(write.name)
-                            is PendingWrite.CreateFolder -> repository.createFolder(write.kind, write.path)
-                            is PendingWrite.DeleteFolder -> repository.deleteFolder(write.kind, write.path)
-                            PendingWrite.Regenerate, is PendingWrite.Overwrite -> Unit
-                        }
-                    }
-                    if (canRegenerate) {
-                        repository.regenerate(types, overwriting = batch.filterIsInstance<PendingWrite.Overwrite>().mapTo(mutableSetOf()) { it.name })
-                            .also { buildFileChanges = syncBuildFiles() }
-                    } else {
-                        RegeneratedCode(changedByHand = _changedByHand.value, leftoversChangedByHand = leftoversChangedByHand)
-                    }
-                } catch (exception: Exception) {
-                    if (exception is CancellationException) throw exception
-                    null
-                }
-            }
+            val unregenerated = if (_unreadableFiles.value.isEmpty() && !isReadOnly()) null else RegeneratedCode(changedByHand = _changedByHand.value, leftoversChangedByHand = leftoversChangedByHand)
+            result = withContext(ioDispatcher) { writeBatch(batch, types, unregenerated) }
         } finally {
-            pendingWriteCount.update { it - batch.size }
+            inFlight = emptyList()
+            val completed = result
+            if (completed?.failure != null) {
+                pendingWrites.addAll(0, unwrittenPartOf(batch, completed))
+                havePendingTypesChanged = havePendingTypesChanged || haveTypesChanged
+            }
+            updateUnwrittenCount()
+            attemptedGeneration.value = takenGeneration
         }
         try {
-            if (regenerated == null) {
-                onSaveFailed()
-            } else {
+            val completed = checkNotNull(result)
+            val failure = completed.failure
+            val regenerated = completed.regenerated
+            if (failure != null) {
+                reportFailure(FailedWrite.of(failure.write?.subject ?: FailedWrite.Subject.GeneratedCode, failure.exception))
+            } else if (regenerated != null) {
+                consecutiveFailures = 0
+                if (_failure.value != null) {
+                    _failure.value = null
+                    onSavedAgain()
+                }
                 _changedByHand.value = regenerated.changedByHand
                 if (regenerated.removedLeftovers.isNotEmpty()) onLeftoversRemoved(regenerated.removedLeftovers)
                 regenerated.leftoversChangedByHand.filter { it !in leftoversChangedByHand }.sorted().forEach(onLeftoverChangedByHand)
                 leftoversChangedByHand = regenerated.leftoversChangedByHand
-                buildFileChanges?.let(onBuildFilesSynced)
+                completed.buildFileChanges?.let(onBuildFilesSynced)
                 onSaved(haveTypesChanged)
             }
         } finally {
-            if (isReloadRequested && pendingWriteCount.value == 0) {
+            if (isReloadRequested && !hasUnwritten) {
                 isReloadRequested = false
                 scope.launch { reload() }
             }
         }
     }
+
+    /**
+     * Writes [batch] in order, stopping at the first write that fails, and regenerates the code from [types] once all are
+     * written, unless [unregenerated] stands in for the regeneration.
+     */
+    private fun writeBatch(batch: List<PendingWrite>, types: List<BlockTypeDefinition>, unregenerated: RegeneratedCode?): BatchResult {
+        batch.forEachIndexed { index, write ->
+            try {
+                when (write) {
+                    is PendingWrite.Save -> repository.save(write.definition)
+                    is PendingWrite.Delete -> repository.delete(write.name)
+                    is PendingWrite.CreateFolder -> repository.createFolder(write.kind, write.path)
+                    is PendingWrite.DeleteFolder -> repository.deleteFolder(write.kind, write.path)
+                    PendingWrite.Regenerate, is PendingWrite.Overwrite -> Unit
+                }
+            } catch (exception: Exception) {
+                if (exception is CancellationException) throw exception
+                return BatchResult(writtenCount = index, failure = BatchFailure(write, exception))
+            }
+        }
+        if (unregenerated != null) return BatchResult(writtenCount = batch.size, regenerated = unregenerated)
+        return try {
+            val regenerated = repository.regenerate(types, overwriting = batch.filterIsInstance<PendingWrite.Overwrite>().mapTo(mutableSetOf()) { it.name })
+            BatchResult(writtenCount = batch.size, regenerated = regenerated, buildFileChanges = syncBuildFiles())
+        } catch (exception: Exception) {
+            if (exception is CancellationException) throw exception
+            BatchResult(writtenCount = batch.size, failure = BatchFailure(write = null, exception = exception))
+        }
+    }
+
+    /**
+     * What of [batch] has to be written again after it failed: the writes from the failing one on, and the [PendingWrite.Overwrite]s
+     * and the regeneration the failure skipped.
+     */
+    private fun unwrittenPartOf(batch: List<PendingWrite>, result: BatchResult) = buildList {
+        addAll(batch.take(result.writtenCount).filterIsInstance<PendingWrite.Overwrite>())
+        addAll(batch.drop(result.writtenCount))
+        if (result.failure?.write == null) add(PendingWrite.Regenerate)
+    }
+
+    private fun reportFailure(failure: FailedWrite) {
+        val previous = _failure.value
+        _failure.value = failure
+        consecutiveFailures++
+        val retryDelay = RETRY_DELAYS[minOf(consecutiveFailures, RETRY_DELAYS.size) - 1]
+        retryJob?.cancel()
+        retryJob = scope.launch {
+            delay(retryDelay)
+            writeRequests.trySend(Unit)
+        }
+        if (failure != previous) onSaveFailed(failure)
+    }
+
+    private companion object {
+        const val RELOAD_ATTEMPTS = 5
+        val RETRY_DELAYS = longArrayOf(2_000, 10_000, 30_000)
+    }
 }
+
+/**
+ * How a batch of [BlockTypesController]'s writes went: how many of its writes are on disk, and either what failed or the
+ * regeneration that followed.
+ */
+private class BatchResult(
+    val writtenCount: Int,
+    val failure: BatchFailure? = null,
+    val regenerated: RegeneratedCode? = null,
+    val buildFileChanges: KubrikoBuildFileChanges? = null,
+)
+
+/**
+ * The write of a batch that failed, or a null [write] when the regeneration after it did.
+ */
+private class BatchFailure(
+    val write: PendingWrite?,
+    val exception: Exception,
+)

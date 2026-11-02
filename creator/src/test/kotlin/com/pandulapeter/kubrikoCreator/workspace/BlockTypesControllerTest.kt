@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -44,7 +45,9 @@ class BlockTypesControllerTest {
     private val wall = ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE)
     private var savedCount = 0
     private val savedTypeChanges = mutableListOf<Boolean>()
-    private var failedCount = 0
+    private val failures = mutableListOf<FailedWrite>()
+    private val failedCount get() = failures.size
+    private var savedAgainCount = 0
     private val unreadableReports = mutableListOf<String>()
     private var readableAgainCount = 0
     private val removedLeftoverReports = mutableListOf<List<String>>()
@@ -68,7 +71,8 @@ class BlockTypesControllerTest {
             savedTypeChanges += it
             onSaved()
         },
-        onSaveFailed = { failedCount++ },
+        onSaveFailed = { failures += it },
+        onSavedAgain = { savedAgainCount++ },
         onFileUnreadable = { unreadableReports += it.path },
         onFilesReadableAgain = { readableAgainCount++ },
         onLeftoversRemoved = { removedLeftoverReports += it },
@@ -391,5 +395,194 @@ class BlockTypesControllerTest {
         withTimeout(1_000) { controller.awaitWrites() }
         assertEquals(listOf("regenerate", "save Wall", "regenerate"), repository.writes)
         assertEquals(listOf("Unexpected."), reported.map { it.message })
+    }
+
+    @Test
+    fun aFailedSaveKeepsItAndTheRestQueued() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        repository.failingNames += "Bee"
+        controller.put(ActorTypeDefinition(name = "Ant"))
+        controller.put(ActorTypeDefinition(name = "Bee"))
+        controller.put(ActorTypeDefinition(name = "Cat"))
+        advance(200)
+        assertEquals(listOf("save Ant"), repository.writes)
+        assertEquals(listOf(FailedWrite(FailedWrite.Subject.Type("Bee"), "Locked.")), failures)
+        assertEquals(listOf("Bee", "Cat"), controller.unsavedNames())
+        assertEquals(2, controller.unwrittenCount.value)
+        repository.failingNames.clear()
+        advance(2_200)
+        assertEquals(listOf("save Ant", "save Bee", "save Cat", "regenerate"), repository.writes)
+        assertEquals(1, savedAgainCount)
+        assertNull(controller.failure.value)
+        assertEquals(emptyList(), controller.unsavedNames())
+        assertEquals(0, controller.unwrittenCount.value)
+    }
+
+    @Test
+    fun theSameFailureIsReportedOnce() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        repository.failingNames += "Bee"
+        controller.put(ActorTypeDefinition(name = "Bee"))
+        advance(200)
+        advance(2_200)
+        advance(10_200)
+        advance(30_200)
+        assertEquals(1, failedCount)
+        assertEquals(FailedWrite(FailedWrite.Subject.Type("Bee"), "Locked."), controller.failure.value)
+        repository.failingNames.clear()
+        advance(30_200)
+        assertEquals(listOf("save Bee", "regenerate"), repository.writes)
+    }
+
+    @Test
+    fun aNewChangeRetriesAtOnce() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        repository.failingNames += "Bee"
+        controller.put(ActorTypeDefinition(name = "Bee"))
+        advance(200)
+        repository.failingNames.clear()
+        controller.put(wall)
+        advance(150)
+        assertEquals(listOf("save Bee", "save Wall", "regenerate"), repository.writes)
+    }
+
+    @Test
+    fun aFailedDeleteIsNotReadBack() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createWritingController(repository)
+        repository.failingNames += "Ball"
+        controller.delete("Ball")
+        advance(200)
+        controller.reloadFromDisk()
+        advance(200)
+        assertNull(controller["Ball"])
+        val loadCount = repository.loadCount
+        repository.failingNames.clear()
+        advance(2_200)
+        assertEquals(listOf("delete Ball", "regenerate"), repository.writes)
+        assertEquals(loadCount + 1, repository.loadCount)
+        assertNull(repository.stored["Ball"])
+        assertNull(controller["Ball"])
+    }
+
+    @Test
+    fun aRenameDeletesTheOldFileLast() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createWritingController(repository)
+        repository.failingNames += "Puck"
+        controller.rename("Ball", "Puck")
+        advance(200)
+        assertEquals(emptyList(), repository.writes)
+        assertEquals(setOf("Ball"), repository.stored.keys)
+        repository.failingNames.clear()
+        advance(2_200)
+        assertEquals(listOf("save Puck", "delete Ball", "regenerate"), repository.writes)
+    }
+
+    @Test
+    fun aFailedRegenerationIsRetried() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        repository.regenerateFailure = IllegalStateException("Broken.")
+        controller.put(ball)
+        advance(200)
+        assertEquals(listOf("save Ball"), repository.writes)
+        assertEquals(listOf(FailedWrite(FailedWrite.Subject.GeneratedCode, "Broken.")), failures)
+        assertEquals(1, controller.unwrittenCount.value)
+        assertEquals(emptyList(), controller.unsavedNames())
+        repository.regenerateFailure = null
+        advance(2_200)
+        assertEquals(listOf("save Ball", "regenerate"), repository.writes)
+        assertEquals(1, savedAgainCount)
+    }
+
+    @Test
+    fun awaitWritesReturnsWhileBlocked() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        repository.failingNames += "Ball"
+        controller.put(ball)
+        withTimeout(1_000) { controller.awaitWrites() }
+        assertEquals(listOf("Ball"), controller.unsavedNames())
+    }
+
+    @Test
+    fun aTypeWrittenDuringTheReloadIsNotOverwritten() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createController(repository)
+        controller.awaitWrites()
+        repository.onLoad = {
+            repository.onLoad = {}
+            controller.put(ball.copy(width = 3f))
+        }
+        controller.reload()
+        controller.awaitWrites()
+        assertEquals(ball.copy(width = 3f), controller["Ball"])
+        assertEquals(ball.copy(width = 3f), repository.stored["Ball"])
+        assertEquals(3, repository.loadCount)
+    }
+
+    @Test
+    fun aRegenerationQueuedDuringTheReloadDoesNotStopIt() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createController(repository, ioDispatcher = StandardTestDispatcher(testScheduler))
+        runCurrent()
+        repository.stored["Ball"] = ball.copy(width = 7f)
+        repository.onLoad = {
+            repository.onLoad = {}
+            controller.regenerate()
+        }
+        controller.reload()
+        assertEquals(ball.copy(width = 7f), controller["Ball"])
+        assertEquals(2, repository.loadCount)
+    }
+
+    @Test
+    fun anOverwriteBeforeAFailedSaveIsKept() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball)).apply { changedByHand = setOf("Ball") }
+        val controller = createWritingController(repository)
+        repository.failingNames += "Wall"
+        controller.discardChangesMadeByHand("Ball")
+        controller.put(wall)
+        advance(200)
+        assertEquals(emptyList(), repository.writes)
+        repository.failingNames.clear()
+        advance(2_200)
+        assertEquals(listOf("save Wall", "regenerate overwriting Ball"), repository.writes)
+        assertEquals(emptySet(), controller.changedByHand.value)
+    }
+
+    @Test
+    fun aReloadDuringABatchWaitsForIt() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createController(repository, ioDispatcher = StandardTestDispatcher(testScheduler))
+        runCurrent()
+        controller.put(ball.copy(width = 3f))
+        var writesWhenAwaited: List<String>? = null
+        launch(UnconfinedTestDispatcher(testScheduler)) {
+            controller.awaitWrites()
+            writesWhenAwaited = repository.writes.toList()
+        }
+        assertEquals(1, controller.unwrittenCount.value)
+        repository.stored["Ball"] = ball
+        controller.reloadFromDisk()
+        assertEquals(1, repository.loadCount)
+        runCurrent()
+        assertEquals(ball.copy(width = 3f), controller["Ball"])
+        assertEquals(2, repository.loadCount)
+        assertEquals(listOf("regenerate", "save Ball", "regenerate"), writesWhenAwaited)
+    }
+
+    private fun TestScope.createWritingController(repository: FakeBlockTypeRepository) = createController(repository, writeDelayInMilliseconds = 100).also {
+        advance(200)
+        repository.writes.clear()
+    }
+
+    private fun TestScope.advance(milliseconds: Long) {
+        advanceTimeBy(milliseconds)
+        runCurrent()
     }
 }

@@ -18,17 +18,34 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
  */
 internal sealed interface PendingWrite {
 
-    data class Save(val definition: BlockTypeDefinition) : PendingWrite
+    /**
+     * What this write changes on disk by itself, or null for the ones that take effect only in the regeneration.
+     */
+    val subject: FailedWrite.Subject?
 
-    data class Delete(val name: String) : PendingWrite
+    data class Save(val definition: BlockTypeDefinition) : PendingWrite {
+        override val subject get() = FailedWrite.Subject.Type(definition.name)
+    }
 
-    data class CreateFolder(val kind: BlockTypeKind, val path: String) : PendingWrite
+    data class Delete(val name: String) : PendingWrite {
+        override val subject get() = FailedWrite.Subject.Type(name)
+    }
 
-    data class DeleteFolder(val kind: BlockTypeKind, val path: String) : PendingWrite
+    data class CreateFolder(val kind: BlockTypeKind, val path: String) : PendingWrite {
+        override val subject get() = FailedWrite.Subject.Folder(path)
+    }
 
-    data object Regenerate : PendingWrite
+    data class DeleteFolder(val kind: BlockTypeKind, val path: String) : PendingWrite {
+        override val subject get() = FailedWrite.Subject.Folder(path)
+    }
 
-    data class Overwrite(val name: String) : PendingWrite
+    data object Regenerate : PendingWrite {
+        override val subject = null
+    }
+
+    data class Overwrite(val name: String) : PendingWrite {
+        override val subject = null
+    }
 
     companion object {
 
