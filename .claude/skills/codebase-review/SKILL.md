@@ -146,7 +146,7 @@ the plans first if they are untracked (`Add the <nth> review plans.`), then note
 
 **Lanes** — one **detached** worktree per lane next to the checkout, so no branch is created:
 `git worktree add --detach ../<Repo>-lane-<x> START`. Spawn one `general-purpose` subagent per lane in a single
-message, each confined to its worktree. Cap concurrent Gradle builds (see the last section); start the rest of the
+message, each confined to its worktree. Serialize Gradle builds (see the last section); start the rest of the
 lanes as earlier ones finish. A lane that builds on another lane's results is cut from the main checkout's `HEAD`
 after that lane merged, not from `START`; its cherry-pick range then starts at that base.
 
@@ -281,8 +281,13 @@ edits, unless the repository section sets others: root ≤ 2,500 words, a module
   web bridge's embedded JS also runs `node engine/src/webMain/checkTriangleBridge.mjs`.
 - **Compile checks:** `./gradlew :<module>:build` for each module touched; the Showcase on the platform a change is
   specific to (`:app:desktop:run` is not needed — compiling is). Full build after the last lane: `./gradlew build`.
-- **At most two concurrent Gradle builds.** A KGP "FqNames can't be derived from DirtyData" error is a stale
-  incremental cache, not a code error — rerun before calling a lane red.
+- **One Gradle build at a time across all lanes**, while the lanes still read and edit in parallel. Every worktree's
+  builds share one Kotlin daemon (`kotlin.daemon.jvmargs` in `gradle.properties`), and in Campfire two lanes building
+  at once ran it out of memory and crashed the compiler. Each lane takes one lock around every Gradle command and every
+  `git commit` (the pre-commit hook may run Gradle), for example `until mkdir <scratchpad>/gradle.lock 2>/dev/null; do
+  sleep 5; done` and `rmdir` after. Nothing measured (a build time, a benchmark) shares the machine with a lane. A KGP
+  "FqNames can't be derived from DirtyData" error is a stale incremental cache, not a code error — rerun before calling
+  a lane red.
 - A behaviour change updates `CLAUDE.md` and, where a published guide describes it, the matching
   `documentation/*.md`. Nothing is published to Maven Central from a sweep; that is the user's release step.
 - Commit examples in this repo's voice: `Match the Showcase's desktop window background to its theme while
