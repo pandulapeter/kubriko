@@ -444,6 +444,54 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun aTypeWithAnInvalidPropertyNameIsUnreadable() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball.copy(properties = listOf(PropertyDefinition.Number("2x"))))
+        val loaded = store.load()
+        assertEquals(listOf(UnreadableBlockTypeFile(".kubriko/actors/Ball.json", BlockTypeFileProblem.InvalidPropertyName("2x"))), loaded.unreadableFiles)
+        assertTrue(loaded.types.none { it.name == "Ball" })
+        assertFails { store.save(ball) }
+    }
+
+    @Test
+    fun aTypeWithAReservedPropertyNameIsUnreadable() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("velocity"))))
+        assertEquals(listOf(UnreadableBlockTypeFile(".kubriko/managers/Game.json", BlockTypeFileProblem.InvalidPropertyName("velocity"))), store.load().unreadableFiles)
+    }
+
+    @Test
+    fun aTypeWithTwoPropertiesDifferingOnlyInCaseIsUnreadable() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball.copy(properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Number("Score"))))
+        assertEquals(listOf(UnreadableBlockTypeFile(".kubriko/actors/Ball.json", BlockTypeFileProblem.InvalidPropertyName("score"))), store.load().unreadableFiles)
+    }
+
+    @Test
+    fun aTypeWithAPropertyListedTwiceIsUnreadable() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball.copy(properties = listOf(PropertyDefinition.Number("hp"), PropertyDefinition.Toggle("hp"))))
+        assertEquals(listOf(UnreadableBlockTypeFile(".kubriko/actors/Ball.json", BlockTypeFileProblem.InvalidPropertyName("hp"))), store.load().unreadableFiles)
+    }
+
+    @Test
+    fun aChildRepeatingItsParentsPropertyLoads() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val enemy = ActorTypeDefinition(name = "Enemy", properties = listOf(PropertyDefinition.Number("hp", initialValue = 3f)))
+        val bat = ActorTypeDefinition(name = "Bat", parent = "Enemy", properties = listOf(PropertyDefinition.Number("hp", initialValue = 1f)))
+        store.save(enemy)
+        store.save(bat)
+        val loaded = store.load()
+        assertEquals(listOf(bat, enemy), loaded.types)
+        assertEquals(emptyList(), loaded.unreadableFiles)
+    }
+
+    @Test
     fun typesOfOneNameAreAllReportedAndNoneIsDeletedBySaving() {
         optIn()
         val store = BlockTypeStore.open(root)!!

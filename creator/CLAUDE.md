@@ -151,14 +151,16 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   meaning for an existing field (any change an older Creator would read and then handle wrongly). A raise that needs no rewrite is
   an empty `FormatMigration { }` whose KDoc names what it added, so an older Creator opens the project read-only with the version
   it needs instead of dropping fields; type files are still read ignoring unknown keys. `PersistedShapeTest` pins the persisted
-  shape per format version (`persisted-shape-<version>.txt`; never edit a released version's file).
+  shape per format version (`persisted-shape-<version>.txt`; never edit a released version's file). A name added to
+  `PropertyNaming`'s reserved names makes existing files with such a Property unreadable, so it needs a raise whose migration
+  renames the Property with `withPropertyReplaced` (`BlockTypeEdits`), which Blocks, placeholders, and Kotlin follow.
   Each raise is a `FormatMigration` in `ProjectFormat.MIGRATIONS`, applied at opening and when `project.json` changes, recording the
   version after each, so one that fails is carried on next time. A project whose version is newer opens read-only: every
   `WriteCommand` is rejected with the same message (`check_change` too), and nothing regenerates code, syncs the build files, or
   offers an upgrade, while browsing, building, and playing still work.
 - **Block type files:** `BlockTypesController` writes changes in batches, 100 ms after the last, with one regeneration and build file
-  sync per batch. A definition file that can't be read, holds a type named other than the file, or a name another file holds too
-  (ignoring case) is left out and reported by path; nothing is regenerated or synced until it is fixed, its name stays taken, and
+  sync per batch. A definition file that can't be read, holds a type named other than the file or a name another file holds too
+  (ignoring case), or has a Property whose name can't be one (`PropertyNaming`) is left out and reported by path; nothing is regenerated or synced until it is fixed, its name stays taken, and
   `BlockTypeStore` never writes over or deletes it.
 - **Template upgrades** (`template/ProjectUpgrader`): template files belong to the user, so an upgrade is shown as a diff, offers to
   commit first, and applies only to a file that still looks like the template's; others are listed with what to add by hand, and a

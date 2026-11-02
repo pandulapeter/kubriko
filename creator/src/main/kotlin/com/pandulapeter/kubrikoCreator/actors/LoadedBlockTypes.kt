@@ -58,6 +58,11 @@ internal sealed interface BlockTypeFileProblem {
     data class ReservedName(val name: String) : BlockTypeFileProblem
 
     /**
+     * The type has a Property called [name], which can't be a Property's name ([PropertyNaming]).
+     */
+    data class InvalidPropertyName(val name: String) : BlockTypeFileProblem
+
+    /**
      * Other files, at [otherPaths], hold a type of the same name (ignoring case), so none of them is loaded.
      */
     data class DuplicateName(val otherPaths: List<String>) : BlockTypeFileProblem

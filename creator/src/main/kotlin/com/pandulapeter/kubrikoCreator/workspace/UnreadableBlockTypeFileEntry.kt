@@ -17,6 +17,7 @@ import kubriko.creator.generated.resources.status_type_file_name_duplicate
 import kubriko.creator.generated.resources.status_type_file_name_invalid
 import kubriko.creator.generated.resources.status_type_file_name_mismatch
 import kubriko.creator.generated.resources.status_type_file_name_reserved
+import kubriko.creator.generated.resources.status_type_file_property_name_invalid
 import kubriko.creator.generated.resources.status_type_file_unreadable
 
 /**
@@ -27,5 +28,6 @@ internal fun UnreadableBlockTypeFile.toConsoleEntry() = when (problem) {
     is BlockTypeFileProblem.NameMismatch -> ConsoleEntry.Status(Res.string.status_type_file_name_mismatch, isError = true, arguments = listOf(path, problem.name))
     is BlockTypeFileProblem.InvalidName -> ConsoleEntry.Status(Res.string.status_type_file_name_invalid, isError = true, arguments = listOf(path, problem.name))
     is BlockTypeFileProblem.ReservedName -> ConsoleEntry.Status(Res.string.status_type_file_name_reserved, isError = true, arguments = listOf(path, problem.name))
+    is BlockTypeFileProblem.InvalidPropertyName -> ConsoleEntry.Status(Res.string.status_type_file_property_name_invalid, isError = true, arguments = listOf(path, problem.name))
     is BlockTypeFileProblem.DuplicateName -> ConsoleEntry.Status(Res.string.status_type_file_name_duplicate, isError = true, arguments = listOf(path, problem.otherPaths.joinToString()))
 }

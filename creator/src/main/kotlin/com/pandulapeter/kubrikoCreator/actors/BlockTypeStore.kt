@@ -54,7 +54,7 @@ internal class BlockTypeStore private constructor(
                     definition.name != file.nameWithoutExtension -> BlockTypeFileProblem.NameMismatch(definition.name)
                     !BlockTypeNaming.isWellFormed(definition.name) -> BlockTypeFileProblem.InvalidName(definition.name)
                     BlockTypeNaming.isReserved(definition.name, kind) -> BlockTypeFileProblem.ReservedName(definition.name)
-                    else -> null
+                    else -> invalidPropertyNameOf(definition)?.let(BlockTypeFileProblem::InvalidPropertyName)
                 }?.let { unreadable += UnreadableBlockTypeFile(path, it) } ?: run { readable += path to definition }
             }
         }
@@ -70,6 +70,15 @@ internal class BlockTypeStore private constructor(
         }
         unreadableFiles = unreadable.mapTo(HashSet()) { File(rootDirectory, it.path) }
         return LoadedBlockTypes(types.sortedBy { it.name }, unreadable.sortedBy { it.path })
+    }
+
+    /**
+     * The first of the type's own Properties whose name can't be one among the others (a name listed twice counts as
+     * taken), or null. Inherited Properties are left to the commands, since a child may repeat one to change its value.
+     */
+    private fun invalidPropertyNameOf(definition: BlockTypeDefinition): String? {
+        val names = definition.properties.map { it.name }
+        return names.firstOrNull { name -> PropertyNaming.validate(name, names - name) != null }
     }
 
     private fun decode(kind: BlockTypeKind, text: String): BlockTypeDefinition = when (kind) {
