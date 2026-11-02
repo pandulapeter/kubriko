@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,9 +16,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,7 +67,9 @@ import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
+import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
@@ -219,7 +218,7 @@ internal fun WorkspaceScreen(
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 ProjectSidebar(
-                    modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    modifier = Modifier.sidePanel(PanelWidths.SIDEBAR),
                     resources = resources,
                     folderGroups = folderGroups,
                     folderActions = folderTreeActions,
@@ -316,7 +315,7 @@ internal fun WorkspaceScreen(
                         }
                     }
                     AiPanel(
-                        modifier = Modifier.width(360.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                        modifier = Modifier.sidePanel(PanelWidths.AI),
                         view = aiPanelView,
                         onViewSelected = { aiPanelView = it },
                         assistant = assistant,
@@ -342,7 +341,7 @@ internal fun WorkspaceScreen(
                 if (openPanel == SidePanel.VERSION_CONTROL) {
                     VerticalDivider()
                     GitPanel(
-                        modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                        modifier = Modifier.sidePanel(PanelWidths.VERSION_CONTROL),
                         state = controller.git.state,
                         onRefresh = controller.git::refresh,
                         onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },

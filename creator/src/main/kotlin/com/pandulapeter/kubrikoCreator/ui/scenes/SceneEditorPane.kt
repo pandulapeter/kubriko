@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -48,8 +46,10 @@ import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
+import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
 import kubriko.creator.generated.resources.action_hide_scene_actors
@@ -128,7 +128,7 @@ internal fun SceneEditorPane(
             // Read so that the list follows the Actors created from the Scene's content.
             view.loadRevision.collectAsState().value
             SceneActorList(
-                modifier = Modifier.width(220.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                modifier = Modifier.sidePanel(PanelWidths.SCENE_ACTORS),
                 entries = view.entries,
                 uncreatedIds = view.uncreatedIds,
                 selectedId = selectedId,
@@ -158,7 +158,7 @@ internal fun SceneEditorPane(
     )
         VerticalDivider()
         SceneInspector(
-            modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+            modifier = Modifier.sidePanel(PanelWidths.SCENE_INSPECTOR),
             view = view,
             sceneName = state.sceneName,
             selectedId = selectedId,
