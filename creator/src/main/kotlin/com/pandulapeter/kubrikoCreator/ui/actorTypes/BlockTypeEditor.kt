@@ -54,6 +54,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param scope What its Blocks can refer to.
  * @param sprites The images an Actor type can be drawn as, by their path from `composeResources`.
  * @param inheritance What an Actor type gets from its parent, and the parents it can have.
+ * @param currentDefinition The type as it is now, which an add that succeeded reads to find the Event it made, since
+ *   [definition] may not show it yet, or may show the AI's changes from before it.
  */
 @Composable
 internal fun BlockTypeEditor(
@@ -63,6 +65,7 @@ internal fun BlockTypeEditor(
     inheritance: Inheritance,
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
+    currentDefinition: () -> BlockTypeDefinition?,
     onRename: (String) -> StringResource?,
     onTypeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -76,6 +79,7 @@ internal fun BlockTypeEditor(
     val eventIndex = eventSelection.shownIndex(eventKeys, highlight)
     val event = eventIndex?.let { definition.events[it] }
     val actions = remember(definition, onCommand) { BlockTypeEditorActions(definition, onCommand) }
+    val selectAddedEvent: () -> Unit = { currentDefinition()?.let { eventSelection.selectAdded(it.events) } }
     var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
     val propertyItemKeys = remember(name) { ListItemKeys<PropertyDefinition>() }
     val propertyKeys = remember(propertyItemKeys, definition.properties) { propertyItemKeys.update(definition.properties) }
@@ -115,16 +119,10 @@ internal fun BlockTypeEditor(
                     isRecentlyAdded = eventSelection::isRecentlyAdded,
                     listIdentity = name,
                     inheritedEvents = inheritance.events,
-                    onOverride = { event ->
-                        val addedIndex = definition.events.size
-                        actions.overrideEvent(event) { eventSelection.selectWhenAdded(addedIndex) }
-                    },
+                    onOverride = { event -> actions.overrideEvent(event, selectAddedEvent) },
                     selectedIndex = eventIndex,
                     onSelected = { eventSelection.select(eventKeys[it]) },
-                    onAdded = { type ->
-                        val addedIndex = definition.events.size
-                        actions.addEvent(type) { eventSelection.selectWhenAdded(addedIndex) }
-                    },
+                    onAdded = { type -> actions.addEvent(type, selectAddedEvent) },
                     onMoved = actions::moveEvent,
                     onRemoved = actions::removeEvent,
                     highlight = highlight,

@@ -131,6 +131,7 @@ internal fun WorkspaceScreen(
                         actorTypeDragState = sidebarDragState,
                         panelLayout = panelLayout,
                         onCommand = controller.commands::dispatch,
+                        currentBlockType = { blockTypesController?.get(it) },
                         onCommandIfValid = controller::dispatchIfValid,
                         onTypeSelected = { controller.selection.selectType(it) },
                         onPlayScene = { controller.play(firstScene = it) },

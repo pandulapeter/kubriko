@@ -47,6 +47,7 @@ class BlockTypeEditorEventSelectionTest {
                 inheritance = Inheritance(),
                 isChangedByHand = false,
                 onCommand = onCommand,
+                currentDefinition = { definition },
                 onRename = { null },
                 onTypeSelected = {},
             )
@@ -93,6 +94,23 @@ class BlockTypeEditorEventSelectionTest {
         selectEveryFrame()
         addAnEvent()
         onNodeWithText("key-blocks").assertExists()
+    }
+
+    @Test
+    fun anAddWaitingBehindTheAisChangesSelectsTheEventItAdded() {
+        showingEditor(
+            onCommand = { _, onSuccess ->
+                definition = definition.copy(events = definition.events - added)
+                definition = definition.copy(events = definition.events + keyPressed)
+                onSuccess()
+                definition = definition.copy(events = definition.events + update.copy(blocks = listOf(BlockDefinition.Log("later-blocks"))))
+            },
+        ) {
+            selectEveryFrame()
+            addAnEvent()
+            onNodeWithText("key-blocks").assertExists()
+            onNodeWithText("later-blocks").assertDoesNotExist()
+        }
     }
 
     @Test

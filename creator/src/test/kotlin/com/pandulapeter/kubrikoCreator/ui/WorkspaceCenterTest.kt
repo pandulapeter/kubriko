@@ -52,6 +52,7 @@ class WorkspaceCenterTest {
                     actorTypeDragState = SidebarDragState(),
                     panelLayout = PanelLayout(emptyMap(), onWidthChange = { _, _ -> }, onWidthReset = {}),
                     onCommand = { _, _ -> },
+                    currentBlockType = { null },
                     onCommandIfValid = { null },
                     onTypeSelected = {},
                     onPlayScene = {},
