@@ -29,7 +29,8 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
   - `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<version>` generates every template for real and builds it for
     desktop and web, with an Actor type and two Manager types using every Event and Block, and resolves the desktop runtime
     classpath as playing does (compiling alone misses a library whose repository is missing). For an unreleased
-    `library.version`, run it after a `:creator:run` with `<library.version>-creator`.
+    `library.version`, run it after a `:creator:run` with `<library.version>-creator`. `Tests` runs it nightly (and on a
+    manual dispatch) in its `publish-check` job, against that job's `0.0.0-check` publish.
   - `KUBRIKO_CREATOR_BENCHMARK=true` times a 200-type project without Gradle (`CreatorBenchmarkTest`) and, with
     `KUBRIKO_CREATOR_VERSION`, builds it for real (`CreatorBuildBenchmarkTest`; more Gradle arguments through
     `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`).

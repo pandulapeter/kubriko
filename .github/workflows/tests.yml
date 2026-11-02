@@ -124,7 +124,7 @@ jobs:
     # On macOS, like the release, since only it builds the iOS artifacts. desktopTest compiles the desktop target alone,
     # so this is what catches a module that doesn't build or package for another platform before a release does.
     runs-on: macOS-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -133,3 +133,18 @@ jobs:
       # Everything publishToMavenCentral does except signing and uploading, under a version no release uses.
       - name: Publish every artifact to Maven Local
         run: ./gradlew publishToMavenLocal -Plibrary.version=0.0.0-check --no-configuration-cache
+      # Generates every project template with an Actor type and Manager types using every Event and Block, and
+      # compiles it for desktop and web against the libraries just published, which the generator tests' exact text
+      # can't prove. It downloads every dependency of a generated project, so it runs nightly, not on every change.
+      - name: Compile Kubriko Creator's generated projects
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.unit_tests_only
+        run: ./gradlew :creator:test --tests '*ProjectTemplateIntegrationTest*' --rerun --no-configuration-cache
+        env:
+          KUBRIKO_CREATOR_INTEGRATION: 'true'
+          KUBRIKO_CREATOR_VERSION: '0.0.0-check'
+      - name: Upload Kubriko Creator's integration test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: creator-integration-test-reports
+          path: 'creator/build/reports/tests/'
