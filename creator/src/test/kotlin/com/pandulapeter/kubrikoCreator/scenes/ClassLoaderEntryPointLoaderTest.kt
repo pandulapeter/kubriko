@@ -15,6 +15,7 @@ import kubriko.creator.generated.resources.error_entry_point_multiple
 import kubriko.creator.generated.resources.error_entry_point_not_loaded
 import org.junit.Assume.assumeFalse
 import java.io.File
+import java.util.jar.JarOutputStream
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -38,7 +39,7 @@ class ClassLoaderEntryPointLoaderTest {
             .writeText(classNames.joinToString("\n"))
     }
 
-    private fun load(vararg files: File) = ClassLoaderEntryPointLoader.load(ProjectClasspath(kubrikoVersion = "1.0.0", files = files.toList()))
+    private fun load(vararg files: File) = ClassLoaderEntryPointLoader(root).load(ProjectClasspath(kubrikoVersion = "1.0.0", files = files.toList()))
 
     @Test
     fun theProjectsEntryPointIsFoundThroughItsServicesFile() {
@@ -85,13 +86,18 @@ class ClassLoaderEntryPointLoaderTest {
     }
 
     @Test
-    fun onlyJarsAndFoldersTheProjectBuildsAreCopied() {
-        fun jar(path: String) = File(root, path).apply { parentFile.mkdirs(); writeText("") }
-        assertTrue(ClassLoaderEntryPointLoader.isProjectOutput(jar("game/build/libs/game-desktop.jar")))
-        assertTrue(ClassLoaderEntryPointLoader.isProjectOutput(File(root, "game/build/classes").apply { mkdirs() }))
-        assertFalse(ClassLoaderEntryPointLoader.isProjectOutput(jar(".gradle/caches/modules-2/files-2.1/engine.jar")))
-        assertFalse(ClassLoaderEntryPointLoader.isProjectOutput(jar(".m2/repository/io/github/engine.jar")))
-        assertFalse(ClassLoaderEntryPointLoader.isProjectOutput(jar("game/build/libs/notes.txt")))
+    fun onlyJarsUnderTheProjectRootAreCopied() {
+        fun jar(path: String) = File(root, path).apply {
+            parentFile.mkdirs()
+            JarOutputStream(outputStream()).close()
+        }
+        val project = File(root, "game")
+        val jarUnderRoot = jar("game/build/libs/game-desktop.jar")
+        val jarOutsideRoot = jar("outside/.gradle-home/caches/modules-2/files-2.1/engine.jar")
+        val copies = File(root, "copies").apply { mkdirs() }
+        ClassLoaderEntryPointLoader(project).classLoaderOf(listOf(jarUnderRoot, jarOutsideRoot), copies, parent = ClassLoader.getPlatformClassLoader()).use {
+            assertEquals(listOf("0-game-desktop.jar"), copies.list().orEmpty().toList())
+        }
     }
 
     @Test
@@ -104,7 +110,7 @@ class ClassLoaderEntryPointLoaderTest {
         }
         val resource = File(classes, "files/scene.json").apply { parentFile.mkdirs(); writeText("{}") }
         val copies = File(root, "copies").apply { mkdirs() }
-        ClassLoaderEntryPointLoader.classLoaderOf(listOf(classes), copies, parent = ClassLoader.getPlatformClassLoader()).use { classLoader ->
+        ClassLoaderEntryPointLoader(root).classLoaderOf(listOf(classes), copies, parent = ClassLoader.getPlatformClassLoader()).use { classLoader ->
             classFile.writeText("rebuilt into something that isn't a class")
             resource.writeText("{ }")
             assertEquals(classLoader, classLoader.loadClass(SnapshotProbe::class.java.name).classLoader)

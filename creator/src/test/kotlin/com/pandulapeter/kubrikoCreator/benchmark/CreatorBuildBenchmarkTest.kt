@@ -159,7 +159,7 @@ class CreatorBuildBenchmarkTest {
             val classpath = checkNotNull(ProjectClasspath.parse(classpathFile.readText()))
             val actors = SceneDocument.parse(sceneFile(sceneName).readText())
             var start = System.nanoTime()
-            val loaded = ClassLoaderEntryPointLoader.load(classpath)
+            val loaded = ClassLoaderEntryPointLoader(directory).load(classpath)
             report("Load the built classes (Kubriko ${classpath.kubrikoVersion})", "%8.1f ms".format((System.nanoTime() - start) / 1e6))
             try {
                 start = System.nanoTime()

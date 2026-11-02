@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
+import com.pandulapeter.kubrikoCreator.project.ProjectOutput
 import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.ClassShape
 import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
@@ -78,7 +79,10 @@ internal class GameBuilds(
 
     private fun classpathPropertiesOf(file: File) = mapOf(MODE_PROPERTY to "classpath", "kubrikoCreatorClasspathFile" to file.absolutePath)
 
-    private fun ProjectClasspath?.ownClassFolders() = this?.files.orEmpty().filter { it.isDirectory && it.canonicalFile.startsWith(rootDirectory.canonicalFile) }
+    private fun ProjectClasspath?.ownClassFolders(): List<File> {
+        val root = rootDirectory.canonicalFile
+        return this?.files.orEmpty().filter { it.isDirectory && ProjectOutput.isOwnUnderCanonicalRoot(it, root) }
+    }
 
     private companion object {
         const val MODE_PROPERTY = "kubrikoCreatorMode"

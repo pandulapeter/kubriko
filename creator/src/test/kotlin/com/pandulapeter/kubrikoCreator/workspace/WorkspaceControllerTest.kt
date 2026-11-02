@@ -111,7 +111,7 @@ class WorkspaceControllerTest {
         blockTypeRepository: FakeBlockTypeRepository? = null,
         startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
         rootDirectory: File = this@WorkspaceControllerTest.rootDirectory,
-        entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
+        entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader(rootDirectory),
         runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
         initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
     ): WorkspaceController {

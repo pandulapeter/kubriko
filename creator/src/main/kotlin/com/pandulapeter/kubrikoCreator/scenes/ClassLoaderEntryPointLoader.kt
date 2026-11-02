@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+import com.pandulapeter.kubrikoCreator.project.ProjectOutput
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
 import kubriko.creator.generated.resources.error_entry_point_multiple
@@ -26,11 +27,11 @@ import kotlin.io.path.createTempDirectory
  * is what lets Creator draw the project's Actors in its own window, and why it only works when the project uses the
  * Kubriko version Creator was built with.
  *
- * The project's own jars are copied, and the class files of its own folders read, before they are loaded, so that the
+ * The jars under the project's root are copied, and the class files of the folders under it read, before they are loaded, so that the
  * next build can replace them while these classes are still in use (Windows can't overwrite a jar that is open, and a
  * class loaded later from a rebuilt folder wouldn't match the ones loaded before; [ProjectClassLoader]).
  */
-internal object ClassLoaderEntryPointLoader : EntryPointLoader {
+internal class ClassLoaderEntryPointLoader(private val rootDirectory: File) : EntryPointLoader {
 
     override fun load(classpath: ProjectClasspath): LoadedEntryPoint {
         val copies = createTempDirectory("kubriko-creator-classes").toFile().apply { deleteOnExit() }
@@ -77,23 +78,24 @@ internal object ClassLoaderEntryPointLoader : EntryPointLoader {
         files: List<File>,
         copies: File,
         parent: ClassLoader = ClassLoaderEntryPointLoader::class.java.classLoader,
-    ) = ProjectClassLoader(
-        urls = files.map { file ->
-            if (isProjectOutput(file) && file.isFile) file.copyTo(File(copies, "${copies.list().orEmpty().size}-${file.name}")) else file
-        }.map { it.toURI().toURL() }.toTypedArray(),
-        classFiles = HashMap<String, ByteArray>().apply { files.filter { isProjectOutput(it) && it.isDirectory }.reversed().forEach { putAll(classFilesOf(it)) } },
-        parent = parent,
-    )
+    ): ProjectClassLoader {
+        val root = rootDirectory.canonicalFile
+        return ProjectClassLoader(
+            urls = files.map { file ->
+                if (isProjectOutput(file, root) && file.isFile) file.copyTo(File(copies, "${copies.list().orEmpty().size}-${file.name}")) else file
+            }.map { it.toURI().toURL() }.toTypedArray(),
+            classFiles = HashMap<String, ByteArray>().apply { files.filter { isProjectOutput(it, root) && it.isDirectory }.reversed().forEach { putAll(classFilesOf(it)) } },
+            parent = parent,
+        )
+    }
 
     private fun classFilesOf(folder: File) = folder.walkTopDown()
         .filter { it.isFile && it.extension == "class" }
         .associate { it.relativeTo(folder).invariantSeparatorsPath.removeSuffix(".class").replace('/', '.') to it.readBytes() }
 
     /**
-     * Whether [file] is a jar or a folder built by the project (rather than downloaded into Gradle's or Maven's caches),
-     * and so may be replaced by the next build.
+     * Whether [file] is a jar or a folder under the project's [canonicalRoot], and so may be replaced by the next build.
      */
-    internal fun isProjectOutput(file: File) = (file.isDirectory || (file.isFile && file.extension == "jar")) && file.invariantSeparatorsPath.let { path ->
-        "/.gradle/caches/" !in path && "/.m2/repository/" !in path
-    }
+    private fun isProjectOutput(file: File, canonicalRoot: File) =
+        (file.isDirectory || (file.isFile && file.extension == "jar")) && ProjectOutput.isOwnUnderCanonicalRoot(file, canonicalRoot)
 }

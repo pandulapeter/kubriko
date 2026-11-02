@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
+import com.pandulapeter.kubrikoCreator.project.ProjectOutput
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -91,7 +92,7 @@ internal class GameProcess(
      */
     internal fun snapshotOf(classpath: List<File>, snapshot: File) = classpath.flatMapIndexed { index, entry ->
         when {
-            !entry.exists() || !entry.canonicalFile.startsWith(projectDirectory) -> listOf(entry)
+            !entry.exists() || !ProjectOutput.isOwnUnderCanonicalRoot(entry, projectDirectory) -> listOf(entry)
             entry.isDirectory -> {
                 val copy = File(snapshot, index.toString())
                 entry.walkTopDown().filter { it.isFile && it.extension == "class" }.forEach { it.copyTo(File(copy, it.relativeTo(entry).path)) }

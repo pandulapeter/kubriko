@@ -99,7 +99,7 @@ internal class WorkspaceController(
     val creatorKubrikoVersion: String = "",
     initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
     private val projectFormat: ProjectFormat = ProjectFormat(project.rootDirectory, creatorKubrikoVersion),
-    entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
+    entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader(project.rootDirectory),
     startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
     generatedPath: String? = null,
     openGitRepository: () -> GitRepository? = { JGitRepository.open(project.rootDirectory) },
