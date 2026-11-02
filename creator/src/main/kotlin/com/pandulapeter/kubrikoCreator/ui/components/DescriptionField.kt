@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import com.pandulapeter.kubrikoCreator.ui.LocalIsAiEnabled
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.description_hint
 import kubriko.creator.generated.resources.description_hint_without_ai

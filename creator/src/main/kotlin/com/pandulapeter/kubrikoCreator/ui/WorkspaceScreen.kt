@@ -66,6 +66,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
+import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane

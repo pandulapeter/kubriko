@@ -40,7 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.AiStep
-import com.pandulapeter.kubrikoCreator.ui.LocalIsAiEnabled
+import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.description
 import kotlinx.coroutines.delay
 import kubriko.creator.generated.resources.Res

@@ -45,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res

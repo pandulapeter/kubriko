@@ -46,7 +46,7 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsStore
 import com.pandulapeter.kubrikoCreator.ui.AppContent
-import com.pandulapeter.kubrikoCreator.ui.LocalIsAiEnabled
+import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorTheme
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
 import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar

@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 import com.pandulapeter.kubrikoCreator.settings.ThemeChoice
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
+import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
