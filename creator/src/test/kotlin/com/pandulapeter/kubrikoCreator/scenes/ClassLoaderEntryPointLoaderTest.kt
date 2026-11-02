@@ -114,17 +114,14 @@ class ClassLoaderEntryPointLoaderTest {
     }
 
     @Test
-    fun aClassLoadedAgainIsTheSameClass() {
-        val classes = File(root, "game/build/classes").apply { mkdirs() }
-        val probePath = SnapshotProbe::class.java.name.replace('.', '/') + ".class"
-        File(classes, probePath).apply {
-            parentFile.mkdirs()
-            writeBytes(checkNotNull(SnapshotProbe::class.java.classLoader.getResourceAsStream(probePath)).use { it.readBytes() })
-        }
-        val copies = File(root, "copies").apply { mkdirs() }
-        ClassLoaderEntryPointLoader.classLoaderOf(listOf(classes), copies, parent = ClassLoader.getPlatformClassLoader()).use { classLoader ->
-            val loaded = classLoader.loadClass(SnapshotProbe::class.java.name)
-            assertSame(loaded, classLoader.loadClass(SnapshotProbe::class.java.name))
+    fun aClassLoadedAgainIsTheSameClassAndItsBytesAreDropped() {
+        val name = SnapshotProbe::class.java.name
+        val bytes = checkNotNull(SnapshotProbe::class.java.classLoader.getResourceAsStream(name.replace('.', '/') + ".class")).use { it.readBytes() }
+        val classFiles = hashMapOf(name to bytes)
+        ProjectClassLoader(emptyArray(), classFiles, ClassLoader.getPlatformClassLoader()).use { classLoader ->
+            val loaded = classLoader.loadClass(name)
+            assertFalse(name in classFiles)
+            assertSame(loaded, classLoader.loadClass(name))
             assertEquals(classLoader, loaded.classLoader)
         }
     }
