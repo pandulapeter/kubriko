@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_collision_choose
 import org.jetbrains.compose.resources.stringResource
@@ -23,7 +23,7 @@ internal fun ActorTypeChoice(
     actorType: String,
     actorTypeNames: List<String>,
     onSelected: (String) -> Unit,
-) = MenuButton(
+) = SearchableChoiceButton(
     label = actorType.ifEmpty { stringResource(Res.string.event_collision_choose) },
     options = actorTypeNames,
     optionText = { it },

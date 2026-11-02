@@ -45,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.actors.composeKeyNameOf
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButtonFace
+import com.pandulapeter.kubrikoCreator.ui.components.matchingOptions
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.key_listening
@@ -162,21 +163,7 @@ private fun KeyChoicePanel(
  * Every key whose title (from [titleOf]) or Compose name contains [query], those it matches exactly first, then those
  * starting with it, otherwise in the order of [KeyChoice.all].
  */
-internal fun matchingKeys(query: String, titleOf: (KeyChoice) -> String): List<KeyChoice> {
-    val trimmed = query.trim()
-    if (trimmed.isEmpty()) return KeyChoice.all
-    val compact = trimmed.replace(" ", "")
-    fun names(key: KeyChoice) = listOf(titleOf(key), key.composeKeyName)
-    return KeyChoice.all
-        .filter { key -> names(key).any { it.contains(trimmed, ignoreCase = true) || it.contains(compact, ignoreCase = true) } }
-        .sortedBy { key ->
-            when {
-                names(key).any { it.equals(trimmed, ignoreCase = true) || it.equals(compact, ignoreCase = true) } -> 0
-                names(key).any { it.startsWith(trimmed, ignoreCase = true) || it.startsWith(compact, ignoreCase = true) } -> 1
-                else -> 2
-            }
-        }
-}
+internal fun matchingKeys(query: String, titleOf: (KeyChoice) -> String) = matchingOptions(query, KeyChoice.all, titleOf, alsoMatching = { it.composeKeyName })
 
 /**
  * A Compose key name made readable, with words apart: `MediaPlayPause` is "Media Play Pause", `NumPad5` "Num Pad5".

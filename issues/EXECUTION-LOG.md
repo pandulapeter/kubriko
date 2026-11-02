@@ -136,3 +136,12 @@ Review fixes: 212578617 (merged Save keeps its first place), 04cd99656 (JsonFile
 - New window/RepeatedFailureGuard.kt (`RepeatedFailureGuard(maximumFailures = 3, windowInMilliseconds = 10_000, currentTimeMillis)`, `shouldGiveUp()`, a `LongArray` ring) and window/CreatorWindowExceptionHandler.kt (`CreatorWindowExceptionHandler(report, onRecover, guard, fallback)`, its `factory` for `LocalWindowExceptionHandlerFactory`, and `handle(window: Window?, throwable)`; the default fallback is Compose's `DefaultWindowExceptionHandlerFactory`). `main` provides the factory around `SwingWindow` and keys the content inside `TitleBarInsets` on `recoveries`. `AppController.reportUnexpectedProblem` replaces the Welcome screen with `status_unexpected_problem`.
 - Deviation: a class holding `handle` and `factory` instead of the plan's factory function, so the test reaches `handle` with a null window (CI is headless); the real-window variant of the test was not added for the same reason.
 - Extra fixes: none
+
+# Phase 3, batch 3 (H05, H06a, H06b)
+
+## H05 — see next commit
+"Choose the project's types, Scenes, sprites, audio files, Properties, and parents in Kubriko Creator from a SearchableChoiceButton that filters a long list as you type." — verified: ./gradlew :creator:test (1,553 tests, none failed), ./gradlew :creator:spotlessApply, the new SearchableChoiceButtonTest and ChoiceMatchingTest fail (do not compile) with SearchableChoiceButton.kt, ChoiceMatching.kt, and KeyChoiceButton.kt set aside, the three snapshots looked at; skipped manual: none named
+- New ui/components/ChoiceMatching.kt (`matchingOptions(query, options, titleOf, alsoMatching)`) and ui/components/SearchableChoiceButton.kt (`SearchableChoiceButton(label, options, optionText, onSelected)`, `SEARCH_THRESHOLD = 8`, private `ChoicePanel` and `ChoiceSearchField`). `matchingKeys` delegates to `matchingOptions`. ActorTypeChoice, SceneChoice, SpriteChoice, AudioFileChoice, PropertyChoice, and ParentChoice use it; `MenuButton` stays for the fixed short lists. Strings `choice_search`, `choice_none_found`.
+- Deviation: creator/CLAUDE.md has no `ui/components` list or `KeyChoiceButton` description any more, so the rule is one entry in Definition of done's list of shared UI building blocks, naming `matchingOptions` there.
+- Deviation: changes set aside for the failing-test check went to the git-ignored `build/scratch/`, as in H01, since `$RUNNER_TEMP` is outside the paths this session may write.
+- Extra fixes: none

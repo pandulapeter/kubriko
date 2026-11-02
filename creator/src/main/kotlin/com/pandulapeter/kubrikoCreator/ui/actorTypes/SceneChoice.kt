@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_scene_choose
 import org.jetbrains.compose.resources.stringResource
@@ -20,7 +20,7 @@ internal fun SceneChoice(
     scene: String,
     sceneNames: List<String>,
     onSelected: (String) -> Unit,
-) = MenuButton(
+) = SearchableChoiceButton(
     label = scene.ifEmpty { stringResource(Res.string.block_scene_choose) },
     options = sceneNames,
     optionText = { it },
