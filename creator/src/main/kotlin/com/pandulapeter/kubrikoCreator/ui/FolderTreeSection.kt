@@ -163,7 +163,16 @@ internal fun LazyListScope.folderTreeSection(
             NewFolderField(group, parent = "", depth = 0, actions, onNamingChange)
         }
     }
-    items(folderTreeRows(state.items, state.folders, collapsed), key = { row -> "${group.name}-$row" }) { row ->
+    val folderOfItem = state.items.toMap()
+    items(
+        folderTreeRows(state.items, state.folders, collapsed),
+        key = { row ->
+            when (row) {
+                is FolderTreeRow.Folder -> "${group.name}-folder-${row.path}"
+                is FolderTreeRow.Item -> "${group.name}-item-${row.name}"
+            }
+        },
+    ) { row ->
         when (row) {
             is FolderTreeRow.Folder -> if (naming == SidebarNaming.RenamedFolder(group, row.path)) {
                 NewNameField(
@@ -195,7 +204,7 @@ internal fun LazyListScope.folderTreeSection(
             is FolderTreeRow.Item -> SidebarItem(
                 modifier = Modifier.sidebarDragSource(
                     dragState,
-                    SidebarDragState.Dragged(row.name, group, state.items.firstOrNull { it.first == row.name }?.second.orEmpty()),
+                    SidebarDragState.Dragged(row.name, group, folderOfItem[row.name].orEmpty()),
                 ),
                 icon = group.icon,
                 accent = group.accent,
