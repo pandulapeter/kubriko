@@ -39,6 +39,14 @@ class SessionConnectionTest {
     }
 
     @Test
+    fun aCreatorThatIsntListeningLeavesAConnectionThatDropsMessages() {
+        val port = ServerSocket(0, 0, InetAddress.getLoopbackAddress()).use { it.localPort }
+        SessionConnection.open(port).use { connection ->
+            connection.send(SessionMessage.Failure(message = "Nobody hears this."))
+        }
+    }
+
+    @Test
     fun commandsAreReadLineByLineWithUnknownOnesReportedByIdAndOtherLinesSkipped() = ServerSocket(0, 0, InetAddress.getLoopbackAddress()).use { server ->
         val received = LinkedBlockingQueue<SessionCommand>()
         val unknownIds = LinkedBlockingQueue<Int>()

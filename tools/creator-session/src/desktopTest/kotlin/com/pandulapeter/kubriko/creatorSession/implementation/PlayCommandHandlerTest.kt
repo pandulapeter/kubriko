@@ -110,6 +110,12 @@ class PlayCommandHandlerTest {
     }
 
     @Test
+    fun anUnexpectedFailureIsAnsweredWithItsReason() {
+        val handler = PlayCommandHandler(send = {}, findWindow = { null }, sleep = { sleeps += it }, hasActorsInView = { throw IllegalStateException("boom") })
+        assertEquals(SessionMessage.CommandFailed(1, "boom"), handler.carryOut(SessionCommand.AwaitActorsDrawn(1, 5000)))
+    }
+
+    @Test
     fun gamesThatDontReportTheirInstancesAreNotWaitedFor() {
         val handler = PlayCommandHandler(send = {}, findWindow = { null }, sleep = { sleeps += it }, hasActorsInView = { null })
         assertEquals(

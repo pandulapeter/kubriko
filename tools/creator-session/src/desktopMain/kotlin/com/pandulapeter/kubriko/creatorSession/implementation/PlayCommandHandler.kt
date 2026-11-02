@@ -89,6 +89,8 @@ internal class PlayCommandHandler(
         }
     } catch (exception: CommandException) {
         SessionMessage.CommandFailed(command.id, exception.message.orEmpty())
+    } catch (exception: Exception) {
+        SessionMessage.CommandFailed(command.id, exception.message ?: exception.toString())
     }
 
     /**

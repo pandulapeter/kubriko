@@ -76,6 +76,14 @@ internal class SessionConnection private constructor(
 
     companion object {
 
-        fun open(port: Int?) = SessionConnection(port?.let { Socket(InetAddress.getLoopbackAddress(), it) })
+        fun open(port: Int?) = SessionConnection(
+            port?.let {
+                try {
+                    Socket(InetAddress.getLoopbackAddress(), it)
+                } catch (_: IOException) {
+                    null
+                }
+            },
+        )
     }
 }
