@@ -156,6 +156,17 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun nothingReadsAPartBeforeItExists() = runTest {
+        val controller = createController(
+            blockTypeRepository = FakeBlockTypeRepository(listOf(ActorTypeDefinition(name = "Ball"))),
+            findDesktopModulePath = { ":desktop" },
+            gitRepository = FakeGitRepository(),
+        )
+        assertEquals(emptyList(), controller.console.value.filterIsInstance<ConsoleEntry.Status>().filter { it.text == Res.string.status_unexpected_problem })
+        assertEquals(listOf("Ball"), controller.blockTypes?.types?.value?.map { it.name })
+    }
+
+    @Test
     fun refreshingRescansTheResources() = runTest {
         var scanCount = 0
         val controller = createController(scanResources = { scanCount++; emptyMap() })

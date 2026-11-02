@@ -42,9 +42,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The session process that plays the game: starting and stopping it, and what it reports. The game is started without
- * Gradle when the build says how ([prepareLaunch], [runGame]), and through the init script's session task otherwise.
+ * Gradle when the build says how (the preparation [play] is given, then [runGame]), and through the init script's session
+ * task otherwise.
  *
- * @param prepareLaunch Builds the project for a play session.
  * @param runGame Plays the game with the given system properties until it ends, and stops it when cancelled.
  */
 internal class SessionController(
@@ -52,7 +52,6 @@ internal class SessionController(
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
     private val console: ConsoleLog,
     private val scope: CoroutineScope,
-    private val prepareLaunch: suspend () -> GameLaunchPreparation = { GameLaunchPreparation.Unavailable },
     private val runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
 ) : AutoCloseable {
     private val _state = MutableStateFlow<SessionState>(SessionState.Idle)
@@ -64,6 +63,7 @@ internal class SessionController(
     var job: Job? = null
         private set
     private var lastFirstScene: String? = null
+    private var lastPrepareLaunch: suspend () -> GameLaunchPreparation = { GameLaunchPreparation.Unavailable }
     private var protocolVersion = SessionProtocol.VERSION
     private val commandIds = AtomicInteger()
 
@@ -78,9 +78,14 @@ internal class SessionController(
      *
      * @param firstScene The Scene the game starts with instead of its first one, which only projects on template version 7
      *   or later honor.
+     * @param prepareLaunch Builds the project for the session, saying how to start the game without Gradle if it can.
      */
-    fun play(firstScene: String? = null) {
+    fun play(
+        firstScene: String? = null,
+        prepareLaunch: suspend () -> GameLaunchPreparation = { GameLaunchPreparation.Unavailable },
+    ) {
         lastFirstScene = firstScene
+        lastPrepareLaunch = prepareLaunch
         val previousJob = job
         previousJob?.cancel()
         job = scope.launch {
@@ -108,9 +113,9 @@ internal class SessionController(
     }
 
     /**
-     * Plays the game again, from the Scene it was started with last time.
+     * Plays the game again, from the Scene it was started with last time, prepared as it was then.
      */
-    fun restart() = play(lastFirstScene)
+    fun restart() = play(lastFirstScene, lastPrepareLaunch)
 
     private fun systemPropertiesOf(firstScene: String?) = mapOf(
         SessionProtocol.PORT_PROPERTY to channel.port.toString(),

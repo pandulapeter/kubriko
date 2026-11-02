@@ -58,7 +58,7 @@ internal fun TestScope.gitController(repository: FakeGitRepository?) = GitContro
 
 internal fun TestScope.commandContext(
     vararg definitions: BlockTypeDefinition,
-    blockTypes: BlockTypesController? = blockTypesController(*definitions),
+    blockTypes: BlockTypes? = blockTypesController(*definitions),
     git: GitController = gitController(repository = null),
     rootDirectory: File = testDirectory(),
     console: List<ConsoleEntry> = emptyList(),

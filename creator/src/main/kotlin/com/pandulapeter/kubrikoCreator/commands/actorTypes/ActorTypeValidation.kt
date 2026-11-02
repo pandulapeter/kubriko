@@ -31,9 +31,9 @@ import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.timerName
+import com.pandulapeter.kubrikoCreator.commands.BlockTypes
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_block_missing
@@ -65,7 +65,7 @@ import kubriko.creator.generated.resources.error_game_key_unknown
 /**
  * The block-built types of the project, which every type command has validated to exist before it is applied.
  */
-internal val CommandContext.requireBlockTypes: BlockTypesController get() = checkNotNull(blockTypes)
+internal val CommandContext.requireBlockTypes: BlockTypes get() = checkNotNull(blockTypes)
 
 /**
  * The Actor type or Manager type called [name], which the command has validated to exist.

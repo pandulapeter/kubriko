@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
-import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -40,7 +39,7 @@ import kubriko.creator.generated.resources.error_command_generated_code_not_writ
 internal class CommandContext(
     val project: CreatorProject,
     val console: StateFlow<List<ConsoleEntry>>,
-    val blockTypes: BlockTypesController?,
+    val blockTypes: BlockTypes?,
     val git: GitController,
     val scenes: SceneStore,
     val runner: ProjectRunner,

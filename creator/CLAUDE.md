@@ -101,9 +101,9 @@ Besides its tests passing, a change:
 
 - Workspace state (the `CommandExecutor`, `BlockTypesController`, `SceneEditingController`) is confined to the main thread;
   background work hands its results back there.
-- Each workspace runs in a scope of its own, a child of the app's. `close()` cancels it once the pending writes are done, giving
-  a failed one up to 10 seconds of retries (`BlockTypesController.awaitWritten`), quitting waits for that (at most 10 seconds), and
-  an opening that is cancelled closes what it made. Builds and git commands wait for the writes too (`awaitWrites`): while one
+- Each workspace runs in a scope of its own, a child of the app's, and so do its session server and watcher. `close()` cancels it
+  once the pending writes are done, giving a failed one up to 10 seconds of retries (`BlockTypesController.awaitWritten`), quitting
+  waits for that (at most 10 seconds), and an opening that fails or is cancelled closes what it started (`openWorkspace`). Builds and git commands wait for the writes too (`awaitWrites`): while one
   fails, git commands are refused and builds go ahead with a console warning naming what isn't saved.
 - `writeTextAtomically` writes a sibling temporary file and moves it into place, so a crash leaves the old content or the new,
   never half; a new file holding a token is readable by its owner only (`isPrivate`), as is Creator's own `mcp.json` even when an older

@@ -7,10 +7,10 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.workspace
+package com.pandulapeter.kubrikoCreator.commands
 
 /**
- * The changes [BlockTypesController] couldn't write yet, and why.
+ * The changes [BlockTypes] couldn't write yet, and why.
  *
  * @param subjects The types (or the folder) not on disk yet, or null when only the generated code is outdated.
  * @param reason The first line of the last failure's message.

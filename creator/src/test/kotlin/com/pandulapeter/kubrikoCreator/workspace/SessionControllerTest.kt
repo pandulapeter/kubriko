@@ -53,7 +53,6 @@ class SessionControllerTest {
     private val tasks = mutableListOf<Pair<String, Map<String, String>>>()
 
     private fun TestScope.createController(
-        prepareLaunch: suspend () -> GameLaunchPreparation = { GameLaunchPreparation.Unavailable },
         runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
     ) = SessionController(
         channel = channel,
@@ -63,7 +62,6 @@ class SessionControllerTest {
         },
         console = console,
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
-        prepareLaunch = prepareLaunch,
         runGame = runGame,
     )
 
@@ -166,13 +164,20 @@ class SessionControllerTest {
     }
 
     @Test
+    fun restartPreparesTheGameAsTheLastPlayDid() = runTest {
+        var preparationCount = 0
+        val controller = createController()
+        controller.play(prepareLaunch = { preparationCount++; GameLaunchPreparation.Failed })
+        controller.restart()
+        assertEquals(2, preparationCount)
+        assertEquals(emptyList(), tasks)
+    }
+
+    @Test
     fun aGameThatThrowsIOExceptionSaysItDidntStart() = runTest {
         val launch = GameLaunch(File("/java"), "M", File("/game"), emptyList(), listOf(File("/game/classes")))
-        val controller = createController(
-            prepareLaunch = { GameLaunchPreparation.Ready(launch) },
-            runGame = { _, _ -> throw IOException("x") },
-        )
-        controller.play()
+        val controller = createController(runGame = { _, _ -> throw IOException("x") })
+        controller.play(prepareLaunch = { GameLaunchPreparation.Ready(launch) })
         assertEquals(ConsoleEntry.Status(Res.string.status_game_not_started, isError = true, arguments = listOf("x")), console.entries.value.last())
         assertEquals(SessionState.Idle, controller.state.value)
     }

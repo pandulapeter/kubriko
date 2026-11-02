@@ -54,8 +54,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -83,6 +83,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Holds the state of an open project: its resources, its console, and the session process that runs or edits it.
  *
+ * Its parts are built in dependency order, each reading only those built before it.
+ *
+ * @param workspaceScope The scope everything the workspace starts runs in, which closing it cancels: a child of
+ *   [parentScope], made by whoever also starts the [sessionChannel] and the watcher in it.
  * @param initialFormatStatus Whether the project may be changed, as [projectFormat] found it while opening it, which it
  *   checks again whenever `.kubriko/project.json` changes.
  */
@@ -91,6 +95,7 @@ internal class WorkspaceController(
     private val build: ProjectBuild,
     private val sessionChannel: SessionChannel,
     private val parentScope: CoroutineScope,
+    workspaceScope: CoroutineScope = workspaceScopeOf(parentScope),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     findDesktopModulePath: suspend () -> String = { ":" },
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
@@ -113,7 +118,7 @@ internal class WorkspaceController(
     /**
      * Everything the workspace starts runs here, and stops when it is closed.
      */
-    private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]) + unexpectedProblemHandler(::reportUnexpectedProblem))
+    private val scope = CoroutineScope(workspaceScope.coroutineContext + unexpectedProblemHandler(::reportUnexpectedProblem))
 
     /**
      * The Gradle path of the module that runs the game on desktop, asked from Gradle in the background as soon as the
@@ -132,15 +137,7 @@ internal class WorkspaceController(
         hasExpectDeclarations = ExpectDeclarations(project.rootDirectory).let { declarations -> { withContext(ioDispatcher) { declarations.any() } } },
     )
     private val consoleLog = ConsoleLog()
-    private val tasks = CreatorTaskRunner(
-        rootDirectory = project.rootDirectory,
-        build = build,
-        desktopModulePath = desktopModulePath,
-        incrementalCompilation = incrementalCompilation,
-        console = consoleLog,
-        awaitWrites = { blockTypes?.run { if (awaitWrites()) null else unsavedWrites() } },
-        currentTimeMillis = currentTimeMillis,
-    )
+    val console = consoleLog.entries
     private val _formatStatus = MutableStateFlow(initialFormatStatus)
 
     /**
@@ -150,17 +147,74 @@ internal class WorkspaceController(
     val formatStatus = _formatStatus.asStateFlow()
 
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
-    val console = consoleLog.entries
-    private val sessions: SessionController = SessionController(
+    private val upgrader = ProjectUpgrader(project.rootDirectory)
+    private val _projectUpgrade = MutableStateFlow<TemplateUpgrade>(TemplateUpgrade.UpToDate)
+
+    /**
+     * What the project's template files (`Game.kt` and its neighbors, which belong to the user) need for this version of
+     * Kubriko Creator.
+     */
+    val projectUpgrade = _projectUpgrade.asStateFlow()
+
+    /**
+     * The project's Scene files, by name.
+     */
+    val scenes = SceneStore(project.rootDirectory, ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
+
+    val git = GitController(
+        openRepository = openGitRepository,
+        createRepository = createGitRepository,
+        generatedPath = generatedPath,
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+        report = ::appendToConsole,
+    )
+
+    /**
+     * Whether each batch of block type writes changed the types, handed to [changes] once it exists.
+     */
+    private val savedTypeBatches = Channel<Boolean>(Channel.UNLIMITED)
+
+    /**
+     * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
+     */
+    val blockTypes: BlockTypesController? = blockTypeRepository?.let { repository ->
+        BlockTypesController(
+            repository = repository,
+            scope = scope,
+            ioDispatcher = ioDispatcher,
+            onSaved = { haveTypesChanged -> savedTypeBatches.trySend(haveTypesChanged) },
+            onSaveFailed = { appendToConsole(it.toConsoleEntry()) },
+            onSavedAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_block_types_saved_again)) },
+            onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
+            onFirstLoaded = ::reportKotlinBlockScopeChanges,
+            onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_type_files_readable_again)) },
+            onLeftoversRemoved = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftovers_removed, arguments = listOf(it.joinToString()))) },
+            onLeftoverChangedByHand = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftover_changed_by_hand, isError = true, arguments = listOf(it))) },
+            syncBuildFiles = syncBuildFiles,
+            onBuildFilesSynced = ::reportBuildFileChanges,
+            writeDelayInMilliseconds = writeDelayInMilliseconds,
+            isReadOnly = { _formatStatus.value is ProjectFormatStatus.ReadOnly },
+        )
+    }
+    private val tasks = CreatorTaskRunner(
+        rootDirectory = project.rootDirectory,
+        build = build,
+        desktopModulePath = desktopModulePath,
+        incrementalCompilation = incrementalCompilation,
+        console = consoleLog,
+        awaitWrites = blockTypes?.let { types -> { if (types.awaitWrites()) null else types.unsavedWrites() } } ?: { null },
+        currentTimeMillis = currentTimeMillis,
+    )
+    private val sessions = SessionController(
         channel = sessionChannel,
         runTask = tasks::run,
         console = consoleLog,
         scope = scope,
-        prepareLaunch = { gameBuilds.prepareLaunch() },
         runGame = runGame,
     )
     val sessionState = sessions.state
-    private val gameBuilds: GameBuilds = GameBuilds(
+    private val gameBuilds = GameBuilds(
         rootDirectory = project.rootDirectory,
         sessions = sessions,
         runTask = tasks::run,
@@ -171,33 +225,7 @@ internal class WorkspaceController(
     )
 
     /**
-     * The project's Scene files, by name.
-     */
-    val scenes = SceneStore(project.rootDirectory, ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
-
-    /**
-     * Where Creator's own writes and the watcher's changes are routed to the parts that follow them.
-     */
-    private val changes = ProjectChanges(
-        scope = scope,
-        scanResources = ::scanResourcesNow,
-        onScenesChanged = { sceneEditing.onScenesChanged(it) },
-        onSceneRenamed = { oldName, newName ->
-            val file = scenes.fileOf(newName)
-            sceneEditing.onSceneRenamed(oldName, ProjectResource(ResourceGroup.SCENES, file, file.relativeTo(project.rootDirectory).invariantSeparatorsPath))
-        },
-        onScenesChangedOnDisk = { sceneEditing.onScenesChangedOnDisk() },
-        markSceneOutdated = { sceneEditing.markOutdated() },
-        regenerate = { blockTypes?.regenerate() },
-        onCodeChanged = { gameBuilds.onCodeChanged() },
-        refreshGit = { git.refresh() },
-        refreshFormatStatus = ::refreshFormatStatus,
-        reloadTypes = { blockTypes?.reloadFromDisk() },
-        refreshProjectUpgrade = ::refreshProjectUpgrade,
-    )
-
-    /**
-     * The Scene shown in Kubriko Creator's own window. Declared before [blockTypes], whose changes it hears about.
+     * The Scene shown in Kubriko Creator's own window.
      */
     val sceneEditing = SceneEditingController(
         creatorKubrikoVersion = creatorKubrikoVersion,
@@ -215,30 +243,73 @@ internal class WorkspaceController(
         requestCleanBuild = incrementalCompilation::requestCleanBuild,
         warmUpCompiler = tasks::warmUpCompiler,
         actorTypeLooks = { ActorTypeLook.of(blockTypes?.actorTypes?.value.orEmpty(), SpriteFiles.of(_resources.value).files) },
-        awaitWrites = { blockTypes?.awaitWrites() },
+        awaitWrites = blockTypes?.let { types -> { types.awaitWrites() } } ?: {},
     )
 
     /**
-     * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
+     * Where Creator's own writes and the watcher's changes are routed to the parts that follow them.
      */
-    val blockTypes: BlockTypesController? = blockTypeRepository?.let { repository ->
-        BlockTypesController(
-            repository = repository,
-            scope = scope,
+    private val changes = ProjectChanges(
+        scope = scope,
+        scanResources = ::scanResourcesNow,
+        onScenesChanged = sceneEditing::onScenesChanged,
+        onSceneRenamed = { oldName, newName ->
+            val file = scenes.fileOf(newName)
+            sceneEditing.onSceneRenamed(oldName, ProjectResource(ResourceGroup.SCENES, file, file.relativeTo(project.rootDirectory).invariantSeparatorsPath))
+        },
+        onScenesChangedOnDisk = sceneEditing::onScenesChangedOnDisk,
+        markSceneOutdated = sceneEditing::markOutdated,
+        regenerate = { blockTypes?.regenerate() },
+        onCodeChanged = gameBuilds::onCodeChanged,
+        refreshGit = git::refresh,
+        refreshFormatStatus = ::refreshFormatStatus,
+        reloadTypes = { blockTypes?.reloadFromDisk() },
+        refreshProjectUpgrade = ::refreshProjectUpgrade,
+    )
+
+    /**
+     * Every change to the project goes through here, so that it can be undone, and the AI can make it too.
+     */
+    val commands = CommandExecutor(
+        context = CommandContext(
+            project = project,
+            console = console,
+            blockTypes = blockTypes,
+            git = git,
+            scenes = scenes,
+            runner = WorkspaceRunner(
+                sessions = sessions,
+                startSession = ::play,
+                runTask = tasks::run,
+                console = consoleLog,
+                classpathFile = SessionInitScript.buildClasspathFileOf(project.rootDirectory),
+            ),
             ioDispatcher = ioDispatcher,
-            onSaved = { haveTypesChanged -> changes.onTypesSaved(haveTypesChanged) },
-            onSaveFailed = { appendToConsole(it.toConsoleEntry()) },
-            onSavedAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_block_types_saved_again)) },
-            onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
-            onFirstLoaded = ::reportKotlinBlockScopeChanges,
-            onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_type_files_readable_again)) },
-            onLeftoversRemoved = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftovers_removed, arguments = listOf(it.joinToString()))) },
-            onLeftoverChangedByHand = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftover_changed_by_hand, isError = true, arguments = listOf(it))) },
-            syncBuildFiles = syncBuildFiles,
-            onBuildFilesSynced = ::reportBuildFileChanges,
-            writeDelayInMilliseconds = writeDelayInMilliseconds,
-            isReadOnly = { _formatStatus.value is ProjectFormatStatus.ReadOnly },
-        )
+            audioFiles = { AudioFiles.of(_resources.value) },
+            spriteFiles = { SpriteFiles.of(_resources.value) },
+            report = ::appendToConsole,
+            onProjectUpgraded = ::refreshProjectUpgrade,
+            projectUpgrade = { _projectUpgrade.value },
+            rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
+        ),
+        scope = scope,
+        onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
+        onSceneChanges = changes::onSceneChanges,
+    )
+
+    private val watching = startWatching(::onProjectChanged)
+
+    init {
+        scope.launch {
+            for (haveTypesChanged in savedTypeBatches) changes.onTypesSaved(haveTypesChanged)
+        }
+        refreshResources()
+        refreshProjectUpgrade()
+        blockTypes?.let { types ->
+            scope.launch {
+                combine(types.actorTypes, _resources) { _, _ -> }.collect { sceneEditing.onActorTypesChanged() }
+            }
+        }
     }
 
     /**
@@ -287,66 +358,6 @@ internal class WorkspaceController(
         commands.validate(invocation)?.let { return it.reason }
         commands.dispatch(invocation)
         return null
-    }
-
-    val git = GitController(
-        openRepository = openGitRepository,
-        createRepository = createGitRepository,
-        generatedPath = generatedPath,
-        scope = scope,
-        ioDispatcher = ioDispatcher,
-        report = ::appendToConsole,
-    )
-
-    /**
-     * Every change to the project goes through here, so that it can be undone, and the AI can make it too.
-     */
-    val commands = CommandExecutor(
-        context = CommandContext(
-            project = project,
-            console = console,
-            blockTypes = blockTypes,
-            git = git,
-            scenes = scenes,
-            runner = WorkspaceRunner(
-                sessions = sessions,
-                startSession = ::play,
-                runTask = tasks::run,
-                console = consoleLog,
-                classpathFile = SessionInitScript.buildClasspathFileOf(project.rootDirectory),
-            ),
-            ioDispatcher = ioDispatcher,
-            audioFiles = { AudioFiles.of(_resources.value) },
-            spriteFiles = { SpriteFiles.of(_resources.value) },
-            report = ::appendToConsole,
-            onProjectUpgraded = ::refreshProjectUpgrade,
-            projectUpgrade = { _projectUpgrade.value },
-            rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
-        ),
-        scope = scope,
-        onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
-        onSceneChanges = { changes.onSceneChanges(it) },
-    )
-
-    private val upgrader = ProjectUpgrader(project.rootDirectory)
-    private val _projectUpgrade = MutableStateFlow<TemplateUpgrade>(TemplateUpgrade.UpToDate)
-
-    /**
-     * What the project's template files (`Game.kt` and its neighbors, which belong to the user) need for this version of
-     * Kubriko Creator.
-     */
-    val projectUpgrade = _projectUpgrade.asStateFlow()
-
-    private val watching = startWatching(::onProjectChanged)
-
-    init {
-        refreshResources()
-        refreshProjectUpgrade()
-        blockTypes?.let { types ->
-            scope.launch {
-                combine(types.actorTypes, _resources) { _, _ -> }.collect { sceneEditing.onActorTypesChanged() }
-            }
-        }
     }
 
     /**
@@ -411,7 +422,7 @@ internal class WorkspaceController(
         if (firstScene != null && _projectUpgrade.value is TemplateUpgrade.Needed) {
             appendToConsole(ConsoleEntry.Status(Res.string.status_play_from_scene_needs_upgrade, arguments = listOf(firstScene)))
         }
-        sessions.play(firstScene)
+        sessions.play(firstScene, gameBuilds::prepareLaunch)
     }
 
     fun stopSession() = sessions.stop()

@@ -35,7 +35,8 @@ import java.io.IOException
  * Opens a workspace through the project's own Gradle build, without waiting for Gradle: only the project's files are
  * read, and the desktop module is asked from Gradle in the background, for the first build to wait for if it must.
  * That first build starts right away, in the background too, so that the Gradle daemon is warm and the project's
- * classes are loaded by the time a Scene is opened.
+ * classes are loaded by the time a Scene is opened. The session server and the watcher run in the workspace's own scope,
+ * and an opening that fails closes everything it started.
  */
 internal object GradleWorkspaceOpener : WorkspaceOpener {
 
@@ -52,27 +53,30 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
             throw ProjectInspectionException(Res.string.error_project_format_not_upgraded_on_open)
         }
         val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory, ownWrites) }
-        val connection = GradleProjectConnection(directory)
-        return WorkspaceController(
-            project = project,
-            build = connection,
-            sessionChannel = SessionServer(scope),
-            parentScope = scope,
-            findDesktopModulePath = { ProjectInspector.desktopModulePathOf(connection) },
-            scanResources = { ResourceScanner.scan(it, hiddenDirectory = blockTypeStore?.generatedPath) },
-            blockTypeRepository = blockTypeStore,
-            syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
-            creatorKubrikoVersion = configuration.kubrikoVersion,
-            creatorLibraries = creatorLibraries,
-            initialFormatStatus = formatStatus,
-            projectFormat = projectFormat,
-            generatedPath = blockTypeStore?.generatedPath,
-            writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
-            ownWrites = ownWrites,
-            startWatching = { onChange ->
-                ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO, ownWrites = ownWrites).start(onChange)
-            },
-        ).also { it.sceneEditing.prepare() }
+        return openWorkspace(scope) { opening ->
+            val connection = opening.track(GradleProjectConnection(directory))
+            WorkspaceController(
+                project = project,
+                build = connection,
+                sessionChannel = opening.track(SessionServer(opening.scope)),
+                parentScope = scope,
+                workspaceScope = opening.scope,
+                findDesktopModulePath = { ProjectInspector.desktopModulePathOf(connection) },
+                scanResources = { ResourceScanner.scan(it, hiddenDirectory = blockTypeStore?.generatedPath) },
+                blockTypeRepository = blockTypeStore,
+                syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
+                creatorKubrikoVersion = configuration.kubrikoVersion,
+                creatorLibraries = creatorLibraries,
+                initialFormatStatus = formatStatus,
+                projectFormat = projectFormat,
+                generatedPath = blockTypeStore?.generatedPath,
+                writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
+                ownWrites = ownWrites,
+                startWatching = { onChange ->
+                    opening.track(ProjectWatcher(directory, blockTypeStore?.generatedPath, opening.scope, Dispatchers.IO, ownWrites = ownWrites).start(onChange))
+                },
+            ).also { it.sceneEditing.prepare() }
+        }
     }
 
     /**

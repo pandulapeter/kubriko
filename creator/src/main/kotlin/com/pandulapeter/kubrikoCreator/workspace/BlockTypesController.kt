@@ -21,6 +21,8 @@ import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
 import com.pandulapeter.kubrikoCreator.actors.withParents
+import com.pandulapeter.kubrikoCreator.commands.BlockTypes
+import com.pandulapeter.kubrikoCreator.commands.UnsavedWrites
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CancellationException
@@ -78,43 +80,26 @@ internal class BlockTypesController(
     private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
     private val writeDelayInMilliseconds: Long = 0,
     private val isReadOnly: () -> Boolean = { false },
-) {
+) : BlockTypes {
     private val _types = MutableStateFlow(emptyList<BlockTypeDefinition>())
-
-    /**
-     * Every Actor type and Manager type, sorted by name.
-     */
-    val types = _types.asStateFlow()
+    override val types = _types.asStateFlow()
     private val _actorTypes = MutableStateFlow(emptyList<ActorTypeDefinition>())
-    val actorTypes = _actorTypes.asStateFlow()
+    override val actorTypes = _actorTypes.asStateFlow()
     private val _managerTypes = MutableStateFlow(emptyList<ManagerTypeDefinition>())
-    val managerTypes = _managerTypes.asStateFlow()
+    override val managerTypes = _managerTypes.asStateFlow()
     private val _selectedName = MutableStateFlow<String?>(null)
     val selectedName = _selectedName.asStateFlow()
     private val _changedByHand = MutableStateFlow(emptySet<String>())
-
-    /**
-     * The types whose generated code was changed by hand (in IntelliJ, for example), and which Kubriko Creator
-     * therefore stopped updating until those changes are discarded ([discardChangesMadeByHand]).
-     */
-    val changedByHand = _changedByHand.asStateFlow()
+    override val changedByHand = _changedByHand.asStateFlow()
     private val _unreadableFiles = MutableStateFlow(emptyList<UnreadableBlockTypeFile>())
-
-    /**
-     * The definition files that couldn't be read when they were last loaded, which are left out of [types].
-     */
-    val unreadableFiles = _unreadableFiles.asStateFlow()
+    override val unreadableFiles = _unreadableFiles.asStateFlow()
 
     /**
      * The folders that exist without a type in them, by the kind of type they hold.
      */
     private var emptyFolders = emptyMap<BlockTypeKind, Set<String>>()
     private val _folders = MutableStateFlow(emptyMap<BlockTypeKind, Set<String>>())
-
-    /**
-     * Every folder of each kind of type, as paths (`enemies/flying`), parents included: those types are in, and empty ones.
-     */
-    val folders = _folders.asStateFlow()
+    override val folders = _folders.asStateFlow()
 
     /**
      * The generated files of types that no longer exist that the last regeneration kept, since they were changed by hand.
@@ -185,10 +170,7 @@ internal class BlockTypesController(
         }
     }
 
-    /**
-     * Returns once every change made so far is written, or writing them failed; whether they all are on disk.
-     */
-    suspend fun awaitWrites(): Boolean {
+    override suspend fun awaitWrites(): Boolean {
         val wanted = queuedGeneration
         attemptedGeneration.first { it >= wanted }
         return writtenGeneration >= wanted
@@ -206,10 +188,7 @@ internal class BlockTypesController(
      */
     fun unsavedNames() = (inFlight + pendingWrites).mapNotNull { (it.subject as? FailedWrite.Subject.Type)?.name }.distinct().sorted()
 
-    /**
-     * What isn't on disk yet, and why, for telling the user what an action that reads the files goes ahead without.
-     */
-    fun unsavedWrites() = UnsavedWrites(
+    override fun unsavedWrites() = UnsavedWrites(
         subjects = unsavedNames().joinToString().ifEmpty { (_failure.value?.subject as? FailedWrite.Subject.Folder)?.path },
         reason = _failure.value?.reason.orEmpty(),
     )
@@ -218,26 +197,16 @@ internal class BlockTypesController(
         _selectedName.value = name
     }
 
-    /**
-     * The names no new type may have: every type's, and those of the files that couldn't be read, which would clash with
-     * it once fixed.
-     */
-    val takenNames get() = _types.value.map { it.name } + _unreadableFiles.value.map { it.name }
+    override val takenNames get() = _types.value.map { it.name } + _unreadableFiles.value.map { it.name }
 
-    /**
-     * The Actor type or Manager type called [name].
-     */
-    operator fun get(name: String) = _types.value.firstOrNull { it.name == name }
+    override operator fun get(name: String) = _types.value.firstOrNull { it.name == name }
 
-    fun actorType(name: String) = get(name) as? ActorTypeDefinition
+    override fun actorType(name: String) = get(name) as? ActorTypeDefinition
 
-    fun managerType(name: String) = get(name) as? ManagerTypeDefinition
+    override fun managerType(name: String) = get(name) as? ManagerTypeDefinition
 
-    /**
-     * Adds [definition], or replaces the type of the same name.
-     */
     @EditorMutation
-    fun put(definition: BlockTypeDefinition) {
+    override fun put(definition: BlockTypeDefinition) {
         // A type moved out of a folder leaves the folder behind, empty or not.
         get(definition.name)?.takeIf { it.folder.isNotEmpty() && it.folder != definition.folder }?.let { previous ->
             emptyFolders = emptyFolders.withFolder(previous.kind, previous.folder)
@@ -247,35 +216,28 @@ internal class BlockTypesController(
     }
 
     @EditorMutation
-    fun createFolder(kind: BlockTypeKind, path: String) {
+    override fun createFolder(kind: BlockTypeKind, path: String) {
         emptyFolders = emptyFolders.withFolder(kind, path)
         setTypes(_types.value)
         queue(PendingWrite.CreateFolder(kind, path), haveTypesChanged = false)
     }
 
-    /**
-     * Deletes the folder at [path], which must hold no types (in it or in its folders).
-     */
     @EditorMutation
-    fun deleteFolder(kind: BlockTypeKind, path: String) {
+    override fun deleteFolder(kind: BlockTypeKind, path: String) {
         emptyFolders = emptyFolders + (kind to emptyFolders[kind].orEmpty().filterTo(mutableSetOf()) { it != path && !it.startsWith("$path/") })
         setTypes(_types.value)
         queue(PendingWrite.DeleteFolder(kind, path), haveTypesChanged = false)
     }
 
     @EditorMutation
-    fun delete(name: String) {
+    override fun delete(name: String) {
         setTypes(_types.value.filter { it.name != name })
         if (_selectedName.value == name) _selectedName.value = null
         queue(PendingWrite.Delete(name))
     }
 
-    /**
-     * Renames [oldName] to [newName], in the Events and Blocks of every type that refer to it too, keeping it selected if
-     * it was.
-     */
     @EditorMutation
-    fun rename(oldName: String, newName: String) {
+    override fun rename(oldName: String, newName: String) {
         val isManagerType = get(oldName) is ManagerTypeDefinition
         val renamed = _types.value.mapNotNull { definition ->
             val withReferences = if (isManagerType) definition.withManagerRenamed(oldName, newName) else definition.withOtherActorTypeRenamed(oldName, newName)
@@ -291,11 +253,8 @@ internal class BlockTypesController(
         queue(PendingWrite.Delete(oldName))
     }
 
-    /**
-     * Throws away the changes made by hand to [name]'s generated code, so that Kubriko Creator updates it again.
-     */
     @EditorMutation
-    fun discardChangesMadeByHand(name: String) = queue(PendingWrite.Overwrite(name))
+    override fun discardChangesMadeByHand(name: String) = queue(PendingWrite.Overwrite(name))
 
     /**
      * Brings the generated code in line with the types and the project's Scenes: after the Scenes changed, since a Scene's
@@ -320,7 +279,7 @@ internal class BlockTypesController(
      * Reads the definitions again, as [reloadFromDisk] does, returning once they are in memory, unless a change of a type
      * was queued while they were read, which is then read again.
      */
-    suspend fun reload() {
+    override suspend fun reload() {
         repeat(RELOAD_ATTEMPTS) {
             if (hasUnwritten) {
                 isReloadRequested = true
