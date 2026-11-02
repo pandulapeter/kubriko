@@ -14,10 +14,10 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
-import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.context.BreakoutFixture
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
 import kotlinx.coroutines.CoroutineScope

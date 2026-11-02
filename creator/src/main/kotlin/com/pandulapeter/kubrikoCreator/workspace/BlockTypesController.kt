@@ -21,7 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
 import com.pandulapeter.kubrikoCreator.actors.withParents
-import com.pandulapeter.kubrikoCreator.commands.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher

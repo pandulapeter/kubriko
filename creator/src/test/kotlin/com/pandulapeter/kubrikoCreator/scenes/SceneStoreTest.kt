@@ -11,7 +11,7 @@
 
 package com.pandulapeter.kubrikoCreator.scenes
 
-import com.pandulapeter.kubrikoCreator.commands.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import java.io.File

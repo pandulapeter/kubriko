@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope

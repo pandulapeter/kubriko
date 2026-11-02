@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject

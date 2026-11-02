@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.git
 
-import com.pandulapeter.kubrikoCreator.commands.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi

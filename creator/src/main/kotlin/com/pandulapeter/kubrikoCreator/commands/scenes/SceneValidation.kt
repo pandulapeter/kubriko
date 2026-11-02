@@ -10,8 +10,8 @@
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.withContext

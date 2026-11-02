@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.ListActorTypes
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.FileChange

@@ -11,9 +11,9 @@ package com.pandulapeter.kubrikoCreator.commands.folders
 
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.scenes.renameScene
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.withContext
 
 @EditorMutation
