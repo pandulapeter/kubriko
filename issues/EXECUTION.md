@@ -13,6 +13,26 @@ The brief for the orchestrating session, started with *"Follow `issues/EXECUTION
 decisions, shared-file rules), then load the `codebase-review` skill: its section 4 is the procedure, and this file fills
 it in for this sweep. Every decision is answered (README → Decisions); none is re-asked.
 
+## Status (read first)
+
+- **Landed on `main`** (2026-11-02, `bc8ab4512..2323b6a7c`, 57 commits): phase 1 (lanes T, S, G, A), T03, T05, and phase 2
+  (lane K), plus extra fixes. `EXECUTION-LOG.md` holds what each batch landed, with the names later plans need.
+- **Phases 3 and 4** (lane H, lane M, D01, P03) run in CI: `.github/workflows/fifth-review-execution.yml` lands them on the
+  `fifth-review-execution` branch, one job per batch from the table below, with a review job after each phase. It opens a
+  pull request at the end. Each job runs the prompts in `pipeline/`, pushes after every commit, and appends its report to
+  `EXECUTION-LOG.md`.
+- **To resume after a failure:** rerun the workflow's failed jobs, or dispatch it again with
+  `gh workflow run fifth-review-execution.yml --ref fifth-review-execution`. Each job skips plans whose files are gone, and
+  plans listed in `SKIPPED.md`, so nothing is redone.
+- **To continue by hand** instead: follow the rest of this file from phase 3. Cut lane H from the branch's head (or main's,
+  if the branch was merged).
+- **Added since the brief was written:**
+  - Bugs a lane discovers that no plan covers are fixed in their own commit, with a test, never left as follow-ups (the user,
+    2026-11-02).
+  - Each phase's landed range gets a correctness review before it merges.
+  - `.githooks/pre-commit` now clears git's hook variables, so the hook works in linked worktrees.
+  - P01's `settings.json` question is answered (yes) and landed.
+
 ## Preconditions (stop and tell the user if one fails)
 
 1. `git status` is clean apart from `issues/`, and `git log origin/main..HEAD` is what the README's "Fixed during the

@@ -16,6 +16,13 @@ reviewers (architecture and modularization, actors and code generation, commands
 infrastructure, UI, tests, docs), every finding verified against HEAD, simple ones fixed during the review, an
 end-of-review check of the landed range, and this folder for the rest. `EXECUTION.md` is the brief for landing it.
 
+## Progress
+
+Phases 1 and 2 landed on `main` on 2026-11-02 (`bc8ab4512..2323b6a7c`): every T, S, G, A, and K plan, P01, and P02. They
+came with extra fixes for bugs found on the way, and with fixes from the review of lane K's range. The plan files still in
+this folder are the ones not yet landed, phases 3 and 4. `EXECUTION.md` → Status says how they are being landed, and
+`EXECUTION-LOG.md` records what each batch did.
+
 ## Headlines
 
 - **Data loss, fixed during the review:** a Windows checkout (CRLF) marked every generated file as changed by hand, so
