@@ -84,17 +84,15 @@ internal object ActorClassCode {
     }
 
     /**
-     * Counts [timer] down in `update` and, when it finishes, starts it again if it repeats and runs [onFinished].
-     *
-     * @param isCommented Whether a comment names the Timer before the code that runs when it finishes.
+     * Counts [timer] down in `update` and, when it finishes, starts it again if it repeats and runs [onFinished]. A
+     * repeating Timer carries the time it overshot into its next round, and [onFinished] may start or stop it again.
      */
-    fun StringBuilder.appendTimerCountdown(timer: String, isCommented: Boolean, onFinished: StringBuilder.() -> Unit) {
+    fun StringBuilder.appendTimerCountdown(timer: String, onFinished: StringBuilder.() -> Unit) {
         val remaining = TimerNaming.remainingField(timer)
         val period = TimerNaming.periodField(timer)
         appendLine("        if ($remaining > 0) {")
         appendLine("            $remaining -= deltaTimeInMilliseconds")
         appendLine("            if ($remaining <= 0) {")
-        if (isCommented) appendLine("                // When $timer finishes")
         appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
         onFinished()
         appendLine("            }")

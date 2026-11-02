@@ -10,19 +10,18 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendNumberTextFunction
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerCountdown
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerFields
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventCode
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.floatLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
+import com.pandulapeter.kubrikoCreator.actors.EventFunctions.appendFunction
 
 /**
  * Turns block-built Manager types into ordinary Kotlin: one `Manager` subclass per type, plus [WIRING_NAME], which
@@ -82,8 +81,16 @@ internal object ManagerTypeCodeGenerator {
             if (runsEveryFrame || kotlinUi?.names(STATE_MANAGER_FIELD) == true) add(BlockNeed.STATE_MANAGER)
             if (texts.any { it.usesNumberText }) add(BlockNeed.NUMBER_TEXT)
         }
+        val functions = generatedEvents.filter { it.blocks.isNotEmpty() }.mapNotNull { EventFunctions.of(it, scope) }.distinct()
+        fun callOf(events: List<EventDefinition>) = events.firstNotNullOfOrNull { event -> EventFunctions.of(event, scope)?.takeIf { it in functions }?.call }
+        val functionsCode = StringBuilder()
+        val functionImports = mutableSetOf<String>()
+        functions.forEach { function ->
+            functionsCode.appendFunction("private", function, generatedEvents.filter { EventFunctions.of(it, scope) == function }, scope, functionImports)
+        }
         val imports = buildSet {
             add("com.pandulapeter.kubriko.manager.Manager")
+            addAll(functionImports)
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) add("com.pandulapeter.kubriko.Kubriko")
             if (keyEvents.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
             if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
@@ -119,19 +126,22 @@ internal object ManagerTypeCodeGenerator {
                 appendLine("        $SCENE_EDITOR_GUARD")
                 // Kubriko tells Actors about key presses, so the Manager is one too (GeneratedScenes keeps it in every Scene).
                 if (keyEvents.isNotEmpty()) appendLine("        actorManager.add(this)")
-                appendEvents(startEvents, depth = 2, scope = scope)
+                callOf(startEvents)?.let { appendLine("        $it") }
                 appendLine("    }")
             }
             if (runsEveryFrame) {
                 appendLine()
                 appendLine("    override fun onUpdate(deltaTimeInMilliseconds: Int) {")
                 appendLine("        if (isInSceneEditor || !$STATE_MANAGER_FIELD.isRunning.value) return")
-                timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
-                appendEvents(frameEvents, depth = 2, scope = scope)
+                timers.forEach { timer ->
+                    appendTimerCountdown(timer) { callOf(timerEvents.filter { it.timer == timer })?.let { appendLine("                $it") } }
+                }
+                callOf(frameEvents)?.let { appendLine("        $it") }
                 appendLine("    }")
             }
             // Unlike an Actor's, these run while the game is paused, so that a key can resume it.
-            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope)
+            if (keyEvents.isNotEmpty()) appendKeyDispatch(keyEvents.groupBy { it.key!! }.toSortedMap().mapValues { (_, events) -> callOf(events) })
+            append(functionsCode)
             if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts.map { it.code }, kotlinUi)
             if (BlockNeed.NUMBER_TEXT in needs) appendNumberTextFunction("private")
             appendLine("}")
@@ -219,6 +229,15 @@ internal object ManagerTypeCodeGenerator {
         appendLine("    }")
         appendLine("}")
     })
+
+    private fun StringBuilder.appendKeyDispatch(callsByKey: Map<KeyChoice, String?>) {
+        appendLine()
+        appendLine("    override fun onKeyPressed(key: Key) {")
+        appendLine("        when (key) {")
+        callsByKey.forEach { (key, call) -> if (call != null) appendLine("            Key.${key.composeKeyName} -> $call") }
+        appendLine("        }")
+        appendLine("    }")
+    }
 
     /**
      * The Manager's `Composable`: its texts, then its Kotlin UI, which is drawn on top of them.

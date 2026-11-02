@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
@@ -21,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.context.KotlinBlockScopeChecks
 import com.pandulapeter.kubrikoCreator.foundation.LatestRequests
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -65,6 +67,7 @@ import kubriko.creator.generated.resources.error_project_format_not_upgraded
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_generated_leftover_changed_by_hand
 import kubriko.creator.generated.resources.status_generated_leftovers_removed
+import kubriko.creator.generated.resources.status_kotlin_block_scope_changed
 import kubriko.creator.generated.resources.status_kubriko_libraries_added
 import kubriko.creator.generated.resources.status_kubriko_libraries_removed
 import kubriko.creator.generated.resources.status_kubriko_version_changed
@@ -212,6 +215,7 @@ internal class WorkspaceController(
             },
             onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
             onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
+            onFirstLoaded = ::reportKotlinBlockScopeChanges,
             onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_type_files_readable_again)) },
             onLeftoversRemoved = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftovers_removed, arguments = listOf(it.joinToString()))) },
             onLeftoverChangedByHand = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftover_changed_by_hand, isError = true, arguments = listOf(it))) },
@@ -432,6 +436,16 @@ internal class WorkspaceController(
     fun clearConsole() = consoleLog.clear()
 
     private fun appendToConsole(entry: ConsoleEntry) = consoleLog.append(entry)
+
+    /**
+     * Names, once per type, the types whose Kotlin Blocks rely on what changed when each kind of Event got a function of
+     * its own, which the health checks list Block by Block.
+     */
+    private fun reportKotlinBlockScopeChanges(types: List<BlockTypeDefinition>) {
+        KotlinBlockScopeChecks.of(types).map { it.subject.toString() }.distinct().forEach { name ->
+            appendToConsole(ConsoleEntry.Status(Res.string.status_kotlin_block_scope_changed, isError = true, arguments = listOf(name)))
+        }
+    }
 
     private fun reportBuildFileChanges(changes: KubrikoBuildFileChanges) {
         changes.previousVersion?.let { appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_version_changed, arguments = listOf(changes.version, it))) }

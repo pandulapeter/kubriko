@@ -29,6 +29,14 @@ class ActorTypeCodeGeneratorTest {
         collidableActorTypeNames = if (isCollidable) setOf("Player") else emptySet(),
     )
 
+    /**
+     * The body of the function of [code] declared with [signature], without its braces.
+     */
+    private fun functionBody(code: String, signature: String): String {
+        assertContains(code, "fun $signature {\n")
+        return code.substringAfter("fun $signature {\n").substringBefore("\n    }")
+    }
+
     @Test
     fun anyComposeKeyIsHandledAndUnknownOnesAreLeftOut() {
         val code = generate(
@@ -39,7 +47,7 @@ class ActorTypeCodeGeneratorTest {
                 blocks = listOf(BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("NumPad8"))), BlockDefinition.End, BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("Hyper"), isHeld = false)), BlockDefinition.End),
             ),
         )
-        assertContains(code, "            Key.F5 -> {\n")
+        assertContains(code, "            Key.F5 -> onKeyPressedF5()\n")
         assertContains(code, "        if (keyboardInputManager.isKeyPressed(Key.NumPad8)) {\n")
         assertContains(code, "        if (true) {\n")
         assertFalse("Hyper" in code)
@@ -80,11 +88,11 @@ class ActorTypeCodeGeneratorTest {
             EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.SetVelocity(240f, 180f))),
             EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.BounceOffEdge)),
         )
-        val onAdded = code.substringAfter("override fun onAdded(kubriko: Kubriko) {").substringBefore("\n    }")
+        val onAdded = functionBody(code, "onAdded(kubriko: Kubriko)")
         val lookup = onAdded.indexOf("viewportManager = kubriko.get()")
-        val block = onAdded.indexOf("velocity = SceneOffset(240f.sceneUnit, 180f.sceneUnit)")
-        assertTrue(lookup >= 0 && lookup < block, onAdded)
-        assertContains(onAdded, "// When added to the Scene")
+        val call = onAdded.indexOf("        onAddedToScene(kubriko)")
+        assertTrue(lookup >= 0 && lookup < call, onAdded)
+        assertEquals("        velocity = SceneOffset(240f.sceneUnit, 180f.sceneUnit)", functionBody(code, "onAddedToScene(kubriko: Kubriko)"))
     }
 
     @Test
@@ -103,9 +111,41 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun everyFrameBlocksRunBeforeTheActorMoves() {
-        val update = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop)))
-            .substringAfter("override fun update(").substringBefore("\n    }")
-        assertTrue(update.indexOf("velocity = SceneOffset.Zero") < update.indexOf("body.position += velocity * (deltaTimeInMilliseconds.coerceAtMost(33) / 1000f)"), update)
+        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop)))
+        val update = functionBody(code, "update(deltaTimeInMilliseconds: Int)")
+        val call = update.indexOf("        onEveryFrame(deltaTimeInMilliseconds)\n")
+        assertTrue(call >= 0 && call < update.indexOf("body.position += velocity * (deltaTimeInMilliseconds.coerceAtMost(33) / 1000f)"), update)
+        assertEquals("        velocity = SceneOffset.Zero", functionBody(code, "onEveryFrame(deltaTimeInMilliseconds: Int)"))
+    }
+
+    @Test
+    fun updateStaysTheSameSizeHoweverManyBlocksTheEventsHave() {
+        fun update(blockCount: Int) = functionBody(
+            generate(EventDefinition(EventType.EVERY_FRAME, blocks = List(blockCount) { BlockDefinition.ChangeNumber(property = "score") })),
+            "update(deltaTimeInMilliseconds: Int)",
+        )
+        assertEquals(update(1), update(200))
+    }
+
+    @Test
+    fun aReturnInAKotlinBlockEndsOnlyItsEvent() {
+        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("return"))))
+        assertContains(functionBody(code, "onEveryFrame(deltaTimeInMilliseconds: Int)"), "return")
+        val update = functionBody(code, "update(deltaTimeInMilliseconds: Int)")
+        assertFalse("return\n" in update.substringAfter("if (isRemoved) return\n"), update)
+        assertTrue(update.indexOf("onEveryFrame(deltaTimeInMilliseconds)") < update.indexOf("body.position += velocity"), update)
+    }
+
+    @Test
+    fun kotlinBlocksKeepTheFrameTimeTheAddingKubrikoAndTheOtherActorInScope() {
+        val code = generate(
+            EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("println(deltaTimeInMilliseconds)"))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Kotlin("println(kubriko)"))),
+            EventDefinition(EventType.COLLISION, otherActorType = "Player", blocks = listOf(BlockDefinition.Kotlin("println(other)"))),
+        )
+        assertContains(functionBody(code, "onEveryFrame(deltaTimeInMilliseconds: Int)"), "println(deltaTimeInMilliseconds)")
+        assertContains(functionBody(code, "onAddedToScene(kubriko: Kubriko)"), "println(kubriko)")
+        assertContains(functionBody(code, "onCollisionWithPlayer(other: Player)"), "println(other)")
     }
 
     @Test
@@ -164,8 +204,11 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, ", KeyboardInputAware {")
         assertContains(code, "import androidx.compose.ui.input.key.Key\n")
         assertEquals(1, Regex("Key.Spacebar ->").findAll(code).count())
-        val spaceBranch = code.substringAfter("Key.Spacebar -> {").substringBefore("}")
-        assertTrue(spaceBranch.indexOf("velocity = SceneOffset.Zero") < spaceBranch.indexOf("actorManager.remove(this)"), spaceBranch)
+        assertContains(code, "            Key.Spacebar -> onKeyPressedSpacebar()\n")
+        assertEquals(
+            "        velocity = SceneOffset.Zero\n        isRemoved = true\n        actorManager.remove(this)",
+            functionBody(code, "onKeyPressedSpacebar()"),
+        )
         assertTrue(code.indexOf("Key.DirectionLeft") < code.indexOf("Key.Spacebar"), "Keys follow the order of the key list")
     }
 
@@ -208,7 +251,7 @@ class ActorTypeCodeGeneratorTest {
         )
         assertContains(
             generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("velocity = SceneOffset.Zero\nprintln(1)")))),
-            "        run {\n            velocity = SceneOffset.Zero\n            println(1)\n        }\n",
+            "    private fun onEveryFrame(deltaTimeInMilliseconds: Int) {\n        run {\n            velocity = SceneOffset.Zero\n            println(1)\n        }\n    }\n",
         )
     }
 
@@ -295,9 +338,10 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "override val collidableTypes: List<KClass<out Collidable>> = listOf(Brick::class, Paddle::class)")
         assertContains(code, "when (val other = collidables[index]) {")
         assertEquals(1, Regex("is Paddle ->").findAll(code).count())
-        val paddleBranch = code.substringAfter("is Paddle -> {").substringBefore("\n                }")
-        assertTrue(paddleBranch.indexOf("val offset = body.position - other.body.position") < paddleBranch.indexOf("velocity = SceneOffset.Zero"), paddleBranch)
-        assertContains(code.substringAfter("is Brick -> {"), "actorManager.remove(other)")
+        assertContains(code, "                is Paddle -> if (!other.isRemoved) onCollisionWithPaddle(other)\n")
+        val paddleFunction = functionBody(code, "onCollisionWithPaddle(other: Paddle)")
+        assertTrue(paddleFunction.indexOf("val offset = body.position - other.body.position") < paddleFunction.indexOf("velocity = SceneOffset.Zero"), paddleFunction)
+        assertContains(functionBody(code, "onCollisionWithBrick(other: Brick)"), "actorManager.remove(other)")
         assertContains(code, "import com.pandulapeter.kubriko.types.SceneUnit")
     }
 
@@ -487,14 +531,13 @@ class ActorTypeCodeGeneratorTest {
                 |        if (timer2RemainingInMilliseconds > 0) {
                 |            timer2RemainingInMilliseconds -= deltaTimeInMilliseconds
                 |            if (timer2RemainingInMilliseconds <= 0) {
-                |                // When timer2 finishes
                 |                timer2RemainingInMilliseconds = if (timer2PeriodInMilliseconds > 0) (timer2RemainingInMilliseconds + timer2PeriodInMilliseconds).coerceAtLeast(1) else 0
-                |                velocity = SceneOffset.Zero
-                |                timer2RemainingInMilliseconds = 0
+                |                ${TimerNaming.hookName("timer2")}(deltaTimeInMilliseconds)
                 |            }
                 |        }
             """.trimMargin(),
         )
+        assertEquals("        velocity = SceneOffset.Zero\n        timer2RemainingInMilliseconds = 0", functionBody(code, "${TimerNaming.hookName("timer2")}(deltaTimeInMilliseconds: Int)"))
         assertFalse("timer1" in code)
     }
 
@@ -576,7 +619,7 @@ class ActorTypeCodeGeneratorTest {
         val code = generate(EventDefinition(EventType.COLLISION, otherActorType = "Player", blocks = listOf(BlockDefinition.GoToScene("game-over"), BlockDefinition.RestartScene)))
         assertContains(code, "    private lateinit var generatedScenes: GeneratedScenes\n")
         assertContains(code, "        generatedScenes = kubriko.get()\n")
-        assertContains(code, "                    generatedScenes.goTo(\"game-over\")\n                    generatedScenes.restart()\n")
+        assertContains(code, "        generatedScenes.goTo(\"game-over\")\n        generatedScenes.restart()\n")
         assertFalse("StateManager" in code)
     }
 
@@ -600,11 +643,11 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "        generatedAudio = kubriko.get()\n")
         assertContains(
             code,
-            "                    generatedAudio.playSound(\"files/sounds/hit.wav\")\n" +
-                "                    generatedAudio.playMusic(\"files/music/theme.mp3\")\n" +
-                "                    generatedAudio.playMusic(\"files/music/win.mp3\", isLooping = false)\n" +
-                "                    generatedAudio.stopMusic()\n" +
-                "                    // Choose a sound for this Block.\n",
+            "        generatedAudio.playSound(\"files/sounds/hit.wav\")\n" +
+                "        generatedAudio.playMusic(\"files/music/theme.mp3\")\n" +
+                "        generatedAudio.playMusic(\"files/music/win.mp3\", isLooping = false)\n" +
+                "        generatedAudio.stopMusic()\n" +
+                "        // Choose a sound for this Block.\n",
         )
         assertFalse("audioPlayback" in code)
     }
@@ -615,14 +658,14 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "import com.pandulapeter.kubriko.manager.StateManager\n")
         assertContains(code, "    private lateinit var stateManager: StateManager\n")
         assertContains(code, "        stateManager = kubriko.get()\n")
-        assertContains(code, "                stateManager.updateIsRunning(false)\n")
+        assertContains(code, "    private fun onKeyPressedEnter() {\n        stateManager.updateIsRunning(false)\n")
     }
 
     @Test
     fun onlyActorTypesThatMoveOrHaveWorkEveryFrameAreDynamic() {
         val still = generate(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Log("Hi"))))
         listOf("Dynamic", "velocity", "override fun update(", "ActorManager", "ViewportManager", "SceneOffset").forEach { assertFalse(it in still, it) }
-        assertContains(still, "    override fun onAdded(kubriko: Kubriko) {\n        // When added to the Scene\n")
+        assertContains(still, "    override fun onAdded(kubriko: Kubriko) {\n        onAddedToScene(kubriko)\n    }\n")
         assertFalse("onAdded" in generate())
         listOf(
             EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("Hi"))),

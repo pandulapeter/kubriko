@@ -64,6 +64,7 @@ internal class BlockTypesController(
     private val onSaved: (haveTypesChanged: Boolean) -> Unit,
     private val onSaveFailed: () -> Unit,
     private val onFileUnreadable: (UnreadableBlockTypeFile) -> Unit = {},
+    private val onFirstLoaded: (List<BlockTypeDefinition>) -> Unit = {},
     private val onFilesReadableAgain: () -> Unit = {},
     private val onLeftoversRemoved: (List<String>) -> Unit = {},
     private val onLeftoverChangedByHand: (String) -> Unit = {},
@@ -129,6 +130,7 @@ internal class BlockTypesController(
                 emptyFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
                 setUnreadableFiles(loaded.unreadableFiles)
                 setTypes(loaded.types)
+                onFirstLoaded(_types.value)
             } catch (exception: Exception) {
                 if (exception is CancellationException) throw exception
                 setUnreadableFiles(listOf(UnreadableBlockTypeFile(BlockTypeStore.CREATOR_DIRECTORY, BlockTypeFileProblem.Unparsable(exception.message ?: exception.toString()))))

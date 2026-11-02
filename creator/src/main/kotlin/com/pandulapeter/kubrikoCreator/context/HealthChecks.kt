@@ -58,6 +58,7 @@ internal object HealthChecks {
                     }
                 }
             }
+            addAll(KotlinBlockScopeChecks.of(types, family))
         }
     }
 }

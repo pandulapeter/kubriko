@@ -57,8 +57,18 @@ class ManagerTypeCodeGeneratorTest {
                 ),
             ),
         )
-        assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n        // When the game starts\n        lives = 3f\n    }\n")
-        assertContains(code, "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor || !stateManager.isRunning.value) return\n        // Every frame\n        if (lives <= 0f) {\n            isOver = true\n        }\n    }\n")
+        assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n        onGameStarted(kubriko)\n    }\n")
+        assertContains(code, "    private fun onGameStarted(kubriko: Kubriko) {\n        lives = 3f\n    }\n")
+        assertContains(code, "    override fun onUpdate(deltaTimeInMilliseconds: Int) {\n        if (isInSceneEditor || !stateManager.isRunning.value) return\n        onEveryFrame(deltaTimeInMilliseconds)\n    }\n")
+        assertContains(code, "    private fun onEveryFrame(deltaTimeInMilliseconds: Int) {\n        if (lives <= 0f) {\n            isOver = true\n        }\n    }\n")
+    }
+
+    @Test
+    fun onUpdateStaysTheSameSizeHoweverManyBlocksTheEventsHave() {
+        fun onUpdate(blockCount: Int) = generate(game.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = List(blockCount) { BlockDefinition.ChangeNumber("score", 1f) }))))
+            .substringAfter("override fun onUpdate(deltaTimeInMilliseconds: Int) {\n")
+            .substringBefore("\n    }")
+        assertEquals(onUpdate(1), onUpdate(200))
     }
 
     @Test
@@ -73,10 +83,12 @@ class ManagerTypeCodeGeneratorTest {
         )
         assertContains(code, ") : Manager(), KeyboardInputAware {\n")
         assertContains(code, "    override fun onInitialize(kubriko: Kubriko) {\n        if (isInSceneEditor) return\n        actorManager.add(this)\n    }\n")
-        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        when (key) {\n            Key.Spacebar -> {\n                timer2RemainingInMilliseconds = 500\n")
+        assertContains(code, "    override fun onKeyPressed(key: Key) {\n        when (key) {\n            Key.Spacebar -> onKeyPressedSpacebar()\n        }\n    }\n")
+        assertContains(code, "    private fun onKeyPressedSpacebar() {\n        timer2RemainingInMilliseconds = 500\n")
         assertFalse("KeyboardInputManager" in code)
         assertContains(code, "        if (timer2RemainingInMilliseconds > 0) {\n")
-        assertContains(code, "                score += 1f\n")
+        assertContains(code, "                ${TimerNaming.hookName("timer2")}(deltaTimeInMilliseconds)\n")
+        assertContains(code, "    private fun ${TimerNaming.hookName("timer2")}(deltaTimeInMilliseconds: Int) {\n        score += 1f\n    }\n")
     }
 
     @Test
@@ -194,10 +206,10 @@ class ManagerTypeCodeGeneratorTest {
         )
         assertContains(code, "import com.pandulapeter.kubriko.manager.StateManager\n")
         assertContains(code, "    private val actorManager by manager<ActorManager>()\n    private val stateManager by manager<StateManager>()\n    private val generatedScenes by manager<GeneratedScenes>()\n")
-        assertContains(code, "                generatedScenes.goTo(\"level-2\")\n                generatedScenes.restart()\n                // Choose a Scene for this Block.\n")
+        assertContains(code, "        generatedScenes.goTo(\"level-2\")\n        generatedScenes.restart()\n        // Choose a Scene for this Block.\n")
         assertContains(
             code,
-            "                stateManager.updateIsRunning(false)\n                stateManager.updateIsRunning(true)\n                stateManager.updateIsRunning(!stateManager.isRunning.value)\n",
+            "        stateManager.updateIsRunning(false)\n        stateManager.updateIsRunning(true)\n        stateManager.updateIsRunning(!stateManager.isRunning.value)\n",
         )
     }
 
@@ -241,7 +253,7 @@ class ManagerTypeCodeGeneratorTest {
             ),
         )
         assertContains(code, "    private val stateManager by manager<StateManager>()\n")
-        assertContains(code, "                if (stateManager.isRunning.value) {\n                    stateManager.updateIsRunning(false)\n                }\n")
+        assertContains(code, "        if (stateManager.isRunning.value) {\n            stateManager.updateIsRunning(false)\n        }\n")
     }
 
     @Test

@@ -31,14 +31,13 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.ABSOLUTE_VALUE_
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENE_OFFSET_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
+import com.pandulapeter.kubrikoCreator.actors.EventFunctions.appendFunction
 
 /**
  * Writes the class of an Actor type that does the work, the same way for a type of its own and for the topmost type of a
  * family, from what [features] says it needs, adding what it uses to [imports] as it writes it.
  *
- * @param scope The scope of the type, for the classes collision Events name and the code of the Events written in place.
+ * @param scope The scope of the type, for the classes collision Events name and the code of the Events ([EventFunctions]).
  */
 internal class ActorClassEmitter(
     private val features: ActorTypeFeatures,
@@ -48,41 +47,44 @@ internal class ActorClassEmitter(
     private val imports: MutableSet<String>,
 ) {
     /**
-     * @param isFamily Whether the class is the base class of a family ([ActorTypeFeatures]' `isFamily`).
+     * @param isFamily Whether the class is the base class of a family ([ActorTypeFeatures]' `isFamily`), whose Event
+     *   functions exist for every kind of Event any of its types has, even without Blocks, since a child may override them.
      * @param visibility The visibility of the members only the class and its subclasses use.
+     * @param functionModifiers The modifiers of the functions that run the Events ([EventFunctions]).
      */
     enum class Role(
         val isFamily: Boolean,
         val visibility: String,
-        val eventPlacement: EventPlacement,
+        val functionModifiers: String,
     ) {
         /** The final class of an Actor type without a parent or children. */
-        STANDALONE(isFamily = false, visibility = "private", eventPlacement = EventPlacement.INLINE),
+        STANDALONE(isFamily = false, visibility = "private", functionModifiers = "private"),
 
         /** The abstract `<Name>Base` of the topmost Actor type of a family, followed by its final class. */
-        FAMILY_ROOT(isFamily = true, visibility = "protected", eventPlacement = EventPlacement.HOOK_CALLS),
+        FAMILY_ROOT(isFamily = true, visibility = "protected", functionModifiers = "protected open"),
     }
 
-    /**
-     * How the code of the Events gets into `onAdded`, `update`, `onKeyPressed`, and `onCollisionDetected`: written in
-     * place, or as calls of the `open` hooks a family's Actor types override ([FamilyHooks]).
-     */
-    enum class EventPlacement { INLINE, HOOK_CALLS }
-
     private val visibility = role.visibility
-    private val placement = role.eventPlacement
+
+    /**
+     * The functions the class runs its Events in, in the order of [ActorTypeFeatures.generatedEvents].
+     */
+    private val functions = features.generatedEvents
+        .filter { role.isFamily || it.blocks.isNotEmpty() }
+        .mapNotNull { EventFunctions.of(it, scope) }
+        .distinct()
+
+    private fun callOf(event: EventDefinition) = EventFunctions.of(event, scope)?.takeIf { it in functions }?.call
 
     /**
      * @param properties The type's Properties, its ancestors' first.
-     * @param appendEventFunctions Writes the functions that run the Events, if they aren't written in place.
      */
     fun StringBuilder.appendClass(
         definition: ActorTypeDefinition,
         properties: List<PropertyDefinition>,
         packageName: String,
-        appendEventFunctions: StringBuilder.() -> Unit = {},
     ) {
-        if (placement == EventPlacement.INLINE) imports += features.codeImports
+        if (role == Role.STANDALONE) imports += features.codeImports
         appendHeader(definition, properties)
         if (features.isDynamic) {
             imports += SCENE_OFFSET_IMPORT
@@ -99,7 +101,9 @@ internal class ActorClassEmitter(
         appendUpdate()
         appendKeyDispatch()
         appendCollisionDispatch()
-        appendEventFunctions()
+        functions.forEach { function ->
+            appendFunction(role.functionModifiers, function, definition.events.filter { EventFunctions.of(it, scope) == function }, scope, imports)
+        }
         if (features.usesBounceOff) {
             imports += BOUNCE_OFF_IMPORTS
             appendBounceOffFunction(visibility)
@@ -179,10 +183,7 @@ internal class ActorClassEmitter(
         appendLine()
         appendLine("    override fun onAdded(kubriko: Kubriko) {")
         features.lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
-        when (placement) {
-            EventPlacement.INLINE -> appendEvents(features.addedEvents, depth = 2, scope = scope)
-            EventPlacement.HOOK_CALLS -> if (features.addedEvents.isNotEmpty()) appendLine("        ${FamilyHooks.ADDED}()")
-        }
+        features.addedEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
         appendLine("    }")
     }
 
@@ -192,26 +193,16 @@ internal class ActorClassEmitter(
         appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
         appendLine(REMOVED_GUARD)
         features.timers.forEach { timer ->
-            val events = features.timerEvents.filter { it.timer == timer }
-            when (placement) {
-                EventPlacement.INLINE -> appendTimer(timer, events, scope)
-                EventPlacement.HOOK_CALLS -> appendTimerCountdown(timer, isCommented = false) {
-                    if (events.isNotEmpty()) appendLine("                ${FamilyHooks.timer(timer)}()")
-                }
+            appendTimerCountdown(timer) {
+                features.timerEvents.filter { it.timer == timer }.firstNotNullOfOrNull(::callOf)?.let { appendLine("                $it") }
             }
         }
-        when (placement) {
-            EventPlacement.INLINE -> appendEvents(features.everyFrameEvents, depth = 2, scope = scope)
-            EventPlacement.HOOK_CALLS -> if (features.everyFrameEvents.isNotEmpty()) appendLine("        ${FamilyHooks.EVERY_FRAME}()")
-        }
+        features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
         appendLine(MOVEMENT_LINE)
         if (features.edgeEvents.isNotEmpty()) {
             imports += listOf(SCENE_UNIT_IMPORT, SCENE_OFFSET_IMPORT)
             appendEdgeHandling {
-                when (placement) {
-                    EventPlacement.INLINE -> appendEvents(features.edgeEvents, depth = 3, scope = scope)
-                    EventPlacement.HOOK_CALLS -> appendLine("            ${FamilyHooks.EDGE}(${FamilyHooks.EDGE_ARGUMENTS})")
-                }
+                features.edgeEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("            $it") }
             }
         }
         if (features.isCollidable) {
@@ -232,14 +223,7 @@ internal class ActorClassEmitter(
         appendLine("        if (!$STATE_MANAGER_FIELD.isRunning.value) return")
         appendLine("        when (key) {")
         features.keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
-            when (placement) {
-                EventPlacement.INLINE -> {
-                    appendLine("            Key.${key.composeKeyName} -> {")
-                    appendEvents(events, depth = 4, scope = scope)
-                    appendLine("            }")
-                }
-                EventPlacement.HOOK_CALLS -> appendLine("            Key.${key.composeKeyName} -> ${FamilyHooks.key(key)}()")
-            }
+            events.firstNotNullOfOrNull(::callOf)?.let { appendLine("            Key.${key.composeKeyName} -> $it") }
         }
         appendLine("        }")
         appendLine("    }")
@@ -254,14 +238,7 @@ internal class ActorClassEmitter(
         appendLine("        for (index in collidables.indices) {")
         appendLine("            when (val other = collidables[index]) {")
         features.collisionEvents.groupBy { it.otherActorType!! }.toSortedMap(collisionTargetOrder(family)).forEach { (other, events) ->
-            when (placement) {
-                EventPlacement.INLINE -> {
-                    appendLine("                is ${scope.classOf(other)} -> if (!other.$REMOVED_FIELD) {")
-                    appendEvents(events, depth = 5, scope = scope)
-                    appendLine("                }")
-                }
-                EventPlacement.HOOK_CALLS -> appendLine("                is ${scope.classOf(other)} -> if (!other.$REMOVED_FIELD) ${FamilyHooks.collision(other)}(other)")
-            }
+            events.firstNotNullOfOrNull(::callOf)?.let { appendLine("                is ${scope.classOf(other)} -> if (!other.$REMOVED_FIELD) $it") }
         }
         appendLine("            }")
         appendLine("        }")

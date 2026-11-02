@@ -13,6 +13,10 @@ import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
@@ -58,6 +62,7 @@ import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_game_failed
 import kubriko.creator.generated.resources.status_game_not_started
 import kubriko.creator.generated.resources.status_game_reloaded
+import kubriko.creator.generated.resources.status_kotlin_block_scope_changed
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
@@ -441,6 +446,23 @@ class WorkspaceControllerTest {
         controller.clearConsole()
         controller.createActorType("Player")
         assertEquals(listOf(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)), controller.console.value)
+    }
+
+    @Test
+    fun openingAProjectNamesEachTypeWhoseKotlinBlocksRelyOnWhatTheEventFunctionsChanged() = runTest {
+        val kotlin = { code: String -> EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin(code))) }
+        val repository = FakeBlockTypeRepository(
+            listOf(
+                ActorTypeDefinition(name = "Ball", events = listOf(kotlin("return"), kotlin("if (score > 0f) return"))),
+                ActorTypeDefinition(name = "Paddle", events = listOf(kotlin("velocity = SceneOffset.Zero"))),
+            ),
+        )
+        val controller = createController(blockTypeRepository = repository)
+        runCurrent()
+        assertEquals(
+            listOf(ConsoleEntry.Status(Res.string.status_kotlin_block_scope_changed, isError = true, arguments = listOf("Ball"))),
+            controller.console.value.filter { it is ConsoleEntry.Status && it.text == Res.string.status_kotlin_block_scope_changed },
+        )
     }
 
     @Test

@@ -29,11 +29,13 @@ internal object KotlinIdentifiers {
      *
      * @param receiver What comes before it and a dot: null if nothing does, the identifier if it is a plain one itself
      *   (`this` included), and an empty string for anything else, such as a call or a longer chain.
+     * @param depth How many braces of the code enclose it, those of string templates not counted.
      */
     data class Occurrence(
         val range: IntRange,
         val name: String,
         val receiver: String?,
+        val depth: Int = 0,
     )
 
     fun find(code: String) = Scanner(code).run {
@@ -56,6 +58,7 @@ internal object KotlinIdentifiers {
     private class Scanner(private val code: String) {
         val occurrences = mutableListOf<Occurrence>()
         private var index = 0
+        private var braceDepth = 0
 
         private fun peek(offset: Int = 0) = code.getOrNull(index + offset)
 
@@ -75,7 +78,7 @@ internal object KotlinIdentifiers {
                         val start = index
                         while (peek()?.isIdentifierPart() == true) index++
                         val receiver = if (isAfterDot) previous?.takeIf { it.receiver == null }?.name.orEmpty() else null
-                        previous = Occurrence(start until index, code.substring(start, index), receiver).also { occurrences += it }
+                        previous = Occurrence(start until index, code.substring(start, index), receiver, braceDepth).also { occurrences += it }
                         isAfterDot = false
                     }
                     char.isDigit() -> {
@@ -104,13 +107,17 @@ internal object KotlinIdentifiers {
                         isAfterDot = true
                     }
                     else -> {
-                        if (char == '{') depth++
+                        if (char == '{') {
+                            depth++
+                            braceDepth++
+                        }
                         if (char == '}') {
                             if (isTemplate && depth == 0) {
                                 index++
                                 return
                             }
                             depth--
+                            braceDepth--
                         }
                         index += if (startsWith("..")) 2 else 1
                         previous = null
@@ -141,7 +148,7 @@ internal object KotlinIdentifiers {
                     peek() == '$' && peek(1)?.isIdentifierStart() == true -> {
                         val start = ++index
                         while (peek()?.isIdentifierPart() == true) index++
-                        occurrences += Occurrence(start until index, code.substring(start, index), null)
+                        occurrences += Occurrence(start until index, code.substring(start, index), null, braceDepth)
                     }
                     else -> index++
                 }

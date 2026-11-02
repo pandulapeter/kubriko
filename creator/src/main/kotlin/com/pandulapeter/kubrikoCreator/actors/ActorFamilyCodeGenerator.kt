@@ -15,8 +15,8 @@ import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.GENERATED_PACKAGE
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendDrawFunction
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendSavedState
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.INDENT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventCode
+import com.pandulapeter.kubrikoCreator.actors.EventFunctions.appendFunction
 
 /**
  * Turns an Actor type that has a parent or children into Kotlin that inherits as the Actor types do. The topmost Actor
@@ -55,21 +55,19 @@ internal object ActorFamilyCodeGenerator {
             isFamily = role.isFamily,
             eventScopes = members.map { it.events to scopeOf(it) },
         )
-        val hooks = FamilyHooks(features, rootScope)
-        val imports = definition.events.filter { hooks.of(it) != null }
+        val hookOf = { event: EventDefinition -> EventFunctions.of(event, rootScope) }
+        val imports = definition.events.filter { hookOf(it) != null }
             .fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scopeOf(definition)) }
             .imports.toMutableSet()
         val code = buildString {
             if (name == root) {
-                with(ActorClassEmitter(features, role, rootScope, family, imports)) {
-                    appendClass(definition, family.propertiesOf(name), packageName) { appendHookFunctions(definition, hooks) { scopeOf(definition, it) } }
-                }
+                with(ActorClassEmitter(features, role, rootScope, family, imports)) { appendClass(definition, family.propertiesOf(name), packageName) }
                 appendLine()
             } else if (family.hasChildren(name)) {
-                appendBase(definition, family, features, hooks, imports) { scopeOf(definition, it) }
+                appendBase(definition, family, features, hookOf, imports) { scopeOf(definition, it) }
                 appendLine()
             }
-            appendConcrete(definition, family, features, hooks, packageName, imports) { scopeOf(definition, it) }
+            appendConcrete(definition, family, features, hookOf, packageName, imports) { scopeOf(definition, it) }
         }
         return GeneratedFile.withHeader(" from ${BlockTypeStore.definitionPath(definition)}", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
@@ -81,26 +79,13 @@ internal object ActorFamilyCodeGenerator {
     }
 
     /**
-     * The topmost Actor type's own Events as the hooks' default code.
-     */
-    private fun StringBuilder.appendHookFunctions(definition: ActorTypeDefinition, hooks: FamilyHooks, scopeOf: (parentEventCall: String?) -> BlockScope) {
-        hooks.all.forEach { hook ->
-            val own = definition.events.filter { hooks.of(it) == hook }
-            appendLine()
-            appendLine("    protected open fun ${hook.signature} {")
-            own.forEach { event -> eventCode(event.blocks, event.type, scopeOf(null)).lines.forEach { appendLine(INDENT.repeat(2) + it) } }
-            appendLine("    }")
-        }
-    }
-
-    /**
      * The abstract class of an Actor type with a parent and children: its new Properties, and its Events as overrides.
      */
     private fun StringBuilder.appendBase(
         definition: ActorTypeDefinition,
         family: ActorTypeFamily,
         features: ActorTypeFeatures,
-        hooks: FamilyHooks,
+        hookOf: (EventDefinition) -> EventFunctions.Function?,
         imports: MutableSet<String>,
         scopeOf: (parentEventCall: String?) -> BlockScope,
     ) {
@@ -124,7 +109,7 @@ internal object ActorFamilyCodeGenerator {
         if (features.isCollidable) appendLine("    collisionMask = collisionMask,")
         appendLine(") {")
         appendPropertyFields(newProperties)
-        appendOverrides(definition, hooks, scopeOf)
+        appendOverrides(definition, hookOf, imports, scopeOf)
         appendLine("}")
     }
 
@@ -136,7 +121,7 @@ internal object ActorFamilyCodeGenerator {
         definition: ActorTypeDefinition,
         family: ActorTypeFamily,
         features: ActorTypeFeatures,
-        hooks: FamilyHooks,
+        hookOf: (EventDefinition) -> EventFunctions.Function?,
         packageName: String,
         imports: MutableSet<String>,
         scopeOf: (parentEventCall: String?) -> BlockScope,
@@ -157,20 +142,21 @@ internal object ActorFamilyCodeGenerator {
         appendLine("), Editable<$name> {")
         if (!hasChildren) {
             appendPropertyFields(newProperties, source = "state.")
-            appendOverrides(definition, hooks, scopeOf)
+            appendOverrides(definition, hookOf, imports, scopeOf)
         }
         appendDrawFunction(definition, imports)
         appendSavedState(definition, family.propertiesOf(name), packageName, imports)
         appendLine("}")
     }
 
-    private fun StringBuilder.appendOverrides(definition: ActorTypeDefinition, hooks: FamilyHooks, scopeOf: (parentEventCall: String?) -> BlockScope) {
-        definition.events.groupBy { hooks.of(it) }.forEach { (hook, events) ->
-            if (hook == null) return@forEach
-            appendLine()
-            appendLine("    override fun ${hook.signature} {")
-            events.forEach { event -> eventCode(event.blocks, event.type, scopeOf("super.${hook.call}")).lines.forEach { appendLine(INDENT.repeat(2) + it) } }
-            appendLine("    }")
+    private fun StringBuilder.appendOverrides(
+        definition: ActorTypeDefinition,
+        hookOf: (EventDefinition) -> EventFunctions.Function?,
+        imports: MutableSet<String>,
+        scopeOf: (parentEventCall: String?) -> BlockScope,
+    ) {
+        definition.events.groupBy(hookOf).forEach { (hook, events) ->
+            if (hook != null) appendFunction("override", hook, events, scopeOf("super.${hook.call}"), imports)
         }
     }
 

@@ -99,7 +99,7 @@ internal object EveryBlockTypes {
     fun everyEvent(blocks: List<BlockDefinition>) = EventType.entries.flatMap { type ->
         when (type) {
             EventType.KEY_PRESSED -> KeyChoice.all.mapIndexed { index, key ->
-                // Every key, though only a few with every Block, which would make a method too large to compile.
+                // Every key, though only a few with every Block, to keep the project small to compile.
                 EventDefinition(
                     type = type,
                     key = key,

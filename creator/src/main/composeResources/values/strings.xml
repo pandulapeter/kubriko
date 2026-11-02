@@ -97,6 +97,7 @@
     <string name="status_type_file_name_invalid">%1$s holds a type named %2$s, which can't be a type's name (it starts with an uppercase letter and uses only letters and numbers), so that type is left out and no code is generated until it is renamed.</string>
     <string name="status_type_file_name_reserved">%1$s holds a type named %2$s, a name Kubriko itself uses, so that type is left out and no code is generated until it is renamed.</string>
     <string name="status_type_file_name_duplicate">%1$s holds a type of the same name as %2$s, so those types are left out and no code is generated until all but one are renamed or removed.</string>
+    <string name="status_kotlin_block_scope_changed">Kotlin Blocks of %1$s use return, or a name their Event no longer has, which work differently now that each kind of Event runs in a function of its own. The Game map lists them.</string>
     <string name="status_type_files_readable_again">Every type file can be read again, so the generated code is up to date again.</string>
     <string name="status_generated_leftovers_removed">Deleted the generated code of types that no longer exist: %1$s</string>
     <string name="status_generated_leftover_changed_by_hand">%1$s is the generated code of a type that no longer exists, but it was changed by hand, so Kubriko Creator kept it. Delete it once nothing needs it, since it may break the build.</string>
@@ -591,6 +592,8 @@
     <string name="health_unread_property">%1$s: nothing reads it.</string>
     <string name="health_timer_never_started">%1$s: the Timer %2$s never starts, so its Event never runs.</string>
     <string name="health_collision_with_absent_type">%1$s: %2$s is never in a Scene, so their collision Event never runs.</string>
+    <string name="health_kotlin_block_return">%1$s: return in this Kotlin Block now ends only its Event, not the rest of the frame.</string>
+    <string name="health_kotlin_block_removed_local">%1$s: this Kotlin Block uses %2$s, which its Event no longer has. Read it from body or kubriko instead.</string>
     <string name="game_map_title">What the AI knows about your game</string>
     <string name="action_toggle_ai">AI</string>
     <string name="action_show_game_map">What the AI knows about your game: the summary every conversation starts with</string>

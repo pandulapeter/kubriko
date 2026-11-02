@@ -30,7 +30,7 @@ class ActorFamilyCodeGeneratorTest {
         properties = listOf(PropertyDefinition.Number("hp", initialValue = 1f), PropertyDefinition.Toggle("isAsleep")),
         events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.Stop))),
     )
-    private val wall = ActorTypeDefinition(name = "Wall", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Enemy")))
+    private val wall = ActorTypeDefinition(name = "Wall", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Enemy", blocks = listOf(BlockDefinition.Stop))))
     private val actorTypes = listOf(enemy, bat, wall)
 
     private fun generate(definition: ActorTypeDefinition) = ActorTypeCodeGenerator.generateActorType(
@@ -45,9 +45,9 @@ class ActorFamilyCodeGeneratorTest {
     fun theTopmostTypeOfAFamilyGetsABaseClassWithItsEventsAsHooks() {
         val code = generate(enemy)
         assertContains(code, "abstract class EnemyBase(\n    final override val body: BoxBody,\n    color: Color,\n    hp: Float,\n    final override val collisionMask: CollisionMask,\n) : Visible, Dynamic, CollisionDetector {")
-        assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        if (isRemoved) return\n        onEveryFrame()\n")
+        assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        if (isRemoved) return\n        onEveryFrame(deltaTimeInMilliseconds)\n")
         assertContains(code, "                is Wall -> if (!other.isRemoved) onCollisionWithWall(other)\n")
-        assertContains(code, "    protected open fun onEveryFrame() {\n        hp += -1f\n    }\n")
+        assertContains(code, "    protected open fun onEveryFrame(deltaTimeInMilliseconds: Int) {\n        hp += -1f\n    }\n")
         assertContains(code, "class Enemy private constructor(state: State) : EnemyBase(\n    body = state.body,\n    color = state.color,\n    hp = state.hp,\n")
         assertContains(code, "), Editable<Enemy> {")
     }
@@ -69,7 +69,7 @@ class ActorFamilyCodeGeneratorTest {
         assertContains(code, "class Bat private constructor(state: State) : EnemyBase(")
         assertContains(code, "collisionMask = BoxCollisionMask(")
         assertContains(code, "    var isAsleep: Boolean = state.isAsleep\n")
-        assertContains(code, "    override fun onEveryFrame() {\n        super.onEveryFrame()\n        velocity = SceneOffset.Zero\n    }\n")
+        assertContains(code, "    override fun onEveryFrame(deltaTimeInMilliseconds: Int) {\n        super.onEveryFrame(deltaTimeInMilliseconds)\n        velocity = SceneOffset.Zero\n    }\n")
         // The child's own initial value, and the parent's Property kept with the child's.
         assertContains(code, "        @SerialName(\"hp\") val hp: Float = 1f,\n        @SerialName(\"isAsleep\") val isAsleep: Boolean = false,\n")
     }
@@ -90,7 +90,8 @@ class ActorFamilyCodeGeneratorTest {
     fun aParentStandsForItsChildrenInOtherTypesCollisions() {
         val code = generate(wall)
         assertContains(code, "listOf(EnemyBase::class)")
-        assertContains(code, "is EnemyBase -> if (!other.isRemoved) {")
+        assertContains(code, "is EnemyBase -> if (!other.isRemoved) onCollisionWithEnemy(other)\n")
+        assertContains(code, "    private fun onCollisionWithEnemy(other: EnemyBase) {\n")
     }
 
     @Test
@@ -108,8 +109,8 @@ class ActorFamilyCodeGeneratorTest {
             knownActorTypeNames = (actorTypes + hunter).map { it.name },
             actorTypes = actorTypes + hunter,
         )
-        assertTrue(code.indexOf("is Bat -> if (!other.isRemoved) {") < code.indexOf("is EnemyBase -> if (!other.isRemoved) {"), code)
-        assertContains(code, "                    other.isRemoved = true\n                    actorManager.remove(other)\n")
+        assertTrue(code.indexOf("is Bat -> if (!other.isRemoved) onCollisionWithBat(other)") < code.indexOf("is EnemyBase -> if (!other.isRemoved) onCollisionWithEnemy(other)"), code)
+        assertContains(code, "    private fun onCollisionWithBat(other: Bat) {\n        other.isRemoved = true\n        actorManager.remove(other)\n    }\n")
     }
 
     @Test
@@ -160,6 +161,16 @@ class ActorFamilyCodeGeneratorTest {
         val keyed = enemy.copy(events = listOf(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.ENTER), EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE)))
         val code = ActorTypeCodeGenerator.generateActorType(keyed, "com.example.game", actorTypes.map { it.name }, actorTypes = listOf(keyed, bat, wall))
         assertTrue(code.indexOf("Key.Spacebar -> ") in 0..<code.indexOf("Key.Enter -> "))
+    }
+
+    @Test
+    fun aChildOverridingTheAddedHookImportsKubriko() {
+        val greeter = ActorTypeDefinition(name = "Greeter", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Log("Hello")))))
+        val loudGreeter = ActorTypeDefinition(name = "LoudGreeter", parent = "Greeter", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.Log("HELLO")))))
+        val types = listOf(greeter, loudGreeter)
+        val code = ActorTypeCodeGenerator.generateActorType(definition = loudGreeter, packageName = "com.example.game", knownActorTypeNames = types.map { it.name }, actorTypes = types)
+        assertContains(code, "    override fun onAddedToScene(kubriko: Kubriko) {\n")
+        assertContains(code, "import com.pandulapeter.kubriko.Kubriko\n")
     }
 
     @Test

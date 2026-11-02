@@ -20,11 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.KotlinBlockScopeChecks
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_property_of_manager
 import kubriko.creator.generated.resources.game_map_worth_a_look
 import kubriko.creator.generated.resources.health_collision_with_absent_type
+import kubriko.creator.generated.resources.health_kotlin_block_removed_local
+import kubriko.creator.generated.resources.health_kotlin_block_return
 import kubriko.creator.generated.resources.health_timer_never_started
 import kubriko.creator.generated.resources.health_unreached_scene
 import kubriko.creator.generated.resources.health_unread_property
@@ -78,5 +81,10 @@ private fun HealthFinding.text(): String {
         HealthFinding.Kind.UNREAD_PROPERTY -> stringResource(Res.string.health_unread_property, subjectText)
         HealthFinding.Kind.TIMER_NEVER_STARTED -> stringResource(Res.string.health_timer_never_started, subjectText, detail.orEmpty())
         HealthFinding.Kind.COLLISION_WITH_ABSENT_TYPE -> stringResource(Res.string.health_collision_with_absent_type, subjectText, detail.orEmpty())
+        HealthFinding.Kind.KOTLIN_BLOCK_SCOPE_CHANGED -> if (usage == KotlinBlockScopeChecks.RETURN) {
+            stringResource(Res.string.health_kotlin_block_return, detail.orEmpty())
+        } else {
+            stringResource(Res.string.health_kotlin_block_removed_local, detail.orEmpty(), usage.orEmpty())
+        }
     }
 }

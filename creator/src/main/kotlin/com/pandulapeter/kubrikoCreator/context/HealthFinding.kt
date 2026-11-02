@@ -14,12 +14,15 @@ package com.pandulapeter.kubrikoCreator.context
  * mistake, but often one.
  *
  * @param subject What it is about: an Actor type, a Property, or a Scene.
- * @param detail The Timer or the other Actor type it names, for the kinds that name one.
+ * @param detail The Timer or the other Actor type it names, or the place of the Block (`Ball#1.2`), for the kinds that
+ *   name one.
+ * @param usage What a Kotlin Block uses that changed: `return`, or the name of a local it no longer has.
  */
 internal data class HealthFinding(
     val kind: Kind,
     val subject: RelationSubject,
     val detail: String? = null,
+    val usage: String? = null,
 ) {
     enum class Kind {
         /**
@@ -46,6 +49,12 @@ internal data class HealthFinding(
          * A collision Event with an Actor type that is never there, so it never fires.
          */
         COLLISION_WITH_ABSENT_TYPE,
+
+        /**
+         * A Kotlin Block that uses `return` or a local its Event no longer has, now that each kind of Event runs in a
+         * function of its own ([KotlinBlockScopeChecks]).
+         */
+        KOTLIN_BLOCK_SCOPE_CHANGED,
     }
 
     override fun toString() = when (kind) {
@@ -54,5 +63,10 @@ internal data class HealthFinding(
         Kind.UNREAD_PROPERTY -> "$subject: nothing reads it (no condition, Log Block, text, or Kotlin names it)."
         Kind.TIMER_NEVER_STARTED -> "$subject: the timerFinished Event of $detail never fires, since no startTimer Block of its family starts it."
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."
+        Kind.KOTLIN_BLOCK_SCOPE_CHANGED -> if (usage == KotlinBlockScopeChecks.RETURN) {
+            "$detail: return in this Kotlin Block now ends only this Event's Blocks (and those of the type's later Events of the same kind), not the rest of the frame or the other collisions."
+        } else {
+            "$detail: this Kotlin Block uses $usage, which its Event no longer has; read it from body or kubriko instead."
+        }
     }
 }

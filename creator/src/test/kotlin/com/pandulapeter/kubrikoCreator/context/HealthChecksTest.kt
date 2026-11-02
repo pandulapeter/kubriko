@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import kotlin.test.Test
@@ -72,6 +73,38 @@ class HealthChecksTest {
         listOf(listOf(parent.copy(events = logsHealth), child), listOf(parent, child.copy(events = logsHealth))).forEach { types ->
             assertEquals(emptyList(), HealthChecks.of(types, ProjectRelations(types, placed), placed.keys))
         }
+    }
+
+    @Test
+    fun aKotlinBlockReturningOrUsingARemovedLocalIsReported() {
+        val kotlin = { code: String -> BlockDefinition.Kotlin(code) }
+        val paddle = ActorTypeDefinition(
+            name = "Paddle",
+            events = listOf(
+                EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop, kotlin("if (velocity.x > 0f.sceneUnit) return"))),
+                EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(kotlin("body.position = box.min"), kotlin("Logger.log(\"box\") // box"))),
+                EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE, blocks = listOf(kotlin("println(key)"), kotlin("val key = 1\nprintln(key)"))),
+                EventDefinition(EventType.TIMER_FINISHED, timer = "spawn", blocks = listOf(kotlin("listOf(1).forEach { return@forEach }"), kotlin("fun skip(): Int { return 1 }\nprintln(skip())"))),
+                EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(kotlin("return"))),
+            ),
+        )
+        val types = listOf(paddle)
+        val placed = mapOf("main" to mapOf("Paddle" to 1))
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.KOTLIN_BLOCK_SCOPE_CHANGED, RelationSubject.Type("Paddle"), "Paddle#0.1", "return"),
+                HealthFinding(HealthFinding.Kind.KOTLIN_BLOCK_SCOPE_CHANGED, RelationSubject.Type("Paddle"), "Paddle#1.0", "box"),
+                HealthFinding(HealthFinding.Kind.KOTLIN_BLOCK_SCOPE_CHANGED, RelationSubject.Type("Paddle"), "Paddle#2.0", "key"),
+            ),
+            HealthChecks.of(types, ProjectRelations(types, placed), placed.keys).filter { it.kind == HealthFinding.Kind.KOTLIN_BLOCK_SCOPE_CHANGED },
+        )
+    }
+
+    @Test
+    fun aFamilysKotlinBlocksAlwaysRanInFunctionsOfTheirOwn() {
+        val parent = ActorTypeDefinition(name = "Parent", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("return")))))
+        val child = ActorTypeDefinition(name = "Child", parent = "Parent")
+        assertEquals(emptyList(), KotlinBlockScopeChecks.of(listOf(parent, child)))
     }
 
     @Test

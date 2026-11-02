@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerCountdown
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
 
@@ -40,45 +39,6 @@ internal object BlockCodeGenerator {
      * [AudioCodeGenerator.AUDIO_NAME] Manager.
      */
     fun usesAudio(blocks: List<BlockDefinition>) = blocks.any { it.audioFile != null || it == BlockDefinition.StopMusic }
-
-    internal fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, scope: BlockScope) {
-        val lines = events.flatMap { event -> eventCode(event.blocks, event.type, scope).lines }
-        if (lines.isNotEmpty() && events.first().type != EventType.KEY_PRESSED && events.first().type != EventType.COLLISION && events.first().type != EventType.TIMER_FINISHED) {
-            appendLine(INDENT.repeat(depth) + "// " + eventComment(events.first().type))
-        }
-        lines.forEach { appendLine(INDENT.repeat(depth) + it) }
-    }
-
-    internal fun eventComment(type: EventType) = when (type) {
-        EventType.GAME_STARTED -> "When the game starts"
-        EventType.ADDED_TO_SCENE -> "When added to the Scene"
-        EventType.EVERY_FRAME -> "Every frame"
-        EventType.KEY_PRESSED -> "When a key is pressed"
-        EventType.EDGE_TOUCHED -> "When an edge of the screen is touched"
-        EventType.COLLISION -> "When it collides with another Actor"
-        EventType.TIMER_FINISHED -> "When a Timer finishes"
-    }
-
-    /**
-     * Counts the Timer [timer] down and runs the Blocks of its [events] when it finishes. A repeating Timer carries the time
-     * it overshot into its next round, and the Blocks may start or stop it again.
-     */
-    internal fun StringBuilder.appendTimer(timer: String, events: List<EventDefinition>, scope: BlockScope) = appendTimerCountdown(timer, isCommented = true) {
-        appendEvents(events, depth = 4, scope = scope)
-    }
-
-    internal fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, scope: BlockScope) {
-        appendLine()
-        appendLine("    override fun onKeyPressed(key: Key) {")
-        appendLine("        when (key) {")
-        keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
-            appendLine("            Key.${key.composeKeyName} -> {")
-            appendEvents(events, depth = 4, scope = scope)
-            appendLine("            }")
-        }
-        appendLine("        }")
-        appendLine("    }")
-    }
 
     /**
      * The statements of an Event of [eventType] that runs [blocks]: their sections become Kotlin blocks, closed at the end
