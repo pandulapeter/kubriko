@@ -487,6 +487,40 @@ class BlockTypesControllerTest {
     }
 
     @Test
+    fun aRenamedTypeEditedAfterItsSaveFailedIsStillWrittenBeforeTheOldFileIsDeleted() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createWritingController(repository)
+        repository.failingNames += "Puck"
+        controller.rename("Ball", "Puck")
+        advance(200)
+        controller.put(ActorTypeDefinition(name = "Puck", width = 3f))
+        advance(200)
+        assertEquals(emptyList(), repository.writes)
+        assertEquals(setOf("Ball"), repository.stored.keys)
+        repository.failingNames.clear()
+        advance(10_200)
+        assertEquals(listOf("save Puck", "delete Ball", "regenerate"), repository.writes)
+        assertEquals(ActorTypeDefinition(name = "Puck", width = 3f), repository.stored["Puck"])
+    }
+
+    @Test
+    fun aRenameRolledBackAfterItsSaveFailedKeepsEverySaveBeforeTheDeletesAfterIt() = runTest {
+        val brick = ActorTypeDefinition(name = "Brick", parent = "Ball")
+        val repository = FakeBlockTypeRepository(listOf(ball, brick))
+        val controller = createWritingController(repository)
+        repository.failingNames += "Puck"
+        controller.rename("Ball", "Puck")
+        advance(200)
+        repository.failingNames.clear()
+        controller.rename("Puck", "Ball")
+        advance(200)
+        assertTrue(repository.writes.indexOf("save Brick") < repository.writes.indexOf("delete Ball"))
+        assertTrue(repository.writes.indexOf("save Ball") < repository.writes.indexOf("delete Puck"))
+        assertEquals("regenerate", repository.writes.last())
+        assertEquals(listOf(ball, brick), repository.stored.values.sortedBy { it.name })
+    }
+
+    @Test
     fun aFailedRegenerationIsRetried() = runTest {
         val repository = FakeBlockTypeRepository()
         val controller = createWritingController(repository)

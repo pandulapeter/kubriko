@@ -69,4 +69,20 @@ class PendingWriteTest {
             PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(ball))),
         )
     }
+
+    @Test
+    fun aMergedSaveKeepsTheEarlierPlaceWithTheLaterDefinition() {
+        assertEquals(
+            listOf(PendingWrite.Save(ballWithDescription), PendingWrite.Save(paddle), PendingWrite.Delete("Old")),
+            PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Save(ball), PendingWrite.Save(paddle), PendingWrite.Delete("Old"), PendingWrite.Save(ballWithDescription))),
+        )
+    }
+
+    @Test
+    fun aSaveAfterADeleteOfTheSameTypeIsNotMergedWithTheSaveBeforeIt() {
+        assertEquals(
+            listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(paddle), PendingWrite.Save(ballWithDescription)),
+            PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Save(ball), PendingWrite.Delete("Ball"), PendingWrite.Save(paddle), PendingWrite.Save(ballWithDescription))),
+        )
+    }
 }

@@ -50,17 +50,33 @@ internal sealed interface PendingWrite {
     companion object {
 
         /**
-         * [writes] without the saves that a later save or delete of the same type makes pointless, in their order.
+         * [writes] with each type saved once: a save followed by a later save of the same type, with no delete of it in
+         * between, keeps its own place with the later definition, and one followed by a later delete of it is dropped. A
+         * save never moves after a write that came after it, so a renamed type's old file is still deleted only after
+         * the new ones are written.
          */
         fun withoutOverwrittenSaves(writes: List<PendingWrite>): List<PendingWrite> {
-            val laterTypeNames = HashSet<String>()
-            return writes.asReversed().filter { write ->
+            val merged = ArrayList<PendingWrite?>(writes.size)
+            val openSaveIndices = HashMap<String, Int>()
+            writes.forEach { write ->
                 when (write) {
-                    is Save -> laterTypeNames.add(write.definition.name)
-                    is Delete -> true.also { laterTypeNames += write.name }
-                    else -> true
+                    is Save -> {
+                        val index = openSaveIndices[write.definition.name]
+                        if (index == null) {
+                            openSaveIndices[write.definition.name] = merged.size
+                            merged += write
+                        } else {
+                            merged[index] = write
+                        }
+                    }
+                    is Delete -> {
+                        openSaveIndices.remove(write.name)?.let { index -> merged[index] = null }
+                        merged += write
+                    }
+                    else -> merged += write
                 }
-            }.asReversed()
+            }
+            return merged.filterNotNull()
         }
     }
 }
