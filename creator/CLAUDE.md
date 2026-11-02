@@ -72,7 +72,7 @@ lives in `plan/` (start with `plan/README.md`).
   a Scene.
 - **Creator** works on files and Gradle only. It drives the project's own build through the Gradle Tooling API (`gradle/GradleProjectConnection`)
   with `src/main/resources/kubriko-creator-session.init.gradle.kts`, which adds three tasks to every Compose desktop module without touching the
-  project: `kubrikoCreatorSession` (runs the module's classpath plus `tool-creator-session` at the project's Kubriko version, in `play` or `edit`
+  project: `kubrikoCreatorSession` (runs the module's classpath plus `tool-creator-session` at the project's Kubriko version, in `play`
   mode, reporting back over a versioned JSON-lines protocol on a localhost port, `SessionServer`), `kubrikoCreatorWarmUp` (above), and `kubrikoCreatorClasspath` (compiles and
   writes the Kubriko version and runtime classpath to a file, with the folders the module's jar is packed from in place of the jar,
   found through the jar task's `source`, so the jar isn't packed; a file the jar puts elsewhere than its folder would is
