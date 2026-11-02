@@ -203,7 +203,6 @@ they fix what earlier fixes in this review got wrong (the focused-field regressi
 | [M13](M13-extract-the-creator-scene-runtime-module.md) | Extract the Scene editor's runtime (`sceneRuntime`: project class loading, the live preview, sprites) into `:creator:scene-runtime`, with the engine and plugin dependencies | medium | M (4) | amended |
 | [M14](M14-extract-the-creator-workspace-module.md) | Extract Kubriko Creator's open-project wiring (`workspace`) into `:creator:workspace`, leave only the app's UI and settings in `:creator`, and finish the docs of the split | medium | M (4) | sound |
 | [P01](P01-measure-member-functions-in-the-size-check.md) | Make the size check measure every function, members of classes and objects included, under a name qualified by its class, and treat test fixtures as tests | medium | T (1) | amended |
-| [P02](P02-review-each-plan-file-before-the-next.md) | Review the commits of every finished plan item before the next one starts, and fix what the review finds | medium | T (1) | sound |
 | [P03](P03-refuse-growth-past-the-size-limits-and-limit-constructor-parameters.md) | Refuse a change that grows a file, function, or constructor already past its size limit, and limit primary constructors to 12 parameters | medium | D (4, last) | added after the challenge |
 | [S01](S01-refuse-scenes-of-projects-on-newer-compose-or-kotlin.md) | Refuse to draw the Scenes of a project whose Compose or Kotlin is a newer major or minor version than Creator's, and warn about any other newer shared library | medium | S (1) | sound |
 | [S02](S02-prove-released-project-classes-can-be-collected.md) | Prove with a test that a project's released class loader, and every class it defined, can be garbage collected | medium | S (1) | sound |
@@ -222,7 +221,7 @@ they fix what earlier fixes in this review got wrong (the focused-field regressi
 
 | Lane | Area | Plans in order | Owns |
 |---|---|---|---|
-| T | test infrastructure, CI, ABI, process | T01, T04, T06, P01, P02 | `creator/src/test/.../testing/`, contract tests, `.github/workflows/tests.yml`, `tools/creator-api/api/`, `.github/scripts/check_sizes.py` |
+| T | test infrastructure, CI, ABI, process | T01, T04, T06, P01 | `creator/src/test/.../testing/`, contract tests, `.github/workflows/tests.yml`, `tools/creator-api/api/`, `.github/scripts/check_sizes.py` |
 | S | Scene class loading, session, creator-session | S03, S02, S01, S04, S05 | `scenes/` loaders, `session/`, `tools/creator-session/`, the init script |
 | G | model and code generation, templates | G01, G02, G03, G04, G05, G07, G09, G06, G08 | `actors/`, `template/`, generator tests, `src/test/resources/generated/` |
 | A | assistant, MCP | A01, A02a, A02b, A03, A04, then T02a, T02b | `ai/assistant/`, `mcp/`, `ui/assistant/`, `ui/mcp/`, their tests and fakes |
@@ -306,6 +305,8 @@ Claude Code itself; the executing session asks before that commit.
 - A shared drag-state base class (UI-13, second half): low value. One cancellation idiom (ARCH-11): style only.
 - `.gitattributes` in generated projects (CRLF): the user decided against it; line breaks are now preserved instead.
 - Direct tests of `DesktopModuleLookup` (TST-10): they exist.
+- A `/code-review` of every finished plan item before the next (former P02): the user dropped it for its token cost; the
+  sweeps at milestones, the tests, and the hooks stay the checks.
 
 ## Challenge
 
