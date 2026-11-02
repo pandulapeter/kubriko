@@ -10,9 +10,9 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.foundation.LatestRequests
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
-import com.pandulapeter.kubrikoCreator.workspace.LatestRequests
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
