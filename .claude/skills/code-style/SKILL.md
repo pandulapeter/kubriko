@@ -164,6 +164,7 @@ that explains what the code already says.
 - Start every new source file with the MPL-2.0 license header (copy from a sibling file).
 - Keep the public API stable — optimize under the hood only (see root `CLAUDE.md` → Conventions).
 - Honor the performance rules (zero per-frame allocation in hot paths; see root `CLAUDE.md` → Performance).
+- In Kubriko Creator, a change is finished only when it meets `creator/CLAUDE.md` → Definition of done.
 - **Never commit automatically.** Leave edits in the working tree as uncommitted changes so they can be
   reviewed first. Only run `git commit` (or `git add` in preparation for one) when explicitly instructed
   to commit — finishing the code is not an implicit request to commit it.

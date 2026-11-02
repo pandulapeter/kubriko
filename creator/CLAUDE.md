@@ -9,651 +9,337 @@
 -->
 # creator (Kubriko Creator)
 
-A standalone desktop app for making Kubriko games without IntelliJ, inspired by GameMaker 6.1: Actor types and Manager types are built from
-Events and Blocks, Actors are placed in Scenes, and the game is played with one click. This file describes what exists; what is planned
-lives in `plan/` (start with `plan/README.md`).
+A standalone desktop app for making Kubriko games without IntelliJ, inspired by GameMaker 6.1: Actor types and Manager types are
+built from Events and Blocks and generated into plain Kotlin, Actors are placed in Scenes, and the game is played with one click.
+This file holds the rules a change to Creator keeps and the why behind its less obvious designs; the code and its KDoc say what
+each part does. What is planned lives in `plan/` (start with `plan/README.md`).
 
 ## Running and testing
 
-- Run against this repository's libraries: `./gradlew :creator:run`, however it is started (the `[Desktop] Kubriko Creator` run
-  configuration spells it out). `settings.gradle.kts` turns on `creator.localKubriko` for any build that runs `:creator:run` and puts the
-  three Maven Local publish tasks first. `creator.localKubriko` publishes the libraries to Maven Local as `<library.version>-creator` (so
-  they never shadow a real release) and bundles that version and `mavenLocal()` into `creator.properties`, so projects use them. Packaged
-  builds, and `:creator:run -Pcreator.localKubriko=false`, bundle the released version instead.
-- `./gradlew :creator:test` runs the unit tests (also in the `Tests` workflow). `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<version>`
-  additionally generates every template for real and compiles it, plus an Actor type and two Manager types using every Event and Block (and
-  each other's Properties), for desktop and web, and resolves the desktop runtime classpath as playing does (compiling alone misses a
-  library whose repository is missing).
-- `KUBRIKO_CREATOR_BENCHMARK=true` times a 200-type project without Gradle (`CreatorBenchmarkTest`) and, with
-  `KUBRIKO_CREATOR_VERSION` as above, builds it for real (`CreatorBuildBenchmarkTest`, `--no-build-cache`, more Gradle arguments
-  through `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`), printing each step's time, generated files touched, and classes compiled again.
-- **Every change ships with solid unit tests**: controllers against fakes (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`,
-  `FakeGitRepository`), file code against real temporary folders, git against real temporary repositories (JGit needs no installed git),
-  sockets over real localhost connections. `StringResourcesTest` fails on any string or icon nothing uses, and on escaped apostrophes.
-- UI is checked offscreen in tests (`uiTest`, `showing`, `saveSnapshot` in `ui/UiSnapshots.kt`): rendered in the app's theme and
-  interface scale without a window, its texts and clicks asserted, and a PNG of each root (an open menu is one) saved under
-  `build/ui-snapshots` to look at. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
-  (`screencapture -l <window id>`) before it is called done.
+- `./gradlew :creator:run` runs against this repository's libraries however it is started: `settings.gradle.kts` turns on
+  `creator.localKubriko` for any build that runs it and puts the Maven Local publish tasks first. That publishes the libraries as
+  `<library.version>-creator` (so they never shadow a real release) and bundles that version and `mavenLocal()` into
+  `creator.properties`, so projects use them. Packaged builds, and `-Pcreator.localKubriko=false`, bundle the released version.
+- `./gradlew :creator:test` runs the unit tests (also on Windows and Linux in `Tests`). Run the whole suite before every commit,
+  not only the tests you touched: tests elsewhere catch leaks and races (a server left running, an exception escaping a scope),
+  and Windows paths differ (write expected paths with `File`, not `/`).
+- Opt-in tests, skipped without their switch:
+  - `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<version>` generates every template for real and builds it for
+    desktop and web, with an Actor type and two Manager types using every Event and Block, and resolves the desktop runtime
+    classpath as playing does (compiling alone misses a library whose repository is missing). For an unreleased
+    `library.version`, run it after a `:creator:run` with `<library.version>-creator`.
+  - `KUBRIKO_CREATOR_BENCHMARK=true` times a 200-type project without Gradle (`CreatorBenchmarkTest`) and, with
+    `KUBRIKO_CREATOR_VERSION`, builds it for real (`CreatorBuildBenchmarkTest`; more Gradle arguments through
+    `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`).
+  - `KUBRIKO_CREATOR_CLAUDE_AGENT=true` (`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks a Claude Code configuration) runs the real
+    Claude Agent on an existing login: `ClaudeAgentLiveTest`, and `AssistantLiveScenariosTest`'s headless conversations on the
+    Breakout fixture, which check what the project became, not the words. They cost a few requests on the user's subscription,
+    so run them (`--tests "*AssistantLiveScenariosTest*" --rerun`) when the assistant's behaviour changed; `EvalSetTest`
+    replays recorded tool calls for free.
+- Controllers are tested against fakes (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`, `FakeGitRepository`),
+  file code against real temporary folders, git against real temporary repositories (JGit needs no installed git), and sockets,
+  the MCP server, and shell commands for real on localhost. `StringResourcesTest` fails on a string or icon nothing uses, and on
+  escaped apostrophes.
+- UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`ui/UiSnapshots.kt`) renders a composable in the
+  app's theme and interface scale without a window, asserts its texts and clicks, and saves a PNG under `build/ui-snapshots`.
+  Every new UI gets one. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
+  (`screencapture -l <window id>`) before it is called done; `plan/HANDOVER.md` → Working with the live app says how.
 
-## Processes
+## Definition of done
 
-- **Opening** a project never waits for Gradle (`GradleWorkspaceOpener`): it only checks for a build or settings file and reads the
-  root project's name from the settings (`ProjectInspector`); the desktop module is asked from Gradle in the background (`DesktopModuleLookup`, asked again after a failure; the
-  `GradleProject` model configures every task), and the first build waits for it, reporting a project without one in the console.
-  The Tooling API connection is made on first use, which is right away: the workspace builds the classpath and loads the
-  project's classes in the background as soon as it opens (`SceneEditingController.prepare`), so the Gradle daemon is warm
-  and the first Scene opens without a build. Once they are loaded, the init script's `kubrikoCreatorWarmUp` compiles one
-  generated file in a compilation of its own next to the desktop target's code (`CreatorTaskRunner.warmUpCompiler`, silent,
-  never clean, and not a failed build when it fails), since the build at opening starts Kotlin's compile daemon only when
-  something needed compiling, and a cold daemon made the first change seconds slower. Builds of the classpath never overlap, and a play session waits for the one
-  running (`CreatorTaskRunner`'s `classpathBuildLock`), since a build started while another runs needs a daemon of its own; a cancelled build
-  returns only once Gradle has stopped it, for the same reason. **Playing** builds the classpath too (into a file of its own,
-  `SessionInitScript.playClasspathFileOf`, so the Scene editor's builds don't touch it; a fraction of a second when nothing
-  changed), whose `launch.` lines say how `kubrikoCreatorSession` would start the game (`GameLaunch`: the `run` task's Java
-  and JVM arguments, its working folder and main class, and the module's own files followed by the session library's own
-  resolution, which may raise library versions), and Creator starts that process itself (`GameProcess`), so no Gradle
-  daemon is held while the game runs; its classpath goes through an `@argfile` (`JavaArgumentFile.format`), since Windows caps
-  a command line at 32,767 characters. The game runs from a copy of the project's class files (in `playDirectoryOf`,
-  deleted when it ends), since the Scene editor rebuilds the classes meanwhile; resources are read where they are. A game
-  that exits with an error shows its exit code and last lines in the console; stopping it destroys the process. Only a
-  build without `launch.` lines falls back to the session task. **Hot reload:** play builds pass `kubrikoCreatorHotReload`,
-  and the classpath task then also writes `launch.hot` lines (`HotReloadLaunch`) from Compose Hot Reload's run task, which
-  Compose Multiplatform gives every project: its JetBrains Runtime, its `@argfile` (`JavaArgumentFile` reads it), its
-  reload task, and the session libraries. Such a game starts with Hot Reload's agent and DevTools off, from Hot Reload's
-  own copy of the classes (so without Creator's). While it plays, every type, source, or Scene change builds the project
-  and `GameReloader` (in `GameBuilds`, which also prepares launches) compares the built classes' `ClassShape`s with the
-  game's: only code changed runs the reload task, while a changed superclass, interface, instance field, or class with
-  static state (which a reload would leave null or reset) restarts the game from the same Scene. A game waits for the one
-  before it to end, since Hot Reload's pid file is shared. Play from this Scene (the Scene editor's header, and
-  `start_game`'s `scene`) passes `kubriko.creator.scene`, which template version 7's `Main.kt` hands to
-  `KubrikoWiring.firstSceneOverride`; an older project gets a console note that it may start with its first Scene. Each workspace runs in a scope of its own (a child of the app's), which
-  `close()` cancels once the pending writes are done (`BlockTypesController.awaitWrites`), and quitting waits for that; an
-  opening that is cancelled closes what it made. Builds of the classpath report their time in the console, and so does opening
-  a Scene.
-- **Creator** works on files and Gradle only. It drives the project's own build through the Gradle Tooling API (`gradle/GradleProjectConnection`)
-  with `src/main/resources/kubriko-creator-session.init.gradle.kts`, which adds three tasks to every Compose desktop module without touching the
-  project: `kubrikoCreatorSession` (runs the module's classpath plus `tool-creator-session` at the project's Kubriko version, in `play`
-  mode, reporting back over a versioned JSON-lines protocol on a localhost port, `SessionServer`), `kubrikoCreatorWarmUp` (above), and `kubrikoCreatorClasspath` (compiles and
-  writes the Kubriko version and runtime classpath to a file, with the folders the module's jar is packed from in place of the jar,
-  found through the jar task's `source`, so the jar isn't packed; a file the jar puts elsewhere than its folder would is
-  copied to `build/kubrikoCreator/moved`). Every build's arguments come from `SessionInitScript.gradleArguments`; the script and the classpath file keep their paths
-  (`session` in Creator's settings folder: the script named after its content, the classpath file after the project's path),
-  since Gradle reuses a configuration cache only for the same init scripts and `-P` values, and the script works with the
-  configuration cache, which projects turn on themselves (template version 6). How it
-  compiles from `IncrementalCompilationPolicy`: common code compiles incrementally through Kotlin's internal
-  `kotlin.internal.incremental.enableUnsafeOptimizationsForMultiplatform` (KT-62686: otherwise any change to `commonMain`, where generated code
-  lives, compiles everything again), except in projects whose sources declare an `expect` (`ExpectDeclarations`), and the build after a failed
-  one, a Reload, or classes that couldn't be loaded runs with `--rerun-tasks`, from scratch. Projects' own builds keep Kotlin's default.
-- **Scene editing** (`scenes/`, `ui/scenes/`): Creator's own Scene editor, never a window of its own and not the library's
-  `tools/scene-editor`. When the project's Kubriko version equals Creator's, Creator loads the project's classes into a class
-  loader whose parent is its own (Kubriko, Compose, and Kotlin shared; project jars copied and the class files of project folders read first, `ProjectClassLoader`, so rebuilds can replace them), finds the
-  project's `CreatorEntryPoint` through `ServiceLoader`, and `SceneView` creates the Scene's Actors from the file's states with the
-  project's `SerializationManager` and Managers in a Kubriko instance of its own that never runs (one Actor per entry, kept by
-  the Actor's ID), drawn by `KubrikoViewport` in the center pane (`SceneCanvas`). Creating a `SceneView` runs the project's code (its
-  Managers' constructors), so `rememberSceneView` does it off the main thread (`createDisposingIfCancelled`), and what that code throws
-  (a `NoClassDefFoundError` too) fails the Scene with the problem (`SceneEditingController.onViewFailed`), or, for newer classes,
-  leaves the older ones shown as outdated. A Scene file that can't be read (`SceneFileProblem`: it doesn't parse, or an Actor's state isn't a JSON
-  object) opens with `InvalidSceneNotice`, which says why and opens it in the system editor, since no command can change it; Actors
-  that couldn't be created from their states (`SceneView.uncreatedIds`) are marked in the Actor list and explained in the inspector,
-  whose Remove still works. Classes are loaded the same way, so a load cancelled midway closes what it loaded, and released classes
-  are closed a few seconds later on a scope that outlives the workspace (`releaseScope`). The header's Actors button shows the Scene's
-  Actors in a list beside it (`SceneActorList`: in their order, by type and ID, filtered by what is typed, lazily composed),
-  where a click selects one and centers the camera on it (`SceneView.centerOn`). A click selects the Actor on top (`SceneHitTest`:
-  lowest drawing order, then the later one; the Scene settings only where nothing else is), looking only at the Actors near
-  it (`SceneBoundsGrid`, a uniform grid of their bounds, updated in place when Actors only move or change and built again on
-  the next click after Actors are added, removed, or reordered), dragging it moves it live and dispatches
-  `move_actor` when let go (only an Actor whose state saves a position, in a Scene file that can be read, `canDragActor`; on any
-  other the press pans), dragging elsewhere or scrolling pans, Ctrl/Cmd+scroll and the header zoom (`SceneFraming` shows the
-  Scene settings' bounds, or every Actor), Delete or Backspace dispatches `remove_actor`, and an Actor type dragged from the sidebar
-  (`SidebarDragState`, only while a Scene is open) is placed where it is dropped (`place_actor`). The inspector beside it
-  (`SceneInspector`) shows the selected Actor's position, size, rotation in degrees, and scale (`ActorBodyValues`, read from the live
-  Actor, so defaults its state leaves out show), and for block-built types its color and Property values (the type's where the
-  state has none), set through `set_actor_values`; the Scene settings through `set_scene_settings`; with nothing selected, a hint
-  and a way to the Scene settings (added if the Scene has none). Every change is a command, so it
-  is undone like any other, and after each the Scene's Actors are read again from `SceneStore` (which parses the Scene in the
-  background while the project builds, so the first command doesn't parse it on the main thread) and `SceneView.load` applies only what changed
-  (`ScenePatch`: unchanged Actors stay, one whose state differs only in position is moved, a changed one is created again,
-  new ones at the end are added, removed ones go; a new order creates the whole Scene again), creating Actors
-  off the main thread. A project on another Kubriko version
-  gets a notice instead (`SceneEditingState.Unsupported`), and so does a Scene whose project didn't build or whose entry point
-  couldn't be loaded (`SceneEditingState.Failed`, with Try again), rather than the pane just closing. Compose resources are read
-  through Creator's own class loader there, which can't see the project's, so `SpriteLoadingEntryPoint` swaps the project's
-  `SpriteManager` for one whose `imageLoader` (`ProjectSpriteLoader`) reads the sprite files from disk, matching resources by ID
-  (`drawable:<accessor>`, which is what Compose resources are equal by). The loaded classes (`loading`, the build and
-  loading of the current sources, which every Scene opened meanwhile waits for) are kept when the Scene
-  closes (selecting an Actor type, or another Scene), so the next Scene opens without building, until a type or a source
-  changes (`markOutdated`, also during that build), Reload, or the workspace closes; a failed build or another Kubriko
-  version is shown by the Scenes waiting for it, and the next Scene builds again; released classes go a few seconds after their editor leaves
-  composition. A change while a Scene is open builds it again in the background (`update`, the header says "Updating…"):
-  the new classes are swapped in when they are ready, and a change during that build builds once more after it, rather than
-  cancelling it. The editor's new `SceneView` creates its Actors while the old one is still shown and then takes over its
-  camera (`rememberSceneView`, `SceneCamera`), and the selection is kept per Scene, so a swap only changes the Actors. A
-  failed build keeps the old classes and says so in the header, with Reload, until a build works. Until newer classes are
-  swapped in, the Actors of block-built types whose look (`ActorTypeLook`: shape, color, size, sprite) changed since the
-  shown classes were built, or that are new, are drawn by Creator itself from that look and their saved state
-  (`SceneEditingState.Open.previews`, `PreviewActor`): every build records the looks it compiled once the changes are
-  written, and the previews follow the types in memory (`onActorTypesChanged`), so a change shows before it is even
-  written. The Scene editor's instance ticks without the focus (`shouldPauseOnFocusLoss = false`), since a Scene swapped
-  in while Creator is in the background would otherwise draw nothing until it is focused.
-- **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
-  and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
-  after `com.pandulapeter.kubriko.` in imports and fully qualified names, generated code included; the engine and `tool-creator-api` always),
-  adding `kubriko-<name>` catalog entries and `implementation(libs.kubriko.<name>)` lines in sorted order and removing unused ones (a
-  catalog entry stays while anything else in the build file refers to it; libraries it doesn't know, like the debug menu, are never
-  touched). It also raises the catalog's `kubriko` version to Creator's own (one newer than Creator's is kept and reported once), and adds
-  or removes its Maven Local block in `settings.gradle.kts` with `useMavenLocal`, and a JitPack block (limited to
-  `com.github.umjammer`) with the audio plugin, whose desktop library needs JLayer from there. The edits are line-based (`VersionCatalog`,
-  `BuildScript`) and leave every other line alone, and the file's line breaks (`LineBreaks`); files without the template's shape (a `kubriko` version, a `commonMain.dependencies`
-  block) are left alone entirely. Changes are reported in the console. Projects that aren't opted in are never changed.
+Besides its tests passing, a change:
+
+- Reuses the shared building blocks instead of writing its own: `writeTextAtomically` for every file Creator writes,
+  `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.ignoredDirectoryNames` for every walk through a
+  project, `LatestRequests` for background reads whose results may land out of order; in the UI `BufferedTextField`,
+  `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, and `PanelWidths` with `sidePanel`; in command tests
+  `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`).
+- Has its unhappy paths designed: what happens when it throws, when it is cancelled, when it is called again while the first call
+  runs, when a file has Windows line breaks, and when its file changes outside Creator.
+- Does no blocking I/O on the main thread, and lets no long-lived loop (a watcher, a server, a reader of a process's output) die
+  on one exception.
+- Tests against literals or the real implementation, never a copy of the code under test; a test that needs a network, a tool,
+  or a switch skips itself with `Assume` rather than returning early.
+- Adds to a `CLAUDE.md` only the rule or the why it introduces.
+
+## Principles
+
+1. **The library never depends on Creator.** Nothing under `engine/`, `plugins/`, or `tools/` depends on `creator`.
+2. **Plain files, plain Gradle.** Nothing the build needs lives in editor-private files; deleting `.kubriko/` never breaks a build, it
+   only turns block-built Actor types into ordinary code.
+3. **Creator never rewrites code it didn't generate,** and stops updating generated code that was changed by hand.
+4. **Every change outside Creator-owned files is shown as a diff and confirmed.**
+5. **No engine changes for editor convenience**; editor-only runtime needs go into opt-in modules.
+6. **The AI can do exactly what the user can, through the same validated commands, and nothing else.**
+
+## Files and ownership
+
+| Path | Owner | When changed elsewhere |
+|---|---|---|
+| `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json` | Creator | Reloaded within a second; code regenerated. |
+| `.kubriko/project.json` | Creator | Its format is checked again within a second. |
+| `.kubriko/scenes.json` (Scene descriptions) | Creator | Read again whenever it is used; a file that can't be read holds none. |
+| `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
+| `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes; an open Scene shows the change. |
+| `AGENTS.md` (the game's notes) and the `CLAUDE.md` importing it | Shared | Read at the start of every conversation; Creator writes `AGENTS.md` through `set_game_notes`, and `CLAUDE.md` only when the project has none. |
+| Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
+| Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff. |
+| The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
+| The `game.*` keys of `gradle.properties` (the game's identity) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
+| `.kubriko/local/` | Creator | Git-ignored. |
+
+## Threads, writes, and failures
+
+- Workspace state (the `CommandExecutor`, `BlockTypesController`, `SceneEditingController`) is confined to the main thread;
+  background work hands its results back there.
+- Each workspace runs in a scope of its own, a child of the app's. `close()` cancels it once the pending writes are done
+  (`BlockTypesController.awaitWrites`, which builds and git commands wait for too), quitting waits for that (at most 10 seconds), and
+  an opening that is cancelled closes what it made.
+- `writeTextAtomically` writes a sibling temporary file and moves it into place, so a crash leaves the old content or the new,
+  never half; a new file holding a token is readable by its owner only (`isPrivate`), and the watcher ignores the temporary files.
+- `ProjectWatcher` polls file stamps every second. Files as Creator left them (`OwnWrites`) don't count as changed, so Creator's own
+  writes reload nothing.
+- An exception nothing catches (`unexpectedProblemHandler`, on the app's scope and each workspace's) is reported in the open
+  project's console, and the rest keeps running.
 
 ## Commands
 
-Every change to a project goes through a command (`commands/`), so the user interface, undo and redo, and the AI share one
-path. `CommandRegistry.editor` lists them all; the AI tool list (`ToolDefinition`: name, description, input schema) is generated
-from it, each input schema from the input class's serial descriptor (`JsonSchema`, with `@Description` on every property). A sealed
-type marked `@SummarizedSchema` (`BlockDefinition`) lists only its subclasses' names, which `get_block_catalog` describes once,
-rather than every Block in each tool that takes one. `check_change` runs a write tool's decoding and validation on given arguments without applying it. An input that doesn't
-decode is rejected with `InputProblem`'s one sentence
-(the unknown type or property, the value of the wrong kind, or what is missing) instead of kotlinx.serialization's message.
+Every change to a project is a command (`commands/`), so the UI, undo and redo, and the AI share one path, and every new editor
+feature lands with its command, its AI tool, and their tests (validation, apply, and the inverse round trip). The UI dispatches
+commands rather than calling controllers. The AI tool list is generated from `CommandRegistry.editor`, each input schema from the
+input's serial descriptor (`JsonSchema`, `@Description` on every property).
 
-- **Kinds:** `ReadCommand` (reports, never recorded), `WriteCommand` (`validate` returns a `Rejection` with a user-facing
-  `StringResource`; `apply` returns `Applied` with the inverse `Invocation`, or none for git operations, which can't be undone;
-  one that rewrites files without an inverse, discarding changes or the template upgrade, says `isRewritingFiles`, which clears the
-  history, and discarding reads the types back before it returns),
-  and `ActionCommand` (build, play; run outside the change lock).
-- **`CommandExecutor`** (one per workspace): applies changes one at a time, keeps the undo and redo history (consecutive changes
-  with the same `mergeKey`, like typing into one field, are one step, or those `mergesWith` joins, like the renames of one Property,
-  each naming it as the one before left it, with `mergeReverts` combining their inverses; a step that no longer validates is dropped), and decodes
-  AI tool calls (`call(name, JsonObject)`). UI callbacks use `dispatch`, which starts undispatched, so in-memory changes show
-  before it returns. Rejections of dispatched changes and of undo steps go to the console.
-- **Undo and redo restore** what was there: their steps are `Invocation`s marked `isRestoring`, validated by
-  `WriteCommand.validateRestoring`. What they bring back may name types, Scenes, or sounds deleted since (valid to keep, though not
-  to create), so creating a type, adding an Event or a Block, editing a Block, a collision Event's other type, and creating a Scene
-  check only the structure there: the type, Event, or Block exists, and the name is free.
-- **Enforced by tests** (`CommandRegistryTest`): every `EditorCommand` class is registered, tool names are snake_case, every
-  part of every schema is described, and nothing outside `commands/` opts in to `@EditorMutation`, the `RequiresOptIn` marker on
-  every controller and store function that changes the project. A new mutation is marked, so only a command can call it.
-- **Addressing:** Actor types, Manager types, and Scenes by name, Events, Blocks, and texts by index, and Scene Actors by their ID. The Event, Block, and
-  Property commands take either kind of type (their `actorType` input names an Actor type or a Manager type). `commands/CommandTesting.kt`
-  (`assertRoundTrip`) checks that a command's inverse reverts it and the inverse of the inverse makes it again.
-- **Properties** (number, text, toggle) are values each Actor keeps: generated as `@Exposed` fields kept in `State`, so the
-  Scene editor edits them per Actor, changed by the setNumber / changeNumber / setText / setToggle Blocks, and shown by Log
-  Blocks as `{name}` (whole numbers without ".0"). A Block may leave its Property unchosen and generates a comment until it
-  names one of its kind. Scenes keep the values: renaming moves them (and the Blocks and placeholders), removing keeps them
-  (loading ignores them, and undo brings them back), and adding drops a leftover value of another kind, which wouldn't load.
-  A Property's kind can't change.
-- **Flow** stays in each Event's flat Block list, as GameMaker's actions do: if (with a condition: a Property, a key held,
-  the velocity, a chance, or whether the game is paused), else, repeat, and end Blocks mark sections, so every Block keeps its plain index. `BlockNesting`
-  works out each Block's depth for the editor's indentation and the generator alike; an if or repeat without an end runs to
-  the end of the Event, and an else or end that belongs to no section shows a warning and generates a comment.
-- **Keys** (`KeyChoice`): key pressed Events and held-key conditions take any key Compose knows on every platform
-  (`composeKeys`, one entry per `Key` constant, so Creator stops compiling rather than generating code that doesn't when
-  Compose drops one), saved by the constant's name (`Spacebar`; older projects' `space`, and any case, are read too). A key
-  that isn't one is rejected and left out of the generated code. `KeyChoiceButton` opens them all, common ones first,
-  filtered by what is typed (`matchingKeys`), or chosen by pressing one.
-- **Timers** are named, as many as needed, like GameMaker's alarms but not capped: the startTimer (seconds, once or repeating)
-  and stopTimer Blocks, and a timerFinished Event per Timer, each naming it (`TimerNaming`: a lowercase identifier). A Timer
-  exists once a Block or an Event names it; an Actor type shares its Timers with its whole family, so a child's Block can start
-  its parent's (`BlockScope.timerNames`). The editor's Timer menu offers the Timers in use and names a new one in place, and the
-  Event's menu renames one (`rename_timer`, through the whole family). Older projects' numbers are read as `timer1` to `timer8`
-  (`TimerNameSerializer`), which keeps their generated fields and hooks. Generated as two `Long` fields per Timer that is used
-  (`<name>RemainingInMilliseconds` and `<name>PeriodInMilliseconds`, which no Property may end like), counted down at the start
-  of `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting one never allocates.
-- **Other Actor types** in Blocks: addActor spawns one through its own `metadata.instantiate(position)` (so with its size
-  and initial Property values, at a position relative to the Actor or the Scene), and moveTowardsNearest aims the velocity at
-  the closest Actor of a type (a loop over `allActors` by index, comparing squared distances, skipping removed Actors). Like collision Events, they follow renames, are rejected for
-  types that don't exist, and generate a comment for a type deleted later.
-- **Manager types** (`ManagerTypeDefinition`, in `.kubriko/managers`) hold game-wide state, like the score: Properties, Events
-  (gameStarted, everyFrame, keyPressed, timerFinished), and texts shown on top of the game (`ScreenTextDefinition`: placeholders,
-  one of nine places, size, color). Both kinds are a `BlockTypeDefinition` and share one namespace, the edits (`BlockTypeEdits.kt`),
-  the Block editor, and the commands; Blocks and conditions that need an Actor (`BlockKind.needsActor`, the velocity condition) and
-  Actor-only Events are rejected in a Manager and hidden from its palette. Each one becomes a `Manager` subclass whose Properties are
-  Compose state (`mutableFloatStateOf` for numbers, so nothing boxes), whose texts are `BasicText`s in its `Composable`, followed by
-  its Kotlin UI (`kotlinUi`, `set_kotlin_ui`, edited in a dialog): verbatim Compose statements whose leading import lines become the
-  file's imports (`KotlinUi`), with other Manager types, `actorManager`, `viewportManager`, and `stateManager` looked up only when
-  the code names them. The Manager is
-  `KeyboardInputAware` and adds itself as an Actor when it has key pressed Events (as the examples' Managers do; `GeneratedScenes`
-  adds it back after each Scene's `removeAll`). Its
-  Events don't run in the Scene editor (`isInSceneEditor`), nor every frame while the game is paused. The generated
-  `KubrikoWiring.createManagers(isInSceneEditor, firstScene)` creates all of them, plus `GeneratedScenes` and the plugin Managers the
-  game uses (`PluginManagers`: `CollisionManager` when a collision Event involves an Actor type, `KeyboardInputManager` for key Events
-  and held-key conditions, `MusicManager` and `SoundManager` when the game plays audio; not in the Scene editor, which has its own;
-  and `SpriteManager` when an Actor type is drawn as a sprite, also in the Scene editor, which has none); the template passes it to `Kubriko.newInstance` in `Game.kt`
-  (with the first Scene) and to the Scene editor in `GameEntryPoint.kt`.
-- **Scenes and pausing** in Blocks: goToScene and restartScene go through the generated `GeneratedScenes` Manager
-  (`ScenesCodeGenerator`, written into every project), which reads `files/scenes/<name>.json` from the project's resources in
-  the background, then removes every Actor and adds the Scene's (the first Scene, loaded when the game starts, keeps what the
-  Managers added before it) and logs a Scene it can't read. Manager types keep their Properties. goToScene is rejected for a
-  Scene that doesn't exist (`BlockScope.sceneNames`, known to commands and the editor but not to the generator) and generates a
-  comment until one is chosen. pauseGame pauses, resumes, or toggles through `StateManager.updateIsRunning`; key presses still
-  arrive while paused, so Actors' key pressed Events return early then (as Wallbreaker's `Ball` does) and Managers' still run, so a
-  Manager's key can resume the game.
-- **Audio** in Blocks: playSound, playMusic (looping or once), and stopMusic, with files named by their path from `composeResources`
-  (`files/sounds/hit.wav`, as `Res.getUri` takes it; `AudioFiles` lists the project's, only those under `files`, and a Block naming
-  one that doesn't exist is rejected, an unchosen one generates a comment). They go through the generated `GeneratedAudio` Manager
-  (`AudioCodeGenerator`), written (and in `KubrikoWiring`, with the plugin's Managers) only while the game plays audio
-  (`PluginManagers.usesAudio`: an audio Block, or a Scene whose settings have music), and deleted otherwise, so the audio plugin
-  comes and goes with it. It looks the URIs of every file it plays up once and preloads them, plays nothing in the Scene editor,
-  starts music on the next frame (the music player only exists once the viewport is composed), stops the previous music for
-  new music, and resumes the music when the game is focused again, since `MusicManager` pauses it but doesn't resume it. Because a
-  Scene's music decides whether the game plays audio, `BlockTypeStore` reads the music of every Scene in
-  `composeResources/files/scenes` next to the source folder, and Scene changes (on disk or by a command) regenerate the code;
-  regenerating leaves a file whose content didn't change untouched.
-- **Sprites** as an appearance: an Actor type's `sprite` (`set_appearance`) names a bitmap right in a `drawable` folder of
-  `composeResources` by its path (`drawable/ball.png`; `SpriteFiles` lists them, only those whose names make a resource accessor;
-  qualified folders are left out, since the sprite plugin doesn't scale them back). It is drawn stretched over the body with
-  `FilterQuality.None`, and the shape is still the collision mask's (the color is hidden then, and unused). The generated code finds
-  it through `Res.allDrawableResources[accessor]` rather than its accessor, so a deleted image doesn't break the build, and reaches
-  `SpriteManager` in `onAdded`. Choosing a sprite sizes the Actor type to the image (`SpriteFiles.sizeOf`), unless a size is given;
-  the inverse always carries the old size, so undo never resizes.
-- **Scene settings** are an Actor, not a separate file: the generated `SceneSettings` (`SceneSettingsCodeGenerator`,
-  written into every project and always in `GeneratedActorTypes`) is `Unique`, `Editable`, and placed like any other Actor. Its body
-  is the Scene's bounds, which it fills with its background color behind every other Actor (`drawingOrder` at the maximum) and which
-  edge Events use instead of the screen's edges (through `GeneratedScenes.settings`, which it sets while it is in the Scene); a
-  Scene without one keeps the screen's edges. Its camera start moves the camera when it is added, except in the Scene editor, and
-  its music (a path, empty for none) plays when the Scene starts, unless it is the music playing already; a Scene without music
-  leaves the music alone. The
-  view stays `Dynamic`, so a window of another size shows more or less around the bounds. `set_scene_settings` changes it (adding one
-  at the end of the Scene if it has none), editing its state as JSON (`SceneSettingsState`; colors are saved as Compose's packed
-  value); otherwise it is placed and edited in the Scene editor, from its palette and inspector.
-- **Reaching a Manager:** the Property Blocks and conditions have an optional `manager`, and Log Blocks and texts show `{Manager.name}`
-  placeholders (`PropertyPlaceholders`). Kotlin Blocks and Kotlin UI follow renames too (`KotlinIdentifiers`: identifiers outside
-  strings and comments, string templates included; an own Property bare or after `this.`, another Manager's after its field, type names
-  bare), though, knowing no grammar, a local variable of the same name is renamed with them. `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the
-  editor's Property choices alike: an Actor looks the Managers it uses up in `onAdded`, a Manager through `manager<T>()`, both in a
-  field named after the type with `Manager` after it (`scoreManager` for `Score`, `BlockScope.managerField`; no Property may end
-  with `Manager`, and no Manager type be called `Viewport`, `KeyboardInput`, or `Sprite`, so it clashes with nothing), and a Manager naming itself means its own Properties. Renaming a
-  Manager type or one of its Properties follows every Block, placeholder, and text of every type.
+- **Enforced by `CommandRegistryTest`:** every `EditorCommand` is registered, tool names are snake_case, every part of every schema
+  is described, and nothing outside `commands/` opts in to `@EditorMutation`, the marker on every controller and store function that
+  changes the project. A new mutation is marked, so only a command can call it.
+- **Kinds:** a `ReadCommand` is never recorded. A `WriteCommand`'s `validate` returns a `Rejection` in the user's words, and `apply`
+  returns the inverse `Invocation` (none for git operations, which can't be undone); one that rewrites files without an inverse
+  (discarding changes, the template upgrade) says `isRewritingFiles`, which clears the history. An `ActionCommand` (build, play)
+  runs outside the change lock.
+- **`CommandExecutor`** (one per workspace) applies changes one at a time. Consecutive changes with the same `mergeKey` (typing into
+  one field) are one undo step, as are those `mergesWith` joins (the renames of one Property); steps of different conversations,
+  or of an AI client and the user, never merge. A step that no longer validates is dropped. `dispatch` starts undispatched, so
+  in-memory changes show before it returns, and rejections of dispatched changes and undo steps go to the console.
+- **Undo and redo restore:** their steps are `isRestoring` and validated by `WriteCommand.validateRestoring`, since what they bring
+  back may name types, Scenes, or sounds deleted since; restoring checks only the structure (the type, Event, or Block exists, the
+  name is free).
+- **AI input:** an input that doesn't decode is rejected with `InputProblem`'s one sentence rather than kotlinx.serialization's
+  message, and `check_change` runs a write tool's decoding and validation without applying it. A sealed type marked
+  `@SummarizedSchema` (`BlockDefinition`) lists only its subclasses' names, which `get_block_catalog` describes once.
+- **Addressing:** types and Scenes by name, Events, Blocks, and texts by index, Scene Actors by ID. The Event, Block, and Property
+  commands take either kind of type (`actorType` names an Actor type or a Manager type).
+- **Renames follow everywhere:** Blocks, collision Events, placeholders, texts, Kotlin Blocks and Kotlin UI (`KotlinIdentifiers`,
+  which knows no grammar, so a local variable of the same name is renamed too), the Actors of every Scene, and a Property's saved
+  values in Scenes. Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
+  kind, which wouldn't load; a Property's kind can't change.
+- **Batches** (`place_actors`, `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) are one undo step each,
+  and name no Actor twice and at least one. Paged reads (`read_scene`, `list_actor_types`) keep large games readable.
+
+## Project files
+
 - **Format versions** (`project/ProjectFormat`): `.kubriko/project.json` records one `formatVersion` for all of a project's Creator
-  files (type definitions and Scenes), raised only by a change an older Creator can't read, with the `minimumCreatorVersion` that raised
-  it; projects from before it was recorded are version 0. Version 1 is the Manager fields' `Manager` suffix
-  (`ManagerFieldMigration` renames the old fields in Kotlin Blocks and Kotlin UI, leaving unreadable type files alone). Each raise is a `FormatMigration` in
-  `ProjectFormat.MIGRATIONS` (their count is the current version), applied at opening, and again when `project.json` changes on disk
-  (`ProjectChange.SETTINGS`), recording the version after each, so one that fails is carried on next time (failing at opening fails
-  the opening). A project whose version is newer opens read-only (`WorkspaceController.formatStatus`): `ReadOnlyProjectNotice` says
-  which Creator version it needs, `CommandExecutor` rejects every `WriteCommand` with the same message (`CommandContext.rejectChanges`, which `check_change`
-  answers too), and nothing
-  regenerates code, syncs the build files, or offers a template upgrade, while browsing, building, and playing still work.
-- **Template upgrades** (`template/ProjectUpgrader`): the template files belong to the user, so `.kubriko/project.json` records the
-  `templateVersion` they have. When it is older than Creator needs, the workspace shows a notice, and its dialog shows each change as a
-  diff (`LineDiff`), offers to commit first, and applies it (`upgrade_project`; `get_project_upgrade` for the AI) only to a file that
-  still looks like the template's. Files changed too much are listed with what to add by hand, and a file that already uses
-  `KubrikoWiring` counts as done, however it got there. Version 2 is the Manager wiring; version 3 drops the template's `SceneLoader`
-  for `createManagers(firstScene = …)` and deletes `SceneLoader.kt` if it is still the template's (`resources/upgrades` keeps that
-  copy; one changed by hand stays). Version 4 drops the plugin Managers from `Game.kt` (and their imports, unless still used),
-  since `KubrikoWiring` creates them, so a game that doesn't use a plugin doesn't depend on it. Version 5 has the desktop `Main.kt`
-  set `KubrikoWiring.isLoggingEnabled` from the `kubriko.creator.logging` system property, which only the play session sets (the
-  init script), so Log Blocks (`if (KubrikoWiring.isLoggingEnabled) Logger.log(...)`) cost nothing in a released game. Version 6 turns Gradle's
-  configuration cache and build cache on in `gradle.properties` (keeping a property set to any value already, and creating
-  the file if there is none). Version 7 has the desktop `Main.kt` also set `KubrikoWiring.firstSceneOverride` from the
-  `kubriko.creator.scene` system property (null in a released game), which `createManagers` loads instead of `firstScene`,
-  for playing from a Scene. Version 8 has `Game.kt` add its instance to the generated `KubrikoWiring.runningInstances` while
-  it is shown and `GameEntryPoint` report them (`getRunningInstances`), so that `start_game` waits until the game has drawn its
-  Actors (`RunningInstancesUpgrade`; a file that doesn't look like the template's counts as done, since `start_game` only skips
-  the wait without it). Version 9 (`GameIdentityUpgrade`) keeps the game's identity in `gradle.properties` (below, Project settings):
-  the keys it lacks are added (the name taken from `Main.kt`'s window title, the page title, or the root project's name), the build
-  file gains the block that reads them (`upgrades/GameIdentity-9.gradle.kts.template`, which the template's build file ends with too),
-  `Main.kt`'s title becomes `GameInfo.NAME`, and `index.html`'s `@GAME_NAME@`; a title that isn't plain text counts as done.
-  A change's `after` is null for a file it deletes.
-- **Parent Actor types** (`ActorTypeFamily`, `set_parent`): an Actor type may name a `parent`, like GameMaker's parent objects
-  (cycles and a parent named nowhere count as none). A child gets its ancestors' Properties (one of its own with the same name
-  and kind only changes the initial value; another kind is rejected) and Events (one of its own of the same kind, key, other
-  Actor type, or Timer replaces the parent's; the runParentEvent Block runs the parent's there), and a parent stands for its
-  children in collision Events and moveTowardsNearest. Its editor shows the parent menu, the inherited Properties, and the
-  inherited Events greyed, each with a button that adds its own replacement (starting with runParentEvent). A parent with
-  children can't be deleted; renames follow. Names ending in `Base` are reserved. **Generated as real Kotlin inheritance**
-  (`ActorFamilyCodeGenerator`): the topmost type of a family gets an abstract `<Name>Base` with everything the family needs
-  (`ActorTypeFeatures` over the whole family: fields, lookups, Timers, update, key and collision dispatch) and each Event as an
-  `open` hook (`onEveryFrame()`, `onCollisionWithWall(other: Wall)`, ...) holding its own code; a type with a parent and children
-  gets a base class of its own that overrides its Events' hooks; and every type gets a final class that keeps its state, draws
-  itself, and passes its collision mask to the base (so a child may have another shape). Kubriko registers saveable types as
-  `T : Editable<T>`, which a subclass can't implement again, hence the split. Other types name a family by its base class
-  (`BlockScope.classOf`). Imports cover the whole family, so some may go unused in one file.
-- **Folders** (`commands/folders`): Actor types, Manager types, and Scenes live in folders, which are real directories:
-  a type in `.kubriko/actors/enemies` (a type's `folder` is where its file is, kept out of the JSON; names stay unique across
-  folders, since generated code stays flat in one package), and `files/scenes/levels/1-1.json`, whose Scene is named by its path
-  (`levels/1-1`, `SceneStore.nameOf`; goToScene and every Scene command take that path). `create_folder`, `rename_folder` (moving
-  everything in it, Scenes through renames), and `delete_folder` (only an empty one, so undo is exact) take a group
-  (`FolderGroup`), `move_to_folder` moves a type, and `rename_scene` renames or moves a Scene: goToScene Blocks follow, the open
-  Scene follows, and the console names hand-written Kotlin that still names the old Scene (like the template's `Game.kt`). A Scene
-  file that can't be moved (Windows refuses while the game has it open) fails the rename before anything else changes, and a
-  folder rename stops there too, moving the Scenes moved before it back. The
-  sidebar shows the three groups as trees (`folderTreeSection`, `folderTreeRows`): folders first, each with a menu (new folder,
-  rename, delete when empty), and types and Scenes dragged into a folder or onto the group's header (`SidebarDragState`, which
-  also carries Actor types into the open Scene). Clicking the selected type or Scene again, or empty space in the
-  sidebar, selects nothing (`onSelectionCleared`: the open Scene closes and the workspace hint shows). Scene folder names follow Scene name rules (no spaces). The workspace keeps the
-  focus when nothing in it is focused (`historyShortcutTarget`), so Cmd/Ctrl+Z always reaches the undo history.
-- **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`), written with one Actor per line so they diff and merge,
-  and kept parsed in memory while the file's length and modification time are the ones it was read or written with:
-  Actors are `typeId` + JSON state + `id`, which Kubriko's serialization ignores (it reads entries with `ignoreUnknownKeys`), so
-  games load the files unchanged. Parsing gives an Actor without an ID, or with an earlier one's, an ID from its index (`i3`), the
-  same every time until a write keeps it, so existing Scenes change only when a command writes them; new Actors get a short random
-  one (`SceneDocument.newId`), or the one `place_actor`, `restore_actor`, or new Scene settings are given (how the Scene editor
-  selects what it just placed, and how undoing a removal brings the same Actor back). Positions live in
-  `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
-  Actor type renames its Actors in every Scene. A command that changes the open Scene shows it again (or closes it if deleted), and so does a Scene change on disk; a
-  changed Actor type marks it outdated, since its classes must be compiled again, but regenerating code for changed Scenes doesn't.
-  `set_actor_values` changes one Actor's body (a new size moves the pivot to the middle), color, and Property values
-  (`ActorStateEdits`; colors as Compose's packed value, rotations in radians) and is undone by `set_actor_state`, which replaces
-  a whole state (and is the AI's way to hand-written types' other values). `move_actor_order` moves an Actor in the Scene's list, the
-  order Actors are added in (so, of two with the same drawing order, the later is drawn on top); the inspector's header sends
-  the selected one to the start or the end.
-- **At scale:** `read_scene` returns a page (`offset`, `count`, 100 by default; `total` and `nextOffset`), narrowed to an Actor
-  type (not its children) or to a rectangle of positions, or a summary (Actors per type and the bounds of their positions). `list_actor_types` pages the same way, narrowed to a folder and its
-  folders, and lists the folders (`folders`, empty ones too). The batch commands are each one undo step: `place_actors`,
-  `remove_actors`, and `restore_actors` (inserted one after another, so its inverse from `remove_actors` lists the original indices
-  ascending), `set_actors_values` (`ActorValueChanges` per Actor, validated and applied as `set_actor_values` does), and
-  `set_actors_state`. A batch names no Actor twice and at least one.
-- **Context for the AI** (`context/`): `ProjectRelations` reads every reference between types, Properties, and Scenes from the model
-  (parents, collision Events, Blocks that add, move towards, go to, read, or change, Log Blocks and texts showing Properties,
-  Kotlin naming types, and Scenes placing Actors), each a `Relation` written `Ball#1.2 reads Game.score` (indexes from 0, as the tools
-  take them); a Property belongs to the type declaring it, through parents. `get_relations` lists what a type, Property, or Scene
-  uses and what uses it.
-- **Kubriko's API** (`get_kubriko_api`): without a class name, the root `CLAUDE.md`'s sections on using Kubriko
-  (`KubrikoApi`, bundled as `kubriko-overview.md` by `processResources`); with one, the source file declaring it, with its KDoc,
-  from the sources jars of Creator's Kubriko version (`KubrikoSources`: Maven Local, Gradle's cache, or downloaded from Maven
-  Central into `tools/kubriko-sources`), the engine searched first.
-- **The game's notes** (`GameNotes`): `AGENTS.md` at the project's root (with a `CLAUDE.md` importing it, created when the
-  project has none), which agents read by themselves; `read_game_notes` and `set_game_notes` (an undoable command, so the
-  turn's Keep and Undo covers it), and every assistant conversation starts with them after the digest (`ConversationStart`).
-- **Health checks** (`HealthChecks`, `HealthFinding`): Actor types nothing places or adds (nor any type based on them), Scenes no
-  goToScene goes to (when there are several), Properties nothing reads (no condition, Log Block, text, or Kotlin names them), and
-  timerFinished Events whose Timer nothing in the family starts or collision Events with a type never there. `get_health_checks`
-  reads them, and the map lists them first under Worth a look, each opening what it is about.
-- **Reads zoom in:** `read_actor_type` and `read_manager_type` write a type as the editor shows it (`BlockNotation`, `TypeNotation`:
-  `0 When it collides with Brick` with its Blocks indexed and indented below, `Change score of Game by 10`, in English like the tool
-  descriptions), at a `detail` (`ReadDetail`): `outline` (Events by title with Block counts), `blocks` (the default), or `json` (the
-  definition the write tools take), and `eventIndex` narrows it to one Event. Defaults are left out (`parent`, an empty list,
-  `isChangedByHand` unless true).
-- **Descriptions and the digest:** Actor types and Manager types have an optional one-line `description` in their file (older
-  Creators ignore it), and Scenes theirs in `.kubriko/scenes.json` (`SceneDescriptions`, kept by `SceneStore`, moved and deleted with
-  the Scene, and given back by `create_scene` when a deletion is undone); `set_description` sets either (typing is one undo step),
-  from the type editor's header or, with nothing selected, the Scene inspector. `ProjectDigest` sums the game up from the model
-  (types by folder with description, parent, Properties, and Event titles; Scenes with what they place; and what each type refers to),
-  and `DigestText` writes it under about 2,000 tokens (`BUDGET`), dropping Properties and Events, then descriptions, then cutting it
-  short with where the rest is. `get_project_digest` returns it as plain text (a string result is sent as it is), every assistant
-  conversation starts with it after the fixed system prompt (`AssistantSystemPrompt.withProject`, so the cached prefix stays the same),
-  and the AI panel's map button (`ui/gameMap`, "What the AI knows about your game") shows it to the user, opening a type or
-  Scene on a click.
-- **Reads that know what was seen:** a conversation's server (`createServer` with its ID) remembers each read tool's last
-  result per arguments (`ConversationReads`, forgotten with the conversation), so reading again returns `ResultDelta`: unchanged,
-  the object values and list items (`events[6]`) that changed, or a text's changed lines, and the whole result where that isn't
-  shorter; its read tools take `full: true` on top of their own schema for the whole result. Outside clients always get it whole.
-  A write tool returns `writeSummary` (the revision, what changed at which place, and the changed Event in notation) where it has no
-  result of its own. `CommandExecutor.changeLog` (`ChangeLog`) raises the revision on every change, undo and redo included, and keeps
-  the newest 200 (`ChangeRecord`); before each prompt, `AssistantChat` sends `ChangesSummary` of what anyone but that conversation
-  changed since its last prompt, ahead of the user's text.
-- **The eval set** (`EvalSetTest`): realistic requests ("make the Ball faster", "add a Bat moved with A and D", "log when the
-  game starts", and others) with the tool calls a model makes for them, replayed against the tools on `BreakoutFixture`, so a
-  change to a tool's name, input, or validation that would break what models do fails a test without spending tokens.
-- **Token budgets** (`TokenBudgetTest`, about four characters a token): the tool list, and on `BreakoutFixture` (a Breakout grown
-  to five types and a 42-Actor level) the digest, `read_actor_type` of Ball (Blocks and JSON), and `read_scene` of the level (a
-  page and the summary) each stay under a budget set just above what they cost, so that none can creep up unnoticed.
+  files, raised by any change an older Creator can't read (a new persisted field too), with the `minimumCreatorVersion` that raised it.
+  Each raise is a `FormatMigration` in `ProjectFormat.MIGRATIONS`, applied at opening and when `project.json` changes, recording the
+  version after each, so one that fails is carried on next time. A project whose version is newer opens read-only: every
+  `WriteCommand` is rejected with the same message (`check_change` too), and nothing regenerates code, syncs the build files, or
+  offers an upgrade, while browsing, building, and playing still work.
+- **Block type files:** `BlockTypesController` writes changes in batches, 100 ms after the last, with one regeneration and build file
+  sync per batch. A definition file that can't be read, holds a type named other than the file, or a name another file holds too
+  (ignoring case) is left out and reported by path; nothing is regenerated or synced until it is fixed, its name stays taken, and
+  `BlockTypeStore` never writes over or deletes it.
+- **Template upgrades** (`template/ProjectUpgrader`): template files belong to the user, so an upgrade is shown as a diff, offers to
+  commit first, and applies only to a file that still looks like the template's; others are listed with what to add by hand, and a
+  file that already has the change counts as done. A change's `after` is null for a file it deletes. Template version 5 sets
+  `KubrikoWiring.isLoggingEnabled` from a property only the play session sets, so Log Blocks cost nothing in a released game.
+- **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project, its build depends on
+  exactly the Kubriko libraries its sources name (the engine and `tool-creator-api` always), its `kubriko` version is raised to
+  Creator's (a newer one is kept and reported once), and the Maven Local block and the audio plugin's JitPack block come and go
+  with what is needed. A catalog entry stays while anything else in the build file refers to it, libraries Creator doesn't know
+  are never touched, and a file without the template's shape is left alone entirely. Projects that aren't opted in are never changed.
+- **Scenes** (`scenes/SceneStore`) are written with one Actor per line, so they diff and merge. Each entry's `id` is ignored by
+  Kubriko's serialization (`ignoreUnknownKeys`), so games load the files unchanged; an Actor without an ID, or with an earlier one's,
+  gets one from its index, the same every time, so a Scene changes only when a command writes it. Undoing a removal brings back
+  the same ID. Placing works for block-built Actor types only, whose state is known without loading classes. A Scene's settings
+  (bounds, background, camera start, music) are an Actor (`SceneSettings`, `Unique` and `Editable`), not a file of their own, so
+  they are placed, edited, and undone like any other; a Scene without one keeps the screen's edges.
+- **Folders** are real directories. Names stay unique across folders, since generated code is flat in one package; a Scene is
+  named by its path (`levels/1-1`); `delete_folder` takes only an empty folder, so undo is exact. A Scene file that can't be moved
+  (Windows refuses while the game has it open) fails the rename before anything else changes, and a folder rename moves the Scenes
+  it moved back.
 
-## AI connection (MCP)
+## Builds and playing
 
-`mcp/McpToolServer` serves `CommandRegistry.editor.tools` as MCP tools over Streamable HTTP (Ktor CIO, the official Kotlin MCP SDK)
-on `127.0.0.1:<port>/mcp`. Every request needs the token, as `Authorization: Bearer <token>` or, for clients that can't send
-headers, `?token=` (compared in constant time); the SDK's DNS rebinding protection limits hosts to localhost. Tool calls run
-`CommandExecutor.call` of the open project on the main dispatcher, so AI changes enter the same undo history; text results are
-JSON, a result's image (a screenshot) becomes MCP image content, rejections are `isError` results in the user's words, and every
-call is logged. Read tools are marked read-only, `WriteCommand.isDestructive` ones destructive. `McpController` (app-level,
-created in `main`) keeps `McpSettings` (off by default, port 7781, a random token, connected clients, command overrides) in
-`mcp.json` in the settings folder and restarts the server when they change; a taken port shows as `Failed`.
+- **Opening** never waits for Gradle: it reads the build files, and asks Gradle for the desktop module in the background; the first
+  build waits for that. The workspace builds the classpath and loads the project's classes right away, so the Gradle daemon is warm
+  and the first Scene opens without a build, then compiles one generated file (`CreatorTaskRunner.warmUpCompiler`), since Kotlin's
+  compile daemon starts only when something needs compiling and a cold one made the first change seconds slower. The warm-up is
+  silent and never a failed build.
+- **One build at a time:** builds of the classpath never overlap, and a play session waits for the running one (`classpathBuildLock`),
+  since a build started while another runs needs a daemon of its own; a cancelled build returns only once Gradle has stopped it.
+- **The init script** (`kubriko-creator-session.init.gradle.kts`) adds Creator's tasks to every Compose desktop module without
+  touching the project. Every build's arguments come from `SessionInitScript.gradleArguments`, and the script and the classpath
+  file keep stable paths, since Gradle reuses a configuration cache only for the same init scripts and `-P` values; the script
+  works with the configuration cache. The classpath lists the folders the module's jar is packed from in place of the jar, so the
+  jar isn't packed.
+- **Incremental builds** (`IncrementalCompilationPolicy`): common code, where generated code lives, compiles incrementally only
+  through Kotlin's `enableUnsafeOptimizationsForMultiplatform` (KT-62686: otherwise any change to it compiles everything), except in
+  projects whose sources declare an `expect`; the build after a failed one, a Reload, or classes that couldn't be loaded runs with
+  `--rerun-tasks`. Projects' own builds keep Kotlin's default.
+- **Playing** builds the classpath into a file of its own (`SessionInitScript.playClasspathFileOf`), so the Scene editor's builds
+  don't touch it, and Creator starts the game process itself (`GameProcess`), so no Gradle daemon is held while the game runs. The
+  classpath goes through an `@argfile`, since Windows caps a command line at 32,767 characters, and the game runs from a copy of the
+  class files, since the Scene editor rebuilds them meanwhile. A build without `launch.` lines falls back to the session task.
+- **Hot reload** (`GameReloader`): a change while playing builds and compares the built classes' `ClassShape`s with the game's. Only
+  code changes reload; a changed superclass, interface, instance field, or a class with static state (which a reload would leave
+  null or reset) restarts the game from the same Scene. A game waits for the one before it to end, since Hot Reload's pid file is
+  shared.
+- **The session** (`tool-creator-session`) runs at the project's Kubriko version over a versioned protocol that only grows: a
+  session of any version runs, using what the lower of the two versions has (`SessionController.request` takes the version a
+  command needs), with the features it lacks hidden rather than refused.
 
-- **One-click clients** (`mcp/clients`): `AiClient` lists the supported tools (Claude Code and Codex), each a CLI with
-  `mcp add` / `get` / `remove` at user scope; Codex can't send headers, so it gets the token in the URL. `AiClientSetup` is one way
-  to run a tool: its program with its default configuration (which apps such as the Claude app use too, so it is always listed,
-  run as `command claude` past an alias of the same name that runs something else), the user's replacement command, and each
-  shell alias that runs the program (`claude-personal` → "Claude Code (personal)"), found by parsing the shell's `alias` listing
-  (`ShellAliases`: zsh, bash, and fish quoting). Setups are connected separately and remembered by id (`claudeCode@claude-personal`). `AiClientsController`
-  finds the setups, checks which are installed and connected, connects (turning the server on first) and disconnects, and connects them again
-  when the port or token changes. `ShellProcessRunner` runs them through the user's shell as an interactive login shell, like a
-  terminal (an app started from the Finder lacks the shell's PATH, and aliases such as `claude-personal` live in `.zshrc`),
-  dropping the shell's job control notices; the command is user-editable. A tool counts as connected only when its output names
-  the server, since a wrapper alias can succeed without doing anything.
-- **Apps with a configuration file** (`AiConfigFileClient`: Claude Desktop, Cursor) are connected by editing their JSON file
-  (`McpConfigFile`): only `mcpServers.kubriko-creator` changes, the rest keeps its values, order, and indentation, the file is
-  replaced atomically through a link and keeps its permissions (a new one is owner-only), and a file that isn't valid JSON is never
-  written. An app counts as installed once its configuration folder exists. Claude Desktop only starts stdio servers, so its entry
-  runs `mcp-remote` through the full path of the `npx` the user's shell finds (`ProcessRunner.locate`), with that folder on the
-  PATH, and passes the token through the environment; without npx the row asks for Node.js. Cursor gets the URL and header.
-- **The panel** (toolbar → AI → Your own AI tool): a Connect / Disconnect / Install row per client, the on/off switch, the address
-  with the token for other MCP clients, Advanced (port, token, commands), and the call log (the newest 200 `McpToolCall`s, each
-  keeping only the first 300 characters of its arguments and result, in a lazy list).
-- **Playing the game:** `start_game` (optionally in a `scene`), `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
-  `SessionCommand`s Creator sends back on the session's connection, answered by id: keys go to the AWT event
-  listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), cropped to a region and narrowed to a width when
-asked (`ScreenshotImage`), and every step first
-  brings the window to the front, since Kubriko pauses unfocused games, and waits up to two seconds for the focus to arrive
-  (keys aren't pressed without it; `press_keys` fails instead). Unexpected exceptions in a tool are `isError` results that name
-  the exception. `start_game` also waits (up to five seconds) until the game has drawn Actors, so a screenshot right after it isn't
-  empty; that needs protocol 3 and an entry point that reports its Kubriko instances (`getRunningInstances`), and is skipped otherwise.
-  Sessions of any protocol version run, using what the lower of the two versions has (`SessionController.request` takes the
-  version a command needs); for protocol 1 (older Kubriko) the game tools say the version is too old.
-- **Showing the AI's work:** every command has a `title` and a `target` (`CommandTarget`: an Actor type with an optional Event
-  and Block index, a Scene, version control, or the game), asked before and after it runs. `CommandExecutor.aiSteps` records each
-  AI tool call as a running, then finished (or rejected) `AiStep` (the newest 500), with its `AiStepOrigin` when one of the
-  assistant's conversations made it: the conversation's tools ID and Claude Code's `_meta["claudecode/toolUseId"]`, which is
-  also the ACP tool call's ID. Each step also carries the name the MCP client gave itself (`AiStep.clientName`, from the SDK's session). The workspace shows
-  them in `AiActivityBar` (step number, the step before, the current one pulsing while it runs, each named after its client while
-  steps come from more than one, a Follow switch), follows the AI to the Actor type and Event it works on,
-  and lights up the finished step's target (`flashBackground`) in the editor and the sidebar (`ui/AiFollowing.kt`).
-- Tests talk to a real server on localhost through the SDK's client, run real shell commands, and play a fake session.
+## Scene editing
 
-## Assistant (ACP)
+Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own and not `tools/scene-editor`.
 
-The in-app assistant's agents are Agent Client Protocol agents (`ai/assistant`, the official Kotlin SDK, `com.agentclientprotocol:acp`).
-`AcpAgent` is one agent process (`AgentCommand`, started through an `AgentLauncher`: `ProcessAgentLauncher` in the app) hosting many
-`AgentConversation`s (ACP sessions). It starts on first use and initializes with protocol version 1, advertising terminal sign-in
-(`_meta["terminal-auth"]`) but neither file system nor terminal access, since Creator's own tools make every change. A conversation
-streams the agent's `SessionUpdate`s (from prompts and between them) as `updates`; `prompt` suspends until the turn ends, `cancel`
-sends `session/cancel`, and permission requests go to its `PermissionHandler` (`Reject` by default). A process that ends unasked is
-started again and its conversations loaded again with `session/load` (the replayed history left out of `updates`), or marked lost
-where the agent can't load them; one that exits within 30 seconds of starting more than three times in a row is `Failed` until it
-is used again, and one without conversations is only started again when used. A process that exits before answering `initialize`, or
-can't be started, fails with `AgentStartException` (its exit code and last standard error lines, also kept in `errorOutput`). Every
-process's standard error also goes to `logs/agent.log` in the settings folder (`AgentErrorLog`: each start headed by its time and command,
-moved aside to `agent.log.old` past 1 MB), which the agent menu and a failure open. Tests run
-`FakeAgent`, built on the SDK's agent side, over in-process pipes (`FakeAgentLauncher`).
+- It works only when the project's Kubriko version equals Creator's: the project's classes load into a class loader whose parent is
+  Creator's (Kubriko, Compose, and Kotlin shared; `ProjectClassLoader` reads project folders first, so rebuilds can replace them),
+  and `SceneView` creates the Actors in a Kubriko instance that never runs. Another version gets a notice instead
+  (`SceneEditingState.Unsupported`), and a failed build or entry point a notice with Try again (`SceneEditingState.Failed`).
+- Creating a `SceneView` runs the project's code, so it happens off the main thread, and what that code throws (a
+  `NoClassDefFoundError` too) fails the Scene, or leaves the older classes shown as outdated. A load cancelled midway closes what
+  it loaded; released classes are closed a few seconds later on `releaseScope`, which outlives the workspace.
+- A Scene file that can't be read opens with `InvalidSceneNotice`, since no command can change it; Actors that couldn't be created
+  are marked, and can still be removed.
+- Compose resources are read through Creator's class loader, which can't see the project's, so `SpriteLoadingEntryPoint` swaps in a
+  `SpriteManager` whose `ProjectSpriteLoader` reads sprites from disk, matching resources by ID (`drawable:<accessor>`, which is what
+  Compose resources are equal by).
+- Every edit is a command. After each, the Scene is read again (`SceneStore` parses it in the background while the project builds,
+  so the first command doesn't parse on the main thread) and `ScenePatch` applies only what changed. Dragging moves an Actor live
+  and dispatches `move_actor` when let go, only for an Actor whose state saves a position (`canDragActor`); any other press pans.
+- Loaded classes are kept across Scenes until a type or a source changes (`markOutdated`), Reload, or the workspace closes. A change
+  while a Scene is open builds again in the background, and a change during that build builds once more after it rather than
+  cancelling it; the new `SceneView` creates its Actors while the old one is still shown, then takes over its camera. A failed
+  build keeps the old classes until a build works.
+- Until newer classes are swapped in, Actors of block-built types whose look (`ActorTypeLook`) changed are drawn by Creator itself
+  (`PreviewActor`), following the types in memory, so a change shows before it is even written.
+- The editor's instance ticks without the focus (`shouldPauseOnFocusLoss = false`), since a Scene swapped in while Creator is in
+  the background would otherwise draw nothing until it is focused.
 
-`Assistant` pairs an agent with an `McpToolServer` of its own, started on a free port with no outside token, so it serves only
-conversation addresses: each conversation gets `/mcp/conversations/<id>` with a token of its own (`openConversation`), handed to
-the agent as its `kubriko-creator` MCP server, and closing it turns those tools off. What an agent gets is its `AgentProfile` or,
-without one, the fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`): the tools over HTTP where it advertises
-`mcpCapabilities.http`, otherwise through `mcp-remote` run by the user's `npx` with the token in its environment
-(`ConversationToolServer`); the system prompt as the first prompt's leading text (`firstPromptLead`, not sent again once a turn has
-started); its permission requests for edit, delete, move, and execute tool calls rejected whatever the user would choose
-(`PermissionHandler.rejectingChanges`); and a working folder of its own per project in Creator's settings folder
-(`agents/workspaces`) instead of the project's, since an agent may write files where it starts without asking (Google
-Antigravity writes its skills there). Every agent's requests for Creator's own tools are allowed without asking
-(`PermissionHandler.allowingCreatorTools`), recognized however the agent names them (`CreatorToolName`: Claude Code's
-`mcp__kubriko-creator__read_scene`, Antigravity's `kubriko-creator_read_scene`), which the tool call cards use too. The agent is an `AgentChoice`: a `RegistryAgent` (with its `AgentDistribution`) or a custom
-command line (`CustomAgentCommand`: variables set in front, then the program, found through the login shell when named without a
-folder, and its arguments); only Claude Agent is tested (`RegistryAgent.isTested`), and every other agent shows as untested. The registry's agents
-(`AgentRegistry`: npx first, then this platform's build, then uvx, Claude Agent pinned to its checked version and first, an entry it can't read left out) come from
-`AgentRegistryStore`, cached as `agent-registry.json` in the settings folder and fetched again at every start (a fetched list none of
-whose entries it can read keeps the cache); a remembered agent is
-resolved from the cache before the first conversation starts. A uvx agent without `uvx` fails with `UV_MISSING`. A binary agent (Google Antigravity, Cursor, goose, and others) is
-downloaded on its first start by `BinaryAgentInstaller` into `tools/agents/<id>/<version>` in the settings folder (checked against
-the registry's SHA-256 where it gives one; zips unpacked in Kotlin, refusing entries outside the folder, tar archives by the
-system's `tar`, anything else taken as the program), once per version, removing the agent's older ones, its progress shown while the agent starts (`AgentDownload`,
-`AssistantStarting`); a failed download fails the start with its reason. The
-built-in agent is `RegistryAgent.claude` with `AgentProfile.claude` (the ACP Registry's `claude-acp`, run through the user's `npx` with its folder
-first on the `PATH`, and `CLAUDE_CONFIG_DIR` for a Claude Code configuration other than the default). Its conversations start with
-`ClaudeAgentOptions.sessionMeta`: `AssistantSystemPrompt` (Creator's MCP instructions, its terminology, and the Block catalog,
-under a size budget in tests) appended to Claude Code's own, `Bash`, `Write`, `Edit`, and `NotebookEdit` disallowed,
-`mcp__kubriko-creator` allowed without asking, and a `game-explorer` subagent that answers questions about the game with Creator's
-read tools alone (`ClaudeAgentOptions.explorerTools`), which the system prompt points to along with planning big requests first. `ClaudeAgentLiveTest` runs the real adapter when `KUBRIKO_CREATOR_CLAUDE_AGENT=true`
-(`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks the configuration), on an existing login; it costs a request. With the same switch,
-`AssistantLiveScenariosTest` has real conversations through `AssistantChat` on the Breakout fixture, headless: a change made and
-undone from its card, a question answered without changes, a conversation continued after the agent starts again, and the health
-checks and `check_change` used; each checks what the project became, not the words, and the four cost a few requests.
+## Code generation
 
-**Signing in** never passes through Creator: the agent signs in by itself. `AcpAgent.signInMethods` are its `initialize` answer's
-`authMethods` (`SignInMethod`): a terminal method runs the command its `_meta["terminal-auth"]` names (otherwise the agent's own
-program with the method's arguments), in the agent's environment so that it signs in to the same Claude Code configuration; an
-agent method is `authenticate`; a method taking environment variables (an agent's own API key) asks for them in
-`SignInVariablesForm`, keeps them in the secret store per agent (`AgentVariableStore`, their names in `assistant.json`'s
-`agentVariables`), and starts the agent again with them. How the agent chosen is started is `AgentCommands`'. `AcpAgent.authStatus` is what the agent last pushed
-with `_auth/status_update` (`AuthStatus`: none, a subscription account with its email, an API key, a gateway, or cloud
-credentials). A prompt the agent refuses with `authRequired` ends in an `AUTH_REQUIRED` failure, and `AssistantChat.resendAfterSignIn`
-sends it again (without a second user message) once the user has signed in. Terminal methods run in the panel's sign-in terminal
-(`SignInSession`, through `AssistantController`'s `signInLauncher`): plain pipes, since `claude auth login` needs no terminal device,
-its output shown as `TerminalText` (escape sequences dropped, a line written over with `\r` shown as its last version, OSC 8 and
-bare links kept for an Open the sign-in page button), and a field for the code the browser may give. Claude Agent reports a new
-identity only at the next prompt, so after a successful terminal sign-in `needsSignIn` stays false until the agent reports
-something new. **The API key** is kept in the operating system's secret store (`SystemSecretStore` over `SecretCommands`: the
-macOS keychain through `security`, the Secret Service through `secret-tool`, the Windows Credential Locker through PowerShell;
-the key always on the tool's standard input, never its arguments) and reaches the agent only as `ANTHROPIC_API_KEY` in its
-environment, which outranks a Claude Code login; giving or removing it starts the agent again, ending the conversations.
+- Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks
+  get their own `run { }` scope, Blocks outside their Event and unchosen choices become comments) and follow the engine's
+  no-allocation rules. `ProjectTemplateIntegrationTest` compiles every Event and Block.
+- It reads like the examples' hand-written code: an Actor type is `Dynamic` only when it moves or has work every frame (a Kotlin
+  Block counts), looks up only the Managers its Blocks use, and is `Collidable` only when a collision Event involves it.
+- Generated Actors behave like a careful hand-written game's (`ActorClassCode`): movement steps at most 33 ms at a time, so a hitch
+  can't move a fast Actor through a thin one; the remove Blocks set `isRemoved` at once, which `update`, collisions, and
+  moveTowardsNearest skip until Kubriko removes the Actor after the frame, so a Brick can't score twice; Dynamic types are
+  `isAlwaysActive`, since a Scene can be larger than the screen; edge Events use the bounding box, so pivots, rotation, and scale
+  don't move the edges; collision branches put descendants before their ancestors; the mask follows the body every frame, centered
+  on it wherever its pivot is.
+- Timers are two `Long` fields each, counted down at the start of `update`, rather than Kubriko's `Timer`, whose duration is fixed,
+  so starting one never allocates; no Property may end like those fields. Manager Properties are Compose state
+  (`mutableFloatStateOf` for numbers, so nothing boxes).
+- `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the editor alike. A Manager type is reached
+  through a field named after it with `Manager` after it (`BlockScope.managerField`), so no Property may end with `Manager` and no
+  Manager type may be called `Viewport`, `KeyboardInput`, or `Sprite`.
+- Parent Actor types are real Kotlin inheritance (`ActorFamilyCodeGenerator`): the family's topmost type gets an abstract
+  `<Name>Base` with each Event as an `open` hook, and every type a final class that keeps its state and draws itself, since Kubriko
+  registers saveable types as `T : Editable<T>`, which a subclass can't implement again. Names ending in `Base` are reserved.
+- Key Events take any key Compose knows (`composeKeys`, one entry per `Key` constant, so Creator stops compiling rather than
+  generating code that doesn't when Compose drops one).
+- `KubrikoWiring.createManagers` creates every Manager type, `GeneratedScenes`, and only the plugin Managers the game uses
+  (`PluginManagers`), so a game that doesn't use a plugin doesn't depend on it; `GeneratedAudio` is written only while the game
+  plays audio. A Manager with key Events adds itself as an Actor, and `GeneratedScenes` adds it back after each Scene's
+  `removeAll`. Key presses arrive while paused, so Actors' key Events return early then and Managers' still run, so a key can
+  resume the game. `GeneratedScenes` ignores a request for the Scene it is already loading, so goToScene every frame doesn't
+  restart the load forever.
+- Sprites are found through `Res.allDrawableResources[accessor]` rather than their accessor, so a deleted image doesn't break the
+  build; images in qualified folders aren't offered, since the sprite plugin doesn't scale them back.
+- `BlockTypeStore` writes only files whose code changed (known without reading them while their length and modification time are
+  its own), never writes over a generated file changed by hand, and deletes the generated files of types that no longer exist
+  unless they were changed by hand; the console names both.
 
-**The panel** (toolbar → AI → Assistant, `ui/assistant`; `AiPanel` holds both ways of working with AI, since nobody uses them
-at once, opening on Your own AI tool when the MCP server is on, with the map behind a button in `AiPanelHeader`): `AssistantController` (app-level, created in `main`) holds the one
-`Assistant` from first use until Creator quits, created with the user's `npx` (`ProcessRunner.locate`: the login shell's `command -v`, or on Windows the `.exe`, `.cmd`, or
-`.bat` that `where` lists, a batch file started through `cmd /c`; without it a conversation
-fails with `NodeMissingException`, and the panel offers to download a Node.js for Creator alone, `NodeRuntime`: the newest LTS
-release for this platform from Node's own index, checked against its `SHASUMS256.txt` and unpacked by `BinaryAgentInstaller`,
-whose `npx` `AgentCommands` falls back on from then on, or links Node.js's download), and the conversations about the open project
-(`AssistantChat`, one per ACP conversation, started as soon as it is made, listed by `AssistantChats`), which all end when the
-project closes or changes, since their tools work on whatever project is open. After each turn a conversation is kept per project
-and agent (`SavedConversationStore`, `conversations.json` in the settings folder, the newest 20 of each project, with the start of
-the agent's last answer, which a new conversation hears after the digest, `LastConversation`), so the
-conversation menu offers earlier ones: one closed during this run is reopened as it was (it keeps running, since the SDK's client
-refuses `session/load` for an ID it still holds), one of an earlier run is continued with `AcpAgent.resumeConversation`
-(`session/load`, its replayed history going into the transcript). Ending them all restarts an agent that can't close conversations,
-so that their IDs can be loaded later. The agent menu chooses the agent (kept as `agentId` in `assistant.json`, with
-the custom agent's command line, entered in `CustomAgentForm`); choosing another ends the conversations and starts a new one, and
-the panel's texts name it through `LocalAgent`. The Claude Code configuration menu and the API key are Claude Agent's alone. The
-Claude Code configuration is the default one or one of a shell alias's
-(`ClaudeConfiguration`: the variables the alias sets in front of `claude`, `ShellAliases.environmentOf`); the choice is kept in
-`assistant.json` in the settings folder, a remembered alias is resolved before the agent starts (falling back to the default once
-it is gone), and choosing another ends the conversations, replaces the agent, and starts a new one. A chat builds its
-`AssistantTranscript` (messages and thoughts with their chunks joined, tool calls updated in place by ID, the latest plan and slash
-commands, and turns that ended other than by the agent finishing them); a prompt's own updates come through `prompt`'s `onUpdate`,
-so they are in the transcript before its turn ends; a turn that changed the project ends with a card of what it changed (`TranscriptItem.TurnChanges`, `TurnChangesCard`:
-the conversation's own `ChangeRecord`s since the turn began) with Keep and Undo, which reverts them through the undo history as long
-as they are the newest (`CommandExecutor.undoTurn`; `HistoryEntry` keeps the conversation and revision of each step, and whether an AI
-client made it, and steps of different conversations, or of an AI client and the user, never merge); a turn whose agent process ends mid-way ends in an
-`AGENT_STOPPED` failure
-(the conversation goes on once the agent has loaded it again). Permission requests wait for the user's answer (Stop cancels one), and the
-agent's config options (mode, model, effort, and others) are menus labeled with their names, after the account menu (who the
-agent works as, its sign-in methods, and the API key; `accountActions`). Above the composer, `AssistantSignInArea` shows the
-running sign-in, the API key form, or, while signing in is needed, `SignInCard` (`signInAreaContent` decides). The panel draws messages with its own
-Markdown reader (`MarkdownParser`, `InlineMarkdown`, `MarkdownText`; tables drawn as bordered rows of equal columns; `StreamingMarkdown` reads again only what follows a streaming
-message's last settled paragraph break), redraws a streaming transcript at most every 50 ms (`throttled`), offers what the user is looking at with the next message (`AttentionChips` of `AttentionChip.of`: the open Scene, or else
-the selected type, as ACP resource links naming the read tool that follows them, the console's latest problem as text, until
-something goes well after it, and, while the game runs and the agent takes images (`AcpAgent.capabilities`), a screenshot of it
-captured when the message is sent; each can be turned off), shows the agent's latest usage report above the composer
-(`ConversationUsageLine`: how full the context is, the cost so far, and whether Claude Agent bills the API key), follows its end only
-until the user scrolls up (`followsEnd`), titles Creator's tool calls (`mcp__kubriko-creator__<tool>`)
-with their command's title and what they worked on: `aiStepsOf` ties each to its `AiStep` by that ID (or, for an agent that sends
-none, the conversation's steps of the same tool in order), and clicking a card about a type or a Scene goes there and lights it up
-again (`RevisitedAiStep`, shown until the AI takes another step), and offers slash commands while one is typed (`AgentConversation.availableCommands`, kept from
-the agent's first announcement, which comes before anything collects `updates`).
+## AI
 
-## Creator settings
+- **One AI panel** holds both ways of working with AI (an outside client over MCP, and the in-app assistant), since nobody uses
+  them at once; the map ("What the AI knows about your game") stays behind a button in it, not on the toolbar.
+- **AI features off** (`CreatorSettingsController.isAiEnabled`) is the one check: the MCP server stays stopped, the assistant starts,
+  fetches, and installs nothing, and the UI (through `LocalIsAiEnabled`) shows no AI surface. Every new AI surface reads it and
+  joins `AiFeaturesOffTest`. Commands, undo, and the game notes stay.
+- **The MCP server** (`mcp/McpToolServer`) listens on `127.0.0.1` only; every request needs the token (a header, or `?token=` for
+  clients that can't send one, compared in constant time), and the SDK's DNS rebinding protection limits hosts to localhost. Tool calls run `CommandExecutor.call` on the main dispatcher, so AI
+  changes enter the same undo history; rejections and unexpected exceptions are `isError` results in plain words. It stays even
+  though the panel's agents speak ACP: ACP has no way of its own to hand an agent custom tools, and outside clients (Claude Code
+  in a terminal, Claude Desktop, Cursor) use it too. The panel starts it on demand, whatever the switch says.
+- **One-click clients** (`mcp/clients`) run through the user's shell as an interactive login shell (`ShellProcessRunner`), since
+  an app started from the Finder lacks the shell's PATH and aliases such as `claude-personal` live in `.zshrc`. A client counts as
+  connected only when its output names the server, since a wrapper alias can succeed without doing anything. Editing a client's
+  configuration file (`McpConfigFile`) changes only Creator's entry, keeps the rest as it was, and never writes a file that isn't
+  valid JSON.
+- **Game tools** (`start_game`, `press_keys`, `take_screenshot`, and others) bring the game window to the front before every step,
+  since Kubriko pauses unfocused games, and screenshots come from the game's own `SkiaLayer`, so they need no OS permission; `start_game` waits until the game has drawn Actors, where the session and the entry point
+  can report them.
+- **Context:** every conversation starts with the fixed system prompt, then the project digest and the game's notes, so the cached
+  prefix stays the same. A conversation's reads remember what they returned (`ConversationReads`) and answer again with what
+  changed (`ResultDelta`; `full: true` for the whole); outside clients always get it whole. Before each prompt the conversation hears
+  what anyone else changed since its last one (`ChangesSummary`).
+- **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
+  without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
+  cost.
 
-This user's settings on this computer (`settings/`): `CreatorSettings` in `settings.json` in the settings folder
-(`CreatorSettingsStore`; unreadable means the defaults, an interface scale not offered the closest one that is), held by
-`CreatorSettingsController` (app-level, created in `main`) and saved after every change. `CreatorSettingsDialog`
-(`ui/settings`) opens from the welcome screen and the workspace toolbar.
+## Assistant
 
-- **AI features** (`isAiEnabled`, on by default): `CreatorSettingsController.isAiEnabled` is the one check. `McpController` keeps
-  the server stopped while it is off, whatever `McpSettings` say, and starts it as it was when it is on again;
-  `AssistantController` ends its conversations, sign-in, and agent when it goes off, and meanwhile opens no conversation,
-  starts no agent, signs nothing in, installs no Node.js, and doesn't fetch the agent registry (the cached one still loads).
-  The UI reads it as `LocalIsAiEnabled`: the toolbar's AI button, `AiActivityBar`, the AI panel, following the AI, and its
-  highlights show nothing, and the description field's hint doesn't name the AI. `AiFeaturesOffTest` renders those parts
-  with it off and finds no AI word. Commands, undo, and the game notes' files stay.
-- **Appearance:** the theme (`ThemeChoice`: the system's, light, or dark; `CreatorTheme` uses Kubriko's colors either way)
-  and the interface scale (`ProvideInterfaceScale`, 75% to 130%, Campfire's 85% by default).
-- **Editor:** the folder New project creates projects in (the home folder by default).
+The in-app assistant (`ai/assistant`) hosts Agent Client Protocol agents through the official Kotlin SDK.
 
-## Project settings
+- **Agents:** Claude Agent is the one fully supported agent (`RegistryAgent.isTested`); every other ACP Registry agent runs on
+  generic fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`), with as little per-agent code as possible, and is
+  shown as untested. An agent a vendor publishes in the registry counts as meant for hosting, so vendors' terms don't gate it; names
+  and icons follow each vendor's trademark rules.
+- **Nothing of any agent ships with Creator:** the registry's distribution fetches it on first use. Bundling would mean
+  redistributing a proprietary binary and preinstalling Claude Code, which its terms tie to the Commercial Terms.
+- **Creator's tools make every change:** the agent gets neither file system nor terminal access, its requests to edit, delete, move,
+  or execute are rejected whatever the user would choose (`PermissionHandler.rejectingChanges`), Claude Agent has `Bash`, `Write`,
+  `Edit`, and `NotebookEdit` disallowed, and each agent works in a folder of its own per project (`agents/workspaces`), since an
+  agent may write files where it starts without asking. Creator's own tools are allowed without asking
+  (`PermissionHandler.allowingCreatorTools`), recognized however the agent names them (`CreatorToolName`).
+- **Tools per conversation:** the assistant's `McpToolServer` has no outside token; each conversation gets an address and token of
+  its own, and closing it turns those tools off. Conversations end when the project closes or changes, since their tools work on
+  whatever project is open.
+- **Signing in never passes through Creator:** the agent signs in by itself, a terminal method runs in the agent's environment so it
+  signs in to the same configuration, and the API key lives in the system's secret store, passed to the secret tool on standard
+  input (never its arguments) and to the agent only as `ANTHROPIC_API_KEY`.
+- **Processes:** one that ends unasked is started again and its conversations loaded again, but one that exits soon after starting
+  several times in a row is `Failed` until it is used again. A conversation closed during this run is reopened as it was, since the
+  SDK refuses `session/load` for an ID it still holds.
+- **Downloads** (`BinaryAgentInstaller`, `NodeRuntime`) are checked against the published SHA-256 where there is one and refuse
+  archive entries outside their folder.
+- **Turns:** a turn that changed the project ends with Keep and Undo, which reverts the conversation's own changes through the undo
+  history while they are the newest (`CommandExecutor.undoTurn`).
 
-The game's settings, kept in the project where its build reads them, so it builds the same without Creator. Opened from the
-workspace toolbar's settings menu (`ProjectSettingsDialog`, `ui/settings`), read again after every change and each time it opens.
+## Settings
 
-- **Identity** (`GameIdentity`): the name, version name (one to three numbers, as installers take it), version number,
-  application ID, vendor, and description, as `game.*` keys in `gradle.properties`, edited line by line (`GradleProperties`:
-  other lines untouched, values escaped as Gradle reads the file, ISO-8859-1). From template version 9 the build file reads
-  them (with fallbacks) for `nativeDistributions` and the macOS bundle ID, generates a `GameInfo` object into
-  `build/generated/gameInfo` (`generateGameInfo`, configuration-cache safe), and fills `index.html`'s `@GAME_NAME@` when
-  the web resources are processed. A project whose build doesn't read them (`GameIdentity.isReadByBuild`) offers the template
-  upgrade instead. `get_project_settings` and `set_project_settings` (settings left out stay; typing into one field is one undo
-  step) read and change them; the dialog's fields apply what is typed while it is valid (`IdentityField`) and say why otherwise.
+- **Creator settings** (`settings/`) are this user's on this computer; an unreadable file means the defaults.
+- **Project settings** live in the project where its build reads them, so it builds the same without Creator. The game's identity is
+  `game.*` keys in `gradle.properties`, edited line by line (`GradleProperties`: other lines untouched, values escaped as Gradle
+  reads the ISO-8859-1 file); a project whose build doesn't read them (`GameIdentity.isReadByBuild`) is offered the template upgrade.
 
-## Packages (`com.pandulapeter.kubrikoCreator`)
+## UI
 
-| Package | What it holds |
-|---|---|
-| (root) | `AppController` (screens, creating/opening/closing projects, recent projects, and the app-wide `scope`). |
-| `foundation` | `unexpectedProblemHandler` (on the app-wide scope and each workspace's: an uncaught exception is printed and reported in the open project's console, "Kubriko Creator ran into a problem", and the rest keeps running), `CreatorConfiguration` (bundled versions), `settingsDirectory`, `writeTextAtomically` (how every store, the build file sync, and template upgrades write: a sibling temporary file moved into place, so a crash leaves the old content or the new, never half; a new file holding a token, like `mcp.json`, is readable by its owner only (`isPrivate`); the watcher ignores its temporary files). |
-| `project` | Project inspection (`ProjectInspector`: the build files and name, and the desktop module through `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s poll of each file's `FileStamp` in `.kubriko/actors`, `.kubriko/managers`, Scenes, and sources, excluding generated code; files as Creator left them, which `BlockTypeStore` and `SceneStore` note in the workspace's `OwnWrites`, don't count as changed, so Creator's own writes don't reload anything), `KubrikoBuildFiles` (Kubriko dependencies and version, with `KubrikoArtifact`, `VersionCatalog`, and `BuildScript`; each source file's libraries kept by length and modification time), `ExpectDeclarations` (whether the sources declare an `expect`, kept the same way), `GameIdentity` and `GradleProperties` (Project settings). |
-| `actors` | The Block model: `BlockTypeDefinition` (`ActorTypeDefinition`, `ManagerTypeDefinition`) / `PropertyDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors` and `.kubriko/managers`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `PropertyKind` and `PropertyNaming`, `BlockTypeNaming`, `BlockKind` (palette + which Events and kinds allow a Block), `BlockScope`, pure edits (`BlockTypeEdits.kt`), `BlockCodeGenerator` (Blocks to statements) with `ActorTypeCodeGenerator`, `ManagerTypeCodeGenerator` (classes, the registry, and `KubrikoWiring`), `PluginManagers` (which plugins the types use), `ScenesCodeGenerator` (`GeneratedScenes`), `SceneSettingsCodeGenerator` (`SceneSettings`), and `AudioCodeGenerator` (`GeneratedAudio`, with `AudioFiles`), `SpriteFiles`, `GeneratedFile` (checksummed header), `BlockTypeStore` (writes definitions; `regenerate` turns the types in memory into code, writing only files whose code changed, which it knows without reading them while their length and modification time are the ones it left; skips hand-edited files and reports them; deletes the generated files of types that no longer exist, such as one a git checkout removed, unless they were changed by hand, and the workspace names both kinds in the console; keeps each Scene's music the same way), `ActorTypeFamily` (built once per regeneration and passed to every scope, since building it costs more than generating a type). |
-| `commands`, `commands/actorTypes`, `commands/managerTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
-| `ai/assistant` | The in-app assistant (see Assistant): `Assistant`, the ACP client (`AcpAgent`, `AgentConversation`, `AgentLauncher`), the agents (`AgentChoice`, `RegistryAgent`, `AgentRegistry`, `AgentRegistryStore`, `BinaryAgentInstaller`, `CustomAgentCommand`, `AgentProfile`), `ClaudeAgentOptions`, `AssistantSystemPrompt`, signing in (`SignInMethod`, `AuthStatus`, `SignInSession`, `TerminalText`, `SecretStore`), and the panel's state (`AssistantController`, `AssistantChat`, `AssistantTranscript`, `ClaudeConfiguration`). |
-| `mcp`, `mcp/clients` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`, one-click clients. |
-| `workspace` | `WorkspaceController` (resources, builds, routing watcher changes, the `CommandExecutor`), `ConsoleLog`, `SessionController` (the session process, its messages, commands to a running game), `WorkspaceRunner` (the `ProjectRunner` behind the build, play, and game tools), `BlockTypesController` (in-memory edits; writes queued as `PendingWrite`s and written in batches, 100 ms after the last change, a type saved several times written once, then one regeneration and build file sync per batch; `awaitWrites`, which builds, git commands (`CommandContext.awaitWrites`), and closing wait for (quitting at most 10 seconds); reload from disk, after the pending writes if there are any; a definition file that can't be read, or holds a type named other than the file, a name that can't be a class or is reserved, or a name another file holds too (ignoring case), is left out and reported in the console by path (`BlockTypeFileProblem`), nothing is regenerated or synced until it is fixed, its name stays taken (`takenNames`), and `BlockTypeStore` never writes over or deletes it), `GradleWorkspaceOpener`. |
-| `scenes` | `SceneEditingController`, `SceneView`, `ActorTypeLook` and `PreviewActor`, `SceneHitTest` and `SceneBoundsGrid`, `ScenePatch`, `SceneFraming`, `ActorBodyValues`, `ActorStateEdits`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SpriteLoadingEntryPoint` and `ProjectSpriteLoader`, `SceneStore` and `SceneDocument` (Scene files by name), `SceneSettingsState`. |
-| `settings` | Creator settings (see Creator settings): `CreatorSettings`, `ThemeChoice`, `CreatorSettingsStore`, `CreatorSettingsController`. |
-| `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (a type's JSON + generated Kotlin = one change), `GitController`. |
-| `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates the block-built types; runs Gradle's `wrapper` task; first git commit), naming and form rules, `ProjectUpgrader` and `LineDiff` (template upgrades). |
-| `recent` | `RecentProjectsStore` (platform settings folder; one call at a time, keeping projects whose folder is gone, which the welcome screen greys with Forget). |
-| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/assistant`, `ui/components`, `ui/theme` | Compose UI (`ui/scenes`: the Scene editor's pane, canvas, and the sidebar drag). `BlockTypeEditor` follows GameMaker's object window: a one-line header (`BlockTypeHeader`: the name, renamed in place through `rename_actor_type` / `rename_manager_type`, and for an Actor type the type it is based on and the ones based on it, which open on a click), appearance (texts on screen, for a Manager type) and Properties, Event column, the selected Event's Blocks, Block palette; `BlockTypeEditorColumns` narrows the fixed columns evenly when a side panel takes the room, so the Blocks keep 320dp. |
-| `window` | JetBrains Runtime title bar the content extends under, and the 0.85 interface scale (both from the user's Campfire app). |
+- Desktop-sized from the start, at Campfire's 0.85 interface scale, with the JetBrains Runtime title bar the content extends under;
+  icons are vector drawables, and every string is in `strings.xml` with plain apostrophes.
+- **Friendly, and told as a film:** Actor types are the cast, Manager types the crew, and Scenes the scenes being shot, never
+  scenery. Each kind of thing keeps one `Accent` everywhere it shows (the cast, the crew, the Scenes, Events, and every Block
+  category), and Play is green.
+- Beginner-friendly by default: one Block category at a time, Blocks added by a click or a drag, and anything advanced (the package
+  of a new project) under More options.
+- The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.
 
-## Conventions specific to Creator
+## Library side
 
-- **Every editor change is a command** with its AI tool and tests (validation, apply, and the inverse round trip); the UI
-  dispatches commands rather than calling controllers. Undo and redo: toolbar buttons naming the step, Ctrl+Z / Ctrl+Shift+Z /
-  Ctrl+Y (Cmd on macOS).
-- **Beginner-friendly by default:** the Block palette shows one category at a time (`BlockCategory`, tabs like GameMaker's that wrap
-  onto a second row, without the ones a Manager has no Blocks in),
-  Blocks are added by a click (at the end, which the Block list scrolls to) or dragged (from the palette or by a Block's handle) to where they go
-  (`ListDragState`, an in-window drag, dropped through `add_block` / `move_block`), and Events are dragged to reorder them
-  (`move_event`; the selected Event stays selected). Both lists drop into a gap found from the rows the lazy list has laid out
-  and scroll while an item is held near their edges (`lazyListDropTarget`); `ListItemKeys` follows Blocks and Events between
-  versions (equal ones keep their keys when moved, edited ones the key of their place), so moves animate (`animateItem`, the dragged
-  one drawn above the rest, `rememberDraggedKey`) and a new one flashes in its accent, and each Event's Blocks and each type's Events get a list of their own. Each Block is a card indented by its
-  section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing
-  uses yet and collapses Kotlin files, and New project keeps the package under More options.
-- Desktop-sized UI from the start: `ui/theme` (`CreatorTheme`: Kubriko's colors with `CreatorTypography`, Public Sans in four
-  weights at sizes that make up for the 0.85 interface scale, with SemiBold titles and Medium labels; the Showcase keeps the shared
-  typography), `ui/components` (`CompactTextField`, which scrolls code sideways instead of wrapping it, `IconActionButton` and
-  `WithTooltip`, `PanelHeader`, and `ColorPickerDialog`: hue, saturation, brightness, and opacity sliders (`GradientSlider`) and a hex code,
-  ported from Tesselar's model editor, with its logic in `ColorPickerValue` and `HsvColor`, and `checkerboard()` behind what is
-  translucent; every color field's swatch opens it, and hex codes are `#RRGGBB` or `#AARRGGBB`), vector icons in
-  `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
-- **Friendly, and told as a film:** Actor types are the cast (theater masks), Manager types the crew (a director's chair), and
-  Scenes the scenes being shot (a clapperboard), never scenery. Each kind of thing keeps one `Accent` (`ui/components`, with a
-  light and a dark shade) everywhere it shows: the cast, the crew, the Scenes, Events, and every Block category, whose Blocks
-  are colored chips in the palette and cards with an `accentEdge` in the Event. `AccentIcon` (an icon on a tile of its
-  accent's wash) marks headers, `PanelHeader` and `SidebarItem` take an `accent`, Play is green, and the empty workspace
-  (`WorkspaceHint`) introduces the cast, the crew, and the scenes.
-- Generated Kotlin reads like the examples' hand-written Kubriko code: an Actor type is `Dynamic` only when it moves or has work every
-  frame (a Kotlin Block counts), looks up only the Managers its Blocks use, is `Collidable` only when a collision Event (its own or another
-  type's) involves it, and builds its collision mask with the body's scale and rotation, centered on the body wherever its pivot is (the Scene editor creates an edited Actor again from its state, so the mask
-  follows a new size too).
-- Generated Actors behave like a careful hand-written game's (`ActorClassCode`, shared by both Actor generators): movement
-  steps at most 33 ms at a time, so a hitch can't move a fast Actor through a thin one; the remove Blocks set `isRemoved`
-  right away, which `update`, collisions, and moveTowardsNearest skip until Kubriko removes the Actor after the frame (so a
-  Brick can't score twice); Dynamic types are `isAlwaysActive`, since a Scene can be larger than the screen; edge Events use
-  the bounding box, so pivots, rotation, and scale don't move the edges; collision branches put descendants before their
-  ancestors (`is Bat` before `is EnemyBase`); the mask follows the body's rotation (boxes) or size (circles) every frame;
-  Bounce off it is one `bounceOff(other)` function per class; and Manager screen texts keep their `TextStyle`s in fields.
-  `GeneratedScenes` ignores a request for the Scene it is already loading, so goToScene in an Event that runs every frame
-  doesn't restart the load forever.
-- Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
-  `run { }` scope, Blocks outside their Event become comments) and follow the engine's no-allocation rules.
-- Workspace state (the command executor, `BlockTypesController`, `SceneEditingController`) is confined to the main thread;
-  background work hands results back there.
-- Nothing under `engine/`, `plugins/`, or `tools/` may depend on `creator`. Library changes Creator needs follow the public API rules (confirm first).
-- **Library releases:** what Creator needs from the libraries reaches projects only through a Kubriko release, since projects
-  resolve Kubriko from Maven Central and opted-in ones use Creator's own version, so a Creator release follows each Kubriko release
-  that changes its library side, and `scene-editor-api` and `creator-api` promise no binary compatibility across versions. A session
-  older than Creator keeps working with the features it lacks hidden, offered by protocol version rather than refused.
-  `CreatorEntryPoint` only gains members with default implementations, and nothing goes into a published artifact before the
-  Creator feature that uses it exists.
-- Generated code, `.kubriko/`, and Scenes are owned as described in `plan/README.md` → Files and ownership.
+What Creator needs from the libraries reaches projects only through a Kubriko release, since projects resolve Kubriko from Maven
+Central and opted-in ones use Creator's own version, so a Creator release follows each Kubriko release that changes its library side.
+`tool-creator-api` keeps its binary API: `CreatorEntryPoint` only gains members with default implementations. Nothing goes into a
+published artifact before the Creator feature that uses it exists, and library changes Creator needs follow the public API rules in
+the root `CLAUDE.md`.

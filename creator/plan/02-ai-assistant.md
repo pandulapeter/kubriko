@@ -38,15 +38,6 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 
 **Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
 
-**The MCP server stays:** ACP has no way of its own to hand an agent custom tools, so it is how the panel's agents reach Creator's
-commands, as Android Studio's reach its own. Outside clients (Claude Code in a terminal, Claude Desktop, Cursor) keep using it too.
-The panel starts it on demand, whatever the switch in the AI connection panel says.
-
-**Nothing of any agent ships with Creator:** the registry's distribution fetches the adapter, and with it Anthropic's own `claude`
-binary, from npm the first time an agent is chosen. Bundling it would mean redistributing a proprietary binary and preinstalling
-Claude Code, which the terms tie to the Commercial Terms. Claude Code keeps its login in its own credential store, so a user already
-signed in to `claude` is signed in in Creator too.
-
 ### What the terms allow
 
 Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) page:
@@ -99,9 +90,6 @@ The registry's other agents are listed with the fallbacks alone and marked untes
 Agent's gateway sign-in (offered when the client advertises `auth._meta.gateway`) or Claude Code's own environment
 (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`); Codex has a gateway of its own; local OpenAI-compatible servers go through
 OpenCode or goose. Creator keeps only the keys and addresses the user gives it, in the keychain, never a login.
-
-**Terms per vendor:** an agent a vendor publishes in the ACP Registry is taken as meant for hosting in clients like Creator, so its
-terms don't gate it (the user's decision). Names and icons still follow each vendor's trademark rules.
 
 ## Context for large games
 

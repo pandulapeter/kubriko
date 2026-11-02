@@ -17,7 +17,7 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 
 - **The PNG sprite sheet is the source of truth**, in the project's `composeResources/drawable`. Kubriko's sprites plugin already plays an
   animation from a sheet (`AnimatedSprite`: frames of one size in rows, `framesPerRow` wide), so that is the format under the hood, not
-  a format of Creator's own or GIF: the game and IntelliJ need nothing else (`README.md` → Principles 2).
+  a format of Creator's own or GIF: the game and IntelliJ need nothing else (`../CLAUDE.md` → Principles 2).
 - `.kubriko/sprites/<name>.json` keeps what the sheet can't: frame size, frame count, frames per row, frames per second, and the origin
   (the pivot). Deleting it leaves a plain image, which can be opened again by entering the frame size.
 - Sprites live in the sidebar beside Actor types and Scenes, in virtual folders kept in their JSON (`04-resource-organization.md`; Compose

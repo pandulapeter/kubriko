@@ -17,14 +17,10 @@ What exists is in `../CLAUDE.md`, what is planned in the other files here.
 - Ask before every push (`git log origin/main..HEAD` shows what would go).
 - `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
   its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
-- The user wants every item of `01-large-projects.md` to `05-reuse-and-traits.md` done, with nothing capped in number.
 - Creator is AI-centric. `02-ai-assistant.md` is built except what needs a real session or someone else's work:
   Codex's profile (Codex is out of quota until Nov 21, 2026), ACP protocol 2 and its `systemPrompt` field (not final, not in the
   Kotlin SDK), Actors' states for the AI (needs `09-debugger.md`), the registry's icons (each vendor's trademark rules), and the
   smaller follow-ups the file lists.
-- User decisions to keep: Claude Agent is the one fully supported agent; every other ACP Registry agent runs on generic fallbacks
-  with as little per-agent code as possible, and vendors' terms don't gate an agent (no "ask the vendor" steps). The AI connection
-  and the assistant are one AI panel; the map ("What the AI knows about your game") stays behind a button in it, not on the toolbar.
 
 ## Next
 
@@ -33,20 +29,6 @@ and `get_project_settings` / `set_project_settings`; see To check by hand). Next
 rate, why each plugin is there), then Targets, Release, Icons, and Signing, each extending the same dialog and tools.
 Then `04` to `07` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for
 the benchmarks. A new AI surface reads `LocalIsAiEnabled` and joins `AiFeaturesOffTest`.
-
-## How to check work
-
-- `./gradlew :creator:test`: unit tests, also on Windows and Linux in the `Tests` workflow (the Windows job since 2026-11-01).
-  Run the whole suite before every commit, not only the tests you touched: tests elsewhere catch leaks and races (a server
-  left running, an exception escaping a scope), and Windows paths differ (write expected paths with `File`, not `/`).
-- **UI offscreen**: `uiTest { showing { … }; saveSnapshot("name") }` (`ui/UiSnapshots.kt`) renders any composable in the app's theme
-  and scale without a window; assert texts and clicks, then look at `creator/build/ui-snapshots/name.png`. Every new UI gets one.
-  Use the real app (below) only for what needs windows, focus, or a live agent.
-- **Live agent**: `KUBRIKO_CREATOR_CLAUDE_AGENT=true KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR=$HOME/.claude-personal ./gradlew :creator:test
-  --tests "*AssistantLiveScenariosTest*" --rerun` holds real Claude Agent conversations on the Breakout fixture (a change and its
-  Undo, a read-only question, resuming after a restart, health checks and `check_change`); a few requests on the user's
-  subscription, so run it when the assistant's behavior changed. `EvalSetTest` replays recorded tool calls for free.
-- **Templates for real**: the integration test in `../CLAUDE.md` → Running and testing builds every template.
 
 ## To check by hand
 
@@ -175,9 +157,6 @@ several conversations, the default and alias configurations, and closing the pro
   (Shift, F-keys, the numpad), and an old project's `left`/`space` keys loading.
 - The Scene editor's Actors button and list (filtering, selecting, centering, following a canvas selection), and the
   inspector's send-to-back and bring-to-front buttons.
-- Getting there: the live check stopped on a Gradle 9.7.1 daemon started from a sandboxed shell, which can't run `uname`, so
-  Creator's project model fails with "couldn't open this folder as a Gradle project". Start Creator after `./gradlew --stop` in
-  the scratch copy (outside the sandbox).
 
 **Playing (built and unit-tested, not yet seen in the app)**
 - Hot reload: a hand-written Kotlin change (a Composable in `Game.kt`); a Scene, sprite, or sound changed while playing (Hot
@@ -255,6 +234,8 @@ several conversations, the default and alias configurations, and closing the pro
 - Test on a fresh scratch copy of `~/Projects/breakout` (it has the user's uncommitted work), opened with `:creator:run --args=<dir>`;
   the copy gets `0.8.1-creator` and the Maven Local block on its own. Leave the real one to the user. Its last commit has
   template version 7 and no format version, so a copy reset to it (`git checkout -- .`) shows the upgrades and the format migration.
+- A Gradle daemon started from a sandboxed shell can't run `uname`, so Creator's project model fails with "couldn't open this
+  folder as a Gradle project". Run `./gradlew --stop` in the scratch copy and start Creator outside the sandbox.
 - Never recompile `:creator` while `:creator:run` is up, and restart it with the publish tasks after `tools/creator-session` changes.
 - The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.1-creator ./gradlew :creator:test --tests
   "*ProjectTemplateIntegrationTest*" --rerun` (after a `:creator:run` or `publishToMavenLocal` with `-Pcreator.localKubriko=true`,

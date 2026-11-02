@@ -11,7 +11,7 @@
 
 Finding things past a few dozen Actor types, Scenes, or sprites. Folders for Actor types, Manager types, and Scenes exist, with Scene
 names as paths (`../CLAUDE.md` → Commands → Folders); left are the other groups' folders and all of the search. Folders are plain
-files where the format allows it, so the project stays readable in IntelliJ and git (`README.md` → Principles 2).
+files where the format allows it, so the project stays readable in IntelliJ and git (`../CLAUDE.md` → Principles 2).
 
 ## Folders left
 

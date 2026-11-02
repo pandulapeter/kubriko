@@ -16,7 +16,7 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-The files are numbered in the order they are worked on.
+The files are numbered in the order they are worked on. Every item of `01` to `05` is to be done, none capped in number.
 
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
    flooded console, long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
@@ -50,31 +50,9 @@ Gradle project that builds in IntelliJ exactly as if written by hand.
 **Non-goals:** replacing IntelliJ; a scripting language or runtime interpreter (gameplay is always compiled Kotlin); GameMaker file
 compatibility or a copy of its look, icons, or action set; running Creator itself on mobile or the web.
 
-## Principles
-
-1. **The library never depends on Creator.** Kubriko stays a library first.
-2. **Plain files, plain Gradle.** Nothing the build needs lives in editor-private files; deleting `.kubriko/` never breaks a build, it only
-   turns block-built Actor types into ordinary code.
-3. **Creator never rewrites code it didn't generate,** and stops updating generated code that was changed by hand.
-4. **Every change outside Creator-owned files is shown as a diff and confirmed.**
-5. **No engine changes for editor convenience**; editor-only runtime needs go into opt-in modules.
-6. **The AI can do exactly what the user can, through the same validated commands, and nothing else.**
-7. **Two reference projects keep the design honest:** a beginner game built only from Blocks (the Getting started paddle game, and the
-   Breakout in `~/Projects/breakout`), and Tesselar (see `11-project-upkeep.md`).
-
-## Files and ownership
-
-| Path | Owner | When changed elsewhere |
-|---|---|---|
-| `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json` | Creator | Reloaded within a second; code regenerated. |
-| `.kubriko/project.json` | Creator | Read when the project opens. |
-| `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
-| `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes. |
-| Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
-| Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff (`11-project-upkeep.md`). |
-| The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
-| The `game.*` keys of `gradle.properties` (the game's identity) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
-| `.kubriko/local/` | Creator | Git-ignored. |
+**Two reference projects keep the design honest:** a beginner game built only from Blocks (the Getting started paddle game, and the
+Breakout in `~/Projects/breakout`), and Tesselar (see `11-project-upkeep.md`). The principles every plan keeps, and who owns which
+project file, are in `../CLAUDE.md`.
 
 ## Terminology
 

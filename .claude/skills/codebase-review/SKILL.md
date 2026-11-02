@@ -256,7 +256,8 @@ they found them.
   tool schemas (`commands`, `schema`), the workspace, builds, and play sessions (`workspace`, `gradle`, `session`, `project`, `template`, `git`),
   Scene editing (`scenes`), the AI (`mcp`, `ai/assistant`, `context`), and the UI (`ui`). Its tests are
   `./gradlew :creator:test`, a plain JVM test task that `desktopTest` doesn't run. Its plans go in `creator/plan/`, not
-  `issues/`, as `creator/plan/README.md` says.
+  `issues/`, as `creator/plan/README.md` says. Its `CLAUDE.md` holds rules and each feature's non-obvious behaviour in a few
+  sentences, within about 4,000 words; its package guides keep the default 600.
 - **Tests:** `./gradlew desktopTest`, or `./gradlew :<module>:desktopTest` for the modules a lane touched. A change to the
   web bridge's embedded JS also runs `node engine/src/webMain/checkTriangleBridge.mjs`.
 - **Compile checks:** `./gradlew :<module>:build` for each module touched; the Showcase on the platform a change is

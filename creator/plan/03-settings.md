@@ -30,7 +30,7 @@ What `../CLAUDE.md` → Creator settings describes, and:
 ## Project settings
 
 What `../CLAUDE.md` → Project settings describes (the dialog and Identity), and the sections below. Every value lives where the
-build reads it, so the project still builds the same in IntelliJ and without `.kubriko/` (Principle 2): `.kubriko/project.json` only
+build reads it, so the project still builds the same in IntelliJ and without `.kubriko/` (`../CLAUDE.md` → Principles 2): `.kubriko/project.json` only
 holds what Creator needs for itself.
 
 - **Identity, still to come:** raising the version number with each release export (`10-export-and-distribution.md`), and the
