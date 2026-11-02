@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator
 
+import com.pandulapeter.kubrikoCreator.session.GameProcess
+import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -16,7 +18,8 @@ import kotlin.test.assertTrue
 class ClosingTimeoutTest {
 
     @Test
-    fun quittingOutlastsTheOpenProjectsWaitForItsWrites() {
-        assertTrue(AppController.CLOSING_TIMEOUT_IN_MILLISECONDS > CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS)
+    fun quittingOutlastsTheOpenProjectsWaitsForItsGameAndThenItsWrites() {
+        assertTrue(CLOSE_GAME_TIMEOUT_IN_MILLISECONDS >= GameProcess.STOP_TIMEOUT_IN_MILLISECONDS)
+        assertTrue(AppController.CLOSING_TIMEOUT_IN_MILLISECONDS > CLOSE_GAME_TIMEOUT_IN_MILLISECONDS + CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS)
     }
 }

@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
+import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
 import kotlinx.coroutines.CompletableDeferred
@@ -136,11 +137,11 @@ class AppControllerTest {
     }
 
     @Test
-    fun reopeningGivesUpWaitingAfterTheTimeout() = runTest {
+    fun reopeningWaitsForAGameThatDoesNotStopOnlyAsLongAsClosingGivesIt() = runTest {
         val controller = createSlowlyClosingController()
         controller.openAndPlay()
         controller.openProject(playingDirectory)
-        advanceTimeBy(AppController.CLOSING_TIMEOUT_IN_MILLISECONDS - 1)
+        advanceTimeBy(CLOSE_GAME_TIMEOUT_IN_MILLISECONDS - 1)
         assertEquals(1, openedDirectories.size)
         advanceTimeBy(2)
         assertEquals(2, openedDirectories.size)

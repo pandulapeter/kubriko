@@ -477,7 +477,8 @@ internal class WorkspaceController(
     }
 
     /**
-     * Stops everything the workspace runs, once the game is gone and the changes made so far are written, giving a failed
+     * Stops everything the workspace runs, once the game is gone and the changes made so far are written, giving the game
+     * [CLOSE_GAME_TIMEOUT_IN_MILLISECONDS] to stop (a game outliving it is killed as Creator exits) and then a failed
      * write [CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS] to succeed on a retry.
      *
      * @return The job that finishes closing it, for an app that is quitting to wait for.
@@ -486,15 +487,10 @@ internal class WorkspaceController(
         watching.close()
         sceneEditing.dispose()
         return parentScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            sessions.closeAndJoin()
+            withTimeoutOrNull(CLOSE_GAME_TIMEOUT_IN_MILLISECONDS) { sessions.closeAndJoin() }
             blockTypes?.let { withTimeoutOrNull(CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS) { it.awaitWritten() } }
             scope.cancel()
             withContext(ioDispatcher) { build.close() }
         }
     }
 }
-
-/**
- * How long [WorkspaceController.close] waits for a failed write to succeed before it stops the workspace anyway.
- */
-internal const val CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS = 10_000L
