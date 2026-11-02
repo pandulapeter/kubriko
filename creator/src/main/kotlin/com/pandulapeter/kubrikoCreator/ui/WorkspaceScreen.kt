@@ -345,7 +345,7 @@ internal fun WorkspaceScreen(
                         state = controller.git.state,
                         onRefresh = controller.git::refresh,
                         onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },
-                        onCommit = { message -> controller.commands.dispatch(Invocation(Commit, Commit.Input(message))) },
+                        onCommit = { message, onCommitted -> controller.commands.dispatch(Invocation(Commit, Commit.Input(message)), onSuccess = onCommitted) },
                         onDiscard = { change -> controller.commands.dispatch(Invocation(DiscardChanges, DiscardChanges.Input(change.paths))) },
                     )
                 }

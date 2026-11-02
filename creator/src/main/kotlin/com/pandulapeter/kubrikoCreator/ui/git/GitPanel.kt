@@ -55,13 +55,16 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Version control for the project: what changed since the last commit, a message and a button to commit it, and the
  * history of commits.
+ *
+ * @param onCommit Commits the changes with the message, calling `onCommitted` once they are committed, which clears the
+ * message (a commit that fails keeps it).
  */
 @Composable
 internal fun GitPanel(
     state: StateFlow<GitState>,
     onRefresh: () -> Unit,
     onStartVersionControl: () -> Unit,
-    onCommit: (String) -> Unit,
+    onCommit: (message: String, onCommitted: () -> Unit) -> Unit,
     onDiscard: (ChangeEntry) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
@@ -100,7 +103,7 @@ private fun NoRepository(
 @Composable
 private fun Repository(
     state: GitState.Ready,
-    onCommit: (String) -> Unit,
+    onCommit: (message: String, onCommitted: () -> Unit) -> Unit,
     onDiscard: (ChangeEntry) -> Unit,
 ) {
     var message by remember { mutableStateOf("") }
@@ -145,8 +148,8 @@ private fun Repository(
                     message = message,
                     onMessageChange = { message = it },
                     onCommit = {
-                        onCommit(message)
-                        message = ""
+                        val sent = message
+                        onCommit(sent) { if (message == sent) message = "" }
                     },
                 )
             }
