@@ -52,6 +52,20 @@ class KubrikoApiTest {
     }
 
     @Test
+    fun theOverviewOfTheRootClaudeMdHasBothSections() {
+        val claudeMd = File("../CLAUDE.md")
+        assertTrue(claudeMd.isFile, "Run from the creator folder: ${claudeMd.absolutePath}")
+        val overview = KubrikoApi.overviewOf(claudeMd.readText())
+        assertTrue(overview.startsWith("## Core architecture"))
+        assertContains(overview, "ActorManager")
+        assertContains(overview, "## Common patterns")
+        assertContains(overview, "class MyManager")
+        assertFalse("## Tools" in overview)
+        assertFalse("## Conventions" in overview)
+        assertFalse("## Performance" in overview)
+    }
+
+    @Test
     fun aClassIsFoundInMavenLocalsSourcesJarEngineFirst() {
         sourcesJar(
             File(home, ".m2/repository/io/github/pandulapeter/kubriko/engine/1.0.0/engine-1.0.0-sources.jar"),
