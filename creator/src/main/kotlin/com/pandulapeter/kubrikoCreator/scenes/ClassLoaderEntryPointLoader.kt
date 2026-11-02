@@ -31,12 +31,15 @@ import kotlin.io.path.createTempDirectory
  * next build can replace them while these classes are still in use (Windows can't overwrite a jar that is open, and a
  * class loaded later from a rebuilt folder wouldn't match the ones loaded before; [ProjectClassLoader]).
  */
-internal class ClassLoaderEntryPointLoader(private val rootDirectory: File) : EntryPointLoader {
+internal class ClassLoaderEntryPointLoader(
+    private val rootDirectory: File,
+    private val parent: ClassLoader = ClassLoaderEntryPointLoader::class.java.classLoader,
+) : EntryPointLoader {
 
     override fun load(classpath: ProjectClasspath): LoadedEntryPoint {
         val copies = createTempDirectory("kubriko-creator-classes").toFile().apply { deleteOnExit() }
         val classLoader = try {
-            classLoaderOf(classpath.files, copies)
+            classLoaderOf(classpath.files, copies, parent)
         } catch (exception: IOException) {
             copies.deleteRecursively()
             throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, exception)
@@ -77,7 +80,7 @@ internal class ClassLoaderEntryPointLoader(private val rootDirectory: File) : En
     internal fun classLoaderOf(
         files: List<File>,
         copies: File,
-        parent: ClassLoader = ClassLoaderEntryPointLoader::class.java.classLoader,
+        parent: ClassLoader = this.parent,
     ): ProjectClassLoader {
         val root = rootDirectory.canonicalFile
         return ProjectClassLoader(
