@@ -9,14 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
+import com.pandulapeter.kubrikoCreator.foundation.HttpDownloads
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 import java.io.File
 import java.io.IOException
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.time.Duration
 import java.util.zip.ZipFile
 
 /**
@@ -79,20 +76,9 @@ internal class KubrikoSources(
 
     private companion object {
         const val MAVEN_CENTRAL = "https://repo1.maven.org/maven2"
-        val timeout: Duration = Duration.ofSeconds(30)
 
         fun httpDownload(url: String, target: File) {
-            val client = HttpClient.newBuilder().connectTimeout(timeout).followRedirects(HttpClient.Redirect.NORMAL).build()
-            val response = try {
-                client.send(HttpRequest.newBuilder(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofFile(target.toPath()))
-            } catch (_: InterruptedException) {
-                Thread.currentThread().interrupt()
-                throw IOException("The download of $url was interrupted.")
-            }
-            if (response.statusCode() != 200) {
-                target.delete()
-                throw IOException("The download of $url failed (HTTP ${response.statusCode()}).")
-            }
+            HttpDownloads.get(url, HttpResponse.BodyHandlers.ofFile(target.toPath()))
         }
     }
 }

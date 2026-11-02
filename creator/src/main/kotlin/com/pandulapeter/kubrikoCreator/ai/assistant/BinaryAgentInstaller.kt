@@ -9,20 +9,18 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.foundation.HttpDownloads
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 import java.security.MessageDigest
-import java.time.Duration
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 
@@ -135,7 +133,6 @@ internal class BinaryAgentInstaller(
         private const val PROGRESS_STEP_IN_BYTES = 256 * 1024L
         private val tarSuffixes = listOf(".tar.gz", ".tgz", ".tar.bz2", ".tbz2", ".tar.xz", ".txz", ".tar")
         private val unsafeCharacters = Regex("[^A-Za-z0-9._-]")
-        private val timeout = Duration.ofSeconds(30)
 
         fun defaultDirectory() = File(settingsDirectory(), "tools/agents")
 
@@ -160,15 +157,8 @@ internal class BinaryAgentInstaller(
         }
 
         private fun httpDownload(url: String, target: File, onProgress: (downloaded: Long, total: Long?) -> Unit) {
-            val client = HttpClient.newBuilder().connectTimeout(timeout).followRedirects(HttpClient.Redirect.NORMAL).build()
-            val response = try {
-                client.send(HttpRequest.newBuilder(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofInputStream())
-            } catch (_: InterruptedException) {
-                Thread.currentThread().interrupt()
-                throw IOException("The download of $url was interrupted.")
-            }
+            val response = HttpDownloads.get(url, HttpResponse.BodyHandlers.ofInputStream())
             response.body().use { input ->
-                if (response.statusCode() != 200) throw IOException("The download of $url failed (HTTP ${response.statusCode()}).")
                 val total = response.headers().firstValueAsLong("Content-Length").let { if (it.isPresent && it.asLong > 0) it.asLong else null }
                 target.outputStream().buffered().use { output -> copyReporting(input, output, total, onProgress) }
             }

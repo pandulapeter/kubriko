@@ -9,15 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.foundation.HttpDownloads
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.SerializationException
 import java.io.File
 import java.io.IOException
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.time.Duration
 
 /**
@@ -72,15 +69,6 @@ internal class AgentRegistryStore(
 
         fun default() = AgentRegistryStore(File(settingsDirectory(), "agent-registry.json"))
 
-        private fun download(): String? = try {
-            val client = HttpClient.newBuilder().connectTimeout(timeout).followRedirects(HttpClient.Redirect.NORMAL).build()
-            val response = client.send(HttpRequest.newBuilder(URI.create(AgentRegistry.URL)).timeout(timeout).GET().build(), HttpResponse.BodyHandlers.ofString())
-            response.body().takeIf { response.statusCode() == 200 }
-        } catch (_: IOException) {
-            null
-        } catch (_: InterruptedException) {
-            Thread.currentThread().interrupt()
-            null
-        }
+        private fun download() = HttpDownloads.text(AgentRegistry.URL, timeout)
     }
 }
