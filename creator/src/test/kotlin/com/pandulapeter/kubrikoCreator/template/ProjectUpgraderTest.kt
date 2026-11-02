@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest

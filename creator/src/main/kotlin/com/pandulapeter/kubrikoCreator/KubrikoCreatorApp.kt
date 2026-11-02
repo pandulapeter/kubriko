@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.context.ConversationStart
 import com.pandulapeter.kubrikoCreator.context.projectDigest
+import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer

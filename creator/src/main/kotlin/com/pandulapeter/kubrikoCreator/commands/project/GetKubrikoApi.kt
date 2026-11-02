@@ -9,14 +9,14 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.project
 
-import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.context.KubrikoApi
 import com.pandulapeter.kubrikoCreator.context.KubrikoSources
+import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import com.pandulapeter.kubrikoCreator.schema.Description
-import com.pandulapeter.kubrikoCreator.settingsDirectory
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

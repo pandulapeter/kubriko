@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
-import com.pandulapeter.kubrikoCreator.settingsDirectory
+import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import java.io.File
 import java.io.IOException
 import java.time.LocalDateTime
