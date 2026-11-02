@@ -46,6 +46,34 @@ class SessionProtocolTest {
     }
 
     @Test
+    fun theWireFormatOfEveryVersionStaysTheSame() {
+        mapOf(
+            """{"type":"hello","protocolVersion":3,"mode":"edit"}""" to SessionMessage.Hello(protocolVersion = 3, mode = SessionMode.EDIT),
+            """{"type":"hello","protocolVersion":3,"mode":"play"}""" to SessionMessage.Hello(protocolVersion = 3, mode = SessionMode.PLAY),
+            """{"type":"log","id":"1","message":"m","details":null,"source":"Game","timestamp":42,"importance":"HIGH"}""" to
+                SessionMessage.Log(id = "1", message = "m", details = null, source = "Game", timestamp = 42L, importance = "HIGH"),
+            """{"type":"failure","message":"x"}""" to SessionMessage.Failure(message = "x"),
+            """{"type":"commandDone","id":1}""" to SessionMessage.CommandDone(id = 1),
+            """{"type":"screenshot","id":2,"png":"iVBORw0KGgo="}""" to SessionMessage.Screenshot(id = 2, png = "iVBORw0KGgo="),
+            """{"type":"commandFailed","id":3,"message":"No window."}""" to SessionMessage.CommandFailed(id = 3, message = "No window."),
+        ).forEach { (line, message) ->
+            assertEquals(message, SessionProtocol.decode(line))
+            assertEquals(line, SessionProtocol.encode(message))
+        }
+        mapOf(
+            """{"type":"bringToFront","id":1}""" to SessionCommand.BringToFront(id = 1),
+            """{"type":"pressKeys","id":2,"keys":["LEFT","SPACE"],"durationInMilliseconds":250}""" to
+                SessionCommand.PressKeys(id = 2, keys = listOf("LEFT", "SPACE"), durationInMilliseconds = 250),
+            """{"type":"captureScreen","id":3,"maximumWidth":1280}""" to SessionCommand.CaptureScreen(id = 3, maximumWidth = 1280),
+            """{"type":"awaitActorsDrawn","id":4,"timeoutInMilliseconds":5000}""" to
+                SessionCommand.AwaitActorsDrawn(id = 4, timeoutInMilliseconds = 5000),
+        ).forEach { (line, command) ->
+            assertEquals(command, SessionProtocol.decodeCommand(line))
+            assertEquals(line, SessionProtocol.encodeCommand(command))
+        }
+    }
+
+    @Test
     fun theIdsOfCommandsFromNewerVersionsCanStillBeRead() {
         assertEquals(7, SessionProtocol.decodeCommandId("""{"type":"addedLater","id":7}"""))
         assertEquals(null, SessionProtocol.decodeCommandId("""{"type":"addedLater"}"""))
