@@ -54,17 +54,34 @@ internal class GitController(
 
     fun refresh() {
         scope.launch {
-            if (!perform { repository -> repository?.let(::readState) ?: GitState.NoRepository }) report(ConsoleEntry.Status(Res.string.status_git_failed, isError = true))
+            if (perform { repository -> (repository?.let { readState(it) } ?: GitState.NoRepository) to Unit } == null) {
+                report(ConsoleEntry.Status(Res.string.status_git_failed, isError = true))
+            }
         }
     }
 
     /**
-     * @return Whether the changes were committed. Failures are left for the caller to report.
+     * Commits every change, if the repository's status says there are any and none is in conflict. The status is read
+     * after the files were written, inside the operation, since [state] may not have caught up with them yet.
+     *
+     * @return What happened. Only a commit is reported; the caller reports the rest.
      */
     @EditorMutation
-    suspend fun commit(message: String) = perform(onSuccess = { report(ConsoleEntry.Status(Res.string.status_git_committed)) }) { repository ->
-        repository?.commitAll(message.trim())
-        repository?.let(::readState) ?: GitState.NoRepository
+    suspend fun commit(message: String): CommitResult {
+        val result = perform { repository ->
+            if (repository == null) return@perform GitState.NoRepository to CommitResult.Failed
+            val status = repository.status()
+            when {
+                status.changes.isEmpty() -> readState(repository, status) to CommitResult.NothingToCommit
+                status.changes.any { it.kind == ChangeKind.CONFLICTING } -> readState(repository, status) to CommitResult.Conflicts
+                else -> {
+                    repository.commitAll(message.trim())
+                    readState(repository) to CommitResult.Committed
+                }
+            }
+        } ?: CommitResult.Failed
+        if (result == CommitResult.Committed) report(ConsoleEntry.Status(Res.string.status_git_committed))
+        return result
     }
 
     /**
@@ -75,28 +92,32 @@ internal class GitController(
     @EditorMutation
     suspend fun discard(paths: Collection<String>) = perform { repository ->
         repository?.discard(paths)
-        repository?.let(::readState) ?: GitState.NoRepository
-    }
+        (repository?.let { readState(it) } ?: GitState.NoRepository) to Unit
+    } != null
 
     /**
      * @return Whether the repository was created.
      */
     @EditorMutation
-    suspend fun startVersionControl() = perform(onSuccess = { report(ConsoleEntry.Status(Res.string.status_git_repository_created)) }) {
-        readState(createRepository(firstCommitMessage))
+    suspend fun startVersionControl(): Boolean {
+        val isCreated = perform { readState(createRepository(firstCommitMessage)) to Unit } != null
+        if (isCreated) report(ConsoleEntry.Status(Res.string.status_git_repository_created))
+        return isCreated
     }
 
-    private fun readState(repository: GitRepository): GitState {
-        val status = repository.status()
-        return GitState.Ready(
-            branch = status.branch,
-            changes = ChangeGrouping.group(status.changes, generatedPath),
-            history = repository.history(HISTORY_SIZE),
-        )
-    }
+    private fun readState(repository: GitRepository, status: RepositoryStatus = repository.status()) = GitState.Ready(
+        branch = status.branch,
+        changes = ChangeGrouping.group(status.changes, generatedPath),
+        history = repository.history(HISTORY_SIZE),
+    )
 
-    private suspend fun perform(onSuccess: () -> Unit = {}, operation: (GitRepository?) -> GitState): Boolean {
-        val newState = operations.withLock {
+    /**
+     * Runs [operation] on the repository, one at a time and off the main thread, and takes the state it returns.
+     *
+     * @return What [operation] returned besides the state, or null if git failed.
+     */
+    private suspend fun <T : Any> perform(operation: (GitRepository?) -> Pair<GitState, T>): T? {
+        val outcome = operations.withLock {
             withContext(ioDispatcher) {
                 try {
                     operation(openRepository())
@@ -108,11 +129,9 @@ internal class GitController(
                     null
                 }
             }
-        }
-        if (newState == null) return false
-        _state.value = newState
-        onSuccess()
-        return true
+        } ?: return null
+        _state.value = outcome.first
+        return outcome.second
     }
 
     private companion object {

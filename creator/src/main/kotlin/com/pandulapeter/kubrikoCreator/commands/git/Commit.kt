@@ -15,7 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import com.pandulapeter.kubrikoCreator.git.ChangeKind
+import com.pandulapeter.kubrikoCreator.git.CommitResult
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
@@ -37,19 +37,23 @@ internal object Commit : WriteCommand<Commit.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.VersionControl
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = when (val state = context.git.state.value) {
+    /**
+     * Whether there is anything to commit is decided when applying, from the repository's status after the writes: the
+     * Version control panel's state may not have caught up with the latest change yet.
+     */
+    override fun validate(context: CommandContext, input: Input): Rejection? = when (context.git.state.value) {
         GitState.Loading, GitState.NoRepository -> Rejection(Res.string.error_command_no_repository)
-        is GitState.Ready -> when {
-            input.message.isBlank() -> Rejection(Res.string.error_command_commit_message_empty)
-            state.changes.isEmpty() -> Rejection(Res.string.error_command_nothing_to_commit)
-            state.changes.any { it.kind == ChangeKind.CONFLICTING } -> Rejection(Res.string.error_command_commit_conflicts)
-            else -> null
-        }
+        is GitState.Ready -> if (input.message.isBlank()) Rejection(Res.string.error_command_commit_message_empty) else null
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         if (!context.awaitWrites()) return Applied.failed(context.unsavedWrite())
-        return if (context.git.commit(input.message)) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
+        return when (context.git.commit(input.message)) {
+            CommitResult.Committed -> Applied(inverse = null)
+            CommitResult.NothingToCommit -> Applied.failed(Res.string.error_command_nothing_to_commit)
+            CommitResult.Conflicts -> Applied.failed(Res.string.error_command_commit_conflicts)
+            CommitResult.Failed -> Applied.failed(Res.string.status_git_failed)
+        }
     }
 
     @Serializable

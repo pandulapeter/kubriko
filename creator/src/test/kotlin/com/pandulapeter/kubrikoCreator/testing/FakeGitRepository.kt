@@ -21,8 +21,12 @@ internal class FakeGitRepository(
     val discarded = mutableListOf<Collection<String>>()
     var isFailing = false
     var failure: () -> Exception = { NoFilepatternException("Broken.") }
+    var statusCalls = 0
 
-    override fun status() = if (isFailing) throw failure() else status
+    override fun status(): RepositoryStatus {
+        statusCalls++
+        return if (isFailing) throw failure() else status
+    }
 
     override fun commitAll(message: String) {
         if (isFailing) throw failure()

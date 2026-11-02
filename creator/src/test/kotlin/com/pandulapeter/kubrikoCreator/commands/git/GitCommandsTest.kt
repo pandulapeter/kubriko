@@ -63,7 +63,7 @@ class GitCommandsTest {
     fun committingNeedsARepositoryAMessageAndChanges() = runTest {
         assertEquals(Rejection(Res.string.error_command_no_repository), Commit.validate(commandContext(), Commit.Input("Hello.")))
         val clean = commandContext(git = gitController(changed()))
-        assertEquals(Rejection(Res.string.error_command_nothing_to_commit), Commit.validate(clean, Commit.Input("Hello.")))
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_nothing_to_commit)), CommandExecutor(clean, testScope()).execute(Invocation(Commit, Commit.Input("Hello."))))
         val repository = changed("README.md")
         val context = commandContext(git = gitController(repository))
         assertEquals(Rejection(Res.string.error_command_commit_message_empty), Commit.validate(context, Commit.Input("  ")))
@@ -76,7 +76,28 @@ class GitCommandsTest {
     fun committingIsRejectedWhileAMergeLeftConflicts() = runTest {
         val repository = FakeGitRepository(RepositoryStatus("main", listOf(FileChange("README.md", ChangeKind.CONFLICTING))))
         val context = commandContext(git = gitController(repository))
-        assertEquals(Rejection(Res.string.error_command_commit_conflicts), Commit.validate(context, Commit.Input("Merge.")))
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_commit_conflicts)), CommandExecutor(context, testScope()).execute(Invocation(Commit, Commit.Input("Merge."))))
+        assertEquals(emptyList(), repository.commits)
+    }
+
+    @Test
+    fun aCommitRightAfterAnEditIsMade() = runTest {
+        val repository = changed()
+        val context = commandContext(git = gitController(repository))
+        repository.status = RepositoryStatus("main", listOf(FileChange("README.md", ChangeKind.MODIFIED)))
+        assertEquals(emptyList(), assertIs<GitState.Ready>(context.git.state.value).changes)
+        assertIs<CommandOutcome.Success>(CommandExecutor(context, testScope()).execute(Invocation(Commit, Commit.Input("x"))))
+        assertEquals(listOf("x"), repository.commits)
+    }
+
+    @Test
+    fun aStaleNonEmptyStateMakesNoEmptyCommit() = runTest {
+        val repository = changed("README.md")
+        val context = commandContext(git = gitController(repository))
+        repository.status = RepositoryStatus("main", emptyList())
+        assertTrue(assertIs<GitState.Ready>(context.git.state.value).changes.isNotEmpty())
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_nothing_to_commit)), CommandExecutor(context, testScope()).execute(Invocation(Commit, Commit.Input("x"))))
+        assertEquals(emptyList(), repository.commits)
     }
 
     @Test

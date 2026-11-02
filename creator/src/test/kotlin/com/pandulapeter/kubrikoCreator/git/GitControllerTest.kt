@@ -24,7 +24,6 @@ import kubriko.creator.generated.resources.status_git_repository_created
 import org.eclipse.jgit.api.errors.JGitInternalException
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -106,7 +105,7 @@ class GitControllerTest {
         val controller = createController(repository)
         val before = controller.state.value
         repository.isFailing = true
-        assertFalse(controller.commit("Broken"))
+        assertEquals(CommitResult.Failed, controller.commit("Broken"))
         assertEquals(before, controller.state.value)
         assertTrue(reports.isEmpty())
     }
@@ -117,7 +116,27 @@ class GitControllerTest {
         val controller = createController(repository)
         repository.isFailing = true
         repository.failure = { JGitInternalException("Cannot lock the index.") }
-        assertFalse(controller.commit("Locked"))
+        assertEquals(CommitResult.Failed, controller.commit("Locked"))
+    }
+
+    @Test
+    fun nothingToCommitDoesntCommit() = runTest {
+        val repository = FakeGitRepository()
+        val controller = createController(repository)
+        val statusCalls = repository.statusCalls
+        assertEquals(CommitResult.NothingToCommit, controller.commit("Nothing"))
+        assertTrue(repository.statusCalls > statusCalls)
+        assertEquals(emptyList(), repository.commits)
+        assertTrue(reports.isEmpty())
+    }
+
+    @Test
+    fun conflictsArentCommitted() = runTest {
+        val repository = FakeGitRepository(RepositoryStatus("main", listOf(FileChange("README.md", ChangeKind.CONFLICTING))))
+        val controller = createController(repository)
+        assertEquals(CommitResult.Conflicts, controller.commit("Merge"))
+        assertEquals(emptyList(), repository.commits)
+        assertTrue(reports.isEmpty())
     }
 
     @Test
