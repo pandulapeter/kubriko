@@ -104,3 +104,12 @@ Review fixes: 212578617 (merged Save keeps its first place), 04cd99656 (JsonFile
 - Deviation: stateFlowSourcesDontDelayTheFirstMap starts the sharing on an unconfined dispatcher; on a standard one the replays arrive before the first computation starts, and the test passed without the `drop(1)`s.
 - Deviation: creator/CLAUDE.md never says "Game map"; the sentence went after its description of the map in the AI section.
 - Extra fixes: none
+
+## H02b — see next commit
+"Move Kubriko Creator's workspace screen state into a tested WorkspaceUiState and split WorkspaceScreen into its center, side panels, notices, and dialogs." — verified: ./gradlew :creator:test (1,527 tests, none failed), ./gradlew :creator:spotlessApply, WorkspaceUiStateTest and WorkspaceCenterTest fail to compile without the fix, both PNGs under creator/build/ui-snapshots looked at; skipped manual: none named
+- New ui/WorkspaceUiState.kt (`WorkspaceUiState(initialAiPanelView)`: openPanel, aiPanelView, revisitedAiStep, isFollowingAi, isUpgradeNoticeDismissed, isReviewingUpgrade, isShowingProjectSettings; `togglePanel` (true when version control opened), `showAiPanel`, `selectAiPanelView`, `followAi`, `revisit`, `dismissUpgradeNotice`, `reviewUpgrade`, `finishReviewingUpgrade`, `showProjectSettings`, `hideProjectSettings`; `rememberWorkspaceUiState(controller, mcp)`), ui/WorkspaceDialogs.kt, ui/WorkspaceCenter.kt (plain values; keeps `key(selectedBlockType.name) { BlockTypeEditor(...) }`; `onCommand: (Invocation<*>) -> Unit`, `onCommandIfValid` for renames), ui/WorkspaceAiSidePanel.kt (attention, the Game map collection, onShowStep), ui/WorkspaceGitSidePanel.kt, ui/WorkspaceNotices.kt. WorkspaceScreen is 115 lines.
+- Deviation: `followAi(isFollowing)` instead of `setFollowingAi`, which clashes with the JVM setter of `isFollowingAi`.
+- Deviation: `captureGameScreen()` is an extension on WorkspaceController in workspace/GameScreenCapture.kt, not a member, since WorkspaceController is at 499 of its 500 lines.
+- Deviation: to bring WorkspaceScreen under 120 lines, the bars under the toolbar went into ui/WorkspaceNotices.kt, the folder groups into `rememberFolderTreeGroups` in ui/SidebarState.kt, and the Actor type list and family into WorkspaceCenter (two files the plan doesn't name).
+- Deviation: creator/CLAUDE.md has no package table any more; the sentence went into its UI section, after H01's.
+- Extra fixes: none

@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
@@ -61,6 +63,25 @@ internal fun rememberFolderTreeActions(controller: WorkspaceController) = rememb
         onRenameFolder = { group, path, newName -> controller.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
         onDeleteFolder = { group, path -> controller.commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(group, path))) },
     )
+}
+
+/**
+ * What the sidebar's groups with folders show for [controller]'s project ([folderTreeGroups]).
+ */
+@Composable
+internal fun rememberFolderTreeGroups(
+    controller: WorkspaceController,
+    types: List<BlockTypeDefinition>,
+    selectedTypeName: String?,
+    sceneNames: List<String>,
+    openSceneName: String?,
+): Map<FolderGroup, FolderTreeGroupState> {
+    val blockTypesController = controller.blockTypes
+    val typeFolders = blockTypesController?.folders?.collectAsState()?.value.orEmpty()
+    val sceneFolders by controller.sceneFolders.collectAsState()
+    return remember(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, blockTypesController) {
+        folderTreeGroups(types.takeIf { blockTypesController != null }, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName)
+    }
 }
 
 /**
