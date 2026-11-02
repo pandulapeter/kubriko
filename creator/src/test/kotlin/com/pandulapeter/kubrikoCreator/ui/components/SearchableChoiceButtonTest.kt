@@ -56,6 +56,19 @@ class SearchableChoiceButtonTest {
     }
 
     @Test
+    fun enterWithNothingTypedPicksNothingAndKeepsTheListOpen() = uiTest(width = 400, height = 500) {
+        var selected: String? = null
+        showChoice(longList) { selected = it }
+        onNodeWithText("Choose").performClick()
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        assertNull(selected)
+        onNodeWithText("Enemy01").assertExists()
+        onNode(hasSetTextAction()).performTextInput("  ")
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        assertNull(selected)
+    }
+
+    @Test
     fun clickingAnOptionPicksIt() = uiTest(width = 400, height = 500) {
         var selected: String? = null
         showChoice(shortList) { selected = it }
