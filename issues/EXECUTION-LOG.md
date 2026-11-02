@@ -205,3 +205,6 @@ Three read-only reviewers, one per group (H01–H02b, H03a–H04, H05–H07b); e
 - Tests: new ui/CommandTitlesTest (`everyRegisteredCommandHasATitle`, `everyTitleBelongsToARegisteredCommand`). The write summary is pinned by the existing `CommandExecutorTest` (`"changed":"add_block at Ball#0.1"`) and `McpToolServerTest` (`"create_actor_type at Ball"`) instead of a new WriteSummaryTest; ChangesSummaryTest and AssistantChatTest expect the tool names. EvalSetTest and TokenBudgetTest needed no change.
 - Deviation: changes set aside for the failing-test check went to the git-ignored `build/scratch/`.
 - Extra fixes: none
+
+## M02b — not started
+This batch ran out of its budget after M02a, so `issues/M02b-type-domain-errors-and-console-texts.md` is untouched and stays for the next run (it is not in SKIPPED.md). Its size, for whoever runs it: 114 distinct `error_*`/`console_*` strings are used under creator/src/main/kotlin, about 53 command files build a `Rejection`/`Applied.failed`, and 32 `ConsoleEntry.Status(` constructions sit in workspace/. M01's `PackageLayeringTest` and M02a's `commandTitle` are in place for it.
