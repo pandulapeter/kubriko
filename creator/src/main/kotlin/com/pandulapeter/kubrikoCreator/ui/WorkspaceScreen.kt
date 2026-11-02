@@ -24,11 +24,13 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
@@ -300,6 +302,19 @@ internal fun WorkspaceScreen(
                     val findings by produceState(emptyList<HealthFinding>(), aiPanelView, blockTypes, resources, latestAiStep?.id, sceneEditing) {
                         value = if (aiPanelView == AiPanelView.GAME_MAP) controller.commands.context.healthFindings() else emptyList()
                     }
+                    val console = controller.console.collectAsState()
+                    val acceptsImages = assistant.acceptsImages.collectAsState()
+                    val attention by remember(openSceneName, selectedBlockType?.name, selectedBlockType is ManagerTypeDefinition, sessionState) {
+                        derivedStateOf(structuralEqualityPolicy()) {
+                            AttentionChip.of(
+                                openScene = openSceneName,
+                                selectedType = selectedBlockType?.name,
+                                isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
+                                console = console.value,
+                                canSendGameScreen = sessionState is SessionState.Running && acceptsImages.value,
+                            )
+                        }
+                    }
                     AiPanel(
                         modifier = Modifier.width(360.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                         view = aiPanelView,
@@ -320,13 +335,7 @@ internal fun WorkspaceScreen(
                         findings = findings,
                         onTypeSelected = { folderTreeActions.onSelected(FolderGroup.ACTOR_TYPES, it) },
                         onSceneSelected = { if (openSceneName != it) folderTreeActions.onSelected(FolderGroup.SCENES, it) },
-                        attention = AttentionChip.of(
-                            openScene = openSceneName,
-                            selectedType = selectedBlockType?.name,
-                            isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
-                            console = controller.console.collectAsState().value,
-                            canSendGameScreen = sessionState is SessionState.Running && assistant.acceptsImages.collectAsState().value,
-                        ),
+                        attention = attention,
                         captureScreen = { (controller.commands.context.runner.captureScreen() as? GameStep.Done)?.png },
                     )
                 }
