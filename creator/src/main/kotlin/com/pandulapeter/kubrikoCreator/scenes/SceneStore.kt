@@ -29,11 +29,13 @@ import java.util.concurrent.ConcurrentHashMap
  * @param sceneResources The Scene files the last scan of the project found. Scenes created since then are found in the
  *   folder new Scenes go to.
  * @param writeText Writes a Scene file, replaceable so that tests can make one fail.
+ * @param readText Reads a Scene file, replaceable so that tests can make one fail.
  */
 internal class SceneStore(
     private val rootDirectory: File,
     private val ownWrites: OwnWrites = OwnWrites(),
     private val writeText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
+    private val readText: (File) -> String = { file -> file.readText() },
     private val sceneResources: () -> List<ProjectResource>,
 ) {
     /**
@@ -151,7 +153,7 @@ internal class SceneStore(
         val lastModified = file.lastModified()
         return cache[file]?.takeIf { it.length == length && it.lastModified == lastModified }
             ?: try {
-                CachedScene(file.readText(), length, lastModified).also { cache[file] = it }
+                CachedScene(readText(file), length, lastModified).also { cache[file] = it }
             } catch (_: IOException) {
                 null
             }

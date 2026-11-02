@@ -113,9 +113,9 @@ class RestoringChangesTest {
         val context = commandContext(bat)
         val executor = executor(context)
         executor.assertSuccess(Invocation(DeleteActorType, DeleteActorType.Input("Bat")))
+        val restoring = executor.history.value.undoable.last().revert
         context.blockTypes!!.put(bat)
-        val rejected = assertIs<CommandOutcome.Rejected>(executor.step(isUndo = true))
-        assertEquals(Res.string.error_type_name_taken, rejected.rejection.reason)
+        assertEquals(Res.string.error_type_name_taken, restoring.validate(context)?.reason)
     }
 
     @Test

@@ -13,6 +13,7 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
@@ -37,7 +38,7 @@ import kotlin.test.assertNull
 
 internal fun TestScope.testScope() = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
 
-internal fun TestScope.blockTypesController(vararg definitions: BlockTypeDefinition, repository: FakeBlockTypeRepository = FakeBlockTypeRepository(definitions.toList())) = BlockTypesController(
+internal fun TestScope.blockTypesController(vararg definitions: BlockTypeDefinition, repository: BlockTypeRepository = FakeBlockTypeRepository(definitions.toList())) = BlockTypesController(
     repository = repository,
     scope = testScope(),
     ioDispatcher = UnconfinedTestDispatcher(testScheduler),
@@ -70,12 +71,13 @@ internal fun TestScope.commandContext(
     rejectChanges: () -> Rejection? = { null },
     ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
     sceneWriteText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
+    sceneReadText: (File) -> String = { file -> file.readText() },
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
     console = MutableStateFlow(console),
     blockTypes = blockTypes,
     git = git,
-    scenes = SceneStore(rootDirectory, writeText = sceneWriteText) { emptyList() },
+    scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText) { emptyList() },
     runner = runner,
     ioDispatcher = ioDispatcher,
     audioFiles = { audioFiles },

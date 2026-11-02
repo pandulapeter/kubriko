@@ -11,13 +11,22 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
+import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -36,12 +45,14 @@ import kubriko.creator.generated.resources.command_edit_block
 import kubriko.creator.generated.resources.command_read_actor_type
 import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_command_actor_type_missing
+import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
 import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_project_newer_format
 import kubriko.creator.generated.resources.error_type_name_taken
+import java.io.File
 import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,6 +60,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CommandExecutorTest {
@@ -126,7 +138,7 @@ class CommandExecutorTest {
         @OptIn(EditorMutation::class)
         context.blockTypes!!.delete("Ball")
         executor.undo()
-        assertEquals(listOf(Rejection(Res.string.error_command_actor_type_missing, "Ball")), rejections)
+        assertEquals(listOf(Rejection(Res.string.error_command_changed_outside, "Ball")), rejections)
         assertEquals(Res.string.command_create_actor_type, executor.history.value.nextUndoTitle)
         assertNull(executor.history.value.nextRedoTitle)
         executor.undo()
@@ -322,5 +334,131 @@ class CommandExecutorTest {
         val cancelled = command("cancelled") { throw CancellationException("Stopped.") }
         assertFailsWith<CancellationException> { executor.execute(Invocation(cancelled, NoInput)) }
         assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball"))))
+    }
+
+    private fun TestScope.executorOver(context: CommandContext) = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it })
+
+    private val placed = SceneActorEntry("Ball", SceneDocument.blockBuiltState(10f, 20f, 30f, 30f), "i0")
+
+    @OptIn(EditorMutation::class)
+    private fun CommandContext.withLevel() = apply { scenes.write("level", SceneDocument.format(listOf(placed))) }
+
+    private fun moveTo(x: Float) = Invocation(SetActorValues, SetActorValues.Input("level", "i0", x = x))
+
+    private fun resizeTo(width: Float) = Invocation(SetActorValues, SetActorValues.Input("level", "i0", width = width))
+
+    private fun editBlock(x: Float) = Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(x, 1f)))
+
+    private fun changedOutside(name: String) = CommandOutcome.Rejected(Rejection(Res.string.error_command_changed_outside, name))
+
+    @Test
+    fun anOutsideChangeDropsTheStepsOfThatType() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val context = commandContext(blockTypes = blockTypesController(repository = repository))
+        val executor = executorOver(context)
+        executor.execute(editBlock(2f))
+        val reordered = ball.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop, BlockDefinition.SetVelocity(2f, 1f)))))
+        repository.stored["Ball"] = reordered
+        context.blockTypes!!.reload()
+        assertEquals(changedOutside("Ball"), executor.step(isUndo = true))
+        assertTrue(executor.history.value.undoable.isEmpty())
+        assertEquals(reordered, context.blockTypes["Ball"])
+    }
+
+    @Test
+    fun anUnchangedReloadKeepsUndoWorking() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val context = commandContext(blockTypes = blockTypesController(repository = repository))
+        val executor = executorOver(context)
+        executor.execute(editBlock(2f))
+        repository.stored["Ball"] = (context.blockTypes!!.actorType("Ball")!!).copy()
+        context.blockTypes.reload()
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(ball, context.blockTypes["Ball"])
+    }
+
+    @Test
+    fun anOutsideChangeToAnotherTypeKeepsTheStep() = runTest {
+        val wall = ActorTypeDefinition("Wall")
+        val repository = FakeBlockTypeRepository(listOf(ball, wall))
+        val context = commandContext(blockTypes = blockTypesController(repository = repository))
+        val executor = executorOver(context)
+        executor.execute(editBlock(2f))
+        repository.stored["Wall"] = wall.copy(width = 500f)
+        context.blockTypes!!.reload()
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(ball, context.blockTypes["Ball"])
+    }
+
+    @Test
+    fun aSceneChangedOutsideDropsItsSteps() = runTest {
+        val context = commandContext(ball).withLevel()
+        val executor = executorOver(context)
+        executor.execute(moveTo(50f))
+        val file = context.scenes.fileOf("level")
+        file.writeText(SceneDocument.format(listOf(placed, placed)))
+        file.setLastModified(file.lastModified() + 10_000)
+        assertEquals(changedOutside("level"), executor.step(isUndo = true))
+        assertTrue(executor.history.value.undoable.isEmpty())
+        assertEquals(2, context.scenes.actors("level")!!.size)
+    }
+
+    @Test
+    fun ownChangesDontInvalidateEarlierSteps() = runTest {
+        val context = commandContext(ball).withLevel()
+        val executor = executorOver(context)
+        listOf(width(10f), moveTo(50f), Invocation(SetAppearance, SetAppearance.Input("Ball", height = 5f)), resizeTo(60f), editBlock(2f)).forEach {
+            assertIs<CommandOutcome.Success>(executor.execute(it))
+        }
+        val changed = context.blockTypes!!["Ball"] to context.scenes.read("level")
+        repeat(5) { assertIs<CommandOutcome.Success>(executor.step(isUndo = true)) }
+        assertEquals(ball to SceneDocument.format(listOf(placed)), context.blockTypes["Ball"] to context.scenes.read("level"))
+        repeat(5) { assertIs<CommandOutcome.Success>(executor.step(isUndo = false)) }
+        assertEquals(changed, context.blockTypes["Ball"] to context.scenes.read("level"))
+    }
+
+    @Test
+    fun aReloadOfCreatorsOwnSaveKeepsUndoWorking() = runTest {
+        val root = testDirectory()
+        File(root, BlockTypeStore.SETTINGS_FILE).apply { parentFile.mkdirs() }.writeText("""{ "packageName": "com.example.game" }""")
+        val context = commandContext(rootDirectory = root, blockTypes = blockTypesController(repository = BlockTypeStore.open(root)!!))
+        val executor = executorOver(context)
+        val changes = listOf(
+            Invocation(CreateActorType, ball),
+            editBlock(2f),
+            Invocation(SetAppearance, SetAppearance.Input("Ball", width = 12f, color = 0xFF112233)),
+            Invocation(AddProperty, AddProperty.Input("Ball", PropertyDefinition.Number("hits", 3f))),
+            Invocation(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("import kotlin.math.abs\nhits = abs(hits)")))),
+        )
+        changes.forEach { change ->
+            assertIs<CommandOutcome.Success>(executor.execute(change))
+            assertTrue(context.blockTypes!!.awaitWrites())
+            context.blockTypes.reload()
+        }
+        repeat(changes.size) { assertIs<CommandOutcome.Success>(executor.step(isUndo = true), "Undo ${it + 1} was rejected: $rejections") }
+        assertEquals(emptyList(), context.names())
+    }
+
+    @Test
+    fun aLockedSceneDoesntDropTheStep() = runTest {
+        var failingReads = 0
+        val context = commandContext(
+            ball,
+            sceneReadText = { file ->
+                if (failingReads > 0) {
+                    failingReads--
+                    throw IOException("Locked.")
+                }
+                file.readText()
+            },
+        ).withLevel()
+        val executor = executorOver(context)
+        executor.execute(moveTo(50f))
+        val file = context.scenes.fileOf("level")
+        file.setLastModified(file.lastModified() + 10_000)
+        failingReads = 1
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(0, failingReads)
+        assertEquals(SceneDocument.format(listOf(placed)), context.scenes.read("level"))
     }
 }

@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_changes_not_written
 import kubriko.creator.generated.resources.error_command_generated_code_not_written
@@ -75,5 +76,29 @@ internal class CommandContext(
      */
     suspend fun reloadTypes() {
         blockTypes?.reload()
+    }
+
+    /**
+     * A hash of the content of each type and Scene in [targets], by its target without Event or Block indices, for telling
+     * whether it changed since. A deleted type or Scene hashes as 0, so one that is still deleted matches. A Scene that
+     * exists but can't be read right now (the running game holds it open on Windows) gets null, and so does every other
+     * kind of target: a null hash isn't compared.
+     */
+    suspend fun contentHashesOf(targets: Collection<CommandTarget>): Map<CommandTarget, Int?> {
+        val hashes = LinkedHashMap<CommandTarget, Int?>()
+        val sceneNames = ArrayList<String>()
+        targets.forEach { target ->
+            when (target) {
+                is CommandTarget.BlockType -> hashes[CommandTarget.BlockType(target.name)] = blockTypes?.let { it[target.name].hashCode() }
+                is CommandTarget.Scene -> sceneNames += target.name
+                else -> Unit
+            }
+        }
+        if (sceneNames.isNotEmpty()) {
+            withContext(ioDispatcher) {
+                sceneNames.forEach { name -> hashes[CommandTarget.Scene(name)] = if (scenes.exists(name)) scenes.read(name)?.hashCode() else 0 }
+            }
+        }
+        return hashes
     }
 }

@@ -25,6 +25,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_turn_cancelled
+import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
@@ -89,7 +90,7 @@ internal class CommandExecutor(
         val target = invocation.target(context)
         val revision = changeLog.record(invocation.title, target, origin, isByAi)
         applied.inverse?.let { inverse ->
-            record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi))
+            record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
         CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.title, target) else applied.result)
     }
@@ -114,8 +115,8 @@ internal class CommandExecutor(
     }
 
     /**
-     * Reverts the newest change, or makes the newest reverted one again. A step that no longer applies (because the
-     * project changed outside Kubriko Creator, for example), or that throws, is dropped from the history.
+     * Reverts the newest change, or makes the newest reverted one again. A step that no longer applies, or whose type or
+     * Scene changed outside Kubriko Creator since, or that throws, is dropped from the history.
      *
      * @return What happened, or null if there was nothing to step.
      */
@@ -125,6 +126,10 @@ internal class CommandExecutor(
         val invocation = if (isUndo) entry.revert else entry.reapply
         val remaining = if (isUndo) history.copy(undoable = history.undoable.dropLast(1)) else history.copy(redoable = history.redoable.dropLast(1))
         context.rejectChanges()?.let { return@withLock CommandOutcome.Rejected(it) }
+        changedOutside(entry)?.let { name ->
+            _history.value = remaining
+            return@withLock CommandOutcome.Rejected(Rejection(Res.string.error_command_changed_outside, name))
+        }
         val rejection = invocation.validate(context)
         if (rejection != null) {
             _history.value = remaining
@@ -143,7 +148,7 @@ internal class CommandExecutor(
         val revision = changeLog.record(invocation.title, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
         val stepped = applied.inverse?.copy(isRestoring = true)?.let { inverse ->
             if (isUndo) HistoryEntry(invocation, inverse, entry.conversationId, revision, isByAi = entry.isByAi) else HistoryEntry(inverse, invocation, entry.conversationId, revision, isByAi = entry.isByAi)
-        }
+        }?.withContentHashes()
         _history.value = when {
             stepped == null -> remaining
             isUndo -> remaining.copy(redoable = remaining.redoable + stepped)
@@ -206,6 +211,26 @@ internal class CommandExecutor(
         return Rejection(Res.string.error_command_failed, exception.message ?: exception.toString())
     }
 
+    private suspend fun HistoryEntry.withContentHashes(): HistoryEntry {
+        val hashes = context.contentHashesOf(revert.targets(context) + reapply.targets(context))
+        return copy(contentHashes = hashes.mapNotNull { (target, hash) -> hash?.let { target to it } }.toMap())
+    }
+
+    /**
+     * The name of the type or Scene [entry] touches that changed since it was made or stepped, if one did. One that can't
+     * be read right now isn't taken for changed.
+     */
+    private suspend fun changedOutside(entry: HistoryEntry): String? {
+        if (entry.contentHashes.isEmpty()) return null
+        val current = context.contentHashesOf(entry.contentHashes.keys)
+        val changed = entry.contentHashes.entries.firstOrNull { (target, hash) -> current[target].let { it != null && it != hash } }?.key
+        return when (changed) {
+            is CommandTarget.BlockType -> changed.name
+            is CommandTarget.Scene -> changed.name
+            else -> null
+        }
+    }
+
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {
         val rejection = Rejection(Res.string.error_command_input_invalid, InputProblem.describe(exception.message))
         publish(AiStep(id = nextAiStepId++, toolName = name, title = command.title, target = null, isRunning = false, rejection = rejection, origin = origin, clientName = clientName))
@@ -226,7 +251,7 @@ internal class CommandExecutor(
         val previous = undoable.lastOrNull()
         _history.value = CommandHistory(
             undoable = if (previous != null && _history.value.redoable.isEmpty() && previous.conversationId == entry.conversationId && previous.isByAi == entry.isByAi && previous.reapply.mergesWith(entry.reapply)) {
-                undoable.dropLast(1) + entry.copy(revert = previous.revert.mergedWith(entry.revert))
+                undoable.dropLast(1) + entry.copy(revert = previous.revert.mergedWith(entry.revert), contentHashes = previous.contentHashes + entry.contentHashes)
             } else {
                 (undoable + entry).takeLast(HISTORY_SIZE)
             },

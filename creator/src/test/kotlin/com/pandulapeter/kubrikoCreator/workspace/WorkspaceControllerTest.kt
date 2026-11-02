@@ -50,7 +50,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_missing
+import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_project_newer_format
 import kubriko.creator.generated.resources.error_project_newer_format_unknown_version
@@ -529,7 +529,7 @@ class WorkspaceControllerTest {
         controller.onProjectChanged(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS))
         controller.clearConsole()
         controller.commands.undo()
-        assertEquals(listOf(ConsoleEntry.Status(Res.string.error_command_actor_type_missing, isError = true, arguments = listOf("Player"))), controller.console.value)
+        assertEquals(listOf(ConsoleEntry.Status(Res.string.error_command_changed_outside, isError = true, arguments = listOf("Player"))), controller.console.value)
     }
 
     @Test

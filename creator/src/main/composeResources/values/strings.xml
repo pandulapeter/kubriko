@@ -406,6 +406,7 @@
     <string name="error_command_not_a_change">%1$s changes nothing, so there is nothing to check.</string>
     <string name="error_command_input_invalid">The input isn't valid: %1$s</string>
     <string name="error_command_failed">The change couldn't be finished: %1$s</string>
+    <string name="error_command_changed_outside">That step can't be undone or redone any more, since %1$s was changed outside Kubriko Creator.</string>
     <string name="error_command_no_actor_types">This project doesn't use block-built Actor types.</string>
     <string name="error_command_actor_type_missing">There's no Actor type called %1$s.</string>
     <string name="error_command_manager_type_missing">There's no Manager type called %1$s.</string>

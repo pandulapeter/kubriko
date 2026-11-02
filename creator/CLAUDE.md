@@ -128,7 +128,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   runs outside the change lock.
 - **`CommandExecutor`** (one per workspace) applies changes one at a time. Consecutive changes with the same `mergeKey` (typing into
   one field) are one undo step, as are those `mergesWith` joins (the renames of one Property); steps of different conversations,
-  or of an AI client and the user, never merge. A step that no longer validates is dropped. A command that throws is rejected with
+  or of an AI client and the user, never merge. A step that no longer validates, or whose type or Scene changed outside Kubriko
+  Creator since (each step keeps a hash of what it touches; a Scene that can't be read right now isn't compared), is dropped. A command that throws is rejected with
   the reason (an undo step that throws is dropped), and commands that change several Scenes write them all or none
   (`SceneStore.writeAll`), putting their type change back when the Scenes can't be written. `dispatch` starts undispatched, so
   in-memory changes show before it returns, and rejections of dispatched changes and undo steps go to the console.
