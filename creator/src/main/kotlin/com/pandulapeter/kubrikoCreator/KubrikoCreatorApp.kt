@@ -13,18 +13,22 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.awt.SwingWindow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.LocalWindowExceptionHandlerFactory
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubrikoCreator.ui.AppContent
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorTheme
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
+import com.pandulapeter.kubrikoCreator.window.CreatorWindowExceptionHandler
 import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar
 import com.pandulapeter.kubrikoCreator.window.ProvideInterfaceScale
 import com.pandulapeter.kubrikoCreator.window.TitleBarAppearance
@@ -62,46 +66,52 @@ fun main(args: Array<String>) {
         LaunchedEffect(Unit) {
             args.firstOrNull()?.let { controller.openProject(File(it)) }
         }
-        SwingWindow(
-            title = screen.windowTitle(),
-            icon = painterResource(Res.drawable.ic_icon),
-            state = windowState,
-            onCloseRequest = {
-                if (isQuitting.compareAndSet(false, true)) {
-                    graph.scope.launch {
-                        graph.shutdown()
-                        exitApplication()
+        var recoveries by remember { mutableIntStateOf(0) }
+        val exceptionHandler = remember { CreatorWindowExceptionHandler(report = controller::reportUnexpectedProblem, onRecover = { recoveries++ }) }
+        CompositionLocalProvider(LocalWindowExceptionHandlerFactory provides exceptionHandler.factory) {
+            SwingWindow(
+                title = screen.windowTitle(),
+                icon = painterResource(Res.drawable.ic_icon),
+                state = windowState,
+                onCloseRequest = {
+                    if (isQuitting.compareAndSet(false, true)) {
+                        graph.scope.launch {
+                            graph.shutdown()
+                            exitApplication()
+                        }
                     }
-                }
-            },
-            init = { window ->
-                titleBar = window.extendContentIntoTitleBar()
-                window.minimumSize = Dimension(960, 600)
-            },
-        ) {
-            TitleBarInsets(
-                titleBar = titleBar,
-                isFullscreen = rememberIsFullscreen(window = window, windowState = windowState),
+                },
+                init = { window ->
+                    titleBar = window.extendContentIntoTitleBar()
+                    window.minimumSize = Dimension(960, 600)
+                },
             ) {
-                ProvideInterfaceScale(settings.interfaceScale) {
-                    CreatorTheme(settings.theme) {
-                        titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
-                        CompositionLocalProvider(LocalIsAiEnabled provides settings.isAiEnabled) {
-                            AppContent(
-                                screen = screen,
-                                recentProjects = recentProjects,
-                                defaultParentDirectory = defaultParentDirectory,
-                                onNewProject = controller::showNewProject,
-                                onForgetRecentProject = controller::forgetRecentProject,
-                                onCreateProject = controller::createProject,
-                                onOpenProject = controller::openProject,
-                                onCloseProject = controller::closeProject,
-                                mcp = graph.mcp,
-                                aiClients = graph.aiClients,
-                                assistant = graph.assistant,
-                                creatorSettings = graph.creatorSettings,
-                                homeFolder = homeFolder,
-                            )
+                TitleBarInsets(
+                    titleBar = titleBar,
+                    isFullscreen = rememberIsFullscreen(window = window, windowState = windowState),
+                ) {
+                    key(recoveries) {
+                        ProvideInterfaceScale(settings.interfaceScale) {
+                            CreatorTheme(settings.theme) {
+                                titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
+                                CompositionLocalProvider(LocalIsAiEnabled provides settings.isAiEnabled) {
+                                    AppContent(
+                                        screen = screen,
+                                        recentProjects = recentProjects,
+                                        defaultParentDirectory = defaultParentDirectory,
+                                        onNewProject = controller::showNewProject,
+                                        onForgetRecentProject = controller::forgetRecentProject,
+                                        onCreateProject = controller::createProject,
+                                        onOpenProject = controller::openProject,
+                                        onCloseProject = controller::closeProject,
+                                        mcp = graph.mcp,
+                                        aiClients = graph.aiClients,
+                                        assistant = graph.assistant,
+                                        creatorSettings = graph.creatorSettings,
+                                        homeFolder = homeFolder,
+                                    )
+                                }
+                            }
                         }
                     }
                 }

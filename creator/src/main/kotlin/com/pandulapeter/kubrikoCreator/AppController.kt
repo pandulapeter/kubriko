@@ -33,6 +33,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_not_opened
+import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
 
 /**
@@ -65,10 +66,15 @@ internal class AppController(
     val openProjectCommands get() = (_screen.value as? AppScreen.Workspace)?.controller?.commands
 
     /**
-     * Says in the open project's console, if there is one, that something failed that nothing expected to.
+     * Says that something failed that nothing expected to: in the open project's console, or on the welcome screen. On the
+     * other screens it is only printed.
      */
     fun reportUnexpectedProblem(exception: Throwable) {
-        (_screen.value as? AppScreen.Workspace)?.controller?.reportUnexpectedProblem(exception)
+        when (val screen = _screen.value) {
+            is AppScreen.Workspace -> screen.controller.reportUnexpectedProblem(exception)
+            is AppScreen.Welcome -> _screen.value = AppScreen.Welcome(error = Res.string.status_unexpected_problem, errorArguments = listOf(exception.toString()))
+            else -> Unit
+        }
     }
 
     init {
