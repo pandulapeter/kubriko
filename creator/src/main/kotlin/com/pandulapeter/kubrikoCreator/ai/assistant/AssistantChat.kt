@@ -17,6 +17,7 @@ import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.agentclientprotocol.model.SessionUpdate
+import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.protocol.JsonRpcException
 import com.agentclientprotocol.rpc.JsonRpcErrorCode
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
@@ -109,6 +110,7 @@ internal class AssistantChat(
     private var pendingAnswer: CompletableDeferred<RequestPermissionOutcome>? = null
     private var isClosed = false
     private var lastContext = emptyList<ContentBlock>()
+    private var turnGatheringContext: Job? = null
 
     private val permissions = PermissionHandler { toolCall, options ->
         val answer = CompletableDeferred<RequestPermissionOutcome>()
@@ -163,9 +165,10 @@ internal class AssistantChat(
         val since = seenRevision
         val turnStart = log?.revision
         log?.let { seenRevision = it.revision }
-        scope.launch {
+        val turn = scope.launch(start = CoroutineStart.LAZY) {
             try {
                 lastContext = context()
+                turnGatheringContext = null
                 val changes = log?.let { ChangesSummary.of(it.since(since), since, _toolsId.value) }
                 val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
@@ -192,6 +195,8 @@ internal class AssistantChat(
                 _isBusy.value = false
             }
         }
+        turnGatheringContext = turn
+        turn.start()
     }
 
     /**
@@ -217,7 +222,15 @@ internal class AssistantChat(
     fun stop() {
         pendingAnswer?.complete(RequestPermissionOutcome.Cancelled)
         val conversation = conversation ?: return
-        if (_isBusy.value) scope.launch { conversation.cancel() }
+        if (!_isBusy.value) return
+        val turn = turnGatheringContext
+        if (turn == null) {
+            scope.launch { conversation.cancel() }
+        } else {
+            turnGatheringContext = null
+            turn.cancel()
+            _transcript.update { it.withTurnEnd(StopReason.CANCELLED) }
+        }
     }
 
     /**

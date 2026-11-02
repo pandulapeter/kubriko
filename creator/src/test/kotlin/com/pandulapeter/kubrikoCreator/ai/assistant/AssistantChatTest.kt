@@ -250,6 +250,18 @@ class AssistantChatTest {
     }
 
     @Test
+    fun stoppingWhileTheContextIsGatheredSendsNothing() = test {
+        val chat = readyChat()
+        val context = CompletableDeferred<List<ContentBlock>>()
+        withContext(mainThread) { chat.send("first") { context.await() } }
+        withContext(mainThread) { chat.stop() }
+        chat.isBusy.first { !it }
+        assertEquals(listOf(TranscriptItem.UserMessage("first"), TranscriptItem.TurnEnded(StopReason.CANCELLED)), chat.transcript.value.items)
+        chat.sendAndWait("second")
+        assertEquals(listOf("second"), launcher.agents.single().prompts)
+    }
+
+    @Test
     fun whatATurnChangedIsOfferedToKeepOrUndo() = test {
         val changeLog = ChangeLog()
         changeLog.record(Res.string.command_add_block, null)
