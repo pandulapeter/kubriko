@@ -58,7 +58,7 @@ Top-level Gradle areas (each has its own README with details):
 - `plugins/` — opt-in feature modules; each exposes a Manager (sometimes new Traits). Artifacts: `io.github.pandulapeter.kubriko:plugin-<name>`
 - `tools/` — development-time modules not meant to ship to players. Artifacts: `io.github.pandulapeter.kubriko:tool-<name>`
 - `examples/` — the games/demos/tests embedded in the Showcase app; canonical "how to use Kubriko" references.
-- `creator/` — Kubriko Creator, a standalone desktop game editor (in progress): Actor types built from Events and Blocks, generated into plain Kotlin, embedded Scene editing, git, and soon an AI assistant. `creator/CLAUDE.md` describes what exists, `creator/plan/` what is planned. Not published as a library, and nothing under `engine/`, `plugins/`, or `tools/` may depend on it.
+- `creator/` — Kubriko Creator, a standalone desktop game editor (in progress): Actor types built from Events and Blocks, generated into plain Kotlin, embedded Scene editing, git, and an AI assistant. `creator/CLAUDE.md` describes what exists, `creator/plan/` what is planned. Not published as a library, and nothing under `engine/`, `plugins/`, or `tools/` may depend on it.
 - `app/` — the Showcase shell (menu system + per-platform entry points: `android`, `desktop`, `ios`, `web`, `shared`). Intentionally atypical (runs many Kubriko instances in parallel), so not a best-practices source.
 - `gradle/build-logic/` — an `includeBuild` of convention plugins. **All module build files apply these, not raw Compose/KMP plugins.**
 
