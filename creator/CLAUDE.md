@@ -152,7 +152,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   meaning for an existing field (any change an older Creator would read and then handle wrongly). A raise that needs no rewrite is
   an empty `FormatMigration { }` whose KDoc names what it added, so an older Creator opens the project read-only with the version
   it needs instead of dropping fields; type files are still read ignoring unknown keys. `PersistedShapeTest` pins the persisted
-  shape per format version (`persisted-shape-<version>.txt`; never edit a released version's file). A name added to
+  shape per format version (`persisted-shape-<version>.txt`; never edit a released version's file). `FormatFixturesTest` pins the files as written, with one fixture project per version (`src/test/resources/formats/v<version>`): a raise copies the newest folder to a new one and edits the copy to show what it adds, a released version's folder is never edited, and an older fixture is read through `ProjectFormat.prepare()`. A name added to
   `PropertyNaming`'s reserved names makes existing files with such a Property unreadable, so it needs a raise whose migration
   renames the Property with `withPropertyReplaced` (`BlockTypeEdits`), which Blocks, placeholders, and Kotlin follow.
   Each raise is a `FormatMigration` in `ProjectFormat.MIGRATIONS`, applied at opening and when `project.json` changes, recording the
