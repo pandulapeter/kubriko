@@ -22,6 +22,8 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_not_a_gradle_project
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
+import kubriko.creator.generated.resources.status_building_with_unsaved_types
+import kubriko.creator.generated.resources.status_building_with_unwritten_generated_code
 import kubriko.creator.generated.resources.status_built
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -29,7 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Runs Kubriko Creator's init script tasks in the project's desktop module, reporting how they went in the console.
  *
- * @param awaitWrites Returns once every change made so far is written, which a build waits for.
+ * @param awaitWrites Returns once every change made so far is written, which a build waits for, or writing them failed; what
+ *   isn't on disk then, which the build goes ahead without, or null if everything is.
  */
 internal class CreatorTaskRunner(
     private val rootDirectory: File,
@@ -37,7 +40,7 @@ internal class CreatorTaskRunner(
     private val desktopModulePath: DesktopModuleLookup,
     private val incrementalCompilation: IncrementalCompilationPolicy,
     private val console: ConsoleLog,
-    private val awaitWrites: suspend () -> Unit,
+    private val awaitWrites: suspend () -> UnsavedWrites?,
     private val currentTimeMillis: () -> Long,
 ) {
     /**
@@ -54,7 +57,14 @@ internal class CreatorTaskRunner(
      */
     suspend fun run(taskName: String, properties: Map<String, String>): Boolean {
         console.append(ConsoleEntry.Status(Res.string.status_building))
-        awaitWrites()
+        awaitWrites()?.let { unsaved ->
+            console.append(
+                when (val subjects = unsaved.subjects) {
+                    null -> ConsoleEntry.Status(Res.string.status_building_with_unwritten_generated_code, isError = true, arguments = listOf(unsaved.reason))
+                    else -> ConsoleEntry.Status(Res.string.status_building_with_unsaved_types, isError = true, arguments = listOf(subjects, unsaved.reason))
+                },
+            )
+        }
         val modulePath = try {
             desktopModulePath.await()
         } catch (exception: ProjectInspectionException) {

@@ -27,10 +27,13 @@ import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_already_under_version_control
 import kubriko.creator.generated.resources.error_command_change_missing
+import kubriko.creator.generated.resources.error_command_changes_not_written
 import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
 import kubriko.creator.generated.resources.error_command_no_repository
@@ -42,6 +45,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class GitCommandsTest {
     private fun changed(vararg paths: String) = FakeGitRepository(RepositoryStatus("main", paths.map { FileChange(it, ChangeKind.MODIFIED) }))
 
@@ -109,5 +113,34 @@ class GitCommandsTest {
         assertIs<CommandOutcome.Success>(executor.execute(Invocation(DiscardChanges, DiscardChanges.Input(listOf(".kubriko/actors/Wall.json")))))
         assertEquals(CommandHistory(), executor.history.value)
         assertEquals(emptyList(), context.blockTypes!!.types.value)
+    }
+
+    @Test
+    fun versionControlIsLeftAloneWhileATypeCannotBeWritten() = runTest {
+        val repository = changed("README.md", ".kubriko/actors/Ball.json")
+        val types = FakeBlockTypeRepository().apply { failingNames += "Ball" }
+        val context = commandContext(git = gitController(repository), blockTypes = blockTypesController(repository = types))
+        val executor = CommandExecutor(context, testScope())
+        executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
+        val notWritten = CommandOutcome.Rejected(Rejection(Res.string.error_command_changes_not_written, "Ball", "Locked."))
+        assertEquals(notWritten, executor.execute(Invocation(Commit, Commit.Input("Add the Ball."))))
+        assertEquals(notWritten, executor.execute(Invocation(DiscardChanges, DiscardChanges.Input(listOf("README.md")))))
+        assertEquals(emptyList(), repository.commits)
+        assertEquals(emptyList(), repository.discarded)
+        types.failingNames.clear()
+        advanceTimeBy(2_001)
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(Commit, Commit.Input("Add the Ball."))))
+        assertEquals(listOf("Add the Ball."), repository.commits)
+    }
+
+    @Test
+    fun versionControlIsNotStartedWhileATypeCannotBeWritten() = runTest {
+        val types = FakeBlockTypeRepository().apply { failingNames += "Ball" }
+        val context = commandContext(git = gitController(repository = null), blockTypes = blockTypesController(repository = types))
+        val executor = CommandExecutor(context, testScope())
+        executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
+        val outcome = executor.execute(Invocation(StartVersionControl, NoInput))
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_changes_not_written, "Ball", "Locked.")), outcome)
+        assertEquals(GitState.NoRepository, context.git.state.value)
     }
 }

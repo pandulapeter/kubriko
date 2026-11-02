@@ -79,6 +79,8 @@
     <string name="console_title">Console</string>
     <string name="console_with_prefix">%1$s: %2$s</string>
     <string name="status_building">Building the project…</string>
+    <string name="status_building_with_unsaved_types">Building with %1$s as it is on disk, since Kubriko Creator couldn't save it: %2$s</string>
+    <string name="status_building_with_unwritten_generated_code">Building with the generated code as it is on disk, since Kubriko Creator couldn't write it: %1$s</string>
     <string name="status_session_started">Session started.</string>
     <string name="status_session_ended">Session ended.</string>
     <string name="status_session_stopped">Session stopped.</string>
@@ -456,6 +458,8 @@
     <string name="action_redo">Redo</string>
     <string name="action_redo_named">Redo: %1$s</string>
     <string name="error_command_no_repository">The project isn't under version control yet.</string>
+    <string name="error_command_changes_not_written">Kubriko Creator couldn't write %1$s yet (%2$s), so version control was left alone. It keeps trying; try again once the console says it could.</string>
+    <string name="error_command_generated_code_not_written">Kubriko Creator couldn't write the generated code yet (%1$s), so version control was left alone. It keeps trying; try again once the console says it could.</string>
     <string name="error_command_already_under_version_control">The project is already under version control.</string>
     <string name="error_command_commit_message_empty">Give the commit a message.</string>
     <string name="error_command_nothing_to_commit">There are no changes to commit.</string>

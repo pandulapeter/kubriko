@@ -37,7 +37,7 @@ internal object StartVersionControl : WriteCommand<NoInput> {
     }
 
     override suspend fun apply(context: CommandContext, input: NoInput): Applied {
-        context.awaitWrites()
+        if (!context.awaitWrites()) return Applied.failed(context.unsavedWrite())
         return if (context.git.startVersionControl()) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
     }
 }

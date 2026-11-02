@@ -62,6 +62,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_format_not_upgraded
 import kubriko.creator.generated.resources.status_block_types_saved_again
@@ -139,7 +140,7 @@ internal class WorkspaceController(
         desktopModulePath = desktopModulePath,
         incrementalCompilation = incrementalCompilation,
         console = consoleLog,
-        awaitWrites = { blockTypes?.awaitWrites() },
+        awaitWrites = { blockTypes?.run { if (awaitWrites()) null else unsavedWrites() } },
         currentTimeMillis = currentTimeMillis,
     )
     private val _formatStatus = MutableStateFlow(initialFormatStatus)
@@ -462,7 +463,8 @@ internal class WorkspaceController(
     }
 
     /**
-     * Stops everything the workspace runs, once the changes made so far are written.
+     * Stops everything the workspace runs, once the changes made so far are written, giving a failed write
+     * [CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS] to succeed on a retry.
      *
      * @return The job that finishes closing it, for an app that is quitting to wait for.
      */
@@ -471,9 +473,11 @@ internal class WorkspaceController(
         sceneEditing.dispose()
         sessions.close()
         return parentScope.launch {
-            blockTypes?.awaitWrites()
+            blockTypes?.let { withTimeoutOrNull(CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS) { it.awaitWritten() } }
             scope.cancel()
             withContext(ioDispatcher) { build.close() }
         }
     }
 }
+
+private const val CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS = 10_000L

@@ -48,7 +48,7 @@ internal object Commit : WriteCommand<Commit.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.awaitWrites()
+        if (!context.awaitWrites()) return Applied.failed(context.unsavedWrite())
         return if (context.git.commit(input.message)) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
     }
 

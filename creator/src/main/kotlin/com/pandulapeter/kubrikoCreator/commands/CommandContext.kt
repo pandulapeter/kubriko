@@ -18,6 +18,9 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_command_changes_not_written
+import kubriko.creator.generated.resources.error_command_generated_code_not_written
 
 /**
  * What commands read and change: the parts of the open project.
@@ -50,10 +53,20 @@ internal class CommandContext(
 ) {
 
     /**
-     * Returns once every change made so far is on disk, for what reads the files (git, and builds).
+     * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);
+     * whether they all are on disk.
      */
-    suspend fun awaitWrites() {
-        blockTypes?.awaitWrites()
+    suspend fun awaitWrites() = blockTypes?.awaitWrites() ?: true
+
+    /**
+     * Why a command that reads the files is refused while [awaitWrites] says they aren't all on disk.
+     */
+    fun unsavedWrite(): Rejection {
+        val unsaved = checkNotNull(blockTypes).unsavedWrites()
+        return when (val subjects = unsaved.subjects) {
+            null -> Rejection(Res.string.error_command_generated_code_not_written, unsaved.reason)
+            else -> Rejection(Res.string.error_command_changes_not_written, subjects, unsaved.reason)
+        }
     }
 
     /**

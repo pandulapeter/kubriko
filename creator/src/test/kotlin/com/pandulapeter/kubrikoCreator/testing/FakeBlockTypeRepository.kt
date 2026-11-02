@@ -25,7 +25,7 @@ internal class FakeBlockTypeRepository(
     var isFailing = false
 
     /**
-     * The types whose save or delete throws.
+     * The types whose save or delete throws, and the folders whose creation or deletion does.
      */
     val failingNames = mutableSetOf<String>()
 
@@ -73,11 +73,13 @@ internal class FakeBlockTypeRepository(
         .flatMapTo(sortedSetOf(), ::withParents)
 
     override fun createFolder(kind: BlockTypeKind, path: String) {
+        if (path in failingNames) throw IOException("Locked.")
         writes += "create folder $path"
         folders.getOrPut(kind) { mutableSetOf() } += path
     }
 
     override fun deleteFolder(kind: BlockTypeKind, path: String) {
+        if (path in failingNames) throw IOException("Locked.")
         writes += "delete folder $path"
         val explicit = folders.getOrPut(kind) { mutableSetOf() }
         explicit += withParents(path) - path

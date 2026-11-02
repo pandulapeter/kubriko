@@ -31,6 +31,8 @@ internal data class Applied(
 ) {
     companion object {
 
-        fun failed(reason: StringResource) = Applied(inverse = null, failure = Rejection(reason))
+        fun failed(reason: StringResource) = failed(Rejection(reason))
+
+        fun failed(rejection: Rejection) = Applied(inverse = null, failure = rejection)
     }
 }

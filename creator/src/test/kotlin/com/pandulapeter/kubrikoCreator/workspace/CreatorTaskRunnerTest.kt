@@ -31,6 +31,8 @@ import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_not_a_gradle_project
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
+import kubriko.creator.generated.resources.status_building_with_unsaved_types
+import kubriko.creator.generated.resources.status_building_with_unwritten_generated_code
 import kubriko.creator.generated.resources.status_built
 import java.io.File
 import kotlin.test.Test
@@ -49,7 +51,7 @@ class CreatorTaskRunnerTest {
         rootDirectory: File = this@CreatorTaskRunnerTest.rootDirectory,
         findDesktopModulePath: suspend () -> String = { ":" },
         hasExpectDeclarations: suspend () -> Boolean = { false },
-        awaitWrites: suspend () -> Unit = {},
+        awaitWrites: suspend () -> UnsavedWrites? = { null },
         currentTimeMillis: () -> Long = { 0L },
     ): CreatorTaskRunner {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
@@ -126,10 +128,33 @@ class CreatorTaskRunnerTest {
     @Test
     fun aBuildWaitsForTheChangesThatAreStillBeingWritten() = runTest {
         val writes = CompletableDeferred<Unit>()
-        start(createRunner(awaitWrites = { writes.await() }))
+        start(
+            createRunner(
+                awaitWrites = {
+                    writes.await()
+                    null
+                },
+            ),
+        )
         assertTrue(build.runs.isEmpty())
         writes.complete(Unit)
         assertEquals(1, build.runs.size)
+    }
+
+    @Test
+    fun aBuildGoesAheadWithAWarningNamingWhatIsNotSaved() = runTest {
+        start(createRunner(awaitWrites = { UnsavedWrites(subjects = "Ball, Wall", reason = "Locked.") }))
+        assertEquals(1, build.runs.size)
+        assertEquals(
+            ConsoleEntry.Status(Res.string.status_building_with_unsaved_types, isError = true, arguments = listOf("Ball, Wall", "Locked.")),
+            console.entries.value.filterIsInstance<ConsoleEntry.Status>()[1],
+        )
+        build.currentRun.finish(isSuccessful = true)
+        start(createRunner(awaitWrites = { UnsavedWrites(subjects = null, reason = "Broken.") }))
+        assertContains(
+            console.entries.value,
+            ConsoleEntry.Status(Res.string.status_building_with_unwritten_generated_code, isError = true, arguments = listOf("Broken.")),
+        )
     }
 
     @Test

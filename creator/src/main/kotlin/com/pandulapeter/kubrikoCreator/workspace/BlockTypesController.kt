@@ -74,7 +74,7 @@ internal class BlockTypesController(
     private val onFilesReadableAgain: () -> Unit = {},
     private val onLeftoversRemoved: (List<String>) -> Unit = {},
     private val onLeftoverChangedByHand: (String) -> Unit = {},
-    private val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
+    syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
     private val writeDelayInMilliseconds: Long = 0,
     private val isReadOnly: () -> Boolean = { false },
@@ -120,6 +120,7 @@ internal class BlockTypesController(
      * The generated files of types that no longer exist that the last regeneration kept, since they were changed by hand.
      */
     private var leftoversChangedByHand = emptySet<String>()
+    private val batchWriter = BlockTypeBatchWriter(repository, syncBuildFiles)
     private val pendingWrites = ArrayList<PendingWrite>()
 
     /**
@@ -138,6 +139,7 @@ internal class BlockTypesController(
      */
     private var queuedGeneration = 0L
     private val attemptedGeneration = MutableStateFlow(0L)
+    private var writtenGeneration = 0L
 
     /**
      * Raised for every queued write that changes a definition or a folder, so a reload knows its result may be outdated.
@@ -184,17 +186,33 @@ internal class BlockTypesController(
     }
 
     /**
-     * Returns once every change made so far is written, or the latest attempt to write them failed.
+     * Returns once every change made so far is written, or writing them failed; whether they all are on disk.
      */
-    suspend fun awaitWrites() {
+    suspend fun awaitWrites(): Boolean {
         val wanted = queuedGeneration
         attemptedGeneration.first { it >= wanted }
+        return writtenGeneration >= wanted
+    }
+
+    /**
+     * Returns once no change is left to write, however many times a failed one has to be tried again.
+     */
+    suspend fun awaitWritten() {
+        _unwrittenCount.first { it == 0 }
     }
 
     /**
      * The types whose changes aren't on disk yet, sorted.
      */
     fun unsavedNames() = (inFlight + pendingWrites).mapNotNull { (it.subject as? FailedWrite.Subject.Type)?.name }.distinct().sorted()
+
+    /**
+     * What isn't on disk yet, and why, for telling the user what an action that reads the files goes ahead without.
+     */
+    fun unsavedWrites() = UnsavedWrites(
+        subjects = unsavedNames().joinToString().ifEmpty { (_failure.value?.subject as? FailedWrite.Subject.Folder)?.path },
+        reason = _failure.value?.reason.orEmpty(),
+    )
 
     fun select(name: String?) {
         _selectedName.value = name
@@ -379,13 +397,15 @@ internal class BlockTypesController(
         try {
             val types = _types.value
             val unregenerated = if (_unreadableFiles.value.isEmpty() && !isReadOnly()) null else RegeneratedCode(changedByHand = _changedByHand.value, leftoversChangedByHand = leftoversChangedByHand)
-            result = withContext(ioDispatcher) { writeBatch(batch, types, unregenerated) }
+            result = withContext(ioDispatcher) { batchWriter.write(batch, types, unregenerated) }
         } finally {
             inFlight = emptyList()
             val completed = result
             if (completed?.failure != null) {
-                pendingWrites.addAll(0, unwrittenPartOf(batch, completed))
+                pendingWrites.addAll(0, completed.unwrittenPartOf(batch))
                 havePendingTypesChanged = havePendingTypesChanged || haveTypesChanged
+            } else if (completed != null) {
+                writtenGeneration = takenGeneration
             }
             updateUnwrittenCount()
             attemptedGeneration.value = takenGeneration
@@ -417,45 +437,6 @@ internal class BlockTypesController(
         }
     }
 
-    /**
-     * Writes [batch] in order, stopping at the first write that fails, and regenerates the code from [types] once all are
-     * written, unless [unregenerated] stands in for the regeneration.
-     */
-    private fun writeBatch(batch: List<PendingWrite>, types: List<BlockTypeDefinition>, unregenerated: RegeneratedCode?): BatchResult {
-        batch.forEachIndexed { index, write ->
-            try {
-                when (write) {
-                    is PendingWrite.Save -> repository.save(write.definition)
-                    is PendingWrite.Delete -> repository.delete(write.name)
-                    is PendingWrite.CreateFolder -> repository.createFolder(write.kind, write.path)
-                    is PendingWrite.DeleteFolder -> repository.deleteFolder(write.kind, write.path)
-                    PendingWrite.Regenerate, is PendingWrite.Overwrite -> Unit
-                }
-            } catch (exception: Exception) {
-                if (exception is CancellationException) throw exception
-                return BatchResult(writtenCount = index, failure = BatchFailure(write, exception))
-            }
-        }
-        if (unregenerated != null) return BatchResult(writtenCount = batch.size, regenerated = unregenerated)
-        return try {
-            val regenerated = repository.regenerate(types, overwriting = batch.filterIsInstance<PendingWrite.Overwrite>().mapTo(mutableSetOf()) { it.name })
-            BatchResult(writtenCount = batch.size, regenerated = regenerated, buildFileChanges = syncBuildFiles())
-        } catch (exception: Exception) {
-            if (exception is CancellationException) throw exception
-            BatchResult(writtenCount = batch.size, failure = BatchFailure(write = null, exception = exception))
-        }
-    }
-
-    /**
-     * What of [batch] has to be written again after it failed: the writes from the failing one on, and the [PendingWrite.Overwrite]s
-     * and the regeneration the failure skipped.
-     */
-    private fun unwrittenPartOf(batch: List<PendingWrite>, result: BatchResult) = buildList {
-        addAll(batch.take(result.writtenCount).filterIsInstance<PendingWrite.Overwrite>())
-        addAll(batch.drop(result.writtenCount))
-        if (result.failure?.write == null) add(PendingWrite.Regenerate)
-    }
-
     private fun reportFailure(failure: FailedWrite) {
         val previous = _failure.value
         _failure.value = failure
@@ -474,22 +455,3 @@ internal class BlockTypesController(
         val RETRY_DELAYS = longArrayOf(2_000, 10_000, 30_000)
     }
 }
-
-/**
- * How a batch of [BlockTypesController]'s writes went: how many of its writes are on disk, and either what failed or the
- * regeneration that followed.
- */
-private class BatchResult(
-    val writtenCount: Int,
-    val failure: BatchFailure? = null,
-    val regenerated: RegeneratedCode? = null,
-    val buildFileChanges: KubrikoBuildFileChanges? = null,
-)
-
-/**
- * The write of a batch that failed, or a null [write] when the regeneration after it did.
- */
-private class BatchFailure(
-    val write: PendingWrite?,
-    val exception: Exception,
-)

@@ -58,6 +58,7 @@ import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.status_block_type_not_saved
 import kubriko.creator.generated.resources.status_building
+import kubriko.creator.generated.resources.status_building_with_unsaved_types
 import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_game_failed
 import kubriko.creator.generated.resources.status_game_not_started
@@ -234,6 +235,45 @@ class WorkspaceControllerTest {
         runCurrent()
         assertEquals(listOf("regenerate"), repository.writes)
         assertTrue(build.isClosed)
+    }
+
+    @Test
+    fun closeWaitsForARetryThatSucceeds() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createController(blockTypeRepository = repository)
+        repository.failingNames += "Player"
+        assertNull(controller.createActorType("Player"))
+        val closing = controller.close()
+        repository.failingNames.clear()
+        advanceTimeBy(2_001)
+        assertContains(repository.writes, "save Player")
+        assertTrue(closing.isCompleted)
+        assertTrue(build.isClosed)
+    }
+
+    @Test
+    fun closeGivesUpOnAWriteThatKeepsFailingAfterTenSeconds() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createController(blockTypeRepository = repository)
+        repository.failingNames += "Player"
+        assertNull(controller.createActorType("Player"))
+        val closing = controller.close()
+        advanceTimeBy(9_999)
+        assertFalse(closing.isCompleted)
+        advanceTimeBy(2)
+        assertTrue(closing.isCompleted)
+        assertTrue(build.isClosed)
+    }
+
+    @Test
+    fun aBuildWhileATypeCannotBeSavedWarnsAndStillRuns() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createController(blockTypeRepository = repository)
+        repository.failingNames += "Player"
+        assertNull(controller.createActorType("Player"))
+        controller.play()
+        assertContains(controller.console.value, ConsoleEntry.Status(Res.string.status_building_with_unsaved_types, isError = true, arguments = listOf("Player", "Locked.")))
+        assertEquals(1, build.runs.size)
     }
 
     @Test

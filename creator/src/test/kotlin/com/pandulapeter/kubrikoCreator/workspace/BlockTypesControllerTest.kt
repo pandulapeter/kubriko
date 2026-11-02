@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -37,7 +38,9 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class, EditorMutation::class)
 class BlockTypesControllerTest {
@@ -574,6 +577,67 @@ class BlockTypesControllerTest {
         assertEquals(ball.copy(width = 3f), controller["Ball"])
         assertEquals(2, repository.loadCount)
         assertEquals(listOf("regenerate", "save Ball", "regenerate"), writesWhenAwaited)
+    }
+
+    @Test
+    fun awaitWritesSaysWhetherTheChangesAreWritten() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        assertTrue(controller.awaitWrites())
+        repository.failingNames += "Ball"
+        controller.put(ball)
+        assertFalse(controller.awaitWrites())
+        assertEquals(UnsavedWrites(subjects = "Ball", reason = "Locked."), controller.unsavedWrites())
+        repository.failingNames.clear()
+        advance(2_200)
+        assertTrue(controller.awaitWrites())
+    }
+
+    @Test
+    fun awaitWritesSaysTrueThoughAWriteWasQueuedAfterIt() = runTest {
+        val repository = FakeBlockTypeRepository()
+        var onSaved = {}
+        val controller = createController(repository, writeDelayInMilliseconds = 100, onSaved = { onSaved() })
+        advance(200)
+        controller.put(wall)
+        var result: Boolean? = null
+        launch { result = controller.awaitWrites() }
+        runCurrent()
+        onSaved = {
+            onSaved = {}
+            controller.regenerate()
+        }
+        advance(200)
+        assertEquals(true, result)
+    }
+
+    @Test
+    fun awaitWrittenWaitsForARetryThatSucceeds() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        repository.failingNames += "Ball"
+        controller.put(ball)
+        var isWritten = false
+        launch(UnconfinedTestDispatcher(testScheduler)) {
+            controller.awaitWritten()
+            isWritten = true
+        }
+        advance(1_000)
+        assertFalse(isWritten)
+        repository.failingNames.clear()
+        advance(2_000)
+        assertTrue(isWritten)
+    }
+
+    @Test
+    fun aFolderThatCannotBeChangedIsNamedWhenNoTypeIs() = runTest {
+        val repository = FakeBlockTypeRepository()
+        val controller = createWritingController(repository)
+        repository.failingNames += "enemies"
+        controller.createFolder(BlockTypeKind.ACTOR, "enemies")
+        assertFalse(controller.awaitWrites())
+        assertEquals(UnsavedWrites(subjects = "enemies", reason = "Locked."), controller.unsavedWrites())
+        assertEquals(listOf(FailedWrite(FailedWrite.Subject.Folder("enemies"), "Locked.")), failures)
     }
 
     private fun TestScope.createWritingController(repository: FakeBlockTypeRepository) = createController(repository, writeDelayInMilliseconds = 100).also {
