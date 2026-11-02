@@ -146,7 +146,12 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 ## Project files
 
 - **Format versions** (`project/ProjectFormat`): `.kubriko/project.json` records one `formatVersion` for all of a project's Creator
-  files, raised by any change an older Creator can't read (a new persisted field too), with the `minimumCreatorVersion` that raised it.
+  files, with the `minimumCreatorVersion` that raised it. It is raised by any change to what Creator persists in `.kubriko/` type
+  files: a new or renamed field, a new Block, Event, Condition, or Property kind, a new enum value, a changed default, or a new
+  meaning for an existing field (any change an older Creator would read and then handle wrongly). A raise that needs no rewrite is
+  an empty `FormatMigration { }` whose KDoc names what it added, so an older Creator opens the project read-only with the version
+  it needs instead of dropping fields; type files are still read ignoring unknown keys. `PersistedShapeTest` pins the persisted
+  shape per format version (`persisted-shape-<version>.txt`; never edit a released version's file).
   Each raise is a `FormatMigration` in `ProjectFormat.MIGRATIONS`, applied at opening and when `project.json` changes, recording the
   version after each, so one that fails is carried on next time. A project whose version is newer opens read-only: every
   `WriteCommand` is rejected with the same message (`check_change` too), and nothing regenerates code, syncs the build files, or

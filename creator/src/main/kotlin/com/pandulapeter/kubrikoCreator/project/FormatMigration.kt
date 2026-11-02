@@ -13,6 +13,7 @@ import java.io.File
 
 /**
  * Brings a project's Kubriko Creator files (`.kubriko` and the Scenes) from one format version to the next.
+ * A raise that only adds to the format is an empty migration.
  */
 internal fun interface FormatMigration {
 

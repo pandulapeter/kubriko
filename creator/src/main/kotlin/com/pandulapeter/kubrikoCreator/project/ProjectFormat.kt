@@ -23,8 +23,13 @@ import java.io.File
 
 /**
  * The format version of a project's Kubriko Creator files: one number in `.kubriko/project.json` for all of them (the
- * type definitions and the Scenes), raised only by a change an older Kubriko Creator can't read. Projects from before it
- * was recorded have version 0.
+ * type definitions and the Scenes). It is raised by any change to what Kubriko Creator persists in the `.kubriko` type
+ * files: a new or renamed field, a new Block, Event, Condition, or Property kind, a new enum value, a changed default, or a
+ * new meaning for an existing field; any change an older Kubriko Creator would read and then handle wrongly. A raise that
+ * needs no rewrite is an empty [FormatMigration] in [MIGRATIONS] whose KDoc names what it added: an older Kubriko Creator
+ * then opens the project read-only, naming the version it needs, instead of dropping what it doesn't know. Type files are
+ * still read ignoring unknown keys, so a newer Kubriko Creator reads older ones. Projects from before it was recorded have
+ * version 0.
  *
  * Next to it, `minimumCreatorVersion` names the Kubriko Creator that raised it, so that an older one can say which
  * version to open the project in.
