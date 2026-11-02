@@ -11,6 +11,10 @@
 
 **Challenged:** amended — K09a's `scenes/SceneChange` joins the core Scene files; the `BlockTypesController` edges go to M06 whatever K09b did; the template integration test's edge is listed.
 
+**Amended (2026-11-02, Campfire's 54th review lessons):** `knownExceptions` is a work list written once, never a place for a new
+import; the test also holds the `ui` parts to the state and callbacks they use, letting only the entry files take the controllers;
+the pre-commit hook's `:creator:test` runs it before every commit that stages more than Markdown.
+
 **Kind:** architecture  ·  **Severity:** medium  ·  **Platforms:** all
 **Findings:** ARCH-1 (rest), Modularization proposal ("cheap first step: package layering test"), decisions.md "layering test first"  ·  **Depends on:** every phase 1 and phase 2 plan (T, S, A, G, K, H lanes) having landed
 **Files:**
@@ -102,6 +106,16 @@ Tests:
 - `everyPackageHasALayer`: every package found in the sources has a layer (a new package, say from a later plan, must be placed
   deliberately).
 - `everyLayerHasSources`: each layer entry matches at least one file (catches a renamed package or file).
+- `onlyEntryFilesTakeTheControllers`: under `creator/src/main/kotlin`, a file of the app layer's `ui` packages (`ui` and every
+  `ui.*` package but `ui.components` and `ui.theme`) imports `AppController`, `workspace.WorkspaceController`, or
+  `ai.assistant.AssistantController` (whichever classes A02a leaves with those names) only when it is an entry file: a literal
+  `entryFiles` set in the test, `ui/AppContent.kt` and the workspace screen's entry file after H02b (`ui/WorkspaceScreen.kt` at
+  `ecf76faf6`). Every other part is handed the holders, state, and callbacks it uses (A02b does this for `AssistantPanel`, H02b for
+  the workspace screen's parts), so a part stays testable with plain values, and a new part cannot reach for the whole controller.
+  The failure names the file and says to pass it what it uses. At execution, list the `ui` files importing them first: a part
+  still taking a controller after A02b and H02b is changed to take what it uses in a commit of its own before this plan's when that
+  is a change of one file and its caller; if it needs more, leave this test out, land the rest, and name the files in the report as
+  a plan for the next sweep. `entryFiles` never grows to admit a part.
 - Both source roots must exist: `assertTrue(root.isDirectory, "Run from the creator folder: ${root.absolutePath}")` (the TST-13
   pattern that `StringResourcesTest` and `CommandRegistryTest` use).
 
@@ -111,19 +125,22 @@ execution, run the test once with an empty map: the phase 1 and 2 plans moved an
 change router, H03's `AppGraph`, A02's split of `AssistantController`, G02's Block descriptor, …), so the list may differ from the
 tables above. Every upward import it reports goes into the map with its plan ID from the tables; one that isn't in the tables is
 either fixed in this commit when it is a one-file move (say so in the commit's report) or added with the ID of the extraction
-plan whose module it blocks, and named in the report so that plan's executor knows.
+plan whose module it blocks, and named in the report so that plan's executor knows. The map is written in this commit only: no
+later plan adds an entry (an upward import a later change writes is fixed where it is written, by moving the declaration down or
+passing it in), and the extraction plans only remove entries until M06 leaves it empty. The test's KDoc says so.
 
 Keep the file under 500 lines and every function under 120 (`check_sizes.py`); a `Layer` class and the parsing helpers can live
 in the same file while it stays small.
 
 `creator/CLAUDE.md` → Running and testing: one sentence, "`PackageLayeringTest` keeps each package in the layer of the Gradle
 module it belongs to (lowest first: foundation, ui-components, core, gradle-session, git, template, commands, ai, scene-runtime,
-workspace, the app); a new package gets a layer, and an import may only run downward." (The extraction plans later turn layers
-into modules and trim this sentence.)
+workspace, the app); a new package gets a layer, an import may only run downward, and only the screens' entry files take the
+app, workspace, or assistant controller." (The extraction plans later turn layers into modules and trim this sentence.)
 
 ## Tests
 
 The test itself. To show it bites, temporarily add `import com.pandulapeter.kubrikoCreator.workspace.ConsoleLog` to
 `actors/ColorHex.kt` and see `noImportRunsToAHigherLayer` fail naming `actors/ColorHex.kt -> workspace.ConsoleLog (core -> workspace)`;
-remove an entry from `knownExceptions` and see it fail; add a stale entry and see `everyKnownExceptionStillOccurs` fail. Then run
+remove an entry from `knownExceptions` and see it fail; add a stale entry and see `everyKnownExceptionStillOccurs` fail; add `import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController`
+to a `ui` part outside `entryFiles` and see `onlyEntryFilesTakeTheControllers` fail. Then run
 the whole `./gradlew :creator:test`.
