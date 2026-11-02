@@ -35,6 +35,7 @@ import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
 import kubriko.creator.generated.resources.warning_scene_named_in_code
+import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -91,7 +92,7 @@ class SceneRenamingCommandsTest {
         val folder = context.scenes.fileOf("main").parentFile
         folder.setWritable(false)
         try {
-            if (folder.canWrite()) return@runTest
+            assumeFalse(folder.canWrite())
             val applied = RenameScene.apply(context, RenameScene.Input("main", "start"))
             assertEquals(Rejection(Res.string.error_scene_not_moved, "main"), applied.failure)
             assertEquals(listOf("level-2", "main"), context.scenes.names())
@@ -110,7 +111,7 @@ class SceneRenamingCommandsTest {
         val deep = context.scenes.fileOf("levels/deep/2").parentFile
         deep.setWritable(false)
         try {
-            if (deep.canWrite()) return@runTest
+            assumeFalse(deep.canWrite())
             val applied = RenameFolder.apply(context, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))
             assertEquals(Rejection(Res.string.error_scene_not_moved, "levels/deep/2"), applied.failure)
             assertEquals(listOf("levels/1", "levels/deep/2"), context.scenes.names())

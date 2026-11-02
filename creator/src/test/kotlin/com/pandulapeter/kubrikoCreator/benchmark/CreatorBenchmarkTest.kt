@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.junit.Assume.assumeTrue
 import java.io.File
 import java.util.concurrent.Executors
 import kotlin.io.path.createTempDirectory
@@ -48,7 +49,7 @@ class CreatorBenchmarkTest {
 
     @Test
     fun timeAGameMakerSizedProject() {
-        if (System.getenv("KUBRIKO_CREATOR_BENCHMARK") != "true") return
+        assumeTrue(System.getenv("KUBRIKO_CREATOR_BENCHMARK") == "true")
         val parentDirectory = createTempDirectory().toFile()
         val executor = Executors.newSingleThreadExecutor { Thread(it, "benchmark-main") }
         val main = executor.asCoroutineDispatcher()

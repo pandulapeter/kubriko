@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import org.junit.Assume.assumeFalse
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -36,7 +37,7 @@ class ProcessAgentLauncherTest {
 
     @Test
     fun stoppingAnAgentAlsoStopsTheProcessesItStarted() {
-        if (System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")) return
+        assumeFalse(System.getProperty("os.name").orEmpty().lowercase().startsWith("windows"))
         val channel = ProcessAgentLauncher(directory).launch(AgentCommand("sh", listOf("-c", "sleep 60 & wait")))
         var child: ProcessHandle? = null
         repeat(50) {

@@ -29,6 +29,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.junit.Assume.assumeTrue
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.math.hypot
@@ -97,7 +98,7 @@ class AssistantLiveScenariosTest {
     }
 
     private fun live(block: suspend TestScope.(LiveSession) -> Unit) {
-        if (!isEnabled) return
+        assumeTrue(isEnabled)
         runTest(timeout = 15.minutes) {
             val session = newSession()
             try {

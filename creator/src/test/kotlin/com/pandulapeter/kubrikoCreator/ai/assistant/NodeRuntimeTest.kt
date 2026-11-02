@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import org.junit.Assume.assumeFalse
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -56,7 +57,7 @@ class NodeRuntimeTest {
 
     @Test
     fun theNewestLtsReleaseForThisPlatformIsDownloadedCheckedAndFoundAgain() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         val runtime = runtime({ "${BinaryAgentInstaller.sha256Of(it)}  node-v24.11.1-darwin-arm64.tar.gz\nabc  node-v24.11.1-win-x64.zip" })
         assertNull(runtime.installedNpx())
         val npx = runtime.install()
@@ -68,7 +69,7 @@ class NodeRuntimeTest {
 
     @Test
     fun aDownloadNotMatchingNodesChecksumIsRejected() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         assertFailsWith<IOException> { runtime({ "0000  node-v24.11.1-darwin-arm64.tar.gz" }).install() }
         assertNull(runtime({ "" }).installedNpx())
     }

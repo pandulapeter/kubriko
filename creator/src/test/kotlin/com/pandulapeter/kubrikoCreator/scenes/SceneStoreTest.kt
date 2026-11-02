@@ -14,6 +14,7 @@ package com.pandulapeter.kubrikoCreator.scenes
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -138,7 +139,7 @@ class SceneStoreTest {
         val file = File(root, "${SceneStore.DEFAULT_SCENE_DIRECTORY}/main.json")
         file.setLastModified(file.lastModified() + 2_000)
         file.setReadable(false)
-        if (file.canRead()) return
+        assumeFalse(file.canRead())
         assertNull(store.read("main"))
         assertFalse(store.isValid("main"))
     }

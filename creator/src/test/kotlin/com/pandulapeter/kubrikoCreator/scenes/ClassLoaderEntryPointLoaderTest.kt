@@ -13,6 +13,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
 import kubriko.creator.generated.resources.error_entry_point_multiple
 import kubriko.creator.generated.resources.error_entry_point_not_loaded
+import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -78,7 +79,7 @@ class ClassLoaderEntryPointLoaderTest {
         val classes = File(root, "unreadable").apply { mkdirs() }
         val classFile = File(classes, "Broken.class").apply { writeText("") }
         classFile.setReadable(false)
-        if (classFile.canRead()) return
+        assumeFalse(classFile.canRead())
         val exception = assertFailsWith<EntryPointLoadingException> { load(classes) }
         assertEquals(Res.string.error_entry_point_not_loaded, exception.reason)
     }

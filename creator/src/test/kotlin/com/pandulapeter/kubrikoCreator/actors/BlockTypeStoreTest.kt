@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -395,7 +396,7 @@ class BlockTypeStoreTest {
         val file = File(generated, "Ball.kt")
         val changed = ball.copy(shape = ActorShape.RECTANGLE)
         generated.setWritable(false)
-        if (generated.canWrite()) return
+        assumeFalse(generated.canWrite())
         assertFails { store.regenerate(listOf(changed)) }
         generated.setWritable(true)
         store.regenerate(listOf(changed))

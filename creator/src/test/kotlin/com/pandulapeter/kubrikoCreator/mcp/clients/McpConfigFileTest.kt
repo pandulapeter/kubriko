@@ -13,6 +13,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.junit.Assume.assumeTrue
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
@@ -103,7 +104,7 @@ class McpConfigFileTest {
 
     @Test
     fun anExistingFileKeepsItsPermissions() {
-        if (!isPosix) return
+        assumeTrue(isPosix)
         file.writeText("{}")
         Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-r-----"))
         McpConfigFile.addServer(file, "kubriko-creator", entry)
@@ -112,7 +113,7 @@ class McpConfigFileTest {
 
     @Test
     fun aLinkedFileIsChangedWhereItIsAndStaysLinked() {
-        if (!isPosix) return
+        assumeTrue(isPosix)
         val target = File(directory, "dotfiles/config.json").apply { parentFile.mkdirs(); writeText("{}") }
         Files.createSymbolicLink(file.toPath(), target.toPath())
         McpConfigFile.addServer(file, "kubriko-creator", entry)

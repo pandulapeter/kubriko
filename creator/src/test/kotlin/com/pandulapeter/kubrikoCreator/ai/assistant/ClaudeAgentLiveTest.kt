@@ -22,6 +22,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.Assume.assumeTrue
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.io.path.createTempDirectory
@@ -41,7 +42,7 @@ class ClaudeAgentLiveTest {
 
     @Test
     fun claudeAgentCallsCreatorsToolsAndNothingElse() {
-        if (System.getenv("KUBRIKO_CREATOR_CLAUDE_AGENT") != "true") return
+        assumeTrue(System.getenv("KUBRIKO_CREATOR_CLAUDE_AGENT") == "true")
         val npx = assertNotNull(ShellProcessRunner().locate("npx"), "Node.js isn't installed.")
         val configDirectory = System.getenv("KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR")
         val projectDirectory = createTempDirectory().toFile()

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp.clients
 
+import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -26,7 +27,7 @@ class ShellProcessRunnerTest {
 
     @Test
     fun argumentsArePassedAsTheyAre() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         val result = runner.run("printf", listOf("%s|", "Authorization: Bearer abc", "it's \"quoted\"", "\$HOME", "a;b"))
         assertEquals(0, result.exitCode)
         assertEquals("Authorization: Bearer abc|it's \"quoted\"|\$HOME|a;b|", result.output)
@@ -34,14 +35,14 @@ class ShellProcessRunnerTest {
 
     @Test
     fun theCommandMaySetEnvironmentVariablesFirst() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         assertEquals("personal", runner.run("PROFILE_NAME=personal sh", listOf("-c", "printf %s \"\$PROFILE_NAME\"")).output)
         assertTrue(runner.exists("PROFILE_NAME=personal sh"))
     }
 
     @Test
     fun aliasesFromTheShellsStartupFilesWorkLikeInATerminal() {
-        if (isWindows || !File("/bin/zsh").canExecute()) return
+        assumeFalse(isWindows || !File("/bin/zsh").canExecute())
         val home = createTempDirectory().toFile()
         try {
             File(home, ".zshrc").writeText("alias claude-personal='PROFILE_NAME=personal sh'\n")
@@ -55,7 +56,7 @@ class ShellProcessRunnerTest {
 
     @Test
     fun aShadowingAliasCanBeGonePast() {
-        if (isWindows || !File("/bin/zsh").canExecute()) return
+        assumeFalse(isWindows || !File("/bin/zsh").canExecute())
         val home = createTempDirectory().toFile()
         try {
             File(home, ".zshrc").writeText("alias sh='echo Use something else'\n")
@@ -71,7 +72,7 @@ class ShellProcessRunnerTest {
 
     @Test
     fun theNoticesOfShellsWithoutATerminalAreLeftOut() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         val folder = createTempDirectory().toFile()
         try {
             val dashLikeShell = File(folder, "sh").apply {
@@ -87,7 +88,7 @@ class ShellProcessRunnerTest {
 
     @Test
     fun missingProgramsAreReportedAndFailuresKeepTheirOutput() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         assertFalse(runner.exists("kubriko-creator-no-such-program"))
         val result = runner.run("sh", listOf("-c", "echo broken >&2; exit 3"))
         assertEquals(3, result.exitCode)
@@ -96,7 +97,7 @@ class ShellProcessRunnerTest {
 
     @Test
     fun programsAreLocatedByTheirFullPath() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         assertSameFile("/bin/sh", runner.locate("sh"))
         assertNull(runner.locate("kubriko-creator-no-such-program"))
     }

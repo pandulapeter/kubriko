@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import org.junit.Assume.assumeFalse
 import java.io.File
 import java.io.IOException
 import java.nio.file.FileSystems
@@ -70,7 +71,7 @@ class BinaryAgentInstallerTest {
 
     @Test
     fun theProgramsAnArchiveStartsInTurnStayExecutable() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         val archive = File(directory, "agy-helper.zip")
         FileSystems.newFileSystem(archive.toPath(), mapOf("create" to "true", "enablePosixFileAttributes" to "true")).use { zip ->
             mapOf("agy_acp_server.par" to "rwxr-xr-x", "localharness_external" to "rwxr-xr-x", "notes.txt" to "rw-r--r--").forEach { (name, permissions) ->
@@ -123,7 +124,7 @@ class BinaryAgentInstallerTest {
 
     @Test
     fun tarArchivesAreUnpackedWithTheSystemsTar() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         val content = File(directory, "content").also { it.mkdirs() }
         File(content, "agy_acp_server.par").writeText("from tar")
         val archive = File(directory, "agy.tar.gz")

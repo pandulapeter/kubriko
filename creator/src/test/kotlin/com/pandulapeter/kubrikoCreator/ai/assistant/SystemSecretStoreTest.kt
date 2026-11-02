@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -38,13 +39,13 @@ class SystemSecretStoreTest {
 
     @Test
     fun whatTheToolPrintsIsTheSecret() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         assertEquals("secret", store("echo secret", timeoutInMilliseconds = 10_000).read("key"))
     }
 
     @Test
     fun aToolThatNeverAnswersIsGivenUpOn() {
-        if (isWindows) return
+        assumeFalse(isWindows)
         val startTime = System.currentTimeMillis()
         assertNull(store("exec sleep 30").read("key"))
         assertTrue(System.currentTimeMillis() - startTime < 10_000)

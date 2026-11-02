@@ -34,6 +34,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.runBlocking
+import org.junit.Assume.assumeTrue
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
@@ -55,7 +56,7 @@ class ProjectTemplateIntegrationTest {
 
     @Test
     fun everyTemplateGeneratesAProjectThatCompilesForEveryTarget() {
-        if (System.getenv("KUBRIKO_CREATOR_INTEGRATION") != "true") return
+        assumeTrue(System.getenv("KUBRIKO_CREATOR_INTEGRATION") == "true")
         val bundled = CreatorConfiguration.load()
         val configuration = System.getenv("KUBRIKO_CREATOR_VERSION")?.let { bundled.copy(kubrikoVersion = it, useMavenLocal = true) } ?: bundled
         ProjectTemplate.entries.forEach { template ->

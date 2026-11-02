@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectGenerator
 import kotlinx.coroutines.runBlocking
+import org.junit.Assume.assumeTrue
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -51,7 +52,7 @@ class CreatorBuildBenchmarkTest {
 
     @Test
     fun timeBuildingAGameMakerSizedProject() {
-        if (System.getenv("KUBRIKO_CREATOR_BENCHMARK") != "true") return
+        assumeTrue(System.getenv("KUBRIKO_CREATOR_BENCHMARK") == "true")
         val bundled = CreatorConfiguration.load()
         val configuration = System.getenv("KUBRIKO_CREATOR_VERSION")?.let { bundled.copy(kubrikoVersion = it, useMavenLocal = true) } ?: bundled
         val parentDirectory = createTempDirectory().toFile()

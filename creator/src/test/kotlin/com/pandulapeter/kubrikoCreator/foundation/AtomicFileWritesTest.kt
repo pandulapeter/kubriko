@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.foundation
 
+import org.junit.Assume.assumeTrue
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
@@ -48,7 +49,7 @@ class AtomicFileWritesTest {
 
     @Test
     fun aFileKeepsItsPermissions() {
-        if (!isPosix) return
+        assumeTrue(isPosix)
         val file = File(directory, "gradlew").apply { writeText("old") }
         Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---"))
         file.writeTextAtomically("new")
@@ -57,7 +58,7 @@ class AtomicFileWritesTest {
 
     @Test
     fun aNewPrivateFileIsReadableByItsOwnerOnlyAndAnExistingOneKeepsItsPermissions() {
-        if (!isPosix) return
+        assumeTrue(isPosix)
         val file = File(directory, "mcp.json")
         file.writeTextAtomically("{}", isPrivate = true)
         assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file.toPath()))
