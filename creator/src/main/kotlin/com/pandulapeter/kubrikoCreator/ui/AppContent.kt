@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import kubriko.creator.generated.resources.Res
@@ -58,9 +59,13 @@ internal fun AppContent(
     color = MaterialTheme.colorScheme.surface,
 ) {
     var isShowingSettings by remember { mutableStateOf(false) }
+    val settings by creatorSettings.settings.collectAsState()
+    val panelLayout = remember(settings.panelWidths, creatorSettings) {
+        PanelLayout(settings.panelWidths, creatorSettings::setPanelWidth, creatorSettings::resetPanelWidth)
+    }
     if (isShowingSettings) {
         CreatorSettingsDialog(
-            settings = creatorSettings.settings.collectAsState().value,
+            settings = settings,
             homeFolder = homeFolder,
             onAiEnabledChange = creatorSettings::setAiEnabled,
             onThemeChange = creatorSettings::setTheme,
@@ -90,6 +95,7 @@ internal fun AppContent(
                 mcp = mcp,
                 aiClients = aiClients,
                 assistant = assistant,
+                panelLayout = panelLayout,
                 onOpenSettings = { isShowingSettings = true },
             )
         }
@@ -109,6 +115,7 @@ private fun ScreenContent(
     mcp: McpController,
     aiClients: AiClientsController,
     assistant: AssistantController,
+    panelLayout: PanelLayout,
     onOpenSettings: () -> Unit,
 ) {
     when (screen) {
@@ -139,6 +146,7 @@ private fun ScreenContent(
             mcp = mcp,
             aiClients = aiClients,
             assistant = assistant,
+            panelLayout = panelLayout,
             onCloseProject = onCloseProject,
             onOpenSettings = onOpenSettings,
         )

@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.settings
 
+import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
@@ -73,5 +75,16 @@ class CreatorSettingsControllerTest {
         val controller = CreatorSettingsController(CreatorSettingsStore(file), backgroundScope, StandardTestDispatcher(testScheduler))
         controller.setInterfaceScale(0.7f)
         assertEquals(0.75f, controller.settings.value.interfaceScale)
+    }
+
+    @Test
+    fun settingAndResettingAPanelWidth() = runTest {
+        val controller = CreatorSettingsController(CreatorSettingsStore(file), backgroundScope, StandardTestDispatcher(testScheduler))
+        controller.setPanelWidth(Panel.SIDEBAR, 300.dp)
+        assertEquals(mapOf("sidebar" to 300f), controller.settings.value.panelWidths)
+        runCurrent()
+        assertEquals(mapOf("sidebar" to 300f), CreatorSettingsStore(file).load().panelWidths)
+        controller.resetPanelWidth(Panel.SIDEBAR)
+        assertEquals(emptyMap(), controller.settings.value.panelWidths)
     }
 }

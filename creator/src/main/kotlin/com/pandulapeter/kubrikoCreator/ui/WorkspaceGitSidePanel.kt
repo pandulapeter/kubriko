@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -17,21 +16,25 @@ import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
-import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths
+import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
+import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 
 /**
- * The workspace's Version control panel, after a divider, with every change made through a command.
+ * The workspace's Version control panel, after the splitter that resizes it, with every change made through a command.
  */
 @Composable
 internal fun WorkspaceGitSidePanel(
     controller: WorkspaceController,
+    width: PanelWidthState,
+    row: PanelRow,
 ) {
-    VerticalDivider()
+    PanelSplitter(width, row)
     GitPanel(
-        modifier = Modifier.sidePanel(PanelWidths.VERSION_CONTROL),
+        modifier = Modifier.sidePanel(width.widthIn(row)),
         state = controller.git.state,
         onRefresh = controller.git::refresh,
         onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },

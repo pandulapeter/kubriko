@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -25,14 +24,16 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
-import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths
+import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
+import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.captureGameScreen
 
 /**
- * The workspace's AI panel, after a divider, with the Game map computed only while it is shown.
+ * The workspace's AI panel, after the splitter that resizes it, with the Game map computed only while it is shown.
  *
  * @param openSceneName The Scene shown in the center, if any.
  * @param selectedBlockType The type shown in the center, if any.
@@ -48,8 +49,10 @@ internal fun WorkspaceAiSidePanel(
     openSceneName: String?,
     selectedBlockType: BlockTypeDefinition?,
     sessionState: SessionState,
+    width: PanelWidthState,
+    row: PanelRow,
 ) {
-    VerticalDivider()
+    PanelSplitter(width, row)
     val gameMap = if (uiState.aiPanelView == AiPanelView.GAME_MAP) controller.gameMap.gameMap.collectAsState().value else null
     val console = controller.console.collectAsState()
     val acceptsImages = assistant.acceptsImages.collectAsState()
@@ -65,7 +68,7 @@ internal fun WorkspaceAiSidePanel(
         }
     }
     AiPanel(
-        modifier = Modifier.sidePanel(PanelWidths.AI),
+        modifier = Modifier.sidePanel(width.widthIn(row)),
         view = uiState.aiPanelView,
         onViewSelected = uiState::selectAiPanelView,
         assistant = assistant,

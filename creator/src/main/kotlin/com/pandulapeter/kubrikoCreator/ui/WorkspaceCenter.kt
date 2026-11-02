@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
+import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
@@ -58,6 +59,7 @@ internal fun WorkspaceCenter(
     changedByHand: Set<String>,
     shownAiStep: ShownAiStep?,
     actorTypeDragState: SidebarDragState,
+    panelLayout: PanelLayout,
     onCommand: (Invocation<*>) -> Unit,
     onCommandIfValid: (Invocation<*>) -> StringResource?,
     onTypeSelected: (String) -> Unit,
@@ -74,6 +76,7 @@ internal fun WorkspaceCenter(
             state = sceneEditing,
             onCommand = onCommand,
             actorTypeDragState = actorTypeDragState,
+            panelLayout = panelLayout,
             actorTypes = actorTypes,
             music = remember(resources) { AudioFiles.of(resources).music },
             description = sceneDescriptions[sceneEditing.sceneName],
