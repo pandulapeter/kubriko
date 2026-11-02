@@ -72,7 +72,7 @@ class AiFeaturesOffTest {
             onClick = {},
         )
         DescriptionField(key = "Ball", description = null, onDescriptionChange = {})
-        WelcomeScreen(error = null, recentProjects = emptyList(), onNewProject = {}, onOpenProject = {}, onForgetRecentProject = {}, onOpenSettings = {})
+        WelcomeScreen(error = null, errorArguments = emptyList(), recentProjects = emptyList(), onNewProject = {}, onOpenProject = {}, onForgetRecentProject = {}, onOpenSettings = {})
         WorkspaceHint(Modifier.height(240.dp))
     }
 

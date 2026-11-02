@@ -32,8 +32,8 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
-import kubriko.creator.generated.resources.error_not_a_gradle_project
 import kubriko.creator.generated.resources.error_project_folder_not_empty
+import kubriko.creator.generated.resources.error_project_not_opened
 import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
 import java.io.IOException
@@ -127,10 +127,10 @@ class AppControllerTest {
     }
 
     @Test
-    fun aFolderGradleCantOpenReturnsToWelcomeWithAGenericReason() = runTest {
-        val controller = createController { _, _ -> throw IOException("Not a build.") }
+    fun aProjectThatFailsToOpenUnexpectedlyReturnsToWelcomeSayingWhy() = runTest {
+        val controller = createController { _, _ -> throw IOException("Disk full.") }
         controller.openProject(directory)
-        assertEquals(AppScreen.Welcome(error = Res.string.error_not_a_gradle_project), controller.screen.value)
+        assertEquals(AppScreen.Welcome(error = Res.string.error_project_not_opened, errorArguments = listOf("Disk full.")), controller.screen.value)
     }
 
     @Test

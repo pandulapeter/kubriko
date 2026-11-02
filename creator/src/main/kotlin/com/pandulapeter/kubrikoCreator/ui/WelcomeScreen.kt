@@ -49,6 +49,7 @@ import java.io.File
 @Composable
 internal fun WelcomeScreen(
     error: StringResource?,
+    errorArguments: List<String>,
     recentProjects: List<RecentProject>,
     onNewProject: () -> Unit,
     onOpenProject: (File) -> Unit,
@@ -63,6 +64,7 @@ internal fun WelcomeScreen(
         WelcomeContent(
             modifier = Modifier.weight(1f),
             error = error,
+            errorArguments = errorArguments,
             recentProjects = recentProjects,
             onNewProject = onNewProject,
             onOpenProject = onOpenProject,
@@ -76,6 +78,7 @@ internal fun WelcomeScreen(
 @Composable
 private fun WelcomeContent(
     error: StringResource?,
+    errorArguments: List<String>,
     recentProjects: List<RecentProject>,
     onNewProject: () -> Unit,
     onOpenProject: (File) -> Unit,
@@ -119,7 +122,7 @@ private fun WelcomeContent(
         }
         if (error != null) {
             Text(
-                text = stringResource(error),
+                text = stringResource(error, *errorArguments.toTypedArray()),
                 color = MaterialTheme.colorScheme.error,
             )
         }

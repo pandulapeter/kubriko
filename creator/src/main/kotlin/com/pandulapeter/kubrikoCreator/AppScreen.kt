@@ -20,6 +20,7 @@ internal sealed interface AppScreen {
 
     data class Welcome(
         val error: StringResource? = null,
+        val errorArguments: List<String> = emptyList(),
     ) : AppScreen
 
     data class NewProject(

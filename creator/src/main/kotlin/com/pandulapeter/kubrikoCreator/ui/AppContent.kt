@@ -114,6 +114,7 @@ private fun ScreenContent(
     when (screen) {
         is AppScreen.Welcome -> WelcomeScreen(
             error = screen.error,
+            errorArguments = screen.errorArguments,
             recentProjects = recentProjects,
             onNewProject = onNewProject,
             onOpenProject = onOpenProject,

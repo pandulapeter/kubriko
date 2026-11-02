@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_not_a_gradle_project
+import kubriko.creator.generated.resources.error_project_not_opened
 import java.io.File
 
 /**
@@ -121,8 +121,9 @@ internal class AppController(
                 throw exception
             } catch (exception: ProjectInspectionException) {
                 AppScreen.Welcome(error = exception.reason)
-            } catch (_: Exception) {
-                AppScreen.Welcome(error = Res.string.error_not_a_gradle_project)
+            } catch (exception: Exception) {
+                exception.printStackTrace()
+                AppScreen.Welcome(error = Res.string.error_project_not_opened, errorArguments = listOf(exception.message ?: exception.toString()))
             }
         }
     }
