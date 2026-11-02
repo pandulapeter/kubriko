@@ -157,14 +157,14 @@ internal class AppController(
     /**
      * Closes the open project, if any.
      *
-     * @return The job that finishes once its game is gone and its changes are written, which an app that is quitting
-     *   waits for.
+     * @return The job that finishes once the project closed last (this one, or one closed earlier and still closing) has
+     *   its game gone and its changes written, which an app that is quitting waits for.
      */
     fun closeProject(): Job? {
         job?.cancel()
-        val closingWorkspace = (_screen.value as? AppScreen.Workspace)?.controller?.close()?.also { closing = it }
+        (_screen.value as? AppScreen.Workspace)?.controller?.close()?.let { closing = it }
         _screen.value = AppScreen.Welcome()
-        return closingWorkspace
+        return closing
     }
 
     companion object {
