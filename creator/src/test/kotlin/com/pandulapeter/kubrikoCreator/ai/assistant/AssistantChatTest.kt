@@ -156,6 +156,18 @@ class AssistantChatTest {
     }
 
     @Test
+    fun aTurnStoppedBeforeItStartsEndsTheBusyState() = blockingTest {
+        val chat = readyChat()
+        withContext(mainThread) {
+            chat.send("wait")
+            chat.stop()
+        }
+        chat.isBusy.first { !it }
+        assertEquals(TranscriptItem.TurnEnded(StopReason.CANCELLED), chat.transcript.value.items.last())
+        assertTrue(launcher.agents.single().prompts.isEmpty())
+    }
+
+    @Test
     fun aCancelledTurnForgetsWhatTheConversationRead() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) { chat.send("wait") }

@@ -196,10 +196,10 @@ internal class AssistantChat(
                 _transcript.update {
                     if (exception.isAuthRequired()) it.withFailure(FailureReason.AUTH_REQUIRED) else it.withFailure(FailureReason.PROMPT_FAILED, exception.message)
                 }
-            } finally {
-                _isBusy.value = false
             }
         }
+        // Not a finally: a turn stopped before its body first runs completes without running one.
+        turn.invokeOnCompletion { _isBusy.value = false }
         turnGatheringContext = turn
         turn.start()
     }
