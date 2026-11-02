@@ -134,7 +134,7 @@ lives in `plan/` (start with `plan/README.md`).
   (`SceneEditingState.Open.previews`, `PreviewActor`): every build records the looks it compiled once the changes are
   written, and the previews follow the types in memory (`onActorTypesChanged`), so a change shows before it is even
   written. The Scene editor's instance ticks without the focus (`shouldPauseOnFocusLoss = false`), since a Scene swapped
-  in while Creator is in the background would otherwise draw nothing until it is focused. Creator no longer starts `tool-creator-session` in Edit mode.
+  in while Creator is in the background would otherwise draw nothing until it is focused.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project's code (so also when it is opened,
   and when it is created), Creator makes its build depend on exactly the Kubriko libraries its sources name (`KubrikoArtifact`: the package
   after `com.pandulapeter.kubriko.` in imports and fully qualified names, generated code included; the engine and `tool-creator-api` always),
