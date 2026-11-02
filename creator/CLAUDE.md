@@ -164,7 +164,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   `BlockTypeStore` never writes over or deletes it.
 - **Template upgrades** (`template/ProjectUpgrader`): template files belong to the user, so an upgrade is shown as a diff, offers to
   commit first, and applies only to a file that still looks like the template's; others are listed with what to add by hand, and a
-  file that already has the change counts as done. A change's `after` is null for a file it deletes. Template version 5 sets
+  file that already has the change counts as done. A change's `after` is null for a file it deletes. A new template version is a
+  `TemplateStep` per file it changes, added to `TemplateSteps.FILES`; the version number follows from them. Template version 5 sets
   `KubrikoWiring.isLoggingEnabled` from a property only the play session sets, so Log Blocks cost nothing in a released game.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project, its build depends on
   exactly the Kubriko libraries its sources name (the engine and `tool-creator-api` always), its `kubriko` version is raised to

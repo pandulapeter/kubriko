@@ -9,14 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
-import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.withLineBreaksOf
 import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
@@ -32,19 +30,9 @@ import java.io.File
  * Brings the template files of an opted-in project (which belong to the user after creation) up to what this version of
  * Kubriko Creator needs, recorded as the `templateVersion` of `.kubriko/project.json`.
  *
- * Version 2 passes the generated Manager types to Kubriko and to the Scene editor (`GameEntryPoint.kt`). Version 3 lets
- * the generated `GeneratedScenes` load the first Scene, so that Blocks can load others: `Game.kt` hands
- * `KubrikoWiring.createManagers` the Scene its `SceneLoader` loaded instead, and `SceneLoader.kt` is deleted if it is
- * still the template's. Version 4 leaves the plugins' Managers to `KubrikoWiring`, which creates only those the game uses,
- * so that the project only depends on the plugins it uses: `Game.kt` stops creating them. Version 5 lets play sessions turn
- * the Log Blocks on, which released games leave off: the desktop `Main.kt` sets `KubrikoWiring.isLoggingEnabled` from a system
- * property before the application starts. Version 6 turns Gradle's configuration cache and build cache on in
- * `gradle.properties` (a property set already, to any value, is kept; a missing file is created), so that Kubriko Creator's builds skip configuring
- * the project when nothing changed. Version 7 lets Kubriko Creator play the game from any Scene: the desktop `Main.kt` also sets
- * `KubrikoWiring.firstSceneOverride` from a system property. A file is only changed when it
- * still looks like the template's (one `Kubriko.newInstance` with a one-line `SceneLoader` in it, one-line plugin
- * Managers, one `createSerializationManager`); a file that already does what the version needs counts as done, whoever
- * changed it, and so does a `SceneLoader.kt` changed by hand, which is left alone.
+ * Each version is a [TemplateStep] per file it changes ([TemplateSteps]). A file is only changed when it still looks like
+ * the template's, as each step defines; a file that already has a step's change counts as done for it, whoever made it,
+ * and a file one of whose steps can't be made is left to the user, with none of its steps made.
  */
 internal class ProjectUpgrader(
     private val rootDirectory: File,
@@ -56,39 +44,40 @@ internal class ProjectUpgrader(
         if ((recordedVersion() ?: CURRENT_VERSION) >= CURRENT_VERSION) return TemplateUpgrade.UpToDate
         val packageName = settings["packageName"]?.jsonPrimitive?.content ?: return TemplateUpgrade.UpToDate
         val sourceDirectory = settings["sourceDirectory"]?.jsonPrimitive?.content ?: "src/commonMain/kotlin"
-        val packagePath = "$sourceDirectory/${packageName.replace('.', '/')}"
-        val wiringImport = "import $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}.${ManagerTypeCodeGenerator.WIRING_NAME}"
+        val context = TemplateContext(packageName, sourceDirectory, ::read) { ProjectInspector.nameOf(rootDirectory) }
         val changes = mutableListOf<ProposedFileChange>()
         val byHand = mutableListOf<String>()
-        fun propose(path: String, isDone: (String) -> Boolean, change: (String) -> String?): Boolean {
-            val text = read(path)
-            if (text != null && isDone(text)) return true
-            val changed = text?.let(change)
-            if (text != null && changed != null) changes += ProposedFileChange(path, text, changed) else byHand += path
-            return changed != null
-        }
-        val isGameUpgraded = propose("$packagePath/$GAME_FILE", { isGameUpToDate(it) && RunningInstancesUpgrade.isGameDone(it) }) { text ->
-            upgradedGame(text, wiringImport)?.let(RunningInstancesUpgrade::game)
-        }
-        propose("$packagePath/$ENTRY_POINT_FILE", { ManagerTypeCodeGenerator.WIRING_NAME in it && RunningInstancesUpgrade.isEntryPointDone(it) }) { text ->
-            (if (ManagerTypeCodeGenerator.WIRING_NAME in text) text else withManagersHandedToTheSceneEditor(text, wiringImport))?.let(RunningInstancesUpgrade::entryPoint)
-        }
-        val mainPath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}/$MAIN_FILE"
-        val pagePath = "${sourceDirectory.replace("commonMain", "wasmJsMain").removeSuffix("/kotlin")}/resources/$PAGE_FILE"
-        val gameName = read(mainPath)?.let(GameIdentityUpgrade::windowTitleOf) ?: read(pagePath)?.let(GameIdentityUpgrade::pageTitleOf)
-            ?: ProjectInspector.nameOf(rootDirectory)
-        propose(mainPath, { turnsLoggingOn(it) && overridesFirstScene(it) && GameIdentityUpgrade.isMainDone(it) }) {
-            withFirstSceneOverride(it, wiringImport)?.let(GameIdentityUpgrade::main)
-        }
-        propose(GameIdentity.BUILD_FILE, GameIdentityUpgrade::isBuildFileDone) { GameIdentityUpgrade.buildFile(it, packageName) }
-        if (read(pagePath) != null) propose(pagePath, GameIdentityUpgrade::isPageDone, GameIdentityUpgrade::page)
-        val properties = read(GRADLE_PROPERTIES_FILE).orEmpty()
-        if (!setsCaches(properties) || !GameIdentityUpgrade.isPropertiesDone(properties)) {
-            changes += ProposedFileChange(GRADLE_PROPERTIES_FILE, properties, GameIdentityUpgrade.properties(withCaches(properties), gameName, packageName))
-        }
-        val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
-        read(sceneLoaderPath)?.takeIf { isGameUpgraded && it.trimEnd() == templateSceneLoader(packageName)?.trimEnd() }?.let { text ->
-            changes += ProposedFileChange(sceneLoaderPath, text, after = null)
+        val doneOrProposedPaths = HashSet<String>()
+        TemplateSteps.FILES.forEach { file ->
+            val path = file.path(context)
+            val text = context.read(path) ?: when (file.whenMissing) {
+                UpgradedFile.WhenMissing.BY_HAND -> {
+                    byHand += path
+                    return@forEach
+                }
+                UpgradedFile.WhenMissing.SKIP -> return@forEach
+                UpgradedFile.WhenMissing.CREATE_EMPTY -> ""
+            }
+            file.deletion?.takeIf { it.requiredPath(context) in doneOrProposedPaths && it.isTemplates(text, context) }?.let {
+                changes += ProposedFileChange(path, text, after = null)
+            }
+            var upgraded: String? = text
+            var isChanged = false
+            for (step in file.steps) {
+                val current = upgraded ?: break
+                if (!step.isDone(current, context)) {
+                    upgraded = step.change(current, context)
+                    isChanged = true
+                }
+            }
+            when {
+                !isChanged -> doneOrProposedPaths += path
+                upgraded == null -> byHand += path
+                else -> {
+                    changes += ProposedFileChange(path, text, upgraded)
+                    doneOrProposedPaths += path
+                }
+            }
         }
         return if (changes.isEmpty() && byHand.isEmpty()) TemplateUpgrade.UpToDate else TemplateUpgrade.Needed(changes, byHand)
     }
@@ -133,17 +122,14 @@ internal class ProjectUpgrader(
     }
 
     companion object {
-        const val CURRENT_VERSION = 9
-        private const val GRADLE_PROPERTIES_FILE = GameIdentity.GRADLE_PROPERTIES_FILE
-        private const val PAGE_FILE = "index.html"
+        /**
+         * The template version the newest [TemplateStep] brings a project to, which new projects start at.
+         */
+        val CURRENT_VERSION = TemplateSteps.FILES.flatMap { it.steps }.maxOf { it.version }
         private val cacheProperties = listOf("org.gradle.configuration-cache", "org.gradle.caching")
-        private const val GAME_FILE = "Game.kt"
-        private const val MAIN_FILE = "Main.kt"
         private const val APPLICATION_MAIN = "fun main() = application {"
         private const val LOGGING_SWITCH = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}"
         private const val FIRST_SCENE_SWITCH = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.FIRST_SCENE_FLAG}"
-        private const val ENTRY_POINT_FILE = "GameEntryPoint.kt"
-        private const val SCENE_LOADER_FILE = "SceneLoader.kt"
         private const val SCENE_LOADER_TEMPLATE = "upgrades/SceneLoader-2.kt.template"
         private val json = Json { prettyPrint = true }
         private val scenePathPattern = Regex("\"${ScenesCodeGenerator.SCENE_DIRECTORY}/([^\"/]+)\\.json\"")
@@ -151,19 +137,6 @@ internal class ProjectUpgrader(
             "CollisionManager" to "import com.pandulapeter.kubriko.collision.CollisionManager",
             "KeyboardInputManager" to "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager",
         )
-
-        /**
-         * Whether [text] (a `Game.kt`) is what the current template version needs.
-         */
-        internal fun isGameUpToDate(text: String) = loadsScenesThroughWiring(text) && createsNoPluginManagers(text)
-
-        /**
-         * [text] (a `Game.kt`) brought up to the current template version, or null if it doesn't look like the template's.
-         */
-        internal fun upgradedGame(text: String, wiringImport: String): String? {
-            val withScenes = if (loadsScenesThroughWiring(text)) text else withScenesLoadedByWiring(text, wiringImport) ?: return null
-            return withoutPluginManagers(withScenes)
-        }
 
         /**
          * [text] (a `Game.kt`) without the plugin Managers it creates (and their imports), which `KubrikoWiring` creates
@@ -177,7 +150,7 @@ internal class ProjectUpgrader(
             return withoutImports.joinToString("\n").takeIf(::createsNoPluginManagers)
         }
 
-        private fun createsNoPluginManagers(text: String) = pluginManagerImports.keys.none { "$it.newInstance(" in text }
+        internal fun createsNoPluginManagers(text: String) = pluginManagerImports.keys.none { "$it.newInstance(" in text }
 
         /**
          * Whether [text] (a `Game.kt`) passes the generated Managers to Kubriko without a `SceneLoader` of its own.
@@ -227,7 +200,7 @@ internal class ProjectUpgrader(
             return withImport(withOverride, wiringImport)
         }
 
-        private fun setsCaches(text: String) = cacheProperties.none { text.lacksProperty(it) }
+        internal fun setsCaches(text: String) = cacheProperties.none { text.lacksProperty(it) }
 
         /**
          * [text] (a `gradle.properties`) with the caches it doesn't set turned on.
@@ -237,9 +210,9 @@ internal class ProjectUpgrader(
 
         private fun String.lacksProperty(key: String) = lines().none { line -> line.trimStart().startsWith(key) && line.trimStart().removePrefix(key).trimStart().let { it.startsWith("=") || it.startsWith(":") } }
 
-        private fun turnsLoggingOn(text: String) = LOGGING_SWITCH in text
+        internal fun turnsLoggingOn(text: String) = LOGGING_SWITCH in text
 
-        private fun overridesFirstScene(text: String) = FIRST_SCENE_SWITCH in text
+        internal fun overridesFirstScene(text: String) = FIRST_SCENE_SWITCH in text
 
         /**
          * [text] (a desktop `Main.kt`) also setting the Scene the game starts with from the play session's system property,
@@ -274,7 +247,7 @@ internal class ProjectUpgrader(
         /**
          * The `SceneLoader.kt` that templates before version 3 created in [packageName].
          */
-        private fun templateSceneLoader(packageName: String) = TemplateFiles.readResource(SCENE_LOADER_TEMPLATE)
+        internal fun templateSceneLoader(packageName: String) = TemplateFiles.readResource(SCENE_LOADER_TEMPLATE)
             ?.let { TemplateRenderer.renderContent(it, mapOf("PACKAGE" to packageName)) }
 
         private val String.isSceneLoader get() = trimStart().startsWith("SceneLoader(")

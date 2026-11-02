@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.project.GradleProperties
  * installers, the generated `GameInfo` object (the desktop window's title), and the web page's title.
  */
 internal object GameIdentityUpgrade {
+    private const val VERSION = 9
     private const val BLOCK_TEMPLATE = "upgrades/GameIdentity-9.gradle.kts.template"
     private const val WINDOW_TITLE = "title = GameInfo.NAME,"
     private const val PAGE_TITLE = "<title>@GAME_NAME@</title>"
@@ -98,6 +99,50 @@ internal object GameIdentityUpgrade {
         return pageTitleLineOf(lines)?.let { pageTitlePattern.find(lines[it])!!.groupValues[2] }
             ?.takeUnless { it == "@GAME_NAME@" }
             ?.replace("&lt;", "<")?.replace("&gt;", ">")?.replace("&amp;", "&")
+    }
+
+    /**
+     * This version's step of the desktop `Main.kt`.
+     */
+    object MainStep : TemplateStep {
+        override val version = VERSION
+
+        override fun isDone(text: String, context: TemplateContext) = isMainDone(text)
+
+        override fun change(text: String, context: TemplateContext) = main(text)
+    }
+
+    /**
+     * This version's step of `build.gradle.kts`.
+     */
+    object BuildFileStep : TemplateStep {
+        override val version = VERSION
+
+        override fun isDone(text: String, context: TemplateContext) = isBuildFileDone(text)
+
+        override fun change(text: String, context: TemplateContext) = buildFile(text, context.packageName)
+    }
+
+    /**
+     * This version's step of the web `index.html`.
+     */
+    object PageStep : TemplateStep {
+        override val version = VERSION
+
+        override fun isDone(text: String, context: TemplateContext) = isPageDone(text)
+
+        override fun change(text: String, context: TemplateContext) = page(text)
+    }
+
+    /**
+     * This version's step of `gradle.properties`, naming the game as [TemplateContext.gameName] finds it.
+     */
+    object PropertiesStep : TemplateStep {
+        override val version = VERSION
+
+        override fun isDone(text: String, context: TemplateContext) = isPropertiesDone(text)
+
+        override fun change(text: String, context: TemplateContext) = properties(text, context.gameName, context.packageName)
     }
 
     private fun titleLineOf(lines: List<String>) = lines.indices.filter { titleLinePattern.matches(lines[it]) }.singleOrNull()

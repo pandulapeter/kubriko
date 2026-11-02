@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
  * done rather than left to do by hand.
  */
 internal object RunningInstancesUpgrade {
+    private const val VERSION = 8
     private const val FIELD = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.RUNNING_INSTANCES}"
     private const val DISPOSAL = "onDispose { kubriko.dispose() }"
 
@@ -48,6 +49,28 @@ internal object RunningInstancesUpgrade {
         val line = managersLineOf(lines) ?: return text
         val indent = lines[line].takeWhile { it == ' ' }
         return (lines.take(line + 1) + listOf("", "${indent}override fun getRunningInstances() = $FIELD") + lines.drop(line + 1)).joinToString("\n")
+    }
+
+    /**
+     * This version's step of `Game.kt`.
+     */
+    object GameStep : TemplateStep {
+        override val version = VERSION
+
+        override fun isDone(text: String, context: TemplateContext) = isGameDone(text)
+
+        override fun change(text: String, context: TemplateContext) = game(text)
+    }
+
+    /**
+     * This version's step of `GameEntryPoint.kt`.
+     */
+    object EntryPointStep : TemplateStep {
+        override val version = VERSION
+
+        override fun isDone(text: String, context: TemplateContext) = isEntryPointDone(text)
+
+        override fun change(text: String, context: TemplateContext) = entryPoint(text)
     }
 
     private fun disposalOf(lines: List<String>) = lines.indices.filter { lines[it].trim() == DISPOSAL }.singleOrNull()
