@@ -180,6 +180,18 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun generatedCodeCheckedOutWithWindowsLineBreaksIsNeitherReportedNorRewritten() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        assertEquals(emptySet(), store.saveAndRegenerate(ball))
+        val file = File(generated, "Ball.kt")
+        file.writeText(file.readText().replace("\n", "\r\n"))
+        assertEquals(emptySet(), store.regenerateAll().changedByHand)
+        assertEquals(emptySet(), BlockTypeStore.open(root)!!.regenerateAll().changedByHand)
+        assertContains(file.readText(), "\r\n")
+    }
+
+    @Test
     fun theGeneratedCodeOfATypeDeletedOutsideCreatorIsDeleted() {
         optIn()
         val store = BlockTypeStore.open(root)!!

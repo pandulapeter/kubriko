@@ -236,7 +236,7 @@ internal class BlockTypeStore private constructor(
             file.delete()
             generatedTexts.remove(name)
         } else {
-            if (current != text) file.writeTextAtomically(text)
+            if (current?.replace("\r\n", "\n") != text) file.writeTextAtomically(text)
             generatedTexts[name] = KnownFile(text, file.length(), file.lastModified())
         }
     }

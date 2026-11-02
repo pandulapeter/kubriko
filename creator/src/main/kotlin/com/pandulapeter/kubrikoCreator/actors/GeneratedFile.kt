@@ -28,14 +28,14 @@ internal object GeneratedFile {
         "$PREFIX$origin. Edit it in Kubriko Creator, which stops updating this file once it is changed by hand.$CHECKSUM_LABEL${checksum(body)}\n$body"
 
     /**
-     * Whether [text] is a file Kubriko Creator generated and nobody changed since. Generated files from before checksums
-     * count as unchanged; anything without the header doesn't.
+     * Whether [text] is a file Kubriko Creator generated and nobody changed since, whatever its line breaks. Generated files
+     * from before checksums count as unchanged; anything without the header doesn't.
      */
     fun isUnchanged(text: String): Boolean {
         val header = text.substringBefore('\n')
         if (!header.startsWith(PREFIX)) return false
         val recordedChecksum = header.substringAfter(CHECKSUM_LABEL, missingDelimiterValue = "").trim()
-        return recordedChecksum.isEmpty() || recordedChecksum == checksum(text.substringAfter('\n'))
+        return recordedChecksum.isEmpty() || recordedChecksum == checksum(text.substringAfter('\n').replace("\r\n", "\n"))
     }
 
     private fun checksum(body: String) = MessageDigest.getInstance("SHA-256").digest(body.toByteArray())
