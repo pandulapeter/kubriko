@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.actors
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerFields
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
@@ -20,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventCode
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.floatLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
@@ -58,45 +58,39 @@ internal object ManagerTypeCodeGenerator {
     fun generateManagerType(
         definition: ManagerTypeDefinition,
         packageName: String,
-        knownActorTypeNames: Collection<String> = emptyList(),
+        knownActorTypeNames: List<String> = emptyList(),
         managerTypes: List<ManagerTypeDefinition> = listOf(definition),
     ): String {
         val name = definition.name
-        val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames.toList(), managerTypes)
+        val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames, managerTypes)
         val events = definition.events.filter { it.type.isAvailableIn(BlockTypeKind.MANAGER) }
         val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key?.isKnown == true }
         val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer?.let(TimerNaming::isValid) == true }
         val startEvents = events.filter { it.type == EventType.GAME_STARTED }
         val frameEvents = events.filter { it.type == EventType.EVERY_FRAME }
         val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents
-        val generatedBlocks = generatedEvents.flatMap { it.blocks }
-        val timers = (timerEvents.mapNotNull { it.timer } + generatedBlocks.mapNotNull { it.timerName }).filter(TimerNaming::isValid).distinct().sorted()
-        val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
-        val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
+        val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
+        val blockCode = generatedEvents.fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scope) }
         val texts = definition.texts.map { templateLiteral(it.text, scope) }
         val kotlinUi = KotlinUi.of(definition.kotlinUi)
-        val usedManagers = (scope.managersUsedBy(generatedBlocks, definition.texts.map { it.text }) + scope.managersNamedIn(kotlinUi)).distinct().sorted()
-        val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks)
+        val usedManagers = (blockCode.managers + texts.flatMap { it.managers } + scope.managersNamedIn(kotlinUi)).distinct().sorted()
         val runsEveryFrame = timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() }
-        val usesKotlin = generatedBlocks.any { it is BlockDefinition.Kotlin }
-        val usesActorManager = keyEvents.isNotEmpty() || usesKotlin || generatedBlocks.any { it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames } ||
-            kotlinUi?.names(ACTOR_MANAGER_FIELD) == true
-        val usesViewportManager = usesKotlin || kotlinUi?.names(VIEWPORT_MANAGER_FIELD) == true
-        val usesStateManager = runsEveryFrame || BlockCodeGenerator.usesPause(generatedBlocks) || kotlinUi?.names(STATE_MANAGER_FIELD) == true
+        // Key Events add the Manager to the Scene as an Actor, and onUpdate returns early while the game is paused.
+        val needs = blockCode.needs + buildSet {
+            if (keyEvents.isNotEmpty() || kotlinUi?.names(ACTOR_MANAGER_FIELD) == true) add(BlockNeed.ACTOR_MANAGER)
+            if (kotlinUi?.names(VIEWPORT_MANAGER_FIELD) == true) add(BlockNeed.VIEWPORT_MANAGER)
+            if (runsEveryFrame || kotlinUi?.names(STATE_MANAGER_FIELD) == true) add(BlockNeed.STATE_MANAGER)
+            if (texts.any { it.usesNumberText }) add(BlockNeed.NUMBER_TEXT)
+        }
         val imports = buildSet {
             add("com.pandulapeter.kubriko.manager.Manager")
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) add("com.pandulapeter.kubriko.Kubriko")
-            if (usesActorManager) add("com.pandulapeter.kubriko.manager.ActorManager")
-            if (usesViewportManager) add("com.pandulapeter.kubriko.manager.ViewportManager")
             if (keyEvents.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
             if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
             if (definition.properties.any { it !is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableStateOf")
             if (definition.properties.isNotEmpty()) addAll(listOf("androidx.compose.runtime.getValue", "androidx.compose.runtime.setValue"))
-            if (usesKeyHeld) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"))
-            if (usesStateManager) add(STATE_MANAGER_IMPORT)
-            if (generatedBlocks.any { it is BlockDefinition.Log }) add("com.pandulapeter.kubriko.logger.Logger")
-            if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
-            if (generatedBlocks.any { it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames }) addAll(listOf("com.pandulapeter.kubriko.helpers.extensions.sceneUnit", "com.pandulapeter.kubriko.types.SceneOffset"))
+            needs.forEach { addAll(importsOf(it)) }
+            addAll(blockCode.imports)
             if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
             if (texts.isNotEmpty() || kotlinUi != null) addAll(COMPOSABLE_IMPORTS)
             kotlinUi?.imports?.let(::addAll)
@@ -116,12 +110,7 @@ internal object ManagerTypeCodeGenerator {
                 appendLine("    var ${property.name} by ${if (property is PropertyDefinition.Number) "mutableFloatStateOf" else "mutableStateOf"}(${initialValueLiteral(property)})")
             }
             if (definition.properties.isNotEmpty()) appendLine()
-            if (usesActorManager) appendLine("    private val $ACTOR_MANAGER_FIELD by manager<ActorManager>()")
-            if (usesViewportManager) appendLine("    private val $VIEWPORT_MANAGER_FIELD by manager<ViewportManager>()")
-            if (usesKeyHeld) appendLine("    private val keyboardInputManager by manager<KeyboardInputManager>()")
-            if (usesStateManager) appendLine("    private val $STATE_MANAGER_FIELD by manager<StateManager>()")
-            if (usesScenes) appendLine("    private val $SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()")
-            if (BlockCodeGenerator.usesAudio(generatedBlocks)) appendLine("    private val $AUDIO_FIELD by manager<${AudioCodeGenerator.AUDIO_NAME}>()")
+            BlockNeed.entries.filter { it in needs }.forEach { need -> fieldOf(need)?.let { appendLine("    private val $it") } }
             usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
             appendTimerFields(timers)
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) {
@@ -143,10 +132,8 @@ internal object ManagerTypeCodeGenerator {
             }
             // Unlike an Actor's, these run while the game is paused, so that a key can resume it.
             if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope)
-            if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts, kotlinUi)
-            if (texts.any { ".$NUMBER_TEXT_FUNCTION()" in it } || generatedBlocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) }) {
-                appendNumberTextFunction("private")
-            }
+            if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts.map { it.code }, kotlinUi)
+            if (BlockNeed.NUMBER_TEXT in needs) appendNumberTextFunction("private")
             appendLine("}")
         })
     }
@@ -259,6 +246,24 @@ internal object ManagerTypeCodeGenerator {
         }
         kotlinUi?.statements?.forEach { appendLine(if (it.isEmpty()) it else "        $it") }
         appendLine("    }")
+    }
+
+    private fun fieldOf(need: BlockNeed) = when (need) {
+        BlockNeed.ACTOR_MANAGER -> "$ACTOR_MANAGER_FIELD by manager<ActorManager>()"
+        BlockNeed.VIEWPORT_MANAGER -> "$VIEWPORT_MANAGER_FIELD by manager<ViewportManager>()"
+        BlockNeed.KEYBOARD_INPUT_MANAGER -> "keyboardInputManager by manager<KeyboardInputManager>()"
+        BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD by manager<StateManager>()"
+        BlockNeed.SCENES -> "$SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()"
+        BlockNeed.AUDIO -> "$AUDIO_FIELD by manager<${AudioCodeGenerator.AUDIO_NAME}>()"
+        BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF -> null
+    }
+
+    private fun importsOf(need: BlockNeed) = when (need) {
+        BlockNeed.ACTOR_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ActorManager")
+        BlockNeed.VIEWPORT_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ViewportManager")
+        BlockNeed.KEYBOARD_INPUT_MANAGER -> listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
+        BlockNeed.STATE_MANAGER -> listOf(STATE_MANAGER_IMPORT)
+        BlockNeed.MOVEMENT, BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF -> emptyList()
     }
 
     /**

@@ -28,12 +28,10 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_DRAW
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendSavedState
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.drawFunction
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.INDENT
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventLines
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventCode
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.stringLiteral
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
 
 /**
  * Turns an Actor type that has a parent or children into Kotlin that inherits as the Actor types do. The topmost Actor
@@ -73,7 +71,7 @@ internal object ActorFamilyCodeGenerator {
         val hooks = Hooks(features, scopeOf(byName.getValue(root)))
         val usesNumberText = members.any { member ->
             val memberScope by lazy { scopeOf(member) }
-            member.events.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, memberScope) } }
+            member.events.any { event -> BlockNeed.NUMBER_TEXT in eventCode(event.blocks, event.type, memberScope).needs }
         }
         val imports = (features.imports + listOfNotNull(
             "com.pandulapeter.kubriko.collision.mask.$COLLISION_MASK".takeIf { features.isCollidable && maskTypeOf(features.shapes) == COLLISION_MASK },
@@ -194,7 +192,7 @@ internal object ActorFamilyCodeGenerator {
             val own = definition.events.filter { hooks.of(it) == hook }
             appendLine()
             appendLine("    protected open fun ${hook.signature} {")
-            own.forEach { event -> eventLines(event.blocks, event.type, scopeOf(null)).forEach { appendLine(INDENT.repeat(2) + it) } }
+            own.forEach { event -> eventCode(event.blocks, event.type, scopeOf(null)).lines.forEach { appendLine(INDENT.repeat(2) + it) } }
             appendLine("    }")
         }
         if (features.usesBounceOff) appendBounceOffFunction("protected")
@@ -271,7 +269,7 @@ internal object ActorFamilyCodeGenerator {
             if (hook == null) return@forEach
             appendLine()
             appendLine("    override fun ${hook.signature} {")
-            events.forEach { event -> eventLines(event.blocks, event.type, scopeOf("super.${hook.call}")).forEach { appendLine(INDENT.repeat(2) + it) } }
+            events.forEach { event -> eventCode(event.blocks, event.type, scopeOf("super.${hook.call}")).lines.forEach { appendLine(INDENT.repeat(2) + it) } }
             appendLine("    }")
         }
     }

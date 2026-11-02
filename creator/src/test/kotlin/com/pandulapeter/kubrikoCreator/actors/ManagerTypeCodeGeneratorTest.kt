@@ -264,4 +264,11 @@ class ManagerTypeCodeGeneratorTest {
         assertTrue(GeneratedFile.isUnchanged(code))
         assertEquals(1, code.lines().count { it.startsWith("// Generated") })
     }
+
+    @Test
+    fun aTextShowingANumberGetsTheNumberTextFunction() {
+        val withTitle = game.copy(properties = game.properties + PropertyDefinition.Text("title"))
+        assertContains(generate(withTitle.copy(texts = listOf(ScreenTextDefinition("{score}")))), "    private fun Float.asText() = ")
+        assertFalse("asText" in generate(withTitle.copy(texts = listOf(ScreenTextDefinition("{title}")))))
+    }
 }

@@ -63,16 +63,6 @@ internal data class BlockScope(
     fun managerField(manager: String) = manager.replaceFirstChar { it.lowercase() } + MANAGER_FIELD_SUFFIX
 
     /**
-     * The other Manager types that [blocks] and [texts] use, which the generated class has to look up.
-     */
-    fun managersUsedBy(blocks: List<BlockDefinition>, texts: List<String> = emptyList()) = (
-        blocks.mapNotNull { block -> block.propertyReference?.takeIf { it.name.isNotEmpty() && hasProperty(it) }?.manager } +
-            (blocks.mapNotNull { (it as? BlockDefinition.Log)?.message } + texts).flatMap { text ->
-                PropertyPlaceholders.find(text).filter { hasProperty(it) }.mapNotNull { it.manager }.toList()
-            }
-        ).filterNot { isOwn(it) }.distinct().sorted()
-
-    /**
      * The other Manager types that [kotlinUi] names by their field, which the generated class has to look up.
      */
     fun managersNamedIn(kotlinUi: KotlinUi?) = kotlinUi?.let { ui -> managerTypes.map { it.name }.filter { !isOwn(it) && ui.names(managerField(it)) } }.orEmpty()
@@ -84,7 +74,10 @@ internal data class BlockScope(
 
     fun propertyOf(placeholder: PropertyPlaceholders.Placeholder) = propertiesOf(placeholder.manager)?.firstOrNull { it.name == placeholder.name }
 
-    private fun isOwn(manager: String?) = manager == null || (kind == BlockTypeKind.MANAGER && manager == typeName)
+    /**
+     * Whether the Properties of [manager] are the type's own: it is null, or names the Manager type being generated.
+     */
+    fun isOwn(manager: String?) = manager == null || (kind == BlockTypeKind.MANAGER && manager == typeName)
 
     companion object {
 

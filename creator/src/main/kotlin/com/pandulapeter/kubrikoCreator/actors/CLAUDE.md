@@ -13,7 +13,9 @@
   get their own `run { }` scope, misplaced Blocks and unchosen choices become comments) and follows the engine's no-allocation
   rules.
 - A new Block is its `BlockDefinition` subclass, its `BlockKind` entry (every fact that is the same for each Block of the kind,
-  such as `needsActor` and `onlyIn`), and its emission in `BlockCodeGenerator`. Every `when` over Blocks names each one, so the
+  such as `needsActor` and `onlyIn`), and its emission in `BlockCodeGenerator`, which returns its lines with what they need
+  (`BlockCode`: the members the class declares, its imports, and the Manager types it reaches), so every lookup, import, and
+  Trait of the generated class follows from the code itself. Every `when` over Blocks names each one, so the
   compiler then names every remaining place (references, validation, notation, the editor row, its icon), and
   `theIntegrationProjectUsesEveryBlockAndCondition` fails until `EveryBlockTypes` (whose generated code `GeneratedCodeGoldenTest`
   pins) uses it.

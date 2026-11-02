@@ -55,11 +55,11 @@ class BlockKindTest {
     fun aBlockOutsideItsEventBecomesItsComment() {
         assertEquals(
             listOf("// Remove the other Actor only works in a collision Event."),
-            BlockCodeGenerator.blockLines(BlockDefinition.RemoveOther, EventType.EVERY_FRAME, BlockScope("Ball")),
+            BlockCodeGenerator.blockCode(BlockDefinition.RemoveOther, EventType.EVERY_FRAME, BlockScope("Ball")).lines,
         )
         assertEquals(
             listOf("// This Block only works in an Actor type."),
-            BlockCodeGenerator.blockLines(BlockDefinition.RemoveOther, EventType.EVERY_FRAME, BlockScope("Game", BlockTypeKind.MANAGER)),
+            BlockCodeGenerator.blockCode(BlockDefinition.RemoveOther, EventType.EVERY_FRAME, BlockScope("Game", BlockTypeKind.MANAGER)).lines,
         )
     }
 

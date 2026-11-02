@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerFields
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendVelocityField
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
@@ -30,7 +29,6 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.stringLiteral
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.unitLiteral
 
 /**
@@ -88,7 +86,6 @@ internal object ActorTypeCodeGenerator {
         val collisionEvents = features.collisionEvents
         val timerEvents = features.timerEvents
         val isCollidable = features.isCollidable
-        val generatedEvents = features.generatedEvents
         val timers = features.timers
         val isDynamic = features.isDynamic
         val lookups = features.lookups
@@ -154,9 +151,7 @@ internal object ActorTypeCodeGenerator {
             if (features.usesBounceOff) appendBounceOffFunction("private")
             appendLine()
             appendLine(if (spriteAccessor == null) drawFunction(definition.shape) else SPRITE_DRAW_FUNCTION)
-            if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) } }) {
-                appendNumberTextFunction("private")
-            }
+            if (features.usesNumberText) appendNumberTextFunction("private")
             appendSavedState(definition, definition.properties, spriteAccessor)
             appendLine("}")
         })

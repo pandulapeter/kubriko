@@ -14,11 +14,13 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.KEYBOARD_IM
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.KEYBOARD_MANAGER_IMPORTS
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_IMPORTS
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_MANAGER_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.ABSOLUTE_VALUE_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENE_OFFSET_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.blockLines
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventCode
 
 /**
  * What the generated code of Actors that react to [events] needs: which Events it generates, which Traits, Timers, and
@@ -50,32 +52,27 @@ internal class ActorTypeFeatures(
     val isCollidable = collisionEvents.isNotEmpty() || isCollidableAnyway
     val generatedEvents = addedEvents + everyFrameEvents + edgeEvents + keyEvents + collisionEvents + timerEvents
     val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
-    val generatedBlocks = generatedEvents.flatMap { it.blocks }
-    private val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
-    val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
-    val usesBounceOff = collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }
+    private val blockCode = generatedEvents.fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scope) }
 
-    // Edge Events use the Scene settings' bounds, which GeneratedScenes knows.
-    private val usesScenes = BlockCodeGenerator.usesScenes(generatedBlocks) || edgeEvents.isNotEmpty()
-    private val usesKotlin = generatedBlocks.any { it is BlockDefinition.Kotlin }
-    val isDynamic = usesKotlin || edgeEvents.isNotEmpty() || timers.isNotEmpty() ||
-        everyFrameEvents.any { it.blocks.isNotEmpty() } || generatedBlocks.any { it.movesTheActor }
-    private val usesActorManager = usesKotlin || generatedBlocks.any { it.needsActorManager(knownActorTypeNames) }
-    private val usesViewportManager = usesKotlin || edgeEvents.isNotEmpty()
-    private val usesStateManager = BlockCodeGenerator.usesPause(generatedBlocks) || keyEvents.isNotEmpty()
+    /**
+     * What the class declares for the Blocks and the Events: edge Events move the Actor within the Scene settings' bounds,
+     * which GeneratedScenes knows, and key Events check whether the game is paused.
+     */
+    private val needs = blockCode.needs + buildSet {
+        if (edgeEvents.isNotEmpty()) addAll(listOf(BlockNeed.MOVEMENT, BlockNeed.VIEWPORT_MANAGER, BlockNeed.SCENES))
+        if (timers.isNotEmpty() || everyFrameEvents.any { it.blocks.isNotEmpty() }) add(BlockNeed.MOVEMENT)
+        if (keyEvents.isNotEmpty()) add(BlockNeed.STATE_MANAGER)
+    }
+    val isDynamic = BlockNeed.MOVEMENT in needs
+    val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
+    val usesNumberText = BlockNeed.NUMBER_TEXT in needs
 
     /**
      * The fields the Actors look Managers up in when they are added, as `name: Type`.
      */
-    val lookups = listOfNotNull(
-        "actorManager: ActorManager".takeIf { usesActorManager },
-        "viewportManager: ViewportManager".takeIf { usesViewportManager },
-        "keyboardInputManager: KeyboardInputManager".takeIf { usesKeyHeld },
-        "$STATE_MANAGER_FIELD: StateManager".takeIf { usesStateManager },
-        "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}".takeIf { usesScenes },
-        "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}".takeIf { BlockCodeGenerator.usesAudio(generatedBlocks) },
-        "$SPRITE_MANAGER_FIELD: SpriteManager".takeIf { hasSprite },
-    ) + scope.managersUsedBy(generatedBlocks).map { "${scope.managerField(it)}: $it" }
+    val lookups = BlockNeed.entries.filter { it in needs }.mapNotNull(::lookupOf) +
+        listOfNotNull("$SPRITE_MANAGER_FIELD: SpriteManager".takeIf { hasSprite }) +
+        blockCode.managers.sorted().map { "${scope.managerField(it)}: $it" }
 
     /**
      * Whether the Actors override onAdded, to look the Managers up or to run their added-to-the-Scene Events.
@@ -98,60 +95,34 @@ internal class ActorTypeFeatures(
         if (collisionEvents.isNotEmpty()) add("com.pandulapeter.kubriko.collision.CollisionDetector")
         if (collisionEvents.isNotEmpty()) add("kotlin.reflect.KClass")
         if (keyEvents.isNotEmpty()) addAll(KEYBOARD_IMPORTS)
-        val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
-        if (usesBounceOff || blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, scope).any { "absoluteValue" in it } }) add("kotlin.math.absoluteValue")
-        if (generatedBlocks.any { it is BlockDefinition.Log }) add("com.pandulapeter.kubriko.logger.Logger")
-        if (usesBounceOff || edgeEvents.isNotEmpty()) add("com.pandulapeter.kubriko.types.SceneUnit")
-        if (usesKeyHeld) addAll(KEYBOARD_MANAGER_IMPORTS)
-        if (usesStateManager) add(STATE_MANAGER_IMPORT)
-        if (isDynamic) add("com.pandulapeter.kubriko.actor.traits.Dynamic")
-        if (usesActorManager) add("com.pandulapeter.kubriko.manager.ActorManager")
-        if (usesViewportManager) add("com.pandulapeter.kubriko.manager.ViewportManager")
+        if (edgeEvents.isNotEmpty()) add("com.pandulapeter.kubriko.types.SceneUnit")
+        needs.forEach { addAll(importsOf(it)) }
+        addAll(blockCode.imports)
         if (overridesOnAdded) add("com.pandulapeter.kubriko.Kubriko")
         if (lookups.isNotEmpty()) add("com.pandulapeter.kubriko.helpers.extensions.get")
-        if (isDynamic || edgeEvents.isNotEmpty() || generatedBlocks.any { it is BlockDefinition.JumpTo || (it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames) }) {
-            add("com.pandulapeter.kubriko.types.SceneOffset")
-        }
-        if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
         if (hasSprite) addAll(SPRITE_IMPORTS + listOf("$packageName.resources.Res", "$packageName.resources.allDrawableResources"))
-        if (generatedBlocks.any { it is BlockDefinition.MoveTowardsNearest && it.actorType in knownActorTypeNames }) {
-            add("com.pandulapeter.kubriko.helpers.extensions.normalized")
-        }
     }
 
     private companion object {
 
-        /**
-         * Whether [this] Block changes where the Actor is or how it moves, which only an Actor that updates every frame
-         * does. A Kotlin Block counts too, since it may.
-         */
-        val BlockDefinition.movesTheActor
-            get() = when (this) {
-                is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, is BlockDefinition.JumpTo,
-                is BlockDefinition.MoveTowardsNearest, BlockDefinition.BounceOffEdge, BlockDefinition.BounceOffOther, is BlockDefinition.Kotlin -> true
-                is BlockDefinition.If -> condition is ConditionDefinition.Velocity
-                BlockDefinition.RunParentEvent, BlockDefinition.RemoveSelf, BlockDefinition.RemoveOther,
-                is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
-                is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.StartTimer,
-                is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
-                is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-                BlockDefinition.StopMusic, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
-                is BlockDefinition.Log,
-                -> false
-            }
+        fun lookupOf(need: BlockNeed) = when (need) {
+            BlockNeed.ACTOR_MANAGER -> "actorManager: ActorManager"
+            BlockNeed.VIEWPORT_MANAGER -> "viewportManager: ViewportManager"
+            BlockNeed.KEYBOARD_INPUT_MANAGER -> "keyboardInputManager: KeyboardInputManager"
+            BlockNeed.STATE_MANAGER -> "$STATE_MANAGER_FIELD: StateManager"
+            BlockNeed.SCENES -> "$SCENES_FIELD: ${ScenesCodeGenerator.SCENES_NAME}"
+            BlockNeed.AUDIO -> "$AUDIO_FIELD: ${AudioCodeGenerator.AUDIO_NAME}"
+            BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF -> null
+        }
 
-        fun BlockDefinition.needsActorManager(knownActorTypeNames: Collection<String>) = when (this) {
-            BlockDefinition.RemoveSelf, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> true
-            is BlockDefinition.AddActor -> actorType in knownActorTypeNames
-            is BlockDefinition.MoveTowardsNearest -> actorType in knownActorTypeNames
-            is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
-            is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.BounceOffOther, is BlockDefinition.SetNumber,
-            is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
-            is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
-            BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
-            BlockDefinition.StopMusic, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
-            is BlockDefinition.Log,
-            -> false
+        fun importsOf(need: BlockNeed) = when (need) {
+            BlockNeed.MOVEMENT -> listOf("com.pandulapeter.kubriko.actor.traits.Dynamic", SCENE_OFFSET_IMPORT)
+            BlockNeed.ACTOR_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ActorManager")
+            BlockNeed.VIEWPORT_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ViewportManager")
+            BlockNeed.KEYBOARD_INPUT_MANAGER -> KEYBOARD_MANAGER_IMPORTS
+            BlockNeed.STATE_MANAGER -> listOf(STATE_MANAGER_IMPORT)
+            BlockNeed.BOUNCE_OFF -> listOf(ABSOLUTE_VALUE_IMPORT, "com.pandulapeter.kubriko.types.SceneUnit")
+            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.NUMBER_TEXT -> emptyList()
         }
     }
 }
