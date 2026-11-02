@@ -19,7 +19,6 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
@@ -114,7 +113,7 @@ class AiFeaturesOffTest {
                 onDismiss = {},
             )
         }
-        onNodeWithContentDescription("AI features").performClick()
+        onNodeWithText("AI features").performClick()
         onNodeWithText("Dark").performClick()
         onNodeWithText("100%").performClick()
         onNodeWithText(File("/Users/me").path).assertExists()

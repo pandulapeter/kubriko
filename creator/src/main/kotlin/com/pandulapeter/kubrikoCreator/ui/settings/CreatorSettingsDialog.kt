@@ -12,24 +12,22 @@ package com.pandulapeter.kubrikoCreator.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 import com.pandulapeter.kubrikoCreator.settings.ThemeChoice
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.pickFolder
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_browse
@@ -101,22 +99,13 @@ private fun AiSection(
     isAiEnabled: Boolean,
     onAiEnabledChange: (Boolean) -> Unit,
 ) = SettingsSection(Res.string.settings_section_ai) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            modifier = Modifier.weight(1f),
-            text = stringResource(Res.string.settings_ai_enabled),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        val label = stringResource(Res.string.settings_ai_enabled)
-        Switch(
-            modifier = Modifier.semantics { contentDescription = label },
-            checked = isAiEnabled,
-            onCheckedChange = onAiEnabledChange,
-        )
-    }
+    LabeledSwitch(
+        modifier = Modifier.fillMaxWidth(),
+        label = stringResource(Res.string.settings_ai_enabled),
+        checked = isAiEnabled,
+        onCheckedChange = onAiEnabledChange,
+        labelStyle = MaterialTheme.typography.bodyMedium,
+    )
     Text(
         text = stringResource(Res.string.settings_ai_enabled_description),
         style = MaterialTheme.typography.bodySmall,
