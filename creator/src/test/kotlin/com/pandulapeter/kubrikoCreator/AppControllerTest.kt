@@ -69,11 +69,12 @@ class AppControllerTest {
         recentProjectsStore = recentProjectsStore,
     )
 
-    private fun workspace(scope: CoroutineScope) = WorkspaceController(
+    private fun TestScope.workspace(scope: CoroutineScope) = WorkspaceController(
         project = CreatorProject(rootDirectory = directory, name = "game"),
         build = FakeProjectBuild().also(builds::add),
         sessionChannel = FakeSessionChannel(),
         parentScope = scope,
+        ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         scanResources = { emptyMap() },
     )
 
