@@ -105,8 +105,8 @@ All in the plans folder, untracked until the user commits them, and only for com
                  hurt (data loss, a crash, a store rejection); otherwise leave the section out
 ```
 
-A plan that only adds tests never touches production code: a test that fails on a real defect is `@Ignore`d with a
-reason and reported as a finding for a later plan.
+No test is ever `@Ignore`d. A plan whose new test fails on a real defect fixes that defect too, in its own commit
+before the test's; a defect that cannot be fixed stops the plan and goes to the user.
 
 A plan is self-contained: an agent that reads only it and the files it names can carry it out. Quote code rather
 than relying on line numbers alone, since the review's own fixes and earlier lanes move lines. A plan may say "drop
