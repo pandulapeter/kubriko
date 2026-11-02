@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
@@ -36,7 +37,7 @@ import kubriko.creator.generated.resources.error_command_size_invalid
 @Serializable
 @Description("The values to change of one Actor of the Scene. Values left out stay as they are.")
 internal data class ActorValueChanges(
-    @Description("The ID of the Actor in the Scene, as read_scene returns it.")
+    @Description(Descriptions.SCENE_ACTOR_ID)
     @SerialName("actorId") val actorId: String,
     @Description("The new horizontal position, in scene units.")
     @SerialName("x") val x: Float? = null,

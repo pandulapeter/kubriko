@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -44,9 +45,9 @@ internal object SetActorState : WriteCommand<SetActorState.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
+        @Description(Descriptions.SCENE_NAME)
         @SerialName("scene") val scene: String,
-        @Description("The ID of the Actor in the Scene, as read_scene returns it.")
+        @Description(Descriptions.SCENE_ACTOR_ID)
         @SerialName("actorId") val actorId: String,
         @Description("The new saved state of the Actor, as a JSON object in a string.")
         @SerialName("state") val state: String,

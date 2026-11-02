@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.withTextInserted
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -48,7 +49,7 @@ internal object AddText : WriteCommand<AddText.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Manager type.")
+        @Description(Descriptions.MANAGER_TYPE_NAME)
         @SerialName("managerType") val managerType: String,
         @Description("The text to add.")
         @SerialName("text") val text: ScreenTextDefinition,

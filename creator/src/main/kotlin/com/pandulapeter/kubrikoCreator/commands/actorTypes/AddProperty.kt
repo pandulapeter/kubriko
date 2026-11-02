@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.withPropertyInserted
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -49,7 +50,7 @@ internal object AddProperty : WriteCommand<AddProperty.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type or Manager type.")
+        @Description(Descriptions.TYPE_NAME)
         @SerialName("actorType") val actorType: String,
         @Description("The Property to add.")
         @SerialName("property") val property: PropertyDefinition,

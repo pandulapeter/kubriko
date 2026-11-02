@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -65,7 +66,7 @@ internal object SetDescription : WriteCommand<SetDescription.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type or Manager type.")
+        @Description(Descriptions.TYPE_NAME)
         @SerialName("type") val type: String? = null,
         @Description("The name of the Scene, instead of a type.")
         @SerialName("scene") val scene: String? = null,

@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.withTextRemoved
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
@@ -43,7 +44,7 @@ internal object RemoveText : WriteCommand<RemoveText.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Manager type.")
+        @Description(Descriptions.MANAGER_TYPE_NAME)
         @SerialName("managerType") val managerType: String,
         @Description("The index of the text in the Manager type's list of texts, starting from 0.")
         @SerialName("index") val index: Int,

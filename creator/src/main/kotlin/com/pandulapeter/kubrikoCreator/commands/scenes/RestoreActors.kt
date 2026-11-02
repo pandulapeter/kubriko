@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -70,7 +71,7 @@ internal object RestoreActors : WriteCommand<RestoreActors.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
+        @Description(Descriptions.SCENE_NAME)
         @SerialName("scene") val scene: String,
         @Description("The Actors to put in, in order.")
         @SerialName("actors") val actors: List<Restored>,

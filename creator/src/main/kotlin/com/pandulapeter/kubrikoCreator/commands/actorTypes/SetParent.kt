@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -46,7 +47,7 @@ internal object SetParent : WriteCommand<SetParent.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description(Descriptions.ACTOR_TYPE_NAME)
         @SerialName("actorType") val actorType: String,
         @Description("The name of the Actor type it inherits from, or none for no parent.")
         @SerialName("parent") val parent: String? = null,

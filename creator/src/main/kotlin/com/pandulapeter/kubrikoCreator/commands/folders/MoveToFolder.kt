@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.folders
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -46,7 +47,7 @@ internal object MoveToFolder : WriteCommand<MoveToFolder.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type or Manager type.")
+        @Description(Descriptions.TYPE_NAME)
         @SerialName("type") val type: String,
         @Description("The folder's path (folder names separated by slashes, like enemies/flying), or an empty text for none.")
         @SerialName("folder") val folder: String,

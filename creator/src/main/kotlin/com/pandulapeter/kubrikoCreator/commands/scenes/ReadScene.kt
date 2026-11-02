@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
@@ -122,7 +123,7 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
+        @Description(Descriptions.SCENE_NAME)
         @SerialName("scene") val scene: String,
         @Description("Whether to return only a summary of the matching Actors: how many there are of each type, and the bounds of their positions.")
         @SerialName("summary") val summary: Boolean = false,

@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.withEventInserted
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -59,7 +60,7 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type or Manager type.")
+        @Description(Descriptions.TYPE_NAME)
         @SerialName("actorType") val actorType: String,
         @Description("When the Event happens.")
         @SerialName("type") val type: EventType,

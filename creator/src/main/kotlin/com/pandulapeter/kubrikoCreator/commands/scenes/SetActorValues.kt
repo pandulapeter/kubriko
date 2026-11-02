@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -49,9 +50,9 @@ internal object SetActorValues : WriteCommand<SetActorValues.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1.")
+        @Description(Descriptions.SCENE_NAME)
         @SerialName("scene") val scene: String,
-        @Description("The ID of the Actor in the Scene, as read_scene returns it.")
+        @Description(Descriptions.SCENE_ACTOR_ID)
         @SerialName("actorId") val actorId: String,
         @Description("The new horizontal position, in scene units.")
         @SerialName("x") val x: Float? = null,

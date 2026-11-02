@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireManagerType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.typeReadResult
@@ -41,7 +42,7 @@ internal object ReadManagerType : ReadCommand<ReadManagerType.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Manager type.")
+        @Description(Descriptions.MANAGER_TYPE_NAME)
         @SerialName("managerType") val managerType: String,
         @Description("How much of it to return: outline (Events by title), blocks (Events with their Blocks, the default), or json (everything, as the write tools take it).")
         @SerialName("detail") val detail: ReadDetail = ReadDetail.BLOCKS,

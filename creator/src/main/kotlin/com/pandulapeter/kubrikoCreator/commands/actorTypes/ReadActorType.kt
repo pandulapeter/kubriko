@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.context.ReadDetail
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -38,7 +39,7 @@ internal object ReadActorType : ReadCommand<ReadActorType.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description(Descriptions.ACTOR_TYPE_NAME)
         @SerialName("actorType") val actorType: String,
         @Description("How much of it to return: outline (Events by title), blocks (Events with their Blocks, the default), or json (everything, as the write tools take it).")
         @SerialName("detail") val detail: ReadDetail = ReadDetail.BLOCKS,

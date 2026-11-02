@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.managerTypes
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
@@ -51,7 +52,7 @@ internal object SetKotlinUi : WriteCommand<SetKotlinUi.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Manager type.")
+        @Description(Descriptions.MANAGER_TYPE_NAME)
         @SerialName("managerType") val managerType: String,
         @Description("The Kotlin code: optional import lines, then the statements of the Composable, such as Column { BasicText(\"Lives: \${lives.count.toInt()}\") }.")
         @SerialName("code") val code: String,

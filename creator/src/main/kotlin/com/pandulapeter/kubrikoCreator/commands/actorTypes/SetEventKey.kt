@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.withEventKey
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -52,9 +53,9 @@ internal object SetEventKey : WriteCommand<SetEventKey.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type or Manager type.")
+        @Description(Descriptions.TYPE_NAME)
         @SerialName("actorType") val actorType: String,
-        @Description("The index of the Event in the Actor type's Event list, starting from 0.")
+        @Description(Descriptions.EVENT_INDEX)
         @SerialName("eventIndex") val eventIndex: Int,
         @Description("The key, " + KeyChoice.DESCRIPTION)
         @SerialName("key") val key: KeyChoice,
