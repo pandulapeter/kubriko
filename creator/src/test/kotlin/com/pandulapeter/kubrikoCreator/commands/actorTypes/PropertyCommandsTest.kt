@@ -11,9 +11,11 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -24,16 +26,19 @@ import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_property_kind_changed
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_property_name_invalid
 import kubriko.creator.generated.resources.error_property_name_taken
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -147,5 +152,48 @@ class PropertyCommandsTest {
         executor.step(isUndo = true)
         executor.step(isUndo = true)
         assertEquals(player, context.player())
+    }
+
+    private var isSceneLocked = false
+
+    @OptIn(EditorMutation::class)
+    private fun TestScope.lockableContext(vararg definitions: BlockTypeDefinition, actors: List<SceneActorEntry>) = commandContext(
+        *definitions,
+        sceneWriteText = { file, text -> if (isSceneLocked) throw IOException("Locked.") else file.writeTextAtomically(text) },
+    ).apply {
+        scenes.write("main", actors)
+        isSceneLocked = true
+    }
+
+    @Test
+    fun anAddedPropertyWhoseSceneCantBeWrittenIsNotAdded() = runTest {
+        val context = lockableContext(player, actors = listOf(SceneActorEntry("Player", """{"lives":"many"}""")))
+        val scene = context.scenes.read("main")
+        val executor = CommandExecutor(context, testScope())
+        assertEquals(
+            CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")),
+            executor.execute(Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Number("lives")))),
+        )
+        assertEquals(player, context.player())
+        assertEquals(scene, context.scenes.fileOf("main").readText())
+        assertEquals(0, executor.history.value.undoable.size)
+    }
+
+    @Test
+    fun anEditedPropertyWhoseSceneCantBeWrittenIsNotRenamed() = runTest {
+        val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("score")))
+        val brick = ActorTypeDefinition(
+            name = "Brick",
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", 10f, manager = "Game")))),
+        )
+        val context = lockableContext(brick, game, actors = listOf(SceneActorEntry("Game", """{"score":1.0}""")))
+        val executor = CommandExecutor(context, testScope())
+        assertEquals(
+            CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")),
+            executor.execute(Invocation(EditProperty, EditProperty.Input("Game", "score", PropertyDefinition.Number("points")))),
+        )
+        assertEquals(game, context.blockTypes!!["Game"])
+        assertEquals(brick, context.blockTypes["Brick"])
+        assertEquals(0, executor.history.value.undoable.size)
     }
 }

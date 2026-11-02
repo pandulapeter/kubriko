@@ -54,15 +54,24 @@ internal object EditProperty : WriteCommand<EditProperty.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
         val previous = definition.properties.first { it.name == input.property }
+        val previousTypes = linkedMapOf(definition.name to definition)
         context.requireBlockTypes.put(definition.withPropertyReplaced(input.property, input.newProperty))
         if (definition is ManagerTypeDefinition && input.newProperty.name != input.property) {
             context.requireBlockTypes.types.value.forEach { type ->
                 val renamed = type.withManagerPropertyRenamed(definition.name, input.property, input.newProperty.name)
-                if (renamed != type) context.requireBlockTypes.put(renamed)
+                if (renamed != type) {
+                    previousTypes.putIfAbsent(type.name, type)
+                    context.requireBlockTypes.put(renamed)
+                }
             }
         }
         if (input.newProperty.name != input.property) {
-            context.changeSceneStates(input.actorType) { it.withValueRenamed(input.property, input.newProperty.name) }
+            try {
+                context.changeSceneStates(input.actorType) { it.withValueRenamed(input.property, input.newProperty.name) }
+            } catch (exception: Exception) {
+                previousTypes.values.forEach(context.requireBlockTypes::put)
+                throw exception
+            }
         }
         return Applied(inverse = Invocation(EditProperty, Input(input.actorType, input.newProperty.name, previous)))
     }

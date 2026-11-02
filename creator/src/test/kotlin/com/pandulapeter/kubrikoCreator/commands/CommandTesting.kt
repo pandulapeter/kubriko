@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
@@ -22,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,14 +68,16 @@ internal fun TestScope.commandContext(
     report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
     rejectChanges: () -> Rejection? = { null },
+    ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
+    sceneWriteText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
     console = MutableStateFlow(console),
     blockTypes = blockTypes,
     git = git,
-    scenes = SceneStore(rootDirectory) { emptyList() },
+    scenes = SceneStore(rootDirectory, writeText = sceneWriteText) { emptyList() },
     runner = runner,
-    ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+    ioDispatcher = ioDispatcher,
     audioFiles = { audioFiles },
     spriteFiles = { spriteFiles },
     onScenesChanged = onScenesChanged,

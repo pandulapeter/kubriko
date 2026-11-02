@@ -128,7 +128,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   runs outside the change lock.
 - **`CommandExecutor`** (one per workspace) applies changes one at a time. Consecutive changes with the same `mergeKey` (typing into
   one field) are one undo step, as are those `mergesWith` joins (the renames of one Property); steps of different conversations,
-  or of an AI client and the user, never merge. A step that no longer validates is dropped. `dispatch` starts undispatched, so
+  or of an AI client and the user, never merge. A step that no longer validates is dropped. A command that throws is rejected with
+  the reason (an undo step that throws is dropped), and commands that change several Scenes write them all or none
+  (`SceneStore.writeAll`), putting their type change back when the Scenes can't be written. `dispatch` starts undispatched, so
   in-memory changes show before it returns, and rejections of dispatched changes and undo steps go to the console.
 - **Undo and redo restore:** their steps are `isRestoring` and validated by `WriteCommand.validateRestoring`, since what they bring
   back may name types, Scenes, or sounds deleted since; restoring checks only the structure (the type, Event, or Block exists, the

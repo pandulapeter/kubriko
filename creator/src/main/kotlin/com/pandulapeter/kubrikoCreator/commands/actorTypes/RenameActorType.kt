@@ -38,7 +38,13 @@ internal object RenameActorType : WriteCommand<RenameActorType.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.requireBlockTypes.rename(input.actorType, input.newName)
-        val changedScenes = withContext(context.ioDispatcher) { context.scenes.renameTypeId(input.actorType, input.newName) }
+        val changedScenes = try {
+            withContext(context.ioDispatcher) { context.scenes.renameTypeId(input.actorType, input.newName) }
+        } catch (exception: Exception) {
+            // Exact, since validate refused a taken name: only references this rename made point to the new one.
+            context.requireBlockTypes.rename(input.newName, input.actorType)
+            throw exception
+        }
         if (changedScenes.isNotEmpty()) context.onScenesChanged(changedScenes)
         return Applied(inverse = Invocation(RenameActorType, Input(actorType = input.newName, newName = input.actorType)))
     }

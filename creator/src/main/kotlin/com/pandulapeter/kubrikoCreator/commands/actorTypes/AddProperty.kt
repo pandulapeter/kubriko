@@ -44,7 +44,12 @@ internal object AddProperty : WriteCommand<AddProperty.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)
         context.requireBlockTypes.put(definition.withPropertyInserted(input.index ?: definition.properties.size, input.property))
-        context.changeSceneStates(input.actorType) { it.withoutMismatchedValue(input.property.name, PropertyKind.of(input.property)) }
+        try {
+            context.changeSceneStates(input.actorType) { it.withoutMismatchedValue(input.property.name, PropertyKind.of(input.property)) }
+        } catch (exception: Exception) {
+            context.requireBlockTypes.put(definition)
+            throw exception
+        }
         return Applied(inverse = Invocation(RemoveProperty, RemoveProperty.Input(input.actorType, input.property.name)))
     }
 

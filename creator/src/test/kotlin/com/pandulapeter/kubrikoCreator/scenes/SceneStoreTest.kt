@@ -12,14 +12,17 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import org.junit.Assume.assumeFalse
 import java.io.File
+import java.io.IOException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
@@ -34,6 +37,21 @@ class SceneStoreTest {
     @AfterTest
     fun tearDown() {
         root.deleteRecursively()
+    }
+
+    @Test
+    fun writeAllPutsBackWhatItWroteWhenOneSceneFails() {
+        val failing = SceneStore(root, writeText = { file, text -> if (file.name == "b.json") throw IOException("Locked.") else file.writeTextAtomically(text) }) { scanned }
+        levels.mkdirs()
+        val files = listOf("a", "b", "c").map { name -> File(levels, "$name.json").apply { writeText(SceneDocument.format(listOf(SceneActorEntry("Ball", "{}", name)))) } }
+        scan(*files.toTypedArray())
+        val originals = files.map { it.readBytes().toList() }
+        val actors = failing.actors("a")
+        assertFailsWith<IOException> {
+            failing.writeAll(listOf("a", "b", "c").associateWith { name -> listOf(SceneActorEntry("Puck", "{}", name)) })
+        }
+        assertEquals(originals, files.map { it.readBytes().toList() })
+        assertEquals(actors, failing.actors("a"))
     }
 
     private fun scan(vararg files: File) {

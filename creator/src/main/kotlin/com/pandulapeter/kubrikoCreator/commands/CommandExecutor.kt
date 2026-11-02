@@ -25,6 +25,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_turn_cancelled
+import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
 import kubriko.creator.generated.resources.error_mcp_internal
@@ -78,7 +79,11 @@ internal class CommandExecutor(
      */
     private suspend fun execute(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome = changes.withLock {
         validate(invocation)?.let { return@withLock CommandOutcome.Rejected(it) }
-        val applied = invocation.apply(context)
+        val applied = try {
+            invocation.apply(context)
+        } catch (exception: Exception) {
+            return@withLock CommandOutcome.Rejected(failureOf(exception))
+        }
         applied.failure?.let { return@withLock CommandOutcome.Rejected(it) }
         if (applied.isRewritingFiles) _history.value = CommandHistory()
         val target = invocation.target(context)
@@ -110,7 +115,7 @@ internal class CommandExecutor(
 
     /**
      * Reverts the newest change, or makes the newest reverted one again. A step that no longer applies (because the
-     * project changed outside Kubriko Creator, for example) is dropped from the history.
+     * project changed outside Kubriko Creator, for example), or that throws, is dropped from the history.
      *
      * @return What happened, or null if there was nothing to step.
      */
@@ -125,7 +130,12 @@ internal class CommandExecutor(
             _history.value = remaining
             return@withLock CommandOutcome.Rejected(rejection)
         }
-        val applied = invocation.apply(context)
+        val applied = try {
+            invocation.apply(context)
+        } catch (exception: Exception) {
+            _history.value = remaining
+            return@withLock CommandOutcome.Rejected(failureOf(exception))
+        }
         applied.failure?.let {
             _history.value = remaining
             return@withLock CommandOutcome.Rejected(it)
@@ -185,6 +195,15 @@ internal class CommandExecutor(
         } finally {
             publish(step.copy(target = runCatching { command.target(context, input) }.getOrNull() ?: step.target, isRunning = false, rejection = rejection))
         }
+    }
+
+    /**
+     * Why a command that threw wasn't applied. A cancellation isn't a rejection, so it is thrown on; an `Error`, which
+     * isn't caught, reaches the scope's handler.
+     */
+    private fun failureOf(exception: Exception): Rejection {
+        if (exception is CancellationException) throw exception
+        return Rejection(Res.string.error_command_failed, exception.message ?: exception.toString())
     }
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {

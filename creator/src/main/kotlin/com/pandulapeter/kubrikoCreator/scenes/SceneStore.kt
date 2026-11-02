@@ -28,10 +28,12 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @param sceneResources The Scene files the last scan of the project found. Scenes created since then are found in the
  *   folder new Scenes go to.
+ * @param writeText Writes a Scene file, replaceable so that tests can make one fail.
  */
 internal class SceneStore(
     private val rootDirectory: File,
     private val ownWrites: OwnWrites = OwnWrites(),
+    private val writeText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
     private val sceneResources: () -> List<ProjectResource>,
 ) {
     /**
@@ -136,7 +138,7 @@ internal class SceneStore(
     private fun write(name: String, content: String, actors: List<SceneActorEntry>?) {
         val file = file(name) ?: File(sceneDirectory, "$name.$EXTENSION")
         file.parentFile.mkdirs()
-        file.writeTextAtomically(content)
+        writeText(file, content)
         ownWrites.record(file)
         cache[file] = CachedScene(content, file.length(), file.lastModified(), actors)
     }
@@ -180,12 +182,16 @@ internal class SceneStore(
 
     @EditorMutation
     fun delete(name: String) {
+        deleteFile(name)
+        descriptions.set(name, null)
+    }
+
+    private fun deleteFile(name: String) {
         file(name)?.let { file ->
             file.delete()
             cache.remove(file)
             ownWrites.record(file)
         }
-        descriptions.set(name, null)
     }
 
     /**
@@ -207,13 +213,41 @@ internal class SceneStore(
         if (actor.typeId == typeId) SceneDocument.withStateChanged(actor.state, change)?.let { actor.copy(state = it) } ?: actor else actor
     }
 
+    /**
+     * Writes every Scene in [changes], or, when one can't be written, puts back those written before it and throws.
+     */
     @EditorMutation
-    private fun changeActors(change: (SceneActorEntry) -> SceneActorEntry) = names().filter { name ->
-        val actors = actors(name) ?: return@filter false
-        val changed = actors.map(change)
-        if (changed == actors) return@filter false
-        write(name, changed)
-        true
+    fun writeAll(changes: Map<String, List<SceneActorEntry>>) {
+        val originals = changes.keys.associateWith { name -> cached(name)?.text }
+        val written = ArrayList<String>()
+        try {
+            changes.forEach { (name, actors) ->
+                write(name, actors)
+                written += name
+            }
+        } catch (exception: IOException) {
+            written.forEach { name ->
+                try {
+                    val original = originals.getValue(name)
+                    if (original != null) write(name, original) else deleteFile(name)
+                } catch (restoreException: IOException) {
+                    exception.addSuppressed(restoreException)
+                }
+            }
+            throw exception
+        }
+    }
+
+    @EditorMutation
+    private fun changeActors(change: (SceneActorEntry) -> SceneActorEntry): List<String> {
+        val changes = LinkedHashMap<String, List<SceneActorEntry>>()
+        names().forEach { name ->
+            val actors = actors(name) ?: return@forEach
+            val changed = actors.map(change)
+            if (changed != actors) changes[name] = changed
+        }
+        writeAll(changes)
+        return changes.keys.toList()
     }
 
     private fun file(name: String) = sceneResources().firstOrNull { nameOf(it.file) == name && it.file.isFile }?.file

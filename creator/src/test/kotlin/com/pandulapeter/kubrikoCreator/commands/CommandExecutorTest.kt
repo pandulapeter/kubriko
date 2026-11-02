@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -35,11 +36,13 @@ import kubriko.creator.generated.resources.command_edit_block
 import kubriko.creator.generated.resources.command_read_actor_type
 import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_command_actor_type_missing
+import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
 import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_project_newer_format
 import kubriko.creator.generated.resources.error_type_name_taken
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -215,10 +218,10 @@ class CommandExecutorTest {
 
             override fun validate(context: CommandContext, input: NoInput): Rejection? = null
 
-            override suspend fun apply(context: CommandContext, input: NoInput): Applied = error("Broken.")
+            override suspend fun apply(context: CommandContext, input: NoInput): Applied = throw NotImplementedError("Broken.")
         }
         val executor = CommandExecutor(context = commandContext(), scope = testScope(), registry = CommandRegistry(listOf(failing)))
-        assertFailsWith<IllegalStateException> { executor.call("fail", JsonObject(emptyMap())) }
+        assertFailsWith<NotImplementedError> { executor.call("fail", JsonObject(emptyMap())) }
         val step = executor.aiSteps.value.last()
         assertFalse(step.isRunning)
         assertEquals(Res.string.error_mcp_internal, step.rejection?.reason)
@@ -277,5 +280,47 @@ class CommandExecutorTest {
         assertEquals(listOf("Ball"), context.names())
         rejection = null
         assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+    }
+
+    private fun command(name: String, apply: (NoInput) -> Applied) = object : WriteCommand<NoInput> {
+        override val name = name
+        override val description = name
+        override val inputSerializer = NoInput.serializer()
+        override val title = Res.string.command_set_appearance
+
+        override fun validate(context: CommandContext, input: NoInput): Rejection? = null
+
+        override suspend fun apply(context: CommandContext, input: NoInput): Applied = apply(input)
+    }
+
+    @Test
+    fun aThrowingCommandIsRejected() = runTest {
+        val (executor, context) = executor(ball)
+        val locked = command("locked") { throw IOException("Locked.") }
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")), executor.execute(Invocation(locked, NoInput)))
+        assertEquals(emptyList(), executor.history.value.undoable)
+        assertIs<CommandOutcome.Success>(executor.execute(width(10f)))
+        assertEquals(10f, context.blockTypes!!.actorType("Ball")!!.width)
+    }
+
+    @Test
+    fun aThrowingUndoStepIsDropped() = runTest {
+        val (executor, context) = executor()
+        val throwing = command("throwing") { error("Broken.") }
+        val revertedByThrowing = command("revertedByThrowing") { Applied(inverse = Invocation(throwing, NoInput)) }
+        executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
+        executor.execute(Invocation(revertedByThrowing, NoInput))
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Broken.")), executor.step(isUndo = true))
+        assertEquals(1, executor.history.value.undoable.size)
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(emptyList(), context.names())
+    }
+
+    @Test
+    fun cancellationIsNotARejection() = runTest {
+        val (executor, _) = executor()
+        val cancelled = command("cancelled") { throw CancellationException("Stopped.") }
+        assertFailsWith<CancellationException> { executor.execute(Invocation(cancelled, NoInput)) }
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball"))))
     }
 }

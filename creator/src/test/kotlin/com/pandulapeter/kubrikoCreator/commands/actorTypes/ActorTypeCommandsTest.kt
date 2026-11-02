@@ -21,6 +21,8 @@ import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -28,14 +30,20 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testScope
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
+import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_block_missing
 import kubriko.creator.generated.resources.error_command_block_not_allowed
 import kubriko.creator.generated.resources.error_command_event_missing
+import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_index_invalid
 import kubriko.creator.generated.resources.error_command_key_not_allowed
 import kubriko.creator.generated.resources.error_command_music_missing
@@ -56,10 +64,12 @@ import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_type_name_taken
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.IOException
 import javax.imageio.ImageIO
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class ActorTypeCommandsTest {
@@ -328,5 +338,38 @@ class ActorTypeCommandsTest {
         assertNull(DiscardChangesMadeByHand.apply(context, DiscardChangesMadeByHand.Input("Ball")).inverse)
         assertEquals("regenerate overwriting Ball", repository.writes.last())
         assertEquals(Rejection(Res.string.error_command_not_changed_by_hand, "Ball"), context.rejection(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input("Ball")))
+    }
+
+    @Test
+    fun aRenameShowsBeforeItsScenesAreWritten() = runTest {
+        val speed = PropertyDefinition.Number("speed")
+        val context = commandContext(ball.copy(properties = listOf(speed)), wall, ioDispatcher = StandardTestDispatcher(testScheduler))
+        val executor = CommandExecutor(context, testScope())
+        executor.dispatch(Invocation(RenameActorType, RenameActorType.Input("Ball", "Puck")))
+        assertNotNull(context.blockTypes!!["Puck"])
+        testScheduler.runCurrent()
+        assertEquals(1, executor.history.value.undoable.size)
+        executor.dispatch(Invocation(EditProperty, EditProperty.Input("Puck", "speed", speed.copy(name = "pace"))))
+        assertEquals(listOf(speed.copy(name = "pace")), context.blockTypes["Puck"]!!.properties)
+        testScheduler.runCurrent()
+    }
+
+    @Test
+    @OptIn(EditorMutation::class)
+    fun aRenameWhoseSceneCantBeWrittenChangesNothing() = runTest {
+        var isLocked = false
+        val context = commandContext(ball, wall, sceneWriteText = { file, text -> if (isLocked && file.name == "two.json") throw IOException("Locked.") else file.writeTextAtomically(text) })
+        listOf("one", "two").forEach { name -> context.scenes.write(name, listOf(SceneActorEntry("Ball", "{}", name))) }
+        val scenes = listOf("one", "two").map { context.scenes.read(it) }
+        isLocked = true
+        val executor = CommandExecutor(context, testScope())
+        assertEquals(
+            CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")),
+            executor.execute(Invocation(RenameActorType, RenameActorType.Input("Ball", "Puck"))),
+        )
+        assertEquals(ball, context.ball())
+        assertNull(context.blockTypes!!["Puck"])
+        assertEquals(scenes, listOf("one", "two").map { File(context.scenes.fileOf(it).path).readText() })
+        assertEquals(0, executor.history.value.undoable.size)
     }
 }
