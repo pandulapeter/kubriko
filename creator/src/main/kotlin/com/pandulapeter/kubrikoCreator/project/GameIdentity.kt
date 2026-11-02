@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_identity_application_id_invalid
@@ -106,6 +107,7 @@ internal data class GameIdentity(
             return File(rootDirectory, GRADLE_PROPERTIES_FILE).takeIf { it.isFile }?.let { of(it.readText()) }
         }
 
+        @EditorMutation
         fun write(rootDirectory: File, identity: GameIdentity) {
             val file = File(rootDirectory, GRADLE_PROPERTIES_FILE)
             val raw = if (file.isFile) file.readText() else ""

@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
@@ -98,6 +99,7 @@ internal class ProjectUpgrader(
      *
      * @return What is still left to do.
      */
+    @EditorMutation
     fun apply(): TemplateUpgrade {
         val upgrade = check()
         if (upgrade is TemplateUpgrade.Needed) {

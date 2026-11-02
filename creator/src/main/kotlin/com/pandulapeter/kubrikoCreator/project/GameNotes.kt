@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import java.io.File
 
@@ -27,6 +28,7 @@ internal object GameNotes {
     /**
      * Replaces the notes with [text], or deletes them for null.
      */
+    @EditorMutation
     fun write(root: File, text: String?) {
         val file = File(root, FILE_NAME)
         if (text == null) {

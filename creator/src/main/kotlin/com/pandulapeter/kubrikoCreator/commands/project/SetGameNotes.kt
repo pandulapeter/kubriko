@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.GameNotes
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
@@ -24,6 +25,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_game_notes
 import kubriko.creator.generated.resources.error_command_game_notes_too_long
 
+@OptIn(EditorMutation::class)
 internal object SetGameNotes : WriteCommand<SetGameNotes.Input> {
     override val name = "set_game_notes"
     override val description = "Replaces the game's design notes (AGENTS.md at the project's root, Markdown) with text, or deletes them for none. Keep them " +
