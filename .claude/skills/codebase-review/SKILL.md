@@ -141,8 +141,11 @@ again when the plans land: the commit range, and what was skipped and why. Point
 ## 4. Execution (only when the user says so)
 
 **Preconditions** — stop and tell the user if any fails: the tree is clean apart from the plans folder; the
-challenge (section 1, step 7) has run on every plan; every open decision has an answer; the unit tests pass. Commit
-the plans first if they are untracked (`Add the <nth> review plans.`), then note `START=$(git rev-parse HEAD)`.
+challenge (section 1, step 7) has run on every plan; every open decision has an answer; the unit tests pass;
+`git config core.hooksPath` prints the relative `.githooks` (worktrees share the checkout's config, and only a relative
+path makes each worktree run its own hook, so a lane that changes the hook is checked by it in its own commits; in
+Campfire an absolute path ran the main checkout's hook in every lane). Commit the plans first if they are untracked
+(`Add the <nth> review plans.`), then note `START=$(git rev-parse HEAD)`.
 
 **Lanes** — one **detached** worktree per lane next to the checkout, so no branch is created:
 `git worktree add --detach ../<Repo>-lane-<x> START`. Spawn one `general-purpose` subagent per lane in a single
