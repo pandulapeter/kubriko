@@ -68,11 +68,12 @@ class AssistantControllerTest {
         registry: AgentRegistryStore? = null,
         installer: BinaryAgentInstaller? = null,
         isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
+        secretStore: SecretStore = secrets,
     ) = AssistantController(
         scope = scope,
         runner = runner,
         store = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
-        secrets = secrets,
+        secrets = secretStore,
         signInLauncher = terminals,
         ioDispatcher = Dispatchers.IO,
         createAssistant = { command, _, profile ->
@@ -230,6 +231,24 @@ class AssistantControllerTest {
         val afterRestart = controller(registry)
         afterRestart.startChat().state.first { it == ChatState.Ready }
         assertEquals("secret", commands.last().environment["FAKE_API_KEY"])
+    }
+
+    @Test
+    fun rememberedVariablesAreReadOffTheMainThread() = test {
+        val registry = registry(CODEX)
+        registry.refresh()
+        AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "codex-acp", agentVariables = mapOf("codex-acp" to listOf("FAKE_API_KEY"))))
+        secrets.secrets["agent-variable:codex-acp:FAKE_API_KEY"] = "secret"
+        val readingThreads = CopyOnWriteArrayList<Thread>()
+        val recordingSecrets = object : SecretStore by secrets {
+            override fun read(name: String) = secrets.read(name).also { readingThreads += Thread.currentThread() }
+        }
+        val controller = controller(registry, secretStore = recordingSecrets)
+        controller.startChat().state.first { it == ChatState.Ready }
+        assertEquals("secret", commands.single().environment["FAKE_API_KEY"])
+        val main = onMain { Thread.currentThread() }
+        assertTrue(readingThreads.isNotEmpty())
+        assertFalse(main in readingThreads)
     }
 
     @Test

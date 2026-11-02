@@ -452,7 +452,7 @@ internal class AssistantController(
             agentsLoaded.await()
             val choice = _agent.value
             val npx = commands.npx()
-            val environment = if (choice.isClaude) claude.environment() else agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty())
+            val environment = if (choice.isClaude) claude.environment() else withContext(ioDispatcher) { agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty()) }
             createAssistant(commands.of(choice, npx, environment), npx, choice.profile).also { assistant.value = it }
         }
     }
