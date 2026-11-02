@@ -141,6 +141,8 @@ internal class BlockTypeStore private constructor(
         generatedFile(name).delete()
         generatedTexts.remove(name)
         changedByHand.remove(name)
+        // Its code is gone, so the next regeneration writes it even from the same types, as after an undone delete.
+        lastGeneration = null
     }
 
     /**

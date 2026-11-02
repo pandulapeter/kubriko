@@ -565,6 +565,16 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun aTypeDeletedAndSavedAgainIsRegeneratedFromTheSameTypes() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.saveAndRegenerate(ball)
+        store.delete("Ball")
+        store.saveAndRegenerate(ball)
+        assertEquals(ActorTypeCodeGenerator.generateActorType(ball, "com.example.game"), File(generated, "Ball.kt").readText())
+    }
+
+    @Test
     fun aStoreUsedBeforeLoadingStillFindsOldFiles() {
         optIn()
         BlockTypeStore.open(root)!!.save(ball.withFolder("old"))
