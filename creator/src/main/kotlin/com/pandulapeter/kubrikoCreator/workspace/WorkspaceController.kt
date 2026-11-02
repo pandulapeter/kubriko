@@ -221,26 +221,32 @@ internal class WorkspaceController(
     }
 
     /**
-     * Creates an empty Actor type and selects it.
+     * Creates an empty Actor type and selects it, closing the Scene shown.
      *
      * @return Why [name] can't be used, or null if the Actor type is being created.
      */
     fun createActorType(name: String): StringResource? {
         val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it.reason }
-        commands.dispatch(invocation) { blockTypes?.select(name) }
+        commands.dispatch(invocation) {
+            sceneEditing.close()
+            blockTypes?.select(name)
+        }
         return null
     }
 
     /**
-     * Creates an empty Manager type and selects it.
+     * Creates an empty Manager type and selects it, closing the Scene shown.
      *
      * @return Why [name] can't be used, or null if the Manager type is being created.
      */
     fun createManagerType(name: String): StringResource? {
         val invocation = Invocation(CreateManagerType, ManagerTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it.reason }
-        commands.dispatch(invocation) { blockTypes?.select(name) }
+        commands.dispatch(invocation) {
+            sceneEditing.close()
+            blockTypes?.select(name)
+        }
         return null
     }
 

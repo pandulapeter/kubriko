@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.LoadedEntryPoint
+import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.JavaArgumentFile
@@ -701,6 +702,19 @@ class WorkspaceControllerTest {
         assertNull(controller.createActorType("Player"))
         assertEquals(3, scanCount)
         assertEquals("Player", controller.blockTypes!!.selectedName.value)
+    }
+
+    @Test
+    fun creatingAnActorOrManagerTypeClosesTheSceneShownAndSelectsTheType() = runTest {
+        val controller = createController(blockTypeRepository = FakeBlockTypeRepository())
+        controller.sceneEditing.open(scene)
+        assertNull(controller.createActorType("Player"))
+        assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
+        assertEquals("Player", controller.blockTypes!!.selectedName.value)
+        controller.sceneEditing.open(scene)
+        assertNull(controller.createManagerType("Game"))
+        assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
+        assertEquals("Game", controller.blockTypes!!.selectedName.value)
     }
 
     @Test
