@@ -41,11 +41,13 @@ internal sealed interface SceneEditingState {
     ) : SceneEditingState
 
     /**
-     * The project's Kubriko version isn't Creator's, so its classes can't be drawn in Creator's window.
+     * The project's Kubriko version isn't Creator's, or its Compose or Kotlin is newer, so its classes can't be drawn in
+     * Creator's window.
      */
     data class Unsupported(
         val scene: ProjectResource,
-        val projectKubrikoVersion: String,
+        val reason: StringResource,
+        val arguments: List<String>,
     ) : SceneEditingState
 
     /**

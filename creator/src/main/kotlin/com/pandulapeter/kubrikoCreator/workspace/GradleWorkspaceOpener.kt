@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.foundation.CreatorLibraries
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
@@ -43,6 +44,7 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
         val project = withContext(Dispatchers.IO) { CreatorProject(rootDirectory = directory, name = ProjectInspector.nameOf(directory)) }
         val ownWrites = OwnWrites()
         val configuration = CreatorConfiguration.load()
+        val creatorLibraries = withContext(Dispatchers.IO) { CreatorLibraries.load() }
         val projectFormat = ProjectFormat(directory, configuration.kubrikoVersion)
         val formatStatus = try {
             withContext(Dispatchers.IO) { projectFormat.prepare() }
@@ -61,6 +63,7 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
             blockTypeRepository = blockTypeStore,
             syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
             creatorKubrikoVersion = configuration.kubrikoVersion,
+            creatorLibraries = creatorLibraries,
             initialFormatStatus = formatStatus,
             projectFormat = projectFormat,
             generatedPath = blockTypeStore?.generatedPath,

@@ -12,10 +12,11 @@
 // version, and kubrikoCreatorClasspath compiles the module and writes its Kubriko version and runtime classpath (with the module's
 // own output folders in place of its jar) to a file, for Kubriko Creator to load the project's classes itself, followed by what it
 // takes to launch the game from them as kubrikoCreatorSession does (the "launch." lines), for Kubriko Creator to play the game
-// without Gradle; with kubrikoCreatorHotReload, also how Compose Hot Reload would run it ("launch.hot" lines), so that changes
-// reach the running game through its reload task. kubrikoCreatorWarmUp
-// compiles one generated file next to the module's code, so that Kotlin's compile daemon is running and warm before the first change,
-// even when the classpath build at opening found everything up to date. Nothing here keeps the configuration cache from being used.
+// without Gradle, and the versions its runtime classpath resolved (the "library." lines), for Kubriko Creator to check against its
+// own; with kubrikoCreatorHotReload, also how Compose Hot Reload would run it ("launch.hot" lines), so that changes reach the
+// running game through its reload task. kubrikoCreatorWarmUp compiles one generated file next to the module's code, so that Kotlin's
+// compile daemon is running and warm before the first change, even when the classpath build at opening found everything up to date.
+// Nothing here keeps the configuration cache from being used.
 if (gradle.startParameter.projectProperties["kubrikoCreatorMode"] != null) {
     gradle.allprojects {
         pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
@@ -64,6 +65,7 @@ gradle.projectsEvaluated {
         tasks.register("kubrikoCreatorClasspath") {
             group = "kubriko creator"
             val version = kubrikoVersion(runtime)
+            val resolvedArtifacts = runtime.incoming.artifacts.resolvedArtifacts
             val isPackedJarOnly = jar != null && run.classpath.minus(runtime).files == setOf(jar.archiveFile.get().asFile)
             val classpath = if (isPackedJarOnly) runtime else run.classpath
             val packedFiles = if (isPackedJarOnly) jar.source else files()
@@ -118,7 +120,11 @@ gradle.projectsEvaluated {
                     listOf("launch.hotJava=$hotJavaPath", "launch.hotArgumentFile=${hotArgumentFile.absolutePath}", "launch.hotReloadTask=$hotReloadTaskName") +
                         sessionFiles.files.map { "launch.hotLibrary=${it.absolutePath}" }
                 }
-                file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath } + launch + hotLaunch).joinToString("\n"))
+                val libraries = resolvedArtifacts.get()
+                    .mapNotNull { it.id.componentIdentifier as? org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                    .map { "library.${it.group}:${it.module}=${it.version}" }
+                    .distinct()
+                file.writeText((listOf("kubrikoVersion=$version") + (folders + classpath.files).map { it.absolutePath } + launch + hotLaunch + libraries).joinToString("\n"))
             }
         }
         val warmUpCompile = extra.properties[warmUpTaskProperty(runtime.name.removeSuffix("RuntimeClasspath"))]

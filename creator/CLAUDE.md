@@ -187,7 +187,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   touching the project. Every build's arguments come from `SessionInitScript.gradleArguments`, and the script and the classpath
   file keep stable paths, since Gradle reuses a configuration cache only for the same init scripts and `-P` values; the script
   works with the configuration cache. The classpath lists the folders the module's jar is packed from in place of the jar, so the
-  jar isn't packed.
+  jar isn't packed, and the versions its runtime classpath resolved (`library.` lines).
 - **Incremental builds** (`IncrementalCompilationPolicy`): common code, where generated code lives, compiles incrementally only
   through Kotlin's `enableUnsafeOptimizationsForMultiplatform` (KT-62686: otherwise any change to it compiles everything), except in
   projects whose sources declare an `expect`; the build after a failed one, a Reload, or classes that couldn't be loaded runs with
@@ -208,10 +208,11 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 
 Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own and not `tools/scene-editor`.
 
-- It works only when the project's Kubriko version equals Creator's: the project's classes load into a class loader whose parent is
-  Creator's (Kubriko, Compose, and Kotlin shared; the project's jars are copied and the class files of its folders read before
-  anything loads, so a rebuild can replace them while they are in use), and `SceneView` creates the Actors in a Kubriko instance
-  that never runs. Another version gets a notice instead (`SceneEditingState.Unsupported`), and a failed build or entry point a
+- It works only when the project's Kubriko version equals Creator's and its Compose and Kotlin are no newer major or minor version
+  (`SharedLibraries`; another newer shared library loads with a console warning): the project's classes load into a class loader
+  whose parent is Creator's (Kubriko, Compose, and Kotlin shared; the project's jars are copied and the class files of its folders
+  read before anything loads, so a rebuild can replace them while they are in use), and `SceneView` creates the Actors in a Kubriko
+  instance that never runs. Another version gets a notice instead (`SceneEditingState.Unsupported`), and a failed build or entry point a
   notice with Try again (`SceneEditingState.Failed`).
 - Creating a `SceneView` runs the project's code, so it happens off the main thread, and what that code throws (a
   `NoClassDefFoundError` too) fails the Scene, or leaves the older classes shown as outdated. A load cancelled midway closes what

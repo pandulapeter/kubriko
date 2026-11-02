@@ -79,7 +79,6 @@ import com.pandulapeter.kubrikoCreator.workspace.toRejection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.project_upgrade_commit_message
 import kubriko.creator.generated.resources.scene_preparing
-import kubriko.creator.generated.resources.scene_unsupported
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -243,7 +242,7 @@ internal fun WorkspaceScreen(
                     is SceneEditingState.Unsupported -> SceneNotice(
                         modifier = centerModifier,
                         sceneName = state.scene.name,
-                        message = stringResource(Res.string.scene_unsupported, controller.creatorKubrikoVersion, state.projectKubrikoVersion),
+                        message = stringResource(state.reason, *state.arguments.toTypedArray()),
                         onClose = controller.sceneEditing::close,
                     )
                     is SceneEditingState.Failed -> SceneNotice(

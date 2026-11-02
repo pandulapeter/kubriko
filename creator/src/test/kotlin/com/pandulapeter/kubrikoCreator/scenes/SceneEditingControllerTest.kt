@@ -30,6 +30,9 @@ import kubriko.creator.generated.resources.error_entry_point_missing
 import kubriko.creator.generated.resources.error_entry_point_not_loaded
 import kubriko.creator.generated.resources.error_scene_view_failed
 import kubriko.creator.generated.resources.scene_build_failed
+import kubriko.creator.generated.resources.scene_unsupported
+import kubriko.creator.generated.resources.scene_unsupported_library
+import kubriko.creator.generated.resources.status_scene_newer_libraries
 import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -50,6 +53,7 @@ class SceneEditingControllerTest {
         override fun createSerializationManager() = throw NotImplementedError()
     }
     private var projectVersion = "1.0.0"
+    private var projectLibraries = ""
     private var isBuildSuccessful = true
     private val tasks = mutableListOf<Pair<String, Map<String, String>>>()
     private val loadedClasspaths = mutableListOf<ProjectClasspath>()
@@ -78,12 +82,14 @@ class SceneEditingControllerTest {
 
     private fun TestScope.createController(
         scope: CoroutineScope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
+        creatorLibraries: Map<String, String> = emptyMap(),
     ) = SceneEditingController(
         creatorKubrikoVersion = "1.0.0",
+        creatorLibraries = creatorLibraries,
         runTask = { taskName, properties ->
             tasks += taskName to properties
             buildGate?.await()
-            File(properties.getValue("kubrikoCreatorClasspathFile")).writeText("kubrikoVersion=$projectVersion\n/game/build/libs/game.jar")
+            File(properties.getValue("kubrikoCreatorClasspathFile")).writeText("kubrikoVersion=$projectVersion\n/game/build/libs/game.jar$projectLibraries")
             isBuildSuccessful
         },
         entryPointLoader = { loader.load(it) },
@@ -280,9 +286,42 @@ class SceneEditingControllerTest {
         projectVersion = "0.9.0"
         val controller = createController()
         controller.open(scene)
-        assertEquals(SceneEditingState.Unsupported(scene, "0.9.0"), controller.state.value)
+        assertEquals(SceneEditingState.Unsupported(scene, Res.string.scene_unsupported, listOf("1.0.0", "0.9.0")), controller.state.value)
         assertTrue(reports.isEmpty())
         assertTrue(loadedClasspaths.isEmpty())
+    }
+
+    @Test
+    fun aSceneOfAProjectOnANewerComposeCantBeEdited() = runTest {
+        projectLibraries = "\nlibrary.org.jetbrains.compose.runtime:runtime-desktop=9.0.0"
+        val controller = createController(creatorLibraries = mapOf("org.jetbrains.compose.runtime:runtime-desktop" to "1.12.2"))
+        controller.open(scene)
+        assertEquals(
+            SceneEditingState.Unsupported(
+                scene,
+                Res.string.scene_unsupported_library,
+                listOf("org.jetbrains.compose.runtime:runtime-desktop", "9.0.0", "1.12.2"),
+            ),
+            controller.state.value,
+        )
+        assertTrue(loadedClasspaths.isEmpty())
+    }
+
+    @Test
+    fun newerOtherLibrariesAreReportedOnceAndTheSceneOpens() = runTest {
+        projectLibraries = "\nlibrary.org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm=1.12.0"
+        val controller = createController(creatorLibraries = mapOf("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm" to "1.11.0"))
+        controller.open(scene)
+        assertIs<SceneEditingState.Open>(controller.state.value)
+        val warning = ConsoleEntry.Status(
+            Res.string.status_scene_newer_libraries,
+            arguments = listOf("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm 1.12.0 (Creator: 1.11.0)"),
+        )
+        assertEquals(1, reports.count { it == warning })
+        controller.markOutdated()
+        assertEquals(2, loadedClasspaths.size)
+        assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals(1, reports.count { it == warning }, "a rebuild doesn't repeat the warning")
     }
 
     @Test

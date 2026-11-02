@@ -96,7 +96,8 @@ internal class WorkspaceController(
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
-    val creatorKubrikoVersion: String = "",
+    creatorKubrikoVersion: String = "",
+    creatorLibraries: Map<String, String> = emptyMap(),
     initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
     private val projectFormat: ProjectFormat = ProjectFormat(project.rootDirectory, creatorKubrikoVersion),
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader(project.rootDirectory),
@@ -177,6 +178,7 @@ internal class WorkspaceController(
      */
     val sceneEditing = SceneEditingController(
         creatorKubrikoVersion = creatorKubrikoVersion,
+        creatorLibraries = creatorLibraries,
         runTask = tasks::run,
         entryPointLoader = entryPointLoader,
         classpathFile = SessionInitScript.classpathFileOf(project.rootDirectory),

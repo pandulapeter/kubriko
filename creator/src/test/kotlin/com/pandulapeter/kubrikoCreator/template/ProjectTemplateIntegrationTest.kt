@@ -129,8 +129,11 @@ class ProjectTemplateIntegrationTest {
                 )
             }
             assertTrue(isSuccessful, "$description: the desktop runtime classpath doesn't resolve:\n$output")
-            val launch = assertNotNull(ProjectClasspath.parse(classpathFile.readText())?.launch, "$description: the classpath says nothing about launching the game")
+            val classpath = assertNotNull(ProjectClasspath.parse(classpathFile.readText()), "$description: the classpath can't be read")
+            val launch = assertNotNull(classpath.launch, "$description: the classpath says nothing about launching the game")
             assertTrue(launch.classpath.any { "creator-session" in it.name }, "$description: the game would be launched without the session library")
+            assertTrue("org.jetbrains.kotlin:kotlin-stdlib" in classpath.libraries, "$description: the classpath doesn't say which Kotlin it resolved")
+            assertTrue(classpath.libraries.keys.any { it.startsWith("org.jetbrains.compose.") }, "$description: the classpath doesn't say which Compose it resolved")
         } finally {
             classpathFile.delete()
         }

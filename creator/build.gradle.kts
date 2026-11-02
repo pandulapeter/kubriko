@@ -69,8 +69,29 @@ val generateCreatorProperties = tasks.register("generateCreatorProperties") {
     }
 }
 
+/**
+ * The versions of the libraries Kubriko Creator runs with, which a project's classes loaded next to Creator's share
+ * (scenes/SharedLibraries.kt): every external module of the runtime classpath, as `group:module=version` lines.
+ */
+val generateCreatorLibraries = tasks.register("generateCreatorLibraries") {
+    val outputDirectory = layout.buildDirectory.dir("generated/creatorLibraries")
+    val libraries = configurations.runtimeClasspath.flatMap { it.incoming.artifacts.resolvedArtifacts }.map { artifacts ->
+        artifacts
+            .mapNotNull { it.id.componentIdentifier as? org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+            .map { "${it.group}:${it.module}=${it.version}" }
+            .distinct()
+            .sorted()
+    }
+    inputs.property("libraries", libraries)
+    outputs.dir(outputDirectory)
+    doLast {
+        outputDirectory.get().file("creator-libraries.txt").asFile.writeText(libraries.get().joinToString("\n"))
+    }
+}
+
 sourceSets.main {
     resources.srcDir(generateCreatorProperties)
+    resources.srcDir(generateCreatorLibraries)
 }
 
 // The engine's overview, which get_kubriko_api hands the AI.

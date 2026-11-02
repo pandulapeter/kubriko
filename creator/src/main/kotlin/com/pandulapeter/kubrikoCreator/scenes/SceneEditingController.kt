@@ -28,6 +28,9 @@ import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_scene_view_failed
 import kubriko.creator.generated.resources.scene_build_failed
+import kubriko.creator.generated.resources.scene_unsupported
+import kubriko.creator.generated.resources.scene_unsupported_library
+import kubriko.creator.generated.resources.status_scene_newer_libraries
 import kubriko.creator.generated.resources.status_scene_opened
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
@@ -35,9 +38,11 @@ import java.io.IOException
 
 /**
  * Opens Scenes in Kubriko Creator's own window: compiles the project, loads its classes next to Creator's, and hands
- * the project's entry point and the Scene's Actors to the Scene editor. A project on another Kubriko version can't
- * share Creator's classes, so its Scenes can't be edited ([SceneEditingState.Unsupported]).
+ * the project's entry point and the Scene's Actors to the Scene editor. A project on another Kubriko version, or on a newer
+ * Compose or Kotlin, can't share Creator's classes, so its Scenes can't be edited ([SceneEditingState.Unsupported]).
  *
+ * @param creatorLibraries The versions of the libraries Kubriko Creator itself runs with, which the project's classes
+ *   share ([SharedLibraries]).
  * @param runTask Runs one of the init script's tasks with the given properties, reporting problems in the console.
  * @param readSceneProblem Why a Scene file can't be read, or null if it can, called right after [readScene].
  * @param readScene The Actors of a Scene file, empty if it can't be read. Called off the main thread, while the project
@@ -58,6 +63,7 @@ import java.io.IOException
  */
 internal class SceneEditingController(
     private val creatorKubrikoVersion: String,
+    private val creatorLibraries: Map<String, String> = emptyMap(),
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
     private val entryPointLoader: EntryPointLoader,
     private val scope: CoroutineScope,
@@ -97,6 +103,7 @@ internal class SceneEditingController(
     private var isLoadingOutdated = false
     private var revision = 0
     private val sceneReads = LatestRequests()
+    private var lastReportedNewer: List<SharedLibraries.NewerLibrary> = emptyList()
 
     /**
      * Builds and loads the project's classes in the background, so that the first Scene opened doesn't wait for a build,
@@ -133,7 +140,7 @@ internal class SceneEditingController(
                     report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
                 }
                 is LoadResult.Failed -> SceneEditingState.Failed(scene, result.reason).also { forget(loading) }
-                is LoadResult.Unsupported -> SceneEditingState.Unsupported(scene, result.kubrikoVersion).also { forget(loading) }
+                is LoadResult.Unsupported -> SceneEditingState.Unsupported(scene, result.reason, result.arguments).also { forget(loading) }
             }
             if (isLoadingOutdated) update()
         }
@@ -226,14 +233,38 @@ internal class SceneEditingController(
         val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
         return when {
             classpath == null -> LoadResult.Failed(Res.string.scene_build_failed)
-            classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(classpath.kubrikoVersion)
-            else -> try {
-                LoadResult.Loaded(createDisposingIfCancelled(ioDispatcher, create = { entryPointLoader.load(classpath) }, dispose = { it.close() }), looks)
-            } catch (exception: EntryPointLoadingException) {
-                if (exception.cause != null) requestCleanBuild()
-                report(ConsoleEntry.Status(exception.reason, isError = true))
-                LoadResult.Failed(exception.reason)
+            classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(Res.string.scene_unsupported, listOf(creatorKubrikoVersion, classpath.kubrikoVersion))
+            else -> when (val verdict = SharedLibraries.check(classpath.libraries, creatorLibraries)) {
+                is SharedLibraries.Verdict.Refused -> LoadResult.Unsupported(
+                    Res.string.scene_unsupported_library,
+                    verdict.library.let { listOf(it.module, it.projectVersion, it.creatorVersion) },
+                )
+                else -> {
+                    reportNewer(verdict)
+                    load(classpath, looks)
+                }
             }
+        }
+    }
+
+    private suspend fun load(classpath: ProjectClasspath, looks: Map<String, ActorTypeLook>) = try {
+        LoadResult.Loaded(createDisposingIfCancelled(ioDispatcher, create = { entryPointLoader.load(classpath) }, dispose = { it.close() }), looks)
+    } catch (exception: EntryPointLoadingException) {
+        if (exception.cause != null) requestCleanBuild()
+        report(ConsoleEntry.Status(exception.reason, isError = true))
+        LoadResult.Failed(exception.reason)
+    }
+
+    /**
+     * Says which shared libraries are newer in the project, once for each set of them, as every change builds again.
+     */
+    private fun reportNewer(verdict: SharedLibraries.Verdict) {
+        val newer = (verdict as? SharedLibraries.Verdict.Newer)?.libraries.orEmpty()
+        if (newer == lastReportedNewer) return
+        lastReportedNewer = newer
+        if (newer.isNotEmpty()) {
+            val list = newer.joinToString(", ") { "${it.module} ${it.projectVersion} (Creator: ${it.creatorVersion})" }
+            report(ConsoleEntry.Status(Res.string.status_scene_newer_libraries, arguments = listOf(list)))
         }
     }
 
@@ -361,5 +392,5 @@ private sealed interface LoadResult {
 
     data class Failed(val reason: StringResource) : LoadResult
 
-    data class Unsupported(val kubrikoVersion: String) : LoadResult
+    data class Unsupported(val reason: StringResource, val arguments: List<String>) : LoadResult
 }
