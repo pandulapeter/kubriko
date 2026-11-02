@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_done
 import kubriko.creator.generated.resources.manager_type_kotlin_ui_hint
@@ -58,7 +58,7 @@ internal fun KotlinUiDialog(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            CompactTextField(
+            BufferedTextField(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp),
                 value = code,
                 onValueChange = onCodeChange,

@@ -35,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
@@ -167,7 +168,7 @@ private fun PropertyRow(
                 value = property.initialValue,
                 onValueChange = { onChange(property.copy(initialValue = it)) },
             )
-            is PropertyDefinition.Text -> CompactTextField(
+            is PropertyDefinition.Text -> BufferedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = property.initialValue,
                 onValueChange = { onChange(property.copy(initialValue = it)) },

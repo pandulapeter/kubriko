@@ -35,7 +35,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
-import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
@@ -130,7 +130,7 @@ internal fun BlockRow(
         )
     }
     if (block is BlockDefinition.Kotlin) {
-        CompactTextField(
+        BufferedTextField(
             modifier = Modifier.fillMaxWidth().padding(start = 46.dp, end = 8.dp, bottom = 4.dp).heightIn(min = 72.dp),
             value = block.code,
             onValueChange = { onBlockChange(block.copy(code = it)) },
@@ -236,7 +236,7 @@ private fun InlineParameters(
     is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
-    is BlockDefinition.Log -> CompactTextField(
+    is BlockDefinition.Log -> BufferedTextField(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
         value = block.message,
         onValueChange = { onBlockChange(block.copy(message = it)) },

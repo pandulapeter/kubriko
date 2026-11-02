@@ -20,6 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
@@ -111,12 +112,14 @@ internal fun SceneInspector(
             PanelHeader(icon = Res.drawable.ic_scene, title = stringResource(Res.string.scene_settings_title), accent = Accent.SCENE) {
                 IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
             }
-            SceneSettingsInspector(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                values = SceneSettingsState.read(entry.state),
-                music = music,
-                onChange = { change -> onCommand(Invocation(SetSceneSettings, SetSceneSettings.Input(sceneName).change())) },
-            )
+            key(selectedId) {
+                SceneSettingsInspector(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    values = SceneSettingsState.read(entry.state),
+                    music = music,
+                    onChange = { change -> onCommand(Invocation(SetSceneSettings, SetSceneSettings.Input(sceneName).change())) },
+                )
+            }
         }
         else -> {
             PanelHeader(icon = Res.drawable.ic_actor_type, title = entry.typeId, accent = Accent.CAST) {
@@ -136,13 +139,15 @@ internal fun SceneInspector(
                 IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
             }
             if (actor != null) {
-                ActorInspector(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    body = ActorBodyValues.of(actor.body),
-                    state = entry.state,
-                    definition = actorTypes.firstOrNull { it.name == entry.typeId },
-                    onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
-                )
+                key(selectedId) {
+                    ActorInspector(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        body = ActorBodyValues.of(actor.body),
+                        state = entry.state,
+                        definition = actorTypes.firstOrNull { it.name == entry.typeId },
+                        onChange = { change -> onCommand(Invocation(SetActorValues, SetActorValues.Input(sceneName, selectedId).change())) },
+                    )
+                }
             } else {
                 Text(
                     modifier = Modifier.padding(12.dp),

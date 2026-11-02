@@ -25,7 +25,7 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
-import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
@@ -83,7 +83,7 @@ internal fun ConditionParameters(
         is ConditionDefinition.Text -> {
             PropertyChoice(PropertyReference(condition.property, PropertyKind.TEXT, condition.manager), scope) { onConditionChange(condition.copy(property = it.name, manager = it.manager)) }
             YesNoChoice(condition.isEqual, Res.string.condition_is, Res.string.condition_is_not) { onConditionChange(condition.copy(isEqual = it)) }
-            CompactTextField(
+            BufferedTextField(
                 modifier = Modifier.width(140.dp),
                 value = condition.value,
                 onValueChange = { onConditionChange(condition.copy(value = it)) },

@@ -10,16 +10,19 @@
 package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A field for a number that keeps whatever is being typed, and reports the value whenever it is a valid number.
+ * A field for a number that keeps whatever is being typed, and reports the value whenever it is a valid number; a value
+ * changed elsewhere shows as soon as the field isn't being typed into.
  */
 @Composable
 internal fun NumberField(
@@ -42,11 +45,12 @@ internal fun NumberField(
     modifier: Modifier = Modifier,
 ) {
     var text by remember { mutableStateOf(formatNumber(value)) }
-    if (parseNumber(text) != value) {
-        text = formatNumber(value)
+    var isFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(value, isFocused) {
+        if (!isFocused && parseNumber(text) != value) text = formatNumber(value)
     }
     CompactTextField(
-        modifier = modifier,
+        modifier = modifier.onFocusChanged { isFocused = it.isFocused },
         value = text,
         onValueChange = { newText ->
             text = newText

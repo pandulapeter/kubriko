@@ -21,7 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withPropertyReference
-import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_by
@@ -58,7 +58,7 @@ internal fun PropertyBlockParameters(
             value = block.by,
             onValueChange = { onBlockChange(block.copy(by = it)) },
         )
-        is BlockDefinition.SetText -> CompactTextField(
+        is BlockDefinition.SetText -> BufferedTextField(
             modifier = Modifier.width(180.dp),
             value = block.value,
             onValueChange = { onBlockChange(block.copy(value = it)) },

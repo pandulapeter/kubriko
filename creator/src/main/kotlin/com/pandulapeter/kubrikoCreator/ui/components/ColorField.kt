@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -52,8 +54,9 @@ internal fun ColorField(
     verticalAlignment = Alignment.CenterVertically,
 ) {
     var text by remember { mutableStateOf(ColorHex.format(color)) }
-    if (ColorHex.parse(text) != color) {
-        text = ColorHex.format(color)
+    var isFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(color, isFocused) {
+        if (!isFocused && ColorHex.parse(text) != color) text = ColorHex.format(color)
     }
     var isPickerOpen by remember { mutableStateOf(false) }
     WithTooltip(
@@ -75,13 +78,14 @@ internal fun ColorField(
             initialColor = color,
             onColorSelected = {
                 isPickerOpen = false
+                text = ColorHex.format(it)
                 onColorChange(it)
             },
             onDismiss = { isPickerOpen = false },
         )
     }
     CompactTextField(
-        modifier = Modifier.width(150.dp),
+        modifier = Modifier.width(150.dp).onFocusChanged { isFocused = it.isFocused },
         value = text,
         onValueChange = { newText ->
             text = newText

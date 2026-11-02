@@ -27,8 +27,8 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
+import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
-import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.floatOrNull
@@ -139,7 +139,7 @@ private fun PropertyValueField(
             value = saved?.floatOrNull ?: property.initialValue,
             onValueChange = { onChange(ActorValueChanges.PropertyValue(property.name, number = it)) },
         )
-        is PropertyDefinition.Text -> CompactTextField(
+        is PropertyDefinition.Text -> BufferedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = saved?.takeIf { it.isString }?.content ?: property.initialValue,
             onValueChange = { onChange(ActorValueChanges.PropertyValue(property.name, text = it)) },
