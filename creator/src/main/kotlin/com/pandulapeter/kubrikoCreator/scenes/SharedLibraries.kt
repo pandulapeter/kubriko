@@ -14,11 +14,13 @@ import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 /**
  * Whether a project's classes can be drawn with the libraries Kubriko Creator shares with them: its classes come first
  * from Creator's class loader, so a project compiled against a newer Compose or Kotlin may call what Creator's copies
- * don't have. A newer major or minor of those is refused; any other newer library only warns.
+ * don't have. A newer major or minor of those is refused; any other newer library only warns. Compose comes under two
+ * groups: `org.jetbrains.compose` and the `androidx.compose` modules the JetBrains ones depend on, which hold its runtime
+ * and can be resolved newer on their own, by a direct dependency or another library's.
  */
 internal object SharedLibraries {
     private const val KUBRIKO_GROUP = "io.github.pandulapeter.kubriko"
-    private const val COMPOSE_GROUP = "org.jetbrains.compose"
+    private val COMPOSE_GROUPS = listOf("org.jetbrains.compose", "androidx.compose")
     private const val KOTLIN_STANDARD_LIBRARY = "org.jetbrains.kotlin:kotlin-stdlib"
 
     /**
@@ -58,7 +60,9 @@ internal object SharedLibraries {
         return if (newer.isEmpty()) Verdict.Compatible else Verdict.Newer(newer)
     }
 
-    private fun NewerLibrary.isGated() = module.substringBefore(':').let { it == COMPOSE_GROUP || it.startsWith("$COMPOSE_GROUP.") } || module == KOTLIN_STANDARD_LIBRARY
+    private fun NewerLibrary.isGated() = module.substringBefore(':').let { group ->
+        COMPOSE_GROUPS.any { group == it || group.startsWith("$it.") }
+    } || module == KOTLIN_STANDARD_LIBRARY
 
     private fun String.majorAndMinor() = substringBefore('-').split('.').take(2).joinToString(".")
 }

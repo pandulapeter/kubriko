@@ -210,7 +210,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own and not `tools/scene-editor`.
 
 - It works only when the project's Kubriko version equals Creator's and its Compose and Kotlin are no newer major or minor version
-  (`SharedLibraries`; another newer shared library loads with a console warning): the project's classes load into a class loader
+  (`SharedLibraries`, which gates the `androidx.compose` modules holding Compose's runtime too; another newer shared library loads with a console warning): the project's classes load into a class loader
   whose parent is Creator's (Kubriko, Compose, and Kotlin shared; the project's jars are copied and the class files of its folders
   read before anything loads, so a rebuild can replace them while they are in use), and `SceneView` creates the Actors in a Kubriko
   instance that never runs. Another version gets a notice instead (`SceneEditingState.Unsupported`), and a failed build or entry point a

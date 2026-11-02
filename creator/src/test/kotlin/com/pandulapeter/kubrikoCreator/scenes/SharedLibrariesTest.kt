@@ -43,6 +43,26 @@ class SharedLibrariesTest {
     }
 
     @Test
+    fun aNewerMinorOfTheAndroidxComposeModulesIsRefused() {
+        assertEquals(
+            Verdict.Refused(NewerLibrary(ANDROIDX_RUNTIME, "1.13.0", "1.12.1")),
+            SharedLibraries.check(mapOf(UI to "1.12.2", ANDROIDX_RUNTIME to "1.13.0"), mapOf(UI to "1.12.2", ANDROIDX_RUNTIME to "1.12.1")),
+        )
+        assertEquals(
+            Verdict.Refused(NewerLibrary(ANDROIDX_FOUNDATION, "1.13.0", "1.12.1")),
+            SharedLibraries.check(mapOf(ANDROIDX_FOUNDATION to "1.13.0"), mapOf(ANDROIDX_FOUNDATION to "1.12.1")),
+        )
+    }
+
+    @Test
+    fun aNewerMinorOfALibraryOnlyNamedLikeComposeOnlyWarns() {
+        assertEquals(
+            Verdict.Newer(listOf(NewerLibrary(COMPOSE_LOOKALIKE, "1.13.0", "1.12.1"))),
+            SharedLibraries.check(mapOf(COMPOSE_LOOKALIKE to "1.13.0"), mapOf(COMPOSE_LOOKALIKE to "1.12.1")),
+        )
+    }
+
+    @Test
     fun aNewerMinorOfKotlinIsRefused() {
         assertEquals(Verdict.Refused(NewerLibrary(STDLIB, "2.5.0", "2.4.21")), SharedLibraries.check(mapOf(STDLIB to "2.5.0"), mapOf(STDLIB to "2.4.21")))
     }
@@ -76,6 +96,9 @@ class SharedLibrariesTest {
         const val STDLIB = "org.jetbrains.kotlin:kotlin-stdlib"
         const val REFLECT = "org.jetbrains.kotlin:kotlin-reflect"
         const val UI = "org.jetbrains.compose.ui:ui-desktop"
+        const val ANDROIDX_RUNTIME = "androidx.compose.runtime:runtime-desktop"
+        const val ANDROIDX_FOUNDATION = "androidx.compose.foundation:foundation-desktop"
+        const val COMPOSE_LOOKALIKE = "androidx.composeextras:widgets-desktop"
         const val COROUTINES = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"
         const val ENGINE = "io.github.pandulapeter.kubriko:engine"
     }
