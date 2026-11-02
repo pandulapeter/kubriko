@@ -26,7 +26,9 @@ class StringResourcesTest {
     fun everyStringAndIconIsUsed() {
         val sources = File("src/main/kotlin").walkTopDown().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
         val unusedStrings = Regex("<string name=\"([a-z0-9_]+)\"").findAll(strings).map { it.groupValues[1] }.filter { "Res.string.$it" !in sources }.toList()
-        val unusedIcons = File("src/main/composeResources/drawable").list().orEmpty().map { it.substringBeforeLast('.') }.filter { "Res.drawable.$it" !in sources }
+        val icons = File("src/main/composeResources/drawable")
+        assertTrue(icons.isDirectory, "Run from the creator folder: ${icons.absolutePath}")
+        val unusedIcons = icons.list().orEmpty().map { it.substringBeforeLast('.') }.filter { "Res.drawable.$it" !in sources }
         assertTrue(unusedStrings.isEmpty(), "Unused strings: $unusedStrings")
         assertTrue(unusedIcons.isEmpty(), "Unused icons: $unusedIcons")
     }

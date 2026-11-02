@@ -68,6 +68,7 @@ class CommandRegistryTest {
     @Test
     fun onlyCommandsChangeTheProject() {
         val sources = File("src/main/kotlin/com/pandulapeter/kubrikoCreator")
+        assertTrue(sources.isDirectory, "Run from the creator folder: ${sources.absolutePath}")
         val optingIn = sources.walkTopDown()
             .filter { it.extension == "kt" && "OptIn(EditorMutation" in it.readText() }
             .map { it.relativeTo(sources).invariantSeparatorsPath }
