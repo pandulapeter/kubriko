@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator
 
-import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
@@ -17,8 +16,6 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
-import com.pandulapeter.kubrikoCreator.template.ProjectGenerator
-import com.pandulapeter.kubrikoCreator.workspace.GradleWorkspaceOpener
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -41,8 +38,8 @@ import java.io.File
  */
 internal class AppController(
     parentScope: CoroutineScope,
-    private val workspaceOpener: WorkspaceOpener = GradleWorkspaceOpener,
-    private val projectCreator: ProjectCreator = ProjectGenerator(CreatorConfiguration.load()),
+    private val workspaceOpener: WorkspaceOpener,
+    private val projectCreator: ProjectCreator,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val recentProjectsStore: RecentProjectsStore = RecentProjectsStore.default(),
 ) {

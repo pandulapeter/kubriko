@@ -59,6 +59,13 @@ class SignInSessionTest {
     }
 
     @Test
+    fun stopNowEndsTheCommandBeforeReturning() = blockingTest {
+        val session = session()
+        session.stopNow()
+        assertTrue(channel.isStopped)
+    }
+
+    @Test
     fun stoppingEndsTheCommand() = blockingTest {
         val session = session()
         session.stop()

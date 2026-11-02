@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.runTest
@@ -22,10 +23,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class GradleWorkspaceOpenerTest {
+    private val opener = GradleWorkspaceOpener(CreatorConfiguration.load())
 
     @Test
     fun aFolderThatIsNotAGradleProjectIsRefused() = runTest {
-        val exception = assertFailsWith<ProjectInspectionException> { GradleWorkspaceOpener.open(testDirectory(), backgroundScope) }
+        val exception = assertFailsWith<ProjectInspectionException> { opener.open(testDirectory(), backgroundScope) }
         assertEquals(Res.string.error_not_a_gradle_project, exception.reason)
     }
 
@@ -38,7 +40,7 @@ class GradleWorkspaceOpenerTest {
         kubriko.setWritable(false)
         try {
             assumeFalse("the folder still takes new files", runCatching { File(kubriko, "probe").createNewFile() }.getOrDefault(false))
-            val exception = assertFailsWith<ProjectInspectionException> { GradleWorkspaceOpener.open(directory, backgroundScope) }
+            val exception = assertFailsWith<ProjectInspectionException> { opener.open(directory, backgroundScope) }
             assertEquals(Res.string.error_project_format_not_upgraded_on_open, exception.reason)
         } finally {
             kubriko.setWritable(true)

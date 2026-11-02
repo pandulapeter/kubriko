@@ -37,14 +37,15 @@ import java.io.IOException
  * That first build starts right away, in the background too, so that the Gradle daemon is warm and the project's
  * classes are loaded by the time a Scene is opened. The session server and the watcher run in the workspace's own scope,
  * and an opening that fails closes everything it started.
+ *
+ * @param configuration The Kubriko version and repositories Creator bundles.
  */
-internal object GradleWorkspaceOpener : WorkspaceOpener {
+internal class GradleWorkspaceOpener(private val configuration: CreatorConfiguration) : WorkspaceOpener {
 
     override suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController {
         if (!withContext(Dispatchers.IO) { ProjectInspector.isGradleProject(directory) }) throw ProjectInspectionException(Res.string.error_not_a_gradle_project)
         val project = withContext(Dispatchers.IO) { CreatorProject(rootDirectory = directory, name = ProjectInspector.nameOf(directory)) }
         val ownWrites = OwnWrites()
-        val configuration = CreatorConfiguration.load()
         val creatorLibraries = withContext(Dispatchers.IO) { CreatorLibraries.load() }
         val projectFormat = ProjectFormat(directory, configuration.kubrikoVersion)
         val formatStatus = try {
@@ -79,8 +80,10 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
         }
     }
 
-    /**
-     * How long changes wait to be written together with the next ones, which typing into a field makes many of.
-     */
-    private const val WRITE_DELAY_IN_MILLISECONDS = 100L
+    private companion object {
+        /**
+         * How long changes wait to be written together with the next ones, which typing into a field makes many of.
+         */
+        const val WRITE_DELAY_IN_MILLISECONDS = 100L
+    }
 }

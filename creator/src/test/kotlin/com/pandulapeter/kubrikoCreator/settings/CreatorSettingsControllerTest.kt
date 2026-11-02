@@ -61,6 +61,14 @@ class CreatorSettingsControllerTest {
     }
 
     @Test
+    fun aSettingChangedJustBeforeQuittingIsSaved() = runTest {
+        val controller = CreatorSettingsController(CreatorSettingsStore(file), backgroundScope, StandardTestDispatcher(testScheduler))
+        controller.setTheme(ThemeChoice.DARK)
+        controller.awaitSaves()
+        assertEquals(ThemeChoice.DARK, CreatorSettingsStore(file).load().theme)
+    }
+
+    @Test
     fun aScaleNotOfferedIsTheClosestOne() = runTest {
         val controller = CreatorSettingsController(CreatorSettingsStore(file), backgroundScope, StandardTestDispatcher(testScheduler))
         controller.setInterfaceScale(0.7f)
