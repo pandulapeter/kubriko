@@ -46,6 +46,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param changedByHand The names of the types whose generated code was changed by hand.
  * @param shownAiStep The AI's step the type editor lights up, if any.
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
+ * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
  */
 @Composable
@@ -62,6 +63,7 @@ internal fun WorkspaceCenter(
     actorTypeDragState: SidebarDragState,
     panelLayout: PanelLayout,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
+    currentBlockType: (name: String) -> BlockTypeDefinition?,
     onCommandIfValid: (Invocation<*>) -> StringResource?,
     onTypeSelected: (String) -> Unit,
     onPlayScene: (sceneName: String) -> Unit,
@@ -124,6 +126,7 @@ internal fun WorkspaceCenter(
                 inheritance = remember(selectedBlockType, blockTypes, family) { Inheritance.of(selectedBlockType, blockTypes, family = family) },
                 isChangedByHand = selectedBlockType.name in changedByHand,
                 onCommand = onCommand,
+                currentDefinition = { currentBlockType(selectedBlockType.name) },
                 onRename = { newName ->
                     onCommandIfValid(
                         when (selectedBlockType) {

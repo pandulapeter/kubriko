@@ -28,7 +28,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 internal class EventSelectionState {
     private val itemKeys = ListItemKeys<EventDefinition>()
     private var selectedKey by mutableStateOf<Long?>(null)
-    private var pendingIndex by mutableStateOf<Int?>(null)
+    private var pendingKey by mutableStateOf<Long?>(null)
     private var lastShownIndex: Int? = null
 
     /**
@@ -49,11 +49,11 @@ internal class EventSelectionState {
     }
 
     /**
-     * Shows the Event that will be at [index] once a successful add made it, whichever comes first: the add's success, or
-     * the Events holding it.
+     * Shows the last of [events], the type's Events right after an add that appended one succeeded, once the Events shown
+     * hold it: they may show it before the add's success arrives, or only after it, with other changes made since.
      */
-    fun selectWhenAdded(index: Int) {
-        pendingIndex = index
+    fun selectAdded(events: List<EventDefinition>) {
+        pendingKey = itemKeys.update(events).lastOrNull()
     }
 
     /**
@@ -65,10 +65,10 @@ internal class EventSelectionState {
         LaunchedEffect(highlight?.key) {
             highlight?.eventIndex?.let(currentKeys::getOrNull)?.let(::select)
         }
-        LaunchedEffect(keys, pendingIndex) {
-            pendingIndex?.takeIf { it < keys.size }?.let {
-                selectedKey = keys[it]
-                pendingIndex = null
+        LaunchedEffect(keys, pendingKey) {
+            pendingKey?.takeIf { it in keys }?.let {
+                selectedKey = it
+                pendingKey = null
             }
         }
         val index = selectedEventIndex(keys, selectedKey, lastShownIndex)

@@ -339,7 +339,8 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
   through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
   own panels, dialogs, and AI-follow state live in `WorkspaceUiState`, a plain class its tests reach without a UI.
 - The type editor's selected Event is its `ListItemKeys` key, not its index (`EventSelectionState`), so it stays on the same
-  Event through undo, redo, and the AI's Event changes; an added Event is selected only once its add succeeded.
+  Event through undo, redo, and the AI's Event changes; an added Event is selected only once its add succeeded, found
+  by its key in the type as it is at that moment (an add may wait behind an AI tool call that changes the Events).
 
 ## Library side
 
