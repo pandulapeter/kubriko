@@ -45,6 +45,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param modifier Applied to whichever of them is shown, which the workspace's row places.
  * @param changedByHand The names of the types whose generated code was changed by hand.
  * @param shownAiStep The AI's step the type editor lights up, if any.
+ * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
  */
 @Composable
@@ -60,7 +61,7 @@ internal fun WorkspaceCenter(
     shownAiStep: ShownAiStep?,
     actorTypeDragState: SidebarDragState,
     panelLayout: PanelLayout,
-    onCommand: (Invocation<*>) -> Unit,
+    onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     onCommandIfValid: (Invocation<*>) -> StringResource?,
     onTypeSelected: (String) -> Unit,
     onPlayScene: (sceneName: String) -> Unit,
@@ -74,7 +75,7 @@ internal fun WorkspaceCenter(
         is SceneEditingState.Open -> SceneEditorPane(
             modifier = modifier,
             state = sceneEditing,
-            onCommand = onCommand,
+            onCommand = { onCommand(it) {} },
             actorTypeDragState = actorTypeDragState,
             panelLayout = panelLayout,
             actorTypes = actorTypes,

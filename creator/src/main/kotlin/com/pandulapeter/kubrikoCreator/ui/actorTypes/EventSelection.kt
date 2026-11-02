@@ -10,23 +10,12 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 /**
- * Which Event's Blocks are shown when [requestedIndex] was selected and the Actor type has [eventCount] Events: the
- * requested one when it still exists, the last one when it was past the end (after a removal), and none without Events.
+ * Which Event is shown, given the Events' [keys] ([ListItemKeys]): the one of [selectedKey] while it exists, else the one
+ * at [fallbackIndex] (where the selected one was, clamped), else the first; none without Events.
  */
-internal fun selectedEventIndex(requestedIndex: Int?, eventCount: Int): Int? = when {
-    eventCount == 0 -> null
-    requestedIndex == null -> 0
-    else -> requestedIndex.coerceIn(0, eventCount - 1)
-}
-
-/**
- * Where the [selected] Event is after the Event at [index] moved to [targetIndex]: it follows the move if it was the one
- * moved, and otherwise shifts with the Events between the two places.
- */
-internal fun selectedEventIndexAfterMove(selected: Int?, index: Int, targetIndex: Int): Int? = when {
-    selected == null -> null
-    selected == index -> targetIndex
-    index < selected && selected <= targetIndex -> selected - 1
-    targetIndex <= selected && selected < index -> selected + 1
-    else -> selected
+internal fun selectedEventIndex(keys: List<Long>, selectedKey: Long?, fallbackIndex: Int?): Int? = when {
+    keys.isEmpty() -> null
+    selectedKey != null && selectedKey in keys -> keys.indexOf(selectedKey)
+    fallbackIndex == null -> 0
+    else -> fallbackIndex.coerceIn(0, keys.lastIndex)
 }

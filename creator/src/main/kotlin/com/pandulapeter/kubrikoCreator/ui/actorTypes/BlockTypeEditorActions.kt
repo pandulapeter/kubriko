@@ -47,69 +47,73 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 
 /**
  * The commands the type editor of [definition] dispatches through [onCommand], one function per thing it changes.
+ * [onCommand] calls its `onSuccess` once the command was applied, never when it was rejected.
  */
 internal class BlockTypeEditorActions(
     private val definition: BlockTypeDefinition,
-    private val onCommand: (Invocation<*>) -> Unit,
+    private val onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
 ) {
     private val name get() = definition.name
 
+    private fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit = {}) = onCommand(invocation, onSuccess)
+
     fun delete() = when (definition) {
-        is ActorTypeDefinition -> onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name)))
-        is ManagerTypeDefinition -> onCommand(Invocation(DeleteManagerType, DeleteManagerType.Input(name)))
+        is ActorTypeDefinition -> dispatch(Invocation(DeleteActorType, DeleteActorType.Input(name)))
+        is ManagerTypeDefinition -> dispatch(Invocation(DeleteManagerType, DeleteManagerType.Input(name)))
     }
 
-    fun setParent(parent: String?) = onCommand(Invocation(SetParent, SetParent.Input(name, parent)))
+    fun setParent(parent: String?) = dispatch(Invocation(SetParent, SetParent.Input(name, parent)))
 
-    fun setDescription(description: String) = onCommand(Invocation(SetDescription, SetDescription.Input(type = name, description = description)))
+    fun setDescription(description: String) = dispatch(Invocation(SetDescription, SetDescription.Input(type = name, description = description)))
 
-    fun discardChangesMadeByHand() = onCommand(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name)))
+    fun discardChangesMadeByHand() = dispatch(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name)))
 
-    fun setAppearance(input: SetAppearance.Input) = onCommand(Invocation(SetAppearance, input))
+    fun setAppearance(input: SetAppearance.Input) = dispatch(Invocation(SetAppearance, input))
 
-    fun addProperty(property: PropertyDefinition) = onCommand(Invocation(AddProperty, AddProperty.Input(name, property)))
+    fun addProperty(property: PropertyDefinition) = dispatch(Invocation(AddProperty, AddProperty.Input(name, property)))
 
-    fun editProperty(propertyName: String, property: PropertyDefinition) = onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property)))
+    fun editProperty(propertyName: String, property: PropertyDefinition) = dispatch(Invocation(EditProperty, EditProperty.Input(name, propertyName, property)))
 
-    fun removeProperty(propertyName: String) = onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, propertyName)))
+    fun removeProperty(propertyName: String) = dispatch(Invocation(RemoveProperty, RemoveProperty.Input(name, propertyName)))
 
-    fun addText() = onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition.defaultFor(definition.properties))))
+    fun addText() = dispatch(Invocation(AddText, AddText.Input(name, ScreenTextDefinition.defaultFor(definition.properties))))
 
-    fun editText(index: Int, text: ScreenTextDefinition) = onCommand(Invocation(EditText, EditText.Input(name, index, text)))
+    fun editText(index: Int, text: ScreenTextDefinition) = dispatch(Invocation(EditText, EditText.Input(name, index, text)))
 
-    fun removeText(index: Int) = onCommand(Invocation(RemoveText, RemoveText.Input(name, index)))
+    fun removeText(index: Int) = dispatch(Invocation(RemoveText, RemoveText.Input(name, index)))
 
-    fun setKotlinUi(code: String) = onCommand(Invocation(SetKotlinUi, SetKotlinUi.Input(name, code)))
+    fun setKotlinUi(code: String) = dispatch(Invocation(SetKotlinUi, SetKotlinUi.Input(name, code)))
 
-    fun addEvent(type: EventType) = onCommand(Invocation(AddEvent, AddEvent.Input(name, type)))
+    fun addEvent(type: EventType, onAdded: () -> Unit) = dispatch(Invocation(AddEvent, AddEvent.Input(name, type)), onAdded)
 
-    fun overrideEvent(event: EventDefinition) = onCommand(
+    fun overrideEvent(event: EventDefinition, onAdded: () -> Unit) = dispatch(
         Invocation(AddEvent, AddEvent.Input(name, event.type, event.key, event.otherActorType, event.timer, listOf(BlockDefinition.RunParentEvent))),
+        onAdded,
     )
 
-    fun moveEvent(index: Int, targetIndex: Int) = onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
+    fun moveEvent(index: Int, targetIndex: Int) = dispatch(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
 
-    fun removeEvent(index: Int) = onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
+    fun removeEvent(index: Int) = dispatch(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
 
-    fun setEventKey(eventIndex: Int, key: KeyChoice) = onCommand(Invocation(SetEventKey, SetEventKey.Input(name, eventIndex, key)))
+    fun setEventKey(eventIndex: Int, key: KeyChoice) = dispatch(Invocation(SetEventKey, SetEventKey.Input(name, eventIndex, key)))
 
-    fun setEventTimer(eventIndex: Int, timer: String) = onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, eventIndex, timer)))
+    fun setEventTimer(eventIndex: Int, timer: String) = dispatch(Invocation(SetEventTimer, SetEventTimer.Input(name, eventIndex, timer)))
 
-    fun setEventOtherActorType(eventIndex: Int, other: String) = onCommand(
+    fun setEventOtherActorType(eventIndex: Int, other: String) = dispatch(
         Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, eventIndex, other)),
     )
 
-    fun renameTimer(oldName: String, newName: String) = onCommand(Invocation(RenameTimer, RenameTimer.Input(name, oldName, newName)))
+    fun renameTimer(oldName: String, newName: String) = dispatch(Invocation(RenameTimer, RenameTimer.Input(name, oldName, newName)))
 
-    fun addBlock(eventIndex: Int, kind: BlockKind, gap: Int? = null) = onCommand(
+    fun addBlock(eventIndex: Int, kind: BlockKind, gap: Int? = null) = dispatch(
         Invocation(AddBlock, AddBlock.Input(name, eventIndex, kind.createDefault(), index = gap)),
     )
 
     fun moveBlock(eventIndex: Int, index: Int, gap: Int) {
-        moveTarget(index, gap)?.let { onCommand(Invocation(MoveBlock, MoveBlock.Input(name, eventIndex, index, it))) }
+        moveTarget(index, gap)?.let { dispatch(Invocation(MoveBlock, MoveBlock.Input(name, eventIndex, index, it))) }
     }
 
-    fun editBlock(eventIndex: Int, blockIndex: Int, block: BlockDefinition) = onCommand(Invocation(EditBlock, EditBlock.Input(name, eventIndex, blockIndex, block)))
+    fun editBlock(eventIndex: Int, blockIndex: Int, block: BlockDefinition) = dispatch(Invocation(EditBlock, EditBlock.Input(name, eventIndex, blockIndex, block)))
 
-    fun removeBlock(eventIndex: Int, blockIndex: Int) = onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, eventIndex, blockIndex)))
+    fun removeBlock(eventIndex: Int, blockIndex: Int) = dispatch(Invocation(RemoveBlock, RemoveBlock.Input(name, eventIndex, blockIndex)))
 }

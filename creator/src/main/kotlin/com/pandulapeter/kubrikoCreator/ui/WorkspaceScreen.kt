@@ -130,7 +130,7 @@ internal fun WorkspaceScreen(
                         shownAiStep = shownAiStep,
                         actorTypeDragState = sidebarDragState,
                         panelLayout = panelLayout,
-                        onCommand = { controller.commands.dispatch(it) },
+                        onCommand = controller.commands::dispatch,
                         onCommandIfValid = controller::dispatchIfValid,
                         onTypeSelected = { controller.selection.selectType(it) },
                         onPlayScene = { controller.play(firstScene = it) },

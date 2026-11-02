@@ -16,28 +16,24 @@ import kotlin.test.assertNull
 class EventSelectionTest {
 
     @Test
+    fun aTypeWithoutEventsShowsNone() {
+        assertNull(selectedEventIndex(keys = emptyList(), selectedKey = 4L, fallbackIndex = 1))
+        assertNull(selectedEventIndex(keys = emptyList(), selectedKey = null, fallbackIndex = null))
+    }
+
+    @Test
+    fun theSelectedEventIsShownWhereverItIs() {
+        assertEquals(2, selectedEventIndex(keys = listOf(7L, 3L, 5L), selectedKey = 5L, fallbackIndex = 0))
+    }
+
+    @Test
+    fun aRemovedSelectedEventFallsBackToItsPlaceClamped() {
+        assertEquals(2, selectedEventIndex(keys = listOf(7L, 3L, 5L), selectedKey = 9L, fallbackIndex = 5))
+        assertEquals(1, selectedEventIndex(keys = listOf(7L, 3L, 5L), selectedKey = 9L, fallbackIndex = 1))
+    }
+
+    @Test
     fun theFirstEventIsShownUntilAnotherIsSelected() {
-        assertEquals(0, selectedEventIndex(requestedIndex = null, eventCount = 3))
-        assertEquals(2, selectedEventIndex(requestedIndex = 2, eventCount = 3))
-    }
-
-    @Test
-    fun removingTheLastEventSelectsTheNewLastOne() {
-        assertEquals(1, selectedEventIndex(requestedIndex = 2, eventCount = 2))
-    }
-
-    @Test
-    fun anActorTypeWithoutEventsShowsNone() {
-        assertNull(selectedEventIndex(requestedIndex = 0, eventCount = 0))
-        assertNull(selectedEventIndex(requestedIndex = null, eventCount = 0))
-    }
-
-    @Test
-    fun theSelectedEventStaysSelectedWhenEventsMove() {
-        assertEquals(3, selectedEventIndexAfterMove(selected = 1, index = 1, targetIndex = 3))
-        assertEquals(1, selectedEventIndexAfterMove(selected = 2, index = 0, targetIndex = 3))
-        assertEquals(3, selectedEventIndexAfterMove(selected = 2, index = 3, targetIndex = 0))
-        assertEquals(0, selectedEventIndexAfterMove(selected = 0, index = 2, targetIndex = 3))
-        assertEquals(null, selectedEventIndexAfterMove(selected = null, index = 2, targetIndex = 3))
+        assertEquals(0, selectedEventIndex(keys = listOf(7L, 3L, 5L), selectedKey = null, fallbackIndex = null))
     }
 }

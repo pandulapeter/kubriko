@@ -35,6 +35,13 @@ class ListItemKeysTest {
     }
 
     @Test
+    fun anEventInsertedBeforeAnotherLeavesItsKey() {
+        val (a, b) = keys.update(listOf("a", "b"))
+        val next = keys.update(listOf("c", "a", "b"))
+        assertEquals(listOf(a, b), next.drop(1))
+    }
+
+    @Test
     fun anEditedItemKeepsTheKeyOfItsPlace() {
         val (a, b, c) = keys.update(listOf("a", "b", "c"))
         assertEquals(listOf(a, b, c), keys.update(listOf("a", "B", "c")))

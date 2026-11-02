@@ -25,10 +25,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -64,7 +62,7 @@ internal fun BlockTypeEditor(
     sprites: List<String>,
     inheritance: Inheritance,
     isChangedByHand: Boolean,
-    onCommand: (Invocation<*>) -> Unit,
+    onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     onRename: (String) -> StringResource?,
     onTypeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -73,9 +71,9 @@ internal fun BlockTypeEditor(
     modifier = modifier,
 ) {
     val name = definition.name
-    var requestedEventIndex by remember(definition.name) { mutableStateOf<Int?>(null) }
-    LaunchedEffect(highlight?.key) { highlight?.eventIndex?.let { requestedEventIndex = it } }
-    val eventIndex = selectedEventIndex(requestedEventIndex, definition.events.size)
+    val eventSelection = remember(name) { EventSelectionState() }
+    val eventKeys = remember(eventSelection, definition.events) { eventSelection.keysOf(definition.events) }
+    val eventIndex = eventSelection.shownIndex(eventKeys, highlight)
     val event = eventIndex?.let { definition.events[it] }
     val actions = remember(definition, onCommand) { BlockTypeEditorActions(definition, onCommand) }
     var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
@@ -113,26 +111,22 @@ internal fun BlockTypeEditor(
                     modifier = Modifier.width(columns.events).fillMaxHeight(),
                     typeKind = definition.kind,
                     events = definition.events,
+                    keys = eventKeys,
+                    isRecentlyAdded = eventSelection::isRecentlyAdded,
                     listIdentity = name,
                     inheritedEvents = inheritance.events,
                     onOverride = { event ->
-                        actions.overrideEvent(event)
-                        requestedEventIndex = definition.events.size
+                        val addedIndex = definition.events.size
+                        actions.overrideEvent(event) { eventSelection.selectWhenAdded(addedIndex) }
                     },
                     selectedIndex = eventIndex,
-                    onSelected = { requestedEventIndex = it },
+                    onSelected = { eventSelection.select(eventKeys[it]) },
                     onAdded = { type ->
-                        actions.addEvent(type)
-                        requestedEventIndex = definition.events.size
+                        val addedIndex = definition.events.size
+                        actions.addEvent(type) { eventSelection.selectWhenAdded(addedIndex) }
                     },
-                    onMoved = { index, targetIndex ->
-                        actions.moveEvent(index, targetIndex)
-                        requestedEventIndex = selectedEventIndexAfterMove(eventIndex, index, targetIndex)
-                    },
-                    onRemoved = { index ->
-                        actions.removeEvent(index)
-                        if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
-                    },
+                    onMoved = actions::moveEvent,
+                    onRemoved = actions::removeEvent,
                     highlight = highlight,
                 )
                 VerticalDivider()
@@ -148,7 +142,7 @@ internal fun BlockTypeEditor(
                     dragState = dragState,
                     onBlockRemoved = { blockIndex -> eventIndex?.let { actions.removeBlock(it, blockIndex) } },
                     highlight = highlight?.takeIf { it.eventIndex == eventIndex },
-                    listIdentity = name to eventIndex,
+                    listIdentity = name to eventIndex?.let(eventKeys::get),
                     scrollToEndRequest = blockListScrollToEndRequest,
                 )
                 VerticalDivider()
