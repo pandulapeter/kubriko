@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.mcp
 
 import com.pandulapeter.kubrikoCreator.commands.testScope
+import com.pandulapeter.kubrikoCreator.testing.TestPorts
+import com.pandulapeter.kubrikoCreator.testing.awaitTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,8 +52,6 @@ class McpControllerTest {
         isAiEnabled = isAiEnabled,
     ).also { controllers += it }
 
-    private fun freePort() = ServerSocket(0).use { it.localPort }
-
     private fun unusedPortAbove(start: Int) = generateSequence(start) { it + ROUNDS * 3 }.first { port -> runCatching { ServerSocket(port).close() }.isSuccess }
 
     private suspend fun McpController.awaitState(expected: McpServerState) = withContext(Dispatchers.IO) {
@@ -64,7 +64,7 @@ class McpControllerTest {
     fun theServerIsOffUntilEnabledAndStopsWhenDisabled() = runTest {
         val controller = controller()
         assertEquals(McpServerState.Off, controller.state.value)
-        val port = freePort()
+        val port = TestPorts.shared.next()
         assertTrue(controller.setPort(port))
         controller.setEnabled(true)
         assertEquals(McpServerState.Running(port), controller.awaitState(McpServerState.Running(port)))
@@ -76,7 +76,7 @@ class McpControllerTest {
 
     @Test
     fun turningAiFeaturesOffStopsTheServerAndTurningThemOnStartsItAsItWas() = runTest {
-        val port = freePort()
+        val port = TestPorts.shared.next()
         store.save(store.load().copy(isEnabled = true, port = port))
         val isAiEnabled = MutableStateFlow(false)
         val controller = controller(isAiEnabled)
@@ -90,7 +90,7 @@ class McpControllerTest {
         assertTrue(controller.settings.value.isEnabled)
         controller.setPort(port)
         controller.setEnabled(true)
-        withContext(Dispatchers.IO) { Thread.sleep(200) }
+        assertEquals(McpServerState.Off, controller.enable())
         assertFalse(isListening(port))
     }
 
@@ -139,13 +139,12 @@ class McpControllerTest {
     @Test
     fun settingsAreKeptAndANewTokenReplacesTheOldOne() = runTest {
         val controller = controller()
-        val port = freePort()
+        val port = TestPorts.shared.next()
         controller.setPort(port)
         val oldToken = controller.settings.value.token
         controller.regenerateToken()
         assertNotEquals(oldToken, controller.settings.value.token)
-        withContext(Dispatchers.IO) { Thread.sleep(200) }
-        assertEquals(controller.settings.value, store.load())
+        awaitTrue(description = "the settings were saved") { store.load() == controller.settings.value }
     }
 
     private companion object {

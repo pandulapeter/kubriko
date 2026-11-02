@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.AuthMethodId
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
-import com.pandulapeter.kubrikoCreator.mcp.clients.FakeProcessRunner
+import com.pandulapeter.kubrikoCreator.testing.FakeProcessRunner
 import com.pandulapeter.kubrikoCreator.testing.IdleTrackingDispatcher
 import com.pandulapeter.kubrikoCreator.testing.awaitIdle
 import com.pandulapeter.kubrikoCreator.testing.blockingTest

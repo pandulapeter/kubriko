@@ -7,7 +7,9 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.mcp.clients
+package com.pandulapeter.kubrikoCreator.testing
+
+import com.pandulapeter.kubrikoCreator.mcp.clients.ProcessRunner
 
 /**
  * Pretends to be the AI tools' programs: the ones in [installed] keep a set of registered servers that `mcp add`,

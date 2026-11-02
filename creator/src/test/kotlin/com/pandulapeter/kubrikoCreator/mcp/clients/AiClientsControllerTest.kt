@@ -14,6 +14,9 @@ import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
+import com.pandulapeter.kubrikoCreator.testing.FakeProcessRunner
+import com.pandulapeter.kubrikoCreator.testing.TestPorts
+import com.pandulapeter.kubrikoCreator.testing.awaitTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +28,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.File
-import java.net.ServerSocket
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -53,7 +55,7 @@ class AiClientsControllerTest {
             ioDispatcher = Dispatchers.IO,
             isAiEnabled = isAiEnabled,
         )
-        created.setPort(ServerSocket(0).use { it.localPort })
+        created.setPort(TestPorts.shared.next())
         mcp = created
         return AiClientsController(
             mcp = created,
@@ -146,7 +148,7 @@ class AiClientsControllerTest {
         assertEquals(setOf("claudeCode@claude-personal"), mcp!!.settings.value.connectedClients)
         mcp!!.regenerateToken()
         val newToken = mcp!!.settings.value.token
-        withContext(Dispatchers.IO) { withTimeout(5_000) { while (runner.registered["claude-personal"]?.contains(newToken) != true) Thread.sleep(20) } }
+        awaitTrue(description = "the new token was registered") { runner.registered["claude-personal"]?.contains(newToken) == true }
     }
 
     @Test
@@ -168,7 +170,7 @@ class AiClientsControllerTest {
         controller.awaitStatus(AiClient.CODEX, AiClientStatus.Connected)
         mcp!!.regenerateToken()
         val newToken = mcp!!.settings.value.token
-        withContext(Dispatchers.IO) { withTimeout(5_000) { while (runner.registered["codex"]?.contains(newToken) != true) Thread.sleep(20) } }
+        awaitTrue(description = "the new token was registered") { runner.registered["codex"]?.contains(newToken) == true }
     }
 
     @Test
@@ -226,10 +228,8 @@ class AiClientsControllerTest {
         controller.awaitStatus(AiConfigFileClient.CURSOR, AiClientStatus.Connected)
         mcp!!.regenerateToken()
         val newToken = mcp!!.settings.value.token
-        withContext(Dispatchers.IO) {
-            withTimeout(5_000) {
-                while (McpConfigFile.server(configFileOf(AiConfigFileClient.CURSOR), "kubriko-creator")?.toString()?.contains(newToken) != true) Thread.sleep(20)
-            }
+        awaitTrue(description = "the new token was written") {
+            McpConfigFile.server(configFileOf(AiConfigFileClient.CURSOR), "kubriko-creator")?.toString()?.contains(newToken) == true
         }
     }
 
