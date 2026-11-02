@@ -56,11 +56,16 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The Events of an Actor type or Manager type, as in GameMaker's object window: selecting one shows its Blocks next to it.
+ *
+ * @param keys The Events' [ListItemKeys], index by index.
+ * @param isRecentlyAdded Whether the Event of a key was just added, so it is pointed out.
  */
 @Composable
 internal fun EventList(
     typeKind: BlockTypeKind,
     events: List<EventDefinition>,
+    keys: List<Long>,
+    isRecentlyAdded: (Long) -> Boolean,
     selectedIndex: Int?,
     onSelected: (Int) -> Unit,
     onAdded: (EventType) -> Unit,
@@ -100,8 +105,6 @@ internal fun EventList(
         val currentOnMoved by rememberUpdatedState(onMoved)
         val dragState = remember { ListDragState<Int>(onDrop = { index, gap -> moveTarget(index, gap)?.let { currentOnMoved(index, it) } }) }
         val listState = rememberLazyListState()
-        val itemKeys = remember { ListItemKeys<EventDefinition>() }
-        val keys = remember(itemKeys, events) { itemKeys.update(events) }
         val draggedKey = rememberDraggedKey(dragState.dragged, keys)
         val gap = dragState.gap
         Box {
@@ -120,7 +123,7 @@ internal fun EventList(
                         isDropBelow = gap == events.size && index == events.lastIndex,
                         onClick = { onSelected(index) },
                         onRemove = { onRemoved(index) },
-                        flashKey = highlight?.key?.takeIf { highlight.eventIndex == index && highlight.blockIndex == null } ?: keys[index].takeIf(itemKeys::isRecentlyAdded),
+                        flashKey = highlight?.key?.takeIf { highlight.eventIndex == index && highlight.blockIndex == null } ?: keys[index].takeIf(isRecentlyAdded),
                     )
                 }
                 if (inheritedEvents.isNotEmpty()) {

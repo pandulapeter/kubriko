@@ -37,7 +37,12 @@ class BlockTypeEditorActionsTest {
     private val ball = ActorTypeDefinition("Ball")
     private val dispatched = mutableListOf<Invocation<*>>()
 
-    private fun actionsOf(definition: BlockTypeDefinition) = BlockTypeEditorActions(definition) { dispatched += it }
+    private val successes = mutableListOf<() -> Unit>()
+
+    private fun actionsOf(definition: BlockTypeDefinition) = BlockTypeEditorActions(definition) { invocation, onSuccess ->
+        dispatched += invocation
+        successes += onSuccess
+    }
 
     @Test
     fun deletingUsesTheCommandOfTheKind() {
@@ -97,12 +102,27 @@ class BlockTypeEditorActionsTest {
     fun overridingAnEventRunsTheParentsFirst() {
         val inherited = EventDefinition(EventType.COLLISION, otherActorType = "Brick", blocks = listOf(BlockDefinition.Stop))
 
-        actionsOf(ball).overrideEvent(inherited)
+        var added = 0
+        actionsOf(ball).overrideEvent(inherited) { added++ }
 
         assertEquals<List<Invocation<*>>>(
             listOf(Invocation(AddEvent, AddEvent.Input("Ball", EventType.COLLISION, null, "Brick", null, listOf(BlockDefinition.RunParentEvent)))),
             dispatched,
         )
+        assertEquals(0, added)
+        successes.single().invoke()
+        assertEquals(1, added)
+    }
+
+    @Test
+    fun addingAnEventReportsOnlyItsSuccess() {
+        var added = 0
+        actionsOf(ball).addEvent(EventType.GAME_STARTED) { added++ }
+
+        assertEquals<List<Invocation<*>>>(listOf(Invocation(AddEvent, AddEvent.Input("Ball", EventType.GAME_STARTED))), dispatched)
+        assertEquals(0, added)
+        successes.single().invoke()
+        assertEquals(1, added)
     }
 
     @Test
