@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.context.TypeNotation
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
@@ -43,9 +44,9 @@ internal fun <T : BlockTypeDefinition> CommandContext.typeReadResult(
     val result = if (detail == ReadDetail.JSON) {
         val whole = json.encodeToJsonElement(serializer, definition).jsonObject
         val selected = eventIndex?.let { index ->
-            JsonObject(mapOf("name" to whole.getValue("name"), "eventIndex" to Json.parseToJsonElement(index.toString()), "event" to json.encodeToJsonElement(EventDefinition.serializer(), definition.events[index])))
+            JsonObject(mapOf("name" to whole.getValue("name"), "eventIndex" to JsonPrimitive(index), "event" to json.encodeToJsonElement(EventDefinition.serializer(), definition.events[index])))
         } ?: whole
-        if (isChangedByHand) JsonObject(selected + ("isChangedByHand" to Json.parseToJsonElement("true"))) else selected
+        if (isChangedByHand) JsonObject(selected + ("isChangedByHand" to JsonPrimitive(true))) else selected
     } else {
         notationOf(definition, detail, eventIndex, isChangedByHand)
     }

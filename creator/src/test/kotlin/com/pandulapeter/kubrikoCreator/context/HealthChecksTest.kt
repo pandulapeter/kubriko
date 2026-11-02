@@ -63,6 +63,18 @@ class HealthChecksTest {
         assertEquals(emptyList(), HealthChecks.of(listOf(brick), ProjectRelations(listOf(brick), mapOf("main" to mapOf("Brick" to 1))), listOf("main")))
 
     @Test
+    fun aRedeclaredPropertyIsReadWhereverItsFamilyReadsIt() {
+        val health = PropertyDefinition.Number("health")
+        val logsHealth = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("{health}"))))
+        val parent = ActorTypeDefinition(name = "Parent", properties = listOf(health))
+        val child = ActorTypeDefinition(name = "Child", parent = "Parent", properties = listOf(health.copy(initialValue = 3f)))
+        val placed = mapOf("main" to mapOf("Parent" to 1, "Child" to 1))
+        listOf(listOf(parent.copy(events = logsHealth), child), listOf(parent, child.copy(events = logsHealth))).forEach { types ->
+            assertEquals(emptyList(), HealthChecks.of(types, ProjectRelations(types, placed), placed.keys))
+        }
+    }
+
+    @Test
     fun theAiReadsFindingsAsSentences() = assertEquals(
         "Ball: the timerFinished Event of speedUp never fires, since no startTimer Block of its family starts it.",
         HealthFinding(HealthFinding.Kind.TIMER_NEVER_STARTED, RelationSubject.Type("Ball"), "speedUp").toString(),
