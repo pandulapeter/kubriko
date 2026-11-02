@@ -10,14 +10,10 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
-import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
-import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
-import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
@@ -35,11 +31,13 @@ import com.pandulapeter.kubrikoCreator.session.JavaArgumentFile
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
+import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
+import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -47,39 +45,21 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_game_command_failed
-import kubriko.creator.generated.resources.error_game_no_answer
-import kubriko.creator.generated.resources.error_game_not_running
-import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_project_newer_format
 import kubriko.creator.generated.resources.error_project_newer_format_unknown_version
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.status_actor_type_not_saved
-import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_built
 import kubriko.creator.generated.resources.status_game_failed
 import kubriko.creator.generated.resources.status_game_not_started
 import kubriko.creator.generated.resources.status_game_reloaded
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
-import kubriko.creator.generated.resources.status_session_ended
-import kubriko.creator.generated.resources.status_session_started
-import kubriko.creator.generated.resources.status_session_stopped
 import kubriko.creator.generated.resources.status_unexpected_problem
-import kubriko.creator.generated.resources.status_unsupported_protocol
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -114,6 +94,7 @@ class WorkspaceControllerTest {
         entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader(rootDirectory),
         runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
         initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
+        writeDelayInMilliseconds: Long = 0,
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -130,6 +111,7 @@ class WorkspaceControllerTest {
             entryPointLoader = entryPointLoader,
             runGame = runGame,
             initialFormatStatus = initialFormatStatus,
+            writeDelayInMilliseconds = writeDelayInMilliseconds,
         )
     }
 
@@ -187,39 +169,6 @@ class WorkspaceControllerTest {
     }
 
     @Test
-    fun commonCodeCompilesIncrementallyUnlessTheProjectDeclaresExpectsAndAFailedBuildIsFollowedByACleanOne() = runTest {
-        val root = createTempDirectory().toFile()
-        try {
-            val controller = createController(rootDirectory = root)
-            val property = "-P${SessionInitScript.INCREMENTAL_COMMON_CODE_PROPERTY}"
-            controller.play()
-            assertContains(build.currentRun.arguments, "$property=true")
-            assertFalse("--rerun-tasks" in build.currentRun.arguments)
-            build.currentRun.finish(isSuccessful = false)
-            controller.play()
-            assertContains(build.currentRun.arguments, "$property=true")
-            assertContains(build.currentRun.arguments, "--rerun-tasks")
-            build.currentRun.finish(isSuccessful = true)
-            controller.play()
-            assertFalse("--rerun-tasks" in build.currentRun.arguments)
-            build.currentRun.finish(isSuccessful = true)
-            root.resolve("src/commonMain/kotlin/Platform.kt").apply { parentFile.mkdirs() }.writeText("expect fun name(): String\n")
-            controller.play()
-            assertContains(build.currentRun.arguments, "$property=false")
-        } finally {
-            root.deleteRecursively()
-        }
-    }
-
-    @Test
-    fun aProjectWithoutADesktopModuleSaysWhyItCantBuild() = runTest {
-        val controller = createController(findDesktopModulePath = { throw ProjectInspectionException(Res.string.error_no_desktop_module) })
-        controller.play()
-        assertEquals(listOf(Res.string.status_building, Res.string.error_no_desktop_module), controller.statuses)
-        assertTrue(build.runs.isEmpty())
-    }
-
-    @Test
     fun everyLaunchWaitsForASessionOfItsOwn() = runTest {
         val controller = createController()
         controller.play()
@@ -245,14 +194,30 @@ class WorkspaceControllerTest {
     }
 
     @Test
-    fun aBuildWaitsForTheChangesThatAreStillBeingWritten() = runTest {
+    fun aBuildWaitsForTheBlockTypeChangesThatAreStillBeingWritten() = runTest {
         val repository = FakeBlockTypeRepository()
-        val controller = createController(blockTypeRepository = repository, ioDispatcher = StandardTestDispatcher(testScheduler))
+        val controller = createController(blockTypeRepository = repository, writeDelayInMilliseconds = 100)
+        advanceTimeBy(101)
+        repository.writes.clear()
+        assertNull(controller.createActorType("Player"))
         controller.play()
         assertTrue(build.runs.isEmpty())
-        runCurrent()
-        assertEquals(listOf("regenerate"), repository.writes)
+        advanceTimeBy(101)
+        assertEquals(listOf("save Player", "regenerate"), repository.writes)
         assertEquals(1, build.runs.size)
+    }
+
+    @Test
+    fun aGameWaitsForTheSceneEditorsClasspathBuildAndThenBuildsItsOwn() = runTest {
+        val controller = createController()
+        controller.sceneEditing.prepare()
+        controller.play()
+        assertEquals(1, build.runs.size, "the game's build waits for the Scene editor's")
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(listOf(":${SessionInitScript.CLASSPATH_TASK_NAME}", ":${SessionInitScript.CLASSPATH_TASK_NAME}"), build.runs.map { it.taskPath })
+        assertContains(build.currentRun.arguments, "-PkubrikoCreatorClasspathFile=${SessionInitScript.playClasspathFileOf(rootDirectory).absolutePath}")
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
     }
 
     @Test
@@ -264,19 +229,6 @@ class WorkspaceControllerTest {
         runCurrent()
         assertEquals(listOf("regenerate"), repository.writes)
         assertTrue(build.isClosed)
-    }
-
-    @Test
-    fun aSessionWaitsForTheClasspathBuildBeforeIt() = runTest {
-        val controller = createController()
-        controller.sceneEditing.prepare()
-        controller.play()
-        assertEquals(1, build.runs.size, "the game's build waits for the Scene editor's")
-        build.currentRun.finish(isSuccessful = true)
-        assertEquals(listOf(":${SessionInitScript.CLASSPATH_TASK_NAME}", ":${SessionInitScript.CLASSPATH_TASK_NAME}"), build.runs.map { it.taskPath })
-        assertContains(build.currentRun.arguments, "-PkubrikoCreatorClasspathFile=${SessionInitScript.playClasspathFileOf(rootDirectory).absolutePath}")
-        build.currentRun.finish(isSuccessful = true)
-        assertEquals(":${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
     }
 
     @Test
@@ -426,249 +378,6 @@ class WorkspaceControllerTest {
         } finally {
             root.deleteRecursively()
         }
-    }
-
-    @Test
-    fun theSessionTaskOfANestedModuleIsAddressedByItsPath() = runTest {
-        createController(desktopModulePath = ":app:desktop").playThroughGradle()
-        assertEquals(":app:desktop:${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
-    }
-
-    @Test
-    fun aHelloInTheCurrentProtocolMarksTheSessionAsRunning() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
-        assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
-        assertEquals(Res.string.status_session_started, controller.statuses.last())
-    }
-
-    @Test
-    fun aHelloInANewerProtocolStillRunsTheSession() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION + 1, mode = SessionMode.PLAY))
-        assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
-    }
-
-    @Test
-    fun aHelloInAnInvalidProtocolStopsTheSession() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        channel.receive(SessionMessage.Hello(protocolVersion = 0, mode = SessionMode.PLAY))
-        assertTrue(build.currentRun.isCancelled)
-        assertEquals(SessionState.Idle, controller.sessionState.value)
-        assertContains(controller.console.value, ConsoleEntry.Status(Res.string.status_unsupported_protocol, isError = true))
-    }
-
-    @Test
-    fun logsOfTheSessionAppearInTheConsole() = runTest {
-        val controller = createController()
-        channel.receive(SessionMessage.Log(id = "1", message = "Started", details = null, source = "Game", timestamp = 0L, importance = "HIGH"))
-        channel.receive(SessionMessage.Log(id = "2", message = "Ticking", details = null, source = null, timestamp = 0L, importance = "LOW"))
-        assertEquals(
-            listOf(
-                ConsoleEntry.Log(message = "Started", source = "Game", isImportant = true),
-                ConsoleEntry.Log(message = "Ticking", source = null, isImportant = false),
-            ),
-            controller.console.value,
-        )
-    }
-
-    @Test
-    fun aSessionFailureAppearsInTheConsoleInTheSessionsWords() = runTest {
-        val controller = createController()
-        channel.receive(SessionMessage.Failure(message = "No entry point."))
-        assertEquals(listOf(ConsoleEntry.SessionFailure("No entry point.")), controller.console.value)
-    }
-
-    @Test
-    fun problemsAppearWithTheirLocationRelativeToTheProject() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        build.currentRun.onEvent(GradleBuildEvent.Problem("Unresolved reference", File(rootDirectory, "src/Ball.kt"), line = 3, column = 5))
-        build.currentRun.onEvent(GradleBuildEvent.Problem("Somewhere else", file = null, line = null, column = null))
-        assertEquals(
-            listOf(
-                ConsoleEntry.Problem("Unresolved reference", "src/Ball.kt:3:5"),
-                ConsoleEntry.Problem("Somewhere else", null),
-            ),
-            controller.console.value.filterIsInstance<ConsoleEntry.Problem>(),
-        )
-    }
-
-    @Test
-    fun aFailedBuildWithoutProblemsShowsTheTailOfItsOutput() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        repeat(40) { build.currentRun.onEvent(GradleBuildEvent.Output("line $it", isError = it % 2 == 0)) }
-        build.currentRun.finish(isSuccessful = false)
-        assertEquals(Res.string.status_build_failed, controller.statuses.last())
-        assertEquals((10 until 40).map { "line $it" }, controller.console.value.filterIsInstance<ConsoleEntry.BuildOutput>().map { it.line })
-        assertEquals(SessionState.Idle, controller.sessionState.value)
-    }
-
-    @Test
-    fun aFailedBuildWithProblemsShowsOnlyTheProblems() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        build.currentRun.onEvent(GradleBuildEvent.Output("e: noise", isError = true))
-        build.currentRun.onEvent(GradleBuildEvent.Problem("Unresolved reference", file = null, line = null, column = null))
-        build.currentRun.finish(isSuccessful = false)
-        assertTrue(controller.console.value.none { it is ConsoleEntry.BuildOutput })
-    }
-
-    @Test
-    fun aSessionThatExitsOnItsOwnEndsQuietly() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        build.currentRun.finish(isSuccessful = true)
-        assertEquals(listOf(Res.string.status_building, Res.string.status_built, Res.string.status_building, Res.string.status_session_ended), controller.statuses)
-        assertEquals(SessionState.Idle, controller.sessionState.value)
-    }
-
-    @Test
-    fun stoppingCancelsTheRunningSession() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        controller.stopSession()
-        assertTrue(build.currentRun.isCancelled)
-        assertEquals(Res.string.status_session_stopped, controller.statuses.last())
-        assertEquals(SessionState.Idle, controller.sessionState.value)
-    }
-
-    @Test
-    fun theBuildToolCompilesAndReturnsTheProblemsItReported() = runTest {
-        val controller = createController()
-        val outcome = async { controller.commands.call("build", JsonObject(emptyMap())) }
-        runCurrent()
-        assertEquals(":${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
-        build.currentRun.onEvent(GradleBuildEvent.Problem(message = "Unresolved reference: speed", file = null, line = null, column = null))
-        build.currentRun.finish(isSuccessful = false)
-        val result = assertIs<CommandOutcome.Success>(outcome.await()).result.jsonObject
-        assertEquals(false, result.getValue("isSuccessful").jsonPrimitive.boolean)
-        assertEquals(
-            listOf("Building the project…", "Unresolved reference: speed", "The build failed."),
-            result.getValue("console").jsonArray.map { it.jsonObject.getValue("text").jsonPrimitive.content },
-        )
-    }
-
-    @Test
-    fun thePlayToolPlaysForAWhileOnceTheGameIsUpAndReturnsWhatItLogged() = runTest {
-        val controller = createController()
-        channel.receive(SessionMessage.Log(id = "0", message = "Before", details = null, source = null, timestamp = 0L, importance = "LOW"))
-        val outcome = async { controller.commands.call("play", buildJsonObject { put("seconds", 2) }) }
-        runCurrent()
-        assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
-        advanceTimeBy(10_000)
-        assertFalse(outcome.isCompleted)
-        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
-        channel.receive(SessionMessage.Log(id = "1", message = "Ball bounced", details = null, source = "Game", timestamp = 0L, importance = "LOW"))
-        runCurrent()
-        advanceTimeBy(1_999)
-        assertFalse(outcome.isCompleted)
-        advanceTimeBy(2)
-        val result = assertIs<CommandOutcome.Success>(outcome.await()).result.jsonObject
-        assertEquals(true, result.getValue("hasStarted").jsonPrimitive.boolean)
-        assertEquals(
-            listOf("Building the project…", "Session started.", "Ball bounced", "Session stopped."),
-            result.getValue("console").jsonArray.map { it.jsonObject.getValue("text").jsonPrimitive.content },
-        )
-        assertEquals(SessionState.Idle, controller.sessionState.value)
-    }
-
-    @Test
-    fun thePlayToolReportsAGameThatNeverStarted() = runTest {
-        val controller = createController()
-        val outcome = async { controller.commands.call("play", JsonObject(emptyMap())) }
-        runCurrent()
-        build.currentRun.finish(isSuccessful = false)
-        val result = assertIs<CommandOutcome.Success>(outcome.await()).result.jsonObject
-        assertEquals(false, result.getValue("hasStarted").jsonPrimitive.boolean)
-    }
-
-    @Test
-    fun sessionsOfTheFirstProtocolVersionStillRunButCantBePlayedByTools() = runTest {
-        val controller = createController()
-        val outcome = async { controller.commands.call("start_game", JsonObject(emptyMap())) }
-        runCurrent()
-        channel.receive(SessionMessage.Hello(protocolVersion = 1, mode = SessionMode.PLAY))
-        assertIs<CommandOutcome.Success>(outcome.await())
-        assertEquals(SessionState.Running(SessionMode.PLAY), controller.sessionState.value)
-        assertTrue(channel.sent.isEmpty())
-        val pressed = assertIs<CommandOutcome.Rejected>(controller.commands.call("press_keys", buildJsonObject { put("keys", JsonArray(listOf(JsonPrimitive("LEFT")))) }))
-        assertEquals(Res.string.error_game_unsupported, pressed.rejection.reason)
-    }
-
-    @Test
-    fun theGameToolsPlayTheRunningGameAndBringItToTheFrontFirst() = runTest {
-        val controller = createController()
-        val pressedWithoutGame = assertIs<CommandOutcome.Rejected>(controller.commands.call("press_keys", buildJsonObject { put("keys", JsonArray(listOf(JsonPrimitive("LEFT")))) }))
-        assertEquals(Res.string.error_game_not_running, pressedWithoutGame.rejection.reason)
-        val started = async { controller.commands.call("start_game", JsonObject(emptyMap())) }
-        runCurrent()
-        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
-        assertEquals(true, assertIs<CommandOutcome.Success>(started.await()).result.jsonObject.getValue("hasStarted").jsonPrimitive.boolean)
-        channel.answer = { command ->
-            if (command is SessionCommand.PressKeys) channel.receive(SessionMessage.Log(id = "1", message = "Paddle moved", details = null, source = "Paddle", timestamp = 0L, importance = "LOW"))
-            SessionMessage.CommandDone(command.id)
-        }
-        val pressed = async { controller.commands.call("press_keys", buildJsonObject { put("keys", JsonArray(listOf(JsonPrimitive("left"), JsonPrimitive("SPACE")))); put("milliseconds", 200) }) }
-        runCurrent()
-        assertEquals(
-            listOf("Paddle moved"),
-            assertIs<CommandOutcome.Success>(pressed.await()).result.jsonObject.getValue("console").jsonArray.map { it.jsonObject.getValue("text").jsonPrimitive.content },
-        )
-        assertEquals(listOf("LEFT", "SPACE"), channel.sent.filterIsInstance<SessionCommand.PressKeys>().single().keys)
-        assertEquals(200L, channel.sent.filterIsInstance<SessionCommand.PressKeys>().single().durationInMilliseconds)
-        assertIs<SessionCommand.BringToFront>(channel.sent[channel.sent.indexOfFirst { it is SessionCommand.PressKeys } - 1])
-        assertEquals(5_000L, channel.sent.filterIsInstance<SessionCommand.AwaitActorsDrawn>().single().timeoutInMilliseconds)
-        channel.answer = { command ->
-            when (command) {
-                is SessionCommand.CaptureScreen -> SessionMessage.Screenshot(command.id, java.util.Base64.getEncoder().encodeToString(byteArrayOf(1, 2, 3)))
-                else -> SessionMessage.CommandDone(command.id)
-            }
-        }
-        val screenshot = assertIs<CommandOutcome.Success>(controller.commands.call("take_screenshot", JsonObject(emptyMap())))
-        assertEquals(listOf<Byte>(1, 2, 3), screenshot.image?.toList())
-        assertEquals(1280, channel.sent.filterIsInstance<SessionCommand.CaptureScreen>().single().maximumWidth)
-        channel.answer = { command -> if (command is SessionCommand.CaptureScreen) SessionMessage.CommandFailed(command.id, "The game hasn't drawn anything yet.") else SessionMessage.CommandDone(command.id) }
-        val failed = assertIs<CommandOutcome.Rejected>(controller.commands.call("take_screenshot", JsonObject(emptyMap())))
-        assertEquals(Rejection(Res.string.error_game_command_failed, "The game hasn't drawn anything yet."), failed.rejection)
-        val stopped = assertIs<CommandOutcome.Success>(controller.commands.call("stop_game", JsonObject(emptyMap())))
-        assertEquals(true, stopped.result.jsonObject.getValue("wasRunning").jsonPrimitive.boolean)
-        assertEquals(SessionState.Idle, controller.sessionState.value)
-    }
-
-    @Test
-    fun aGameThatDoesntAnswerIsReported() = runTest {
-        val controller = createController()
-        val started = async { controller.commands.call("start_game", JsonObject(emptyMap())) }
-        runCurrent()
-        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
-        started.await()
-        channel.answer = { null }
-        val waited = async { controller.commands.call("wait", buildJsonObject { put("milliseconds", 500) }) }
-        runCurrent()
-        advanceTimeBy(20_000)
-        assertEquals(Res.string.error_game_no_answer, assertIs<CommandOutcome.Rejected>(waited.await()).rejection.reason)
-    }
-
-    @Test
-    fun stoppingWithoutASessionDoesNothing() = runTest {
-        val controller = createController()
-        controller.stopSession()
-        assertTrue(controller.console.value.isEmpty())
-    }
-
-    @Test
-    fun startingASessionReplacesTheRunningOne() = runTest {
-        val controller = createController()
-        controller.playThroughGradle()
-        controller.playThroughGradle()
-        assertTrue(build.runs[1].isCancelled, "the first session")
-        assertFalse(build.currentRun.isCancelled)
-        assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
     }
 
     @Test

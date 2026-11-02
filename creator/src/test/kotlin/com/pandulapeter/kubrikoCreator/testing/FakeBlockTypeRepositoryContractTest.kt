@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.testing
 
-import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
-
 internal class FakeBlockTypeRepositoryContractTest : BlockTypeRepositoryContract() {
     override fun repository() = FakeBlockTypeRepository()
 }

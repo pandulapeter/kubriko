@@ -1,0 +1,231 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.workspace
+
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.session.GameLaunch
+import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
+import com.pandulapeter.kubrikoCreator.session.GameProcess
+import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
+import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_game_not_started
+import kubriko.creator.generated.resources.status_session_ended
+import kubriko.creator.generated.resources.status_session_started
+import kubriko.creator.generated.resources.status_session_stopped
+import kubriko.creator.generated.resources.status_unsupported_protocol
+import java.io.File
+import java.io.IOException
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class SessionControllerTest {
+    private val channel = FakeSessionChannel()
+    private val console = ConsoleLog()
+
+    /**
+     * Runs the tasks the controller asks for, which last until each is finished or cancelled.
+     */
+    private val build = FakeProjectBuild()
+    private val tasks = mutableListOf<Pair<String, Map<String, String>>>()
+
+    private fun TestScope.createController(
+        prepareLaunch: suspend () -> GameLaunchPreparation = { GameLaunchPreparation.Unavailable },
+        runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
+    ) = SessionController(
+        channel = channel,
+        runTask = { taskName, properties ->
+            tasks += taskName to properties
+            build.run(taskName, emptyList()) {}
+        },
+        console = console,
+        scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
+        prepareLaunch = prepareLaunch,
+        runGame = runGame,
+    )
+
+    private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
+
+    private fun hello(protocolVersion: Int = SessionProtocol.VERSION) = channel.receive(SessionMessage.Hello(protocolVersion = protocolVersion, mode = SessionMode.PLAY))
+
+    @Test
+    fun aHelloInTheCurrentProtocolMarksTheSessionAsRunning() = runTest {
+        val controller = createController()
+        controller.play()
+        hello()
+        assertEquals(SessionState.Running(SessionMode.PLAY), controller.state.value)
+        assertEquals(Res.string.status_session_started, statuses.last())
+    }
+
+    @Test
+    fun aHelloInANewerProtocolStillRunsTheSession() = runTest {
+        val controller = createController()
+        controller.play()
+        hello(protocolVersion = SessionProtocol.VERSION + 1)
+        assertEquals(SessionState.Running(SessionMode.PLAY), controller.state.value)
+    }
+
+    @Test
+    fun aHelloInAnInvalidProtocolStopsTheSession() = runTest {
+        val controller = createController()
+        controller.play()
+        hello(protocolVersion = 0)
+        assertTrue(build.currentRun.isCancelled)
+        assertEquals(SessionState.Idle, controller.state.value)
+        assertContains(console.entries.value, ConsoleEntry.Status(Res.string.status_unsupported_protocol, isError = true))
+    }
+
+    @Test
+    fun logsOfTheSessionAppearInTheConsole() = runTest {
+        createController()
+        channel.receive(SessionMessage.Log(id = "1", message = "Started", details = null, source = "Game", timestamp = 0L, importance = "HIGH"))
+        channel.receive(SessionMessage.Log(id = "2", message = "Ticking", details = null, source = null, timestamp = 0L, importance = "LOW"))
+        assertEquals(
+            listOf(
+                ConsoleEntry.Log(message = "Started", source = "Game", isImportant = true),
+                ConsoleEntry.Log(message = "Ticking", source = null, isImportant = false),
+            ),
+            console.entries.value,
+        )
+    }
+
+    @Test
+    fun aSessionFailureAppearsInTheConsoleInTheSessionsWords() = runTest {
+        createController()
+        channel.receive(SessionMessage.Failure(message = "No entry point."))
+        assertEquals(listOf(ConsoleEntry.SessionFailure("No entry point.")), console.entries.value)
+    }
+
+    @Test
+    fun aSessionThatExitsOnItsOwnEndsQuietly() = runTest {
+        val controller = createController()
+        controller.play()
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(listOf(Res.string.status_session_ended), statuses)
+        assertEquals(SessionState.Idle, controller.state.value)
+    }
+
+    @Test
+    fun stoppingCancelsTheRunningSession() = runTest {
+        val controller = createController()
+        controller.play()
+        controller.stop()
+        assertTrue(build.currentRun.isCancelled)
+        assertEquals(Res.string.status_session_stopped, statuses.last())
+        assertEquals(SessionState.Idle, controller.state.value)
+    }
+
+    @Test
+    fun stoppingWithoutASessionDoesNothing() = runTest {
+        val controller = createController()
+        controller.stop()
+        assertTrue(console.entries.value.isEmpty())
+    }
+
+    @Test
+    fun startingASessionReplacesTheRunningOne() = runTest {
+        val controller = createController()
+        controller.play()
+        controller.play()
+        assertEquals(2, build.runs.size)
+        assertTrue(build.runs[0].isCancelled, "the first session")
+        assertFalse(build.currentRun.isCancelled)
+        assertEquals(SessionState.Starting(SessionMode.PLAY), controller.state.value)
+    }
+
+    @Test
+    fun restartPlaysFromTheSceneOfTheLastPlay() = runTest {
+        val controller = createController()
+        controller.play(firstScene = "levels/1-1")
+        controller.restart()
+        val properties = mapOf("kubrikoCreatorPort" to "4242", "kubrikoCreatorMode" to "play", "kubrikoCreatorScene" to "levels/1-1")
+        assertEquals(List(2) { SessionInitScript.SESSION_TASK_NAME to properties }, tasks)
+    }
+
+    @Test
+    fun aGameThatThrowsIOExceptionSaysItDidntStart() = runTest {
+        val launch = GameLaunch(File("/java"), "M", File("/game"), emptyList(), listOf(File("/game/classes")))
+        val controller = createController(
+            prepareLaunch = { GameLaunchPreparation.Ready(launch) },
+            runGame = { _, _ -> throw IOException("x") },
+        )
+        controller.play()
+        assertEquals(ConsoleEntry.Status(Res.string.status_game_not_started, isError = true, arguments = listOf("x")), console.entries.value.last())
+        assertEquals(SessionState.Idle, controller.state.value)
+    }
+
+    @Test
+    fun requestsWhileNotPlayingAnswerNotPlaying() = runTest {
+        val controller = createController()
+        assertEquals(GameAnswer.NotPlaying, controller.request(1_000) { SessionCommand.BringToFront(it) })
+        controller.play()
+        assertEquals(GameAnswer.NotPlaying, controller.request(1_000) { SessionCommand.BringToFront(it) }, "the game is still starting")
+        assertTrue(channel.sent.isEmpty())
+    }
+
+    @Test
+    fun requestsToAnOlderProtocolAnswerUnsupported() = runTest {
+        val controller = createController()
+        controller.play()
+        hello(protocolVersion = 2)
+        assertEquals(GameAnswer.Unsupported, controller.request(1_000, minimumProtocolVersion = 3) { SessionCommand.AwaitActorsDrawn(it, 100) })
+        assertTrue(channel.sent.isEmpty())
+        assertEquals(GameAnswer.Answered(SessionMessage.CommandDone(1)), controller.request(1_000) { SessionCommand.BringToFront(it) })
+    }
+
+    @Test
+    fun anUnansweredRequestTimesOut() = runTest {
+        val controller = createController()
+        controller.play()
+        hello()
+        channel.answer = { null }
+        val answer = async { controller.request(1_000) { SessionCommand.BringToFront(it) } }
+        advanceTimeBy(999)
+        assertFalse(answer.isCompleted)
+        advanceTimeBy(2)
+        assertTrue(answer.isCompleted)
+        assertEquals(GameAnswer.NoAnswer, answer.await())
+    }
+
+    @Test
+    fun aRequestTheChannelCantSendAnswersNotPlaying() = runTest {
+        val controller = createController()
+        controller.play()
+        hello()
+        channel.isConnected = false
+        assertEquals(GameAnswer.NotPlaying, controller.request(1_000) { SessionCommand.BringToFront(it) })
+    }
+
+    @Test
+    fun closingCancelsTheSessionAndClosesTheChannel() = runTest {
+        val controller = createController()
+        controller.play()
+        controller.close()
+        assertTrue(build.currentRun.isCancelled)
+        assertTrue(channel.isClosed)
+        assertEquals(SessionState.Idle, controller.state.value)
+    }
+}

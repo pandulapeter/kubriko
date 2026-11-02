@@ -16,8 +16,8 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
-import com.pandulapeter.kubrikoCreator.workspace.FakeProjectBuild
-import com.pandulapeter.kubrikoCreator.workspace.FakeSessionChannel
+import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
+import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
 import kotlinx.coroutines.CompletableDeferred

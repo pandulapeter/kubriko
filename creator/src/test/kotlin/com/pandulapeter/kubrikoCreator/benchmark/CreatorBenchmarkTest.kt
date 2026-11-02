@@ -19,8 +19,8 @@ import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
-import com.pandulapeter.kubrikoCreator.workspace.FakeProjectBuild
-import com.pandulapeter.kubrikoCreator.workspace.FakeSessionChannel
+import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
+import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

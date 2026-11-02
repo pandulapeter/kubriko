@@ -19,7 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.commandContext
-import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
+import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_no_actor_types
