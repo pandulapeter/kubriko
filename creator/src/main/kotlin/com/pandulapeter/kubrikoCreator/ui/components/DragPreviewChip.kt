@@ -1,0 +1,78 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ui.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
+
+/**
+ * What is being dragged, as a chip following the pointer over the area [modifier] covers.
+ *
+ * @param pointer Where the pointer is in the root, read only while placing the chip, so that moving it doesn't recompose.
+ */
+@Composable
+internal fun DragPreviewChip(
+    pointer: () -> Offset,
+    icon: DrawableResource,
+    tint: Color,
+    text: String,
+    modifier: Modifier = Modifier.fillMaxSize(),
+) {
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    Box(
+        modifier = modifier.onGloballyPositioned { origin = it.positionInRoot() },
+    ) {
+        Row(
+            modifier = Modifier
+                .offset { (pointer() - origin + Offset(12f, 12f)).round() }
+                .shadow(6.dp, MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = tint,
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}

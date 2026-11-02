@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -18,15 +17,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,14 +32,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.round
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
@@ -77,6 +67,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
+import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
@@ -86,7 +77,6 @@ import kubriko.creator.generated.resources.actor_type_properties_empty
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.manager_type_properties_empty
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -280,29 +270,10 @@ internal fun BlockTypeEditor(
 @Composable
 private fun DragPreview(dragState: BlockDragState) {
     val dragged = dragState.dragged ?: return
-    var origin by remember { mutableStateOf(Offset.Zero) }
-    Box(
-        modifier = Modifier.fillMaxSize().onGloballyPositioned { origin = it.positionInRoot() },
-    ) {
-        Row(
-            modifier = Modifier
-                .offset { (dragState.pointer - origin + Offset(12f, 12f)).round() }
-                .shadow(6.dp, MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small)
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                modifier = Modifier.size(16.dp),
-                painter = painterResource(dragged.kind.icon),
-                contentDescription = null,
-                tint = dragged.kind.category.accent.color,
-            )
-            Text(
-                text = stringResource(dragged.kind.title),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
+    DragPreviewChip(
+        pointer = { dragState.pointer },
+        icon = dragged.kind.icon,
+        tint = dragged.kind.category.accent.color,
+        text = stringResource(dragged.kind.title),
+    )
 }

@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,24 +27,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.round
 import androidx.compose.ui.zIndex
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -157,31 +149,13 @@ internal fun EventList(
 @Composable
 private fun BoxScope.EventDragPreview(dragState: ListDragState<Int>, events: List<EventDefinition>) {
     val event = dragState.dragged?.let(events::getOrNull) ?: return
-    var origin by remember { mutableStateOf(Offset.Zero) }
-    Box(
-        modifier = Modifier.matchParentSize().onGloballyPositioned { origin = it.positionInRoot() },
-    ) {
-        Row(
-            modifier = Modifier
-                .offset { (dragState.pointer - origin + Offset(12f, 12f)).round() }
-                .shadow(6.dp, MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small)
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                modifier = Modifier.size(16.dp),
-                painter = painterResource(event.type.icon),
-                contentDescription = null,
-                tint = Accent.EVENT.color,
-            )
-            Text(
-                text = stringResource(event.type.title),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
+    DragPreviewChip(
+        pointer = { dragState.pointer },
+        icon = event.type.icon,
+        tint = Accent.EVENT.color,
+        text = stringResource(event.type.title),
+        modifier = Modifier.matchParentSize(),
+    )
 }
 
 private const val EVENT_CONTENT_TYPE = "event"
