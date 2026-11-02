@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
@@ -105,6 +106,8 @@ internal fun BlockTypeEditor(
     val currentEventIndex by rememberUpdatedState(eventIndex)
     val currentOnCommand by rememberUpdatedState(onCommand)
     var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
+    val propertyItemKeys = remember(name) { ListItemKeys<PropertyDefinition>() }
+    val propertyKeys = remember(propertyItemKeys, definition.properties) { propertyItemKeys.update(definition.properties) }
     val dragState = remember(name) {
         BlockDragState(
             onDrop = { block, gap ->
@@ -170,6 +173,7 @@ internal fun BlockTypeEditor(
                     }
                     propertyListItems(
                         properties = definition.properties,
+                        propertyKeys = propertyKeys,
                         inheritedProperties = inheritance.properties,
                         emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
                         onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },

@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
@@ -38,5 +41,18 @@ class ColorFieldTest {
         waitForIdle()
         assertEquals(listOf(0xFF00FF00), changes)
         saveSnapshot("color-field")
+    }
+
+    @Test
+    fun aColorChangedElsewhereReplacesTheTextEvenWhileTyping() = uiTest {
+        var color by mutableStateOf(0xFFFF0000)
+        showing { ColorField(color = color, onColorChange = { color = it }) }
+        val field = onNode(hasSetTextAction())
+        field.requestFocus()
+        field.performTextReplacement("#00FF00")
+        waitForIdle()
+        color = 0xFFFF0000
+        waitForIdle()
+        onNodeWithText("#FF0000").assertExists()
     }
 }

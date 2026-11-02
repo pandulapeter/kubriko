@@ -55,8 +55,15 @@ internal fun ColorField(
 ) {
     var text by remember { mutableStateOf(ColorHex.format(color)) }
     var isFocused by remember { mutableStateOf(false) }
-    LaunchedEffect(color, isFocused) {
-        if (!isFocused && ColorHex.parse(text) != color) text = ColorHex.format(color)
+    val sentColors = remember { SentValues<Long>() }
+    LaunchedEffect(color) {
+        if ((!sentColors.isEcho(color) || !isFocused) && ColorHex.parse(text) != color) text = ColorHex.format(color)
+    }
+    LaunchedEffect(isFocused) {
+        if (!isFocused) {
+            sentColors.clear()
+            if (ColorHex.parse(text) != color) text = ColorHex.format(color)
+        }
     }
     var isPickerOpen by remember { mutableStateOf(false) }
     WithTooltip(
@@ -89,7 +96,10 @@ internal fun ColorField(
         value = text,
         onValueChange = { newText ->
             text = newText
-            ColorHex.parse(newText)?.let(onColorChange)
+            ColorHex.parse(newText)?.let {
+                sentColors.add(it)
+                onColorChange(it)
+            }
         },
         label = stringResource(Res.string.actor_type_color),
         isError = ColorHex.parse(text) == null,

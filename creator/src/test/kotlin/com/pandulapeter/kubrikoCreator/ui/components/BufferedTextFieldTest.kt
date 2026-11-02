@@ -54,4 +54,18 @@ class BufferedTextFieldTest {
         waitForIdle()
         onNodeWithText("World").assertExists()
     }
+
+    @Test
+    fun aValueChangedElsewhereReplacesTheTextEvenWhileTyping() = uiTest {
+        var value by mutableStateOf("")
+        showing { BufferedTextField(value = value, onValueChange = { value = it }) }
+        val field = onNode(hasSetTextAction())
+        field.requestFocus()
+        field.performTextReplacement("Ball")
+        waitForIdle()
+        value = "Paddle"
+        waitForIdle()
+        onNodeWithText("Paddle").assertExists()
+        onNodeWithText("Ball").assertDoesNotExist()
+    }
 }

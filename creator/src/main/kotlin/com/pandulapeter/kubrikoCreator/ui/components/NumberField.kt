@@ -22,7 +22,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * A field for a number that keeps whatever is being typed, and reports the value whenever it is a valid number; a value
- * changed elsewhere shows as soon as the field isn't being typed into.
+ * changed elsewhere shows at once, while the field's own reports coming back late leave what is typed alone.
  */
 @Composable
 internal fun NumberField(
@@ -46,15 +46,25 @@ internal fun NumberField(
 ) {
     var text by remember { mutableStateOf(formatNumber(value)) }
     var isFocused by remember { mutableStateOf(false) }
-    LaunchedEffect(value, isFocused) {
-        if (!isFocused && parseNumber(text) != value) text = formatNumber(value)
+    val sentValues = remember { SentValues<Float>() }
+    LaunchedEffect(value) {
+        if ((!sentValues.isEcho(value) || !isFocused) && parseNumber(text) != value) text = formatNumber(value)
+    }
+    LaunchedEffect(isFocused) {
+        if (!isFocused) {
+            sentValues.clear()
+            if (parseNumber(text) != value) text = formatNumber(value)
+        }
     }
     CompactTextField(
         modifier = modifier.onFocusChanged { isFocused = it.isFocused },
         value = text,
         onValueChange = { newText ->
             text = newText
-            parseNumber(newText)?.let(onValueChange)
+            parseNumber(newText)?.let {
+                sentValues.add(it)
+                onValueChange(it)
+            }
         },
         label = label,
         isError = parseNumber(text) == null,

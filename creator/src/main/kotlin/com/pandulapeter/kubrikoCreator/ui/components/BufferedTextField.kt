@@ -22,7 +22,7 @@ import androidx.compose.ui.text.TextStyle
 
 /**
  * A [CompactTextField] for a value whose changes may reach the model later: what is typed shows at once, and a value
- * changed elsewhere shows as soon as the field isn't being typed into.
+ * changed elsewhere shows at once too, while the field's own reports coming back late leave what is typed alone.
  */
 @Composable
 internal fun BufferedTextField(
@@ -38,14 +38,22 @@ internal fun BufferedTextField(
 ) {
     var text by remember { mutableStateOf(value) }
     var isFocused by remember { mutableStateOf(false) }
-    LaunchedEffect(value, isFocused) {
-        if (!isFocused) text = value
+    val sentValues = remember { SentValues<String>() }
+    LaunchedEffect(value) {
+        if (!sentValues.isEcho(value) || !isFocused) text = value
+    }
+    LaunchedEffect(isFocused) {
+        if (!isFocused) {
+            sentValues.clear()
+            text = value
+        }
     }
     CompactTextField(
         modifier = modifier.onFocusChanged { isFocused = it.isFocused },
         value = text,
         onValueChange = { newText ->
             text = newText
+            sentValues.add(newText)
             onValueChange(newText)
         },
         label = label,

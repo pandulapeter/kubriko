@@ -60,10 +60,13 @@ import org.jetbrains.compose.resources.stringResource
  * The Properties of an Actor type: the values each of its Actors keeps, with the value they start with, as items of the
  * lazy list they are shown in, so that only the rows on screen are composed.
  *
+ * @param propertyKeys The keys of [properties] (from [ListItemKeys]), so that a row keeps what is typed into it when
+ * the rows above it change.
  * @param onChanged Called with a Property's current name and what it should become.
  */
 internal fun LazyListScope.propertyListItems(
     properties: List<PropertyDefinition>,
+    propertyKeys: List<Long>,
     emptyHint: StringResource,
     onAdded: (PropertyDefinition) -> Unit,
     onChanged: (name: String, PropertyDefinition) -> Unit,
@@ -105,7 +108,7 @@ internal fun LazyListScope.propertyListItems(
         }
     }
     val names = properties.map { it.name }
-    itemsIndexed(properties) { index, property ->
+    itemsIndexed(properties, key = { index, _ -> propertyKeys[index] }) { index, property ->
         PropertyRow(
             modifier = Modifier.propertyItemPadding(isFirst = index == 0 && inheritedProperties.isEmpty()),
             property = property,

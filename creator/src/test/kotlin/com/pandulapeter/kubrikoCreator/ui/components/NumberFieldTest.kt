@@ -75,4 +75,17 @@ class NumberFieldTest {
         waitForIdle()
         onNodeWithText("7").assertExists()
     }
+
+    @Test
+    fun aValueChangedElsewhereReplacesTheTextEvenWhileTyping() = uiTest {
+        var value by mutableStateOf(5f)
+        showing { NumberField(label = "Speed", value = value, onValueChange = { value = it }) }
+        val field = onNode(hasSetTextAction())
+        field.requestFocus()
+        field.performTextReplacement("12")
+        waitForIdle()
+        value = 5f
+        waitForIdle()
+        onNodeWithText("5").assertExists()
+    }
 }

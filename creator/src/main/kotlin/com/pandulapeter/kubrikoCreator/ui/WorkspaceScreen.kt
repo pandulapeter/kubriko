@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -258,33 +259,35 @@ internal fun WorkspaceScreen(
                     SceneEditingState.Closed -> Unit
                 }
                 if (sceneEditing == SceneEditingState.Closed && blockTypesController != null && selectedBlockType != null) {
-                    BlockTypeEditor(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        definition = selectedBlockType,
-                        scope = remember(selectedBlockType, blockTypes, resources, family) {
-                            BlockScope.of(
-                                definition = selectedBlockType,
-                                types = blockTypes,
-                                sceneNames = sceneNames,
-                                audioFiles = AudioFiles.of(resources),
-                                family = family,
-                            )
-                        },
-                        sprites = remember(resources) { SpriteFiles.of(resources).paths },
-                        inheritance = remember(selectedBlockType, blockTypes, family) { Inheritance.of(selectedBlockType, blockTypes, family = family) },
-                        isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
-                        onCommand = { controller.commands.dispatch(it) },
-                        onRename = { newName ->
-                            controller.dispatchIfValid(
-                                when (selectedBlockType) {
-                                    is ActorTypeDefinition -> Invocation(RenameActorType, RenameActorType.Input(selectedBlockType.name, newName))
-                                    is ManagerTypeDefinition -> Invocation(RenameManagerType, RenameManagerType.Input(selectedBlockType.name, newName))
-                                },
-                            )
-                        },
-                        onTypeSelected = blockTypesController::select,
-                        highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
-                    )
+                    key(selectedBlockType.name) {
+                        BlockTypeEditor(
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            definition = selectedBlockType,
+                            scope = remember(selectedBlockType, blockTypes, resources, family) {
+                                BlockScope.of(
+                                    definition = selectedBlockType,
+                                    types = blockTypes,
+                                    sceneNames = sceneNames,
+                                    audioFiles = AudioFiles.of(resources),
+                                    family = family,
+                                )
+                            },
+                            sprites = remember(resources) { SpriteFiles.of(resources).paths },
+                            inheritance = remember(selectedBlockType, blockTypes, family) { Inheritance.of(selectedBlockType, blockTypes, family = family) },
+                            isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
+                            onCommand = { controller.commands.dispatch(it) },
+                            onRename = { newName ->
+                                controller.dispatchIfValid(
+                                    when (selectedBlockType) {
+                                        is ActorTypeDefinition -> Invocation(RenameActorType, RenameActorType.Input(selectedBlockType.name, newName))
+                                        is ManagerTypeDefinition -> Invocation(RenameManagerType, RenameManagerType.Input(selectedBlockType.name, newName))
+                                    },
+                                )
+                            },
+                            onTypeSelected = blockTypesController::select,
+                            highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
+                        )
+                    }
                 } else if (sceneEditing == SceneEditingState.Closed) {
                     WorkspaceHint(
                         modifier = Modifier.weight(1f).fillMaxHeight(),

@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -78,12 +80,16 @@ internal fun ScreenTextList(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        val itemKeys = remember { ListItemKeys<ScreenTextDefinition>() }
+        val keys = remember(itemKeys, texts) { itemKeys.update(texts) }
         texts.forEachIndexed { index, text ->
-            ScreenTextRow(
-                text = text,
-                onChange = { onChanged(index, it) },
-                onRemove = { onRemoved(index) },
-            )
+            key(keys[index]) {
+                ScreenTextRow(
+                    text = text,
+                    onChange = { onChanged(index, it) },
+                    onRemove = { onRemoved(index) },
+                )
+            }
         }
     }
 }
