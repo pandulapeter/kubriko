@@ -470,7 +470,7 @@ class AssistantControllerTest {
         val isKept = CompletableDeferred<Unit>()
         onMain { controller.setApiKey(" sk-ant-key ") { isKept.complete(Unit) } }
         isKept.await()
-        assertTrue(controller.hasApiKey.value)
+        controller.hasApiKey.first { it }
         assertEquals("sk-ant-key", secrets.secrets.values.single())
         controller.currentChat.first { it != null && it !== first }!!.state.first { it == ChatState.Ready }
         assertEquals(2, commands.size)
@@ -491,6 +491,28 @@ class AssistantControllerTest {
         controller.currentChat.first { it != null && it !== first }!!.state.first { it == ChatState.Ready }
         assertNull(commands.last().environment["ANTHROPIC_API_KEY"])
         assertEquals(emptyMap(), secrets.secrets)
+    }
+
+    @Test
+    fun anAgentWithoutAClaudeAccountReportsNoApiKeyOrConfigurations() = test {
+        secrets.secrets["anthropic-api-key"] = "sk-ant-old"
+        runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
+        val registry = registry(CODEX)
+        registry.refresh()
+        val controller = controller(registry)
+        controller.startChat().state.first { it == ChatState.Ready }
+        onMain { controller.findConfigurations() }
+        controller.configurations.first { it.size == 2 }
+        controller.hasApiKey.first { it }
+        val codex = controller.agents.first { it.size == 2 }.last()
+        onMain { controller.selectAgent(AgentChoice.Registry(codex)) }
+        controller.agent.first { !it.isClaude }
+        controller.hasApiKey.first { !it }
+        controller.configurations.first { it.isEmpty() }
+        assertFalse(controller.canKeepApiKey)
+        onMain { controller.selectAgent(AgentChoice.Registry(RegistryAgent.claude)) }
+        controller.hasApiKey.first { it }
+        assertTrue(controller.canKeepApiKey)
     }
 
     @Test

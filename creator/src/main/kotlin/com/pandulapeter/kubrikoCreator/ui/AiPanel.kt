@@ -64,7 +64,7 @@ internal fun AiPanel(
     when (view) {
         AiPanelView.ASSISTANT -> AssistantPanel(
             modifier = content,
-            controller = assistant,
+            model = assistant,
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,

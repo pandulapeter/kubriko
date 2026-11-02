@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
@@ -67,56 +68,33 @@ internal class AssistantController(
     private val home: String = System.getProperty("user.home"),
     private val registry: AgentRegistryStore? = null,
     private val installer: BinaryAgentInstaller? = null,
-    val errorLogFile: File? = null,
+    override val errorLogFile: File? = null,
     private val conversations: SavedConversationStore? = null,
     private val clock: () -> Long = System::currentTimeMillis,
     node: NodeRuntime? = null,
     private val isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
-) : AutoCloseable {
+) : AssistantPanelModel, AutoCloseable {
     private val settings = AssistantSettingsState(scope, store, ioDispatcher)
     private val selection: AgentSelection = AgentSelection(scope, settings, registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })
 
-    /**
-     * The registry's agents this computer can run, Claude Agent first.
-     */
-    val agents = selection.agents
+    override val agents = selection.agents
 
-    /**
-     * The agent the assistant runs.
-     */
-    val agent = selection.agent
+    override val agent = selection.agent
 
-    /**
-     * The command line of the custom agent, whether or not it is the one chosen.
-     */
-    val customAgentCommand get() = selection.customAgentCommand
+    override val customAgentCommand get() = selection.customAgentCommand
     private val claude = ClaudeAccount(scope, ioDispatcher, runner, secrets, home, settings.value.value.claudeConfigurationAlias)
 
-    /**
-     * The Claude Code configurations found on this computer, the default one first.
-     */
-    val configurations = claude.configurations
+    override val configurations = combine(claude.configurations, agent) { configurations, choice -> configurations.takeIf { choice.profile.usesClaudeAccount }.orEmpty() }
+        .stateIn(scope, SharingStarted.Eagerly, claude.configurations.value.takeIf { agent.value.profile.usesClaudeAccount }.orEmpty())
 
-    /**
-     * The Claude Code configuration Claude Agent uses.
-     */
-    val configuration = claude.configuration
+    override val configuration = claude.configuration
     private val chatList = AssistantChats(scope, ioDispatcher, conversations)
 
-    /**
-     * The conversations about the open project, oldest first.
-     */
-    val chats = chatList.open
+    override val chats = chatList.open
 
-    /**
-     * The earlier conversations about the open project with the agent chosen, newest first, which can be continued.
-     */
-    val savedConversations = chatList.saved
+    override val savedConversations = chatList.saved
 
-    /**
-     * The conversation the panel shows.
-     */
-    val currentChat = chatList.current
+    override val currentChat = chatList.current
     private val commands = AgentCommands(runner, installer, home, ioDispatcher, node)
     private val host: AssistantHost<Assistant> = AssistantHost(scope, ioDispatcher, isAiEnabled) {
         selection.awaitLoaded()
@@ -136,34 +114,19 @@ internal class AssistantController(
         restart = ::restartAgent,
     )
 
-    /**
-     * The agent's archive being downloaded on its first start, if one is.
-     */
-    val download = commands.download
+    override val download = commands.download
 
-    /**
-     * The sign-in method taking environment variables the user is giving them for.
-     */
-    val variablesForm = signIns.variablesForm
+    override val variablesForm = signIns.variablesForm
 
-    /**
-     * Whether the last variables given couldn't be kept.
-     */
-    val variablesFailed = signIns.variablesFailed
+    override val variablesFailed = signIns.variablesFailed
 
     init {
         scope.launch { isAiEnabled.drop(1).filter { !it }.collect { turnOff() } }
     }
 
-    /**
-     * Who the agent works as, once it has said so.
-     */
-    val authStatus = signIns.authStatus
+    override val authStatus = signIns.authStatus
 
-    /**
-     * The ways of signing in the agent offers, once it has started.
-     */
-    val signInMethods = signIns.signInMethods
+    override val signInMethods = signIns.signInMethods
 
     /**
      * Whether the agent takes images in prompts, once it has started.
@@ -172,37 +135,19 @@ internal class AssistantController(
         .map { it?.promptCapabilities?.image == true }
         .stateIn(scope, SharingStarted.Eagerly, false)
 
-    /**
-     * Whether the agent said it isn't signed in, and the user hasn't signed in since. Claude Agent reports a new sign-in
-     * only at the next prompt.
-     */
-    val needsSignIn = signIns.needsSignIn
+    override val needsSignIn = signIns.needsSignIn
 
-    /**
-     * The sign-in command running in the panel's terminal.
-     */
-    val signIn = signIns.session
+    override val signIn = signIns.session
 
-    /**
-     * Whether Claude Agent uses the user's Anthropic API key, kept in the secret store, rather than a Claude Code login.
-     */
-    val hasApiKey = claude.hasApiKey
+    override val hasApiKey = combine(claude.hasApiKey, agent) { hasApiKey, choice -> hasApiKey && choice.profile.usesClaudeAccount }
+        .stateIn(scope, SharingStarted.Eagerly, claude.hasApiKey.value && agent.value.profile.usesClaudeAccount)
 
-    /**
-     * Whether this computer has somewhere to keep an API key.
-     */
-    val canKeepApiKey get() = claude.canKeepApiKey
+    override val canKeepApiKey get() = claude.canKeepApiKey && agent.value.profile.usesClaudeAccount
 
-    /**
-     * Whether the last API key given couldn't be kept.
-     */
-    val apiKeyFailed = claude.apiKeyFailed
+    override val apiKeyFailed = claude.apiKeyFailed
     private var project: File? = null
 
-    /**
-     * Finds the Claude Code configurations of the user's shell aliases, once per run.
-     */
-    fun findConfigurations() = claude.findConfigurations()
+    override fun findConfigurations() = claude.findConfigurations()
 
     /**
      * Makes [directory] the project conversations are about, ending those about the one before.
@@ -213,20 +158,14 @@ internal class AssistantController(
         endChats()
     }
 
-    /**
-     * Starts a conversation about the open project and shows it.
-     */
-    fun newChat() {
+    override fun newChat() {
         if (!host.isOn) return
         openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(projectDigest(), lastConversationOf(directory))) }
     }
 
     private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { conversations?.of(directory, selection.agent.value.id)?.firstOrNull() }
 
-    /**
-     * Continues [conversation], an earlier one about the open project, and shows it.
-     */
-    fun resume(conversation: SavedConversation) {
+    override fun resume(conversation: SavedConversation) {
         if (!host.isOn) return
         if (chatList.reopen(conversation.id)) return
         openChat { owner, directory, permissions, onHistory -> owner.resumeConversation(directory, conversation.id, permissions, onHistory) }
@@ -250,67 +189,38 @@ internal class AssistantController(
         chatList.add(chat)
     }
 
-    /**
-     * Shows the conversation [chat] instead.
-     */
-    fun select(chat: AssistantChat) = chatList.select(chat)
+    override fun select(chat: AssistantChat) = chatList.select(chat)
 
-    /**
-     * Closes [chat], showing the conversation before it; one with something in it can be continued later.
-     */
-    fun close(chat: AssistantChat) = chatList.close(chat, project, selection.agent.value.id)
+    override fun close(chat: AssistantChat) = chatList.close(chat, project, selection.agent.value.id)
 
-    /**
-     * Runs [choice] from now on, which ends every conversation and starts a new one.
-     */
-    fun selectAgent(choice: AgentChoice) {
+    override fun selectAgent(choice: AgentChoice) {
         if (!host.isOn) return
         if (selection.select(choice)) restartAgent()
     }
 
-    /**
-     * Uses [configuration] from now on: its own agent, so every conversation ends, and a new one starts.
-     */
-    fun selectConfiguration(configuration: ClaudeConfiguration) {
+    override fun selectConfiguration(configuration: ClaudeConfiguration) {
         if (!host.isOn) return
         if (!claude.select(configuration)) return
         settings.update { it.copy(claudeConfigurationAlias = configuration.alias) }
         restartAgent()
     }
 
-    /**
-     * Signs in with [method]: in the panel's terminal for a terminal method, otherwise by the agent itself. Once a
-     * terminal method succeeds, prompts refused for want of a sign-in are sent again.
-     */
-    fun signIn(method: SignInMethod) {
+    override fun signIn(method: SignInMethod) {
         if (!host.isOn) return
         signIns.signIn(method)
     }
 
-    /**
-     * Gives the agent chosen the [values] of [method]'s variables, kept in the operating system's secret store, which
-     * starts it again (ending every conversation) and a new conversation.
-     */
-    fun setVariables(method: SignInMethod, values: Map<String, String>) {
+    override fun setVariables(method: SignInMethod, values: Map<String, String>) {
         if (!host.isOn) return
         signIns.setVariables(selection.agent.value.id, method, values)
     }
 
-    /**
-     * Whether Creator can download a Node.js of its own when the user has none.
-     */
-    val canInstallNode get() = commands.canInstallNode
+    override val canInstallNode get() = commands.canInstallNode
     private val _nodeInstallFailure = MutableStateFlow<String?>(null)
 
-    /**
-     * Why the last download of Node.js failed, if it did.
-     */
-    val nodeInstallFailure = _nodeInstallFailure.asStateFlow()
+    override val nodeInstallFailure = _nodeInstallFailure.asStateFlow()
 
-    /**
-     * Downloads a Node.js of Creator's own, then starts the conversations that couldn't start for want of one.
-     */
-    fun installNode() {
+    override fun installNode() {
         if (!host.isOn) return
         _nodeInstallFailure.value = null
         scope.launch {
@@ -323,20 +233,11 @@ internal class AssistantController(
         }
     }
 
-    fun closeVariablesForm() = signIns.closeVariablesForm()
+    override fun closeVariablesForm() = signIns.closeVariablesForm()
 
-    /**
-     * Ends the sign-in command and closes the panel's terminal.
-     */
-    fun closeSignIn() = signIns.closeSignIn()
+    override fun closeSignIn() = signIns.closeSignIn()
 
-    /**
-     * Uses [apiKey] from now on, kept in the operating system's secret store, which starts the agent again (ending
-     * every conversation) and a new conversation.
-     *
-     * @param onKept Called once the key is kept.
-     */
-    fun setApiKey(apiKey: String, onKept: () -> Unit = {}) {
+    override fun setApiKey(apiKey: String, onKept: () -> Unit) {
         if (!host.isOn) return
         val key = apiKey.trim().takeIf { it.isNotEmpty() } ?: return
         scope.launch {
@@ -346,10 +247,7 @@ internal class AssistantController(
         }
     }
 
-    /**
-     * Forgets the API key, so that Claude Agent signs in as Claude Code does, which starts it again.
-     */
-    fun removeApiKey() {
+    override fun removeApiKey() {
         if (!host.isOn) return
         scope.launch {
             claude.forgetApiKey()

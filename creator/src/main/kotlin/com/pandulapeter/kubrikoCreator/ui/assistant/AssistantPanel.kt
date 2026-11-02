@@ -32,7 +32,7 @@ import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
-import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
@@ -56,17 +56,17 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 @Composable
 internal fun AssistantPanel(
-    controller: AssistantController,
+    model: AssistantPanelModel,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
     attention: List<AttentionChip> = emptyList(),
     captureScreen: suspend () -> ByteArray? = { null },
 ) {
-    val agent by controller.agent.collectAsState()
+    val agent by model.agent.collectAsState()
     CompositionLocalProvider(LocalAgent provides agent) {
         AssistantPanelContent(
-            controller = controller,
+            model = model,
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,
@@ -78,7 +78,7 @@ internal fun AssistantPanel(
 
 @Composable
 private fun AssistantPanelContent(
-    controller: AssistantController,
+    model: AssistantPanelModel,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     attention: List<AttentionChip>,
@@ -87,78 +87,77 @@ private fun AssistantPanelContent(
 ) = Column(
     modifier = modifier,
 ) {
-    val chats by controller.chats.collectAsState()
-    val chat by controller.currentChat.collectAsState()
-    val authStatus by controller.authStatus.collectAsState()
-    val signInMethods by controller.signInMethods.collectAsState()
-    val isClaude = LocalAgent.current.isClaude
-    val hasApiKey = controller.hasApiKey.collectAsState().value && isClaude
+    val chats by model.chats.collectAsState()
+    val chat by model.currentChat.collectAsState()
+    val authStatus by model.authStatus.collectAsState()
+    val signInMethods by model.signInMethods.collectAsState()
+    val hasApiKey by model.hasApiKey.collectAsState()
     var isEnteringApiKey by remember { mutableStateOf(false) }
     var isEnteringCustomAgent by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        controller.findConfigurations()
-        if (controller.currentChat.value == null) controller.newChat()
+        model.findConfigurations()
+        if (model.currentChat.value == null) model.newChat()
     }
     AgentRow(
         agent = LocalAgent.current,
-        agents = controller.agents.collectAsState().value,
-        customAgentCommand = controller.customAgentCommand,
+        agents = model.agents.collectAsState().value,
+        customAgentCommand = model.customAgentCommand,
         canClose = chat != null,
-        onAgentSelected = controller::selectAgent,
+        onAgentSelected = model::selectAgent,
         onEnterCustomAgent = { isEnteringCustomAgent = true },
-        onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
-        onNewConversation = controller::newChat,
-        onCloseConversation = { chat?.let(controller::close) },
+        onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+        onNewConversation = model::newChat,
+        onCloseConversation = { chat?.let(model::close) },
     )
     ConversationMenu(
         chats = chats,
         current = chat,
-        savedConversations = controller.savedConversations.collectAsState().value,
-        onSelected = controller::select,
-        onResume = controller::resume,
+        savedConversations = model.savedConversations.collectAsState().value,
+        onSelected = model::select,
+        onResume = model::resume,
     )
     AssistantOptionsRow(
-        configuration = controller.configuration.collectAsState().value,
-        configurations = controller.configurations.collectAsState().value.takeIf { isClaude }.orEmpty(),
+        configuration = model.configuration.collectAsState().value,
+        configurations = model.configurations.collectAsState().value,
         configOptions = chat?.configOptions?.collectAsState()?.value.orEmpty(),
-        onConfigurationSelected = controller::selectConfiguration,
+        onConfigurationSelected = model::selectConfiguration,
         onConfigOptionSelected = { option, choice -> chat?.setConfigOption(option.id, SessionConfigOptionValue.of(choice.value.value)) },
     ) {
         AssistantAccountMenu(
             status = authStatus,
             methods = signInMethods,
             hasApiKey = hasApiKey,
-            canKeepApiKey = controller.canKeepApiKey && isClaude,
-            onSignIn = controller::signIn,
+            canKeepApiKey = model.canKeepApiKey,
+            onSignIn = model::signIn,
             onUseApiKey = { isEnteringApiKey = true },
-            onRemoveApiKey = controller::removeApiKey,
+            onRemoveApiKey = model::removeApiKey,
         )
     }
     if (isEnteringCustomAgent) {
         CustomAgentForm(
-            initialCommand = controller.customAgentCommand,
+            initialCommand = model.customAgentCommand,
             onSave = { command ->
                 isEnteringCustomAgent = false
-                controller.selectAgent(AgentChoice.Custom(command))
+                model.selectAgent(AgentChoice.Custom(command))
             },
             onCancel = { isEnteringCustomAgent = false },
         )
     }
     HorizontalDivider()
-    val session by controller.signIn.collectAsState()
-    val needsSignIn by controller.needsSignIn.collectAsState()
-    val hasApiKeyFailed by controller.apiKeyFailed.collectAsState()
+    val session by model.signIn.collectAsState()
+    val needsSignIn by model.needsSignIn.collectAsState()
+    val hasApiKeyFailed by model.apiKeyFailed.collectAsState()
     chat?.let { current ->
         ChatContent(
             modifier = Modifier.weight(1f),
             chat = current,
-            download = controller.download.collectAsState().value,
+            download = model.download.collectAsState().value,
             attention = attention,
             captureScreen = captureScreen,
-            onInstallNode = controller::installNode.takeIf { controller.canInstallNode },
-            nodeInstallFailure = controller.nodeInstallFailure.collectAsState().value,
+            onInstallNode = model::installNode.takeIf { model.canInstallNode },
+            nodeInstallFailure = model.nodeInstallFailure.collectAsState().value,
             isBilledToApiKey = hasApiKey,
-            onOpenLog = controller.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+            onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
             onShowStep = onShowStep,
         ) { isPromptRefused ->
@@ -167,17 +166,17 @@ private fun AssistantPanelContent(
                 isEnteringApiKey = isEnteringApiKey,
                 needsSignIn = needsSignIn || isPromptRefused,
                 methods = signInMethods,
-                canKeepApiKey = controller.canKeepApiKey && isClaude,
+                canKeepApiKey = model.canKeepApiKey,
                 hasApiKeyFailed = hasApiKeyFailed,
-                onSignIn = controller::signIn,
-                onCloseSignIn = controller::closeSignIn,
+                onSignIn = model::signIn,
+                onCloseSignIn = model::closeSignIn,
                 onUseApiKey = { isEnteringApiKey = true },
-                onSaveApiKey = { key -> controller.setApiKey(key) { isEnteringApiKey = false } },
+                onSaveApiKey = { key -> model.setApiKey(key) { isEnteringApiKey = false } },
                 onCancelApiKey = { isEnteringApiKey = false },
-                variablesForm = controller.variablesForm.collectAsState().value,
-                hasVariablesFailed = controller.variablesFailed.collectAsState().value,
-                onSaveVariables = controller::setVariables,
-                onCancelVariables = controller::closeVariablesForm,
+                variablesForm = model.variablesForm.collectAsState().value,
+                hasVariablesFailed = model.variablesFailed.collectAsState().value,
+                onSaveVariables = model::setVariables,
+                onCancelVariables = model::closeVariablesForm,
             )
         }
     }
@@ -283,7 +282,7 @@ private fun Hint(
         style = MaterialTheme.typography.bodyMedium,
     )
     Text(
-        text = if (LocalAgent.current.isClaude) stringResource(Res.string.assistant_note) else stringResource(Res.string.assistant_note_untested, LocalAgent.current.name),
+        text = if (LocalAgent.current.isTested) stringResource(Res.string.assistant_note) else stringResource(Res.string.assistant_note_untested, LocalAgent.current.name),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

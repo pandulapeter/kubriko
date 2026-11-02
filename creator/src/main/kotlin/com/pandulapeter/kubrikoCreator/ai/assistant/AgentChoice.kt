@@ -46,6 +46,11 @@ internal sealed interface AgentChoice {
     val isClaude get() = this is Registry && agent.id == RegistryAgent.claude.id
 
     /**
+     * Whether the agent was checked in a real session with Kubriko Creator ([RegistryAgent.isTested]).
+     */
+    val isTested get() = this is Registry && agent.isTested
+
+    /**
      * What the agent gets beyond the fallbacks: only Claude Agent has more.
      */
     val profile get() = if (isClaude) AgentProfile.claude else AgentProfile.fallback

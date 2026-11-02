@@ -23,12 +23,15 @@ import kotlinx.serialization.json.JsonElement
  *   ([PermissionHandler.rejectingChanges]).
  * @param usesProjectFolder Whether the agent works in the project's folder; otherwise it gets a folder of its own, since
  *   some agents write files of their own where they start (Google Antigravity its skills) without asking.
+ * @param usesClaudeAccount Whether the agent signs in through a Claude Code configuration or the user's Anthropic API key
+ *   ([ClaudeAccount]).
  */
 internal data class AgentProfile(
     val sessionMeta: ((systemPrompt: String) -> JsonElement)?,
     val alwaysUsesHttpTools: Boolean,
     val keepsOffFiles: Boolean,
     val usesProjectFolder: Boolean,
+    val usesClaudeAccount: Boolean,
 ) {
     companion object {
         val claude = AgentProfile(
@@ -36,12 +39,14 @@ internal data class AgentProfile(
             alwaysUsesHttpTools = true,
             keepsOffFiles = true,
             usesProjectFolder = true,
+            usesClaudeAccount = true,
         )
         val fallback = AgentProfile(
             sessionMeta = null,
             alwaysUsesHttpTools = false,
             keepsOffFiles = false,
             usesProjectFolder = false,
+            usesClaudeAccount = false,
         )
     }
 }

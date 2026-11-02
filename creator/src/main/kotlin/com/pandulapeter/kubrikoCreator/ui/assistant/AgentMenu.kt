@@ -75,4 +75,4 @@ internal fun agentMenuItems(agents: List<RegistryAgent>, customAgentCommand: Str
         listOfNotNull(AgentMenuItem.OpenLog.takeIf { hasLog })
 
 @Composable
-private fun AgentChoice.label() = if (this is AgentChoice.Registry && agent.isTested) name else stringResource(Res.string.assistant_agent_untested, name)
+private fun AgentChoice.label() = if (isTested) name else stringResource(Res.string.assistant_agent_untested, name)

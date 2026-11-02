@@ -57,7 +57,7 @@ internal fun SignInCard(
         color = MaterialTheme.colorScheme.onSecondaryContainer,
     )
     Text(
-        text = if (LocalAgent.current.isClaude) stringResource(Res.string.assistant_sign_in_note) else stringResource(Res.string.assistant_sign_in_note_other, LocalAgent.current.name),
+        text = if (LocalAgent.current.isTested) stringResource(Res.string.assistant_sign_in_note) else stringResource(Res.string.assistant_sign_in_note_other, LocalAgent.current.name),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSecondaryContainer,
     )
