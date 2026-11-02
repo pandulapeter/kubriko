@@ -17,6 +17,14 @@ package com.pandulapeter.kubrikoCreator.actors
 internal object KotlinIdentifiers {
 
     /**
+     * Kotlin's hard keywords, which can't be identifiers.
+     */
+    val hardKeywords = setOf(
+        "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object",
+        "package", "return", "super", "this", "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while",
+    )
+
+    /**
      * An identifier in code.
      *
      * @param receiver What comes before it and a dot: null if nothing does, the identifier if it is a plain one itself

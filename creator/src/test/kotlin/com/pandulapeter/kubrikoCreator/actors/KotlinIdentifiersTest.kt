@@ -9,12 +9,22 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.template.ProjectNaming
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 
 class KotlinIdentifiersTest {
 
     private fun rename(code: String, receiver: String? = null) = KotlinIdentifiers.withRenamed(code, "score", "points", receiver)
+
+    @Test
+    fun hardKeywordsAreNoPropertyTimerOrPackageName() {
+        assertNotNull(PropertyNaming.validate("typealias", emptyList()))
+        assertFalse(TimerNaming.isValid("typealias"))
+        assertNotNull(ProjectNaming.validatePackageName("com.typealias"))
+    }
 
     @Test
     fun receiversAreThePlainIdentifiersBeforeADot() {

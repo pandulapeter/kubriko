@@ -21,17 +21,13 @@ internal object TimerNaming {
     const val DEFAULT_NAME = "timer"
 
     private val namePattern = Regex("[a-z][A-Za-z0-9]*")
-    private val keywords = setOf(
-        "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object",
-        "package", "return", "super", "this", "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while",
-    )
 
     /**
      * The fields a Timer's name ends up in end with these, so no Property may.
      */
     val fieldSuffixes = listOf("RemainingInMilliseconds", "PeriodInMilliseconds")
 
-    fun isValid(name: String) = namePattern.matches(name) && name !in keywords
+    fun isValid(name: String) = namePattern.matches(name) && name !in KotlinIdentifiers.hardKeywords
 
     /**
      * The name a Timer numbered [number] in older projects (Timers 1 to 8) keeps.

@@ -22,9 +22,7 @@ internal object PropertyNaming {
     /**
      * Kotlin's keywords, and the names the generated classes (and the Kubriko traits and `Manager` they extend) already use.
      */
-    private val reservedNames = setOf(
-        "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object",
-        "package", "return", "super", "this", "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while",
+    private val reservedNames = KotlinIdentifiers.hardKeywords + setOf(
         "actorManager", "body", "bodyCenter", "bottomRight", "collidableTypes", "collidables", "collisionMask", "color", "deltaTimeInMilliseconds",
         "drawingOrder", "generatedAudio", "generatedScenes", "halfSize", "index", "isAlwaysActive", "keyboardInputManager", "isVisible", "key", "kubriko", "layerIndex", "metadata", "other",
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",

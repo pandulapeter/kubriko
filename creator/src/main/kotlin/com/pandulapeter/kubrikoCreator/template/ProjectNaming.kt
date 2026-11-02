@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
+import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_package_name_invalid
 import kubriko.creator.generated.resources.error_project_name_empty
@@ -22,10 +23,6 @@ internal object ProjectNaming {
 
     private val namePattern = Regex("[A-Za-z][A-Za-z0-9 _-]*")
     private val packageSegmentPattern = Regex("[a-z][a-z0-9_]*")
-    private val kotlinKeywords = setOf(
-        "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object",
-        "package", "return", "super", "this", "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while",
-    )
 
     /**
      * Why [name] can't be a project's name, or null if it can.
@@ -40,7 +37,7 @@ internal object ProjectNaming {
      * Why [packageName] can't be a project's package, or null if it can.
      */
     fun validatePackageName(packageName: String): StringResource? = packageName.split('.').let { segments ->
-        if (segments.size >= 2 && segments.all { packageSegmentPattern.matches(it) && it !in kotlinKeywords }) null else Res.string.error_package_name_invalid
+        if (segments.size >= 2 && segments.all { packageSegmentPattern.matches(it) && it !in KotlinIdentifiers.hardKeywords }) null else Res.string.error_package_name_invalid
     }
 
     /**
@@ -54,5 +51,5 @@ internal object ProjectNaming {
     fun defaultPackageName(name: String) = "com.example." + name.lowercase().filter { it in 'a'..'z' || it in '0'..'9' }
         .dropWhile { it in '0'..'9' }
         .ifEmpty { "game" }
-        .let { if (it in kotlinKeywords) "${it}game" else it }
+        .let { if (it in KotlinIdentifiers.hardKeywords) "${it}game" else it }
 }
