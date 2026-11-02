@@ -50,6 +50,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 import kotlin.test.assertTrue
 
@@ -153,6 +154,17 @@ class AppControllerTest {
         assertEquals(1, openedDirectories.size)
         gameStopped.complete(Unit)
         assertEquals(listOf(playingDirectory, request.directory), openedDirectories)
+    }
+
+    @Test
+    fun quittingRightAfterClosingAProjectWaitsForThatClose() = runTest {
+        val controller = createSlowlyClosingController()
+        controller.openAndPlay()
+        controller.closeProject()
+        val closing = assertNotNull(controller.closeProject())
+        assertFalse(closing.isCompleted)
+        gameStopped.complete(Unit)
+        assertTrue(closing.isCompleted)
     }
 
     @Test
