@@ -16,7 +16,8 @@ it in for this sweep. Every decision is answered (README → Decisions); none is
 ## Preconditions (stop and tell the user if one fails)
 
 1. `git status` is clean apart from `issues/`, and `git log origin/main..HEAD` is what the README's "Fixed during the
-   review" lists (nothing was pushed; ask before any push, never push yourself).
+   review" lists, then `Add the fifth review plans.` and the process commits after it (skills, hooks, scripts, and plan
+   amendments; nothing was pushed; ask before any push, never push yourself).
 2. The challenge ran on every plan (README → Challenge).
 3. `./gradlew :creator:test` and `./gradlew :tools:creator-session:desktopTest` pass.
 4. Commit the plans first if they are untracked: `git add issues && git commit -m "Add the fifth review plans."`, then
@@ -25,21 +26,26 @@ it in for this sweep. Every decision is answered (README → Decisions); none is
 ## Lanes and their order
 
 Run the phases in order. Inside a phase, lanes run in parallel, each in its own **detached** worktree next to the checkout
-(`git worktree add --detach ../Kubriko-lane-<x> <base>`), each by one `general-purpose` subagent confined to it, **at most
-two Gradle builds at once** across all lanes (a shared semaphore script in each lane's own scratch folder is fine; a
+(`git worktree add --detach ../Kubriko-lane-<x> <base>`), **one Gradle build at a time** across all lanes (the skill's
+lock, `<scratchpad>/gradle.lock`, taken around every Gradle command and every `git commit`, whose hook may run Gradle; a
 "FqNames can't be derived from DirtyData" error is a stale cache, rerun). A lane that runs after another phase is cut from
 the main checkout's `HEAD` once that phase is merged, and its cherry-pick range starts at that base.
 
+Each lane is carried by a sequence of `general-purpose` subagents confined to its worktree, one per batch below (in square
+brackets), since an agent runs out of room after three to five large refactor steps. Each agent gets the prompt below with
+its batch as `<plans>`; the next one starts when it reports, in the same worktree, with the previous reports appended to its
+prompt.
+
 | Phase | Lane | Plans, in this order | Base |
 |---|---|---|---|
-| 1 | T | T01, T04, T06, P01, P02 | `START` |
-| 1 | S | S03, S02, S01, S04, S05 | `START` |
-| 1 | G | G01, G02, G03, G04, G05, G07, G09, G06, G08 | `START` |
-| 1 | A | A01, A02a, A02b, A03, A04, T02a, T02b | `START` |
+| 1 | T | [T01, T04, T06], [P01, P02] | `START` |
+| 1 | S | [S03, S02, S01], [S04, S05] | `START` |
+| 1 | G | [G01, G02], [G03, G04], [G05, G07, G09], [G06, G08] | `START` |
+| 1 | A | [A01, A02a], [A02b, A03, A04], [T02a, T02b] | `START` |
 | 1→2 | (serial, main) | T03 after lane S merged; T05 after lane G merged | main `HEAD` |
-| 2 | K | K12, K01a, K01b, K01c, K02a, K02b, K03, K04, K05, K06, K07, K08, K11a, K11b, K09a, K09b, K10 | main `HEAD` after phase 1→2 |
-| 3 | H | H01, H02a, H02b, H03a, H03b, H04, H05, H06a, H06b, H07a, H07b | main `HEAD` after K |
-| 4 | M | M01, M02a, M02b, M03, M04, M05, M06, M07, M08, M09, M10, M11, M12, M13, M14 | main `HEAD` after H |
+| 2 | K | [K12, K01a, K01b], [K01c, K02a, K02b], [K03, K04, K05], [K06, K07, K08], [K11a, K11b, K09a], [K09b, K10] | main `HEAD` after phase 1→2 |
+| 3 | H | [H01, H02a, H02b], [H03a, H03b, H04], [H05, H06a, H06b], [H07a, H07b] | main `HEAD` after K |
+| 4 | M | [M01, M02a, M02b], [M03, M04, M05], [M06, M07, M08], [M09, M10, M11], [M12, M13, M14] | main `HEAD` after H |
 | 4 | D | D01 (after M, in the same worktree or main) | main `HEAD` after M |
 
 **Phase 1 merge order:** T, S, G, A. T first because the other lanes' tests use its `testing` package; A last because it
@@ -59,7 +65,9 @@ Fill in `<x>`, `<worktree>`, `<base>`, and `<plans>`; everything else is literal
 >
 > Isolation: every command starts with `cd <worktree> &&` or uses `git -C <worktree>`; scratch files go only to
 > `<scratchpad>/lane-<x>/`, and you never run a script you didn't write; never `git stash`; never branch, merge, rebase,
-> push, bump a version, or dispatch a workflow.
+> push, bump a version, or dispatch a workflow. Other lanes build on this machine: run every Gradle command and every
+> `git commit` (its hook may run Gradle) inside the shared lock, `until mkdir <scratchpad>/gradle.lock 2>/dev/null; do sleep
+> 5; done; <command>; rmdir <scratchpad>/gradle.lock`, releasing it even when the command fails.
 >
 > Per plan: read the plan and every file it names; implement exactly the plan, taking its decided or recommended option,
 > re-locating moved code by the quoted snippets. If the plan is wrong, impossible, or its "Drop this plan if" condition
