@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild

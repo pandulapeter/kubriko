@@ -26,9 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_clear_console
 import kubriko.creator.generated.resources.action_collapse_console

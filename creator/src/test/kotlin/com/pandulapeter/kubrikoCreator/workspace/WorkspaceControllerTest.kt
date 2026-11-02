@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectChange

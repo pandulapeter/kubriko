@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 
 internal class FakeProjectRunner(
     var result: ProjectRunner.RunResult = ProjectRunner.RunResult(isSuccessful = true, console = emptyList()),

@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 
 /**
  * Builds and plays the project for action commands, reporting what the console showed meanwhile.

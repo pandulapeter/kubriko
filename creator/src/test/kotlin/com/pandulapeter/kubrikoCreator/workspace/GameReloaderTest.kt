@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.session.ClassShape
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope

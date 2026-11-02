@@ -11,10 +11,10 @@ package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi

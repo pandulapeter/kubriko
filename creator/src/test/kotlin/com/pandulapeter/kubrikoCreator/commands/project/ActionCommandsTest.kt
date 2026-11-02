@@ -16,7 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
 import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_type_file_name_duplicate
 import kubriko.creator.generated.resources.status_type_file_name_invalid

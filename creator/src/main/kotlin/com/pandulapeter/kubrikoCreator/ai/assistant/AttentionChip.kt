@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import java.util.Base64
 
 /**

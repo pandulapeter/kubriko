@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.ListActorTypes
 import com.pandulapeter.kubrikoCreator.commands.scenes.ReadScene
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
@@ -25,7 +26,6 @@ import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest

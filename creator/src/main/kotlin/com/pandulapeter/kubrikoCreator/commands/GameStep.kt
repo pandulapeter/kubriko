@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 
 /**
  * What a [ProjectRunner] did with the running game.
