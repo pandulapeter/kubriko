@@ -25,8 +25,10 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -132,7 +134,12 @@ internal class BlockTypesController(
             }
             for (request in writeRequests) {
                 delay(writeDelayInMilliseconds)
-                writePending()
+                try {
+                    writePending()
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    currentCoroutineContext()[CoroutineExceptionHandler]?.handleException(currentCoroutineContext(), exception)
+                }
             }
         }
     }
@@ -297,10 +304,10 @@ internal class BlockTypesController(
         pendingWrites.clear()
         val haveTypesChanged = havePendingTypesChanged
         havePendingTypesChanged = false
-        val types = _types.value
-        val canRegenerate = _unreadableFiles.value.isEmpty() && !isReadOnly()
         var buildFileChanges: KubrikoBuildFileChanges? = null
         val regenerated = try {
+            val types = _types.value
+            val canRegenerate = _unreadableFiles.value.isEmpty() && !isReadOnly()
             withContext(ioDispatcher) {
                 try {
                     PendingWrite.withoutOverwrittenSaves(batch).forEach { write ->

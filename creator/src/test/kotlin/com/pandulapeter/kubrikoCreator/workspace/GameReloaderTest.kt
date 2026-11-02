@@ -40,7 +40,7 @@ class GameReloaderTest {
     private val reloads = mutableListOf<String>()
     private var reloadResult: suspend () -> Boolean = { true }
     private var builds = 0
-    private var shapesFailure: IOException? = null
+    private var shapesFailure: Exception? = null
     private var restarts = 0
 
     private fun TestScope.createReloader() = GameReloader(
@@ -81,6 +81,18 @@ class GameReloaderTest {
         val reloader = createReloader()
         reloader.onGameStarting("hotReloadDesktopMain", mapOf("game/Ball" to ball))
         shapesFailure = IOException("Ball.class")
+        reloader.onCodeChanged()
+        assertEquals(Res.string.status_game_changes_not_applied, statuses.last().text)
+        shapesFailure = null
+        reloader.onCodeChanged()
+        assertEquals(listOf("hotReloadDesktopMain"), reloads)
+    }
+
+    @Test
+    fun anUnexpectedFailureIsReportedAndTheNextChangeIsStillApplied() = runTest {
+        val reloader = createReloader()
+        reloader.onGameStarting("hotReloadDesktopMain", mapOf("game/Ball" to ball))
+        shapesFailure = ArrayIndexOutOfBoundsException()
         reloader.onCodeChanged()
         assertEquals(Res.string.status_game_changes_not_applied, statuses.last().text)
         shapesFailure = null

@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.ATOMIC_WRITE_SUFFIX
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -38,13 +40,21 @@ internal class ProjectWatcher(
 
     fun start(onChange: (Set<ProjectChange>) -> Unit): AutoCloseable {
         val job = scope.launch {
-            var previous = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory) }
+            var previous: Map<String, FileStamp>? = null
             while (isActive) {
+                try {
+                    val current = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory) }
+                    val last = previous
+                    previous = current
+                    if (last != null) {
+                        val changes = changedAreas(last, current) { path, stamp -> ownWrites.isOwn(File(rootDirectory, path), stamp) }
+                        if (changes.isNotEmpty()) onChange(changes)
+                    }
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    coroutineContext[CoroutineExceptionHandler]?.handleException(coroutineContext, exception)
+                }
                 delay(intervalInMilliseconds)
-                val current = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory) }
-                val changes = changedAreas(previous, current) { path, stamp -> ownWrites.isOwn(File(rootDirectory, path), stamp) }
-                previous = current
-                if (changes.isNotEmpty()) onChange(changes)
             }
         }
         return AutoCloseable { job.cancel() }

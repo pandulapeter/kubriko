@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.foundation.ATOMIC_WRITE_SUFFIX
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -100,5 +101,29 @@ class ProjectWatcherTest {
         write(".kubriko/actors/Paddle.json", "{}")
         advanceTimeBy(5_000)
         assertEquals(1, changes.size)
+    }
+
+    @Test
+    fun aFailureWhileHandlingAChangeDoesNotStopTheWatching() = runTest {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val changes = mutableListOf<Set<ProjectChange>>()
+        var failures = 0
+        val reported = mutableListOf<Throwable>()
+        val scope = CoroutineScope(backgroundScope.coroutineContext + dispatcher + CoroutineExceptionHandler { _, exception -> reported += exception })
+        val watching = ProjectWatcher(root, generated, scope, dispatcher, intervalInMilliseconds = 1_000)
+            .start {
+                if (failures++ == 0) throw IllegalStateException("Unexpected.")
+                changes += it
+            }
+        advanceTimeBy(500)
+        write(".kubriko/actors/Ball.json", "{}")
+        advanceTimeBy(1_000)
+        runCurrent()
+        write(".kubriko/actors/Wall.json", "{}")
+        advanceTimeBy(1_000)
+        runCurrent()
+        assertEquals(listOf(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS)), changes)
+        assertEquals(listOf("Unexpected."), reported.map { it.message })
+        watching.close()
     }
 }

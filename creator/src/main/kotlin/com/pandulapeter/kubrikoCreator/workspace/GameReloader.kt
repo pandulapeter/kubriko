@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.session.ClassShape
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -20,7 +21,6 @@ import kubriko.creator.generated.resources.status_game_reload_failed
 import kubriko.creator.generated.resources.status_game_reloaded
 import kubriko.creator.generated.resources.status_game_restarting
 import java.io.File
-import java.io.IOException
 
 /**
  * Brings a game started with Compose Hot Reload up to date with every change made while it plays: the project is built,
@@ -61,7 +61,8 @@ internal class GameReloader(
             for (change in changes) {
                 try {
                     applyChanges()
-                } catch (exception: IOException) {
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
                     console.append(ConsoleEntry.Status(Res.string.status_game_changes_not_applied, isError = true, arguments = listOf(exception.message ?: exception.toString())))
                 }
             }

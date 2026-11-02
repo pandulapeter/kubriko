@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -29,6 +30,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -53,13 +57,16 @@ class BlockTypesControllerTest {
         syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
         onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
         writeDelayInMilliseconds: Long = 0,
+        onSaved: () -> Unit = {},
+        onUnexpectedProblem: CoroutineContext = EmptyCoroutineContext,
     ) = BlockTypesController(
         repository = repository,
-        scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
+        scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler) + onUnexpectedProblem),
         ioDispatcher = ioDispatcher,
         onSaved = {
             savedCount++
             savedTypeChanges += it
+            onSaved()
         },
         onSaveFailed = { failedCount++ },
         onFileUnreadable = { unreadableReports += it.path },
@@ -335,5 +342,21 @@ class BlockTypesControllerTest {
         controller.put(wall)
         controller.awaitWrites()
         assertEquals(listOf("save Wall", "regenerate"), repository.writes)
+    }
+
+    @Test
+    fun aFailureAfterWritingDoesNotStopLaterWrites() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val reported = mutableListOf<Throwable>()
+        val controller = createController(
+            repository = repository,
+            onSaved = { if (savedCount == 1) throw IllegalStateException("Unexpected.") },
+            onUnexpectedProblem = CoroutineExceptionHandler { _, exception -> reported += exception },
+        )
+        withTimeout(1_000) { controller.awaitWrites() }
+        controller.put(wall)
+        withTimeout(1_000) { controller.awaitWrites() }
+        assertEquals(listOf("regenerate", "save Wall", "regenerate"), repository.writes)
+        assertEquals(listOf("Unexpected."), reported.map { it.message })
     }
 }
