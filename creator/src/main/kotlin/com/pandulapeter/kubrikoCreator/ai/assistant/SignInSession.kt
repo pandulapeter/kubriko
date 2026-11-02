@@ -94,6 +94,15 @@ internal class SignInSession(
         scope.cancel()
     }
 
+    /**
+     * Ends the command before returning, when Kubriko Creator quits. It blocks until the command is stopped, so it is
+     * called off the main thread.
+     */
+    fun stopNow() {
+        channel.stop()
+        scope.cancel()
+    }
+
     private companion object {
         const val BUFFER_SIZE = 1024
         const val MAXIMUM_OUTPUT = 32_768

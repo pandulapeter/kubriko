@@ -281,10 +281,17 @@ internal class AssistantController(
     }
 
     /**
-     * Ends the agent, when Kubriko Creator quits.
+     * Ends the sign-in command and the agent, and refuses to start another agent, when Kubriko Creator quits. It blocks
+     * until their processes are gone, so it is called off the main thread.
      */
     override fun close() {
-        signIns.stop()
+        signIns.stopNow()
         host.close()
     }
+
+    /**
+     * Waits until the restarts queued so far have run, so an agent being replaced when Kubriko Creator quits is closed
+     * before it exits. Called on the main thread.
+     */
+    suspend fun awaitPending() = host.awaitPending()
 }

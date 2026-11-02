@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -157,10 +158,19 @@ internal class AssistantSignIn(
     }
 
     /**
-     * Closes the variables form and ends the sign-in command, when AI features are turned off or Kubriko Creator quits.
+     * Closes the variables form and ends the sign-in command, when AI features are turned off.
      */
     fun stop() {
         closeVariablesForm()
         closeSignIn()
+    }
+
+    /**
+     * Closes the variables form and ends the sign-in command before returning, when Kubriko Creator quits. It blocks, so it
+     * is called off the main thread.
+     */
+    fun stopNow() {
+        _variablesForm.value = null
+        _session.getAndUpdate { null }?.stopNow()
     }
 }

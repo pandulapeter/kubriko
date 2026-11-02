@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.settings
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +38,7 @@ internal class CreatorSettingsController(
      */
     val isAiEnabled: StateFlow<Boolean> = _isAiEnabled.asStateFlow()
     private val saves = Mutex()
+    private var lastSave: Job? = null
 
     fun setAiEnabled(isEnabled: Boolean) = update { it.copy(isAiEnabled = isEnabled) }
 
@@ -49,11 +51,19 @@ internal class CreatorSettingsController(
      */
     fun setDefaultProjectFolder(folder: File?) = update { it.copy(defaultProjectFolder = folder?.absolutePath) }
 
+    /**
+     * Waits until the last change is saved, which quitting does so that a setting changed just before it is kept. Saves
+     * write the newest settings one at a time, so the last one started is the last one needed.
+     */
+    suspend fun awaitSaves() {
+        lastSave?.join()
+    }
+
     private fun update(change: (CreatorSettings) -> CreatorSettings) {
         val settings = change(_settings.value).takeIf { it != _settings.value } ?: return
         _settings.value = settings
         _isAiEnabled.value = settings.isAiEnabled
         // Saves can finish in any order, so each one writes the settings as they are by then.
-        scope.launch(ioDispatcher) { saves.withLock { store.save(_settings.value) } }
+        lastSave = scope.launch(ioDispatcher) { saves.withLock { store.save(_settings.value) } }
     }
 }
