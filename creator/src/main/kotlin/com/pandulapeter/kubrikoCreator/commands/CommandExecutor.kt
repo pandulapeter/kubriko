@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.context.writeSummary
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +24,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.assistant_turn_cancelled
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
+import kubriko.creator.generated.resources.error_mcp_internal
 
 /**
  * Runs commands against the open project and keeps the history of the changes they made, which undo and redo walk.
@@ -168,13 +171,24 @@ internal class CommandExecutor(
         }
         val step = AiStep(id = nextAiStepId++, toolName = name, title = command.title, target = command.target(context, input), isRunning = true, origin = origin, clientName = clientName)
         publish(step)
-        val outcome = when (command) {
-            is ReadCommand -> command.read(context, input)
-            is WriteCommand -> execute(Invocation(command, input), origin, isByAi = true)
-            is ActionCommand -> command.run(context, input)
+        var rejection: Rejection? = null
+        try {
+            val outcome = when (command) {
+                is ReadCommand -> command.read(context, input)
+                is WriteCommand -> execute(Invocation(command, input), origin, isByAi = true)
+                is ActionCommand -> command.run(context, input)
+            }
+            rejection = (outcome as? CommandOutcome.Rejected)?.rejection
+            return outcome
+        } catch (exception: CancellationException) {
+            rejection = Rejection(Res.string.assistant_turn_cancelled)
+            throw exception
+        } catch (throwable: Throwable) {
+            rejection = Rejection(Res.string.error_mcp_internal, throwable.toString())
+            throw throwable
+        } finally {
+            publish(step.copy(target = runCatching { command.target(context, input) }.getOrNull() ?: step.target, isRunning = false, rejection = rejection))
         }
-        publish(step.copy(target = command.target(context, input) ?: step.target, isRunning = false, rejection = (outcome as? CommandOutcome.Rejected)?.rejection))
-        return outcome
     }
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {

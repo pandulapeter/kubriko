@@ -37,10 +37,13 @@ import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_unknown
+import kubriko.creator.generated.resources.error_mcp_internal
 import kubriko.creator.generated.resources.error_project_newer_format
 import kubriko.creator.generated.resources.error_type_name_taken
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
@@ -200,6 +203,25 @@ class CommandExecutorTest {
         assertEquals(listOf(false, true, false), executor.changeLog.since(0).map { it.isByAi })
         assertEquals(ChangeRecord.Step.UNDO, executor.changeLog.since(0).last().step)
         assertEquals(3, executor.changeLog.revision)
+    }
+
+    @Test
+    fun aToolCallThatThrowsStillFinishesItsStep() = runTest {
+        val failing = object : WriteCommand<NoInput> {
+            override val name = "fail"
+            override val description = "Fails."
+            override val inputSerializer = NoInput.serializer()
+            override val title = Res.string.command_set_appearance
+
+            override fun validate(context: CommandContext, input: NoInput): Rejection? = null
+
+            override suspend fun apply(context: CommandContext, input: NoInput): Applied = error("Broken.")
+        }
+        val executor = CommandExecutor(context = commandContext(), scope = testScope(), registry = CommandRegistry(listOf(failing)))
+        assertFailsWith<IllegalStateException> { executor.call("fail", JsonObject(emptyMap())) }
+        val step = executor.aiSteps.value.last()
+        assertFalse(step.isRunning)
+        assertEquals(Res.string.error_mcp_internal, step.rejection?.reason)
     }
 
     @Test
