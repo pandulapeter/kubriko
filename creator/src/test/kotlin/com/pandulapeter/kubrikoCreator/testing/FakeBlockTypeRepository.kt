@@ -30,6 +30,11 @@ internal class FakeBlockTypeRepository(
     val failingNames = mutableSetOf<String>()
 
     /**
+     * The types whose save throws, while their delete succeeds.
+     */
+    val failingSaveNames = mutableSetOf<String>()
+
+    /**
      * Called at the end of every [load], after the files were read, as if something happened meanwhile.
      */
     var onLoad: () -> Unit = {}
@@ -49,10 +54,10 @@ internal class FakeBlockTypeRepository(
 
     var changedByHand = emptySet<String>()
 
-    override fun save(definition: BlockTypeDefinition) {
+    override fun save(definition: BlockTypeDefinition, isReplacing: Boolean) {
         if (isFailing) throw IOException("Disk full.")
-        if (definition.name in failingNames) throw IOException("Locked.")
-        writes += "save ${definition.name}"
+        if (definition.name in failingNames || definition.name in failingSaveNames) throw IOException("Locked.")
+        writes += if (isReplacing) "replace ${definition.name}" else "save ${definition.name}"
         stored[definition.name]?.takeIf { it.folder != definition.folder }?.let(::keepFolderOf)
         stored[definition.name] = definition
     }

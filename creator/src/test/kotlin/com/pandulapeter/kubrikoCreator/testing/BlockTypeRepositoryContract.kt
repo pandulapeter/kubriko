@@ -122,4 +122,12 @@ internal abstract class BlockTypeRepositoryContract {
         assertEquals(setOf("game"), repository.folders(BlockTypeKind.MANAGER))
         assertEquals(listOf(rules.withFolder("game")), repository.load().types)
     }
+
+    @Test
+    fun aReplacingSaveTakesTheNameFromATypeOfTheOtherKind() {
+        val repository = repository()
+        repository.save(ManagerTypeDefinition(name = "Ball").withFolder("game"))
+        repository.save(ball, isReplacing = true)
+        assertEquals(listOf(ball), repository.load().types)
+    }
 }

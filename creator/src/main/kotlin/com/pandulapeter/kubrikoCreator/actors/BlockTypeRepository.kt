@@ -20,9 +20,11 @@ internal interface BlockTypeRepository {
     fun load(): LoadedBlockTypes
 
     /**
-     * Writes [definition], leaving its code to [regenerate].
+     * Writes [definition], leaving its code to [regenerate]. When [isReplacing], it stands for a [delete] of its name
+     * followed by this save, which leaves the same files: every other definition file of the name, of either kind, goes,
+     * and so does its generated code, changes made by hand included.
      */
-    fun save(definition: BlockTypeDefinition)
+    fun save(definition: BlockTypeDefinition, isReplacing: Boolean = false)
 
     /**
      * Deletes the type called [name] and its generated code.

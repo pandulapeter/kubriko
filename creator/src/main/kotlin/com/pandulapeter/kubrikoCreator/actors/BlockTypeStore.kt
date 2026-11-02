@@ -121,7 +121,7 @@ internal class BlockTypeStore private constructor(
      * load reports both as the same name held twice.
      */
     @Synchronized
-    override fun save(definition: BlockTypeDefinition) {
+    override fun save(definition: BlockTypeDefinition, isReplacing: Boolean) {
         val text = when (definition) {
             is ActorTypeDefinition -> json.encodeToString(ActorTypeDefinition.serializer(), definition)
             is ManagerTypeDefinition -> json.encodeToString(ManagerTypeDefinition.serializer(), definition)
@@ -133,11 +133,19 @@ internal class BlockTypeStore private constructor(
         file.writeTextAtomically(text + "\n")
         ownWrites.record(file)
         if (isIndexed) filesByName.getValue(definition.kind).getOrPut(definition.name) { HashSet() } += file
+        if (isReplacing) {
+            BlockTypeKind.entries.filter { it != definition.kind }.forEach { kind -> deleteDefinitionFiles(kind, definition.name) }
+            deleteGeneratedCode(definition.name)
+        }
     }
 
     @Synchronized
     override fun delete(name: String) {
         BlockTypeKind.entries.forEach { kind -> deleteDefinitionFiles(kind, name) }
+        deleteGeneratedCode(name)
+    }
+
+    private fun deleteGeneratedCode(name: String) {
         generatedFile(name).delete()
         generatedTexts.remove(name)
         changedByHand.remove(name)

@@ -63,10 +63,26 @@ class PendingWriteTest {
     }
 
     @Test
-    fun aDeleteFollowedByASaveKeepsBoth() {
+    fun aDeleteFollowedByASaveBecomesAReplacingSaveInTheDeletesPlace() {
         assertEquals(
-            listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(ball)),
-            PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(ball))),
+            listOf(PendingWrite.Save(ballWithDescription, isReplacing = true), PendingWrite.Save(paddle)),
+            PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(paddle), PendingWrite.Save(ballWithDescription))),
+        )
+    }
+
+    @Test
+    fun aReplacingSaveSavedAgainStaysReplacing() {
+        assertEquals(
+            listOf(PendingWrite.Save(ballWithDescription, isReplacing = true)),
+            PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(ball), PendingWrite.Save(ballWithDescription))),
+        )
+    }
+
+    @Test
+    fun aDeleteOfATypeAlreadyBeingDeletedIsDropped() {
+        assertEquals(
+            listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(paddle)),
+            PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(paddle), PendingWrite.Delete("Ball"))),
         )
     }
 
@@ -79,9 +95,9 @@ class PendingWriteTest {
     }
 
     @Test
-    fun aSaveAfterADeleteOfTheSameTypeIsNotMergedWithTheSaveBeforeIt() {
+    fun aSaveAfterADeleteOfTheSameTypeReplacesItInsteadOfMergingWithTheSaveBeforeIt() {
         assertEquals(
-            listOf(PendingWrite.Delete("Ball"), PendingWrite.Save(paddle), PendingWrite.Save(ballWithDescription)),
+            listOf(PendingWrite.Save(ballWithDescription, isReplacing = true), PendingWrite.Save(paddle)),
             PendingWrite.withoutOverwrittenSaves(listOf(PendingWrite.Save(ball), PendingWrite.Delete("Ball"), PendingWrite.Save(paddle), PendingWrite.Save(ballWithDescription))),
         )
     }

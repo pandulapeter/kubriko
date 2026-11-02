@@ -44,7 +44,8 @@ import kotlinx.coroutines.withContext
  *
  * Changes show up immediately; writing them happens in the background, in order, in batches: the changes made within
  * [writeDelayInMilliseconds] of each other (typing into a field, for example) are written together, a type saved
- * several times is written once, and the code is regenerated once per batch, from the types in memory. After each
+ * several times is written once, a type deleted and saved again is saved in place of the delete (so its file is never
+ * gone while the save fails), and the code is regenerated once per batch, from the types in memory. After each
  * batch, [syncBuildFiles] brings the project's Kubriko dependencies in line with the code. A write that fails stays queued
  * with everything after it, in order (so a renamed type's old file is deleted only once the new ones are written, and a
  * deleted type isn't read back), and is tried again with the next change, or after a while; nothing is regenerated until

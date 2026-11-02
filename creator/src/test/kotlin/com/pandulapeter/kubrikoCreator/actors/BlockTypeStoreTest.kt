@@ -575,6 +575,41 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun aReplacingSaveLeavesTheSameFilesAsADeleteAndASave() {
+        val deletedAndSaved = projectWithABallManagerChangedByHand("deleted")
+        val replaced = projectWithABallManagerChangedByHand("replaced")
+        deletedAndSaved.store.delete("Ball")
+        deletedAndSaved.store.save(ball.withFolder("toys"))
+        replaced.store.save(ball.withFolder("toys"), isReplacing = true)
+        assertEquals(deletedAndSaved.store.regenerateAll(), replaced.store.regenerateAll())
+        assertEquals(deletedAndSaved.files(), replaced.files())
+        assertEquals(ActorTypeCodeGenerator.generateActorType(ball.withFolder("toys"), "com.example.game"), File(replaced.directory, "src/commonMain/kotlin/com/example/game/generated/Ball.kt").readText())
+        assertEquals(listOf(ball.withFolder("toys"), ActorTypeDefinition(name = "Wall")), replaced.store.load().types)
+    }
+
+    private class Project(val directory: File, val store: BlockTypeStore) {
+        fun files() = directory.walkTopDown().filter { it.isFile }.associate { it.relativeTo(directory).invariantSeparatorsPath to it.readText() }
+    }
+
+    /**
+     * A project in its own folder whose Manager type Ball, in a folder, has generated code changed by hand, next to an
+     * Actor type Wall.
+     */
+    private fun projectWithABallManagerChangedByHand(name: String): Project {
+        val directory = File(root, name)
+        File(directory, ".kubriko/project.json").apply { parentFile.mkdirs() }.writeText("""{ "packageName": "com.example.game" }""")
+        val store = BlockTypeStore.open(directory)!!
+        store.load()
+        store.save(ManagerTypeDefinition(name = "Ball").withFolder("rules"))
+        store.save(ActorTypeDefinition(name = "Wall"))
+        store.regenerateAll()
+        val generatedBall = File(directory, "src/commonMain/kotlin/com/example/game/generated/Ball.kt")
+        generatedBall.writeText(generatedBall.readText() + "// tuned\n")
+        assertEquals(setOf("Ball"), store.regenerateAll().changedByHand)
+        return Project(directory, store)
+    }
+
+    @Test
     fun aStoreUsedBeforeLoadingStillFindsOldFiles() {
         optIn()
         BlockTypeStore.open(root)!!.save(ball.withFolder("old"))

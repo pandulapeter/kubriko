@@ -31,7 +31,7 @@ internal class BlockTypeBatchWriter(
         batch.forEachIndexed { index, write ->
             try {
                 when (write) {
-                    is PendingWrite.Save -> repository.save(write.definition)
+                    is PendingWrite.Save -> repository.save(write.definition, write.isReplacing)
                     is PendingWrite.Delete -> repository.delete(write.name)
                     is PendingWrite.CreateFolder -> repository.createFolder(write.kind, write.path)
                     is PendingWrite.DeleteFolder -> repository.deleteFolder(write.kind, write.path)

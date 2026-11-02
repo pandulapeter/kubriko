@@ -514,10 +514,41 @@ class BlockTypesControllerTest {
         repository.failingNames.clear()
         controller.rename("Puck", "Ball")
         advance(200)
-        assertTrue(repository.writes.indexOf("save Brick") < repository.writes.indexOf("delete Ball"))
-        assertTrue(repository.writes.indexOf("save Ball") < repository.writes.indexOf("delete Puck"))
-        assertEquals("regenerate", repository.writes.last())
+        assertEquals(listOf("save Brick", "replace Ball", "delete Puck", "regenerate"), repository.writes)
         assertEquals(listOf(ball, brick), repository.stored.values.sortedBy { it.name })
+    }
+
+    @Test
+    fun aRenameRolledBackKeepsTheOldFileWhileItsSaveFails() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createWritingController(repository)
+        repository.failingNames += "Puck"
+        controller.rename("Ball", "Puck")
+        advance(200)
+        repository.failingNames.clear()
+        repository.failingSaveNames += "Ball"
+        controller.rename("Puck", "Ball")
+        advance(200)
+        assertEquals(emptyList(), repository.writes)
+        assertEquals(ball, repository.stored["Ball"])
+        repository.failingSaveNames.clear()
+        advance(10_200)
+        assertEquals(listOf("replace Ball", "delete Puck", "regenerate"), repository.writes)
+    }
+
+    @Test
+    fun aTypeDeletedAndCreatedAgainIsNeverMissingFromTheDiskWhileItsSaveFails() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createWritingController(repository)
+        repository.failingSaveNames += "Ball"
+        controller.delete("Ball")
+        controller.put(wall.copy(name = "Ball"))
+        advance(200)
+        assertEquals(ball, repository.stored["Ball"])
+        repository.failingSaveNames.clear()
+        advance(2_200)
+        assertEquals(listOf("replace Ball", "regenerate"), repository.writes)
+        assertEquals(wall.copy(name = "Ball"), repository.stored["Ball"])
     }
 
     @Test

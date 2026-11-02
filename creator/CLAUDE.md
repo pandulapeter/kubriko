@@ -178,7 +178,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   offers an upgrade, while browsing, building, and playing still work.
 - **Block type files:** `BlockTypesController` writes changes in batches, 100 ms after the last, with one regeneration and build file
   sync per batch. A write that fails stays queued with everything after it, is retried with the next change or after 2, 10, then every
-  30 seconds, and is named in the console once; nothing is regenerated meanwhile. A definition file that can't be read, holds a type named other than the file or a name another file holds too
+  30 seconds, and is named in the console once; nothing is regenerated meanwhile. A type saved again keeps its first save's place,
+  and a delete followed by a save of the same name becomes a replacing save (`isReplacing`, the same files as both) in the delete's place. A definition file that can't be read, holds a type named other than the file or a name another file holds too
   (ignoring case), or has a Property whose name can't be one (`PropertyNaming`) is left out and reported by path; nothing is regenerated or synced until it is fixed, its name stays taken, and
   `BlockTypeStore` never writes over or deletes it.
 - **Template upgrades** (`template/ProjectUpgrader`): template files belong to the user, so an upgrade is shown as a diff, offers to

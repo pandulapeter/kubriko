@@ -23,7 +23,10 @@ internal sealed interface PendingWrite {
      */
     val subject: FailedWrite.Subject?
 
-    data class Save(val definition: BlockTypeDefinition) : PendingWrite {
+    /**
+     * Writes [definition], standing for a [Delete] of its name before it too when [isReplacing].
+     */
+    data class Save(val definition: BlockTypeDefinition, val isReplacing: Boolean = false) : PendingWrite {
         override val subject get() = FailedWrite.Subject.Type(definition.name)
     }
 
@@ -52,26 +55,38 @@ internal sealed interface PendingWrite {
         /**
          * [writes] with each type saved once: a save followed by a later save of the same type, with no delete of it in
          * between, keeps its own place with the later definition, and one followed by a later delete of it is dropped. A
-         * save never moves after a write that came after it, so a renamed type's old file is still deleted only after
-         * the new ones are written.
+         * delete followed by a later save of the same type becomes that save, in the delete's place, replacing what the
+         * delete would have removed, so that the type's file is never gone while the save waits. A save never moves after
+         * a write that came after it, so a renamed type's old file is still deleted only after the new ones are written.
          */
         fun withoutOverwrittenSaves(writes: List<PendingWrite>): List<PendingWrite> {
             val merged = ArrayList<PendingWrite?>(writes.size)
             val openSaveIndices = HashMap<String, Int>()
+            val openDeleteIndices = HashMap<String, Int>()
             writes.forEach { write ->
                 when (write) {
                     is Save -> {
-                        val index = openSaveIndices[write.definition.name]
-                        if (index == null) {
-                            openSaveIndices[write.definition.name] = merged.size
-                            merged += write
-                        } else {
-                            merged[index] = write
+                        val name = write.definition.name
+                        val saveIndex = openSaveIndices[name]
+                        val deleteIndex = openDeleteIndices.remove(name)
+                        when {
+                            saveIndex != null -> merged[saveIndex] = write.copy(isReplacing = (merged[saveIndex] as Save).isReplacing)
+                            deleteIndex != null -> {
+                                merged[deleteIndex] = write.copy(isReplacing = true)
+                                openSaveIndices[name] = deleteIndex
+                            }
+                            else -> {
+                                openSaveIndices[name] = merged.size
+                                merged += write
+                            }
                         }
                     }
                     is Delete -> {
                         openSaveIndices.remove(write.name)?.let { index -> merged[index] = null }
-                        merged += write
+                        if (write.name !in openDeleteIndices) {
+                            openDeleteIndices[write.name] = merged.size
+                            merged += write
+                        }
                     }
                     else -> merged += write
                 }
