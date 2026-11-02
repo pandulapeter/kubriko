@@ -67,6 +67,7 @@ Besides its tests passing, a change:
 - Tests against literals or the real implementation, never a copy of the code under test; a test that needs a network, a tool,
   or a switch skips itself with `Assume` rather than returning early.
 - Adds to a `CLAUDE.md` only the rule or the why it introduces.
+- Is reviewed with `/code-review` before the next plan item starts (`plan/README.md`).
 
 ## Principles
 

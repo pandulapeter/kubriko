@@ -10,8 +10,11 @@
 # Kubriko Creator: plan
 
 Only future work lives here; once something is implemented, it is deleted from these files, and `../CLAUDE.md` gains only the rules it
-introduces that the code can't show. Each topic
-has a file of its own, so a session only needs the one it works on.
+introduces that the code can't show. Each topic has a file of its own, so a session only needs the one it works on.
+
+Finishing an item takes one more step before the next starts: run `/code-review` on the item's commits (`git log` from where it
+started), fix what it finds in commits of their own, and only then delete the item here. The review checks the change against
+`../CLAUDE.md` → Definition of done, so what a whole-codebase sweep would find later is found while the item is fresh.
 
 [HANDOVER.md](HANDOVER.md) is where the last session stopped: start there.
 

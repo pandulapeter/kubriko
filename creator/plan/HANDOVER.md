@@ -10,7 +10,8 @@
 # Handover
 
 Where the next session starts: what to do next and what still has to be checked by hand. Each session rewrites it before it ends.
-The rules are in `../CLAUDE.md`, what is planned in the other files here.
+The rules are in `../CLAUDE.md`, what is planned in the other files here. A session that finished an item notes here whether its
+review (`README.md`) ran and what it fixed; one that stopped before the review says so under Next, so the next session starts with it.
 
 ## Status
 
