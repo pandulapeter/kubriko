@@ -7,15 +7,15 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.commands
+package com.pandulapeter.kubrikoCreator.schema
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 
 /**
  * Marks a sealed type whose subclasses a read tool describes in full, so the tool schemas generated from command inputs
- * ([JsonSchema]) list only the subclasses' names, described by [text], rather than repeating every subclass in each tool
- * that takes one.
+ * ([com.pandulapeter.kubrikoCreator.commands.JsonSchema]) list only the subclasses' names, described by [text], rather
+ * than repeating every subclass in each tool that takes one.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @SerialInfo

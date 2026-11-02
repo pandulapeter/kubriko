@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.context
 
-import com.pandulapeter.kubrikoCreator.commands.Description
+import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
