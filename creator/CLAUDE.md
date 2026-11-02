@@ -47,6 +47,9 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
   `testing/` (`testDirectory()`, and the fakes above); a fake of an interface with a real implementation runs the same
   contract test as the real one (`BlockTypeRepositoryContract`, `GitRepositoryContract`). A collaborator of
   `WorkspaceController` is tested on its own, and `WorkspaceControllerTest` keeps only cases about the wiring between them.
+- `PackageLayeringTest` keeps each package in the layer of the Gradle module it belongs to (lowest first: foundation,
+  ui-components, core, gradle-session, git, template, commands, ai, scene-runtime, workspace, the app); a new package gets a
+  layer, and an import may only run downward.
 - UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`ui/UiSnapshots.kt`) renders a composable in the
   app's theme and interface scale without a window, asserts its texts and clicks, and saves a PNG under `build/ui-snapshots`.
   Every new UI gets one. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
