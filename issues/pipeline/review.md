@@ -26,14 +26,14 @@ the logic is testable:
 - `git push origin HEAD:{{BRANCH}}` after every commit;
 - never rewrite landed commits.
 
-A finding whose fix needs a user decision is not fixed. Write it to `issues/SKIPPED.md` as `- review: <finding>, <why it
-needs a decision>` instead.
+Never leave a verified bug unfixed for a decision: the user wants no known bugs left. Where a fix has several reasonable
+forms, take the safest one that keeps what the plans decided, and say in the log which you chose and why.
 
 **Step 3, log it.** Append a `## Review of {{PLANS}}` section to `issues/EXECUTION-LOG.md`: each finding with its fix commit
 or its reason, and one line for what you dropped as not real. Commit it as `Log the review of the <phase> review plans.` and
 push.
 
 **Rules:** never branch, merge, rebase, force-push, bump a version, publish, or dispatch a workflow. Never edit
-`.github/workflows/fifth-review-*.yml` or `issues/pipeline/`. Scratch files go to `$RUNNER_TEMP`.
+`.github/workflows/fifth-review-*.yml` or `issues/pipeline/`. Scratch files go to `build/scratch/` (git-ignored). Only plain shell commands are allowed: no variable-assignment prefixes, no inline Python or heredocs; use the Read, Edit, and Write tools for files.
 
 End with a short summary: findings, fixes, and the final test result.

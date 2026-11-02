@@ -52,7 +52,7 @@ jobs:
     needs: review-h
     uses: ./.github/workflows/fifth-review-step.yml
     secrets: inherit
-    with: { kind: batch, plans: 'M01 M02a M02b', budget: '10' }
+    with: { kind: batch, plans: 'M01 M02a M02b', budget: '14' }
   m2:
     needs: m1
     uses: ./.github/workflows/fifth-review-step.yml

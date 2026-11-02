@@ -18,7 +18,7 @@ watching, so decide yourself and finish. Every plan batch and both phase reviews
      `Remove the review plans.`
    - Otherwise, trim `issues/README.md` to the plans still present, with why each was skipped, and commit that.
    - Push.
-4. **Write the pull request's description** to `$RUNNER_TEMP/pr-body.md`, in plain prose with lists where they help:
+4. **Write the pull request's description** to `build/scratch/pr-body.md` (git-ignored), in plain prose with lists where they help:
    - what the range did, phase by phase;
    - the commit count;
    - every skipped plan and every review finding left for a decision, with its reason;
