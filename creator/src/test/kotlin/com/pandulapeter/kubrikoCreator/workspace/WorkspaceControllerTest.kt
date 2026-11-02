@@ -400,6 +400,39 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun closingGivesUpOnAGameThatDoesNotStopAndStillWaitsForTheWrites() = runTest {
+        val playClasspathFile = SessionInitScript.playClasspathFileOf(rootDirectory)
+        try {
+            val repository = FakeBlockTypeRepository()
+            val released = CompletableDeferred<Unit>()
+            val controller = createController(
+                blockTypeRepository = repository,
+                runGame = { _, _ ->
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        withContext(NonCancellable) { released.await() }
+                    }
+                },
+            )
+            controller.play()
+            playClasspathFile.writeText("kubrikoVersion=1.0.0\nlaunch.java=/java\nlaunch.mainClass=M\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
+            build.currentRun.finish(isSuccessful = true)
+            repository.failingNames += "Player"
+            assertNull(controller.createActorType("Player"))
+            val closing = controller.close()
+            advanceTimeBy(CLOSE_GAME_TIMEOUT_IN_MILLISECONDS + 1)
+            assertFalse(closing.isCompleted, "the write is still given its retries")
+            advanceTimeBy(CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS)
+            assertTrue(closing.isCompleted)
+            assertTrue(build.isClosed)
+            released.complete(Unit)
+        } finally {
+            playClasspathFile.delete()
+        }
+    }
+
+    @Test
     fun aGameThatCantBeStartedSaysWhyInTheConsole() = runTest {
         val playClasspathFile = SessionInitScript.playClasspathFileOf(rootDirectory)
         try {

@@ -110,34 +110,39 @@ internal class GameProcess(
 
     /**
      * Stops [process] and every process it started, which Hot Reload and a Gradle-run session leave behind otherwise,
-     * since destroying a process doesn't reach its children.
+     * since destroying a process doesn't reach its children. Takes at most [STOP_TIMEOUT_IN_MILLISECONDS] however many
+     * processes there are, since they are all waited for against one deadline.
      */
     private fun stop(process: Process) {
-        val descendants = process.descendants().toList()
-        process.destroy()
-        descendants.forEach(ProcessHandle::destroy)
-        if (!process.waitFor(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
-            process.destroyForcibly()
-            process.waitFor()
+        val processes = listOf(process.toHandle()) + process.descendants().toList()
+        processes.forEach(ProcessHandle::destroy)
+        if (!processes.awaitExit()) {
+            processes.forEach(ProcessHandle::destroyForcibly)
+            processes.awaitExit()
         }
-        descendants.forEach { descendant ->
-            if (!descendant.awaitExit()) {
-                descendant.destroyForcibly()
-                descendant.awaitExit()
+    }
+
+    private fun List<ProcessHandle>.awaitExit(): Boolean {
+        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(STOP_WAIT_IN_MILLISECONDS)
+        return all { handle ->
+            try {
+                handle.onExit().get(maxOf(deadline - System.nanoTime(), 0L), TimeUnit.NANOSECONDS)
+                true
+            } catch (_: TimeoutException) {
+                false
             }
         }
     }
 
-    private fun ProcessHandle.awaitExit() = try {
-        onExit().get(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
-        true
-    } catch (_: TimeoutException) {
-        false
-    }
+    companion object {
+        private const val OUTPUT_TAIL_SIZE = 30
+        private const val STOP_WAIT_IN_MILLISECONDS = 3_000L
+        private const val CLASSPATH_ARGUMENT_FILE_NAME = "classpath.args"
 
-    private companion object {
-        const val OUTPUT_TAIL_SIZE = 30
-        const val STOP_TIMEOUT_IN_SECONDS = 3L
-        const val CLASSPATH_ARGUMENT_FILE_NAME = "classpath.args"
+        /**
+         * How long stopping the game may take at most: a wait for it and every process it started to end, and another
+         * after killing those that didn't.
+         */
+        const val STOP_TIMEOUT_IN_MILLISECONDS = 2 * STOP_WAIT_IN_MILLISECONDS
     }
 }

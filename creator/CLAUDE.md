@@ -109,12 +109,14 @@ Besides its tests passing, a change:
 - Workspace state (the `CommandExecutor`, `BlockTypesController`, `SceneEditingController`) is confined to the main thread;
   background work hands its results back there.
 - Each workspace runs in a scope of its own, a child of the app's, and so do its session server and watcher. `close()` first stops
-  the game and waits until it, and every process it started, is gone, and opening a project waits for the previous one to close; a
+  the game and waits until it, and every process it started, is gone (at most `CLOSE_GAME_TIMEOUT_IN_MILLISECONDS`, as long
+  as `GameProcess` can take to stop it; a game outliving that is left to the shutdown hook), and opening a project waits for the previous one to close; a
   game or agent still running when Creator's JVM exits is killed by a shutdown hook (`LiveGameProcesses`). It cancels the scope
   once the pending writes are done, giving a failed one up to 10 seconds of retries (`BlockTypesController.awaitWritten`). Quitting
   (`AppGraph.shutdown`, whose `AppGraph` builds the app's parts in `main` before the window) closes the AI server, the agent, and
-  the open project side by side off the UI thread, then waits for the settings' last save, all within 15 seconds
-  (`CLOSING_TIMEOUT_IN_MILLISECONDS`, 5 seconds longer than the writes' wait, so the workspace is closed first), and an opening that fails or is cancelled closes what it started (`openWorkspace`). Builds and git commands wait for the writes too (`awaitWrites`): while one
+  the open project side by side off the UI thread, then waits for the settings' last save, all within
+  `CLOSING_TIMEOUT_IN_MILLISECONDS`, the sum of the workspace's bounded waits (the game's and the writes') plus 5 seconds, so
+  the workspace is closed first (derived from those bounds, never written as a literal). An opening that fails or is cancelled closes what it started (`openWorkspace`). Builds and git commands wait for the writes too (`awaitWrites`): while one
   fails, git commands are refused and builds go ahead with a console warning naming what isn't saved.
 - `writeTextAtomically` writes a sibling temporary file and moves it into place, so a crash leaves the old content or the new,
   never half; a new file holding a token is readable by its owner only (`isPrivate`), as is Creator's own `mcp.json` even when an older

@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
+import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
 import kotlinx.coroutines.CancellationException
@@ -169,16 +170,17 @@ internal class AppController(
 
     companion object {
         /**
-         * How long closing a project may take after its wait for a failed write ([CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS]) ran
-         * out: stopping its work and closing its Gradle connection.
+         * How long closing a project may take after its waits for the game ([CLOSE_GAME_TIMEOUT_IN_MILLISECONDS]) and for
+         * a failed write ([CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS]) ran out: stopping its work and closing its Gradle connection.
          */
         private const val CLOSE_WORK_MARGIN_IN_MILLISECONDS = 5_000L
 
         /**
          * How long quitting, and opening a project, wait for the open project to close, so that a write that never ends
-         * can't keep the window open. It outlasts the project's own wait for its writes, so the project is always closed
-         * first.
+         * can't keep the window open. It outlasts every bounded step of the project's own close, so the project is always
+         * closed first.
          */
-        const val CLOSING_TIMEOUT_IN_MILLISECONDS = CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS + CLOSE_WORK_MARGIN_IN_MILLISECONDS
+        const val CLOSING_TIMEOUT_IN_MILLISECONDS =
+            CLOSE_GAME_TIMEOUT_IN_MILLISECONDS + CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS + CLOSE_WORK_MARGIN_IN_MILLISECONDS
     }
 }
