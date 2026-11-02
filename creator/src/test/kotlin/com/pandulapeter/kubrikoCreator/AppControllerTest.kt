@@ -171,6 +171,16 @@ class AppControllerTest {
     }
 
     @Test
+    fun anUnexpectedProblemOnTheWelcomeScreenIsShownThere() = runTest {
+        val controller = createController()
+        controller.reportUnexpectedProblem(IllegalStateException("Broken."))
+        assertEquals(
+            AppScreen.Welcome(error = Res.string.status_unexpected_problem, errorArguments = listOf("java.lang.IllegalStateException: Broken.")),
+            controller.screen.value,
+        )
+    }
+
+    @Test
     fun theWelcomeScreenComesFirst() = runTest {
         assertEquals(AppScreen.Welcome(), createController { _, scope -> workspace(scope) }.screen.value)
     }

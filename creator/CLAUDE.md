@@ -122,7 +122,9 @@ Besides its tests passing, a change:
   predate, the project is walked, and so is it for a snapshot taken before an own write (`OwnWrites.generation`), since the
   watcher never reports that write.
 - An exception nothing catches (`unexpectedProblemHandler`, on the app's scope and each workspace's) is reported in the open
-  project's console, and the rest keeps running.
+  project's console (or on the welcome screen), and the rest keeps running. The window's own exceptions are reported the same way
+  and its content is built again (`CreatorWindowExceptionHandler`), unless they repeat (more than three within 10 seconds), when
+  Compose's dialog shows them and closes the window through the orderly quit.
 
 ## Commands
 
