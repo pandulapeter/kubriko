@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.ui.showing
 import com.pandulapeter.kubrikoCreator.ui.uiTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_identity_version_number_invalid
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -70,6 +71,23 @@ class ProjectSettingsDialogTest {
         onNodeWithText("Review changes").performClick()
         assertEquals(true, isReviewing)
         saveSnapshot("project-settings-unavailable")
+    }
+
+    @Test
+    fun settingsThatCanNotBeReadSayWhyAndOfferNoUpgrade() = uiTest(width = 640, height = 600) {
+        showing {
+            ProjectSettingsDialog(
+                identity = null,
+                isLoaded = true,
+                failure = IOException("gradle.properties (Permission denied)"),
+                onChange = {},
+                onReviewUpgrade = {},
+                onDismiss = {},
+            )
+        }
+        onNodeWithText("Couldn't read this project's settings: gradle.properties (Permission denied)").assertExists()
+        onNodeWithText("Review changes").assertDoesNotExist()
+        saveSnapshot("project-settings-unreadable")
     }
 
     @Test

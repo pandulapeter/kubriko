@@ -42,18 +42,21 @@ import kubriko.creator.generated.resources.error_command_project_settings_unavai
 import kubriko.creator.generated.resources.project_settings_identity_description
 import kubriko.creator.generated.resources.project_settings_section_identity
 import kubriko.creator.generated.resources.project_settings_title
+import kubriko.creator.generated.resources.project_settings_unreadable
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * Project settings: the game's, kept in the project where its build reads them.
  *
  * @param identity The game's identity, or null if the project's build doesn't read one ([isLoaded]) or it is still being read.
+ * @param failure Why the settings couldn't be read, if they couldn't.
  * @param onReviewUpgrade Opens the template upgrade that makes the build read the settings, if there is one.
  */
 @Composable
 internal fun ProjectSettingsDialog(
     identity: GameIdentity?,
     isLoaded: Boolean,
+    failure: Throwable? = null,
     onChange: (SetProjectSettings.Input) -> Unit,
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
@@ -68,6 +71,11 @@ internal fun ProjectSettingsDialog(
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             when {
+                failure != null -> Text(
+                    text = stringResource(Res.string.project_settings_unreadable, failure.message ?: failure.toString()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
                 identity != null -> IdentitySection(
                     identity = identity,
                     onChange = onChange,

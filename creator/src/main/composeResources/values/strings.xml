@@ -715,6 +715,7 @@
     <string name="error_identity_application_id_invalid">"%1$s" isn't an application ID: at least two parts joined by dots, like com.example.mygame, each starting with a letter.</string>
     <string name="error_identity_text_invalid">The vendor and the description are one line of at most %1$s characters each.</string>
     <string name="project_settings_title">Project settings</string>
+    <string name="project_settings_unreadable">Couldn't read this project's settings: %1$s</string>
     <string name="project_settings_section_identity">Identity</string>
     <string name="project_settings_identity_description">Kept in gradle.properties, where the build reads them, so they are committed and shared with everyone working on the game.</string>
     <string name="project_settings_name">Name</string>

@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 
 /**
  * [ProjectSettingsDialog] for the project in [rootDirectory], reading its settings again after every change to the
@@ -36,11 +37,16 @@ internal fun ProjectSettings(
 ) {
     val currentHistory by history.collectAsState()
     val identity by produceState<Result<GameIdentity?>?>(null, rootDirectory, currentHistory) {
-        value = Result.success(withContext(Dispatchers.IO) { GameIdentity.read(rootDirectory) })
+        value = try {
+            Result.success(withContext(Dispatchers.IO) { GameIdentity.read(rootDirectory) })
+        } catch (exception: IOException) {
+            Result.failure(exception)
+        }
     }
     ProjectSettingsDialog(
         identity = identity?.getOrNull(),
         isLoaded = identity != null,
+        failure = identity?.exceptionOrNull(),
         onChange = { onCommand(Invocation(SetProjectSettings, it)) },
         onReviewUpgrade = onReviewUpgrade,
         onDismiss = onDismiss,
