@@ -11,9 +11,12 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +28,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
@@ -33,10 +41,12 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_collapse_group
 import kubriko.creator.generated.resources.action_expand_group
+import kubriko.creator.generated.resources.choice_none_found
 import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_music
@@ -44,13 +54,15 @@ import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_sprite
 import kubriko.creator.generated.resources.resource_group_empty
+import kubriko.creator.generated.resources.sidebar_filter
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The project's contents: its Actor types, Manager types, and Scenes as trees of folders, then its other files grouped
- * by what they are. Clicking a type edits it, and clicking a Scene opens it; clicking the selected one again, or empty
- * space, selects nothing.
+ * by what they are, below a field that narrows them all to those whose names contain what is typed (opening the folders
+ * that hold them; Escape clears it). Clicking a type edits it, and clicking a Scene opens it; clicking the selected one
+ * again, or empty space, selects nothing.
  *
  * @param folderGroups The groups with folders it shows (the type groups only for projects that opted in to them).
  * @param dragState Where types and Scenes are dragged to: folders, and the open Scene.
@@ -64,68 +76,130 @@ internal fun ProjectSidebar(
     dragState: SidebarDragState,
     flashedName: String? = null,
     flashKey: Any? = null,
+) = Column(
+    modifier = modifier,
 ) {
+    var query by remember { mutableStateOf("") }
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
     var collapsedFolders by remember { mutableStateOf(emptyMap<FolderGroup, Set<String>>()) }
     var collapsedGroups by remember { mutableStateOf(setOf(ResourceGroup.KOTLIN)) }
+    val isFiltering = query.isNotBlank()
+    val shownFolderGroups = remember(query, folderGroups) {
+        if (isFiltering) folderGroups.mapValues { (_, state) -> state.filtered(query) }.filterValues { it.items.isNotEmpty() } else folderGroups
+    }
+    val shownResources = remember(query, resources) {
+        if (isFiltering) resources.mapValues { (_, groupResources) -> groupResources.filter { matchesSidebarFilter(it.name, query) } } else resources
+    }
+    val resourceGroups = shownResourceGroups(shownResources).filter { !isFiltering || shownResources[it].orEmpty().isNotEmpty() }
+    SidebarFilterField(
+        query = query,
+        onQueryChange = { query = it },
+    )
     LazyColumn(
-        modifier = modifier.pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } },
+        modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } },
     ) {
         FolderGroup.entries.forEach { group ->
-            val state = folderGroups[group] ?: return@forEach
+            val state = shownFolderGroups[group] ?: return@forEach
             folderTreeSection(
                 group = group,
                 state = state,
                 actions = folderActions,
                 dragState = dragState,
-                collapsed = collapsedFolders[group].orEmpty(),
-                onCollapsedChange = { collapsedFolders = collapsedFolders + (group to it) },
+                collapsed = if (isFiltering) emptySet() else collapsedFolders[group].orEmpty(),
+                onCollapsedChange = { if (!isFiltering) collapsedFolders = collapsedFolders + (group to it) },
                 naming = naming,
                 onNamingChange = { naming = it },
                 flashedName = flashedName,
                 flashKey = flashKey,
             )
         }
-        shownResourceGroups(resources).forEach { group ->
-            val isCollapsed = group in collapsedGroups
-            item(key = group) {
-                PanelHeader(
-                    modifier = Modifier.clickable { collapsedGroups = if (isCollapsed) collapsedGroups - group else collapsedGroups + group },
-                    icon = group.icon,
-                    title = stringResource(group.title),
-                    accent = Accent.CODE,
-                ) {
-                    Icon(
-                        modifier = Modifier.padding(end = 8.dp).size(16.dp).rotate(if (isCollapsed) -90f else 0f),
-                        painter = painterResource(Res.drawable.ic_chevron),
-                        contentDescription = stringResource(if (isCollapsed) Res.string.action_expand_group else Res.string.action_collapse_group),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+        resourceGroups.forEach { group ->
+            val isCollapsed = !isFiltering && group in collapsedGroups
+            resourceGroupSection(
+                group = group,
+                groupResources = shownResources[group].orEmpty(),
+                isCollapsed = isCollapsed,
+                onToggle = { if (!isFiltering) collapsedGroups = if (isCollapsed) collapsedGroups - group else collapsedGroups + group },
+            )
+        }
+        if (isFiltering && shownFolderGroups.isEmpty() && resourceGroups.isEmpty()) {
+            item(key = "filter-none") {
+                Text(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    text = stringResource(Res.string.choice_none_found),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-            if (isCollapsed) return@forEach
-            val groupResources = resources[group].orEmpty()
-            if (groupResources.isEmpty()) {
-                item(key = "$group-empty") {
-                    Text(
-                        modifier = Modifier.padding(start = 36.dp, top = 2.dp, bottom = 6.dp),
-                        text = stringResource(Res.string.resource_group_empty),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+        }
+    }
+}
+
+@Composable
+private fun SidebarFilterField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+) = CompactTextField(
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)
+        .onPreviewKeyEvent { event ->
+            if (event.type == KeyEventType.KeyDown && event.key == Key.Escape && query.isNotEmpty()) {
+                onQueryChange("")
+                true
             } else {
-                val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
-                items(groupResources, key = { it.relativePath }) { resource ->
-                    SidebarItem(
-                        icon = group.icon,
-                        accent = Accent.CODE,
-                        text = resource.name,
-                        detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
-                        onClick = null,
-                    )
-                }
+                false
             }
+        },
+    value = query,
+    onValueChange = onQueryChange,
+    placeholder = stringResource(Res.string.sidebar_filter),
+)
+
+/**
+ * The header of a group of files that aren't types or Scenes, then its files unless it [isCollapsed].
+ */
+private fun LazyListScope.resourceGroupSection(
+    group: ResourceGroup,
+    groupResources: List<ProjectResource>,
+    isCollapsed: Boolean,
+    onToggle: () -> Unit,
+) {
+    item(key = group) {
+        PanelHeader(
+            modifier = Modifier.clickable(onClick = onToggle),
+            icon = group.icon,
+            title = stringResource(group.title),
+            accent = Accent.CODE,
+        ) {
+            Icon(
+                modifier = Modifier.padding(end = 8.dp).size(16.dp).rotate(if (isCollapsed) -90f else 0f),
+                painter = painterResource(Res.drawable.ic_chevron),
+                contentDescription = stringResource(if (isCollapsed) Res.string.action_expand_group else Res.string.action_collapse_group),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    if (isCollapsed) return
+    if (groupResources.isEmpty()) {
+        item(key = "$group-empty") {
+            Text(
+                modifier = Modifier.padding(start = 36.dp, top = 2.dp, bottom = 6.dp),
+                text = stringResource(Res.string.resource_group_empty),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    } else {
+        val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
+        items(groupResources, key = { it.relativePath }) { resource ->
+            SidebarItem(
+                icon = group.icon,
+                accent = Accent.CODE,
+                text = resource.name,
+                detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
+                onClick = null,
+            )
         }
     }
 }

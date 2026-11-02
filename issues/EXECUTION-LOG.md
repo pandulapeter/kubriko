@@ -145,3 +145,11 @@ Review fixes: 212578617 (merged Save keeps its first place), 04cd99656 (JsonFile
 - Deviation: creator/CLAUDE.md has no `ui/components` list or `KeyChoiceButton` description any more, so the rule is one entry in Definition of done's list of shared UI building blocks, naming `matchingOptions` there.
 - Deviation: changes set aside for the failing-test check went to the git-ignored `build/scratch/`, as in H01, since `$RUNNER_TEMP` is outside the paths this session may write.
 - Extra fixes: none
+
+## H06a — see next commit
+"Add a field above Kubriko Creator's sidebar that filters its types, Scenes, and files by name, showing the folders that hold matches opened." — verified: ./gradlew :creator:test (1,556 tests, none failed), ./gradlew :creator:spotlessApply, ProjectSidebarTest's new case fails with ProjectSidebar.kt set aside (SidebarFilterTest needs SidebarFilter.kt to compile), both snapshots looked at; skipped manual: none named
+- New ui/SidebarFilter.kt (`matchesSidebarFilter(name, query)`, `FolderTreeGroupState.filtered(query)`). `ProjectSidebar` is now a `Column` of a private `SidebarFilterField` (Escape clears it) and the `LazyColumn`; the resource groups moved into a private `LazyListScope.resourceGroupSection`. While filtering, groups and resource groups without a match are left out, folders and resource groups show open, and toggling them does nothing, so the user's collapsed folders and groups are untouched; nothing matching shows H05's `choice_none_found`. String `sidebar_filter`.
+- Deviation: `matchesSidebarFilter` checks the whole name only, since a path containing the query covers its last part.
+- Deviation: FolderTree.kt and FolderTreeTest.kt, named in the plan, needed no change; no `ic_search` drawable exists, so the field has no icon.
+- Deviation: creator/CLAUDE.md has no sidebar paragraph any more (see H01), so the sentence is one bullet in its UI section.
+- Extra fixes: none

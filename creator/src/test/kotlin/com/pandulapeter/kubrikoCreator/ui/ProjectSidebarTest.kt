@@ -9,13 +9,67 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.pressKey
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@OptIn(ExperimentalTestApi::class)
 class ProjectSidebarTest {
+    private val folderGroups = folderTreeGroups(
+        types = listOf(ActorTypeDefinition(name = "Ball"), ActorTypeDefinition(name = "Bat", folder = "enemies")),
+        typeFolders = emptyMap(),
+        selectedTypeName = null,
+        sceneNames = listOf("Intro", "Level", "Finale"),
+        sceneFolders = emptySet(),
+        openSceneName = null,
+    )
+    private val resources = mapOf(ResourceGroup.SPRITES to listOf(ProjectResource(ResourceGroup.SPRITES, File("hero.png"), "drawable/hero.png")))
+    private val folderActions = FolderTreeActions(
+        onSelected = { _, _ -> },
+        onSelectionCleared = {},
+        onCreateItem = { _, _ -> null },
+        onCreateFolder = { _, _ -> null },
+        onRenameFolder = { _, _, _ -> null },
+        onDeleteFolder = { _, _ -> },
+    )
+
+    @Test
+    fun theFilterNarrowsEverythingToMatchingNamesOpeningTheirFoldersAndEscapeBringsBackWhatWasCollapsed() = uiTest(width = 300, height = 600) {
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = folderGroups,
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+            )
+        }
+        onNodeWithText("enemies").performClick()
+        onNodeWithText("Bat").assertDoesNotExist()
+        onNode(hasSetTextAction()).performTextInput("bat")
+        onNodeWithText("Bat").assertExists()
+        listOf("Ball", "Intro", "Level", "Finale", "hero.png").forEach { onNodeWithText(it).assertDoesNotExist() }
+        saveSnapshot("sidebar-filtered")
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Escape) }
+        listOf("Ball", "Intro", "Level", "Finale", "hero.png").forEach { onNodeWithText(it).assertExists() }
+        onNodeWithText("Bat").assertDoesNotExist()
+        onNode(hasSetTextAction()).performTextInput("zzz")
+        onNodeWithText("Nothing matches.").assertExists()
+        saveSnapshot("sidebar-filter-none")
+    }
 
     @Test
     fun kindsOfAssetsNothingUsesYetAreOnlyListedWhenTheProjectHasSomeAndScenesAreLeftToTheirTree() {
