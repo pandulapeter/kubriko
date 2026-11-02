@@ -46,7 +46,7 @@ internal class ProjectWatcher(
             var previous: ProjectSnapshot? = null
             while (isActive) {
                 try {
-                    val current = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory) }
+                    val current = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory, ownWrites.generation) }
                     val last = previous
                     previous = current
                     if (last != null) {
@@ -65,9 +65,10 @@ internal class ProjectWatcher(
 
     companion object {
         /**
-         * The stamp of every file in an area or in the resource tree, by its path relative to [rootDirectory].
+         * The stamp of every file in an area or in the resource tree, by its path relative to [rootDirectory], read after
+         * Creator's own writes reached [ownWriteGeneration].
          */
-        internal fun snapshot(rootDirectory: File, hiddenDirectory: String?): ProjectSnapshot {
+        internal fun snapshot(rootDirectory: File, hiddenDirectory: String?, ownWriteGeneration: Long = 0): ProjectSnapshot {
             val stamps = HashMap<String, FileStamp>()
             ProjectTree.walk(rootDirectory, hiddenDirectory = hiddenDirectory)
                 .filter { it.isFile }
@@ -75,7 +76,7 @@ internal class ProjectWatcher(
                     val path = file.relativeTo(rootDirectory).invariantSeparatorsPath
                     if (areaOf(path) != null || ResourceScanner.classify(path) != null) stamps[path] = FileStamp(file.length(), file.lastModified())
                 }
-            return ProjectSnapshot(stamps)
+            return ProjectSnapshot(stamps, ownWriteGeneration)
         }
 
         /**

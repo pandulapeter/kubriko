@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
  * the resource tree too; and every change the Version control panel. Resource refreshes are coalesced: at most one scan
  * runs and one waits, however many changes arrive meanwhile. After a change the watcher found, the tree is built from the
  * snapshot it found it in, without walking the project again, unless one of Creator's own writes, which that snapshot may
- * predate, is waiting for a scan too.
+ * predate, is waiting for a scan too ([scanResources] walks for a snapshot taken before an own write that already ran).
  *
  * @param scanResources Scans the resource tree, from the given snapshot or, for null, by walking the project, and
  *   publishes it, run by one loop in [scope].

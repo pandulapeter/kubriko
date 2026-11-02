@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.project
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * The files Kubriko Creator itself wrote or deleted in a project, as they were right after, so that [ProjectWatcher]
@@ -19,12 +20,19 @@ import java.util.concurrent.ConcurrentHashMap
  */
 internal class OwnWrites {
     private val stamps = ConcurrentHashMap<File, FileStamp>()
+    private val recordCount = AtomicLong()
+
+    /**
+     * Raised by every [record], so that a [ProjectSnapshot] taken before one of Creator's own writes can be told apart.
+     */
+    val generation get() = recordCount.get()
 
     /**
      * Notes that Creator just wrote or deleted [file].
      */
     fun record(file: File) {
         stamps[file.absoluteFile] = FileStamp.of(file)
+        recordCount.incrementAndGet()
     }
 
     /**

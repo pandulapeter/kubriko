@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
@@ -104,6 +105,7 @@ class WorkspaceControllerTest {
         initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
         writeDelayInMilliseconds: Long = 0,
         gitRepository: FakeGitRepository? = null,
+        ownWrites: OwnWrites = OwnWrites(),
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -122,6 +124,7 @@ class WorkspaceControllerTest {
             initialFormatStatus = initialFormatStatus,
             writeDelayInMilliseconds = writeDelayInMilliseconds,
             openGitRepository = { gitRepository },
+            ownWrites = ownWrites,
         )
     }
 
@@ -174,6 +177,17 @@ class WorkspaceControllerTest {
         val snapshot = ProjectSnapshot(emptyMap())
         controller.onProjectChanged(setOf(ProjectChange.SCENES), snapshot)
         assertEquals(listOf(null, snapshot), snapshots)
+    }
+
+    @Test
+    fun aWatcherSnapshotTakenBeforeOneOfCreatorsOwnWritesIsScannedByWalking() = runTest {
+        val snapshots = mutableListOf<ProjectSnapshot?>()
+        val ownWrites = OwnWrites()
+        val controller = createController(scanResources = { _, snapshot -> snapshots += snapshot; emptyMap() }, ownWrites = ownWrites)
+        val snapshot = ProjectSnapshot(emptyMap(), ownWriteGeneration = ownWrites.generation)
+        ownWrites.record(File(rootDirectory, "scenes/main.json"))
+        controller.onProjectChanged(setOf(ProjectChange.SCENES), snapshot)
+        assertEquals(listOf<ProjectSnapshot?>(null, null), snapshots)
     }
 
     @Test

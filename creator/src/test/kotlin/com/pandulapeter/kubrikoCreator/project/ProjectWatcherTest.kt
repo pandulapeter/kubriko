@@ -133,6 +133,22 @@ class ProjectWatcherTest {
     }
 
     @Test
+    fun aSnapshotKnowsWhichOfCreatorsOwnWritesItCameAfter() = runTest {
+        val ownWrites = OwnWrites()
+        ownWrites.record(write("scenes/main.json", "{}"))
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val snapshots = mutableListOf<ProjectSnapshot>()
+        val watching = ProjectWatcher(root, generated, CoroutineScope(backgroundScope.coroutineContext + dispatcher), dispatcher, intervalInMilliseconds = 1_000, ownWrites = ownWrites)
+            .start { _, snapshot -> snapshots += snapshot }
+        advanceTimeBy(500)
+        write("src/commonMain/kotlin/game/Game.kt", "fun main() = Unit")
+        advanceTimeBy(1_000)
+        runCurrent()
+        assertEquals(ownWrites.generation, snapshots.single().ownWriteGeneration)
+        watching.close()
+    }
+
+    @Test
     fun aFailureWhileHandlingAChangeDoesNotStopTheWatching() = runTest {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val changes = mutableListOf<Set<ProjectChange>>()

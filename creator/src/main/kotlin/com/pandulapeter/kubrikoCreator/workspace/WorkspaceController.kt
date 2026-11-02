@@ -101,7 +101,7 @@ internal class WorkspaceController(
     findDesktopModulePath: suspend () -> String = { ":" },
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
     writeDelayInMilliseconds: Long = 0,
-    ownWrites: OwnWrites = OwnWrites(),
+    private val ownWrites: OwnWrites = OwnWrites(),
     private val scanResources: (File, ProjectSnapshot?) -> Map<ResourceGroup, List<ProjectResource>> = { root, snapshot -> ResourceScanner.scan(root, snapshot = snapshot) },
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
@@ -408,8 +408,13 @@ internal class WorkspaceController(
 
     fun refreshResources() = changes.refreshResources()
 
+    /**
+     * Scans the resource tree from [snapshot], unless one of Creator's own writes came after it was taken, whose change
+     * the watcher would then never report, or by walking the project.
+     */
     private suspend fun scanResourcesNow(snapshot: ProjectSnapshot?) {
-        val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory, snapshot) to scenes.folders() }
+        val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == ownWrites.generation }
+        val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory, currentSnapshot) to scenes.folders() }
         _resources.value = resources
         _sceneFolders.value = folders
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.

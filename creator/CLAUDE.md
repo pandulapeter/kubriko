@@ -115,7 +115,8 @@ Besides its tests passing, a change:
   only the Scene view, a new or removed Scene the resource tree too, and every change the Version control panel. Resource scans and
   git refreshes are coalesced, so at most one runs and one waits. The resource tree after an outside change comes from the
   watcher's snapshot, so its one-second walk is the only periodic one; after Creator's own writes, which a snapshot may
-  predate, the project is walked.
+  predate, the project is walked, and so is it for a snapshot taken before an own write (`OwnWrites.generation`), since the
+  watcher never reports that write.
 - An exception nothing catches (`unexpectedProblemHandler`, on the app's scope and each workspace's) is reported in the open
   project's console, and the rest keeps running.
 

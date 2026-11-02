@@ -11,8 +11,10 @@ package com.pandulapeter.kubrikoCreator.project
 
 /**
  * The files of a project as [ProjectWatcher] last found them: the stamp of every file the watcher or [ResourceScanner]
- * cares about, by its path relative to the project's root.
+ * cares about, by its path relative to the project's root, and the [OwnWrites.generation] from before they were read, so
+ * that a snapshot that may predate one of Creator's own writes is known.
  */
 internal data class ProjectSnapshot(
     val stamps: Map<String, FileStamp>,
+    val ownWriteGeneration: Long = 0,
 )
