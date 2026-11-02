@@ -55,6 +55,7 @@ import com.pandulapeter.kubrikoCreator.window.TitleBarAppearance
 import com.pandulapeter.kubrikoCreator.window.TitleBarInsets
 import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar
 import com.pandulapeter.kubrikoCreator.window.rememberIsFullscreen
+import com.pandulapeter.kubrikoCreator.workspace.CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -67,9 +68,16 @@ import java.awt.Dimension
 import java.io.File
 
 /**
- * How long quitting waits for the open project to finish writing, so that a write that never ends can't keep the window open.
+ * How long quitting gives the open project to close after its wait for a failed write ([CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS])
+ * ran out: stopping its work and closing its Gradle connection.
  */
-private const val CLOSING_TIMEOUT_IN_MILLISECONDS = 10_000L
+private const val CLOSE_WORK_MARGIN_IN_MILLISECONDS = 5_000L
+
+/**
+ * How long quitting waits for the open project to close, so that a write that never ends can't keep the window open. It
+ * outlasts the project's own wait for its writes, so the project is always closed before the app exits.
+ */
+internal const val CLOSING_TIMEOUT_IN_MILLISECONDS = CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS + CLOSE_WORK_MARGIN_IN_MILLISECONDS
 
 /**
  * Starts Kubriko Creator. A project folder passed as the first argument is opened right away.

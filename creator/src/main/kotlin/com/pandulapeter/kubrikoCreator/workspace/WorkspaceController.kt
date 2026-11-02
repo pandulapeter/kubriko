@@ -481,4 +481,7 @@ internal class WorkspaceController(
     }
 }
 
-private const val CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS = 10_000L
+/**
+ * How long [WorkspaceController.close] waits for a failed write to succeed before it stops the workspace anyway.
+ */
+internal const val CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS = 10_000L
