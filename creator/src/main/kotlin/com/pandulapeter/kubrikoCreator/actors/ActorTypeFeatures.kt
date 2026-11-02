@@ -130,14 +130,28 @@ internal class ActorTypeFeatures(
                 is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, is BlockDefinition.JumpTo,
                 is BlockDefinition.MoveTowardsNearest, BlockDefinition.BounceOffEdge, BlockDefinition.BounceOffOther, is BlockDefinition.Kotlin -> true
                 is BlockDefinition.If -> condition is ConditionDefinition.Velocity
-                else -> false
+                BlockDefinition.RunParentEvent, BlockDefinition.RemoveSelf, BlockDefinition.RemoveOther,
+                is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
+                is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.StartTimer,
+                is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
+                is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
+                BlockDefinition.StopMusic, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+                is BlockDefinition.Log,
+                -> false
             }
 
         fun BlockDefinition.needsActorManager(knownActorTypeNames: Collection<String>) = when (this) {
             BlockDefinition.RemoveSelf, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> true
             is BlockDefinition.AddActor -> actorType in knownActorTypeNames
             is BlockDefinition.MoveTowardsNearest -> actorType in knownActorTypeNames
-            else -> false
+            is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+            is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.BounceOffOther, is BlockDefinition.SetNumber,
+            is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle,
+            is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
+            BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
+            BlockDefinition.StopMusic, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+            is BlockDefinition.Log,
+            -> false
         }
     }
 }

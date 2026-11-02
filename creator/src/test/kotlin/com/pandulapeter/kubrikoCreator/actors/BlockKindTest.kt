@@ -39,6 +39,31 @@ class BlockKindTest {
     }
 
     @Test
+    fun theBlocksThatOnlyWorkInOneEventSayWhereAndWhy() {
+        val expected = mapOf(
+            BlockKind.BOUNCE_OFF_EDGE to (EventType.EDGE_TOUCHED to "// Bounce off the edge only works in the Edge touched Event."),
+            BlockKind.BOUNCE_OFF_OTHER to (EventType.COLLISION to "// Bounce off it only works in a collision Event."),
+            BlockKind.REMOVE_OTHER to (EventType.COLLISION to "// Remove the other Actor only works in a collision Event."),
+        )
+        BlockKind.entries.forEach { kind ->
+            assertEquals(expected[kind]?.first, kind.onlyIn, kind.name)
+            assertEquals(expected[kind]?.second, kind.misplacedComment, kind.name)
+        }
+    }
+
+    @Test
+    fun aBlockOutsideItsEventBecomesItsComment() {
+        assertEquals(
+            listOf("// Remove the other Actor only works in a collision Event."),
+            BlockCodeGenerator.blockLines(BlockDefinition.RemoveOther, EventType.EVERY_FRAME, BlockScope("Ball")),
+        )
+        assertEquals(
+            listOf("// This Block only works in an Actor type."),
+            BlockCodeGenerator.blockLines(BlockDefinition.RemoveOther, EventType.EVERY_FRAME, BlockScope("Game", BlockTypeKind.MANAGER)),
+        )
+    }
+
+    @Test
     fun aManagerIsOfferedEveryBlockThatDoesNotNeedAnActor() {
         val offered = BlockKind.entries.filter { kind -> EventType.entries.any { kind.isAvailableIn(it, BlockTypeKind.MANAGER) } }
         assertEquals(BlockKind.entries.filter { !it.needsActor }, offered)

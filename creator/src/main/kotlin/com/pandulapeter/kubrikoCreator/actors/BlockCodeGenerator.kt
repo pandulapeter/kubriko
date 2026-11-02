@@ -116,15 +116,17 @@ internal object BlockCodeGenerator {
         block: BlockDefinition,
         eventType: EventType,
         scope: BlockScope,
-    ): List<String> = if (BlockKind.of(block).needsActor && scope.kind != BlockTypeKind.ACTOR) {
-        listOf("// This Block only works in an Actor type.")
-    } else {
-        actorBlockLines(block, eventType, scope)
+    ): List<String> {
+        val kind = BlockKind.of(block)
+        return when {
+            kind.needsActor && scope.kind != BlockTypeKind.ACTOR -> listOf("// This Block only works in an Actor type.")
+            kind.onlyIn != null && kind.onlyIn != eventType -> listOfNotNull(kind.misplacedComment)
+            else -> actorBlockLines(block, scope)
+        }
     }
 
     private fun actorBlockLines(
         block: BlockDefinition,
-        eventType: EventType,
         scope: BlockScope,
     ): List<String> = when (block) {
         is BlockDefinition.SetVelocity -> listOf("velocity = ${offsetLiteral(block.x, block.y)}")
@@ -132,27 +134,15 @@ internal object BlockCodeGenerator {
         BlockDefinition.Stop -> listOf("velocity = SceneOffset.Zero")
         BlockDefinition.RunParentEvent -> listOf(scope.parentEventCall ?: "// Only an Actor type with a parent runs its parent's Event.")
         is BlockDefinition.JumpTo -> listOf("body.position = ${offsetLiteral(block.x, block.y)}")
-        BlockDefinition.BounceOffEdge -> if (eventType == EventType.EDGE_TOUCHED) {
-            listOf(
-                "if (isTouchingLeftEdge) velocity = SceneOffset(velocity.x.raw.absoluteValue.sceneUnit, velocity.y)",
-                "if (isTouchingRightEdge) velocity = SceneOffset(-velocity.x.raw.absoluteValue.sceneUnit, velocity.y)",
-                "if (isTouchingTopEdge) velocity = SceneOffset(velocity.x, velocity.y.raw.absoluteValue.sceneUnit)",
-                "if (isTouchingBottomEdge) velocity = SceneOffset(velocity.x, -velocity.y.raw.absoluteValue.sceneUnit)",
-            )
-        } else {
-            listOf("// Bounce off the edge only works in the Edge touched Event.")
-        }
+        BlockDefinition.BounceOffEdge -> listOf(
+            "if (isTouchingLeftEdge) velocity = SceneOffset(velocity.x.raw.absoluteValue.sceneUnit, velocity.y)",
+            "if (isTouchingRightEdge) velocity = SceneOffset(-velocity.x.raw.absoluteValue.sceneUnit, velocity.y)",
+            "if (isTouchingTopEdge) velocity = SceneOffset(velocity.x, velocity.y.raw.absoluteValue.sceneUnit)",
+            "if (isTouchingBottomEdge) velocity = SceneOffset(velocity.x, -velocity.y.raw.absoluteValue.sceneUnit)",
+        )
         BlockDefinition.RemoveSelf -> listOf("$REMOVED_FIELD = true", "actorManager.remove(this)")
-        BlockDefinition.BounceOffOther -> if (eventType == EventType.COLLISION) {
-            listOf("$BOUNCE_OFF_FUNCTION(other)")
-        } else {
-            listOf("// Bounce off it only works in a collision Event.")
-        }
-        BlockDefinition.RemoveOther -> if (eventType == EventType.COLLISION) {
-            listOf("other.$REMOVED_FIELD = true", "actorManager.remove(other)")
-        } else {
-            listOf("// Remove the other Actor only works in a collision Event.")
-        }
+        BlockDefinition.BounceOffOther -> listOf("$BOUNCE_OFF_FUNCTION(other)")
+        BlockDefinition.RemoveOther -> listOf("other.$REMOVED_FIELD = true", "actorManager.remove(other)")
         is BlockDefinition.SetNumber -> propertyLines(block, scope) { "$it = ${floatLiteral(block.value)}" }
         is BlockDefinition.ChangeNumber -> propertyLines(block, scope) { "$it += ${floatLiteral(block.by)}" }
         is BlockDefinition.SetText -> propertyLines(block, scope) { "$it = ${stringLiteral(block.value)}" }

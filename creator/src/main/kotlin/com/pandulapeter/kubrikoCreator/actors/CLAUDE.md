@@ -12,6 +12,11 @@
 - Generated Kotlin compiles for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks
   get their own `run { }` scope, misplaced Blocks and unchosen choices become comments) and follows the engine's no-allocation
   rules.
+- A new Block is its `BlockDefinition` subclass, its `BlockKind` entry (every fact that is the same for each Block of the kind,
+  such as `needsActor` and `onlyIn`), and its emission in `BlockCodeGenerator`. Every `when` over Blocks names each one, so the
+  compiler then names every remaining place (references, validation, notation, the editor row, its icon), and
+  `theIntegrationProjectUsesEveryBlockAndCondition` fails until `EveryBlockTypes` (whose generated code `GeneratedCodeGoldenTest`
+  pins) uses it.
 - Flow stays in each Event's flat Block list (if, else, repeat, and end mark sections), so every Block keeps its plain index
   (`BlockNesting` works out the depths).
 - It reads like the examples' hand-written code (`Dynamic`, `Collidable`, and Manager lookups only where needed) and behaves like

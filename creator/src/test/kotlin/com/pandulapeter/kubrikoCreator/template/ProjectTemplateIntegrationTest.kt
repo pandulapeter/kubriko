@@ -9,23 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.actors.ActorShape
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
-import com.pandulapeter.kubrikoCreator.actors.Comparison
-import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
-import com.pandulapeter.kubrikoCreator.actors.EventDefinition
-import com.pandulapeter.kubrikoCreator.actors.EventType
-import com.pandulapeter.kubrikoCreator.actors.KeyChoice
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
-import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.actors.ScreenPosition
-import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
@@ -75,7 +64,7 @@ class ProjectTemplateIntegrationTest {
                         directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->
                             ImageIO.write(BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB), "png", image)
                         }
-                        (listOf(everyBlockInEveryEvent, everyManager, hud) + family).forEach(store::save)
+                        EveryBlockTypes.all.forEach(store::save)
                         store.regenerateAll()
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
                         listOf("audioPlayback", "collision", "keyboardInput", "sprites").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
@@ -92,7 +81,7 @@ class ProjectTemplateIntegrationTest {
 
     @Test
     fun theIntegrationProjectUsesEveryBlockAndCondition() {
-        val blocks = (listOf(everyBlockInEveryEvent, everyManager, hud) + family).flatMap { it.events }.flatMap { it.blocks }
+        val blocks = EveryBlockTypes.all.flatMap { it.events }.flatMap { it.blocks }
         assertEquals(BlockKind.entries.toSet(), blocks.mapTo(HashSet(), BlockKind::of))
         assertEquals(ConditionKind.entries.toSet(), blocks.filterIsInstance<BlockDefinition.If>().mapTo(HashSet()) { ConditionKind.of(it.condition) })
         assertEquals(PauseAction.entries.toSet(), blocks.filterIsInstance<BlockDefinition.PauseGame>().mapTo(HashSet()) { it.action })
@@ -159,166 +148,4 @@ class ProjectTemplateIntegrationTest {
         val classes = directory.resolve("build/classes/kotlin/desktop/kubrikoCreatorWarmUp")
         assertTrue(classes.walkTopDown().any { it.name == "KubrikoCreatorWarmUp.class" }, "$description: the warm-up compiled nothing")
     }
-
-    private val properties = listOf(
-        PropertyDefinition.Number("score", 2.5f),
-        PropertyDefinition.Text("title", "Say \"\$hi\" \\ to\neveryone"),
-        PropertyDefinition.Toggle("isShielded", true),
-    )
-
-    private val everyBlock = listOf(
-        BlockDefinition.SetVelocity(x = 1.5f, y = -2f),
-        BlockDefinition.AddToVelocity(x = 1e-4f, y = 3f),
-        BlockDefinition.Stop,
-        BlockDefinition.JumpTo(x = -10f, y = 10f),
-        BlockDefinition.BounceOffEdge,
-        BlockDefinition.RemoveSelf,
-        BlockDefinition.BounceOffOther,
-        BlockDefinition.RemoveOther,
-        BlockDefinition.Log(message = "Say \"\$hi\" \\ to\neveryone"),
-        BlockDefinition.Kotlin(code = "val speed = velocity.x\nif (speed > 0f.sceneUnit) velocity = SceneOffset.Zero"),
-        BlockDefinition.SetNumber(property = "score", value = -1f),
-        BlockDefinition.ChangeNumber(property = "score", by = 0.5f),
-        BlockDefinition.SetText(property = "title", value = "Game \"over\""),
-        BlockDefinition.SetToggle(property = "isShielded", value = false),
-        BlockDefinition.SetNumber(),
-        BlockDefinition.ChangeNumber(property = "missing"),
-        BlockDefinition.Log(message = "{title}: {score} ({isShielded}) {missing}"),
-        BlockDefinition.Kotlin(code = "if (isShielded) score += 1f"),
-        BlockDefinition.AddActor("EveryBlock", x = 10f, y = -5f),
-        BlockDefinition.AddActor("Ball", isRelative = false),
-        BlockDefinition.AddActor("Missing"),
-        BlockDefinition.MoveTowardsNearest("Ball", speed = 120f),
-        BlockDefinition.MoveTowardsNearest("EveryBlock"),
-        BlockDefinition.MoveTowardsNearest(),
-        BlockDefinition.StartTimer(timer = "timer1", seconds = 0.25f),
-        BlockDefinition.StartTimer(timer = "spawnEnemy", seconds = 2f, isRepeating = true),
-        BlockDefinition.StopTimer(timer = "timer2"),
-        BlockDefinition.StartTimer(timer = "Not a name"),
-        BlockDefinition.End,
-        BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS_OR_EQUAL, 3f)),
-        BlockDefinition.Repeat(times = 2),
-        BlockDefinition.If(ConditionDefinition.Text("title", "Say \"\$hi\"", isEqual = false)),
-        BlockDefinition.If(ConditionDefinition.Toggle("isShielded")),
-        BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.SPACE, isHeld = false)),
-        BlockDefinition.If(ConditionDefinition.Velocity(Axis.VERTICAL, Comparison.NOT_EQUAL, -1.5f)),
-        BlockDefinition.If(ConditionDefinition.Chance(12.5f)),
-        BlockDefinition.If(ConditionDefinition.Paused(isPaused = false)),
-        BlockDefinition.If(ConditionDefinition.Number("missing")),
-        BlockDefinition.Stop,
-        BlockDefinition.Else,
-        BlockDefinition.Else,
-        BlockDefinition.RemoveSelf,
-        BlockDefinition.End,
-        BlockDefinition.ChangeNumber(property = "score", by = 2f, manager = "EveryManager"),
-        BlockDefinition.SetText(property = "title", value = "Hi", manager = "EveryManager"),
-        BlockDefinition.SetToggle(property = "isShielded", manager = "EveryManager"),
-        BlockDefinition.SetNumber(property = "score", manager = "Missing"),
-        BlockDefinition.SetNumber(manager = "EveryManager"),
-        BlockDefinition.If(ConditionDefinition.Number("score", Comparison.GREATER, 1f, manager = "EveryManager")),
-        BlockDefinition.If(ConditionDefinition.Text("title", manager = "EveryManager")),
-        BlockDefinition.If(ConditionDefinition.Toggle("isShielded", manager = "EveryManager")),
-        BlockDefinition.Log(message = "{EveryManager.score} {EveryManager.title} {EveryManager.isShielded} {Missing.score} {EveryManager.missing}"),
-        BlockDefinition.Kotlin(code = "actorManager.allActors.value.size"),
-        BlockDefinition.GoToScene("main"),
-        BlockDefinition.GoToScene("missing"),
-        BlockDefinition.GoToScene(),
-        BlockDefinition.RestartScene,
-        BlockDefinition.PauseGame(PauseAction.PAUSE),
-        BlockDefinition.PauseGame(PauseAction.RESUME),
-        BlockDefinition.PauseGame(PauseAction.TOGGLE),
-        BlockDefinition.PlaySound("files/sounds/hit.wav"),
-        BlockDefinition.PlaySound("files/sounds/say \"\$hi\".wav"),
-        BlockDefinition.PlaySound(),
-        BlockDefinition.PlayMusic("files/music/theme.mp3"),
-        BlockDefinition.PlayMusic("files/music/win.mp3", isLooping = false),
-        BlockDefinition.PlayMusic(),
-        BlockDefinition.StopMusic,
-    )
-
-    /**
-     * Kotlin Blocks are inserted verbatim, so the ones about the Actor's velocity are left out of Manager types.
-     */
-    private val everyManagerBlock = everyBlock.filterNot { it is BlockDefinition.Kotlin && "velocity" in it.code }
-
-    private fun everyEvent(blocks: List<BlockDefinition>) = EventType.entries.flatMap { type ->
-        when (type) {
-            EventType.KEY_PRESSED -> KeyChoice.all.mapIndexed { index, key ->
-                // Every key, though only a few with every Block, which would make a method too large to compile.
-                EventDefinition(
-                    type = type,
-                    key = key,
-                    blocks = if (index < 3) blocks else listOf(BlockDefinition.If(ConditionDefinition.KeyHeld(key)), BlockDefinition.Log("Held"), BlockDefinition.End),
-                )
-            }
-            EventType.COLLISION -> listOf("EveryBlock", "Ball").map { EventDefinition(type = type, otherActorType = it, blocks = blocks + blocks) }
-            EventType.TIMER_FINISHED -> listOf("timer1", "spawnEnemy", "timer1").map { EventDefinition(type = type, timer = it, blocks = blocks) }
-            else -> listOf(EventDefinition(type = type, blocks = blocks))
-        }
-    }
-
-    private val everyBlockInEveryEvent = ActorTypeDefinition(
-        name = "EveryBlock",
-        shape = ActorShape.RECTANGLE,
-        sprite = "drawable/every-block.png",
-        properties = properties + PropertyDefinition.Number("every"),
-        events = everyEvent(everyBlock),
-    )
-
-    /**
-     * Three generations of Actor types: every Event in each (so every hook is overridden, running the parent's Event
-     * first), a new Property and a changed initial value in the child, collisions with the family by its parent, and
-     * a sprite in the grandchild.
-     */
-    private val family = listOf(
-        ActorTypeDefinition(
-            name = "EveryParent",
-            properties = properties,
-            events = everyEvent(everyBlock),
-        ),
-        ActorTypeDefinition(
-            name = "EveryChild",
-            parent = "EveryParent",
-            shape = ActorShape.RECTANGLE,
-            properties = listOf(properties.first(), PropertyDefinition.Number("extra", initialValue = 2f)),
-            events = everyEvent(listOf(BlockDefinition.RunParentEvent) + everyBlock + BlockDefinition.MoveTowardsNearest("EveryParent", speed = 10f)) +
-                EventDefinition(EventType.COLLISION, otherActorType = "EveryParent", blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.RemoveOther)),
-        ),
-        ActorTypeDefinition(
-            name = "EveryGrandchild",
-            parent = "EveryChild",
-            sprite = "drawable/every-block.png",
-            properties = listOf(PropertyDefinition.Toggle("isLast")),
-            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent, BlockDefinition.Stop, BlockDefinition.SetToggle("isLast", value = true)))),
-        ),
-    )
-
-    /**
-     * Uses its own Properties both by themselves and by its own name.
-     */
-    private val everyManager = ManagerTypeDefinition(
-        name = "EveryManager",
-        properties = properties,
-        events = everyEvent(everyManagerBlock),
-        texts = ScreenPosition.entries.map { ScreenTextDefinition("{score} {EveryManager.title} \"\$\" {missing}", it, size = 12.5f, color = 0x80FF0000) },
-    )
-
-    private val hud = ManagerTypeDefinition(
-        name = "Hud",
-        properties = properties,
-        events = everyEvent(everyManagerBlock),
-        texts = listOf(ScreenTextDefinition("{EveryManager.score} / {score}"), ScreenTextDefinition()),
-        kotlinUi = """
-            import androidx.compose.foundation.layout.Column
-            import androidx.compose.foundation.layout.windowInsetsPadding
-            import androidx.compose.foundation.text.BasicText
-            import androidx.compose.runtime.collectAsState
-            import androidx.compose.ui.Modifier
-
-            Column(modifier = Modifier.windowInsetsPadding(windowInsets)) {
-                if (!stateManager.isRunning.collectAsState().value && !isInSceneEditor) BasicText("Paused: ${'$'}title")
-                BasicText("${'$'}{everyManagerManager.score + score} ${'$'}{actorManager.allActors.collectAsState().value.size} ${'$'}{viewportManager.size.collectAsState().value}")
-            }
-        """.trimIndent(),
-    )
 }

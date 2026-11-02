@@ -42,54 +42,60 @@ import kubriko.creator.generated.resources.block_stop_timer
 import org.jetbrains.compose.resources.StringResource
 
 /**
- * The palette of Blocks, in the order the editor offers them.
+ * The palette of Blocks, in the order the editor offers them, with every fact that is the same for each Block of a kind.
+ *
+ * @param needsActor Whether the Block moves or removes the Actor, which a Manager type doesn't have.
+ * @param onlyIn The only Event the Block works in, if it needs what only that Event knows: which edge was touched, or
+ *   which Actor was collided with.
+ * @param misplacedComment The comment the Block's code becomes in any other Event; set exactly when [onlyIn] is.
  */
 internal enum class BlockKind(
     val title: StringResource,
     val createDefault: () -> BlockDefinition,
-    val needsActor: Boolean = false,
+    val needsActor: Boolean,
+    val onlyIn: EventType? = null,
+    val misplacedComment: String? = null,
 ) {
     SET_VELOCITY(Res.string.block_set_velocity, { BlockDefinition.SetVelocity(x = 200f, y = 0f) }, needsActor = true),
     ADD_TO_VELOCITY(Res.string.block_add_to_velocity, { BlockDefinition.AddToVelocity(x = 50f, y = 0f) }, needsActor = true),
     STOP(Res.string.block_stop, { BlockDefinition.Stop }, needsActor = true),
     RUN_PARENT_EVENT(Res.string.block_run_parent_event, { BlockDefinition.RunParentEvent }, needsActor = true),
     JUMP_TO(Res.string.block_jump_to, { BlockDefinition.JumpTo() }, needsActor = true),
-    BOUNCE_OFF_EDGE(Res.string.block_bounce_off_edge, { BlockDefinition.BounceOffEdge }, needsActor = true),
+    BOUNCE_OFF_EDGE(Res.string.block_bounce_off_edge, { BlockDefinition.BounceOffEdge }, needsActor = true, onlyIn = EventType.EDGE_TOUCHED, misplacedComment = "// Bounce off the edge only works in the Edge touched Event."),
     REMOVE_SELF(Res.string.block_remove_self, { BlockDefinition.RemoveSelf }, needsActor = true),
-    BOUNCE_OFF_OTHER(Res.string.block_bounce_off_other, { BlockDefinition.BounceOffOther }, needsActor = true),
-    REMOVE_OTHER(Res.string.block_remove_other, { BlockDefinition.RemoveOther }, needsActor = true),
-    SET_NUMBER(Res.string.block_set_number, { BlockDefinition.SetNumber() }),
-    CHANGE_NUMBER(Res.string.block_change_number, { BlockDefinition.ChangeNumber() }),
-    SET_TEXT(Res.string.block_set_text, { BlockDefinition.SetText() }),
-    SET_TOGGLE(Res.string.block_set_toggle, { BlockDefinition.SetToggle() }),
-    ADD_ACTOR(Res.string.block_add_actor, { BlockDefinition.AddActor() }),
+    BOUNCE_OFF_OTHER(Res.string.block_bounce_off_other, { BlockDefinition.BounceOffOther }, needsActor = true, onlyIn = EventType.COLLISION, misplacedComment = "// Bounce off it only works in a collision Event."),
+    REMOVE_OTHER(Res.string.block_remove_other, { BlockDefinition.RemoveOther }, needsActor = true, onlyIn = EventType.COLLISION, misplacedComment = "// Remove the other Actor only works in a collision Event."),
+    SET_NUMBER(Res.string.block_set_number, { BlockDefinition.SetNumber() }, needsActor = false),
+    CHANGE_NUMBER(Res.string.block_change_number, { BlockDefinition.ChangeNumber() }, needsActor = false),
+    SET_TEXT(Res.string.block_set_text, { BlockDefinition.SetText() }, needsActor = false),
+    SET_TOGGLE(Res.string.block_set_toggle, { BlockDefinition.SetToggle() }, needsActor = false),
+    ADD_ACTOR(Res.string.block_add_actor, { BlockDefinition.AddActor() }, needsActor = false),
     MOVE_TOWARDS_NEAREST(Res.string.block_move_towards_nearest, { BlockDefinition.MoveTowardsNearest() }, needsActor = true),
-    START_TIMER(Res.string.block_start_timer, { BlockDefinition.StartTimer() }),
-    STOP_TIMER(Res.string.block_stop_timer, { BlockDefinition.StopTimer() }),
-    GO_TO_SCENE(Res.string.block_go_to_scene, { BlockDefinition.GoToScene() }),
-    RESTART_SCENE(Res.string.block_restart_scene, { BlockDefinition.RestartScene }),
-    PAUSE_GAME(Res.string.block_pause_game, { BlockDefinition.PauseGame() }),
-    PLAY_SOUND(Res.string.block_play_sound, { BlockDefinition.PlaySound() }),
-    PLAY_MUSIC(Res.string.block_play_music, { BlockDefinition.PlayMusic() }),
-    STOP_MUSIC(Res.string.block_stop_music, { BlockDefinition.StopMusic }),
-    IF(Res.string.block_if, { BlockDefinition.If() }),
-    ELSE(Res.string.block_else, { BlockDefinition.Else }),
-    REPEAT(Res.string.block_repeat, { BlockDefinition.Repeat() }),
-    END(Res.string.block_end, { BlockDefinition.End }),
-    LOG(Res.string.block_log, { BlockDefinition.Log() }),
-    KOTLIN(Res.string.block_kotlin, { BlockDefinition.Kotlin() });
+    START_TIMER(Res.string.block_start_timer, { BlockDefinition.StartTimer() }, needsActor = false),
+    STOP_TIMER(Res.string.block_stop_timer, { BlockDefinition.StopTimer() }, needsActor = false),
+    GO_TO_SCENE(Res.string.block_go_to_scene, { BlockDefinition.GoToScene() }, needsActor = false),
+    RESTART_SCENE(Res.string.block_restart_scene, { BlockDefinition.RestartScene }, needsActor = false),
+    PAUSE_GAME(Res.string.block_pause_game, { BlockDefinition.PauseGame() }, needsActor = false),
+    PLAY_SOUND(Res.string.block_play_sound, { BlockDefinition.PlaySound() }, needsActor = false),
+    PLAY_MUSIC(Res.string.block_play_music, { BlockDefinition.PlayMusic() }, needsActor = false),
+    STOP_MUSIC(Res.string.block_stop_music, { BlockDefinition.StopMusic }, needsActor = false),
+    IF(Res.string.block_if, { BlockDefinition.If() }, needsActor = false),
+    ELSE(Res.string.block_else, { BlockDefinition.Else }, needsActor = false),
+    REPEAT(Res.string.block_repeat, { BlockDefinition.Repeat() }, needsActor = false),
+    END(Res.string.block_end, { BlockDefinition.End }, needsActor = false),
+    LOG(Res.string.block_log, { BlockDefinition.Log() }, needsActor = false),
+    KOTLIN(Res.string.block_kotlin, { BlockDefinition.Kotlin() }, needsActor = false);
+
+    init {
+        require((onlyIn == null) == (misplacedComment == null)) { "$name needs both onlyIn and misplacedComment, or neither." }
+    }
 
     /**
      * Whether the palette offers this Block in an Event of [eventType] of a type of [kind]. Some Blocks need what only
      * one Event knows: which edge was touched, or which Actor was collided with. Those that move or remove the Actor
      * need one, so a Manager doesn't have them.
      */
-    fun isAvailableIn(eventType: EventType, kind: BlockTypeKind) = when {
-        needsActor && kind != BlockTypeKind.ACTOR -> false
-        this == BOUNCE_OFF_EDGE -> eventType == EventType.EDGE_TOUCHED
-        this == BOUNCE_OFF_OTHER || this == REMOVE_OTHER -> eventType == EventType.COLLISION
-        else -> true
-    }
+    fun isAvailableIn(eventType: EventType, kind: BlockTypeKind) = !(needsActor && kind != BlockTypeKind.ACTOR) && (onlyIn == null || onlyIn == eventType)
 
     companion object {
 

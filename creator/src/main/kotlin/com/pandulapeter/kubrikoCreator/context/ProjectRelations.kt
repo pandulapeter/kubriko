@@ -78,10 +78,17 @@ internal class ProjectRelations(
             is BlockDefinition.GoToScene -> block.scene.ifEmpty { null }?.let { add(Relation(place, RelationKind.GOES_TO, RelationSubject.Scene(it))) }
             is BlockDefinition.Log -> addPlaceholders(typeName, place, block.message)
             is BlockDefinition.Kotlin -> addKotlinNames(place, block.code)
-            else -> block.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { reference ->
+            is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.If,
+            -> block.propertyReference?.takeIf { it.name.isNotEmpty() }?.let { reference ->
                 val kind = if (block is BlockDefinition.If) RelationKind.READS else RelationKind.CHANGES
                 add(Relation(place, kind, propertyOf(typeName, reference.manager, reference.name)))
             }
+            is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+            is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+            BlockDefinition.RemoveOther, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, BlockDefinition.RestartScene,
+            is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+            BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+            -> Unit
         }
     }
 

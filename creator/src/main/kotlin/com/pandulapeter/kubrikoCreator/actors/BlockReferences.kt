@@ -24,7 +24,13 @@ internal val BlockDefinition.propertyReference: PropertyReference?
             is ConditionDefinition.Toggle -> PropertyReference(condition.property, PropertyKind.TOGGLE, condition.manager)
             is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> null
         }
-        else -> null
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+        BlockDefinition.RemoveOther, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
+        is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
+        is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic,
+        BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+        -> null
     }
 
 /**
@@ -34,16 +40,30 @@ internal val BlockDefinition.actorTypeReference
     get() = when (this) {
         is BlockDefinition.AddActor -> actorType
         is BlockDefinition.MoveTowardsNearest -> actorType
-        else -> null
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+        BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
+        is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
+        BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
+        BlockDefinition.StopMusic, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+        is BlockDefinition.Log, is BlockDefinition.Kotlin,
+        -> null
     }?.ifEmpty { null }
 
 /**
  * [this] Block with the Actor type it adds or moves towards renamed from [oldName] to [newName], if it is that one.
  */
-internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String) = when {
-    this is BlockDefinition.AddActor && actorType == oldName -> copy(actorType = newName)
-    this is BlockDefinition.MoveTowardsNearest && actorType == oldName -> copy(actorType = newName)
-    else -> this
+internal fun BlockDefinition.withActorTypeRenamed(oldName: String, newName: String) = when (this) {
+    is BlockDefinition.AddActor -> if (actorType == oldName) copy(actorType = newName) else this
+    is BlockDefinition.MoveTowardsNearest -> if (actorType == oldName) copy(actorType = newName) else this
+    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+    is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+    BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
+    is BlockDefinition.SetToggle, is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene,
+    BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
+    BlockDefinition.StopMusic, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+    is BlockDefinition.Log, is BlockDefinition.Kotlin,
+    -> this
 }
 
 /**
@@ -53,16 +73,30 @@ internal val BlockDefinition.timerName
     get() = when (this) {
         is BlockDefinition.StartTimer -> timer
         is BlockDefinition.StopTimer -> timer
-        else -> null
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+        BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
+        is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
+        is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound,
+        is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, is BlockDefinition.If, BlockDefinition.Else,
+        is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+        -> null
     }
 
 /**
  * [this] Block with the Timer it starts or stops renamed from [oldName] to [newName], if it is that one.
  */
-internal fun BlockDefinition.withTimerRenamed(oldName: String, newName: String) = when {
-    this is BlockDefinition.StartTimer && timer == oldName -> copy(timer = newName)
-    this is BlockDefinition.StopTimer && timer == oldName -> copy(timer = newName)
-    else -> this
+internal fun BlockDefinition.withTimerRenamed(oldName: String, newName: String) = when (this) {
+    is BlockDefinition.StartTimer -> if (timer == oldName) copy(timer = newName) else this
+    is BlockDefinition.StopTimer -> if (timer == oldName) copy(timer = newName) else this
+    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+    is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+    BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
+    is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.GoToScene,
+    BlockDefinition.RestartScene, is BlockDefinition.PauseGame, is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic,
+    BlockDefinition.StopMusic, is BlockDefinition.If, BlockDefinition.Else, is BlockDefinition.Repeat, BlockDefinition.End,
+    is BlockDefinition.Log, is BlockDefinition.Kotlin,
+    -> this
 }
 
 /**
@@ -100,7 +134,13 @@ internal fun BlockDefinition.withPropertyReference(manager: String?, name: Strin
         is ConditionDefinition.Toggle -> copy(condition = condition.copy(manager = manager, property = name))
         is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance, is ConditionDefinition.Paused -> this
     }
-    else -> this
+    is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+    is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+    BlockDefinition.RemoveOther, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest, is BlockDefinition.StartTimer,
+    is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
+    is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
+    is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+    -> this
 }
 
 /**
@@ -110,5 +150,12 @@ internal val BlockDefinition.audioFile
     get() = when (this) {
         is BlockDefinition.PlaySound -> sound
         is BlockDefinition.PlayMusic -> music
-        else -> null
+        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
+        is BlockDefinition.JumpTo, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther,
+        BlockDefinition.RemoveOther, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText,
+        is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.MoveTowardsNearest,
+        is BlockDefinition.StartTimer, is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene,
+        is BlockDefinition.PauseGame, BlockDefinition.StopMusic, is BlockDefinition.If, BlockDefinition.Else,
+        is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin,
+        -> null
     }?.ifEmpty { null }
