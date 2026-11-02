@@ -69,6 +69,7 @@ class KubrikoApiTest {
         assertFalse("## Tools" in overview)
         assertFalse("## Conventions" in overview)
         assertFalse("## Performance" in overview)
+        assertFalse("## Known platform limitations" in overview)
     }
 
     @Test
