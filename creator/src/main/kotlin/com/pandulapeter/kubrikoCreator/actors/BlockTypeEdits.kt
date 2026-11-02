@@ -117,14 +117,16 @@ internal fun BlockTypeDefinition.withPropertyRemoved(name: String) = withPropert
  * texts, and Kotlin code that use it) follow.
  */
 internal fun BlockTypeDefinition.withPropertyReplaced(name: String, property: PropertyDefinition) = withProperties(properties.map { if (it.name == name) property else it }).let { replaced ->
-    if (property.name == name) {
-        replaced
-    } else {
-        replaced.withBlocks { it.withPropertyRenamed(name, property.name) }
-            .withTexts { PropertyPlaceholders.withPropertyRenamed(it, null, name, property.name) }
-            .withKotlinCode { KotlinIdentifiers.withRenamed(it, name, property.name) }
-    }
+    if (property.name == name) replaced else replaced.withPropertyUsesRenamed(name, property.name)
 }
+
+/**
+ * The Blocks that change the type's own or inherited Property [oldName] (and Log Blocks, texts, and Kotlin code that use
+ * it) use [newName] instead.
+ */
+internal fun BlockTypeDefinition.withPropertyUsesRenamed(oldName: String, newName: String) = withBlocks { it.withPropertyRenamed(oldName, newName) }
+    .withTexts { PropertyPlaceholders.withPropertyRenamed(it, null, oldName, newName) }
+    .withKotlinCode { KotlinIdentifiers.withRenamed(it, oldName, newName) }
 
 internal fun ManagerTypeDefinition.withTextInserted(index: Int, text: ScreenTextDefinition) = copy(
     texts = texts.toMutableList().apply { add(index.coerceIn(0, size), text) },

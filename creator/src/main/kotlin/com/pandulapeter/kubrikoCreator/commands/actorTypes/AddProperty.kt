@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.withPropertyInserted
@@ -47,7 +48,8 @@ internal object AddProperty : WriteCommand<AddProperty.Input> {
         val definition = context.requireType(input.actorType)
         context.requireBlockTypes.put(definition.withPropertyInserted(input.index ?: definition.properties.size, input.property))
         val replaced = try {
-            context.changeSceneStates(input.actorType) { it.withoutMismatchedValue(input.property.name, PropertyKind.of(input.property)) }
+            val family = ActorTypeFamily(context.requireBlockTypes.actorTypes.value).familyOf(input.actorType).toSet()
+            context.changeSceneStates(family) { it.withoutMismatchedValue(input.property.name, PropertyKind.of(input.property)) }
         } catch (exception: Exception) {
             context.requireBlockTypes.put(definition)
             throw exception

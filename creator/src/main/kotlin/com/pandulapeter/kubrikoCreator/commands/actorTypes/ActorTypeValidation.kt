@@ -49,6 +49,7 @@ import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
 import kubriko.creator.generated.resources.error_command_parent_cycle
 import kubriko.creator.generated.resources.error_command_parent_property_kind
+import kubriko.creator.generated.resources.error_command_property_kind_in_descendant
 import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_scene_missing
@@ -186,8 +187,8 @@ internal fun CommandContext.validateContents(definition: BlockTypeDefinition): R
 }
 
 /**
- * Why the Actor type [actorType], with its own [properties], can't inherit from [parent]: it doesn't exist, it would make
- * a cycle, or it has a Property of one of those names of another kind.
+ * Why the Actor type [actorType] can't inherit from [parent]: it doesn't exist, it would make a cycle, or it has one of
+ * [properties] (the own Properties of the Actor type and its descendants) of another kind.
  */
 internal fun CommandContext.validateNewParent(actorType: String, parent: String, properties: List<PropertyDefinition>): Rejection? {
     val actorTypes = requireBlockTypes.actorTypes.value
@@ -237,12 +238,16 @@ private val BlockDefinition.areNumbersFinite
     }
 
 /**
- * Why the Actor type [actorType] can't have [property]: one of its ancestors has a Property of that name of another
- * kind. One of the same kind only gives it another initial value.
+ * Why the Actor type [actorType] can't have [property]: one of its ancestors or descendants has a Property of that name
+ * of another kind. One of the same kind only gives it another initial value.
  */
 internal fun CommandContext.validateInheritedKind(actorType: String, property: PropertyDefinition): Rejection? {
     val family = ActorTypeFamily(requireBlockTypes.actorTypes.value)
-    val parent = family.parentOf(actorType) ?: return null
-    val inherited = family.propertiesOf(parent).firstOrNull { it.name == property.name } ?: return null
-    return if (PropertyKind.of(inherited) == PropertyKind.of(property)) null else Rejection(Res.string.error_command_parent_property_kind, property.name, parent)
+    val kind = PropertyKind.of(property)
+    val parent = family.parentOf(actorType)
+    val inherited = parent?.let { family.propertiesOf(it).firstOrNull { inherited -> inherited.name == property.name } }
+    if (inherited != null && PropertyKind.of(inherited) != kind) return Rejection(Res.string.error_command_parent_property_kind, property.name, parent)
+    return family.descendantsOf(actorType)
+        .firstOrNull { descendant -> requireActorType(descendant).properties.any { it.name == property.name && PropertyKind.of(it) != kind } }
+        ?.let { Rejection(Res.string.error_command_property_kind_in_descendant, property.name, it) }
 }

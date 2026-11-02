@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -36,7 +37,8 @@ internal object SetParent : WriteCommand<SetParent.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType) ?: input.parent?.let { parent ->
-        context.validateNewParent(input.actorType, parent, context.requireActorType(input.actorType).properties)
+        val family = ActorTypeFamily(context.requireBlockTypes.actorTypes.value).familyOf(input.actorType)
+        context.validateNewParent(input.actorType, parent, family.flatMap { context.requireActorType(it).properties })
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {

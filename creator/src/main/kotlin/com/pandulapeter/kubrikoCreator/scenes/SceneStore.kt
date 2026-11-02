@@ -205,14 +205,14 @@ internal class SceneStore(
     fun renameTypeId(oldTypeId: String, newTypeId: String) = changeActors { actor -> if (actor.typeId == oldTypeId) actor.copy(typeId = newTypeId) else actor }.keys.toList()
 
     /**
-     * Changes the state of every Actor of the [typeId] type in every Scene with [change]. States that aren't JSON
-     * objects are left alone.
+     * Changes the state of every Actor of the [typeIds] types in every Scene with [change], writing them all or none
+     * ([writeAll]). States that aren't JSON objects are left alone.
      *
      * @return The states it replaced, by Actor ID, by the name of the Scene, for the Actors that changed.
      */
     @EditorMutation
-    fun changeStates(typeId: String, change: (JsonObject) -> JsonObject): Map<String, Map<String, String>> = changeActors { actor ->
-        if (actor.typeId == typeId) SceneDocument.withStateChanged(actor.state, change)?.let { actor.copy(state = it) } ?: actor else actor
+    fun changeStates(typeIds: Set<String>, change: (JsonObject) -> JsonObject): Map<String, Map<String, String>> = changeActors { actor ->
+        if (actor.typeId in typeIds) SceneDocument.withStateChanged(actor.state, change)?.let { actor.copy(state = it) } ?: actor else actor
     }.mapValues { (_, changed) -> changed.associate { (before, _) -> before.id to before.state } }
 
     /**

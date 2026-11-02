@@ -57,6 +57,15 @@ class ParentCommandsTest {
     }
 
     @Test
+    fun aParentClashingWithADescendantIsRefused() = runTest {
+        val other = ActorTypeDefinition(name = "Other", properties = listOf(PropertyDefinition.Number("health")))
+        val child2 = ActorTypeDefinition(name = "Child2")
+        val grandChild = ActorTypeDefinition(name = "GrandChild", parent = "Child2", properties = listOf(PropertyDefinition.Text("health")))
+        val context = commandContext(other, child2, grandChild)
+        assertEquals(Rejection(Res.string.error_command_parent_property_kind, "health", "Other"), SetParent.validate(context, SetParent.Input("Child2", "Other")))
+    }
+
+    @Test
     fun namesEndingLikeABaseClassAreReserved() {
         assertEquals(Res.string.error_type_name_base_suffix, BlockTypeNaming.validate("EnemyBase", emptyList()))
         assertEquals(null, BlockTypeNaming.validate("Baseball", emptyList()))

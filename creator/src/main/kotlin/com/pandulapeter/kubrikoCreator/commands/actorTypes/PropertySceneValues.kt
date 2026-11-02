@@ -20,14 +20,14 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.floatOrNull
 
 /**
- * Changes the state of every Actor of [actorType] in every Scene, where each one keeps its own Property values, and
+ * Changes the state of every Actor of the [actorTypes] in every Scene, where each one keeps its own Property values, and
  * tells the editor which Scenes changed.
  *
  * @return The states it replaced, by Actor ID, by the name of the Scene ([com.pandulapeter.kubrikoCreator.scenes.SceneStore.changeStates]).
  */
 @EditorMutation
-internal suspend fun CommandContext.changeSceneStates(actorType: String, change: (JsonObject) -> JsonObject): Map<String, Map<String, String>> {
-    val replaced = withContext(ioDispatcher) { scenes.changeStates(actorType, change) }
+internal suspend fun CommandContext.changeSceneStates(actorTypes: Set<String>, change: (JsonObject) -> JsonObject): Map<String, Map<String, String>> {
+    val replaced = withContext(ioDispatcher) { scenes.changeStates(actorTypes, change) }
     if (replaced.isNotEmpty()) onScenesChanged(replaced.keys)
     return replaced
 }

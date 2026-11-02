@@ -441,6 +441,8 @@
     <string name="command_set_parent">Change parent</string>
     <string name="error_command_parent_cycle">%1$s already inherits from %2$s, so it can't be its parent.</string>
     <string name="error_command_parent_property_kind">The Property %1$s is of another kind in %2$s. Rename or remove one of them first.</string>
+    <string name="error_command_property_kind_in_descendant">%2$s, which inherits from this Actor type, already has a Property called %1$s of another kind.</string>
+    <string name="error_command_property_inherited">%1$s comes from %2$s: rename it there, and it changes in every Actor type that inherits it.</string>
     <string name="error_command_actor_type_has_children">%2$s inherits from %1$s. Give it another parent first.</string>
     <string name="command_add_event">Add Event</string>
     <string name="command_remove_event">Remove Event</string>

@@ -146,7 +146,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Renames follow everywhere:** Blocks, collision Events, placeholders, texts, Kotlin Blocks and Kotlin UI (`KotlinIdentifiers`,
   which knows no grammar, so a local variable of the same name is renamed too; the import lines a Kotlin Block or Kotlin UI
   starts with are left alone), the Actors of every Scene, and a Property's saved values in Scenes. Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
-  kind, which wouldn't load; a Property's kind can't change.
+  kind, which wouldn't load; a Property's kind can't change. Renaming a Property renames it through the family of the Actor type that
+  declares it, and is refused on one that only inherits it; adding a Property or a parent is refused when a descendant has one of
+  that name of another kind.
 - **Batches** (`place_actors`, `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) are one undo step each,
   and name no Actor twice and at least one. Paged reads (`read_scene`, `list_actor_types`) keep large games readable.
 

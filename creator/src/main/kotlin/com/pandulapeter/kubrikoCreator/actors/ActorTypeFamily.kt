@@ -67,6 +67,14 @@ internal class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
     }
 
     /**
+     * The type of [name]'s family line that declares its Property [property]: the topmost one naming it with its kind.
+     */
+    fun declarerOf(name: String, property: String): String? {
+        val kind = propertiesOf(name).firstOrNull { it.name == property }?.let(PropertyKind::of) ?: return null
+        return (ancestorsOf(name).reversed() + name).firstOrNull { type -> byName[type]?.properties?.any { it.name == property && PropertyKind.of(it) == kind } == true }
+    }
+
+    /**
      * The Events [name]'s Actors react to: its own, and each of its ancestors' that none nearer to it replaces.
      */
     fun eventsOf(name: String): List<EventDefinition> {
