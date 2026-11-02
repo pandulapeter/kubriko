@@ -73,7 +73,7 @@ internal object ActorFamilyCodeGenerator {
         val imports = (features.imports + listOfNotNull(
             "com.pandulapeter.kubriko.collision.mask.$COLLISION_MASK".takeIf { features.isCollidable && maskTypeOf(features.shapes) == COLLISION_MASK },
         )).sorted()
-        return GeneratedFile.withHeader(" from .kubriko/actors/$name.json", buildString {
+        return GeneratedFile.withHeader(" from ${BlockTypeStore.definitionPath(definition)}", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
             appendLine()
             imports.forEach { appendLine("import $it") }

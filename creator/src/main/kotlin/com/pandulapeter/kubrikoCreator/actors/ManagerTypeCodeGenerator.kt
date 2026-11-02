@@ -99,7 +99,7 @@ internal object ManagerTypeCodeGenerator {
             if (texts.isNotEmpty() || kotlinUi != null) addAll(COMPOSABLE_IMPORTS)
             kotlinUi?.imports?.let(::addAll)
         }.sorted()
-        return GeneratedFile.withHeader(" from .kubriko/managers/$name.json", buildString {
+        return GeneratedFile.withHeader(" from ${BlockTypeStore.definitionPath(definition)}", buildString {
             appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
             appendLine()
             imports.forEach { appendLine("import $it") }

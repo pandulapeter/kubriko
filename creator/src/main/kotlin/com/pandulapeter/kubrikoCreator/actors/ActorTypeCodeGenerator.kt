@@ -96,7 +96,7 @@ internal object ActorTypeCodeGenerator {
             "KeyboardInputAware".takeIf { keyEvents.isNotEmpty() },
         )
         val imports = features.imports.sorted()
-        return GeneratedFile.withHeader(" from .kubriko/actors/$name.json", buildString {
+        return GeneratedFile.withHeader(" from ${BlockTypeStore.definitionPath(definition)}", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
             appendLine()
             imports.forEach { appendLine("import $it") }

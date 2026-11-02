@@ -98,7 +98,7 @@ internal class BlockTypeStore private constructor(
             is ActorTypeDefinition -> json.encodeToString(ActorTypeDefinition.serializer(), definition)
             is ManagerTypeDefinition -> json.encodeToString(ManagerTypeDefinition.serializer(), definition)
         }
-        val file = File(definitionsDirectory(definition.kind), "${definition.folder}/${definition.name}.json".removePrefix("/"))
+        val file = File(rootDirectory, definitionPath(definition))
         if (file in unreadableFiles) throw IOException("${file.path} couldn't be read, so it isn't written over.")
         // A type moved to another folder leaves its old file behind otherwise.
         definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file && it !in unreadableFiles }.forEach { it.delete(); ownWrites.record(it) }
@@ -286,6 +286,11 @@ internal class BlockTypeStore private constructor(
             BlockTypeKind.ACTOR -> "actors"
             BlockTypeKind.MANAGER -> "managers"
         }
+
+        /**
+         * Where [definition] is saved, relative to the project's folder.
+         */
+        fun definitionPath(definition: BlockTypeDefinition) = "$CREATOR_DIRECTORY/${definitionsFolder(definition.kind)}/" + "${definition.folder}/${definition.name}.json".removePrefix("/")
         const val SETTINGS_FILE = "$CREATOR_DIRECTORY/project.json"
 
         /**
