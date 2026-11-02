@@ -250,6 +250,13 @@ they found them.
   `TickSource`, `TriangleBatch`); the plugins; the tools (debug menu, scene editor); the Showcase app and its
   platform shells; the examples. Per-frame paths are reviewed for allocations and redundant work — see the
   Performance section of `CLAUDE.md`.
+- **Kubriko Creator** (`creator/`, described in `creator/CLAUDE.md`) is a desktop app, not a published library, so its
+  own code may be restructured freely; the `tool-creator-api` and `tool-creator-session` libraries it uses are published.
+  Areas that make good reviewer splits: the Block model and code generators (`actors`), the commands and their
+  tool schemas (`commands`, `schema`), the workspace, builds, and play sessions (`workspace`, `gradle`, `session`, `project`, `template`, `git`),
+  Scene editing (`scenes`), the AI (`mcp`, `ai/assistant`, `context`), and the UI (`ui`). Its tests are
+  `./gradlew :creator:test`, a plain JVM test task that `desktopTest` doesn't run. Its plans go in `creator/plan/`, not
+  `issues/`, as `creator/plan/README.md` says.
 - **Tests:** `./gradlew desktopTest`, or `./gradlew :<module>:desktopTest` for the modules a lane touched. A change to the
   web bridge's embedded JS also runs `node engine/src/webMain/checkTriangleBridge.mjs`.
 - **Compile checks:** `./gradlew :<module>:build` for each module touched; the Showcase on the platform a change is
