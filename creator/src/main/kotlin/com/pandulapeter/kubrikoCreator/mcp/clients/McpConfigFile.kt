@@ -9,14 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp.clients
 
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-import java.nio.file.attribute.PosixFilePermission
 
 /**
  * The `mcpServers` object of an AI app's JSON configuration file, which apps such as Claude Desktop share with their own
@@ -34,11 +32,13 @@ internal object McpConfigFile {
     fun server(file: File, name: String) = if (file.isFile) server(file.readText(), name) else null
 
     /**
-     * Adds the server called [name] to [file] as [entry], replacing one of that name, and creates the file if needed.
+     * Adds the server called [name] to [file] as [entry], replacing one of that name, and creates the file if needed,
+     * readable by its owner only, since entries hold Kubriko Creator's token. A link is followed, and an existing file
+     * keeps its permissions.
      *
      * @throws kotlinx.serialization.SerializationException If the file isn't a JSON object, which is then left alone.
      */
-    fun addServer(file: File, name: String, entry: JsonObject) = write(file, withServer(file.takeIf { it.isFile }?.readText(), name, entry))
+    fun addServer(file: File, name: String, entry: JsonObject) = file.writeTextAtomically(withServer(file.takeIf { it.isFile }?.readText(), name, entry), isPrivate = true)
 
     /**
      * Removes the server called [name] from [file], if both exist.
@@ -48,7 +48,7 @@ internal object McpConfigFile {
     fun removeServer(file: File, name: String) {
         if (!file.isFile) return
         val text = file.readText()
-        if (server(text, name) != null) write(file, withoutServer(text, name))
+        if (server(text, name) != null) file.writeTextAtomically(withoutServer(text, name), isPrivate = true)
     }
 
     internal fun server(text: String, name: String) = (parse(text)[SERVERS] as? JsonObject)?.get(name) as? JsonObject
@@ -89,28 +89,5 @@ internal object McpConfigFile {
             prettyPrintIndent = indent
         }
         return json.encodeToString(JsonObject.serializer(), root) + if (original == null || original.endsWith("\n")) "\n" else ""
-    }
-
-    /**
-     * Replaces [link] (or the file it links to) in one step, so the app never reads half of it, keeping its permissions.
-     * A new file is readable by its owner only, since entries hold Kubriko Creator's token.
-     */
-    private fun write(link: File, text: String) {
-        val file = link.canonicalFile
-        file.parentFile?.mkdirs()
-        val temporary = File.createTempFile(".${file.name}", ".tmp", file.parentFile)
-        try {
-            temporary.writeText(text)
-            val path = temporary.toPath()
-            if (path.fileSystem.supportedFileAttributeViews().contains("posix")) {
-                Files.setPosixFilePermissions(
-                    path,
-                    if (file.exists()) Files.getPosixFilePermissions(file.toPath()) else setOf(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE),
-                )
-            }
-            Files.move(path, file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-        } finally {
-            temporary.delete()
-        }
     }
 }

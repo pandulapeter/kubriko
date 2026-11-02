@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.mcp
 
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -31,6 +33,14 @@ class McpSettingsStoreTest {
     fun theFirstLoadIsOffOnTheDefaultPortWithANewTokenThatIsKept() {
         assertEquals(McpSettings(isEnabled = false, port = McpSettings.DEFAULT_PORT, token = "token1"), store.load())
         assertEquals("token1", store.load().token)
+    }
+
+    @Test
+    fun theTokenIsReadableByItsOwnerOnly() {
+        store.load()
+        if (file.toPath().fileSystem.supportedFileAttributeViews().contains("posix")) {
+            assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file.toPath()))
+        }
     }
 
     @Test

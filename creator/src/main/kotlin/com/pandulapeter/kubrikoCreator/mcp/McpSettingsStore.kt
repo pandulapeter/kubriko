@@ -33,7 +33,7 @@ internal class McpSettingsStore(
     fun save(settings: McpSettings) {
         try {
             file.parentFile?.mkdirs()
-            file.writeTextAtomically(json.encodeToString(McpSettings.serializer(), settings))
+            file.writeTextAtomically(json.encodeToString(McpSettings.serializer(), settings), isPrivate = true)
         } catch (_: IOException) {
             // The settings still apply until Kubriko Creator quits.
         }
