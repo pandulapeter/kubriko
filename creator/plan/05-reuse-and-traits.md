@@ -36,7 +36,7 @@ Named Block lists with parameters (number, text, toggle) and an optional result,
 scripts:
 
 - **On an Actor type:** methods of its Actors, inherited by children and overridable (the parent's runs through "Run the parent's
-  function"). Generated as Kotlin functions on the class (and the family interface).
+  function"). Generated as Kotlin functions on the class (and the family's base class).
 - **On a Manager type:** game-wide ones (`Game.resetLevel()`), callable from any type through the Manager, as Properties are now.
 - **Local values:** temporary number, text, and toggle values inside one Event or function (generated as local `var`s), for
   calculations that don't belong in a Property.
