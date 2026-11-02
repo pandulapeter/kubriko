@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.testing.parked
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runInterruptible
 import java.io.IOException
@@ -39,8 +40,8 @@ internal class FakeTerminalChannel : AgentChannel {
     private val errorOutput = Pipe.open()
     private val input = Pipe.open()
     private val exit = CompletableDeferred<Int>()
-    override val fromAgent = Channels.newInputStream(output.source())!!
-    override val errors = Channels.newInputStream(errorOutput.source())!!
+    override val fromAgent = Channels.newInputStream(output.source()).parked()
+    override val errors = Channels.newInputStream(errorOutput.source()).parked()
     override val toAgent = Channels.newOutputStream(input.sink())!!
     private val outputWriter = Channels.newOutputStream(output.sink()).writer()
     private val inputReader = Channels.newInputStream(input.source()).bufferedReader()

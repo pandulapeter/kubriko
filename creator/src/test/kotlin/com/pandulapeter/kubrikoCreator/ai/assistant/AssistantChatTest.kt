@@ -18,6 +18,7 @@ import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,9 +27,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_add_block
 import java.io.File
@@ -41,7 +40,6 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.seconds
 
 class AssistantChatTest {
     private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
@@ -59,8 +57,6 @@ class AssistantChatTest {
         scope.cancel()
         mainThread.close()
     }
-
-    private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
 
     private suspend fun readyChat() = newChat().also { chat -> chat.state.first { it == ChatState.Ready } }
 
@@ -90,7 +86,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun theUsersChangesSinceTheLastTurnAreSummedUpBeforeTheNextMessage() = test {
+    fun theUsersChangesSinceTheLastTurnAreSummedUpBeforeTheNextMessage() = blockingTest {
         val changeLog = ChangeLog()
         changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball"))
         val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
@@ -106,7 +102,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun theAnswerStreamsIntoTheTranscript() = test {
+    fun theAnswerStreamsIntoTheTranscript() = blockingTest {
         val chat = readyChat()
         chat.sendAndWait("hello")
         assertEquals(
@@ -116,7 +112,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun toolCallsAndPlansShowUp() = test {
+    fun toolCallsAndPlansShowUp() = blockingTest {
         val chat = readyChat()
         chat.sendAndWait("tool")
         val toolCall = chat.transcript.value.items.filterIsInstance<TranscriptItem.ToolCall>().single()
@@ -127,7 +123,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun permissionRequestsWaitForTheUsersAnswer() = test {
+    fun permissionRequestsWaitForTheUsersAnswer() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) { chat.send("edit") }
         val request = chat.permissionRequest.first { it != null }!!
@@ -139,7 +135,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun stoppingCancelsWhatTheAgentWaitsFor() = test {
+    fun stoppingCancelsWhatTheAgentWaitsFor() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) { chat.send("edit") }
         chat.permissionRequest.first { it != null }
@@ -150,7 +146,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun stoppingEndsTheTurn() = test {
+    fun stoppingEndsTheTurn() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) { chat.send("wait") }
         chat.isBusy.first { it }
@@ -160,7 +156,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun aCancelledTurnForgetsWhatTheConversationRead() = test {
+    fun aCancelledTurnForgetsWhatTheConversationRead() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) { chat.send("wait") }
         while ("wait" !in launcher.agents.single().prompts) delay(10)
@@ -170,7 +166,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun aTurnStoppedBeforeItIsSentForgetsNothing() = test {
+    fun aTurnStoppedBeforeItIsSentForgetsNothing() = blockingTest {
         val chat = readyChat()
         val context = CompletableDeferred<List<ContentBlock>>()
         withContext(mainThread) { chat.send("wait") { context.await() } }
@@ -181,13 +177,13 @@ class AssistantChatTest {
     }
 
     @Test
-    fun aFinishedTurnForgetsNothing() = test {
+    fun aFinishedTurnForgetsNothing() = blockingTest {
         readyChat().sendAndWait("hello")
         assertTrue(forgotten.isEmpty())
     }
 
     @Test
-    fun nothingIsSentWhileATurnRunsOrForBlankText() = test {
+    fun nothingIsSentWhileATurnRunsOrForBlankText() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) {
             chat.send("  ")
@@ -200,7 +196,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun aConversationThatCouldntStartCanBeTriedAgain() = test {
+    fun aConversationThatCouldntStartCanBeTriedAgain() = blockingTest {
         launcher.failingLaunches = 1
         val chat = newChat()
         val failed = chat.state.first { it is ChatState.Failed } as ChatState.Failed
@@ -210,7 +206,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun configOptionsFollowTheAgent() = test {
+    fun configOptionsFollowTheAgent() = blockingTest {
         val chat = readyChat()
         val model = chat.configOptions.first { it.isNotEmpty() }.single() as SessionConfigOption.Select
         assertEquals("sonnet", model.currentValue.value)
@@ -219,20 +215,20 @@ class AssistantChatTest {
     }
 
     @Test
-    fun slashCommandsAnnouncedAtTheStartAreKept() = test {
+    fun slashCommandsAnnouncedAtTheStartAreKept() = blockingTest {
         val chat = readyChat()
         assertEquals(FakeAgent.COMPACT, chat.availableCommands.first { it.isNotEmpty() }.single().name)
     }
 
     @Test
-    fun closingEndsTheConversation() = test {
+    fun closingEndsTheConversation() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) { chat.close() }
         assertTrue(ended.single().isLost.value)
     }
 
     @Test
-    fun aPromptRefusedForWantOfASignInIsSentAgainAfterSigningIn() = test {
+    fun aPromptRefusedForWantOfASignInIsSentAgainAfterSigningIn() = blockingTest {
         isSignedIn.set(false)
         val chat = readyChat()
         chat.sendAndWait("hello")
@@ -246,7 +242,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun anAgentThatStopsMidTurnEndsItWithAFailureAndTheConversationGoesOn() = test {
+    fun anAgentThatStopsMidTurnEndsItWithAFailureAndTheConversationGoesOn() = blockingTest {
         val chat = readyChat()
         chat.sendAndWait("crash")
         assertEquals(TranscriptItem.Failure(FailureReason.AGENT_STOPPED), chat.transcript.value.items.last())
@@ -255,7 +251,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun whatTheUserLooksAtGoesAheadOfTheirMessage() = test {
+    fun whatTheUserLooksAtGoesAheadOfTheirMessage() = blockingTest {
         val chat = readyChat()
         withContext(mainThread) { chat.send("hello") { listOf(AttentionChip.Scene("level-1").toContent()) } }
         chat.isBusy.first { !it }
@@ -264,7 +260,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun aMessageSentWhileItsContextIsGatheredIsntLost() = test {
+    fun aMessageSentWhileItsContextIsGatheredIsntLost() = blockingTest {
         val chat = readyChat()
         val context = CompletableDeferred<List<ContentBlock>>()
         withContext(mainThread) {
@@ -279,7 +275,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun stoppingWhileTheContextIsGatheredSendsNothing() = test {
+    fun stoppingWhileTheContextIsGatheredSendsNothing() = blockingTest {
         val chat = readyChat()
         val context = CompletableDeferred<List<ContentBlock>>()
         withContext(mainThread) { chat.send("first") { context.await() } }
@@ -291,7 +287,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun theChangesATurnStoppedWhileItsContextIsGatheredDidntSendAreSummedUpNextTime() = test {
+    fun theChangesATurnStoppedWhileItsContextIsGatheredDidntSendAreSummedUpNextTime() = blockingTest {
         val changeLog = ChangeLog()
         changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball"))
         val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
@@ -306,7 +302,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun whatATurnChangedIsOfferedToKeepOrUndo() = test {
+    fun whatATurnChangedIsOfferedToKeepOrUndo() = blockingTest {
         val changeLog = ChangeLog()
         changeLog.record(Res.string.command_add_block, null)
         val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
@@ -324,7 +320,7 @@ class AssistantChatTest {
     }
 
     @Test
-    fun onlyARefusedPromptIsSentAgain() = test {
+    fun onlyARefusedPromptIsSentAgain() = blockingTest {
         val chat = readyChat()
         chat.sendAndWait("hello")
         withContext(mainThread) { chat.resendAfterSignIn() }

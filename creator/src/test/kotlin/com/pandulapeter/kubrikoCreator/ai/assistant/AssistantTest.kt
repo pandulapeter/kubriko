@@ -16,6 +16,7 @@ import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionUpdate
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
+import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.sse.SSE
@@ -34,8 +35,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -46,7 +45,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.seconds
 
 class AssistantTest {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -81,8 +79,6 @@ class AssistantTest {
         scope.cancel()
     }
 
-    private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
-
     private fun toolsOf(index: Int) = launcher.agents.single().newSessions[index].mcpServers.single() as McpServer.Http
 
     private suspend fun toolCount(tools: McpServer.Http): Int {
@@ -102,7 +98,7 @@ class AssistantTest {
     }.status
 
     @Test
-    fun eachConversationReachesTheToolsAtAnAddressOfItsOwn() = test {
+    fun eachConversationReachesTheToolsAtAnAddressOfItsOwn() = blockingTest {
         assistant.newConversation(projectDirectory)
         assistant.newConversation(projectDirectory)
         val parameters = launcher.agents.single().newSessions
@@ -118,7 +114,7 @@ class AssistantTest {
     }
 
     @Test
-    fun closingWhileTheToolServerStartsFailsTheConversationAsClosed() = test {
+    fun closingWhileTheToolServerStartsFailsTheConversationAsClosed() = blockingTest {
         val isStarting = CompletableDeferred<Unit>()
         val gate = CompletableDeferred<Unit>()
         val assistant = assistant(
@@ -136,13 +132,13 @@ class AssistantTest {
     }
 
     @Test
-    fun aConversationIsStartedWithWhatItIsToldAboutTheProject() = test {
+    fun aConversationIsStartedWithWhatItIsToldAboutTheProject() = blockingTest {
         assistant.newConversation(projectDirectory, projectContext = "Project breakout.")
         assertEquals(JsonPrimitive("Project breakout."), launcher.agents.single().newSessions.single()._meta)
     }
 
     @Test
-    fun closingAConversationTurnsItsToolsOff() = test {
+    fun closingAConversationTurnsItsToolsOff() = blockingTest {
         val conversation = assistant.newConversation(projectDirectory)
         val tools = toolsOf(0)
         assistant.closeConversation(conversation)
@@ -150,13 +146,13 @@ class AssistantTest {
     }
 
     @Test
-    fun outsideClientsCantUseTheAssistantsServer() = test {
+    fun outsideClientsCantUseTheAssistantsServer() = blockingTest {
         assistant.newConversation(projectDirectory)
         assertEquals(HttpStatusCode.Unauthorized, status(toolsOf(0).url.substringBefore("/conversations/"), toolsOf(0).headers.single().value))
     }
 
     @Test
-    fun anAgentWithoutAProfileGetsTheSystemPromptAheadOfItsFirstPromptOnly() = test {
+    fun anAgentWithoutAProfileGetsTheSystemPromptAheadOfItsFirstPromptOnly() = blockingTest {
         val conversation = assistant(AgentProfile.fallback).newConversation(projectDirectory)
         conversation.prompt(listOf(ContentBlock.Text("hello")))
         conversation.prompt(listOf(ContentBlock.Text("hello")))
@@ -166,7 +162,7 @@ class AssistantTest {
     }
 
     @Test
-    fun anAgentWithoutHttpMcpReachesTheToolsThroughMcpRemote() = test {
+    fun anAgentWithoutHttpMcpReachesTheToolsThroughMcpRemote() = blockingTest {
         assistant(AgentProfile.fallback).newConversation(projectDirectory)
         val tools = launcher.agents.single().newSessions.single().mcpServers.single() as McpServer.Stdio
         assertEquals(McpToolServer.SERVER_NAME, tools.name)
@@ -177,7 +173,7 @@ class AssistantTest {
     }
 
     @Test
-    fun anAgentAdvertisingHttpMcpGetsTheToolsOverHttp() = test {
+    fun anAgentAdvertisingHttpMcpGetsTheToolsOverHttp() = blockingTest {
         val httpLauncher = FakeAgentLauncher({ FakeAgent(supportsHttpMcp = true) })
         try {
             assistant(AgentProfile.fallback, httpLauncher).newConversation(projectDirectory)
@@ -188,7 +184,7 @@ class AssistantTest {
     }
 
     @Test
-    fun anAgentWithoutAProfileIsKeptOffTheFilesWhateverTheUserWouldAllow() = test {
+    fun anAgentWithoutAProfileIsKeptOffTheFilesWhateverTheUserWouldAllow() = blockingTest {
         val allow = PermissionHandler { _, options -> RequestPermissionOutcome.Selected(options.first { it.kind == PermissionOptionKind.ALLOW_ONCE }.optionId) }
         val fallback = assistant(AgentProfile.fallback).newConversation(projectDirectory, permissions = allow)
         val profiled = assistant.newConversation(projectDirectory, permissions = allow)
@@ -197,7 +193,7 @@ class AssistantTest {
     }
 
     @Test
-    fun anAgentWithoutAProfileWorksInAFolderOfItsOwnRatherThanTheProjects() = test {
+    fun anAgentWithoutAProfileWorksInAFolderOfItsOwnRatherThanTheProjects() = blockingTest {
         assistant(AgentProfile.fallback).newConversation(projectDirectory)
         val folder = File(launcher.agents.single().newSessions.single().cwd)
         assertTrue(folder.isDirectory)

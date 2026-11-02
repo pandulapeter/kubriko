@@ -10,21 +10,19 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.AuthMethodId
+import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.util.concurrent.Executors
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.seconds
 
 class SignInSessionTest {
     private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
@@ -39,12 +37,10 @@ class SignInSessionTest {
         mainThread.close()
     }
 
-    private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
-
     private suspend fun session() = withContext(mainThread) { SignInSession(method, channel, scope, Dispatchers.IO) }
 
     @Test
-    fun theOutputShowsAsItIsWrittenWithItsLinks() = test {
+    fun theOutputShowsAsItIsWrittenWithItsLinks() = blockingTest {
         val session = session()
         channel.write("Visit: \u001B]8;;https://example.com/a\u0007https://exa")
         channel.write("mple.com/a\u001B]8;;\u0007\nPaste code here if prompted > ")
@@ -54,7 +50,7 @@ class SignInSessionTest {
     }
 
     @Test
-    fun aTypedCodeReachesTheCommandAndItsExitCodeIsKept() = test {
+    fun aTypedCodeReachesTheCommandAndItsExitCodeIsKept() = blockingTest {
         val session = session()
         withContext(mainThread) { session.send("the-code") }
         assertEquals("the-code", channel.readTypedLine())
@@ -63,7 +59,7 @@ class SignInSessionTest {
     }
 
     @Test
-    fun stoppingEndsTheCommand() = test {
+    fun stoppingEndsTheCommand() = blockingTest {
         val session = session()
         session.stop()
         assertTrue(channel.isStopped)

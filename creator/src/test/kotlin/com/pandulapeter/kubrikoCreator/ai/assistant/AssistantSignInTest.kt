@@ -10,6 +10,9 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.AuthMethodId
+import com.pandulapeter.kubrikoCreator.testing.IdleTrackingDispatcher
+import com.pandulapeter.kubrikoCreator.testing.awaitIdle
+import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,9 +21,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -30,20 +31,21 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.seconds
 
 class AssistantSignInTest {
-    private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val mainExecutor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val mainThread = IdleTrackingDispatcher(mainExecutor)
+    private val io = IdleTrackingDispatcher(Dispatchers.IO)
     private val scope = CoroutineScope(SupervisorJob() + mainThread)
     private val terminals = FakeTerminalLauncher()
     private val secrets = FakeSecretStore()
     private val settingsDirectory = createTempDirectory().toFile()
-    private val settings = AssistantSettingsState(scope, AssistantSettingsStore(File(settingsDirectory, "assistant.json")), Dispatchers.IO)
-    private val host = AssistantHost<Assistant>(scope, Dispatchers.IO, MutableStateFlow(true)) { error("These tests start no agent.") }
+    private val settings = AssistantSettingsState(scope, AssistantSettingsStore(File(settingsDirectory, "assistant.json")), io)
+    private val host = AssistantHost<Assistant>(scope, io, MutableStateFlow(true)) { error("These tests start no agent.") }
     private val restarts = AtomicInteger()
     private val signIn = AssistantSignIn(
         scope = scope,
-        ioDispatcher = Dispatchers.IO,
+        ioDispatcher = io,
         signInLauncher = terminals,
         secrets = secrets,
         settings = settings,
@@ -57,28 +59,26 @@ class AssistantSignInTest {
     @AfterTest
     fun tearDown() {
         scope.cancel()
-        mainThread.close()
+        mainExecutor.close()
         settingsDirectory.deleteRecursively()
     }
-
-    private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
 
     private suspend fun <T> onMain(block: suspend () -> T) = withContext(mainThread) { block() }
 
     @Test
-    fun aSecondSignInStopsTheFirst() = test {
+    fun aSecondSignInStopsTheFirst() = blockingTest {
         onMain {
             signIn.signIn(terminalMethod)
             signIn.signIn(terminalMethod)
         }
         while (terminals.channels.size < 2 || terminals.channels.none { it.isStopped }) delay(10)
         assertEquals(1, terminals.channels.count { it.isStopped })
-        delay(100)
+        awaitIdle(mainThread, io)
         assertNull(signIn.session.value!!.exitCode.value)
     }
 
     @Test
-    fun variablesAreKeptThenTheAgentRestarts() = test {
+    fun variablesAreKeptThenTheAgentRestarts() = blockingTest {
         onMain { signIn.signIn(variablesMethod) }
         assertEquals(variablesMethod, signIn.variablesForm.value)
         onMain { signIn.setVariables("codex-acp", variablesMethod, mapOf("FAKE_API_KEY" to " secret ")) }
@@ -89,7 +89,7 @@ class AssistantSignInTest {
     }
 
     @Test
-    fun aFailedVariablesSaveKeepsTheFormOpen() = test {
+    fun aFailedVariablesSaveKeepsTheFormOpen() = blockingTest {
         secrets.isWritable = false
         onMain { signIn.signIn(variablesMethod) }
         onMain { signIn.setVariables("codex-acp", variablesMethod, mapOf("FAKE_API_KEY" to "secret")) }

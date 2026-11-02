@@ -50,8 +50,6 @@ import com.agentclientprotocol.model.ToolCallStatus
 import com.agentclientprotocol.model.ToolKind
 import com.agentclientprotocol.protocol.JsonRpcException
 import com.agentclientprotocol.rpc.JsonRpcErrorCode
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -235,7 +233,7 @@ internal class FakeAgent(
                 }
                 "later" -> {
                     val client = currentCoroutineContext().client
-                    CoroutineScope(Dispatchers.Default).launch {
+                    channel.agentScope.launch {
                         delay(50)
                         client.notify(message(LATER))
                     }

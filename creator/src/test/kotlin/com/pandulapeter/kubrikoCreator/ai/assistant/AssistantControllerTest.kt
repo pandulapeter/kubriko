@@ -12,6 +12,9 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 import com.agentclientprotocol.model.AuthMethodId
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.FakeProcessRunner
+import com.pandulapeter.kubrikoCreator.testing.IdleTrackingDispatcher
+import com.pandulapeter.kubrikoCreator.testing.awaitIdle
+import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +26,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.File
@@ -44,7 +46,9 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class AssistantControllerTest {
-    private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val mainExecutor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val mainThread = IdleTrackingDispatcher(mainExecutor)
+    private val io = IdleTrackingDispatcher(Dispatchers.IO)
     private val scope = CoroutineScope(SupervisorJob() + mainThread)
     private val isSignedIn = AtomicBoolean(true)
     private val nextAgents = ConcurrentLinkedQueue<FakeAgent>()
@@ -63,11 +67,9 @@ class AssistantControllerTest {
         controllers.forEach { it.close() }
         launcher.close()
         scope.cancel()
-        mainThread.close()
+        mainExecutor.close()
         settingsDirectory.deleteRecursively()
     }
-
-    private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
 
     private fun controller(
         registry: AgentRegistryStore? = null,
@@ -80,14 +82,14 @@ class AssistantControllerTest {
         store = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
         secrets = secretStore,
         signInLauncher = terminals,
-        ioDispatcher = Dispatchers.IO,
+        ioDispatcher = io,
         createAssistant = { command, _, profile ->
             profiles += profile
             commands += command
             Assistant(
-                agent = AcpAgent(command, launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO, conversationCloseWait = 300.milliseconds),
+                agent = AcpAgent(command, launcher, AcpAgent.clientInfo("1.0.0"), scope, io, conversationCloseWait = 300.milliseconds),
                 toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
-                ioDispatcher = Dispatchers.IO,
+                ioDispatcher = io,
                 profile = profile,
                 agentFolders = File(settingsDirectory, "agents"),
             )
@@ -122,14 +124,14 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun conversationsNeedAnOpenProject() = test {
+    fun conversationsNeedAnOpenProject() = blockingTest {
         val controller = controller()
         onMain { controller.newChat() }
         assertNull(controller.currentChat.value)
     }
 
     @Test
-    fun withAiFeaturesOffNoConversationOpensNoAgentStartsAndTheRegistryIsNotFetched() = test {
+    fun withAiFeaturesOffNoConversationOpensNoAgentStartsAndTheRegistryIsNotFetched() = blockingTest {
         val fetches = AtomicInteger()
         val registry = AgentRegistryStore(File(settingsDirectory, "agent-registry.json"), "darwin-aarch64") {
             fetches.incrementAndGet()
@@ -142,7 +144,7 @@ class AssistantControllerTest {
             controller.newChat()
             controller.installNode()
         }
-        delay(200)
+        awaitIdle(mainThread, io)
         assertNull(controller.currentChat.value)
         assertTrue(commands.isEmpty())
         assertEquals(0, fetches.get())
@@ -153,7 +155,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun withAiFeaturesOffChoosingAnAgentOrGivingAKeyChangesNothing() = test {
+    fun withAiFeaturesOffChoosingAnAgentOrGivingAKeyChangesNothing() = blockingTest {
         runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
         val registry = registry(CODEX)
         registry.refresh()
@@ -169,7 +171,7 @@ class AssistantControllerTest {
             controller.setApiKey("sk-ant-key")
             controller.setVariables(method, mapOf("FAKE_API_KEY" to "secret"))
         }
-        delay(200)
+        awaitIdle(mainThread, io)
         assertTrue(controller.agent.value.isClaude)
         assertEquals(ClaudeConfiguration.default, controller.configuration.value)
         assertFalse(File(settingsDirectory, "assistant.json").exists())
@@ -178,7 +180,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun turningAiFeaturesOffEndsTheConversationsAndTheAgent() = test {
+    fun turningAiFeaturesOffEndsTheConversationsAndTheAgent() = blockingTest {
         val isAiEnabled = MutableStateFlow(true)
         val controller = controller(isAiEnabled = isAiEnabled)
         controller.startChat().state.first { it == ChatState.Ready }
@@ -188,7 +190,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aConversationRunsClaudeAgentThroughNpxInTheProject() = test {
+    fun aConversationRunsClaudeAgentThroughNpxInTheProject() = blockingTest {
         val chat = controller().startChat()
         chat.state.first { it == ChatState.Ready }
         assertEquals(File("/opt/tools/bin/npx").path, commands.single().program)
@@ -198,7 +200,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aCustomAgentRunsItsCommandWithTheFallbacksAndIsRemembered() = test {
+    fun aCustomAgentRunsItsCommandWithTheFallbacksAndIsRemembered() = blockingTest {
         runner.installed += "goose"
         val controller = controller()
         controller.startChat().state.first { it == ChatState.Ready }
@@ -218,7 +220,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aRememberedRegistryAgentRunsThroughItsDistributionWithTheFallbacks() = test {
+    fun aRememberedRegistryAgentRunsThroughItsDistributionWithTheFallbacks() = blockingTest {
         val registry = registry(CODEX)
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "codex-acp"))
@@ -231,7 +233,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aBinaryAgentIsDownloadedThenRunFromItsFolder() = test {
+    fun aBinaryAgentIsDownloadedThenRunFromItsFolder() = blockingTest {
         val registry = registry(ANTIGRAVITY)
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "antigravity-acp"))
@@ -244,7 +246,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aBinaryAgentThatCantBeDownloadedSaysWhy() = test {
+    fun aBinaryAgentThatCantBeDownloadedSaysWhy() = blockingTest {
         val registry = registry(ANTIGRAVITY)
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "antigravity-acp"))
@@ -254,7 +256,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun variablesGivenForSigningInAreKeptAndTheAgentStartsAgainWithThem() = test {
+    fun variablesGivenForSigningInAreKeptAndTheAgentStartsAgainWithThem() = blockingTest {
         val registry = registry(CODEX)
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "codex-acp"))
@@ -274,7 +276,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun rememberedVariablesAreReadOffTheMainThread() = test {
+    fun rememberedVariablesAreReadOffTheMainThread() = blockingTest {
         val registry = registry(CODEX)
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "codex-acp", agentVariables = mapOf("codex-acp" to listOf("FAKE_API_KEY"))))
@@ -292,7 +294,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun anAgentRunByUvxNeedsUv() = test {
+    fun anAgentRunByUvxNeedsUv() = blockingTest {
         val registry = registry(FAST_AGENT)
         registry.refresh()
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(agentId = "fast-agent"))
@@ -306,7 +308,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aConversationClosedInThisRunIsReopenedAsItWas() = test {
+    fun aConversationClosedInThisRunIsReopenedAsItWas() = blockingTest {
         val controller = controller()
         val chat = controller.startChat()
         chat.state.first { it == ChatState.Ready }
@@ -321,7 +323,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aConversationOfAnEarlierRunIsContinuedWithItsHistory() = test {
+    fun aConversationOfAnEarlierRunIsContinuedWithItsHistory() = blockingTest {
         val earlier = controller()
         val chat = earlier.startChat()
         chat.state.first { it == ChatState.Ready }
@@ -338,14 +340,14 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun withoutNodeTheConversationSaysSo() = test {
+    fun withoutNodeTheConversationSaysSo() = blockingTest {
         runner.installed.clear()
         val chat = controller().startChat()
         assertEquals(ChatState.Failed(FailureReason.NODE_MISSING), chat.state.first { it is ChatState.Failed })
     }
 
     @Test
-    fun closingTheProjectEndsItsConversations() = test {
+    fun closingTheProjectEndsItsConversations() = blockingTest {
         val controller = controller()
         val chat = controller.startChat()
         chat.state.first { it == ChatState.Ready }
@@ -355,7 +357,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun switchingAgentsWhileAConversationIsClosingStartsTheNewAgentAndListsItsConversations() = test {
+    fun switchingAgentsWhileAConversationIsClosingStartsTheNewAgentAndListsItsConversations() = blockingTest {
         nextAgents += FakeAgent(isSignedIn = isSignedIn, sessionClose = { awaitCancellation() })
         val registry = registry(CODEX)
         registry.refresh()
@@ -372,7 +374,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aConversationOpenedWhileTheProjectChangesStartsOnAFreshAgent() = test {
+    fun aConversationOpenedWhileTheProjectChangesStartsOnAFreshAgent() = blockingTest {
         val controller = controller()
         controller.startChat().state.first { it == ChatState.Ready }
         val chat = onMain {
@@ -382,13 +384,13 @@ class AssistantControllerTest {
         }
         chat.state.first { it == ChatState.Ready }
         withTimeout(5.seconds) { while (!launcher.channels.first().isStopped) delay(10) }
-        delay(200)
+        awaitIdle(mainThread, io)
         assertEquals(ChatState.Ready, chat.state.value)
         assertEquals(2, launcher.channels.size)
     }
 
     @Test
-    fun twoSwitchesInARowEndOnTheLastAgent() = test {
+    fun twoSwitchesInARowEndOnTheLastAgent() = blockingTest {
         val registry = registry(CODEX, GEMINI)
         registry.refresh()
         val controller = controller(registry)
@@ -406,7 +408,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun endingAConversationShowsTheOneBefore() = test {
+    fun endingAConversationShowsTheOneBefore() = blockingTest {
         val controller = controller()
         val first = controller.startChat()
         val second = onMain {
@@ -419,7 +421,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun anAliasesConfigurationIsUsedAndRemembered() = test {
+    fun anAliasesConfigurationIsUsedAndRemembered() = blockingTest {
         runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
         val controller = controller()
         onMain { controller.findConfigurations() }
@@ -436,7 +438,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aRememberedConfigurationWhoseAliasIsGoneFallsBackToTheDefault() = test {
+    fun aRememberedConfigurationWhoseAliasIsGoneFallsBackToTheDefault() = blockingTest {
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(claudeConfigurationAlias = "claude-gone"))
         val controller = controller()
         controller.startChat().state.first { it == ChatState.Ready }
@@ -445,7 +447,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun switchingTheConfigurationStartsANewConversationOnItsOwnAgent() = test {
+    fun switchingTheConfigurationStartsANewConversationOnItsOwnAgent() = blockingTest {
         runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
         val controller = controller()
         val first = controller.startChat()
@@ -462,7 +464,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun anApiKeyIsKeptAsASecretAndGivenToTheAgentOnly() = test {
+    fun anApiKeyIsKeptAsASecretAndGivenToTheAgentOnly() = blockingTest {
         val controller = controller()
         val first = controller.startChat()
         first.state.first { it == ChatState.Ready }
@@ -479,7 +481,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aRememberedApiKeyIsUsedAndCanBeRemoved() = test {
+    fun aRememberedApiKeyIsUsedAndCanBeRemoved() = blockingTest {
         secrets.secrets["anthropic-api-key"] = "sk-ant-old"
         val controller = controller()
         val first = controller.startChat()
@@ -494,7 +496,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun anAgentWithoutAClaudeAccountReportsNoApiKeyOrConfigurations() = test {
+    fun anAgentWithoutAClaudeAccountReportsNoApiKeyOrConfigurations() = blockingTest {
         secrets.secrets["anthropic-api-key"] = "sk-ant-old"
         runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
         val registry = registry(CODEX)
@@ -516,7 +518,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun anApiKeyThatCantBeKeptChangesNothing() = test {
+    fun anApiKeyThatCantBeKeptChangesNothing() = blockingTest {
         secrets.isWritable = false
         val controller = controller()
         val chat = controller.startChat()
@@ -528,7 +530,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aTerminalSignInRunsInTheAgentsConfigurationAndSendsTheRefusedPromptAgain() = test {
+    fun aTerminalSignInRunsInTheAgentsConfigurationAndSendsTheRefusedPromptAgain() = blockingTest {
         isSignedIn.set(false)
         val controller = controller()
         val chat = controller.startChat()
@@ -552,7 +554,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aFailedTerminalSignInStaysUntilClosed() = test {
+    fun aFailedTerminalSignInStaysUntilClosed() = blockingTest {
         val controller = controller()
         controller.startChat().state.first { it == ChatState.Ready }
         val method = controller.signInMethods.first { it.isNotEmpty() }.single { it.terminal != null }
@@ -566,7 +568,7 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aSecondSignInStopsTheFirst() = test {
+    fun aSecondSignInStopsTheFirst() = blockingTest {
         val controller = controller()
         controller.startChat().state.first { it == ChatState.Ready }
         val method = controller.signInMethods.first { it.isNotEmpty() }.single { it.terminal != null }
@@ -576,12 +578,12 @@ class AssistantControllerTest {
         }
         while (terminals.channels.size < 2 || terminals.channels.none { it.isStopped }) delay(10)
         assertEquals(1, terminals.channels.count { it.isStopped })
-        delay(100)
+        awaitIdle(mainThread, io)
         assertNull(controller.signIn.value!!.exitCode.value)
     }
 
     @Test
-    fun anAgentSignInIsAskedOfTheAgent() = test {
+    fun anAgentSignInIsAskedOfTheAgent() = blockingTest {
         isSignedIn.set(false)
         val controller = controller()
         val chat = controller.startChat()

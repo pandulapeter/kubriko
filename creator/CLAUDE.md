@@ -41,11 +41,12 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
     replays recorded tool calls for free.
 - Controllers are tested against fakes in `testing/` (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`, `FakeGitRepository`),
   file code against real temporary folders, git against real temporary repositories (JGit needs no installed git), and sockets,
-  the MCP server, and shell commands for real on localhost. `StringResourcesTest` fails on a string or icon nothing uses, and on
-  escaped apostrophes. Shared fixtures live in `testing/` (`testDirectory()`, and the fakes above); a fake of an
-  interface with a real implementation runs the same contract test as the real one (`BlockTypeRepositoryContract`,
-  `GitRepositoryContract`). A collaborator of `WorkspaceController` is tested on its own, and `WorkspaceControllerTest`
-  keeps only cases about the wiring between them.
+  the MCP server, and shell commands for real on localhost. Tests on real threads use `testing/blockingTest`, and assert that
+  nothing happened only after `awaitIdle` on the dispatchers they gave the code under test, never after a fixed delay.
+  `StringResourcesTest` fails on a string or icon nothing uses, and on escaped apostrophes. Shared fixtures live in
+  `testing/` (`testDirectory()`, and the fakes above); a fake of an interface with a real implementation runs the same
+  contract test as the real one (`BlockTypeRepositoryContract`, `GitRepositoryContract`). A collaborator of
+  `WorkspaceController` is tested on its own, and `WorkspaceControllerTest` keeps only cases about the wiring between them.
 - UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`ui/UiSnapshots.kt`) renders a composable in the
   app's theme and interface scale without a window, asserts its texts and clicks, and saves a PNG under `build/ui-snapshots`.
   Every new UI gets one. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot

@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.testing.IdleTrackingDispatcher
+import com.pandulapeter.kubrikoCreator.testing.awaitIdle
+import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,11 +19,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -33,16 +33,17 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
-import kotlin.time.Duration.Companion.seconds
 
 class AssistantHostTest {
-    private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val mainExecutor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val mainThread = IdleTrackingDispatcher(mainExecutor)
+    private val io = IdleTrackingDispatcher(Dispatchers.IO)
     private val scope = CoroutineScope(SupervisorJob() + mainThread)
     private val isAiEnabled = MutableStateFlow(true)
     private val created = CopyOnWriteArrayList<CountingCloseable>()
     private val creationStarted = CompletableDeferred<Unit>()
     private val creationGate = CompletableDeferred<Unit>()
-    private val host = AssistantHost(scope, Dispatchers.IO, isAiEnabled) {
+    private val host = AssistantHost(scope, io, isAiEnabled) {
         creationStarted.complete(Unit)
         creationGate.await()
         CountingCloseable().also { created += it }
@@ -51,10 +52,8 @@ class AssistantHostTest {
     @AfterTest
     fun tearDown() {
         scope.cancel()
-        mainThread.close()
+        mainExecutor.close()
     }
-
-    private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) { withTimeout(10.seconds) { block() } }
 
     private suspend fun <T> onMain(block: suspend () -> T) = withContext(mainThread) { block() }
 
@@ -67,7 +66,7 @@ class AssistantHostTest {
     }
 
     @Test
-    fun getCreatesOnceAndSharesIt() = test {
+    fun getCreatesOnceAndSharesIt() = blockingTest {
         val first = scope.async { host.get() }
         val second = scope.async { host.get() }
         creationStarted.await()
@@ -77,7 +76,7 @@ class AssistantHostTest {
     }
 
     @Test
-    fun replaceWithAnExpectedOneLeavesANewerOneRunning() = test {
+    fun replaceWithAnExpectedOneLeavesANewerOneRunning() = blockingTest {
         creationGate.complete(Unit)
         val running = onMain { host.get() }
         onMain { host.replace(expected = CountingCloseable()) }
@@ -86,7 +85,7 @@ class AssistantHostTest {
     }
 
     @Test
-    fun getWaitsForThePendingSequence() = test {
+    fun getWaitsForThePendingSequence() = blockingTest {
         creationGate.complete(Unit)
         val first = onMain { host.get() }
         val stepGate = CompletableDeferred<Unit>()
@@ -97,7 +96,7 @@ class AssistantHostTest {
             }
         }
         val next = scope.async { host.get() }
-        delay(100)
+        awaitIdle(mainThread, io)
         assertFalse(next.isCompleted)
         assertEquals(1, created.size)
         stepGate.complete(Unit)
@@ -106,7 +105,7 @@ class AssistantHostTest {
     }
 
     @Test
-    fun aFailingStepDoesntStopTheNext() = test {
+    fun aFailingStepDoesntStopTheNext() = blockingTest {
         val ran = CompletableDeferred<Unit>()
         onMain {
             host.afterPending { error("x") }
@@ -116,7 +115,7 @@ class AssistantHostTest {
     }
 
     @Test
-    fun aCreationFinishingAfterTurnOffIsClosedAndRefused() = test {
+    fun aCreationFinishingAfterTurnOffIsClosedAndRefused() = blockingTest {
         val getting = scope.async { runCatching { host.get() } }
         creationStarted.await()
         isAiEnabled.value = false
@@ -127,7 +126,7 @@ class AssistantHostTest {
     }
 
     @Test
-    fun aCreationFinishingAfterCloseIsClosedAndRefused() = test {
+    fun aCreationFinishingAfterCloseIsClosedAndRefused() = blockingTest {
         val getting = scope.async { runCatching { host.get() } }
         creationStarted.await()
         withContext(Dispatchers.IO) { host.close() }
@@ -139,7 +138,7 @@ class AssistantHostTest {
     }
 
     @Test
-    fun closeOffTheMainThreadClosesTheCurrentOne() = test {
+    fun closeOffTheMainThreadClosesTheCurrentOne() = blockingTest {
         creationGate.complete(Unit)
         val running = onMain { host.get() }
         withContext(Dispatchers.IO) { host.close() }

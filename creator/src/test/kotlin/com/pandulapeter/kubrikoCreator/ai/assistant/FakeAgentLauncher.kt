@@ -14,6 +14,7 @@ import com.agentclientprotocol.model.AcpMethod
 import com.agentclientprotocol.model.AcpNotification
 import com.agentclientprotocol.protocol.Protocol
 import com.agentclientprotocol.transport.StdioTransport
+import com.pandulapeter.kubrikoCreator.testing.parked
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,10 +67,10 @@ internal class FakeAgentChannel(
     private val fromCreator = Pipe.open()
     private val errorPipe = Pipe.open()
     private val exit = CompletableDeferred<Int>()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    override val fromAgent = Channels.newInputStream(toCreator.source())!!
+    val agentScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    override val fromAgent = Channels.newInputStream(toCreator.source()).parked()
     override val toAgent = Channels.newOutputStream(fromCreator.sink())!!
-    override val errors = Channels.newInputStream(errorPipe.source())!!
+    override val errors = Channels.newInputStream(errorPipe.source()).parked()
     private val agentWriter = Channels.newOutputStream(toCreator.sink()).bufferedWriter()
     private val errorWriter = Channels.newOutputStream(errorPipe.sink()).bufferedWriter()
     val isStopped get() = exit.isCompleted
@@ -78,7 +79,7 @@ internal class FakeAgentChannel(
     init {
         val reader = Channels.newInputStream(fromCreator.source()).bufferedReader()
         val transport = StdioTransport(
-            parentScope = scope,
+            parentScope = agentScope,
             ioDispatcher = Dispatchers.IO,
             input = flow { while (true) emit(reader.readLine() ?: break) },
             output = { line ->
@@ -89,7 +90,7 @@ internal class FakeAgentChannel(
                 }
             },
         )
-        protocol = Protocol(scope, transport)
+        protocol = Protocol(agentScope, transport)
         Agent(protocol, agent.support(this))
         protocol.start()
         if (agent.exitsAtStart != null) crash(agent.exitsAtStart)
@@ -125,7 +126,7 @@ internal class FakeAgentChannel(
      */
     fun crash(exitCode: Int) {
         if (exit.isCompleted) return
-        scope.cancel()
+        agentScope.cancel()
         runCatching { toCreator.sink().close() }
         runCatching { errorPipe.sink().close() }
         runCatching { fromCreator.source().close() }

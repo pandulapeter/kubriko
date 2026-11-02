@@ -18,6 +18,10 @@ import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionId
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.StopReason
+import com.pandulapeter.kubrikoCreator.testing.IdleTrackingDispatcher
+import com.pandulapeter.kubrikoCreator.testing.awaitIdle
+import com.pandulapeter.kubrikoCreator.testing.awaitTrue
+import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -26,11 +30,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonPrimitive
@@ -38,6 +40,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,7 +55,9 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 
 class AcpAgentTest {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val default = IdleTrackingDispatcher(Dispatchers.Default)
+    private val io = IdleTrackingDispatcher(Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + default)
     private val launchers = mutableListOf<FakeAgentLauncher>()
     private val agents = mutableListOf<AcpAgent>()
     private val timeSource = TestTimeSource()
@@ -72,18 +77,12 @@ class AcpAgentTest {
         launcher = launcher,
         clientInfo = AcpAgent.clientInfo("1.2.3"),
         scope = scope,
-        ioDispatcher = Dispatchers.IO,
+        ioDispatcher = io,
         timeSource = timeSource,
         conversationCloseWait = conversationCloseWait,
     ).also { agents += it }
 
-    private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking { withTimeout(TIMEOUT) { block() } }
-
     private suspend fun <T> StateFlow<T>.await(predicate: (T) -> Boolean) = withTimeout(TIMEOUT) { first(predicate) }
-
-    private suspend fun awaitTrue(condition: () -> Boolean) = withTimeout(TIMEOUT) {
-        while (!condition()) delay(10)
-    }
 
     /**
      * Waits for [messages] to have caught up with [expected], since they are collected on another thread than the prompt's.
@@ -104,7 +103,7 @@ class AcpAgentTest {
     private fun text(text: String) = listOf(ContentBlock.Text(text))
 
     @Test
-    fun startingInitializesWithProtocolVersion1AndNeitherFileSystemNorTerminal() = test {
+    fun startingInitializesWithProtocolVersion1AndNeitherFileSystemNorTerminal() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         assertEquals(AgentState.Stopped, agent.state.value)
@@ -125,7 +124,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun aPromptStreamsTheAgentsMessagesAndEndsWithItsTurn() = test {
+    fun aPromptStreamsTheAgentsMessagesAndEndsWithItsTurn() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val mcpServer = McpServer.Http("kubriko-creator", "http://127.0.0.1:7781/mcp/conversations/1", listOf(HttpHeader("Authorization", "Bearer token")))
         val meta = buildJsonObject { put("claudeCode", JsonPrimitive("options")) }
@@ -140,7 +139,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun aPromptsOwnUpdatesReachItsCallerBeforeItReturns() = test {
+    fun aPromptsOwnUpdatesReachItsCallerBeforeItReturns() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val agent = agent(launcher())
         val conversation = agent.newConversation(workingDirectory)
         val messages = messagesOf(conversation)
@@ -152,7 +151,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun permissionRequestsAreRejectedUnlessTheHandlerAllowsThem() = test {
+    fun permissionRequestsAreRejectedUnlessTheHandlerAllowsThem() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val agent = agent(launcher())
         val rejecting = agent.newConversation(workingDirectory)
         val rejected = messagesOf(rejecting)
@@ -172,7 +171,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun cancellingEndsTheTurnAsCancelled() = test {
+    fun cancellingEndsTheTurnAsCancelled() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val conversation = agent(launcher).newConversation(workingDirectory)
         val response = async { conversation.prompt(text("wait")) }
@@ -182,7 +181,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun updatesBetweenPromptsReachTheConversation() = test {
+    fun updatesBetweenPromptsReachTheConversation() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val conversation = agent(launcher()).newConversation(workingDirectory)
         val messages = messagesOf(conversation)
         conversation.prompt(text("later"))
@@ -190,7 +189,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun aCrashedAgentIsStartedAgainWithItsConversationsLoaded() = test {
+    fun aCrashedAgentIsStartedAgainWithItsConversationsLoaded() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         val conversation = agent.newConversation(workingDirectory)
@@ -206,7 +205,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun conversationsTheAgentCantLoadAreLost() = test {
+    fun conversationsTheAgentCantLoadAreLost() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher { FakeAgent(supportsLoading = false) }
         val agent = agent(launcher)
         val conversation = agent.newConversation(workingDirectory)
@@ -218,7 +217,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun anAgentWithoutConversationsIsntStartedAgainUntilUsed() = test {
+    fun anAgentWithoutConversationsIsntStartedAgainUntilUsed() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         agent.start()
@@ -230,7 +229,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun anAgentCrashingRightAfterEachStartFailsUntilUsedAgain() = test {
+    fun anAgentCrashingRightAfterEachStartFailsUntilUsedAgain() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         val conversation = agent.newConversation(workingDirectory)
@@ -247,7 +246,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun anAgentThatRanLongEnoughIsAlwaysStartedAgain() = test {
+    fun anAgentThatRanLongEnoughIsAlwaysStartedAgain() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         agent.newConversation(workingDirectory)
@@ -261,7 +260,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun anAgentExitingBeforeItAnswersFailsWithItsExitCodeAndErrors() = test {
+    fun anAgentExitingBeforeItAnswersFailsWithItsExitCodeAndErrors() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher { FakeAgent(exitsAtStart = 2) }
         val agent = agent(launcher)
         val exception = assertFailsWith<AgentStartException> { agent.start() }
@@ -273,7 +272,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun aProgramThatCantBeStartedFailsWithoutAnExitCode() = test {
+    fun aProgramThatCantBeStartedFailsWithoutAnExitCode() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher().apply { failingLaunches = 1 }
         val agent = agent(launcher)
         assertNull(assertFailsWith<AgentStartException> { agent.start() }.exitCode)
@@ -283,7 +282,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun cancellingAStartThatHangsStopsTheAgent() = test {
+    fun cancellingAStartThatHangsStopsTheAgent() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher { FakeAgent(answersInitialize = false) }
         val agent = agent(launcher)
         assertNull(withTimeoutOrNull(200) { agent.start() })
@@ -291,7 +290,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun aClosedConversationCantBeContinued() = test {
+    fun aClosedConversationCantBeContinued() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val conversation = agent(launcher()).newConversation(workingDirectory)
         conversation.close()
         assertTrue(conversation.isLost.value)
@@ -299,7 +298,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun closingTheAgentWhileItStartsStopsItsProcess() = test {
+    fun closingTheAgentWhileItStartsStopsItsProcess() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         lateinit var agent: AcpAgent
         val closingLauncher = object : AgentLauncher {
@@ -319,7 +318,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun closingTheAgentStopsItsProcess() = test {
+    fun closingTheAgentStopsItsProcess() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         agent.start()
@@ -327,12 +326,12 @@ class AcpAgentTest {
         assertTrue(launcher.channels.single().isStopped)
         assertEquals(AgentState.Stopped, agent.state.value)
         assertFailsWith<IllegalStateException> { agent.start() }
-        delay(100)
+        awaitIdle(default, io)
         assertEquals(1, launcher.agents.size)
     }
 
     @Test
-    fun theAgentsSignInMethodsAndIdentityAreKept() = test {
+    fun theAgentsSignInMethodsAndIdentityAreKept() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         agent.start()
@@ -345,7 +344,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun agentSignInIsAskedOfTheAgent() = test {
+    fun agentSignInIsAskedOfTheAgent() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val agent = agent(launcher)
         agent.authenticate(AuthMethodId(FakeAgent.AGENT_LOGIN))
@@ -353,7 +352,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun anEarlierConversationIsContinuedWithItsHistory() = test {
+    fun anEarlierConversationIsContinuedWithItsHistory() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher()
         val history = mutableListOf<SessionUpdate>()
         val conversation = agent(launcher).resumeConversation(SessionId("earlier"), workingDirectory, onHistory = { history += it })
@@ -363,12 +362,12 @@ class AcpAgentTest {
     }
 
     @Test
-    fun anAgentThatCantLoadConversationsCantContinueOne() = test {
+    fun anAgentThatCantLoadConversationsCantContinueOne() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         assertFailsWith<ConversationLostException> { agent(launcher { FakeAgent(supportsLoading = false) }).resumeConversation(SessionId("earlier"), workingDirectory) }
     }
 
     @Test
-    fun closingAConversationWhileTheAgentStopsReturnsNormally() = test {
+    fun closingAConversationWhileTheAgentStopsReturnsNormally() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val isClosing = CompletableDeferred<Unit>()
         val launcher = launcher {
             FakeAgent(
@@ -388,7 +387,7 @@ class AcpAgentTest {
     }
 
     @Test
-    fun aConversationTheAgentNeverClosesIsLeftAfterTheWait() = test {
+    fun aConversationTheAgentNeverClosesIsLeftAfterTheWait() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher { FakeAgent(sessionClose = { awaitCancellation() }) }
         val agent = agent(launcher, conversationCloseWait = 200.milliseconds)
         val conversation = agent.newConversation(workingDirectory)
