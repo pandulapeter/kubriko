@@ -23,8 +23,9 @@ import java.io.File
 internal class SavedConversationStore(
     file: File,
     private val conversationsPerProject: Int = 20,
+    readText: (File) -> String = File::readText,
 ) {
-    private val store = JsonFileStore(file, ListSerializer(SavedConversation.serializer()))
+    private val store = JsonFileStore(file, ListSerializer(SavedConversation.serializer()), readText = readText)
 
     /**
      * The conversations about [project] held by the agent [agentId], newest first.
@@ -37,9 +38,11 @@ internal class SavedConversationStore(
      */
     @Synchronized
     fun save(conversation: SavedConversation) {
-        val others = read().filterNot { it.id == conversation.id && it.agentId == conversation.agentId }
-        val project = (others.filter { it.project == conversation.project } + conversation).sortedByDescending { it.updatedAt }.take(conversationsPerProject)
-        store.write(others.filterNot { it.project == conversation.project } + project)
+        store.update { current ->
+            val others = current.orEmpty().filterNot { it.id == conversation.id && it.agentId == conversation.agentId }
+            val project = (others.filter { it.project == conversation.project } + conversation).sortedByDescending { it.updatedAt }.take(conversationsPerProject)
+            others.filterNot { it.project == conversation.project } + project
+        }
     }
 
     private fun read() = store.read().valueOrNull().orEmpty()

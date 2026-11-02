@@ -100,4 +100,40 @@ class JsonFileStoreTest {
         assertFalse(backup.exists())
         assertTrue(bytes.contentEquals(file.readBytes()))
     }
+
+    @Test
+    fun anUpdateChangesTheValueInTheFile() {
+        assertTrue(store().write(listOf("a")))
+        assertTrue(store().update { current -> current.orEmpty() + "b" })
+        assertEquals(JsonFileStore.Read.Found(listOf("a", "b")), store().read())
+    }
+
+    @Test
+    fun anUpdateReturningNullLeavesTheFile() {
+        assertTrue(store().write(listOf("a")))
+        assertFalse(store().update { null })
+        assertEquals(JsonFileStore.Read.Found(listOf("a")), store().read())
+    }
+
+    @Test
+    fun anUpdateOverGarbageStartsFromNothingAndSetsItAside() {
+        writeGarbage()
+        assertTrue(store().update { current -> current.orEmpty() + "new" })
+        assertEquals("{ not a list", backup.readText())
+        assertEquals(JsonFileStore.Read.Found(listOf("new")), store().read())
+    }
+
+    @Test
+    fun anUpdateOfAFileThatCantBeReadIsntMade() {
+        assertTrue(store().write(listOf("kept")))
+        var isCalled = false
+        val store = JsonFileStore(file, serializer, readText = { throw IOException("The file is locked.") })
+        val isWritten = store.update {
+            isCalled = true
+            listOf("new")
+        }
+        assertFalse(isWritten)
+        assertFalse(isCalled)
+        assertEquals(JsonFileStore.Read.Found(listOf("kept")), store().read())
+    }
 }

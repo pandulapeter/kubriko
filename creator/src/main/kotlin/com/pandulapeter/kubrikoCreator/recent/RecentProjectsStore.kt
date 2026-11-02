@@ -24,23 +24,37 @@ import java.io.File
 internal class RecentProjectsStore(
     file: File,
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
+    readText: (File) -> String = File::readText,
 ) {
-    private val store = JsonFileStore(file, ListSerializer(RecentProject.serializer()))
+    private val store = JsonFileStore(file, ListSerializer(RecentProject.serializer()), readText = readText)
 
     private val lock = Any()
 
     fun load(): List<RecentProject> = synchronized(lock) { read() }
 
+    /**
+     * Puts the project in [directory] on top, returning the list, or only that project while the file can't be read.
+     */
     fun add(directory: File, name: String): List<RecentProject> = synchronized(lock) {
         val path = directory.absoluteFile.normalize().path
-        (listOf(RecentProject(path = path, name = name, lastOpened = currentTimeMillis())) + read().filter { it.path != path })
-            .take(MAXIMUM_COUNT)
-            .also(store::write)
+        val added = RecentProject(path = path, name = name, lastOpened = currentTimeMillis())
+        var projects = listOf(added)
+        store.update { current -> (listOf(added) + current.newestFirst().filter { it.path != path }).take(MAXIMUM_COUNT).also { projects = it } }
+        projects
     }
 
-    fun remove(path: String): List<RecentProject> = synchronized(lock) { read().filter { it.path != path }.also(store::write) }
+    /**
+     * Forgets the project at [path], returning the list, or an empty one while the file can't be read.
+     */
+    fun remove(path: String): List<RecentProject> = synchronized(lock) {
+        var projects = emptyList<RecentProject>()
+        store.update { current -> current.newestFirst().filter { it.path != path }.also { projects = it } }
+        projects
+    }
 
-    private fun read() = store.read().valueOrNull()?.sortedByDescending { it.lastOpened }.orEmpty()
+    private fun read() = store.read().valueOrNull().newestFirst()
+
+    private fun List<RecentProject>?.newestFirst() = this?.sortedByDescending { it.lastOpened }.orEmpty()
 
     companion object {
         const val MAXIMUM_COUNT = 10

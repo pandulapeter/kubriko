@@ -12,24 +12,34 @@ package com.pandulapeter.kubrikoCreator.mcp
 import com.pandulapeter.kubrikoCreator.foundation.JsonFileStore
 import com.pandulapeter.kubrikoCreator.foundation.restrictToOwner
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
-import com.pandulapeter.kubrikoCreator.foundation.valueOrNull
 import java.io.File
 import java.io.IOException
 
 /**
- * Keeps [McpSettings] in [file]. A missing or unreadable file means the defaults with a new random token; a file
- * that can't be decoded is kept as `mcp.json.bak`, readable by its owner only, so its token can be recovered by hand. A save
- * that can't be written leaves the settings applying until Kubriko Creator quits.
+ * Keeps [McpSettings] in [file]. A missing or undecodable file means the defaults with a new random token; a file
+ * that can't be decoded is kept as `mcp.json.bak`, readable by its owner only, so its token can be recovered by hand. A file
+ * that can't be read at all (locked by another program, say) is left alone, so its token works again once it can be read,
+ * and the new token applies until Kubriko Creator quits, as does a save that can't be written.
  */
 internal class McpSettingsStore(
     private val file: File,
+    readText: (File) -> String = File::readText,
     private val createToken: () -> String = ::randomToken,
 ) {
-    private val store = JsonFileStore(file, McpSettings.serializer(), isPrivate = true)
+    private val store = JsonFileStore(file, McpSettings.serializer(), isPrivate = true, readText = readText)
 
+    /**
+     * The settings in the file, or the defaults with a new token, saved unless the file couldn't be read at all.
+     */
     fun load(): McpSettings {
         narrowPermissions()
-        return store.read().valueOrNull()?.takeIf { it.token.isNotBlank() && it.port in McpSettings.portRange } ?: McpSettings(token = createToken()).also(::save)
+        var loaded: McpSettings? = null
+        store.update { current ->
+            val valid = current?.takeIf { it.token.isNotBlank() && it.port in McpSettings.portRange }
+            loaded = valid ?: McpSettings(token = createToken())
+            if (valid == null) loaded else null
+        }
+        return loaded ?: McpSettings(token = createToken())
     }
 
     fun save(settings: McpSettings) {

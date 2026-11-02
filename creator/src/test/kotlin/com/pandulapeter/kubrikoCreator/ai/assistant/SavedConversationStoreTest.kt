@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import java.io.File
+import java.io.IOException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -62,5 +63,23 @@ class SavedConversationStoreTest {
         store.save(saved("a", 1))
         assertEquals("{ not a list", File(directory, "conversations.json.bak").readText())
         assertEquals(listOf("a"), store.of(breakout, "claude-acp").map { it.id })
+    }
+
+    @Test
+    fun conversationsThatCantBeReadForAMomentArentReplaced() {
+        SavedConversationStore(file).apply {
+            save(saved("a", 1))
+            save(saved("b", 2))
+        }
+        SavedConversationStore(file, readText = lockedOnce()).save(saved("c", 3))
+        assertEquals(listOf("b", "a"), SavedConversationStore(file).of(breakout, "claude-acp").map { it.id })
+    }
+
+    /**
+     * Reads the file, failing the first time as if another program held it for a moment.
+     */
+    private fun lockedOnce(): (File) -> String {
+        var isLocked = true
+        return { file -> if (isLocked) throw IOException("Locked.").also { isLocked = false } else file.readText() }
     }
 }

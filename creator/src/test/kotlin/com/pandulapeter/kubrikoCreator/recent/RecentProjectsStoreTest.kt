@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.recent
 
 import java.io.File
+import java.io.IOException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -99,5 +100,23 @@ class RecentProjectsStoreTest {
         store.add(project("first"), "First")
         assertEquals("{ not a list", File(file.parentFile, "recent.json.bak").readText())
         assertEquals(listOf("First"), store.load().map { it.name })
+    }
+
+    @Test
+    fun aListThatCantBeReadForAMomentIsntReplaced() {
+        store.add(project("first"), "First")
+        store.add(project("second"), "Second")
+        RecentProjectsStore(file, currentTimeMillis = { ++time }, readText = lockedOnce()).add(project("third"), "Third")
+        assertEquals(listOf("Second", "First"), store.load().map { it.name })
+        RecentProjectsStore(file, currentTimeMillis = { ++time }, readText = lockedOnce()).remove(store.load().first().path)
+        assertEquals(listOf("Second", "First"), store.load().map { it.name })
+    }
+
+    /**
+     * Reads the file, failing the first time as if another program held it for a moment.
+     */
+    private fun lockedOnce(): (File) -> String {
+        var isLocked = true
+        return { file -> if (isLocked) throw IOException("Locked.").also { isLocked = false } else file.readText() }
     }
 }

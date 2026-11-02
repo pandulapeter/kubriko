@@ -44,9 +44,18 @@ internal class JsonFileStore<T>(
     /**
      * Writes [value], returning false when the file was left as it was.
      */
-    fun write(value: T): Boolean {
+    fun write(value: T): Boolean = update { value }
+
+    /**
+     * Writes what [change] makes of the value in the file, read once, so that a value built from an earlier [read] can't
+     * replace what that read missed. [change] gets null for a missing file and for one whose content was broken (moved
+     * aside first), and returns null to leave the file as it is. It isn't called while the file can't be read at all.
+     * Returns whether the file was written.
+     */
+    fun update(change: (current: T?) -> T?): Boolean {
         val current = read()
         if (current is Read.Unreadable && (!current.isContentBroken || !setAside())) return false
+        val value = change(current.valueOrNull()) ?: return false
         return try {
             file.parentFile?.mkdirs()
             file.writeTextAtomically(json.encodeToString(serializer, value), isPrivate)

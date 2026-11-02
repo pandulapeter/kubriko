@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.mcp
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
 import org.junit.Assume.assumeTrue
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
 import kotlin.io.path.createTempDirectory
@@ -102,5 +103,20 @@ class McpSettingsStoreTest {
         val tokens = List(5) { McpSettingsStore(file).newToken() }
         assertEquals(5, tokens.toSet().size)
         assertEquals(true, tokens.all { it.length >= 40 })
+    }
+
+    @Test
+    fun aTokenThatCantBeReadForAMomentIsntReplaced() {
+        store.save(McpSettings(isEnabled = true, port = 9000, token = "abc"))
+        McpSettingsStore(file, createToken = { "new" }, readText = lockedOnce()).load()
+        assertEquals(McpSettings(isEnabled = true, port = 9000, token = "abc"), McpSettingsStore(file).load())
+    }
+
+    /**
+     * Reads the file, failing the first time as if another program held it for a moment.
+     */
+    private fun lockedOnce(): (File) -> String {
+        var isLocked = true
+        return { file -> if (isLocked) throw IOException("Locked.").also { isLocked = false } else file.readText() }
     }
 }
