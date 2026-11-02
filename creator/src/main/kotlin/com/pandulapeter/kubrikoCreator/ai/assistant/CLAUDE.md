@@ -24,7 +24,8 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   (`PermissionHandler.allowingCreatorTools`), recognized however the agent names them (`CreatorToolName`).
 - **Tools per conversation:** the assistant's `McpToolServer` has no outside token; each conversation gets an address and token of
   its own, and closing it turns those tools off. Conversations end when the project closes or changes, since their tools work on
-  whatever project is open.
+  whatever project is open. Ending them, replacing the agent, and listing the saved conversations run as one sequence (a restart, a
+  project change, AI turned off), which a conversation opened meanwhile waits for, so it always starts on the agent chosen last.
 - **Signing in never passes through Creator:** the agent signs in by itself, a terminal method runs in the agent's environment so it
   signs in to the same configuration, and the API key lives in the system's secret store, passed to the secret tool on standard
   input (never its arguments) and to the agent only as `ANTHROPIC_API_KEY`. Claude Agent reports a new identity only at the next

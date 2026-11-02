@@ -37,20 +37,29 @@ import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.types.ImageContent
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import java.io.IOException
+import java.net.InetAddress
+import java.net.ServerSocket
 import java.util.Base64
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class McpToolServerTest {
     private val token = "secret-token"
@@ -78,6 +87,31 @@ class McpToolServerTest {
             client.block()
         } finally {
             client.close()
+        }
+    }
+
+    @Test
+    fun aServerStoppedWhileStartingStopsListening() = runBlocking(Dispatchers.IO) {
+        withTimeout(10.seconds) {
+            val port = ServerSocket(0).use { it.localPort }
+            val isStarting = CompletableDeferred<Unit>()
+            val gate = CompletableDeferred<Unit>()
+            val started = McpToolServer(
+                executor = { null },
+                callDispatcher = Dispatchers.Default,
+                version = "1.0.0",
+                beforeEngineStart = {
+                    isStarting.complete(Unit)
+                    gate.await()
+                },
+            )
+            server = started
+            val starting = async { runCatching { started.start(port, token) } }
+            isStarting.await()
+            started.stop()
+            gate.complete(Unit)
+            assertIs<IOException>(starting.await().exceptionOrNull())
+            ServerSocket(port, 1, InetAddress.getByName(McpToolServer.HOST)).close()
         }
     }
 

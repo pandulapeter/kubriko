@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.File
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -37,13 +39,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class AssistantControllerTest {
     private val mainThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val scope = CoroutineScope(SupervisorJob() + mainThread)
     private val isSignedIn = AtomicBoolean(true)
-    private val launcher = FakeAgentLauncher({ FakeAgent(isSignedIn = isSignedIn) })
+    private val nextAgents = ConcurrentLinkedQueue<FakeAgent>()
+    private val launcher = FakeAgentLauncher({ nextAgents.poll() ?: FakeAgent(isSignedIn = isSignedIn) })
     private val secrets = FakeSecretStore()
     private val terminals = FakeTerminalLauncher()
     private val runner = FakeProcessRunner(installed = mutableSetOf("npx"))
@@ -80,7 +84,7 @@ class AssistantControllerTest {
             profiles += profile
             commands += command
             Assistant(
-                agent = AcpAgent(command, launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO),
+                agent = AcpAgent(command, launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO, conversationCloseWait = 300.milliseconds),
                 toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
                 ioDispatcher = Dispatchers.IO,
                 profile = profile,
@@ -315,6 +319,57 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun switchingAgentsWhileAConversationIsClosingStartsTheNewAgentAndListsItsConversations() = test {
+        nextAgents += FakeAgent(isSignedIn = isSignedIn, sessionClose = { awaitCancellation() })
+        val registry = registry(CODEX)
+        registry.refresh()
+        val earlier = SavedConversation(projectDirectory.absolutePath, "codex-acp", "earlier", "Earlier", 500)
+        SavedConversationStore(File(settingsDirectory, "conversations.json")).save(earlier)
+        val controller = controller(registry)
+        controller.startChat().state.first { it == ChatState.Ready }
+        val codex = controller.agents.first { agents -> agents.any { it.id == "codex-acp" } }.single { it.id == "codex-acp" }
+        onMain { controller.selectAgent(AgentChoice.Registry(codex)) }
+        controller.currentChat.value!!.state.first { it == ChatState.Ready }
+        assertEquals(listOf("--yes", "@zed-industries/codex-acp@2.4.0"), commands.last().arguments)
+        assertEquals(listOf(earlier), controller.savedConversations.first { it.isNotEmpty() })
+        withTimeout(5.seconds) { while (!launcher.channels.first().isStopped) delay(10) }
+    }
+
+    @Test
+    fun aConversationOpenedWhileTheProjectChangesStartsOnAFreshAgent() = test {
+        val controller = controller()
+        controller.startChat().state.first { it == ChatState.Ready }
+        val chat = onMain {
+            controller.setProject(File("/projects/other"))
+            controller.newChat()
+            controller.currentChat.value!!
+        }
+        chat.state.first { it == ChatState.Ready }
+        withTimeout(5.seconds) { while (!launcher.channels.first().isStopped) delay(10) }
+        delay(200)
+        assertEquals(ChatState.Ready, chat.state.value)
+        assertEquals(2, launcher.channels.size)
+    }
+
+    @Test
+    fun twoSwitchesInARowEndOnTheLastAgent() = test {
+        val registry = registry(CODEX, GEMINI)
+        registry.refresh()
+        val controller = controller(registry)
+        controller.startChat().state.first { it == ChatState.Ready }
+        val agents = controller.agents.first { it.size == 3 }
+        onMain {
+            controller.selectAgent(AgentChoice.Registry(agents.single { it.id == "codex-acp" }))
+            controller.selectAgent(AgentChoice.Registry(agents.single { it.id == "gemini" }))
+        }
+        val chat = controller.chats.value.single()
+        chat.state.first { it == ChatState.Ready }
+        assertTrue("@google/gemini-cli@1.0.0" in launcher.commands.last().arguments)
+        withTimeout(5.seconds) { while (launcher.channels.count { !it.isStopped } > 1) delay(10) }
+        assertFalse(launcher.channels.last().isStopped)
+    }
+
+    @Test
     fun endingAConversationShowsTheOneBefore() = test {
         val controller = controller()
         val first = controller.startChat()
@@ -483,6 +538,7 @@ class AssistantControllerTest {
     private companion object {
         const val CODEX = """{"id": "codex-acp", "name": "Codex", "version": "2.4.0", "distribution": {"npx": {"package": "@zed-industries/codex-acp@2.4.0"}}}"""
         const val ANTIGRAVITY = """{"id": "antigravity-acp", "name": "Google Antigravity", "version": "1.4.5", "distribution": {"binary": {"darwin-aarch64": {"archive": "https://dl.google.com/agy_acp_server.par", "cmd": "./agy_acp_server.par"}}}}"""
+        const val GEMINI = """{"id": "gemini", "name": "Gemini CLI", "version": "1.0.0", "distribution": {"npx": {"package": "@google/gemini-cli@1.0.0"}}}"""
         const val FAST_AGENT = """{"id": "fast-agent", "name": "fast-agent", "version": "0.10.1", "distribution": {"uvx": {"package": "fast-agent-acp==0.10.1"}}}"""
     }
 }

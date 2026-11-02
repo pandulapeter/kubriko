@@ -73,12 +73,14 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @param executor The command executor of the open project, or null if none is open.
  * @param callDispatcher Where tool calls run: the main thread, which the command history is confined to.
+ * @param beforeEngineStart Runs right before the engine starts listening; tests use it to stop the server meanwhile.
  */
 internal class McpToolServer(
     private val executor: () -> CommandExecutor?,
     private val callDispatcher: CoroutineDispatcher,
     private val version: String,
     private val registry: CommandRegistry = CommandRegistry.editor,
+    private val beforeEngineStart: suspend () -> Unit = {},
 ) {
     private val _calls = MutableStateFlow(emptyList<McpToolCall>())
 
@@ -86,6 +88,8 @@ internal class McpToolServer(
      * The tool calls made since Kubriko Creator started, oldest first.
      */
     val calls = _calls.asStateFlow()
+    private val lifecycle = Any()
+    private var generation = 0
     private var server: EmbeddedServer<*, *>? = null
     private val conversationTokens = ConcurrentHashMap<String, ByteArray>()
     private val conversationReads = ConversationReads()
@@ -106,7 +110,7 @@ internal class McpToolServer(
      *
      * @param token What outside clients need at [PATH], or null if only the assistant's conversations are served.
      * @return The port the server listens on.
-     * @throws java.io.IOException If the port can't be used.
+     * @throws java.io.IOException If the port can't be used, or [stop] was called while the server started.
      */
     suspend fun start(port: Int, token: String?): Int {
         stop()
@@ -129,21 +133,41 @@ internal class McpToolServer(
             if (token != null) mcpStreamableHttp(path = PATH) { createServer() }
             mcpStreamableHttp(path = "$CONVERSATIONS_PATH/{$CONVERSATION_PARAMETER}") { createServer(conversationId = call.parameters[CONVERSATION_PARAMETER]) }
         }
-        server = started
+        val own = synchronized(lifecycle) {
+            server = started
+            ++generation
+        }
         try {
+            beforeEngineStart()
             started.startSuspend(wait = false)
         } catch (exception: CancellationException) {
-            // The CIO engine reports a port it can't bind as a cancellation caused by the BindException.
+            // The CIO engine reports a port it can't bind, and starting after a stop(), as a cancellation.
+            val isStopped = isStoppedSince(own)
             stop()
             currentCoroutineContext().ensureActive()
+            if (isStopped) throw stoppedWhileStarting()
             throw generateSequence<Throwable>(exception) { it.cause }.filterIsInstance<IOException>().firstOrNull() ?: exception
+        }
+        if (isStoppedSince(own)) {
+            started.stop(gracePeriodMillis = 0, timeoutMillis = 1_000)
+            throw stoppedWhileStarting()
         }
         return started.engine.resolvedConnectors().first().port
     }
 
+    private fun isStoppedSince(generation: Int) = synchronized(lifecycle) { this.generation != generation }
+
+    private fun stoppedWhileStarting() = IOException("The server was stopped while it started.")
+
+    /**
+     * Stops serving, from any thread; a [start] running meanwhile then stops the server it starts as well.
+     */
     fun stop() {
-        server?.stop(gracePeriodMillis = 0, timeoutMillis = 1_000)
-        server = null
+        val stopped = synchronized(lifecycle) {
+            generation++
+            server.also { server = null }
+        }
+        stopped?.stop(gracePeriodMillis = 0, timeoutMillis = 1_000)
     }
 
     /**

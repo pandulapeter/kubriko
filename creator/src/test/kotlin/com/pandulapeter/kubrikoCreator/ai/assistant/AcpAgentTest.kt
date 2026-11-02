@@ -18,11 +18,13 @@ import com.agentclientprotocol.model.RequestPermissionOutcome
 import com.agentclientprotocol.model.SessionId
 import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.model.StopReason
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +46,8 @@ import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 
@@ -63,13 +67,14 @@ class AcpAgentTest {
 
     private fun launcher(fakeAgent: () -> FakeAgent = { FakeAgent() }) = FakeAgentLauncher(fakeAgent).also { launchers += it }
 
-    private fun agent(launcher: FakeAgentLauncher) = AcpAgent(
+    private fun agent(launcher: FakeAgentLauncher, conversationCloseWait: Duration = 2.seconds) = AcpAgent(
         command = AgentCommand("fake-agent", listOf("--acp")),
         launcher = launcher,
         clientInfo = AcpAgent.clientInfo("1.2.3"),
         scope = scope,
         ioDispatcher = Dispatchers.IO,
         timeSource = timeSource,
+        conversationCloseWait = conversationCloseWait,
     ).also { agents += it }
 
     private fun test(block: suspend CoroutineScope.() -> Unit) = runBlocking { withTimeout(TIMEOUT) { block() } }
@@ -360,6 +365,36 @@ class AcpAgentTest {
     @Test
     fun anAgentThatCantLoadConversationsCantContinueOne() = test {
         assertFailsWith<ConversationLostException> { agent(launcher { FakeAgent(supportsLoading = false) }).resumeConversation(SessionId("earlier"), workingDirectory) }
+    }
+
+    @Test
+    fun closingAConversationWhileTheAgentStopsReturnsNormally() = test {
+        val isClosing = CompletableDeferred<Unit>()
+        val launcher = launcher {
+            FakeAgent(
+                sessionClose = {
+                    isClosing.complete(Unit)
+                    awaitCancellation()
+                },
+            )
+        }
+        val agent = agent(launcher, conversationCloseWait = TIMEOUT)
+        val conversation = agent.newConversation(workingDirectory)
+        val closing = scope.async { agent.close(conversation) }
+        isClosing.await()
+        agent.close()
+        withTimeout(5.seconds) { closing.await() }
+        assertFalse(closing.isCancelled)
+    }
+
+    @Test
+    fun aConversationTheAgentNeverClosesIsLeftAfterTheWait() = test {
+        val launcher = launcher { FakeAgent(sessionClose = { awaitCancellation() }) }
+        val agent = agent(launcher, conversationCloseWait = 200.milliseconds)
+        val conversation = agent.newConversation(workingDirectory)
+        withTimeout(1.seconds) { agent.close(conversation) }
+        assertFalse(launcher.channels.single().isStopped)
+        assertIs<AgentState.Running>(agent.state.value)
     }
 
     private companion object {

@@ -20,6 +20,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -45,6 +46,9 @@ internal class Assistant(
 ) : AutoCloseable {
     private val serverStart = Mutex()
     private var port: Int? = null
+
+    @Volatile
+    private var isClosed = false
     private val toolConversations = ConcurrentHashMap<AgentConversation, String>()
     val authStatus get() = agent.authStatus
     val signInMethods get() = agent.signInMethods
@@ -151,13 +155,21 @@ internal class Assistant(
     }
 
     private suspend fun toolServerPort() = serverStart.withLock {
-        port ?: withContext(ioDispatcher) { toolServer.start(port = 0, token = null) }.also { port = it }
+        port ?: run {
+            if (isClosed) throw AgentClosedException()
+            try {
+                withContext(ioDispatcher) { toolServer.start(port = 0, token = null) }
+            } catch (exception: IOException) {
+                throw if (isClosed) AgentClosedException() else exception
+            }.also { port = it }
+        }
     }
 
     /**
      * Ends the agent and stops serving the tools.
      */
     override fun close() {
+        isClosed = true
         agent.close()
         toolServer.stop()
     }

@@ -49,4 +49,15 @@ internal sealed interface AgentChoice {
      * What the agent gets beyond the fallbacks: only Claude Agent has more.
      */
     val profile get() = if (isClaude) AgentProfile.claude else AgentProfile.fallback
+
+    companion object {
+
+        /**
+         * The agent [settings] remember, out of [agents]: Claude Agent if it isn't among them.
+         */
+        internal fun of(settings: AssistantSettings, agents: List<RegistryAgent>): AgentChoice = when (val id = settings.agentId) {
+            Custom.ID -> settings.customAgentCommand?.let(::Custom)
+            else -> agents.firstOrNull { it.id == id }?.let(::Registry)
+        } ?: Registry(RegistryAgent.claude)
+    }
 }

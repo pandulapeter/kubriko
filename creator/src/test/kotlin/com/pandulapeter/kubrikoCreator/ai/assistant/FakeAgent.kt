@@ -22,6 +22,7 @@ import com.agentclientprotocol.model.AuthMethod
 import com.agentclientprotocol.model.AuthMethodId
 import com.agentclientprotocol.model.AuthenticateResponse
 import com.agentclientprotocol.model.AvailableCommand
+import com.agentclientprotocol.model.CloseSessionResponse
 import com.agentclientprotocol.model.ContentBlock
 import com.agentclientprotocol.model.McpCapabilities
 import com.agentclientprotocol.model.PermissionOption
@@ -32,6 +33,8 @@ import com.agentclientprotocol.model.PlanEntryPriority
 import com.agentclientprotocol.model.PlanEntryStatus
 import com.agentclientprotocol.model.PromptResponse
 import com.agentclientprotocol.model.RequestPermissionOutcome
+import com.agentclientprotocol.model.SessionCapabilities
+import com.agentclientprotocol.model.SessionCloseCapabilities
 import com.agentclientprotocol.model.SessionConfigId
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigOptionValue
@@ -80,6 +83,8 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * @param supportsHttpMcp Whether the agent advertises taking HTTP MCP servers.
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
+ * @param sessionClose Run when a conversation is closed (`session/close`), which the agent then advertises; without
+ *   it, the agent can't close conversations.
  */
 internal class FakeAgent(
     private val supportsLoading: Boolean = true,
@@ -87,6 +92,7 @@ internal class FakeAgent(
     val exitsAtStart: Int? = null,
     private val answersInitialize: Boolean = true,
     private val isSignedIn: AtomicBoolean = AtomicBoolean(true),
+    private val sessionClose: (suspend () -> Unit)? = null,
 ) {
     val clientInfos = CopyOnWriteArrayList<ClientInfo>()
     val newSessions = CopyOnWriteArrayList<SessionCreationParameters>()
@@ -110,7 +116,11 @@ internal class FakeAgent(
             if (!answersInitialize) awaitCancellation()
             channel.writeError("Fake agent started.")
             return AgentInfo(
-                capabilities = AgentCapabilities(loadSession = supportsLoading, mcpCapabilities = McpCapabilities(http = supportsHttpMcp)),
+                capabilities = AgentCapabilities(
+                    loadSession = supportsLoading,
+                    mcpCapabilities = McpCapabilities(http = supportsHttpMcp),
+                    sessionCapabilities = SessionCapabilities(close = sessionClose?.let { SessionCloseCapabilities() }),
+                ),
                 authMethods = listOf(
                     AuthMethod.AgentAuth(AuthMethodId(AGENT_LOGIN), "Fake login"),
                     AuthMethod.TerminalAuth(
@@ -171,6 +181,11 @@ internal class FakeAgent(
         override suspend fun setConfigOption(configId: SessionConfigId, value: SessionConfigOptionValue, _meta: JsonElement?): SetSessionConfigOptionResponse {
             model = (value as SessionConfigOptionValue.StringValue).value
             return SetSessionConfigOptionResponse(configOptions)
+        }
+
+        override suspend fun close(_meta: JsonElement?): CloseSessionResponse {
+            sessionClose?.invoke()
+            return CloseSessionResponse()
         }
 
         override suspend fun postInitialize() {

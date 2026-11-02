@@ -28,9 +28,11 @@ import io.ktor.http.contentType
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.StreamableHttpClientTransport
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -55,9 +57,13 @@ class AssistantTest {
     private val agentFolders = createTempDirectory().toFile()
     private val assistant = assistant(profile)
 
-    private fun assistant(profile: AgentProfile, launcher: FakeAgentLauncher = this.launcher) = Assistant(
+    private fun assistant(
+        profile: AgentProfile,
+        launcher: FakeAgentLauncher = this.launcher,
+        beforeToolServerStart: suspend () -> Unit = {},
+    ) = Assistant(
         agent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO),
-        toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
+        toolServer = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0", beforeEngineStart = beforeToolServerStart),
         ioDispatcher = Dispatchers.IO,
         profile = profile,
         systemPrompt = { projectContext -> projectContext ?: SYSTEM_PROMPT },
@@ -109,6 +115,24 @@ class AssistantTest {
         assertEquals(CommandRegistry.editor.tools.size, toolCount(first))
         assertEquals(CommandRegistry.editor.tools.size, toolCount(second))
         assertEquals(HttpStatusCode.Unauthorized, status(first.url, second.headers.single().value))
+    }
+
+    @Test
+    fun closingWhileTheToolServerStartsFailsTheConversationAsClosed() = test {
+        val isStarting = CompletableDeferred<Unit>()
+        val gate = CompletableDeferred<Unit>()
+        val assistant = assistant(
+            profile,
+            beforeToolServerStart = {
+                isStarting.complete(Unit)
+                gate.await()
+            },
+        )
+        val starting = async { runCatching { assistant.newConversation(projectDirectory) } }
+        isStarting.await()
+        assistant.close()
+        gate.complete(Unit)
+        assertIs<AgentClosedException>(starting.await().exceptionOrNull())
     }
 
     @Test

@@ -17,7 +17,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +33,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -89,7 +90,7 @@ internal class AssistantController(
      * The registry's agents this computer can run, Claude Agent first.
      */
     val agents = _agents.asStateFlow()
-    private val _agent = MutableStateFlow(choiceOf(settings.value, _agents.value))
+    private val _agent = MutableStateFlow(AgentChoice.of(settings.value, _agents.value))
 
     /**
      * The agent the assistant runs.
@@ -129,6 +130,7 @@ internal class AssistantController(
     val currentChat = chatList.current
     private val assistantLock = Mutex()
     private val assistant = MutableStateFlow<Assistant?>(null)
+    private var lifecycle: Job? = null
     private val agentsLoaded = CompletableDeferred<Unit>()
     private val commands = AgentCommands(runner, installer, home, ioDispatcher, node)
     private val agentVariables = AgentVariableStore(secrets)
@@ -294,14 +296,11 @@ internal class AssistantController(
         }
         val command = method.terminal
         if (command == null) {
+            // The agent reports a failure through the next prompt, which still asks for a sign-in.
             scope.launch {
-                try {
+                runIgnoringFailure {
                     assistant().authenticate(method)
                     chats.value.forEach { it.resendAfterSignIn() }
-                } catch (exception: CancellationException) {
-                    if (!currentCoroutineContext().isActive) throw exception
-                } catch (_: Exception) {
-                    // The agent reports the failure through the next prompt, which still asks for a sign-in.
                 }
             }
             return
@@ -409,23 +408,41 @@ internal class AssistantController(
     }
 
     private fun restartAgent() {
-        endChats()
-        scope.launch { replaceAssistant() }
+        endChats(isAgentReplaced = true)
         newChat()
     }
 
-    private fun endChats() {
+    private fun endChats(isAgentReplaced: Boolean = false) {
         val ended = chatList.takeAll()
-        scope.launch {
-            ended.forEach { it.close() }
+        val owner = assistant.value
+        afterPending {
+            ended.forEach { chat -> runIgnoringFailure { chat.close() } }
             // The agent's client keeps the IDs of conversations it couldn't close, and continuing one needs it to let go.
-            if (ended.isNotEmpty() && assistant.value?.canCloseConversations == false) replaceAssistant()
+            if (isAgentReplaced) replaceAssistant() else if (ended.isNotEmpty() && owner?.canCloseConversations == false) replaceAssistant(expected = owner)
             chatList.refreshSaved(project, _agent.value.id)
         }
     }
 
-    private suspend fun replaceAssistant() {
-        val replaced = assistantLock.withLock { assistant.value.also { assistant.value = null } } ?: return
+    /** Runs [block] after the steps queued before it, so that they never interleave; a failing step doesn't stop the next. */
+    private fun afterPending(block: suspend () -> Unit) {
+        val previous = lifecycle
+        lifecycle = scope.launch {
+            previous?.join()
+            runIgnoringFailure { block() }
+        }
+    }
+
+    private suspend fun runIgnoringFailure(block: suspend () -> Unit) = try {
+        block()
+    } catch (_: CancellationException) {
+        currentCoroutineContext().ensureActive()
+    } catch (_: Exception) {
+    }
+
+    private suspend fun replaceAssistant(expected: Assistant? = null) {
+        val replaced = assistantLock.withLock {
+            assistant.value?.takeIf { expected == null || it === expected }?.also { assistant.value = null }
+        } ?: return
         withContext(ioDispatcher) { replaced.close() }
     }
 
@@ -445,17 +462,20 @@ internal class AssistantController(
 
     private fun updateAgents(agents: List<RegistryAgent>) {
         _agents.value = agents
-        if (assistant.value == null) _agent.value = choiceOf(settings.value, _agents.value)
+        if (assistant.value == null) _agent.value = AgentChoice.of(settings.value, _agents.value)
     }
 
-    private suspend fun assistant(): Assistant = assistantLock.withLock {
-        check(isAiEnabled.value) { "AI features are off." }
-        assistant.value ?: run {
-            agentsLoaded.await()
-            val choice = _agent.value
-            val npx = commands.npx()
-            val environment = if (choice.isClaude) claude.environment() else withContext(ioDispatcher) { agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty()) }
-            createAssistant(commands.of(choice, npx, environment), npx, choice.profile).also { assistant.value = it }
+    private suspend fun assistant(): Assistant {
+        while (lifecycle?.isCompleted == false) lifecycle?.join()
+        return assistantLock.withLock {
+            check(isAiEnabled.value) { "AI features are off." }
+            assistant.value ?: run {
+                agentsLoaded.await()
+                val choice = _agent.value
+                val npx = commands.npx()
+                val environment = if (choice.isClaude) claude.environment() else withContext(ioDispatcher) { agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty()) }
+                createAssistant(commands.of(choice, npx, environment), npx, choice.profile).also { assistant.value = it }
+            }
         }
     }
 
@@ -463,10 +483,9 @@ internal class AssistantController(
      * Ends every conversation, the sign-in, and the agent, when AI features are turned off.
      */
     private fun turnOff() {
-        endChats()
         _variablesForm.value = null
         closeSignIn()
-        scope.launch { replaceAssistant() }
+        endChats(isAgentReplaced = true)
     }
 
     /**
@@ -476,16 +495,5 @@ internal class AssistantController(
         _signIn.value?.let { session -> scope.launch { session.stop() } }
         assistant.value?.close()
         assistant.value = null
-    }
-
-    private companion object {
-
-        /**
-         * The agent [settings] remember, out of [agents]: Claude Agent if it isn't among them.
-         */
-        fun choiceOf(settings: AssistantSettings, agents: List<RegistryAgent>): AgentChoice = when (val id = settings.agentId) {
-            AgentChoice.Custom.ID -> settings.customAgentCommand?.let(AgentChoice::Custom)
-            else -> agents.firstOrNull { it.id == id }?.let(AgentChoice::Registry)
-        } ?: AgentChoice.Registry(RegistryAgent.claude)
     }
 }

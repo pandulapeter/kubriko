@@ -54,6 +54,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import java.io.File
 import java.io.IOException
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
@@ -67,6 +68,7 @@ import kotlin.time.TimeSource
  *
  * @param scope Where the agent's connection runs; cancelling it ends the agent.
  * @param errorLog Where every process's standard error is kept for the user.
+ * @param conversationCloseWait How long closing a conversation waits for the agent to answer `session/close`.
  */
 internal class AcpAgent(
     private val command: AgentCommand,
@@ -76,6 +78,7 @@ internal class AcpAgent(
     private val ioDispatcher: CoroutineDispatcher,
     private val timeSource: TimeSource = TimeSource.Monotonic,
     private val errorLog: AgentErrorLog? = null,
+    private val conversationCloseWait: Duration = CLOSE_WAIT,
 ) : AutoCloseable {
     private val _state = MutableStateFlow<AgentState>(AgentState.Stopped)
     val state = _state.asStateFlow()
@@ -207,10 +210,14 @@ internal class AcpAgent(
             conversation.currentSession().takeIf { connection?.info?.capabilities?.sessionCapabilities?.close != null }
         }
         conversation.markLost()
-        try {
-            session?.close()
-        } catch (exception: Exception) {
-            if (exception is CancellationException) throw exception
+        withTimeoutOrNull(conversationCloseWait) {
+            try {
+                session?.close()
+            } catch (exception: CancellationException) {
+                // The SDK fails the request with a cancellation of its own when the agent stops meanwhile.
+                if (!currentCoroutineContext().isActive) throw exception
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -365,6 +372,7 @@ internal class AcpAgent(
         private const val MAXIMUM_RESTARTS = 3
         private val STABLE_UPTIME = 30.seconds
         private val EXIT_WAIT = 2.seconds
+        private val CLOSE_WAIT = 2.seconds
 
         /**
          * What Kubriko Creator, at [version], tells agents about itself: protocol version 1, and terminal sign-in.
