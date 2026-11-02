@@ -150,6 +150,11 @@ message, each confined to its worktree. Cap concurrent Gradle builds (see the la
 lanes as earlier ones finish. A lane that builds on another lane's results is cut from the main checkout's `HEAD`
 after that lane merged, not from `START`; its cherry-pick range then starts at that base.
 
+**One agent carries a few plans, not a whole lane.** A lane agent runs out of room after about three to five large
+refactor steps (a split, a move, a new holder with its tests) and then stops half-way or skims. Give each agent at most
+five plans, three when they move or split files; a longer lane continues with a fresh agent in the same worktree,
+handed the previous agent's report and the lane's remaining plans.
+
 Every lane prompt keeps the lanes apart — subagents share the session scratchpad, and one lane once ran another's
 same-named helper scripts and committed into the wrong worktree:
 - scratch files go to `<scratchpad>/lane-<x>/` only, and no lane runs a script it did not write;
