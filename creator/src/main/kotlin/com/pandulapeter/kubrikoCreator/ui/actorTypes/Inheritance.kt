@@ -30,16 +30,20 @@ internal data class Inheritance(
         /**
          * The inheritance of [definition] among [types]; nothing for a Manager type.
          */
-        fun of(definition: BlockTypeDefinition, types: List<BlockTypeDefinition>): Inheritance {
+        fun of(
+            definition: BlockTypeDefinition,
+            types: List<BlockTypeDefinition>,
+            family: ActorTypeFamily = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()),
+        ): Inheritance {
             if (definition !is ActorTypeDefinition) return Inheritance()
             val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
-            val family = ActorTypeFamily(actorTypes)
+            val descendants = family.descendantsOf(definition.name).toSet()
             val ownNames = definition.properties.map { it.name }.toSet()
             val inheritedEvents = family.parentOf(definition.name)?.let(family::eventsOf).orEmpty()
             return Inheritance(
                 properties = family.propertiesOf(definition.name).filter { it.name !in ownNames },
                 events = with(ActorTypeFamily) { inheritedEvents.filter { inherited -> definition.events.none { it.replaces(inherited) } } },
-                parentChoices = actorTypes.map { it.name }.filter { it != definition.name && it !in family.descendantsOf(definition.name) },
+                parentChoices = actorTypes.map { it.name }.filter { it != definition.name && it !in descendants },
                 children = actorTypes.filter { it.parent == definition.name }.map { it.name }.sorted(),
             )
         }

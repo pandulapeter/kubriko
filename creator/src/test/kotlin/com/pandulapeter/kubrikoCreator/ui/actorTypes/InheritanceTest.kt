@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
@@ -46,6 +47,12 @@ class InheritanceTest {
         assertEquals(emptyList(), Inheritance.of(enemy, types).parentChoices)
         assertEquals(listOf("Enemy", "Bat"), Inheritance.of(vampire, types).parentChoices)
         assertEquals(Inheritance(), Inheritance.of(game, types))
+    }
+
+    @Test
+    fun aSharedFamilyGivesTheSameInheritance() {
+        val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
+        types.forEach { assertEquals(Inheritance.of(it, types), Inheritance.of(it, types, family = family)) }
     }
 
     @Test

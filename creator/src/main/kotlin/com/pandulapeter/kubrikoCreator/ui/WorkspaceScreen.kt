@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
@@ -121,6 +122,7 @@ internal fun WorkspaceScreen(
     val sceneFolders by controller.sceneFolders.collectAsState()
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
+    val family = remember(actorTypes) { ActorTypeFamily(actorTypes) }
     val openSceneName = (sceneEditing as? SceneEditingState.Open)?.sceneName
     val folderGroups = remember(blockTypes, blockTypeFolders, selectedBlockTypeName, sceneNames, sceneFolders, openSceneName, blockTypesController) {
         folderTreeGroups(
@@ -261,16 +263,17 @@ internal fun WorkspaceScreen(
                     BlockTypeEditor(
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                         definition = selectedBlockType,
-                        scope = remember(selectedBlockType, blockTypes, resources) {
+                        scope = remember(selectedBlockType, blockTypes, resources, family) {
                             BlockScope.of(
                                 definition = selectedBlockType,
                                 types = blockTypes,
                                 sceneNames = sceneNames,
                                 audioFiles = AudioFiles.of(resources),
+                                family = family,
                             )
                         },
                         sprites = remember(resources) { SpriteFiles.of(resources).paths },
-                    inheritance = remember(selectedBlockType, blockTypes) { Inheritance.of(selectedBlockType, blockTypes) },
+                        inheritance = remember(selectedBlockType, blockTypes, family) { Inheritance.of(selectedBlockType, blockTypes, family = family) },
                         isChangedByHand = selectedBlockType.name in blockTypesChangedByHand,
                         onCommand = { controller.commands.dispatch(it) },
                         onRename = { newName ->
