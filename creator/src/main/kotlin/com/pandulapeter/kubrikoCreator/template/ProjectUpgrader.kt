@@ -17,6 +17,8 @@ import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
+import com.pandulapeter.kubrikoCreator.project.withLineBreaksOf
+import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -101,8 +103,9 @@ internal class ProjectUpgrader(
         if (upgrade is TemplateUpgrade.Needed) {
             upgrade.changes.forEach { change ->
                 val file = File(rootDirectory, change.path)
-                if ((if (file.isFile) file.readText() else "") == change.before) {
-                    if (change.after == null) file.delete() else file.writeTextAtomically(change.after)
+                val raw = if (file.isFile) file.readText() else ""
+                if (raw.withUnixLineBreaks() == change.before) {
+                    if (change.after == null) file.delete() else file.writeTextAtomically(change.after.withLineBreaksOf(raw))
                 }
             }
         }
@@ -116,7 +119,7 @@ internal class ProjectUpgrader(
         if (recordedVersion()?.let { it < CURRENT_VERSION } == true && check() == TemplateUpgrade.UpToDate) recordVersion()
     }
 
-    private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()
+    private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()?.withUnixLineBreaks()
 
     private fun recordedVersion() = readSettings()?.let { it["templateVersion"]?.jsonPrimitive?.intOrNull ?: 1 }
 

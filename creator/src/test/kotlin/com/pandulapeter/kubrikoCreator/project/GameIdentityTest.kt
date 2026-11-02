@@ -59,6 +59,13 @@ class GameIdentityTest {
     }
 
     @Test
+    fun aPropertiesFileWithWindowsLineBreaksKeepsThem() {
+        val properties = File(root, "gradle.properties").apply { writeText("kotlin.code.style=official\r\ngame.name=Old\r\n") }
+        GameIdentity.write(root, identity)
+        assertEquals(identity.writtenTo("kotlin.code.style=official\ngame.name=Old\n").replace("\n", "\r\n"), properties.readText())
+    }
+
+    @Test
     fun writingChangesOnlyTheIdentitysLines() {
         val before = "kotlin.code.style=official\ngame.name=Old\n# a comment\ngame.versionNumber=7\n"
         assertEquals(

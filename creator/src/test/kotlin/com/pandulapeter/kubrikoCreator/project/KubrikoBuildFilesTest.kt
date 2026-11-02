@@ -119,6 +119,34 @@ class KubrikoBuildFilesTest {
     }
 
     @Test
+    fun aProjectWithWindowsLineBreaksKeepsThemAndIsNotRewritten() {
+        val files = listOf(catalog, build, settings)
+        files.forEach { it.writeText(it.readText().replace("\n", "\r\n")) }
+        files.forEach { it.setLastModified(1_000_000_000_000) }
+        val texts = files.map { it.readText() }
+        assertEquals(KubrikoBuildFileChanges(version = "0.9.0"), sync())
+        assertEquals(texts, files.map { it.readText() })
+        assertEquals(files.map { 1_000_000_000_000 }, files.map { it.lastModified() })
+        source("Ball.kt", "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware\n")
+        assertEquals(listOf("plugin-keyboard-input"), sync()?.addedArtifacts)
+        files.forEach { file ->
+            assertContains(file.readText(), "\r\n")
+            assertFalse(Regex("(?<!\r)\n").containsMatchIn(file.readText()), file.name)
+        }
+        assertContains(build.readText(), "implementation(libs.kubriko.keyboardInput)\r\n")
+    }
+
+    @Test
+    fun theMavenLocalBlockIsFoundInWindowsSettings() {
+        settings.writeText(SETTINGS.replace("\n", "\r\n"))
+        sync(version = "0.9.0-creator", useMavenLocal = true)
+        sync(version = "0.9.0-creator", useMavenLocal = true)
+        assertEquals(1, settings.readText().split("mavenLocal").size - 1)
+        sync(version = "0.9.0")
+        assertEquals(SETTINGS.replace("\n", "\r\n"), settings.readText())
+    }
+
+    @Test
     fun theAudioPluginBringsJitPackForItsMp3DecoderAndTakesItAlongWhenItGoes() {
         val audio = source("GeneratedAudio.kt", "import com.pandulapeter.kubriko.audioPlayback.MusicManager\n")
         sync(version = "0.9.0-creator", useMavenLocal = true)

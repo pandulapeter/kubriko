@@ -108,7 +108,8 @@ internal data class GameIdentity(
 
         fun write(rootDirectory: File, identity: GameIdentity) {
             val file = File(rootDirectory, GRADLE_PROPERTIES_FILE)
-            file.writeTextAtomically(identity.writtenTo(if (file.isFile) file.readText() else ""))
+            val raw = if (file.isFile) file.readText() else ""
+            file.writeTextAtomically(identity.writtenTo(raw.withUnixLineBreaks()).withLineBreaksOf(raw))
         }
 
         fun isReadByBuild(rootDirectory: File) = File(rootDirectory, BUILD_FILE).takeIf { it.isFile }?.readText()?.let { NAME in it } == true

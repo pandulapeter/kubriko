@@ -126,6 +126,18 @@ class ProjectUpgraderTest {
     }
 
     @Test
+    fun anOldProjectWithWindowsLineBreaksIsUpgradedKeepingThem() {
+        makeItOld()
+        val files = listOf(File(packageDirectory, "Game.kt"), File(packageDirectory, "GameEntryPoint.kt"), mainFile, sceneLoaderFile)
+        files.forEach { it.writeText(it.readText().replace("\n", "\r\n")) }
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newGame.replace("\n", "\r\n"), File(packageDirectory, "Game.kt").readText())
+        assertEquals(newEntryPoint.replace("\n", "\r\n"), File(packageDirectory, "GameEntryPoint.kt").readText())
+        assertEquals(newMain.replace("\n", "\r\n"), mainFile.readText())
+        assertFalse(sceneLoaderFile.exists())
+    }
+
+    @Test
     fun upgradingAVersion2ProjectHandsTheFirstSceneToTheGeneratedManagers() {
         makeItVersion2()
         val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())

@@ -143,7 +143,7 @@ lives in `plan/` (start with `plan/README.md`).
   touched). It also raises the catalog's `kubriko` version to Creator's own (one newer than Creator's is kept and reported once), and adds
   or removes its Maven Local block in `settings.gradle.kts` with `useMavenLocal`, and a JitPack block (limited to
   `com.github.umjammer`) with the audio plugin, whose desktop library needs JLayer from there. The edits are line-based (`VersionCatalog`,
-  `BuildScript`) and leave every other line alone; files without the template's shape (a `kubriko` version, a `commonMain.dependencies`
+  `BuildScript`) and leave every other line alone, and the file's line breaks (`LineBreaks`); files without the template's shape (a `kubriko` version, a `commonMain.dependencies`
   block) are left alone entirely. Changes are reported in the console. Projects that aren't opted in are never changed.
 
 ## Commands

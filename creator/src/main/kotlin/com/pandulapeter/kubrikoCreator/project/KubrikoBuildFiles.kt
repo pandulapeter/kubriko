@@ -84,10 +84,10 @@ internal class KubrikoBuildFiles(
 
     private class SourceArtifacts(val length: Long, val lastModified: Long, val artifacts: Set<KubrikoArtifact>)
 
-    private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()
+    private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()?.withUnixLineBreaks()
 
     private fun write(path: String, before: String, after: String) {
-        if (after != before) File(rootDirectory, path).writeTextAtomically(after)
+        if (after != before) File(rootDirectory, path).let { it.writeTextAtomically(after.withLineBreaksOf(it.readText())) }
     }
 
     companion object {
