@@ -13,8 +13,11 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_type_name_reserved
 import kubriko.creator.generated.resources.error_type_name_taken
+import java.io.File
+import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class BlockTypeNamingTest {
@@ -51,6 +54,30 @@ class BlockTypeNamingTest {
         )
         (imported + listOf("Float", "String", "Unit", "CollisionManager")).forEach {
             assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it)
+        }
+    }
+
+    @Test
+    fun everyClassTheEveryBlockProjectsGeneratedCodeImportsIsReserved() {
+        val root = createTempDirectory().toFile()
+        try {
+            File(root, ".kubriko/project.json").apply { parentFile.mkdirs() }.writeText("""{ "packageName": "com.example.integration" }""")
+            File(root, "src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.createNewFile()
+            val store = assertNotNull(BlockTypeStore.open(root))
+            EveryBlockTypes.all.forEach(store::save)
+            store.regenerateAll()
+            val written = EveryBlockTypes.all.flatMap { type ->
+                type.events.flatMap { it.blocks }.filterIsInstance<BlockDefinition.Kotlin>().map { it.code } + listOfNotNull((type as? ManagerTypeDefinition)?.kotlinUi)
+            }.flatMapTo(HashSet()) { KotlinUi.splitImports(it).first }
+            val imported = File(root, store.generatedPath).walkTopDown().filter { it.isFile }
+                .flatMap { file -> file.readLines().filter { it.startsWith("import ") }.map { it.removePrefix("import ") } }
+                .filter { it !in written }
+                .map { it.substringAfterLast('.') }
+                .filter { it.first().isUpperCase() }
+                .toSortedSet()
+            imported.forEach { assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it) }
+        } finally {
+            root.deleteRecursively()
         }
     }
 
