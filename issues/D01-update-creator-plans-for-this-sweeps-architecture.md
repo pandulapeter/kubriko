@@ -12,7 +12,7 @@
 **Challenged:** amended — named the plans and types the conditions hang on as they are planned: G02 makes `BlockKind` the descriptor (there is no `BlockDescriptor`), K01c is the name-to-file index, and G04 brings imports per file.
 
 **Kind:** docs  ·  **Severity:** low  ·  **Platforms:** all
-**Findings:** ARCH-10 (per-save rescan), INF-10b/ARCH-4, CMD-9, CMD-10, ACT-2/ACT-3/ACT-4 (via G02–G05), INF-2/ARCH-3 (via K01), UI-3/UI-11/UI-14 (via H plans)  ·  **Depends on:** every other plan of this sweep (T, S, A, G, K, H, P, M lanes)
+**Findings:** ARCH-10 (per-save rescan), INF-10b/ARCH-4, CMD-9, CMD-10, ACT-2/ACT-3/ACT-4 (via G02–G05), INF-2/ARCH-3 (via K01), UI-3/UI-11/UI-14 (via H plans)  ·  **Depends on:** every other plan of this sweep (T, S, A, G, K, H, P, M lanes); P02 edits `creator/plan/README.md` and `HANDOVER.md`, so land after it
 **Files:**
 - `creator/plan/01-large-projects.md`
 - `creator/plan/05-reuse-and-traits.md`
@@ -52,7 +52,7 @@ plans changed what several items cost or rest on, and some fixed items the plan 
 
 ## Fix
 
-Read each file at the HEAD you start from (F9 changed the README and HANDOVER; other sessions may have edited these files).
+Read each file at the HEAD you start from (P02 and F9 changed the README and HANDOVER; other sessions may have edited these files).
 For every conditional item, check the code and say in the commit's report which branch you took.
 
 1. **`01-large-projects.md` → Known costs.**

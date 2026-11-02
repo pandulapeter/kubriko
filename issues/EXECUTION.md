@@ -38,7 +38,7 @@ prompt.
 
 | Phase | Lane | Plans, in this order | Base |
 |---|---|---|---|
-| 1 | T | [T01, T04, T06], [P01] | `START` |
+| 1 | T | [T01, T04, T06], [P01, P02] | `START` |
 | 1 | S | [S03, S02, S01], [S04, S05] | `START` |
 | 1 | G | [G01, G02], [G03, G04], [G05, G07, G09], [G06, G08] | `START` |
 | 1 | A | [A01, A02a], [A02b, A03, A04], [T02a, T02b] | `START` |
