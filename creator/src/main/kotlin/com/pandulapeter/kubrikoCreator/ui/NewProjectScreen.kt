@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
@@ -99,12 +101,13 @@ internal fun NewProjectScreen(
                 }
             }
             Row(
+                modifier = Modifier.toggleable(value = form.isUnderVersionControl, role = Role.Checkbox) { form = form.copy(isUnderVersionControl = it) },
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(
                     checked = form.isUnderVersionControl,
-                    onCheckedChange = { form = form.copy(isUnderVersionControl = it) },
+                    onCheckedChange = null,
                 )
                 Text(
                     text = stringResource(Res.string.new_project_version_control),

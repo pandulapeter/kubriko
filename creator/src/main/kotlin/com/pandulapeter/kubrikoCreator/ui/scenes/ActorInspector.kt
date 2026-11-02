@@ -15,10 +15,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
@@ -29,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.floatOrNull
@@ -145,19 +144,12 @@ private fun PropertyValueField(
             onValueChange = { onChange(ActorValueChanges.PropertyValue(property.name, text = it)) },
             label = property.name,
         )
-        is PropertyDefinition.Toggle -> Row(
+        is PropertyDefinition.Toggle -> LabeledSwitch(
             modifier = Modifier.fillMaxWidth().padding(start = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                modifier = Modifier.weight(1f),
-                text = property.name,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Switch(
-                checked = saved?.booleanOrNull ?: property.initialValue,
-                onCheckedChange = { onChange(ActorValueChanges.PropertyValue(property.name, toggle = it)) },
-            )
-        }
+            label = property.name,
+            checked = saved?.booleanOrNull ?: property.initialValue,
+            onCheckedChange = { onChange(ActorValueChanges.PropertyValue(property.name, toggle = it)) },
+            labelStyle = MaterialTheme.typography.bodyMedium,
+        )
     }
 }

@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -174,17 +174,12 @@ private fun PropertyRow(
                 onValueChange = { onChange(property.copy(initialValue = it)) },
                 label = stringResource(Res.string.property_initial_value),
             )
-            is PropertyDefinition.Toggle -> {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = stringResource(Res.string.property_toggle_initially_on),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Switch(
-                    checked = property.initialValue,
-                    onCheckedChange = { onChange(property.copy(initialValue = it)) },
-                )
-            }
+            is PropertyDefinition.Toggle -> LabeledSwitch(
+                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(Res.string.property_toggle_initially_on),
+                checked = property.initialValue,
+                onCheckedChange = { onChange(property.copy(initialValue = it)) },
+            )
         }
     }
 }

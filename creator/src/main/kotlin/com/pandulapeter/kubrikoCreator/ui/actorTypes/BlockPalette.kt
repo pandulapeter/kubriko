@@ -34,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
@@ -122,7 +124,10 @@ private fun CategoryTabs(
     categories.forEach { category ->
         val isSelected = category == selected
         IconActionButton(
-            modifier = Modifier.clip(MaterialTheme.shapes.small).background(if (isSelected) category.accent.container else Color.Transparent),
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.small)
+                .background(if (isSelected) category.accent.container else Color.Transparent)
+                .semantics { this.selected = isSelected },
             icon = category.icon,
             label = category.title,
             onClick = { onSelected(category) },

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.accentEdge
@@ -155,11 +155,8 @@ private fun InlineParameters(
         ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
         OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
         if (scope.kind == BlockTypeKind.ACTOR) {
-            Text(
-                text = stringResource(Res.string.block_parameter_relative),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Switch(
+            LabeledSwitch(
+                label = stringResource(Res.string.block_parameter_relative),
                 checked = block.isRelative,
                 onCheckedChange = { onBlockChange(block.copy(isRelative = it)) },
             )
@@ -194,11 +191,8 @@ private fun InlineParameters(
             value = block.seconds,
             onValueChange = { if (it >= 0f) onBlockChange(block.copy(seconds = it)) },
         )
-        Text(
-            text = stringResource(Res.string.block_parameter_repeating),
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Switch(
+        LabeledSwitch(
+            label = stringResource(Res.string.block_parameter_repeating),
             checked = block.isRepeating,
             onCheckedChange = { onBlockChange(block.copy(isRepeating = it)) },
         )
@@ -211,11 +205,8 @@ private fun InlineParameters(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AudioFileChoice(block.music, scope.audioFiles?.music.orEmpty(), Res.string.block_music_choose) { onBlockChange(block.copy(music = it)) }
-        Text(
-            text = stringResource(Res.string.block_parameter_looping),
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Switch(
+        LabeledSwitch(
+            label = stringResource(Res.string.block_parameter_looping),
             checked = block.isLooping,
             onCheckedChange = { onBlockChange(block.copy(isLooping = it)) },
         )
