@@ -15,9 +15,14 @@ import kotlinx.coroutines.withContext
 /**
  * The digest of the open project, as it is now.
  */
-internal suspend fun CommandContext.projectDigest() = ProjectDigest.of(
+internal suspend fun CommandContext.projectDigest() = projectDigest(sceneTypeCounts())
+
+/**
+ * The digest of the open project, with the Scenes' Actor counts [sceneCounts] already read ([sceneTypeCounts]).
+ */
+internal suspend fun CommandContext.projectDigest(sceneCounts: Map<String, Map<String, Int>>) = ProjectDigest.of(
     projectName = project.name,
     types = blockTypes?.types?.value.orEmpty(),
-    sceneCounts = sceneTypeCounts(),
+    sceneCounts = sceneCounts,
     sceneDescriptions = withContext(ioDispatcher) { scenes.descriptions.all() },
 )

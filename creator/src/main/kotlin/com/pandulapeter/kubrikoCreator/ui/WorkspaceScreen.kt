@@ -24,7 +24,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
@@ -48,10 +47,6 @@ import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
-import com.pandulapeter.kubrikoCreator.context.HealthFinding
-import com.pandulapeter.kubrikoCreator.context.ProjectDigest
-import com.pandulapeter.kubrikoCreator.context.healthFindings
-import com.pandulapeter.kubrikoCreator.context.projectDigest
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
@@ -293,12 +288,7 @@ internal fun WorkspaceScreen(
                 }
                 if (openPanel == SidePanel.AI && isAiEnabled) {
                     VerticalDivider()
-                    val digest by produceState<ProjectDigest?>(null, aiPanelView, blockTypes, resources, sceneDescriptions, latestAiStep?.id, sceneEditing) {
-                        value = if (aiPanelView == AiPanelView.GAME_MAP) controller.commands.context.projectDigest() else null
-                    }
-                    val findings by produceState(emptyList<HealthFinding>(), aiPanelView, blockTypes, resources, latestAiStep?.id, sceneEditing) {
-                        value = if (aiPanelView == AiPanelView.GAME_MAP) controller.commands.context.healthFindings() else emptyList()
-                    }
+                    val gameMap = if (aiPanelView == AiPanelView.GAME_MAP) controller.gameMap.gameMap.collectAsState().value else null
                     val console = controller.console.collectAsState()
                     val acceptsImages = assistant.acceptsImages.collectAsState()
                     val attention by remember(openSceneName, selectedBlockType?.name, selectedBlockType is ManagerTypeDefinition, sessionState) {
@@ -328,8 +318,8 @@ internal fun WorkspaceScreen(
                                 else -> Unit
                             }
                         },
-                        digest = digest,
-                        findings = findings,
+                        digest = gameMap?.digest,
+                        findings = gameMap?.findings.orEmpty(),
                         onTypeSelected = { controller.selection.selectType(it) },
                         onSceneSelected = { controller.selection.openScene(it) },
                         attention = attention,
