@@ -312,8 +312,10 @@ internal class AssistantController(
                 SignInSession(method, withContext(ioDispatcher) { signInLauncher.launch(command) }, scope, ioDispatcher)
             } catch (_: IOException) {
                 null
-            }
-            _signIn.value = session ?: return@launch
+            } ?: return@launch
+            val displaced = _signIn.value
+            _signIn.value = session
+            displaced?.stop()
             if (session.exitCode.first { it != null } == 0 && _signIn.value === session) {
                 statusBeforeSignIn.value = authStatus.value
                 _signIn.value = null

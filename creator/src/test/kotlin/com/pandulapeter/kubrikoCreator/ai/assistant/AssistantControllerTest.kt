@@ -452,6 +452,21 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun aSecondSignInStopsTheFirst() = test {
+        val controller = controller()
+        controller.startChat().state.first { it == ChatState.Ready }
+        val method = controller.signInMethods.first { it.isNotEmpty() }.single { it.terminal != null }
+        onMain {
+            controller.signIn(method)
+            controller.signIn(method)
+        }
+        while (terminals.channels.size < 2 || terminals.channels.none { it.isStopped }) delay(10)
+        assertEquals(1, terminals.channels.count { it.isStopped })
+        delay(100)
+        assertNull(controller.signIn.value!!.exitCode.value)
+    }
+
+    @Test
     fun anAgentSignInIsAskedOfTheAgent() = test {
         isSignedIn.set(false)
         val controller = controller()
