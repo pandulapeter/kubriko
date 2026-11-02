@@ -225,6 +225,17 @@ class CommandExecutorTest {
     }
 
     @Test
+    fun anOutsideAiClientsChangeIsNotUndoneWithTheUsers() = runTest {
+        val (executor, _) = executor(ball)
+        executor.execute(width(10f))
+        executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("width", 20) })
+        assertEquals(2, executor.history.value.undoable.size)
+        executor.execute(width(30f))
+        executor.execute(width(40f))
+        assertEquals(3, executor.history.value.undoable.size)
+    }
+
+    @Test
     fun theUsersOwnChangesAreNotAiSteps() = runTest {
         val (executor, _) = executor(ball)
         executor.execute(width(10f))

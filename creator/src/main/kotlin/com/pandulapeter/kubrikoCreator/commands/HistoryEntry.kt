@@ -14,12 +14,14 @@ package com.pandulapeter.kubrikoCreator.commands
  *
  * @param conversationId The tool address of the assistant's conversation that made the change, if one did.
  * @param revision The project's revision once the change was made ([ChangeLog]).
+ * @param isByAi Whether an AI client made the change.
  */
 internal data class HistoryEntry(
     val revert: Invocation<*>,
     val reapply: Invocation<*>,
     val conversationId: String? = null,
     val revision: Int = 0,
+    val isByAi: Boolean = false,
 ) {
     /**
      * The change the user made, which names the step in both directions.

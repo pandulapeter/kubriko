@@ -84,7 +84,7 @@ internal class CommandExecutor(
         val target = invocation.target(context)
         val revision = changeLog.record(invocation.title, target, origin, isByAi)
         applied.inverse?.let { inverse ->
-            record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision))
+            record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi))
         }
         CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.title, target) else applied.result)
     }
@@ -132,7 +132,7 @@ internal class CommandExecutor(
         }
         val revision = changeLog.record(invocation.title, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
         val stepped = applied.inverse?.copy(isRestoring = true)?.let { inverse ->
-            if (isUndo) HistoryEntry(invocation, inverse, entry.conversationId, revision) else HistoryEntry(inverse, invocation, entry.conversationId, revision)
+            if (isUndo) HistoryEntry(invocation, inverse, entry.conversationId, revision, isByAi = entry.isByAi) else HistoryEntry(inverse, invocation, entry.conversationId, revision, isByAi = entry.isByAi)
         }
         _history.value = when {
             stepped == null -> remaining
@@ -206,7 +206,7 @@ internal class CommandExecutor(
         val undoable = _history.value.undoable
         val previous = undoable.lastOrNull()
         _history.value = CommandHistory(
-            undoable = if (previous != null && _history.value.redoable.isEmpty() && previous.conversationId == entry.conversationId && previous.reapply.mergesWith(entry.reapply)) {
+            undoable = if (previous != null && _history.value.redoable.isEmpty() && previous.conversationId == entry.conversationId && previous.isByAi == entry.isByAi && previous.reapply.mergesWith(entry.reapply)) {
                 undoable.dropLast(1) + entry.copy(revert = previous.revert.mergedWith(entry.revert))
             } else {
                 (undoable + entry).takeLast(HISTORY_SIZE)
