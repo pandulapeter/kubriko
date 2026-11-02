@@ -34,7 +34,26 @@ internal class GradleProjectConnection(
     private val lazyConnection = lazy { GradleConnector.newConnector().forProjectDirectory(rootDirectory).connect() }
     private val connection by lazyConnection
 
-    fun <T> model(type: Class<T>): T = connection.getModel(type)
+    suspend fun <T> model(type: Class<T>): T {
+        val cancellation = GradleConnector.newCancellationTokenSource()
+        val outcome = CompletableDeferred<T>()
+        connection.model(type).withCancellationToken(cancellation.token()).get(object : ResultHandler<T> {
+            override fun onComplete(result: T) {
+                outcome.complete(result)
+            }
+
+            override fun onFailure(failure: GradleConnectionException) {
+                outcome.completeExceptionally(failure)
+            }
+        })
+        return try {
+            outcome.await()
+        } catch (exception: CancellationException) {
+            cancellation.cancel()
+            withContext(NonCancellable) { outcome.join() }
+            throw exception
+        }
+    }
 
     override suspend fun run(
         taskPath: String,

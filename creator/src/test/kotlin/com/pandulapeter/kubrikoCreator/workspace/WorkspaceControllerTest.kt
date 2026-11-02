@@ -104,7 +104,7 @@ class WorkspaceControllerTest {
 
     private fun TestScope.createController(
         desktopModulePath: String = ":",
-        findDesktopModulePath: () -> String = { desktopModulePath },
+        findDesktopModulePath: suspend () -> String = { desktopModulePath },
         ioDispatcher: CoroutineDispatcher? = null,
         scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = { emptyMap() },
         blockTypeRepository: FakeBlockTypeRepository? = null,

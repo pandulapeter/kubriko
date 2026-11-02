@@ -90,7 +90,7 @@ internal class WorkspaceController(
     private val sessionChannel: SessionChannel,
     private val parentScope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    findDesktopModulePath: () -> String = { ":" },
+    findDesktopModulePath: suspend () -> String = { ":" },
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
     writeDelayInMilliseconds: Long = 0,
     ownWrites: OwnWrites = OwnWrites(),

@@ -37,7 +37,7 @@ internal object ProjectInspector {
     /**
      * The Gradle path of the first module, in Gradle's order, with a Compose desktop `run` task.
      */
-    fun desktopModulePathOf(connection: GradleProjectConnection) = findDesktopModulePath(ModuleNode.from(connection.model(GradleProject::class.java)))
+    suspend fun desktopModulePathOf(connection: GradleProjectConnection) = findDesktopModulePath(ModuleNode.from(connection.model(GradleProject::class.java)))
 
     internal fun findDesktopModulePath(root: ModuleNode) = root.withDescendants().firstOrNull { "run" in it.taskNames }?.path
         ?: throw ProjectInspectionException(Res.string.error_no_desktop_module)

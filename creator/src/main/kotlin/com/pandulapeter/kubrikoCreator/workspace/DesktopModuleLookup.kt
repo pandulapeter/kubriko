@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference
 internal class DesktopModuleLookup(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
-    private val findDesktopModulePath: () -> String,
+    private val findDesktopModulePath: suspend () -> String,
 ) {
     private val lookup = AtomicReference(lookUp().apply { start() })
 
