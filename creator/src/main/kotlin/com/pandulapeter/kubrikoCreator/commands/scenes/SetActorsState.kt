@@ -16,13 +16,11 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_actors_state
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
 
 internal object SetActorsState : WriteCommand<SetActorsState.Input> {
     override val name = "set_actors_state"
@@ -33,22 +31,10 @@ internal object SetActorsState : WriteCommand<SetActorsState.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActors(input.scene, input.actors.map { it.actorId })
-        ?: if (input.actors.any { SceneDocument.stateObject(it.state) == null }) Rejection(Res.string.error_command_scene_content_invalid) else null
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateStates(input.scene, input.actors)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val actors = context.readScene(input.scene)
-        val states = input.actors.associate { it.actorId to it.state }
-        val previous = ArrayList<ActorState>(states.size)
-        context.writeScene(
-            input.scene,
-            actors.map { actor ->
-                states[actor.id]?.let { state ->
-                    previous += ActorState(actor.id, actor.state)
-                    actor.copy(state = state)
-                } ?: actor
-            },
-        )
+        val previous = context.replaceStates(input.scene, input.actors)
         return Applied(inverse = Invocation(SetActorsState, input.copy(actors = previous)))
     }
 

@@ -30,19 +30,11 @@ internal object RemoveActors : WriteCommand<RemoveActors.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActors(input.scene, input.actorIds)
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateRemovals(input.scene, input.actorIds)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val actors = context.readScene(input.scene)
-        val ids = input.actorIds.toHashSet()
-        val removed = actors.withIndex().filter { it.value.id in ids }
-        context.writeScene(input.scene, actors.filter { it.id !in ids })
-        return Applied(
-            inverse = Invocation(
-                RestoreActors,
-                RestoreActors.Input(input.scene, removed.map { (index, actor) -> RestoreActors.Restored(index, actor.typeId, actor.state, actor.id) }),
-            ),
-        )
+        val removed = context.removeActors(input.scene, input.actorIds)
+        return Applied(inverse = Invocation(RestoreActors, RestoreActors.Input(input.scene, removed)))
     }
 
     @Serializable

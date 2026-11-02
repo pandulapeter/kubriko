@@ -16,13 +16,11 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_actor_state
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
 
 internal object SetActorState : WriteCommand<SetActorState.Input> {
     override val name = "set_actor_state"
@@ -33,13 +31,10 @@ internal object SetActorState : WriteCommand<SetActorState.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId)
-        ?: if (SceneDocument.stateObject(input.state) == null) Rejection(Res.string.error_command_scene_content_invalid) else null
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateStates(input.scene, listOf(input.actorState))
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val actors = context.readScene(input.scene)
-        val previous = actors.requireActor(input.actorId)
-        context.writeScene(input.scene, actors.withActorChanged(input.actorId) { it.copy(state = input.state) })
+        val previous = context.replaceStates(input.scene, listOf(input.actorState)).single()
         return Applied(inverse = Invocation(SetActorState, input.copy(state = previous.state)))
     }
 
@@ -51,5 +46,7 @@ internal object SetActorState : WriteCommand<SetActorState.Input> {
         @SerialName("actorId") val actorId: String,
         @Description("The new saved state of the Actor, as a JSON object in a string.")
         @SerialName("state") val state: String,
-    )
+    ) {
+        val actorState get() = SetActorsState.ActorState(actorId, state)
+    }
 }

@@ -31,25 +31,10 @@ internal object SetActorsValues : WriteCommand<SetActorsValues.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActors(input.scene, input.actors.map { it.actorId })
-        ?: run {
-            val actors = context.readScene(input.scene).associateBy { it.id }
-            input.actors.firstNotNullOfOrNull { changes -> context.validateActorValues(actors.getValue(changes.actorId), changes) }
-        }
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorChanges(input.scene, input.actors)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val actors = context.readScene(input.scene)
-        val changes = input.actors.associateBy { it.actorId }
-        val previous = ArrayList<SetActorsState.ActorState>(changes.size)
-        context.writeScene(
-            input.scene,
-            actors.map { actor ->
-                changes[actor.id]?.let { change ->
-                    previous += SetActorsState.ActorState(actor.id, actor.state)
-                    actor.copy(state = change.applyTo(actor.state))
-                } ?: actor
-            },
-        )
+        val previous = context.changeActorValues(input.scene, input.actors)
         return Applied(inverse = Invocation(SetActorsState, SetActorsState.Input(input.scene, previous)))
     }
 

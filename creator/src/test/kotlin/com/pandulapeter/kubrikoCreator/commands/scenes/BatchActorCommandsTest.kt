@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -43,6 +44,9 @@ import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class BatchActorCommandsTest {
     private val brick = ActorTypeDefinition(name = "Brick", width = 20f, height = 10f, properties = listOf(PropertyDefinition.Number("hits")))
@@ -136,4 +140,92 @@ class BatchActorCommandsTest {
     }
 
     private fun PlaceActors.Input.toJson() = Json.encodeToJsonElement(PlaceActors.Input.serializer(), this).jsonObject
+
+    @Test
+    fun singleAndBatchFormsAgree() = runTest {
+        val brickActor = SceneActorEntry("Brick", SceneDocument.blockBuiltState(0f, 0f, 20f, 10f), "brick")
+        val (placedOne, placedMany) = assertSameChange(
+            Invocation(PlaceActor, PlaceActor.Input("main", "Brick", 5f, 6f, "placed")),
+            Invocation(PlaceActors, PlaceActors.Input("main", listOf(PlaceActors.Placement("Brick", 5f, 6f, "placed")))),
+            wall,
+        )
+        assertEquals("placed", placedOne.jsonObject.getValue("actorId").jsonPrimitive.content)
+        assertEquals(listOf("placed"), placedMany.jsonObject.getValue("actorIds").jsonArray.map { it.jsonPrimitive.content })
+        val hits = listOf(ActorValueChanges.PropertyValue("hits", number = 2f))
+        assertSameChange(
+            Invocation(SetActorValues, SetActorValues.Input("main", "brick", x = 3f, width = 4f, properties = hits)),
+            Invocation(SetActorsValues, SetActorsValues.Input("main", listOf(ActorValueChanges("brick", x = 3f, width = 4f, properties = hits)))),
+            wall,
+            brickActor,
+        )
+        assertSameChange(
+            Invocation(SetActorState, SetActorState.Input("main", "wall", """{"a":1}""")),
+            Invocation(SetActorsState, SetActorsState.Input("main", listOf(SetActorsState.ActorState("wall", """{"a":1}""")))),
+            wall,
+            music,
+        )
+        assertSameChange(Invocation(RemoveActor, RemoveActor.Input("main", "music")), Invocation(RemoveActors, RemoveActors.Input("main", listOf("music"))), wall, music)
+        val (restoredOne, restoredMany) = assertSameChange(
+            Invocation(RestoreActor, RestoreActor.Input("main", 1, "Wall", "{}", "restored")),
+            Invocation(RestoreActors, RestoreActors.Input("main", listOf(RestoreActors.Restored(1, "Wall", "{}", "restored")))),
+            wall,
+            music,
+        )
+        assertEquals("restored", restoredOne.jsonObject.getValue("actorId").jsonPrimitive.content)
+        assertEquals(listOf("restored"), restoredMany.jsonObject.getValue("actorIds").jsonArray.map { it.jsonPrimitive.content })
+
+        fun place(scene: String = "main", type: String = "Brick", x: Float = 0f, id: String? = null) =
+            Invocation(PlaceActor, PlaceActor.Input(scene, type, x, 0f, id)) to Invocation(PlaceActors, PlaceActors.Input(scene, listOf(PlaceActors.Placement(type, x, 0f, id))))
+        listOf(place(scene = "other"), place(type = "Ghost"), place(x = Float.NaN), place(id = "wall"), place(id = "not an id")).forEach { (single, batch) -> assertSameRejection(single, batch) }
+        fun setValues(scene: String = "main", id: String = "brick", x: Float = 0f) =
+            Invocation(SetActorValues, SetActorValues.Input(scene, id, x = x)) to Invocation(SetActorsValues, SetActorsValues.Input(scene, listOf(ActorValueChanges(id, x = x))))
+        listOf(setValues(scene = "other"), setValues(id = "ghost"), setValues(x = Float.POSITIVE_INFINITY)).forEach { (single, batch) -> assertSameRejection(single, batch, brickActor) }
+        fun setState(scene: String = "main", id: String = "wall", state: String = "{}") =
+            Invocation(SetActorState, SetActorState.Input(scene, id, state)) to Invocation(SetActorsState, SetActorsState.Input(scene, listOf(SetActorsState.ActorState(id, state))))
+        listOf(setState(scene = "other"), setState(id = "ghost"), setState(state = "[1]")).forEach { (single, batch) -> assertSameRejection(single, batch) }
+        fun remove(scene: String = "main", id: String = "wall") =
+            Invocation(RemoveActor, RemoveActor.Input(scene, id)) to Invocation(RemoveActors, RemoveActors.Input(scene, listOf(id)))
+        listOf(remove(scene = "other"), remove(id = "ghost")).forEach { (single, batch) -> assertSameRejection(single, batch) }
+        fun restore(scene: String = "main", index: Int = 0, state: String = "{}", id: String? = null) =
+            Invocation(RestoreActor, RestoreActor.Input(scene, index, "Wall", state, id)) to
+                Invocation(RestoreActors, RestoreActors.Input(scene, listOf(RestoreActors.Restored(index, "Wall", state, id))))
+        listOf(restore(scene = "other"), restore(index = 5), restore(state = "nope"), restore(id = "wall")).forEach { (single, batch) -> assertSameRejection(single, batch) }
+    }
+
+    /**
+     * Applies [single] and [batch] to two copies of a Scene of [actors], then their inverses, checking that both leave the
+     * same file each time, and returns their results.
+     */
+    private suspend fun TestScope.assertSameChange(single: Invocation<*>, batch: Invocation<*>, vararg actors: SceneActorEntry): Pair<JsonElement, JsonElement> {
+        val singleContext = context(*actors)
+        val batchContext = context(*actors)
+        assertNull(single.validate(singleContext))
+        assertNull(batch.validate(batchContext))
+        val singleApplied = single.apply(singleContext)
+        val batchApplied = batch.apply(batchContext)
+        assertEquals(batchContext.scenes.read("main"), singleContext.scenes.read("main"), single.command.name)
+        assertNotEquals(context(*actors).scenes.read("main"), singleContext.scenes.read("main"), single.command.name)
+        assertNotNull(singleApplied.inverse).apply(singleContext)
+        assertNotNull(batchApplied.inverse).apply(batchContext)
+        assertEquals(batchContext.scenes.read("main"), singleContext.scenes.read("main"), single.command.name)
+        return singleApplied.result to batchApplied.result
+    }
+
+    private fun TestScope.assertSameRejection(single: Invocation<*>, batch: Invocation<*>, vararg actors: SceneActorEntry) {
+        val context = context(wall, music, *actors)
+        val rejection = assertNotNull(single.validate(context), "${single.command.name} accepted ${single.input}")
+        assertEquals(rejection, batch.validate(context), single.command.name)
+    }
+
+    @Test
+    fun restoreActorRejectsWhatRestoreActorsRejects() = runTest {
+        val context = context(wall)
+        listOf("[1]", "nope", "\"text\"", "").forEach { state ->
+            val rejection = Rejection(Res.string.error_command_scene_content_invalid)
+            assertEquals(rejection, RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", state)), state)
+            assertEquals(rejection, RestoreActors.validate(context, RestoreActors.Input("main", listOf(RestoreActors.Restored(0, "Wall", state)))), state)
+        }
+        assertNull(RestoreActor.validate(context, RestoreActor.Input("main", 0, "", "{}")))
+        assertNull(RestoreActors.validate(context, RestoreActors.Input("main", listOf(RestoreActors.Restored(0, "", "{}")))))
+    }
 }

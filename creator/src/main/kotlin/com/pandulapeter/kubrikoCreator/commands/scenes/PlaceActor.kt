@@ -16,10 +16,6 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireActorType
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateActorType
-import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
-import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,7 +23,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_place_actor
-import kubriko.creator.generated.resources.error_command_number_invalid
 
 internal object PlaceActor : WriteCommand<PlaceActor.Input> {
     override val name = "place_actor"
@@ -38,16 +33,10 @@ internal object PlaceActor : WriteCommand<PlaceActor.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateScene(input.scene)
-        ?: context.validateActorType(input.actorType)
-        ?: (if (input.x.isFinite() && input.y.isFinite()) null else Rejection(Res.string.error_command_number_invalid))
-        ?: input.actorId?.let { validateNewActorId(it, context.readScene(input.scene)) }
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validatePlacements(input.scene, listOf(input.placement))
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val actors = context.readScene(input.scene)
-        val definition = context.requireActorType(input.actorType)
-        val id = input.actorId ?: SceneDocument.newId(actors.map { it.id })
-        context.writeScene(input.scene, actors + SceneActorEntry(input.actorType, SceneDocument.blockBuiltState(input.x, input.y, definition.width, definition.height), id))
+        val id = context.placeActors(input.scene, listOf(input.placement)).single().id
         return Applied(
             inverse = Invocation(RemoveActor, RemoveActor.Input(input.scene, id)),
             result = buildJsonObject { put("actorId", id) },
@@ -66,5 +55,7 @@ internal object PlaceActor : WriteCommand<PlaceActor.Input> {
         @SerialName("y") val y: Float,
         @Description("The ID the new Actor gets: letters, numbers, dashes, and underscores. Left out, it gets a new one.")
         @SerialName("actorId") val actorId: String? = null,
-    )
+    ) {
+        val placement get() = PlaceActors.Placement(actorType, x, y, actorId)
+    }
 }

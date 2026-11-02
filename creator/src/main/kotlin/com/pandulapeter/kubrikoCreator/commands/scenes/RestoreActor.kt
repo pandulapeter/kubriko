@@ -16,8 +16,6 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
-import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -25,8 +23,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_restore_actor
-import kubriko.creator.generated.resources.error_command_index_invalid
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
 
 internal object RestoreActor : WriteCommand<RestoreActor.Input> {
     override val name = "restore_actor"
@@ -37,16 +33,10 @@ internal object RestoreActor : WriteCommand<RestoreActor.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateScene(input.scene) ?: when {
-        input.actorIndex !in 0..context.readScene(input.scene).size -> Rejection(Res.string.error_command_index_invalid, input.actorIndex.toString())
-        !SceneDocument.isValid(SceneDocument.format(listOf(SceneActorEntry(input.typeId, input.state)))) -> Rejection(Res.string.error_command_scene_content_invalid)
-        else -> input.actorId?.let { validateNewActorId(it, context.readScene(input.scene)) }
-    }
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateRestorations(input.scene, listOf(input.restored))
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val actors = context.readScene(input.scene)
-        val id = input.actorId ?: SceneDocument.newId(actors.map { it.id })
-        context.writeScene(input.scene, actors.toMutableList().apply { add(input.actorIndex, SceneActorEntry(input.typeId, input.state, id)) })
+        val id = context.restoreActors(input.scene, listOf(input.restored)).single()
         return Applied(
             inverse = Invocation(RemoveActor, RemoveActor.Input(input.scene, id)),
             result = buildJsonObject { put("actorId", id) },
@@ -65,5 +55,7 @@ internal object RestoreActor : WriteCommand<RestoreActor.Input> {
         @SerialName("state") val state: String,
         @Description("The ID the Actor gets, or none for a new one: how a removed Actor comes back as itself.")
         @SerialName("actorId") val actorId: String? = null,
-    )
+    ) {
+        val restored get() = RestoreActors.Restored(actorIndex, typeId, state, actorId)
+    }
 }
