@@ -9,50 +9,54 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.BASE_IMPORTS
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.KEYBOARD_IMPORTS
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.KEYBOARD_MANAGER_IMPORTS
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_IMPORTS
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_MANAGER_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.ABSOLUTE_VALUE_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENE_OFFSET_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventCode
 
 /**
- * What the generated code of Actors that react to [events] needs: which Events it generates, which Traits, Timers, and
- * Manager lookups it has, and what it imports. For an Actor type with a parent or children, the events are those of
- * its whole family, since the family's base class does the work for all of them.
+ * What the generated code of Actors that react to [events] needs: which Events it generates, and which Traits, Timers,
+ * and Manager lookups it has. For an Actor type with a parent or children, the events are those of its whole family,
+ * since the family's base class does the work for all of them.
  *
+ * @param scope The scope of the type, or of a family's topmost type.
  * @param shapes The shapes the Actors are drawn and collide as.
  * @param hasSprite Whether any of them is drawn as a sprite.
  * @param isCollidableAnyway Whether a collision Event of another Actor type involves them.
  * @param isFamily Whether they are a family, whose base class runs the added-to-the-Scene hook even when its Event has
  * no Blocks, since a child may override it.
+ * @param eventScopes The Events whose code the generated classes hold, each with the scope it is generated in: for a
+ * family, every Actor type's own Events in its own scope, so that the base class declares what any of them needs.
  */
 internal class ActorTypeFeatures(
     events: List<EventDefinition>,
     scope: BlockScope,
-    packageName: String,
     val shapes: Set<ActorShape>,
     hasSprite: Boolean,
     isCollidableAnyway: Boolean,
     isFamily: Boolean,
+    eventScopes: List<Pair<List<EventDefinition>, BlockScope>> = listOf(events to scope),
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
-    val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key?.isKnown == true }
+    val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && isGenerated(it) }
     val edgeEvents = events.filter { it.type == EventType.EDGE_TOUCHED }
-    val collisionEvents = events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
-    val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer?.let(TimerNaming::isValid) == true }
+    val collisionEvents = events.filter { it.type == EventType.COLLISION && isGenerated(it) }
+    val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && isGenerated(it) }
     val addedEvents = events.filter { it.type == EventType.ADDED_TO_SCENE }
     val everyFrameEvents = events.filter { it.type == EventType.EVERY_FRAME }
     val isCollidable = collisionEvents.isNotEmpty() || isCollidableAnyway
     val generatedEvents = addedEvents + everyFrameEvents + edgeEvents + keyEvents + collisionEvents + timerEvents
     val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
-    private val blockCode = generatedEvents.fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scope) }
+    private val blockCode = eventScopes.fold(BlockCode.NONE) { code, (events, eventScope) ->
+        events.filter(::isGenerated).fold(code) { eventsCode, event -> eventsCode + eventCode(event.blocks, event.type, eventScope) }
+    }
+
+    /**
+     * What the code of the Events imports, for the class that holds all of it.
+     */
+    val codeImports = blockCode.imports
 
     /**
      * What the class declares for the Blocks and the Events: edge Events move the Actor within the Scene settings' bounds,
@@ -66,41 +70,35 @@ internal class ActorTypeFeatures(
     val isDynamic = BlockNeed.MOVEMENT in needs
     val usesBounceOff = BlockNeed.BOUNCE_OFF in needs
     val usesNumberText = BlockNeed.NUMBER_TEXT in needs
+    private val lookupNeeds = BlockNeed.entries.filter { it in needs && lookupOf(it) != null }
 
     /**
      * The fields the Actors look Managers up in when they are added, as `name: Type`.
      */
-    val lookups = BlockNeed.entries.filter { it in needs }.mapNotNull(::lookupOf) +
+    val lookups = lookupNeeds.mapNotNull(::lookupOf) +
         listOfNotNull("$SPRITE_MANAGER_FIELD: SpriteManager".takeIf { hasSprite }) +
         blockCode.managers.sorted().map { "${scope.managerField(it)}: $it" }
+
+    /**
+     * What the [lookups] import.
+     */
+    val lookupImports = lookupNeeds.mapNotNull(::importOf) + listOfNotNull("com.pandulapeter.kubriko.sprites.SpriteManager".takeIf { hasSprite })
 
     /**
      * Whether the Actors override onAdded, to look the Managers up or to run their added-to-the-Scene Events.
      */
     val overridesOnAdded = lookups.isNotEmpty() || if (isFamily) addedEvents.isNotEmpty() else addedEvents.any { it.blocks.isNotEmpty() }
 
-    val imports = buildSet {
-        addAll(BASE_IMPORTS)
-        if (isCollidable) {
-            add("com.pandulapeter.kubriko.collision.Collidable")
-            shapes.forEach { shape ->
-                add(
-                    when (shape) {
-                        ActorShape.CIRCLE -> "com.pandulapeter.kubriko.collision.mask.CircleCollisionMask"
-                        ActorShape.RECTANGLE -> "com.pandulapeter.kubriko.collision.mask.BoxCollisionMask"
-                    },
-                )
-            }
-        }
-        if (collisionEvents.isNotEmpty()) add("com.pandulapeter.kubriko.collision.CollisionDetector")
-        if (collisionEvents.isNotEmpty()) add("kotlin.reflect.KClass")
-        if (keyEvents.isNotEmpty()) addAll(KEYBOARD_IMPORTS)
-        if (edgeEvents.isNotEmpty()) add("com.pandulapeter.kubriko.types.SceneUnit")
-        needs.forEach { addAll(importsOf(it)) }
-        addAll(blockCode.imports)
-        if (overridesOnAdded) add("com.pandulapeter.kubriko.Kubriko")
-        if (lookups.isNotEmpty()) add("com.pandulapeter.kubriko.helpers.extensions.get")
-        if (hasSprite) addAll(SPRITE_IMPORTS + listOf("$packageName.resources.Res", "$packageName.resources.allDrawableResources"))
+    /**
+     * Whether the code of [event] is generated: Events with what doesn't exist (a key, the other Actor type, or a Timer
+     * name) are left out, so that the generated code always compiles.
+     */
+    private fun isGenerated(event: EventDefinition) = when (event.type) {
+        EventType.KEY_PRESSED -> event.key?.isKnown == true
+        EventType.COLLISION -> event.otherActorType in knownActorTypeNames
+        EventType.TIMER_FINISHED -> event.timer?.let(TimerNaming::isValid) == true
+        EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED -> true
+        EventType.GAME_STARTED -> false
     }
 
     private companion object {
@@ -115,14 +113,12 @@ internal class ActorTypeFeatures(
             BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF -> null
         }
 
-        fun importsOf(need: BlockNeed) = when (need) {
-            BlockNeed.MOVEMENT -> listOf("com.pandulapeter.kubriko.actor.traits.Dynamic", SCENE_OFFSET_IMPORT)
-            BlockNeed.ACTOR_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ActorManager")
-            BlockNeed.VIEWPORT_MANAGER -> listOf("com.pandulapeter.kubriko.manager.ViewportManager")
-            BlockNeed.KEYBOARD_INPUT_MANAGER -> KEYBOARD_MANAGER_IMPORTS
-            BlockNeed.STATE_MANAGER -> listOf(STATE_MANAGER_IMPORT)
-            BlockNeed.BOUNCE_OFF -> listOf(ABSOLUTE_VALUE_IMPORT, "com.pandulapeter.kubriko.types.SceneUnit")
-            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.NUMBER_TEXT -> emptyList()
+        fun importOf(need: BlockNeed) = when (need) {
+            BlockNeed.ACTOR_MANAGER -> "com.pandulapeter.kubriko.manager.ActorManager"
+            BlockNeed.VIEWPORT_MANAGER -> "com.pandulapeter.kubriko.manager.ViewportManager"
+            BlockNeed.KEYBOARD_INPUT_MANAGER -> "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
+            BlockNeed.STATE_MANAGER -> STATE_MANAGER_IMPORT
+            BlockNeed.SCENES, BlockNeed.AUDIO, BlockNeed.MOVEMENT, BlockNeed.NUMBER_TEXT, BlockNeed.BOUNCE_OFF -> null
         }
     }
 }

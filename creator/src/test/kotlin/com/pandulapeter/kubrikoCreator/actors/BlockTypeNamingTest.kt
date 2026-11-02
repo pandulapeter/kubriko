@@ -44,9 +44,12 @@ class BlockTypeNamingTest {
 
     @Test
     fun kotlinsOwnTypesAndEveryClassTheGeneratedCodeImportsAreReserved() {
-        val imported = ActorTypeCodeGenerator.BASE_IMPORTS + ActorTypeCodeGenerator.SPRITE_IMPORTS + ActorTypeCodeGenerator.KEYBOARD_IMPORTS +
-            ActorTypeCodeGenerator.KEYBOARD_MANAGER_IMPORTS
-        (imported.map { it.substringAfterLast('.') }.filter { it.first().isUpperCase() } + listOf("Float", "String", "Unit", "CollisionManager")).forEach {
+        val imported = listOf(
+            "Color", "DrawScope", "BoxBody", "Visible", "Editable", "EditableMetadata", "Exposed", "Serializable", "SerializableBoxBody",
+            "SerializableColor", "SceneSize", "SerialName", "Json", "FilterQuality", "IntSize", "SpriteManager", "Key", "KeyboardInputAware",
+            "KeyboardInputManager",
+        )
+        (imported + listOf("Float", "String", "Unit", "CollisionManager")).forEach {
             assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }

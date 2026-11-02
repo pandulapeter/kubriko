@@ -143,4 +143,30 @@ class ActorFamilyCodeGeneratorTest {
         val loner = ActorTypeDefinition(name = "Loner", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.RunParentEvent))))
         assertContains(ActorTypeCodeGenerator.generateActorType(loner, "com.example.game"), "// Only an Actor type with a parent runs its parent's Event.")
     }
+
+    @Test
+    fun familyTimerFieldsAreDocumentedLikeAStandaloneTypes() {
+        val timed = enemy.copy(events = enemy.events + EventDefinition(EventType.TIMER_FINISHED, timer = "timer1"))
+        val code = ActorTypeCodeGenerator.generateActorType(timed, "com.example.game", actorTypes.map { it.name }, actorTypes = listOf(timed, bat, wall))
+        assertContains(
+            code,
+            "    /**\n     * Until timer1 finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.\n     */\n" +
+                "    protected var timer1RemainingInMilliseconds = 0L\n    protected var timer1PeriodInMilliseconds = 0L\n",
+        )
+    }
+
+    @Test
+    fun aFamilyHandlesKeysInTheOrderOfTheKeyList() {
+        val keyed = enemy.copy(events = listOf(EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.ENTER), EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE)))
+        val code = ActorTypeCodeGenerator.generateActorType(keyed, "com.example.game", actorTypes.map { it.name }, actorTypes = listOf(keyed, bat, wall))
+        assertTrue(code.indexOf("Key.Spacebar -> ") in 0..<code.indexOf("Key.Enter -> "))
+    }
+
+    @Test
+    fun aChildFileImportsOnlyWhatItsClassesUse() {
+        val code = generate(bat)
+        assertFalse("import com.pandulapeter.kubriko.collision.CollisionDetector\n" in code)
+        assertFalse("import kotlin.reflect.KClass\n" in code)
+        assertContains(code, "import com.pandulapeter.kubriko.types.SceneOffset\n")
+    }
 }

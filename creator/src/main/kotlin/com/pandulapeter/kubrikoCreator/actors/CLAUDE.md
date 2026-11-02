@@ -35,7 +35,8 @@
 - Parent Actor types are real Kotlin inheritance (`ActorFamilyCodeGenerator`): the family's topmost type gets an abstract
   `<Name>Base` with each Event as an `open` hook, and every type a final class that keeps its state and draws itself, since
   Kubriko registers saveable types as `T : Editable<T>`, which a subclass can't implement again. Names ending in `Base` are
-  reserved.
+  reserved. The topmost type's base class is written by the same `ActorClassEmitter` as a type without a family, so the two
+  can't drift, and each generated file imports only what its own classes use.
 - `composeKeys` has one entry per Compose `Key` constant, so Creator stops compiling rather than generating code that doesn't
   when Compose drops one.
 - `KubrikoWiring.createManagers` creates only the plugin Managers the game uses (`PluginManagers`), so a game that doesn't use a

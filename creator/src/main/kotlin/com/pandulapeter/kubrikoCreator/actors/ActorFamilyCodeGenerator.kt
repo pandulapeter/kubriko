@@ -9,29 +9,14 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.COLLISION_MASK
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.MOVEMENT_LINE
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.REMOVED_GUARD
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendAlwaysActive
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBodyCenter
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBounceOffFunction
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendCollisionMaskUpdate
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendEdgeHandling
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendNumberTextFunction
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerCountdown
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendVelocityField
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendPropertyFields
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.maskClassOf
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.GENERATED_PACKAGE
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.SPRITE_DRAW_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendDrawFunction
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.appendSavedState
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.drawFunction
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.INDENT
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.eventCode
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.stringLiteral
 
 /**
  * Turns an Actor type that has a parent or children into Kotlin that inherits as the Actor types do. The topmost Actor
@@ -59,135 +44,46 @@ internal object ActorFamilyCodeGenerator {
         val members = family.familyOf(root).mapNotNull(byName::get)
         val types = actorTypes + managerTypes
         fun scopeOf(type: ActorTypeDefinition, parentEventCall: String? = null) = BlockScope.of(type, types, family = family).copy(parentEventCall = parentEventCall)
+        val rootScope = scopeOf(byName.getValue(root))
+        val role = ActorClassEmitter.Role.FAMILY_ROOT
         val features = ActorTypeFeatures(
             events = members.flatMap { family.eventsOf(it.name) },
-            scope = scopeOf(byName.getValue(root)),
-            packageName = packageName,
+            scope = rootScope,
             shapes = members.mapTo(mutableSetOf()) { it.shape },
             hasSprite = members.any { it.sprite?.let(SpriteFiles::accessorOf) != null },
             isCollidableAnyway = members.any { it.name in collidableActorTypeNames },
-            isFamily = true,
+            isFamily = role.isFamily,
+            eventScopes = members.map { it.events to scopeOf(it) },
         )
-        val hooks = Hooks(features, scopeOf(byName.getValue(root)))
-        val usesNumberText = members.any { member ->
-            val memberScope by lazy { scopeOf(member) }
-            member.events.any { event -> BlockNeed.NUMBER_TEXT in eventCode(event.blocks, event.type, memberScope).needs }
+        val hooks = FamilyHooks(features, rootScope)
+        val imports = definition.events.filter { hooks.of(it) != null }
+            .fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scopeOf(definition)) }
+            .imports.toMutableSet()
+        val code = buildString {
+            if (name == root) {
+                with(ActorClassEmitter(features, role, rootScope, family, imports)) {
+                    appendClass(definition, family.propertiesOf(name), packageName) { appendHookFunctions(definition, hooks) { scopeOf(definition, it) } }
+                }
+                appendLine()
+            } else if (family.hasChildren(name)) {
+                appendBase(definition, family, features, hooks, imports) { scopeOf(definition, it) }
+                appendLine()
+            }
+            appendConcrete(definition, family, features, hooks, packageName, imports) { scopeOf(definition, it) }
         }
-        val imports = (features.imports + listOfNotNull(
-            "com.pandulapeter.kubriko.collision.mask.$COLLISION_MASK".takeIf { features.isCollidable && maskTypeOf(features.shapes) == COLLISION_MASK },
-        )).sorted()
         return GeneratedFile.withHeader(" from ${BlockTypeStore.definitionPath(definition)}", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
             appendLine()
-            imports.forEach { appendLine("import $it") }
+            imports.sorted().forEach { appendLine("import $it") }
             appendLine()
-            if (name == root) {
-                appendRootBase(definition, family, features, hooks, usesNumberText) { scopeOf(definition, it) }
-                appendLine()
-            } else if (family.hasChildren(name)) {
-                appendBase(definition, family, features, hooks) { scopeOf(definition, it) }
-                appendLine()
-            }
-            appendConcrete(definition, family, features, hooks) { scopeOf(definition, it) }
+            append(code)
         })
     }
 
     /**
-     * The abstract class of the topmost Actor type of a family: everything the family does, with its own Events as the
-     * hooks' default code.
+     * The topmost Actor type's own Events as the hooks' default code.
      */
-    private fun StringBuilder.appendRootBase(
-        definition: ActorTypeDefinition,
-        family: ActorTypeFamily,
-        features: ActorTypeFeatures,
-        hooks: Hooks,
-        usesNumberText: Boolean,
-        scopeOf: (parentEventCall: String?) -> BlockScope,
-    ) {
-        val baseName = baseNameOf(definition.name)
-        val properties = family.propertiesOf(definition.name)
-        val traits = listOfNotNull(
-            "Visible",
-            "Dynamic".takeIf { features.isDynamic },
-            if (features.collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { features.isCollidable },
-            "KeyboardInputAware".takeIf { features.keyEvents.isNotEmpty() },
-        )
-        appendLine("/**")
-        appendLine(" * What every ${definition.name} does, and every Actor type that inherits from it.")
-        appendLine(" */")
-        appendLine("abstract class $baseName(")
-        appendLine("    final override val body: BoxBody,")
-        appendLine("    color: Color,")
-        properties.forEach { appendLine("    ${it.name}: ${PropertyKind.of(it).kotlinType},") }
-        if (features.isCollidable) appendLine("    final override val collisionMask: ${maskTypeOf(features.shapes)},")
-        appendLine(") : ${traits.joinToString()} {")
-        appendLine("    @set:Exposed(name = \"color\")")
-        appendLine("    var color: Color = color")
-        if (features.isDynamic) {
-            appendVelocityField()
-            appendAlwaysActive()
-        }
-        appendRemovedField()
-        appendPropertyFields(properties)
-        if (features.isCollidable && features.isDynamic) {
-            appendBodyCenter()
-        }
-        if (features.collisionEvents.isNotEmpty()) {
-            val targets = features.collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted()
-            appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${targets.joinToString { "${hooks.scope.classOf(it)}::class" }})")
-        }
-        features.lookups.forEach { appendLine("    protected lateinit var $it") }
-        features.timers.forEach { timer ->
-            appendLine("    protected var ${TimerNaming.remainingField(timer)} = 0L")
-            appendLine("    protected var ${TimerNaming.periodField(timer)} = 0L")
-        }
-        if (features.overridesOnAdded) {
-            appendLine()
-            appendLine("    override fun onAdded(kubriko: Kubriko) {")
-            features.lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
-            if (features.addedEvents.isNotEmpty()) appendLine("        ${Hooks.ADDED}()")
-            appendLine("    }")
-        }
-        if (features.isDynamic) {
-            appendLine()
-            appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
-            appendLine(REMOVED_GUARD)
-            features.timers.forEach { timer ->
-                appendTimerCountdown(timer, isCommented = false) {
-                    if (features.timerEvents.any { it.timer == timer }) appendLine("                ${Hooks.timer(timer)}()")
-                }
-            }
-            if (features.everyFrameEvents.isNotEmpty()) appendLine("        ${Hooks.EVERY_FRAME}()")
-            appendLine(MOVEMENT_LINE)
-            if (features.edgeEvents.isNotEmpty()) appendEdgeHandling { appendLine("            ${Hooks.EDGE}(${Hooks.EDGE_ARGUMENTS})") }
-            if (features.isCollidable) appendCollisionMaskUpdate(features.shapes)
-            appendLine("    }")
-        }
-        if (features.keyEvents.isNotEmpty()) {
-            appendLine()
-            appendLine("    override fun onKeyPressed(key: Key) {")
-            // Kubriko keeps telling Actors about key presses while the game is paused.
-            appendLine("        if (!$STATE_MANAGER_FIELD.isRunning.value) return")
-            appendLine("        when (key) {")
-            features.keyEvents.mapNotNull { it.key }.distinct().sortedBy { it.composeKeyName }.forEach { key ->
-                appendLine("            Key.${key.composeKeyName} -> ${Hooks.key(key)}()")
-            }
-            appendLine("        }")
-            appendLine("    }")
-        }
-        if (features.collisionEvents.isNotEmpty()) {
-            appendLine()
-            appendLine("    override fun onCollisionDetected(collidables: List<Collidable>) {")
-            appendLine(REMOVED_GUARD)
-            appendLine("        for (index in collidables.indices) {")
-            appendLine("            when (val other = collidables[index]) {")
-            features.collisionEvents.mapNotNull { it.otherActorType }.distinct().sortedWith(collisionTargetOrder(family)).forEach { other ->
-                appendLine("                is ${hooks.scope.classOf(other)} -> if (!other.$REMOVED_FIELD) ${Hooks.collision(other)}(other)")
-            }
-            appendLine("            }")
-            appendLine("        }")
-            appendLine("    }")
-        }
+    private fun StringBuilder.appendHookFunctions(definition: ActorTypeDefinition, hooks: FamilyHooks, scopeOf: (parentEventCall: String?) -> BlockScope) {
         hooks.all.forEach { hook ->
             val own = definition.events.filter { hooks.of(it) == hook }
             appendLine()
@@ -195,11 +91,6 @@ internal object ActorFamilyCodeGenerator {
             own.forEach { event -> eventCode(event.blocks, event.type, scopeOf(null)).lines.forEach { appendLine(INDENT.repeat(2) + it) } }
             appendLine("    }")
         }
-        if (features.usesBounceOff) appendBounceOffFunction("protected")
-        if (usesNumberText) {
-            appendNumberTextFunction("protected")
-        }
-        appendLine("}")
     }
 
     /**
@@ -209,10 +100,15 @@ internal object ActorFamilyCodeGenerator {
         definition: ActorTypeDefinition,
         family: ActorTypeFamily,
         features: ActorTypeFeatures,
-        hooks: Hooks,
+        hooks: FamilyHooks,
+        imports: MutableSet<String>,
         scopeOf: (parentEventCall: String?) -> BlockScope,
     ) {
         val inherited = family.propertiesOf(checkNotNull(family.parentOf(definition.name)))
+        val newProperties = newPropertiesOf(definition.name, family)
+        imports += listOf("com.pandulapeter.kubriko.actor.body.BoxBody", "androidx.compose.ui.graphics.Color")
+        if (features.isCollidable) imports += MASK_IMPORT_PREFIX + maskTypeOf(features.shapes)
+        if (newProperties.isNotEmpty()) imports += EXPOSED_IMPORT
         appendLine("/**")
         appendLine(" * What every ${definition.name} does, and every Actor type that inherits from it.")
         appendLine(" */")
@@ -227,7 +123,7 @@ internal object ActorFamilyCodeGenerator {
         inherited.forEach { appendLine("    ${it.name} = ${it.name},") }
         if (features.isCollidable) appendLine("    collisionMask = collisionMask,")
         appendLine(") {")
-        appendPropertyFields(newPropertiesOf(definition.name, family))
+        appendPropertyFields(newProperties)
         appendOverrides(definition, hooks, scopeOf)
         appendLine("}")
     }
@@ -240,11 +136,17 @@ internal object ActorFamilyCodeGenerator {
         definition: ActorTypeDefinition,
         family: ActorTypeFamily,
         features: ActorTypeFeatures,
-        hooks: Hooks,
+        hooks: FamilyHooks,
+        packageName: String,
+        imports: MutableSet<String>,
         scopeOf: (parentEventCall: String?) -> BlockScope,
     ) {
         val name = definition.name
         val hasChildren = family.hasChildren(name)
+        val newProperties = if (hasChildren) emptyList() else newPropertiesOf(name, family)
+        imports += "com.pandulapeter.kubriko.sceneEditor.Editable"
+        if (features.isCollidable) imports += MASK_IMPORT_PREFIX + maskClassOf(definition.shape)
+        if (newProperties.isNotEmpty()) imports += EXPOSED_IMPORT
         val superName = baseNameOf(if (hasChildren) name else checkNotNull(family.parentOf(name)))
         val superProperties = family.propertiesOf(if (hasChildren) name else family.parentOf(name)!!)
         appendLine("class $name private constructor(state: State) : $superName(")
@@ -254,17 +156,15 @@ internal object ActorFamilyCodeGenerator {
         if (features.isCollidable) appendLine("    collisionMask = ${collisionMaskOf(definition.shape)},")
         appendLine("), Editable<$name> {")
         if (!hasChildren) {
-            appendPropertyFields(newPropertiesOf(name, family), source = "state.")
+            appendPropertyFields(newProperties, source = "state.")
             appendOverrides(definition, hooks, scopeOf)
         }
-        appendLine()
-        val spriteAccessor = definition.sprite?.let(SpriteFiles::accessorOf)
-        appendLine(if (spriteAccessor == null) drawFunction(definition.shape) else SPRITE_DRAW_FUNCTION)
-        appendSavedState(definition, family.propertiesOf(name), spriteAccessor)
+        appendDrawFunction(definition, imports)
+        appendSavedState(definition, family.propertiesOf(name), packageName, imports)
         appendLine("}")
     }
 
-    private fun StringBuilder.appendOverrides(definition: ActorTypeDefinition, hooks: Hooks, scopeOf: (parentEventCall: String?) -> BlockScope) {
+    private fun StringBuilder.appendOverrides(definition: ActorTypeDefinition, hooks: FamilyHooks, scopeOf: (parentEventCall: String?) -> BlockScope) {
         definition.events.groupBy { hooks.of(it) }.forEach { (hook, events) ->
             if (hook == null) return@forEach
             appendLine()
@@ -272,15 +172,6 @@ internal object ActorFamilyCodeGenerator {
             events.forEach { event -> eventCode(event.blocks, event.type, scopeOf("super.${hook.call}")).lines.forEach { appendLine(INDENT.repeat(2) + it) } }
             appendLine("    }")
         }
-    }
-
-    /**
-     * @param source Where the initial values come from: the constructor's parameters of the same names, or the state's.
-     */
-    private fun StringBuilder.appendPropertyFields(properties: List<PropertyDefinition>, source: String = "") = properties.forEach { property ->
-        appendLine()
-        appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
-        appendLine("    var ${property.name}: ${PropertyKind.of(property).kotlinType} = $source${property.name}")
     }
 
     /**
@@ -300,41 +191,6 @@ internal object ActorFamilyCodeGenerator {
 
     fun baseNameOf(name: String) = name + BlockTypeNaming.BASE_SUFFIX
 
-    /**
-     * The hooks a family's base class has: one per kind of Event any of its Actor types reacts to.
-     *
-     * @param scope The scope of the family's topmost Actor type, for the classes collision Events name.
-     */
-    private class Hooks(features: ActorTypeFeatures, val scope: BlockScope) {
-
-        data class Hook(val signature: String, val call: String)
-
-        val all = features.generatedEvents.mapNotNull(::of).distinct()
-
-        fun of(event: EventDefinition): Hook? = when (event.type) {
-            EventType.ADDED_TO_SCENE -> Hook("$ADDED()", "$ADDED()")
-            EventType.EVERY_FRAME -> Hook("$EVERY_FRAME()", "$EVERY_FRAME()")
-            EventType.EDGE_TOUCHED -> Hook("$EDGE($EDGE_PARAMETERS)", "$EDGE($EDGE_ARGUMENTS)")
-            EventType.KEY_PRESSED -> event.key?.takeIf { it.isKnown }?.let { Hook("${key(it)}()", "${key(it)}()") }
-            EventType.COLLISION -> event.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
-                Hook("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
-            }
-            EventType.TIMER_FINISHED -> event.timer?.takeIf(TimerNaming::isValid)?.let { Hook("${timer(it)}()", "${timer(it)}()") }
-            EventType.GAME_STARTED -> null
-        }
-
-        companion object {
-            const val ADDED = "onAddedToScene"
-            const val EVERY_FRAME = "onEveryFrame"
-            const val EDGE = "onEdgeTouched"
-            const val EDGE_ARGUMENTS = "isTouchingLeftEdge, isTouchingRightEdge, isTouchingTopEdge, isTouchingBottomEdge"
-            const val EDGE_PARAMETERS = "isTouchingLeftEdge: Boolean, isTouchingRightEdge: Boolean, isTouchingTopEdge: Boolean, isTouchingBottomEdge: Boolean"
-
-            fun key(key: KeyChoice) = "onKeyPressed${key.composeKeyName}"
-
-            fun collision(other: String) = "onCollisionWith$other"
-
-            fun timer(timer: String) = TimerNaming.hookName(timer)
-        }
-    }
+    private const val MASK_IMPORT_PREFIX = "com.pandulapeter.kubriko.collision.mask."
+    private const val EXPOSED_IMPORT = "com.pandulapeter.kubriko.sceneEditor.Exposed"
 }

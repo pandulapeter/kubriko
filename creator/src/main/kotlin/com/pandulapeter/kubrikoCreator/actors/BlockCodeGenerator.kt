@@ -67,13 +67,9 @@ internal object BlockCodeGenerator {
         appendEvents(events, depth = 4, scope = scope)
     }
 
-    /**
-     * @param guard A statement that runs before any of the Events, like an early return.
-     */
-    internal fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, scope: BlockScope, guard: String? = null) {
+    internal fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, scope: BlockScope) {
         appendLine()
         appendLine("    override fun onKeyPressed(key: Key) {")
-        guard?.let { appendLine("        $it") }
         appendLine("        when (key) {")
         keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
             appendLine("            Key.${key.composeKeyName} -> {")
@@ -118,7 +114,7 @@ internal object BlockCodeGenerator {
         val kind = BlockKind.of(block)
         return when {
             kind.needsActor && scope.kind != BlockTypeKind.ACTOR -> BlockCode(listOf("// This Block only works in an Actor type."))
-            kind.onlyIn != null && kind.onlyIn != eventType -> BlockCode(listOfNotNull(kind.misplacedComment), needs = legacyNeedsOfComments(block))
+            kind.onlyIn != null && kind.onlyIn != eventType -> BlockCode(listOfNotNull(kind.misplacedComment))
             else -> emittedCode(block, scope)
         }
     }
@@ -191,25 +187,7 @@ internal object BlockCodeGenerator {
         is BlockDefinition.Repeat -> BlockCode(listOf("repeat(${block.times.coerceAtLeast(0)}) {"))
         BlockDefinition.Else, BlockDefinition.End -> BlockCode.NONE
         is BlockDefinition.Log -> logCode(block, scope)
-        is BlockDefinition.Kotlin -> kotlinCode(block)
-    }
-
-    /**
-     * What generated comments counted for before their needs were worked out from the code itself, kept so that the
-     * generated code doesn't change yet: G04 deletes it.
-     */
-    private fun legacyNeedsOfComments(block: BlockDefinition): Set<BlockNeed> = when (block) {
-        BlockDefinition.BounceOffEdge, BlockDefinition.BounceOffOther, is BlockDefinition.MoveTowardsNearest -> setOf(BlockNeed.MOVEMENT)
-        BlockDefinition.RemoveOther -> setOf(BlockNeed.ACTOR_MANAGER)
-        is BlockDefinition.Kotlin -> setOf(BlockNeed.MOVEMENT, BlockNeed.ACTOR_MANAGER, BlockNeed.VIEWPORT_MANAGER)
-        is BlockDefinition.If -> if (block.condition is ConditionDefinition.KeyHeld) setOf(BlockNeed.KEYBOARD_INPUT_MANAGER) else emptySet()
-        is BlockDefinition.SetVelocity, is BlockDefinition.AddToVelocity, BlockDefinition.Stop, BlockDefinition.RunParentEvent,
-        is BlockDefinition.JumpTo, BlockDefinition.RemoveSelf, is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber,
-        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.AddActor, is BlockDefinition.StartTimer,
-        is BlockDefinition.StopTimer, is BlockDefinition.GoToScene, BlockDefinition.RestartScene, is BlockDefinition.PauseGame,
-        is BlockDefinition.PlaySound, is BlockDefinition.PlayMusic, BlockDefinition.StopMusic, BlockDefinition.Else,
-        is BlockDefinition.Repeat, BlockDefinition.End, is BlockDefinition.Log,
-        -> emptySet()
+        is BlockDefinition.Kotlin -> kotlinCode(block, scope)
     }
 
     private fun movementCode(line: String) = BlockCode(listOf(line), needs = setOf(BlockNeed.MOVEMENT), imports = setOf(SCENE_OFFSET_IMPORT))
@@ -227,7 +205,7 @@ internal object BlockCodeGenerator {
     }
 
     private fun moveTowardsNearestCode(block: BlockDefinition.MoveTowardsNearest, scope: BlockScope): BlockCode {
-        if (block.actorType !in scope.actorTypeNames) return BlockCode(listOf("// Choose an Actor type for this Block."), needs = legacyNeedsOfComments(block))
+        if (block.actorType !in scope.actorTypeNames) return BlockCode(listOf("// Choose an Actor type for this Block."))
         val actorClass = scope.classOf(block.actorType)
         val isOwnType = block.actorType == scope.typeName || block.actorType in scope.ancestorNames
         return BlockCode(
@@ -272,15 +250,19 @@ internal object BlockCodeGenerator {
 
     /**
      * Each Kotlin Block gets a scope of its own, like GameMaker's code actions, so two of them can declare the same name.
-     * Its code may use anything an Actor has, so it gets all of it.
+     * Its code may use anything an Actor has, so it gets all of it, and the type of its velocity is imported in an Actor
+     * type's file.
      */
-    private fun kotlinCode(block: BlockDefinition.Kotlin): BlockCode {
+    private fun kotlinCode(block: BlockDefinition.Kotlin, scope: BlockScope): BlockCode {
         val lines = block.code.lines().map { it.trimEnd() }.dropWhile { it.isEmpty() }.dropLastWhile { it.isEmpty() }
-        if (lines.isEmpty()) return BlockCode(emptyList(), needs = legacyNeedsOfComments(block))
+        if (lines.isEmpty()) return BlockCode.NONE
         return BlockCode(
             lines = listOf("run {") + lines.map { if (it.isEmpty()) it else INDENT + it } + "}",
             needs = setOf(BlockNeed.MOVEMENT, BlockNeed.ACTOR_MANAGER, BlockNeed.VIEWPORT_MANAGER),
-            imports = if (KotlinIdentifiers.find(block.code).any { it.name == ABSOLUTE_VALUE }) setOf(ABSOLUTE_VALUE_IMPORT) else emptySet(),
+            imports = setOfNotNull(
+                SCENE_OFFSET_IMPORT.takeIf { scope.kind == BlockTypeKind.ACTOR },
+                ABSOLUTE_VALUE_IMPORT.takeIf { KotlinIdentifiers.find(block.code).any { it.name == ABSOLUTE_VALUE } },
+            ),
         )
     }
 
@@ -306,7 +288,7 @@ internal object BlockCodeGenerator {
                     imports = setOf(KEY_IMPORT),
                 )
             } else {
-                BlockCode(listOf((!condition.isHeld).toString()), needs = legacyNeedsOfComments(block))
+                BlockCode(listOf((!condition.isHeld).toString()))
             }
             is ConditionDefinition.Velocity -> BlockCode(
                 lines = listOf("velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${unitLiteral(condition.value)}"),

@@ -112,7 +112,7 @@ internal object ManagerTypeCodeGenerator {
             if (definition.properties.isNotEmpty()) appendLine()
             BlockNeed.entries.filter { it in needs }.forEach { need -> fieldOf(need)?.let { appendLine("    private val $it") } }
             usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
-            appendTimerFields(timers)
+            appendTimerFields(timers, "private")
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()
                 appendLine("    override fun onInitialize(kubriko: Kubriko) {")

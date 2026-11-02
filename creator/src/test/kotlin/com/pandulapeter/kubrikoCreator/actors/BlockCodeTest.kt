@@ -57,7 +57,7 @@ class BlockCodeTest {
             BlockKind.SET_TEXT to Expected(),
             BlockKind.SET_TOGGLE to Expected(),
             BlockKind.ADD_ACTOR to Expected(),
-            BlockKind.MOVE_TOWARDS_NEAREST to Expected(setOf(MOVEMENT)),
+            BlockKind.MOVE_TOWARDS_NEAREST to Expected(),
             BlockKind.START_TIMER to Expected(),
             BlockKind.STOP_TIMER to Expected(),
             BlockKind.GO_TO_SCENE to Expected(),
@@ -71,23 +71,23 @@ class BlockCodeTest {
             BlockKind.REPEAT to Expected(),
             BlockKind.END to Expected(),
             BlockKind.LOG to Expected(imports = setOf(logger)),
-            BlockKind.KOTLIN to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER)),
+            BlockKind.KOTLIN to Expected(),
         )
         assertEquals(BlockKind.entries.toSet(), defaults.keys)
         defaults.forEach { (kind, expected) ->
             assertEquals(expected, codeOf(kind.createDefault(), kind.onlyIn ?: EventType.EVERY_FRAME), kind.name)
         }
         val variants = listOf(
-            BlockDefinition.BounceOffEdge to Expected(setOf(MOVEMENT)),
-            BlockDefinition.BounceOffOther to Expected(setOf(MOVEMENT)),
-            BlockDefinition.RemoveOther to Expected(setOf(ACTOR_MANAGER)),
+            BlockDefinition.BounceOffEdge to Expected(),
+            BlockDefinition.BounceOffOther to Expected(),
+            BlockDefinition.RemoveOther to Expected(),
             BlockDefinition.PlaySound("hit.wav") to Expected(setOf(AUDIO)),
             BlockDefinition.PlayMusic("level.mp3") to Expected(setOf(AUDIO)),
             BlockDefinition.GoToScene("Level") to Expected(setOf(SCENES)),
             BlockDefinition.AddActor("Ball") to Expected(setOf(ACTOR_MANAGER), setOf(sceneOffset)),
             BlockDefinition.AddActor("Missing") to Expected(),
             BlockDefinition.MoveTowardsNearest("Ball") to Expected(setOf(MOVEMENT, ACTOR_MANAGER), setOf("com.pandulapeter.kubriko.helpers.extensions.normalized", sceneOffset)),
-            BlockDefinition.MoveTowardsNearest("Missing") to Expected(setOf(MOVEMENT)),
+            BlockDefinition.MoveTowardsNearest("Missing") to Expected(),
             BlockDefinition.SetNumber("speed", 1f) to Expected(),
             BlockDefinition.SetNumber("score", 1f, manager = "Game") to Expected(managers = setOf("Game")),
             BlockDefinition.If(ConditionDefinition.Number("speed")) to Expected(),
@@ -95,13 +95,13 @@ class BlockCodeTest {
             BlockDefinition.If(ConditionDefinition.Text("missing")) to Expected(),
             BlockDefinition.If(ConditionDefinition.Toggle("missing")) to Expected(),
             BlockDefinition.If(ConditionDefinition.KeyHeld()) to Expected(setOf(KEYBOARD_INPUT_MANAGER), setOf("androidx.compose.ui.input.key.Key")),
-            BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("NoSuchKey"))) to Expected(setOf(KEYBOARD_INPUT_MANAGER)),
+            BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("NoSuchKey"))) to Expected(),
             BlockDefinition.If(ConditionDefinition.Velocity()) to Expected(setOf(MOVEMENT)),
             BlockDefinition.If(ConditionDefinition.Chance()) to Expected(imports = setOf("kotlin.random.Random")),
             BlockDefinition.If(ConditionDefinition.Paused()) to Expected(setOf(STATE_MANAGER)),
             BlockDefinition.Log("{speed}") to Expected(setOf(NUMBER_TEXT), setOf(logger)),
             BlockDefinition.Log("{Game.score}") to Expected(setOf(NUMBER_TEXT), setOf(logger), setOf("Game")),
-            BlockDefinition.Kotlin("velocity = SceneOffset.Zero") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER)),
+            BlockDefinition.Kotlin("velocity = SceneOffset.Zero") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER), setOf(sceneOffset)),
         )
         variants.forEach { (block, expected) -> assertEquals(expected, codeOf(block, EventType.EVERY_FRAME), block.toString()) }
     }

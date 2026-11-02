@@ -9,23 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.MOVEMENT_LINE
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.REMOVED_GUARD
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendAlwaysActive
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBodyCenter
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBounceOffFunction
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendCollisionMaskUpdate
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendEdgeHandling
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendNumberTextFunction
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerFields
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendVelocityField
-import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.STATE_MANAGER_FIELD
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.stringLiteral
@@ -71,97 +54,47 @@ internal object ActorTypeCodeGenerator {
             managerTypes = managerTypes,
             baseClassNames = family.namesWithChildren,
         )
-        val spriteAccessor = definition.sprite?.let(SpriteFiles::accessorOf)
+        val role = ActorClassEmitter.Role.STANDALONE
         val features = ActorTypeFeatures(
             events = definition.events,
             scope = scope,
-            packageName = packageName,
             shapes = setOf(definition.shape),
-            hasSprite = spriteAccessor != null,
+            hasSprite = definition.sprite?.let(SpriteFiles::accessorOf) != null,
             isCollidableAnyway = name in collidableActorTypeNames,
-            isFamily = false,
+            isFamily = role.isFamily,
         )
-        val keyEvents = features.keyEvents
-        val edgeEvents = features.edgeEvents
-        val collisionEvents = features.collisionEvents
-        val timerEvents = features.timerEvents
-        val isCollidable = features.isCollidable
-        val timers = features.timers
-        val isDynamic = features.isDynamic
-        val lookups = features.lookups
-        val addedEvents = features.addedEvents
-        val traits = listOfNotNull(
-            "Visible",
-            "Dynamic".takeIf { isDynamic },
-            if (collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { isCollidable },
-            "Editable<$name>",
-            "KeyboardInputAware".takeIf { keyEvents.isNotEmpty() },
-        )
-        val imports = features.imports.sorted()
+        val imports = mutableSetOf<String>()
+        val code = buildString {
+            with(ActorClassEmitter(features, role, scope, family, imports)) { appendClass(definition, definition.properties, packageName) }
+        }
         return GeneratedFile.withHeader(" from ${BlockTypeStore.definitionPath(definition)}", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
             appendLine()
-            imports.forEach { appendLine("import $it") }
+            imports.sorted().forEach { appendLine("import $it") }
             appendLine()
-            appendLine("class $name private constructor(state: State) : ${traits.joinToString()} {")
-            appendLine("    override val body = state.body")
-            appendLine()
-            appendLine("    @set:Exposed(name = \"color\")")
-            appendLine("    var color: Color = state.color")
-            if (isDynamic) {
-                appendVelocityField()
-                appendAlwaysActive()
-            }
-            appendRemovedField()
-            definition.properties.forEach { property ->
-                appendLine()
-                appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
-                appendLine("    var ${property.name}: ${PropertyKind.of(property).kotlinType} = state.${property.name}")
-            }
-            if (isCollidable) {
-                appendBodyCenter()
-                appendLine(collisionMask(definition.shape))
-            }
-            if (collisionEvents.isNotEmpty()) {
-                appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted().joinToString { "${scope.classOf(it)}::class" }})")
-            }
-            lookups.forEach { appendLine("    private lateinit var $it") }
-            appendTimerFields(timers)
-            if (features.overridesOnAdded) {
-                appendLine()
-                appendLine("    override fun onAdded(kubriko: Kubriko) {")
-                lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
-                appendEvents(addedEvents, depth = 2, scope = scope)
-                appendLine("    }")
-            }
-            if (isDynamic) {
-                appendLine()
-                appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
-                appendLine(REMOVED_GUARD)
-                timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
-                appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, scope = scope)
-                appendLine(MOVEMENT_LINE)
-                if (edgeEvents.isNotEmpty()) appendEdgeHandling { appendEvents(edgeEvents, depth = 3, scope = scope) }
-                if (isCollidable) appendCollisionMaskUpdate(setOf(definition.shape))
-                appendLine("    }")
-            }
-            // Kubriko keeps telling Actors about key presses while the game is paused.
-            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope, guard = "if (!$STATE_MANAGER_FIELD.isRunning.value) return")
-            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, scope, family)
-            if (features.usesBounceOff) appendBounceOffFunction("private")
-            appendLine()
-            appendLine(if (spriteAccessor == null) drawFunction(definition.shape) else SPRITE_DRAW_FUNCTION)
-            if (features.usesNumberText) appendNumberTextFunction("private")
-            appendSavedState(definition, definition.properties, spriteAccessor)
-            appendLine("}")
+            append(code)
         })
+    }
+
+    /**
+     * The draw function of an Actor type's final class: its shape in its color, or its sprite.
+     */
+    internal fun StringBuilder.appendDrawFunction(definition: ActorTypeDefinition, imports: MutableSet<String>) {
+        val isSprite = definition.sprite?.let(SpriteFiles::accessorOf) != null
+        imports += "androidx.compose.ui.graphics.drawscope.DrawScope"
+        if (isSprite) imports += SPRITE_DRAW_IMPORTS
+        appendLine()
+        appendLine(if (isSprite) SPRITE_DRAW_FUNCTION else drawFunction(definition.shape))
     }
 
     /**
      * The part of an Actor type's class that keeps its state: [save], its `State` (with [properties], its own and
      * inherited ones, at their initial values), and the companion with its sprite and Scene metadata.
      */
-    internal fun StringBuilder.appendSavedState(definition: ActorTypeDefinition, properties: List<PropertyDefinition>, spriteAccessor: String?) {
+    internal fun StringBuilder.appendSavedState(definition: ActorTypeDefinition, properties: List<PropertyDefinition>, packageName: String, imports: MutableSet<String>) {
+        val spriteAccessor = definition.sprite?.let(SpriteFiles::accessorOf)
+        imports += SAVED_STATE_IMPORTS
+        if (spriteAccessor != null) imports += listOf("$packageName.resources.Res", "$packageName.resources.allDrawableResources")
         appendLine()
         appendLine("    override fun save() = State(")
         appendLine("        body = body,")
@@ -213,39 +146,7 @@ internal object ActorTypeCodeGenerator {
         appendLine("}")
     })
 
-    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, scope: BlockScope, family: ActorTypeFamily) {
-        appendLine()
-        appendLine("    override fun onCollisionDetected(collidables: List<Collidable>) {")
-        appendLine(REMOVED_GUARD)
-        appendLine("        for (index in collidables.indices) {")
-        appendLine("            when (val other = collidables[index]) {")
-        collisionEvents.groupBy { it.otherActorType!! }.toSortedMap(collisionTargetOrder(family)).forEach { (otherActorType, events) ->
-            appendLine("                is ${scope.classOf(otherActorType)} -> if (!other.$REMOVED_FIELD) {")
-            appendEvents(events, depth = 5, scope = scope)
-            appendLine("                }")
-        }
-        appendLine("            }")
-        appendLine("        }")
-        appendLine("    }")
-    }
-
-    private fun collisionMask(shape: ActorShape) = when (shape) {
-        ActorShape.CIRCLE -> """
-            |    override val collisionMask = CircleCollisionMask(
-            |        initialPosition = bodyCenter,
-            |        initialRadius = body.size.width * body.scale.horizontal / 2,
-            |    )
-        """.trimMargin()
-        ActorShape.RECTANGLE -> """
-            |    override val collisionMask = BoxCollisionMask(
-            |        initialPosition = bodyCenter,
-            |        initialSize = body.size * body.scale,
-            |        initialRotation = body.rotation,
-            |    )
-        """.trimMargin()
-    }
-
-    internal fun drawFunction(shape: ActorShape) = when (shape) {
+    private fun drawFunction(shape: ActorShape) = when (shape) {
         ActorShape.CIRCLE -> """
             |    override fun DrawScope.draw() = drawCircle(
             |        color = color,
@@ -266,7 +167,7 @@ internal object ActorTypeCodeGenerator {
     /**
      * Draws the sprite stretched over the body, its pixels kept sharp, as pixel art wants them.
      */
-    internal val SPRITE_DRAW_FUNCTION = """
+    private val SPRITE_DRAW_FUNCTION = """
         |    override fun DrawScope.draw() {
         |        val image = sprite?.let { $SPRITE_MANAGER_FIELD.get(it) } ?: return
         |        drawImage(
@@ -277,37 +178,25 @@ internal object ActorTypeCodeGenerator {
         |    }
     """.trimMargin()
 
-    val SPRITE_IMPORTS = listOf(
+    private val SPRITE_DRAW_IMPORTS = listOf(
         "androidx.compose.ui.graphics.FilterQuality",
         "androidx.compose.ui.unit.IntSize",
-        "com.pandulapeter.kubriko.sprites.SpriteManager",
         "kotlin.math.roundToInt",
     )
 
-    val BASE_IMPORTS = listOf(
+    /**
+     * What the part of an Actor type's final class that keeps its state ([appendSavedState]) uses.
+     */
+    private val SAVED_STATE_IMPORTS = listOf(
         "androidx.compose.ui.graphics.Color",
-        "androidx.compose.ui.graphics.drawscope.DrawScope",
         "com.pandulapeter.kubriko.actor.body.BoxBody",
-        "com.pandulapeter.kubriko.actor.traits.Visible",
         "com.pandulapeter.kubriko.helpers.extensions.sceneUnit",
-        "com.pandulapeter.kubriko.sceneEditor.Editable",
         "com.pandulapeter.kubriko.sceneEditor.EditableMetadata",
-        "com.pandulapeter.kubriko.sceneEditor.Exposed",
         "com.pandulapeter.kubriko.serialization.Serializable",
         "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody",
         "com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor",
         "com.pandulapeter.kubriko.types.SceneSize",
         "kotlinx.serialization.SerialName",
         "kotlinx.serialization.json.Json",
-    )
-
-    val KEYBOARD_MANAGER_IMPORTS = listOf(
-        "androidx.compose.ui.input.key.Key",
-        "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager",
-    )
-
-    val KEYBOARD_IMPORTS = listOf(
-        "androidx.compose.ui.input.key.Key",
-        "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware",
     )
 }

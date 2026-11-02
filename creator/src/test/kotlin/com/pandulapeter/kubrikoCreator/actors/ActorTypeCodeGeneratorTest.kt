@@ -665,4 +665,16 @@ class ActorTypeCodeGeneratorTest {
         assertFalse("SpriteManager" in generate(sprite = "drawable/nested/player.png"))
         assertFalse("SpriteManager" in generate())
     }
+
+    @Test
+    fun aBlockThatBecomesACommentNeedsNothing() {
+        val player = ActorTypeDefinition(
+            name = "Player",
+            events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.MoveTowardsNearest("Missing"), BlockDefinition.RemoveOther))),
+        )
+        val code = ActorTypeCodeGenerator.generateActorType(player, "com.example.game")
+        assertFalse("Dynamic" in code)
+        assertFalse("update(" in code)
+        assertFalse("actorManager" in code)
+    }
 }

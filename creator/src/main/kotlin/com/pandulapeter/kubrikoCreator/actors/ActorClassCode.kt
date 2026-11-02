@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.BOUNCE_OFF_FUNC
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.stringLiteral
 
 /**
  * The parts of a generated Actor class that a type of its own ([ActorTypeCodeGenerator]) and the base class of a family
@@ -61,13 +62,25 @@ internal object ActorClassCode {
         appendLine("    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")
     }
 
-    fun StringBuilder.appendTimerFields(timers: List<String>) = timers.forEach { timer ->
+    /**
+     * @param visibility `private` for a type of its own or a Manager type, `protected` for a family's base class.
+     */
+    fun StringBuilder.appendTimerFields(timers: List<String>, visibility: String) = timers.forEach { timer ->
         appendLine()
         appendLine("    /**")
         appendLine("     * Until $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
         appendLine("     */")
-        appendLine("    private var ${TimerNaming.remainingField(timer)} = 0L")
-        appendLine("    private var ${TimerNaming.periodField(timer)} = 0L")
+        appendLine("    $visibility var ${TimerNaming.remainingField(timer)} = 0L")
+        appendLine("    $visibility var ${TimerNaming.periodField(timer)} = 0L")
+    }
+
+    /**
+     * @param source Where the initial values come from: the constructor's parameters of the same names, or the state's.
+     */
+    fun StringBuilder.appendPropertyFields(properties: List<PropertyDefinition>, source: String = "") = properties.forEach { property ->
+        appendLine()
+        appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
+        appendLine("    var ${property.name}: ${PropertyKind.of(property).kotlinType} = $source${property.name}")
     }
 
     /**
@@ -128,7 +141,7 @@ internal object ActorClassCode {
         ActorShape.RECTANGLE -> "$mask.rotation = body.rotation"
     }
 
-    private fun maskClassOf(shape: ActorShape) = when (shape) {
+    fun maskClassOf(shape: ActorShape) = when (shape) {
         ActorShape.CIRCLE -> "CircleCollisionMask"
         ActorShape.RECTANGLE -> "BoxCollisionMask"
     }
