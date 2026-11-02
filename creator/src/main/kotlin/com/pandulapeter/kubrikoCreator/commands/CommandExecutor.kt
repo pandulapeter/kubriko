@@ -28,7 +28,9 @@ import kubriko.creator.generated.resources.error_command_unknown
 
 /**
  * Runs commands against the open project and keeps the history of the changes they made, which undo and redo walk.
- * Changes are applied one at a time, in the order they were requested.
+ * Changes are applied one at a time, in the order they were requested. Used from the main thread only: the history, the AI
+ * steps, and the controllers it changes aren't synchronized; [com.pandulapeter.kubrikoCreator.mcp.McpToolServer] hops
+ * there for tool calls.
  *
  * @param rejectChanges Why no change may be made to the project at all right now (it was saved by a newer Kubriko
  *   Creator), or null if changes may be made.

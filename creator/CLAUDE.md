@@ -646,6 +646,8 @@ workspace toolbar's settings menu (`ProjectSettingsDialog`, `ui/settings`), read
   doesn't restart the load forever.
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own
   `run { }` scope, Blocks outside their Event become comments) and follow the engine's no-allocation rules.
+- Workspace state (the command executor, `BlockTypesController`, `SceneEditingController`) is confined to the main thread;
+  background work hands results back there.
 - Nothing under `engine/`, `plugins/`, or `tools/` may depend on `creator`. Library changes Creator needs follow the public API rules (confirm first).
 - **Library releases:** what Creator needs from the libraries reaches projects only through a Kubriko release, since projects
   resolve Kubriko from Maven Central and opted-in ones use Creator's own version, so a Creator release follows each Kubriko release
