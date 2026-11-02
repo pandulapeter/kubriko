@@ -129,8 +129,7 @@ understand the game is shown to the user too.
 
 ## Testing
 
-- `FakeAgent` variants for the fallbacks still to come: an advertised `systemPrompt`, a read-only mode, and environment variable
-  sign-in.
+- `FakeAgent` variants for the fallbacks still to come: an advertised `systemPrompt` and a read-only mode.
 - More live scenarios (`AssistantLiveScenariosTest`): the chips' links followed, game notes proposed after a settled decision,
   the `game-explorer` subagent used, and a scenario per profile once there is another (with that agent's account variable).
 - The eval set (`EvalSetTest`) with calls recorded from real sessions rather than written by hand, more requests ("stop the paddle on
