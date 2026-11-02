@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
+import java.io.File
 import kotlin.system.exitProcess
 
 /**
@@ -16,6 +17,7 @@ import kotlin.system.exitProcess
  */
 object GameProcessTestGame {
     const val MODE_PROPERTY = "kubriko.creator.test.mode"
+    const val PID_FILE_PROPERTY = "kubriko.creator.test.pidFile"
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -24,7 +26,10 @@ object GameProcessTestGame {
                 (1..40).forEach { println("Line $it") }
                 exitProcess(3)
             }
-            "sleep" -> Thread.sleep(60_000)
+            "sleep" -> {
+                System.getProperty(PID_FILE_PROPERTY)?.let { File(it).writeText(ProcessHandle.current().pid().toString()) }
+                Thread.sleep(60_000)
+            }
             else -> println("Played.")
         }
     }

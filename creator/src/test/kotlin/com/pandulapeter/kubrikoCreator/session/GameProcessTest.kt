@@ -20,6 +20,7 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class GameProcessTest {
@@ -57,10 +58,15 @@ class GameProcessTest {
 
     @Test
     fun cancellingStopsTheGame() = runBlocking {
-        val game = async(Dispatchers.Default) { process.run(launch, mapOf(GameProcessTestGame.MODE_PROPERTY to "sleep")) }
-        delay(1_000)
+        val pidFile = File(root, "pid")
+        val game = async(Dispatchers.Default) {
+            process.run(launch, mapOf(GameProcessTestGame.MODE_PROPERTY to "sleep", GameProcessTestGame.PID_FILE_PROPERTY to pidFile.path))
+        }
+        withTimeout(10_000) { while (pidFile.length() == 0L) delay(20) }
+        val pid = pidFile.readText().toLong()
         withTimeout(10_000) { game.cancelAndJoin() }
         assertTrue(game.isCancelled)
+        assertFalse(ProcessHandle.of(pid).map(ProcessHandle::isAlive).orElse(false))
         assertEquals(emptyList(), snapshots.listFiles().orEmpty().toList())
     }
 
