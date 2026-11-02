@@ -35,4 +35,15 @@ internal data class EventDefinition(
     @SerialName("timer") val timer: String? = null,
     @Description("The Blocks the Event runs, in order.")
     @SerialName("blocks") val blocks: List<BlockDefinition> = emptyList(),
-)
+) {
+    /**
+     * What makes the Event happen, without the fields its type doesn't use, which a file edited by hand may have.
+     */
+    val trigger
+        get() = EventTrigger(
+            type = type,
+            key = key.takeIf { type == EventType.KEY_PRESSED },
+            otherActorType = otherActorType.takeIf { type == EventType.COLLISION },
+            timer = timer.takeIf { type == EventType.TIMER_FINISHED },
+        )
+}

@@ -171,7 +171,7 @@ internal class ActorClassEmitter(
         }
         if (features.collisionEvents.isNotEmpty()) {
             imports += listOf("kotlin.reflect.KClass", COLLIDABLE_IMPORT)
-            val targets = features.collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted()
+            val targets = features.collisionEvents.mapNotNull { it.trigger.otherActorType }.distinct().sorted()
             appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${targets.joinToString { "${scope.classOf(it)}::class" }})")
         }
     }
@@ -194,7 +194,7 @@ internal class ActorClassEmitter(
         appendLine(REMOVED_GUARD)
         features.timers.forEach { timer ->
             appendTimerCountdown(timer) {
-                features.timerEvents.filter { it.timer == timer }.firstNotNullOfOrNull(::callOf)?.let { appendLine("                $it") }
+                features.timerEvents.filter { it.trigger.timer == timer }.firstNotNullOfOrNull(::callOf)?.let { appendLine("                $it") }
             }
         }
         features.everyFrameEvents.firstNotNullOfOrNull(::callOf)?.let { appendLine("        $it") }
@@ -222,7 +222,7 @@ internal class ActorClassEmitter(
         appendLine("    override fun onKeyPressed(key: Key) {")
         appendLine("        if (!$STATE_MANAGER_FIELD.isRunning.value) return")
         appendLine("        when (key) {")
-        features.keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
+        features.keyEvents.groupBy { it.trigger.key!! }.toSortedMap().forEach { (key, events) ->
             events.firstNotNullOfOrNull(::callOf)?.let { appendLine("            Key.${key.composeKeyName} -> $it") }
         }
         appendLine("        }")
@@ -237,7 +237,7 @@ internal class ActorClassEmitter(
         appendLine(REMOVED_GUARD)
         appendLine("        for (index in collidables.indices) {")
         appendLine("            when (val other = collidables[index]) {")
-        features.collisionEvents.groupBy { it.otherActorType!! }.toSortedMap(collisionTargetOrder(family)).forEach { (other, events) ->
+        features.collisionEvents.groupBy { it.trigger.otherActorType!! }.toSortedMap(collisionTargetOrder(family)).forEach { (other, events) ->
             events.firstNotNullOfOrNull(::callOf)?.let { appendLine("                is ${scope.classOf(other)} -> if (!other.$REMOVED_FIELD) $it") }
         }
         appendLine("            }")

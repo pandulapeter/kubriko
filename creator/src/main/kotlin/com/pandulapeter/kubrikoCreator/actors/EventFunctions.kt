@@ -43,11 +43,11 @@ internal object EventFunctions {
         EventType.GAME_STARTED -> Function("$GAME_STARTED($KUBRIKO_PARAMETER)", "$GAME_STARTED(kubriko)", setOf(KUBRIKO_IMPORT))
         EventType.EVERY_FRAME -> Function("$EVERY_FRAME($DELTA_TIME_PARAMETER)", "$EVERY_FRAME($DELTA_TIME)")
         EventType.EDGE_TOUCHED -> Function("$EDGE($DELTA_TIME_PARAMETER, $EDGE_PARAMETERS)", "$EDGE($DELTA_TIME, $EDGE_ARGUMENTS)")
-        EventType.KEY_PRESSED -> event.key?.takeIf { it.isKnown }?.let { Function("${key(it)}()", "${key(it)}()") }
-        EventType.COLLISION -> event.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
+        EventType.KEY_PRESSED -> event.trigger.key?.takeIf { it.isKnown }?.let { Function("${key(it)}()", "${key(it)}()") }
+        EventType.COLLISION -> event.trigger.otherActorType?.takeIf { it in scope.actorTypeNames }?.let { other ->
             Function("${collision(other)}(other: ${scope.classOf(other)})", "${collision(other)}(other)")
         }
-        EventType.TIMER_FINISHED -> event.timer?.takeIf(TimerNaming::isValid)?.let { Function("${timer(it)}($DELTA_TIME_PARAMETER)", "${timer(it)}($DELTA_TIME)") }
+        EventType.TIMER_FINISHED -> event.trigger.timer?.takeIf(TimerNaming::isValid)?.let { Function("${timer(it)}($DELTA_TIME_PARAMETER)", "${timer(it)}($DELTA_TIME)") }
     }
 
     /**

@@ -48,7 +48,7 @@ internal class ActorTypeFeatures(
     val everyFrameEvents = events.filter { it.type == EventType.EVERY_FRAME }
     val isCollidable = collisionEvents.isNotEmpty() || isCollidableAnyway
     val generatedEvents = addedEvents + everyFrameEvents + edgeEvents + keyEvents + collisionEvents + timerEvents
-    val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
+    val timers = (timerEvents.mapNotNull { it.trigger.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerName } }).filter(TimerNaming::isValid).distinct().sorted()
     private val blockCode = eventScopes.fold(BlockCode.NONE) { code, (events, eventScope) ->
         events.filter(::isGenerated).fold(code) { eventsCode, event -> eventsCode + eventCode(event.blocks, event.type, eventScope) }
     }
@@ -94,9 +94,9 @@ internal class ActorTypeFeatures(
      * name) are left out, so that the generated code always compiles.
      */
     private fun isGenerated(event: EventDefinition) = when (event.type) {
-        EventType.KEY_PRESSED -> event.key?.isKnown == true
-        EventType.COLLISION -> event.otherActorType in knownActorTypeNames
-        EventType.TIMER_FINISHED -> event.timer?.let(TimerNaming::isValid) == true
+        EventType.KEY_PRESSED -> event.trigger.key?.isKnown == true
+        EventType.COLLISION -> event.trigger.otherActorType in knownActorTypeNames
+        EventType.TIMER_FINISHED -> event.trigger.timer?.let(TimerNaming::isValid) == true
         EventType.ADDED_TO_SCENE, EventType.EVERY_FRAME, EventType.EDGE_TOUCHED -> true
         EventType.GAME_STARTED -> false
     }

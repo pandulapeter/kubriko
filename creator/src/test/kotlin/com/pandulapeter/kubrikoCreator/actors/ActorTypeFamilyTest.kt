@@ -70,4 +70,21 @@ class ActorTypeFamilyTest {
         assertEquals(listOf(EventDefinition(EventType.EVERY_FRAME), hitWall), family.eventsOf("Flying"))
         assertEquals(listOf(EventDefinition(EventType.EVERY_FRAME), hitWall.copy(blocks = listOf(BlockDefinition.RemoveSelf))), family.eventsOf("Bat"))
     }
+
+    @Test
+    fun aStrayFieldDoesNotStopAnEventReplacingItsParents() {
+        val parent = ActorTypeDefinition(name = "Enemy", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop))))
+        val stray = EventDefinition(EventType.EVERY_FRAME, timer = "x", blocks = listOf(BlockDefinition.RemoveSelf))
+        val child = ActorTypeDefinition(name = "Bat", parent = "Enemy", events = listOf(stray))
+        assertEquals(listOf(stray), ActorTypeFamily(listOf(parent, child)).eventsOf("Bat"))
+    }
+
+    @Test
+    fun eventsOfDifferentKeysStillDoNotReplaceEachOther() {
+        val left = EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.LEFT)
+        val space = EventDefinition(EventType.KEY_PRESSED, key = KeyChoice.SPACE)
+        val parent = ActorTypeDefinition(name = "Enemy", events = listOf(left))
+        val child = ActorTypeDefinition(name = "Bat", parent = "Enemy", events = listOf(space))
+        assertEquals(listOf(left, space), ActorTypeFamily(listOf(parent, child)).eventsOf("Bat"))
+    }
 }

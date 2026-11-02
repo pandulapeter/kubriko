@@ -91,9 +91,8 @@ internal class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
         }
 
         /**
-         * Whether [this] Event takes the place of [other], an ancestor's: the same kind, for the same key, other Actor
-         * type, or Timer.
+         * Whether [this] Event takes the place of [other], an ancestor's: the same [EventDefinition.trigger].
          */
-        fun EventDefinition.replaces(other: EventDefinition) = type == other.type && key == other.key && otherActorType == other.otherActorType && timer == other.timer
+        fun EventDefinition.replaces(other: EventDefinition) = trigger == other.trigger
     }
 }

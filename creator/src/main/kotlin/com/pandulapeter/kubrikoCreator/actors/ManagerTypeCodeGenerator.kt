@@ -134,13 +134,13 @@ internal object ManagerTypeCodeGenerator {
                 appendLine("    override fun onUpdate(deltaTimeInMilliseconds: Int) {")
                 appendLine("        if (isInSceneEditor || !$STATE_MANAGER_FIELD.isRunning.value) return")
                 timers.forEach { timer ->
-                    appendTimerCountdown(timer) { callOf(timerEvents.filter { it.timer == timer })?.let { appendLine("                $it") } }
+                    appendTimerCountdown(timer) { callOf(timerEvents.filter { it.trigger.timer == timer })?.let { appendLine("                $it") } }
                 }
                 callOf(frameEvents)?.let { appendLine("        $it") }
                 appendLine("    }")
             }
             // Unlike an Actor's, these run while the game is paused, so that a key can resume it.
-            if (keyEvents.isNotEmpty()) appendKeyDispatch(keyEvents.groupBy { it.key!! }.toSortedMap().mapValues { (_, events) -> callOf(events) })
+            if (keyEvents.isNotEmpty()) appendKeyDispatch(keyEvents.groupBy { it.trigger.key!! }.toSortedMap().mapValues { (_, events) -> callOf(events) })
             append(functionsCode)
             if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts.map { it.code }, kotlinUi)
             if (BlockNeed.NUMBER_TEXT in needs) appendNumberTextFunction("private")
