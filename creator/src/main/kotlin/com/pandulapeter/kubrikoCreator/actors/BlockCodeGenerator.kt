@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerCountdown
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
 
@@ -64,17 +65,8 @@ internal object BlockCodeGenerator {
      * Counts the Timer [timer] down and runs the Blocks of its [events] when it finishes. A repeating Timer carries the time
      * it overshot into its next round, and the Blocks may start or stop it again.
      */
-    internal fun StringBuilder.appendTimer(timer: String, events: List<EventDefinition>, scope: BlockScope) {
-        val remaining = TimerNaming.remainingField(timer)
-        val period = TimerNaming.periodField(timer)
-        appendLine("        if ($remaining > 0) {")
-        appendLine("            $remaining -= deltaTimeInMilliseconds")
-        appendLine("            if ($remaining <= 0) {")
-        appendLine("                // When $timer finishes")
-        appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
+    internal fun StringBuilder.appendTimer(timer: String, events: List<EventDefinition>, scope: BlockScope) = appendTimerCountdown(timer, isCommented = true) {
         appendEvents(events, depth = 4, scope = scope)
-        appendLine("            }")
-        appendLine("        }")
     }
 
     /**

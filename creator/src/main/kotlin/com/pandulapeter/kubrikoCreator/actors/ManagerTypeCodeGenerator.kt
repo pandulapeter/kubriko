@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendNumberTextFunction
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerFields
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.AUDIO_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
@@ -121,14 +123,7 @@ internal object ManagerTypeCodeGenerator {
             if (usesScenes) appendLine("    private val $SCENES_FIELD by manager<${ScenesCodeGenerator.SCENES_NAME}>()")
             if (BlockCodeGenerator.usesAudio(generatedBlocks)) appendLine("    private val $AUDIO_FIELD by manager<${AudioCodeGenerator.AUDIO_NAME}>()")
             usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
-            timers.forEach { timer ->
-                appendLine()
-                appendLine("    /**")
-                appendLine("     * Until $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
-                appendLine("     */")
-                appendLine("    private var ${TimerNaming.remainingField(timer)} = 0L")
-                appendLine("    private var ${TimerNaming.periodField(timer)} = 0L")
-            }
+            appendTimerFields(timers)
             if (keyEvents.isNotEmpty() || startEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()
                 appendLine("    override fun onInitialize(kubriko: Kubriko) {")
@@ -150,8 +145,7 @@ internal object ManagerTypeCodeGenerator {
             if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope)
             if (texts.isNotEmpty() || kotlinUi != null) appendComposable(definition.texts, texts, kotlinUi)
             if (texts.any { ".$NUMBER_TEXT_FUNCTION()" in it } || generatedBlocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) }) {
-                appendLine()
-                appendLine("    private fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
+                appendNumberTextFunction("private")
             }
             appendLine("}")
         })

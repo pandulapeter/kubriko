@@ -10,12 +10,14 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.BOUNCE_OFF_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.SCENES_FIELD
 
 /**
  * The parts of a generated Actor class that a type of its own ([ActorTypeCodeGenerator]) and the base class of a family
- * ([ActorFamilyCodeGenerator]) share, so that the two behave the same.
+ * ([ActorFamilyCodeGenerator]) share, so that the two behave the same, some of which Manager types
+ * ([ManagerTypeCodeGenerator]) share too.
  */
 internal object ActorClassCode {
 
@@ -41,6 +43,57 @@ internal object ActorClassCode {
         appendLine("     * Set by the Blocks that remove this Actor, which Kubriko does after the frame: until then, it is skipped.")
         appendLine("     */")
         appendLine("    var $REMOVED_FIELD = false")
+    }
+
+    fun StringBuilder.appendVelocityField() {
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * In scene units per second: the Actor moves by this much every second.")
+        appendLine("     */")
+        appendLine("    var velocity = SceneOffset.Zero")
+    }
+
+    fun StringBuilder.appendBodyCenter() {
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * The middle of the Actor in the Scene, wherever its pivot is, which is where its collision mask goes.")
+        appendLine("     */")
+        appendLine("    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")
+    }
+
+    fun StringBuilder.appendTimerFields(timers: List<String>) = timers.forEach { timer ->
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Until $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
+        appendLine("     */")
+        appendLine("    private var ${TimerNaming.remainingField(timer)} = 0L")
+        appendLine("    private var ${TimerNaming.periodField(timer)} = 0L")
+    }
+
+    /**
+     * Counts [timer] down in `update` and, when it finishes, starts it again if it repeats and runs [onFinished].
+     *
+     * @param isCommented Whether a comment names the Timer before the code that runs when it finishes.
+     */
+    fun StringBuilder.appendTimerCountdown(timer: String, isCommented: Boolean, onFinished: StringBuilder.() -> Unit) {
+        val remaining = TimerNaming.remainingField(timer)
+        val period = TimerNaming.periodField(timer)
+        appendLine("        if ($remaining > 0) {")
+        appendLine("            $remaining -= deltaTimeInMilliseconds")
+        appendLine("            if ($remaining <= 0) {")
+        if (isCommented) appendLine("                // When $timer finishes")
+        appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
+        onFinished()
+        appendLine("            }")
+        appendLine("        }")
+    }
+
+    /**
+     * Turns a number into text without its ".0" when it is a whole number, for [NUMBER_TEXT_FUNCTION].
+     */
+    fun StringBuilder.appendNumberTextFunction(visibility: String) {
+        appendLine()
+        appendLine("    $visibility fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
     }
 
     /**

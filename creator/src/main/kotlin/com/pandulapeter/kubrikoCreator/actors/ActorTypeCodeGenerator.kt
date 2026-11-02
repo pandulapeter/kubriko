@@ -12,10 +12,14 @@ package com.pandulapeter.kubrikoCreator.actors
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.MOVEMENT_LINE
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.REMOVED_GUARD
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendAlwaysActive
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBounceOffFunction
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendCollisionMaskUpdate
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendEdgeHandling
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerFields
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendVelocityField
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.REMOVED_FIELD
@@ -107,11 +111,7 @@ internal object ActorTypeCodeGenerator {
             appendLine("    @set:Exposed(name = \"color\")")
             appendLine("    var color: Color = state.color")
             if (isDynamic) {
-                appendLine()
-                appendLine("    /**")
-                appendLine("     * In scene units per second: the Actor moves by this much every second.")
-                appendLine("     */")
-                appendLine("    var velocity = SceneOffset.Zero")
+                appendVelocityField()
                 appendAlwaysActive()
             }
             appendRemovedField()
@@ -121,25 +121,14 @@ internal object ActorTypeCodeGenerator {
                 appendLine("    var ${property.name}: ${PropertyKind.of(property).kotlinType} = state.${property.name}")
             }
             if (isCollidable) {
-                appendLine()
-                appendLine("    /**")
-                appendLine("     * The middle of the Actor in the Scene, wherever its pivot is, which is where its collision mask goes.")
-                appendLine("     */")
-                appendLine("    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")
+                appendBodyCenter()
                 appendLine(collisionMask(definition.shape))
             }
             if (collisionEvents.isNotEmpty()) {
                 appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted().joinToString { "${scope.classOf(it)}::class" }})")
             }
             lookups.forEach { appendLine("    private lateinit var $it") }
-            timers.forEach { timer ->
-                appendLine()
-                appendLine("    /**")
-                appendLine("     * Until $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
-                appendLine("     */")
-                appendLine("    private var ${TimerNaming.remainingField(timer)} = 0L")
-                appendLine("    private var ${TimerNaming.periodField(timer)} = 0L")
-            }
+            appendTimerFields(timers)
             if (lookups.isNotEmpty() || addedEvents.any { it.blocks.isNotEmpty() }) {
                 appendLine()
                 appendLine("    override fun onAdded(kubriko: Kubriko) {")
@@ -165,8 +154,7 @@ internal object ActorTypeCodeGenerator {
             appendLine()
             appendLine(if (spriteAccessor == null) drawFunction(definition.shape) else SPRITE_DRAW_FUNCTION)
             if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) } }) {
-                appendLine()
-                appendLine("    private fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
+                appendNumberTextFunction("private")
             }
             appendSavedState(definition, definition.properties, spriteAccessor)
             appendLine("}")

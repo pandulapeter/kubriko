@@ -13,10 +13,14 @@ import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.COLLISION_MASK
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.MOVEMENT_LINE
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.REMOVED_GUARD
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendAlwaysActive
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBodyCenter
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendBounceOffFunction
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendCollisionMaskUpdate
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendEdgeHandling
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendNumberTextFunction
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendRemovedField
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendTimerCountdown
+import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.appendVelocityField
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.collisionTargetOrder
 import com.pandulapeter.kubrikoCreator.actors.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator.GENERATED_PACKAGE
@@ -121,21 +125,13 @@ internal object ActorFamilyCodeGenerator {
         appendLine("    @set:Exposed(name = \"color\")")
         appendLine("    var color: Color = color")
         if (features.isDynamic) {
-            appendLine()
-            appendLine("    /**")
-            appendLine("     * In scene units per second: the Actor moves by this much every second.")
-            appendLine("     */")
-            appendLine("    var velocity = SceneOffset.Zero")
+            appendVelocityField()
             appendAlwaysActive()
         }
         appendRemovedField()
         appendPropertyFields(properties)
         if (features.isCollidable && features.isDynamic) {
-            appendLine()
-            appendLine("    /**")
-            appendLine("     * The middle of the Actor in the Scene, wherever its pivot is, which is where its collision mask goes.")
-            appendLine("     */")
-            appendLine("    private val bodyCenter get() = body.axisAlignedBoundingBox.let { (it.min + it.max) / 2 }")
+            appendBodyCenter()
         }
         if (features.collisionEvents.isNotEmpty()) {
             val targets = features.collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted()
@@ -158,15 +154,9 @@ internal object ActorFamilyCodeGenerator {
             appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
             appendLine(REMOVED_GUARD)
             features.timers.forEach { timer ->
-                val remaining = TimerNaming.remainingField(timer)
-                val period = TimerNaming.periodField(timer)
-                appendLine("        if ($remaining > 0) {")
-                appendLine("            $remaining -= deltaTimeInMilliseconds")
-                appendLine("            if ($remaining <= 0) {")
-                appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
-                if (features.timerEvents.any { it.timer == timer }) appendLine("                ${Hooks.timer(timer)}()")
-                appendLine("            }")
-                appendLine("        }")
+                appendTimerCountdown(timer, isCommented = false) {
+                    if (features.timerEvents.any { it.timer == timer }) appendLine("                ${Hooks.timer(timer)}()")
+                }
             }
             if (features.everyFrameEvents.isNotEmpty()) appendLine("        ${Hooks.EVERY_FRAME}()")
             appendLine(MOVEMENT_LINE)
@@ -208,8 +198,7 @@ internal object ActorFamilyCodeGenerator {
         }
         if (features.usesBounceOff) appendBounceOffFunction("protected")
         if (usesNumberText) {
-            appendLine()
-            appendLine("    protected fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
+            appendNumberTextFunction("protected")
         }
         appendLine("}")
     }
