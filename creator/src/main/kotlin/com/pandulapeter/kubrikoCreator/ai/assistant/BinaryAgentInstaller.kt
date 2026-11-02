@@ -193,8 +193,7 @@ internal class BinaryAgentInstaller(
         }
 
         private fun systemUntar(archive: File, into: File): Int {
-            val process = ProcessBuilder("tar", "-xf", archive.absolutePath, "-C", into.absolutePath).redirectErrorStream(true).start()
-            process.inputStream.readAllBytes()
+            val process = ProcessBuilder("tar", "-xf", archive.absolutePath, "-C", into.absolutePath).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start()
             if (!process.waitFor(UNTAR_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES)) {
                 process.destroyForcibly()
                 return -1
