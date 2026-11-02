@@ -36,6 +36,7 @@ internal class FakeBlockTypeRepository(
     override fun save(definition: BlockTypeDefinition) {
         if (isFailing) throw IOException("Disk full.")
         writes += "save ${definition.name}"
+        stored[definition.name]?.takeIf { it.folder != definition.folder }?.let(::keepFolderOf)
         stored[definition.name] = definition
     }
 
@@ -51,7 +52,8 @@ internal class FakeBlockTypeRepository(
 
     val folders = mutableMapOf<BlockTypeKind, MutableSet<String>>()
 
-    override fun folders(kind: BlockTypeKind): Set<String> = folders[kind].orEmpty()
+    override fun folders(kind: BlockTypeKind): Set<String> = (folders[kind].orEmpty() + stored.values.filter { it.kind == kind }.map { it.folder })
+        .flatMapTo(sortedSetOf(), ::withParents)
 
     override fun createFolder(kind: BlockTypeKind, path: String) {
         writes += "create folder $path"
@@ -60,12 +62,25 @@ internal class FakeBlockTypeRepository(
 
     override fun deleteFolder(kind: BlockTypeKind, path: String) {
         writes += "delete folder $path"
-        folders[kind]?.removeAll { it == path || it.startsWith("$path/") }
+        val explicit = folders.getOrPut(kind) { mutableSetOf() }
+        explicit += withParents(path) - path
+        if (stored.values.none { it.kind == kind && (it.folder == path || it.folder.startsWith("$path/")) }) {
+            explicit.removeAll { it == path || it.startsWith("$path/") }
+        }
     }
 
     override fun delete(name: String) {
         if (isFailing) throw IOException("Disk full.")
         writes += "delete $name"
-        stored.remove(name)
+        stored.remove(name)?.let(::keepFolderOf)
     }
+
+    /**
+     * Keeps the folder [definition] was in, which stays on disk once the type leaves it.
+     */
+    private fun keepFolderOf(definition: BlockTypeDefinition) {
+        folders.getOrPut(definition.kind) { mutableSetOf() } += withParents(definition.folder)
+    }
+
+    private fun withParents(path: String) = path.split('/').filter { it.isNotEmpty() }.runningReduce { parent, name -> "$parent/$name" }
 }

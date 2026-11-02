@@ -23,9 +23,9 @@ import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.foldersOf
-import com.pandulapeter.kubrikoCreator.commands.testDirectory
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res

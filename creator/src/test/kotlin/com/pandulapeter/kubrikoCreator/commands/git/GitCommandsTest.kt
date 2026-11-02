@@ -22,10 +22,10 @@ import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.gitController
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
-import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
+import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res

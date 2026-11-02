@@ -14,8 +14,8 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
-import com.pandulapeter.kubrikoCreator.commands.testDirectory
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject

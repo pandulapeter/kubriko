@@ -15,10 +15,11 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.CoroutineScope
@@ -27,21 +28,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import java.io.File
-import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-
-private val testDirectories = ConcurrentLinkedQueue<File>().also { directories ->
-    Runtime.getRuntime().addShutdownHook(Thread { directories.forEach(File::deleteRecursively) })
-}
-
-/**
- * A new temporary directory, deleted when the tests' JVM exits.
- */
-internal fun testDirectory(): File = createTempDirectory("kubriko-creator-test").toFile().also(testDirectories::add)
 
 internal fun TestScope.testScope() = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
 

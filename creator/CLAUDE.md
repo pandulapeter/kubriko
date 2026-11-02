@@ -41,7 +41,9 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
 - Controllers are tested against fakes (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`, `FakeGitRepository`),
   file code against real temporary folders, git against real temporary repositories (JGit needs no installed git), and sockets,
   the MCP server, and shell commands for real on localhost. `StringResourcesTest` fails on a string or icon nothing uses, and on
-  escaped apostrophes.
+  escaped apostrophes. Shared fixtures live in `testing/` (`testDirectory()`, the fakes several packages use); a fake of an
+  interface with a real implementation runs the same contract test as the real one (`BlockTypeRepositoryContract`,
+  `GitRepositoryContract`).
 - UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`ui/UiSnapshots.kt`) renders a composable in the
   app's theme and interface scale without a window, asserts its texts and clicks, and saves a PNG under `build/ui-snapshots`.
   Every new UI gets one. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
@@ -55,7 +57,8 @@ Besides its tests passing, a change:
   `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.isIgnored` for every walk through a
   project, `LatestRequests` for background reads whose results may land out of order; in the UI `BufferedTextField`
   (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, and `PanelWidths` with `sidePanel`; in command tests
-  `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`).
+  `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
+  and their contracts).
 - Has its unhappy paths designed: what happens when it throws, when it is cancelled, when it is called again while the first call
   runs, when a file has Windows line breaks, and when its file changes outside Creator.
 - Does no blocking I/O on the main thread, and lets no long-lived loop (a watcher, a server, a reader of a process's output) die
