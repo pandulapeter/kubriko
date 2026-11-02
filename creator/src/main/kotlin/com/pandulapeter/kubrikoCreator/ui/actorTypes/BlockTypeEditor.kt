@@ -65,15 +65,10 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
-import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
-import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_delete_actor_type
-import kubriko.creator.generated.resources.action_delete_manager_type
 import kubriko.creator.generated.resources.actor_type_properties_empty
-import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.manager_type_properties_empty
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource

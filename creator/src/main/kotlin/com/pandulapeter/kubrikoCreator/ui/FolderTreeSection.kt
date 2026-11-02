@@ -60,7 +60,6 @@ import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_folder_open
 import kubriko.creator.generated.resources.ic_more
 import kubriko.creator.generated.resources.ic_scene
-import kubriko.creator.generated.resources.ic_text
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_folder_hint
 import kubriko.creator.generated.resources.new_manager_type_hint

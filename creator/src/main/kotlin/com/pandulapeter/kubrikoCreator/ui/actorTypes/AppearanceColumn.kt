@@ -35,7 +35,6 @@ import kubriko.creator.generated.resources.actor_type_shape_circle
 import kubriko.creator.generated.resources.actor_type_shape_rectangle
 import kubriko.creator.generated.resources.actor_type_width
 import kubriko.creator.generated.resources.ic_palette
-import kubriko.creator.generated.resources.ic_sprite
 import org.jetbrains.compose.resources.stringResource
 
 /**

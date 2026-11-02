@@ -53,7 +53,6 @@ import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_manager_type_hint
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**

@@ -47,7 +47,6 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_palette
 import kubriko.creator.generated.resources.block_palette_drag_hint
 import kubriko.creator.generated.resources.block_palette_hint
-import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_block
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

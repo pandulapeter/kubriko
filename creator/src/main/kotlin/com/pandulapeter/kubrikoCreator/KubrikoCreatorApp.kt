@@ -63,7 +63,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_icon
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import java.awt.Dimension
 import java.io.File
 

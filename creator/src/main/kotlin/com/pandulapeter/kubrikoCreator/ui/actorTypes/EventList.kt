@@ -50,9 +50,7 @@ import kubriko.creator.generated.resources.actor_type_events_empty
 import kubriko.creator.generated.resources.actor_type_inherited_events
 import kubriko.creator.generated.resources.event_collision_choose
 import kubriko.creator.generated.resources.ic_add
-import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_event
-import kubriko.creator.generated.resources.ic_loop
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

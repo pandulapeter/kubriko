@@ -23,7 +23,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
-import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectGenerator
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
