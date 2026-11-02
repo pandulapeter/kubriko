@@ -115,6 +115,7 @@ internal class BlockTypesController(
     private var leftoversChangedByHand = emptySet<String>()
     private val pendingWrites = ArrayList<PendingWrite>()
     private var havePendingTypesChanged = false
+    private var isReloadRequested = false
     private val writeRequests = Channel<Unit>(Channel.CONFLATED)
     private val pendingWriteCount = MutableStateFlow(0)
 
@@ -242,10 +243,13 @@ internal class BlockTypesController(
 
     /**
      * Reads the definitions again after they changed outside Kubriko Creator (in IntelliJ, or through git), unless one
-     * of Creator's own changes is still being written, which the next change on disk is then checked against.
+     * of Creator's own changes is still being written, in which case they are read once it is.
      */
     fun reloadFromDisk() {
-        if (pendingWriteCount.value > 0) return
+        if (pendingWriteCount.value > 0) {
+            isReloadRequested = true
+            return
+        }
         scope.launch { reload() }
     }
 
@@ -253,14 +257,21 @@ internal class BlockTypesController(
      * Reads the definitions again, as [reloadFromDisk] does, returning once they are in memory.
      */
     suspend fun reload() {
-        if (pendingWriteCount.value > 0) return
+        if (pendingWriteCount.value > 0) {
+            isReloadRequested = true
+            return
+        }
         val (loaded, storedFolders) = try {
             withContext(ioDispatcher) { repository.load() to BlockTypeKind.entries.associateWith(repository::folders) }
         } catch (exception: Exception) {
             if (exception is CancellationException) throw exception
             return
         }
-        if (pendingWriteCount.value == 0 && (loaded.types != _types.value || storedFolders != emptyFolders || loaded.unreadableFiles != _unreadableFiles.value)) {
+        if (pendingWriteCount.value > 0) {
+            isReloadRequested = true
+            return
+        }
+        if (loaded.types != _types.value || storedFolders != emptyFolders || loaded.unreadableFiles != _unreadableFiles.value) {
             emptyFolders = storedFolders
             setUnreadableFiles(loaded.unreadableFiles)
             setTypes(loaded.types)
@@ -342,6 +353,10 @@ internal class BlockTypesController(
             leftoversChangedByHand = regenerated.leftoversChangedByHand
             buildFileChanges?.let(onBuildFilesSynced)
             onSaved(haveTypesChanged)
+        }
+        if (isReloadRequested && pendingWriteCount.value == 0) {
+            isReloadRequested = false
+            scope.launch { reload() }
         }
     }
 }

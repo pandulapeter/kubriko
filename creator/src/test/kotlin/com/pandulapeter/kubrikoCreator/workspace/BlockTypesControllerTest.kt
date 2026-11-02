@@ -275,6 +275,21 @@ class BlockTypesControllerTest {
     }
 
     @Test
+    fun aChangeOnDiskWhileCreatorsOwnWritesArePendingIsReadOnceTheyAreWritten() = runTest {
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val controller = createController(repository, writeDelayInMilliseconds = 100)
+        advanceTimeBy(200)
+        controller.put(wall)
+        repository.stored["Brick"] = ActorTypeDefinition(name = "Brick")
+        controller.reloadFromDisk()
+        assertEquals(listOf("Ball", "Wall"), controller.actorTypes.value.map { it.name })
+        advanceTimeBy(200)
+        runCurrent()
+        assertEquals(listOf("Ball", "Brick", "Wall"), controller.actorTypes.value.map { it.name })
+        assertEquals(listOf("regenerate", "save Wall", "regenerate", "regenerate"), repository.writes)
+    }
+
+    @Test
     fun managerTypesAreKeptApartFromActorTypes() = runTest {
         val game = ManagerTypeDefinition("Game")
         val controller = createController(FakeBlockTypeRepository(listOf(wall, game, ball)))
