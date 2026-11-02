@@ -45,6 +45,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -52,6 +53,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_no_desktop_module
@@ -364,6 +366,34 @@ class WorkspaceControllerTest {
             assertEquals(Res.string.status_game_failed, controller.statuses.last())
             assertEquals(ConsoleEntry.BuildOutput("Exception in thread \"main\""), controller.console.value.last())
             assertEquals(SessionState.Idle, controller.sessionState.value)
+        } finally {
+            playClasspathFile.delete()
+        }
+    }
+
+    @Test
+    fun closingWaitsUntilTheGameHasStopped() = runTest {
+        val playClasspathFile = SessionInitScript.playClasspathFileOf(rootDirectory)
+        try {
+            val stopped = CompletableDeferred<Unit>()
+            val controller = createController(
+                runGame = { _, _ ->
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        withContext(NonCancellable) { stopped.await() }
+                    }
+                },
+            )
+            controller.play()
+            playClasspathFile.writeText("kubrikoVersion=1.0.0\nlaunch.java=/java\nlaunch.mainClass=M\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
+            build.currentRun.finish(isSuccessful = true)
+            val closing = controller.close()
+            runCurrent()
+            assertFalse(closing.isCompleted)
+            stopped.complete(Unit)
+            runCurrent()
+            assertTrue(closing.isCompleted)
         } finally {
             playClasspathFile.delete()
         }

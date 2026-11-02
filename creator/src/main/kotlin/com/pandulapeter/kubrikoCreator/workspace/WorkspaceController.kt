@@ -53,6 +53,7 @@ import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -476,16 +477,16 @@ internal class WorkspaceController(
     }
 
     /**
-     * Stops everything the workspace runs, once the changes made so far are written, giving a failed write
-     * [CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS] to succeed on a retry.
+     * Stops everything the workspace runs, once the game is gone and the changes made so far are written, giving a failed
+     * write [CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS] to succeed on a retry.
      *
      * @return The job that finishes closing it, for an app that is quitting to wait for.
      */
     fun close(): Job {
         watching.close()
         sceneEditing.dispose()
-        sessions.close()
-        return parentScope.launch {
+        return parentScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            sessions.closeAndJoin()
             blockTypes?.let { withTimeoutOrNull(CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS) { it.awaitWritten() } }
             scope.cancel()
             withContext(ioDispatcher) { build.close() }

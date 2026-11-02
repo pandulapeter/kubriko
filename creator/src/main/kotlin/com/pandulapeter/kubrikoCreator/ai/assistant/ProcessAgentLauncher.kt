@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.session.LiveGameProcesses
 import kotlinx.coroutines.runInterruptible
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -25,6 +26,8 @@ internal class ProcessAgentLauncher(
             .directory(workingDirectory)
             .apply { environment().putAll(command.environment) }
             .start()
+        LiveGameProcesses.add(process)
+        process.onExit().thenRun { LiveGameProcesses.remove(process) }
         return ProcessAgentChannel(process)
     }
 
@@ -47,6 +50,7 @@ internal class ProcessAgentLauncher(
                 process.waitFor()
             }
             descendants.forEach { it.destroyForcibly() }
+            LiveGameProcesses.remove(process)
         }
     }
 

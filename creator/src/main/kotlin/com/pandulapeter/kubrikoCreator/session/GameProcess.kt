@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Plays a project's game in a process Kubriko Creator starts itself ([GameLaunch]), rather than through Gradle, whose
@@ -63,24 +64,29 @@ internal class GameProcess(
                 .directory(gameLaunch.workingDirectory)
                 .redirectErrorStream(true)
                 .start()
-            val output = ArrayDeque<String>()
-            coroutineScope {
-                launch {
-                    process.inputStream.bufferedReader().useLines { lines ->
-                        lines.forEach { line ->
-                            output.addLast(line)
-                            if (output.size > OUTPUT_TAIL_SIZE) output.removeFirst()
+            LiveGameProcesses.add(process)
+            try {
+                val output = ArrayDeque<String>()
+                coroutineScope {
+                    launch {
+                        process.inputStream.bufferedReader().useLines { lines ->
+                            lines.forEach { line ->
+                                output.addLast(line)
+                                if (output.size > OUTPUT_TAIL_SIZE) output.removeFirst()
+                            }
                         }
                     }
+                    try {
+                        runInterruptible { process.waitFor() }
+                    } catch (exception: CancellationException) {
+                        withContext(NonCancellable) { stop(process) }
+                        throw exception
+                    }
                 }
-                try {
-                    runInterruptible { process.waitFor() }
-                } catch (exception: CancellationException) {
-                    withContext(NonCancellable) { stop(process) }
-                    throw exception
-                }
+                Exit(process.exitValue(), output.toList())
+            } finally {
+                LiveGameProcesses.remove(process)
             }
-            Exit(process.exitValue(), output.toList())
         } finally {
             snapshot.deleteRecursively()
         }
@@ -102,12 +108,31 @@ internal class GameProcess(
         }
     }
 
+    /**
+     * Stops [process] and every process it started, which Hot Reload and a Gradle-run session leave behind otherwise,
+     * since destroying a process doesn't reach its children.
+     */
     private fun stop(process: Process) {
+        val descendants = process.descendants().toList()
         process.destroy()
+        descendants.forEach(ProcessHandle::destroy)
         if (!process.waitFor(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
             process.destroyForcibly()
             process.waitFor()
         }
+        descendants.forEach { descendant ->
+            if (!descendant.awaitExit()) {
+                descendant.destroyForcibly()
+                descendant.awaitExit()
+            }
+        }
+    }
+
+    private fun ProcessHandle.awaitExit() = try {
+        onExit().get(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
+        true
+    } catch (_: TimeoutException) {
+        false
     }
 
     private companion object {

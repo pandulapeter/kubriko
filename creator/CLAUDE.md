@@ -102,7 +102,9 @@ Besides its tests passing, a change:
 
 - Workspace state (the `CommandExecutor`, `BlockTypesController`, `SceneEditingController`) is confined to the main thread;
   background work hands its results back there.
-- Each workspace runs in a scope of its own, a child of the app's, and so do its session server and watcher. `close()` cancels it
+- Each workspace runs in a scope of its own, a child of the app's, and so do its session server and watcher. `close()` first stops
+  the game and waits until it, and every process it started, is gone, and opening a project waits for the previous one to close; a
+  game or agent still running when Creator's JVM exits is killed by a shutdown hook (`LiveGameProcesses`). It cancels the scope
   once the pending writes are done, giving a failed one up to 10 seconds of retries (`BlockTypesController.awaitWritten`). Quitting
   (`AppGraph.shutdown`, whose `AppGraph` builds the app's parts in `main` before the window) closes the AI server, the agent, and
   the open project side by side off the UI thread, then waits for the settings' last save, all within 15 seconds
