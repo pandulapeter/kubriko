@@ -27,7 +27,9 @@ import kubriko.creator.generated.resources.error_command_project_settings_empty
 import kubriko.creator.generated.resources.error_command_project_settings_unavailable
 
 /**
- * Changes the game's identity, which lives in `gradle.properties` where the build reads it (see [GameIdentity]).
+ * Changes the game's identity, which lives in `gradle.properties` where the build reads it (see [GameIdentity]). The
+ * files are read only when applying, off the main thread, so validating checks the input alone: `check_change` accepts
+ * a value that applying then refuses (an invalid application ID, or a project without its settings).
  */
 @OptIn(EditorMutation::class)
 internal object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
@@ -39,16 +41,14 @@ internal object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project
 
-    override fun validate(context: CommandContext, input: Input): Rejection? {
-        if (input == Input()) return Rejection(Res.string.error_command_project_settings_empty)
-        val identity = GameIdentity.read(context.project.rootDirectory) ?: return Rejection(Res.string.error_command_project_settings_unavailable)
-        return input.appliedTo(identity).validate()?.let { (reason, arguments) -> Rejection(reason, arguments) }
-    }
+    override fun validate(context: CommandContext, input: Input): Rejection? = if (input == Input()) Rejection(Res.string.error_command_project_settings_empty) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val root = context.project.rootDirectory
-        val previous = checkNotNull(GameIdentity.read(root))
-        GameIdentity.write(root, input.appliedTo(previous))
+        val previous = GameIdentity.read(root) ?: return@withContext Applied.failed(Res.string.error_command_project_settings_unavailable)
+        val changed = input.appliedTo(previous)
+        changed.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
+        GameIdentity.write(root, changed)
         Applied(inverse = Invocation(SetProjectSettings, input.revertedTo(previous)))
     }
 

@@ -161,4 +161,62 @@ class SceneStoreTest {
         assertNull(store.read("main"))
         assertFalse(store.isValid("main"))
     }
+
+    @Test
+    fun namesComeFromTheIndexAfterARefresh() {
+        val scenes = File(root, SceneStore.DEFAULT_SCENE_DIRECTORY).apply { mkdirs() }
+        store.refresh()
+        File(scenes, "hand.json").writeText("[]")
+        assertEquals(emptyList(), store.names())
+        assertFalse(store.exists("hand"))
+        store.write("b", "[]")
+        assertEquals(listOf("b"), store.names())
+        assertTrue(store.move("b", "c"))
+        assertEquals(listOf("c"), store.names())
+        store.delete("c")
+        assertEquals(emptyList(), store.names())
+        store.refresh()
+        assertEquals(listOf("hand"), store.names())
+        assertTrue(store.exists("hand"))
+    }
+
+    @Test
+    fun changesReachScenesTheIndexDoesntKnowYet() {
+        store.refresh()
+        val file = File(root, "${SceneStore.DEFAULT_SCENE_DIRECTORY}/hand.json").apply { parentFile.mkdirs() }
+        file.writeText(SceneDocument.format(listOf(SceneActorEntry("Ball", "{}", "a"))))
+        assertEquals(listOf("hand"), store.renameTypeId("Ball", "Puck"))
+        assertEquals(listOf("Puck"), SceneDocument.parse(file.readText()).map { it.typeId })
+    }
+
+    @Test
+    fun aRefreshKeepsANameWrittenWhileItWalked() {
+        lateinit var walking: SceneStore
+        walking = SceneStore(root, beforeIndexing = { if (!walking.exists("b")) walking.write("b", "[]") }) { scanned }
+        walking.refresh()
+        assertEquals(listOf("b"), walking.names())
+    }
+
+    @Test
+    fun namesBeforeTheFirstRefreshWalkTheFolder() {
+        File(root, "${SceneStore.DEFAULT_SCENE_DIRECTORY}/main.json").apply { parentFile.mkdirs() }.writeText("[]")
+        assertEquals(listOf("main"), store.names())
+        assertTrue(store.exists("main"))
+    }
+
+    @Test
+    fun refreshReadsChangedScenesIntoTheCache() {
+        var readCount = 0
+        val counting = SceneStore(root, readText = { file -> readCount++; file.readText() }) { scanned }
+        val file = File(root, "${SceneStore.DEFAULT_SCENE_DIRECTORY}/main.json").apply { parentFile.mkdirs() }
+        file.writeText(SceneDocument.format(listOf(SceneActorEntry("Ball", "{}", "a"))))
+        counting.refresh()
+        val readsAfterTheFirstRefresh = readCount
+        file.writeText(SceneDocument.format(listOf(SceneActorEntry("Ball", "{}", "a"), SceneActorEntry("Wall", "{}", "b"))))
+        file.setLastModified(file.lastModified() + 2_000)
+        counting.refresh()
+        assertEquals(readsAfterTheFirstRefresh + 1, readCount)
+        assertEquals(listOf("a", "b"), counting.actors("main")?.map { it.id })
+        assertEquals(readsAfterTheFirstRefresh + 1, readCount)
+    }
 }

@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 import com.pandulapeter.kubrikoCreator.schema.Description
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
@@ -47,6 +48,8 @@ internal object RenameScene : WriteCommand<RenameScene.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
+        val isTaken = withContext(context.ioDispatcher) { context.scenes.scanNames().any { it != input.scene && it.equals(input.newName, ignoreCase = true) } }
+        if (isTaken) return Applied.failed(Rejection(Res.string.error_scene_name_taken))
         if (!context.renameScene(input.scene, input.newName)) return Applied(inverse = null, failure = sceneNotMoved(input.scene))
         return Applied(inverse = Invocation(RenameScene, Input(input.newName, input.scene)))
     }

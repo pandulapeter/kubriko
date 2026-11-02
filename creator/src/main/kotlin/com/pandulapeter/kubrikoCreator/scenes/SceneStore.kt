@@ -25,17 +25,22 @@ import java.util.concurrent.ConcurrentHashMap
  * Scenes can be in folders. Calls that write block, so callers run them off the main thread. Each Scene is kept parsed
  * in memory while its file has the length and modification time it was read or written with, so that commands check
  * and change a large Scene without reading it again; a file changed elsewhere is read again the next time it is asked for.
+ * The names are known from the last [refresh] and Creator's own writes, so validating a command reads nothing. What
+ * changes every Scene finds them on disk instead ([scanNames]), so that it doesn't miss one made outside Creator since.
  *
  * @param sceneResources The Scene files the last scan of the project found. Scenes created since then are found in the
  *   folder new Scenes go to.
  * @param writeText Writes a Scene file, replaceable so that tests can make one fail.
  * @param readText Reads a Scene file, replaceable so that tests can make one fail.
+ * @param beforeIndexing Runs between a [refresh]'s walk through the Scenes and its update of the names, so that tests can
+ *   write meanwhile.
  */
 internal class SceneStore(
     private val rootDirectory: File,
     private val ownWrites: OwnWrites = OwnWrites(),
     private val writeText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
     private val readText: (File) -> String = { file -> file.readText() },
+    private val beforeIndexing: () -> Unit = {},
     private val sceneResources: () -> List<ProjectResource>,
 ) {
     /**
@@ -48,11 +53,60 @@ internal class SceneStore(
      */
     private val sceneDirectory get() = sceneResources().firstNotNullOfOrNull { rootOf(it.file) } ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
 
-    fun names() = (sceneResources().map { it.file } + sceneDirectory.walkTopDown().filter { it.extension == EXTENSION }.toList())
+    private val indexLock = Any()
+    private val refreshLock = Any()
+
+    /**
+     * The names of every Scene as of the last [refresh] and Creator's writes since, sorted; null before the first refresh.
+     */
+    @Volatile
+    private var knownNames: List<String>? = null
+    private val addedDuringWalk = HashSet<String>()
+    private val removedDuringWalk = HashSet<String>()
+
+    /**
+     * The names of every Scene, sorted, as of the last [refresh] and Creator's own writes since (before the first refresh,
+     * as the files are now).
+     */
+    fun names() = knownNames ?: scanNames()
+
+    /**
+     * The names of every Scene as the files are now, which walks the Scenes folder, for what changes every Scene.
+     */
+    fun scanNames() = sceneFiles().map(::nameOf).distinct().sorted()
+
+    private fun sceneFiles() = (sceneResources().map { it.file } + sceneDirectory.walkTopDown().filter { it.extension == EXTENSION }.toList())
         .filter { it.isFile }
-        .map(::nameOf)
-        .distinct()
-        .sorted()
+
+    /**
+     * Finds every Scene again for [names], and reads each whose file changed since it was last read, so that commands
+     * validated afterwards read nothing. Blocks, so callers run it off the main thread.
+     */
+    fun refresh() = synchronized(refreshLock) {
+        synchronized(indexLock) {
+            addedDuringWalk.clear()
+            removedDuringWalk.clear()
+        }
+        val files = sceneFiles()
+        files.forEach { cached(it) }
+        val walked = files.map(::nameOf)
+        beforeIndexing()
+        synchronized(indexLock) {
+            knownNames = (walked - removedDuringWalk + addedDuringWalk).distinct().sorted()
+        }
+    }
+
+    private fun onWritten(name: String) = synchronized(indexLock) {
+        removedDuringWalk -= name
+        addedDuringWalk += name
+        knownNames = knownNames?.let { names -> if (names.binarySearch(name) >= 0) names else (names + name).sorted() }
+    }
+
+    private fun onRemoved(name: String) = synchronized(indexLock) {
+        addedDuringWalk -= name
+        removedDuringWalk += name
+        knownNames = knownNames?.let { names -> names - name }
+    }
 
     /**
      * Every folder of the Scenes folder, as paths (`levels/forest`), empty ones too.
@@ -100,6 +154,8 @@ internal class SceneStore(
         cache.remove(source)
         ownWrites.record(source)
         ownWrites.record(target)
+        onRemoved(oldName)
+        onWritten(newName)
         descriptions.move(oldName, newName)
         return true
     }
@@ -109,7 +165,7 @@ internal class SceneStore(
      */
     fun fileOf(name: String) = file(name) ?: File(sceneDirectory, "$name.$EXTENSION")
 
-    fun exists(name: String) = file(name) != null
+    fun exists(name: String) = knownNames?.let { names -> names.binarySearch(name) >= 0 } ?: (file(name) != null)
 
     fun read(name: String) = cached(name)?.text
 
@@ -143,12 +199,14 @@ internal class SceneStore(
         writeText(file, content)
         ownWrites.record(file)
         cache[file] = CachedScene(content, file.length(), file.lastModified(), actors)
+        onWritten(name)
     }
 
     private val cache = ConcurrentHashMap<File, CachedScene>()
 
-    private fun cached(name: String): CachedScene? {
-        val file = file(name) ?: return null
+    private fun cached(name: String): CachedScene? = file(name)?.let { cached(it) }
+
+    private fun cached(file: File): CachedScene? {
         val length = file.length()
         val lastModified = file.lastModified()
         return cache[file]?.takeIf { it.length == length && it.lastModified == lastModified }
@@ -193,6 +251,7 @@ internal class SceneStore(
             file.delete()
             cache.remove(file)
             ownWrites.record(file)
+            onRemoved(name)
         }
     }
 
@@ -248,7 +307,7 @@ internal class SceneStore(
     private fun changeActors(change: (SceneActorEntry) -> SceneActorEntry): Map<String, List<Pair<SceneActorEntry, SceneActorEntry>>> {
         val changes = LinkedHashMap<String, List<SceneActorEntry>>()
         val changedActors = LinkedHashMap<String, List<Pair<SceneActorEntry, SceneActorEntry>>>()
-        names().forEach { name ->
+        scanNames().forEach { name ->
             val actors = actors(name) ?: return@forEach
             val changed = actors.map(change)
             if (changed != actors) {

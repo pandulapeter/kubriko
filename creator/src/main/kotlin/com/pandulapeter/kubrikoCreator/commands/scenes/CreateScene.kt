@@ -49,10 +49,13 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        withContext(context.ioDispatcher) {
+        val isWritten = withContext(context.ioDispatcher) {
+            if (context.scenes.scanNames().any { it.equals(input.scene, ignoreCase = true) }) return@withContext false
             context.scenes.write(input.scene, input.content)
             context.scenes.descriptions.set(input.scene, input.description)
+            true
         }
+        if (!isWritten) return Applied.failed(Rejection(Res.string.error_scene_name_taken))
         context.onScenesChanged(listOf(input.scene))
         return Applied(inverse = Invocation(DeleteScene, DeleteScene.Input(input.scene)))
     }

@@ -39,14 +39,23 @@ internal object UpgradeProject : WriteCommand<NoInput> {
 
     override fun target(context: CommandContext, input: NoInput) = CommandTarget.Project
 
-    override fun validate(context: CommandContext, input: NoInput): Rejection? = when (val upgrade = ProjectUpgrader(context.project.rootDirectory).check()) {
-        TemplateUpgrade.UpToDate -> Rejection(Res.string.error_command_upgrade_not_needed)
-        is TemplateUpgrade.Needed -> if (upgrade.changes.isEmpty()) Rejection(Res.string.error_command_upgrade_by_hand, upgrade.byHand.joinToString()) else null
-    }
+    override fun validate(context: CommandContext, input: NoInput): Rejection? = rejectionOf(context.projectUpgrade())
 
     override suspend fun apply(context: CommandContext, input: NoInput): Applied {
-        withContext(context.ioDispatcher) { ProjectUpgrader(context.project.rootDirectory).apply() }
+        val rejection = withContext(context.ioDispatcher) {
+            val upgrader = ProjectUpgrader(context.project.rootDirectory)
+            rejectionOf(upgrader.check()) ?: run {
+                upgrader.apply()
+                null
+            }
+        }
+        if (rejection != null) return Applied.failed(rejection)
         context.onProjectUpgraded()
         return Applied(inverse = null, isRewritingFiles = true)
+    }
+
+    private fun rejectionOf(upgrade: TemplateUpgrade) = when (upgrade) {
+        TemplateUpgrade.UpToDate -> Rejection(Res.string.error_command_upgrade_not_needed)
+        is TemplateUpgrade.Needed -> if (upgrade.changes.isEmpty()) Rejection(Res.string.error_command_upgrade_by_hand, upgrade.byHand.joinToString()) else null
     }
 }

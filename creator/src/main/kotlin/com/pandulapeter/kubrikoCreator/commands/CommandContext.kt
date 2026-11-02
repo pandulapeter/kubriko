@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +34,8 @@ import kubriko.creator.generated.resources.error_command_generated_code_not_writ
  * @param onSceneRenamed Tells the rest of the editor that a command moved a Scene to another name (and so file).
  * @param report Adds an entry to the console, for what the user should know after a command.
  * @param onProjectUpgraded Tells the rest of the editor that the project's template files were brought up to date.
+ * @param projectUpgrade What the project's template files need, as last checked in the background, so that validating
+ *   reads no files.
  * @param rejectChanges Why no change may be made to the project at all right now (it was saved by a newer Kubriko
  *   Creator), or null if changes may be made.
  */
@@ -50,6 +53,7 @@ internal class CommandContext(
     val onSceneRenamed: (oldName: String, newName: String) -> Unit = { _, _ -> },
     val report: (ConsoleEntry) -> Unit = {},
     val onProjectUpgraded: () -> Unit = {},
+    val projectUpgrade: () -> TemplateUpgrade = { TemplateUpgrade.UpToDate },
     val rejectChanges: () -> Rejection? = { null },
 ) {
 
@@ -96,7 +100,7 @@ internal class CommandContext(
         }
         if (sceneNames.isNotEmpty()) {
             withContext(ioDispatcher) {
-                sceneNames.forEach { name -> hashes[CommandTarget.Scene(name)] = if (scenes.exists(name)) scenes.read(name)?.hashCode() else 0 }
+                sceneNames.forEach { name -> hashes[CommandTarget.Scene(name)] = if (scenes.fileOf(name).isFile) scenes.read(name)?.hashCode() else 0 }
             }
         }
         return hashes

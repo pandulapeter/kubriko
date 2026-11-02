@@ -12,11 +12,14 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -41,6 +44,7 @@ import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -86,6 +90,19 @@ class SceneCommandsTest {
         assertEquals(null, CreateScene.validate(context, CreateScene.Input("builds/1")))
         assertEquals(Rejection(Res.string.error_command_scene_content_invalid), CreateScene.validate(context, CreateScene.Input("other", "{}")))
         assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), DeleteScene.validate(context, DeleteScene.Input("other")))
+    }
+
+    @Test
+    fun createSceneDoesntOverwriteASceneMadeSinceTheRefresh() = runTest {
+        val context = context()
+        context.scenes.refresh()
+        val main = context.scenes.read("main")
+        val handMade = File(context.scenes.fileOf("main").parentFile, "level.json").apply { writeText("[{}]") }
+        val executor = CommandExecutor(context, testScope())
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_scene_name_taken)), executor.execute(Invocation(CreateScene, CreateScene.Input("level"))))
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_scene_name_taken)), executor.execute(Invocation(RenameScene, RenameScene.Input("main", "LEVEL"))))
+        assertEquals("[{}]", handMade.readText())
+        assertEquals(main, context.scenes.read("main"))
     }
 
     @Test

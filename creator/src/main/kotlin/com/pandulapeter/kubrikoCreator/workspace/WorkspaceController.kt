@@ -317,6 +317,7 @@ internal class WorkspaceController(
             },
             report = ::appendToConsole,
             onProjectUpgraded = ::refreshProjectUpgrade,
+            projectUpgrade = { _projectUpgrade.value },
             rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
         ),
         scope = scope,
@@ -411,6 +412,8 @@ internal class WorkspaceController(
             if (resourceScans.isLatest(request)) {
                 _resources.value = resources
                 _sceneFolders.value = folders
+                // After the new resources are in, so that Scenes outside the Scenes folder are found too.
+                withContext(ioDispatcher) { scenes.refresh() }
             }
         }
     }

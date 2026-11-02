@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
@@ -68,6 +69,7 @@ internal fun TestScope.commandContext(
     onSceneRenamed: (String, String) -> Unit = { _, _ -> },
     report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
+    projectUpgrade: () -> TemplateUpgrade = { TemplateUpgrade.UpToDate },
     rejectChanges: () -> Rejection? = { null },
     ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
     sceneWriteText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
@@ -86,6 +88,7 @@ internal fun TestScope.commandContext(
     onSceneRenamed = onSceneRenamed,
     report = report,
     onProjectUpgraded = onProjectUpgraded,
+    projectUpgrade = projectUpgrade,
     rejectChanges = rejectChanges,
 )
 

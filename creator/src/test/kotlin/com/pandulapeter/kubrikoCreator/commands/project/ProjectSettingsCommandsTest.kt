@@ -9,12 +9,14 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.project
 
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
@@ -28,6 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 
 class ProjectSettingsCommandsTest {
     private val root = createTempDirectory().toFile()
@@ -69,17 +72,19 @@ class ProjectSettingsCommandsTest {
         projectReadingItsIdentity()
         val context = commandContext(rootDirectory = root)
         assertEquals(Rejection(Res.string.error_command_project_settings_empty), Invocation(SetProjectSettings, SetProjectSettings.Input()).validate(context))
-        assertEquals(
-            Rejection(Res.string.error_identity_version_name_invalid, "1.0.0.0"),
-            Invocation(SetProjectSettings, SetProjectSettings.Input(versionName = "1.0.0.0")).validate(context),
-        )
+        val invalid = Invocation(SetProjectSettings, SetProjectSettings.Input(versionName = "1.0.0.0"))
+        assertNull(invalid.validate(context))
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_identity_version_name_invalid, "1.0.0.0")), CommandExecutor(context, testScope()).execute(invalid))
+        assertEquals(identity.writtenTo("org.gradle.caching=true\n"), properties.readText())
     }
 
     @Test
     fun aProjectWhoseBuildDoesNotReadSettingsSaysToUpgrade() = runTest {
         val context = commandContext(rootDirectory = root)
         val rejection = Rejection(Res.string.error_command_project_settings_unavailable)
-        assertEquals(rejection, Invocation(SetProjectSettings, SetProjectSettings.Input(name = "Game")).validate(context))
+        val invocation = Invocation(SetProjectSettings, SetProjectSettings.Input(name = "Game"))
+        assertNull(invocation.validate(context), "validating reads no files")
+        assertEquals(CommandOutcome.Rejected(rejection), CommandExecutor(context, testScope()).execute(invocation))
         assertEquals(CommandOutcome.Rejected(rejection), GetProjectSettings.read(context, NoInput))
     }
 

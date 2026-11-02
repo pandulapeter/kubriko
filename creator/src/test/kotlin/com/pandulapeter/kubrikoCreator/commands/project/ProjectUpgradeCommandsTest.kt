@@ -9,12 +9,15 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.project
 
+import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
+import com.pandulapeter.kubrikoCreator.template.ProposedFileChange
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
@@ -67,7 +70,7 @@ class ProjectUpgradeCommandsTest {
     fun upgradingChangesTheFilesAndRecordsTheVersion() = runTest {
         oldProject()
         var upgradedCount = 0
-        val context = commandContext(rootDirectory = root, onProjectUpgraded = { upgradedCount++ })
+        val context = commandContext(rootDirectory = root, onProjectUpgraded = { upgradedCount++ }, projectUpgrade = { ProjectUpgrader(root).check() })
         assertNull(Invocation(UpgradeProject, NoInput).validate(context))
         assertTrue(Invocation(UpgradeProject, NoInput).apply(context).let { it.inverse == null && it.isRewritingFiles })
         assertContains(game.readText(), "import com.example.game.generated.KubrikoWiring\n")
@@ -84,7 +87,23 @@ class ProjectUpgradeCommandsTest {
         entryPoint.delete()
         assertEquals(
             Rejection(Res.string.error_command_upgrade_by_hand, "src/commonMain/kotlin/com/example/game/Game.kt, src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"),
-            Invocation(UpgradeProject, NoInput).validate(commandContext(rootDirectory = root)),
+            Invocation(UpgradeProject, NoInput).validate(commandContext(rootDirectory = root, projectUpgrade = { ProjectUpgrader(root).check() })),
         )
+    }
+
+    @Test
+    fun validatingTrustsTheLastCheckInsteadOfReadingTheFiles() = runTest {
+        oldProject()
+        val context = commandContext(rootDirectory = root, projectUpgrade = { TemplateUpgrade.UpToDate })
+        assertEquals(Rejection(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).validate(context))
+    }
+
+    @Test
+    fun applyingChecksAgainWhenTheLastCheckIsStale() = runTest {
+        val stale = TemplateUpgrade.Needed(changes = listOf(ProposedFileChange("Game.kt", before = "", after = "")), byHand = emptyList())
+        val context = commandContext(rootDirectory = root, projectUpgrade = { stale })
+        assertNull(Invocation(UpgradeProject, NoInput).validate(context))
+        assertEquals(Applied.failed(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).apply(context))
+        assertEquals(emptyList(), root.listFiles().orEmpty().toList())
     }
 }

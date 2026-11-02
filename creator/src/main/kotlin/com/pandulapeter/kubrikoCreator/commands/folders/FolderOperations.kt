@@ -51,7 +51,7 @@ internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String,
     when (val kind = group.kind) {
         null -> {
             val movedScenes = ArrayList<String>()
-            scenes.names().filter { FolderPaths.isWithin(FolderPaths.parentOf(it), path) }.forEach { scene ->
+            withContext(ioDispatcher) { scenes.scanNames() }.filter { FolderPaths.isWithin(FolderPaths.parentOf(it), path) }.forEach { scene ->
                 if (!renameScene(scene, moved(scene))) {
                     movedScenes.asReversed().forEach { renameScene(moved(it), it) }
                     deleteFolder(group, newPath)

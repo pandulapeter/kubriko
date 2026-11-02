@@ -188,7 +188,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   gets one from its index, the same every time, so a Scene changes only when a command writes it. Undoing a removal brings back
   the same ID. Placing works for block-built Actor types only, whose state is known without loading classes. A Scene's settings
   (bounds, background, camera start, music) are an Actor (`SceneSettings`, `Unique` and `Editable`), not a file of their own, so
-  they are placed, edited, and undone like any other; a Scene without one keeps the screen's edges.
+  they are placed, edited, and undone like any other; a Scene without one keeps the screen's edges. `SceneStore` knows the Scene
+  names from its last `refresh` (each resource scan) and its own writes, so validating on the main thread reads nothing; what
+  writes acts on the folder as it is (`scanNames`), so `create_scene` and `rename_scene` don't overwrite a Scene made outside
+  Creator since, and type renames reach it.
 - **Folders** are real directories. Names stay unique across folders, since generated code is flat in one package; a Scene is
   named by its path (`levels/1-1`); `delete_folder` takes only an empty folder, so undo is exact. A Scene file that can't be moved
   (Windows refuses while the game has it open) fails the rename before anything else changes, and a folder rename moves the Scenes
