@@ -29,7 +29,7 @@ that explains what the code already says.
 ## Documentation (KDoc)
 
 - **Public API is documented 100% with KDoc.** Every public/protected declaration in a published
-  module (`engine`, `plugins/*`, `tools/*-api`) gets KDoc — types, functions, properties, defaults,
+  module (every module applying `kubriko-public-artifact`) gets KDoc — types, functions, properties, defaults,
   and the observable behavior of public `StateFlow`s. This is the surface external consumers depend on.
 - **Documenting a declaration always uses KDoc (`/** … */`), never a `//` block — even for internal or
   private declarations.** If a class, function, or property warrants a comment about what it is or why
@@ -78,7 +78,7 @@ that explains what the code already says.
   a name clash first), and nothing else changed in the same commit.
 - **Published modules keep their binary API.** Moving a public top-level function or property to another
   file changes the JVM facade class it compiles into (`FooKt`), which breaks consumers compiled against
-  the old one. In `engine`, `plugins/*` and `tools/*-api`, split such files only by keeping the old facade
+  the old one. In published modules (those applying `kubriko-public-artifact`), split such files only by keeping the old facade
   name (`@file:JvmName` with `@file:JvmMultifileClass`) or in a release that is allowed to break binary
   compatibility; classes and objects can move between files freely.
 
@@ -153,7 +153,8 @@ that explains what the code already says.
 - **After a significant change, update the relevant `CLAUDE.md`.** Each module has its own `CLAUDE.md`
   (plus the root one); when a change alters something they describe — module architecture, a state
   holder's responsibilities, a UI surface the dependency graph, data types — update the matching section
-  in the same change so the docs never drift from the code.
+  in the same change so the docs never drift from the code. Describe rules, invariants, and the why the code
+  can't show, not what the code does.
 - **Only when it matters.** Routine edits that don't change any documented behavior need no doc update.
   Match the existing prose style and keep it terse; don't add a `CLAUDE.md` section for something that
   wasn't documented before unless it genuinely warrants one.
