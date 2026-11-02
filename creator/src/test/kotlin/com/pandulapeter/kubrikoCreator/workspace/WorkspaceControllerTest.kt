@@ -220,6 +220,15 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun everyLaunchWaitsForASessionOfItsOwn() = runTest {
+        val controller = createController()
+        controller.play()
+        assertEquals(1, channel.expectedSessions)
+        controller.play()
+        assertEquals(2, channel.expectedSessions, "restarting the game goes through play() as well")
+    }
+
+    @Test
     fun theDesktopModuleIsAskedForAgainAfterALookupThatFailed() = runTest {
         var lookups = 0
         val controller = createController(

@@ -86,6 +86,7 @@ internal class SessionController(
         job = scope.launch {
             // A game started with Compose Hot Reload writes where it can be reached into a file the previous one deletes as it ends.
             previousJob?.join()
+            channel.expectSession()
             _state.value = SessionState.Starting(SessionMode.PLAY)
             try {
                 val isSuccessful = when (val preparation = prepareLaunch()) {

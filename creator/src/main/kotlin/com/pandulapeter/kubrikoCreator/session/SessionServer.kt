@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
+import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.IOException
 import java.net.InetAddress
@@ -26,19 +27,26 @@ import java.net.ServerSocket
 import java.net.Socket
 
 /**
- * Listens on a free localhost port for session processes, emits every message they send, and sends commands to the
- * one that connected last.
+ * Listens on a free localhost port for session processes, takes the first connection that says Hello after each
+ * [expectSession] as the session, emits the messages it sends, and sends commands to it. Other connections are closed
+ * without being read further, as is one that doesn't say Hello within [helloTimeoutInMilliseconds].
+ *
+ * A local process that connects and says Hello faster than the launched game becomes the session of that launch; a
+ * token in the session protocol's next version closes it.
  */
 internal class SessionServer(
     private val scope: CoroutineScope,
+    private val helloTimeoutInMilliseconds: Int = HELLO_TIMEOUT_IN_MILLISECONDS,
 ) : SessionChannel {
     private val serverSocket = ServerSocket(0, 0, InetAddress.getLoopbackAddress())
     private val _messages = MutableSharedFlow<SessionMessage>(extraBufferCapacity = 256)
     override val messages = _messages.asSharedFlow()
     override val port: Int get() = serverSocket.localPort
-
-    @Volatile
-    private var latestWriter: BufferedWriter? = null
+    private val lock = Any()
+    private var isExpecting = false
+    private var session: BufferedWriter? = null
+    private var sessionSocket: Socket? = null
+    private val pendingSockets = ArrayDeque<Socket>()
 
     init {
         scope.launch(Dispatchers.IO) {
@@ -48,13 +56,27 @@ internal class SessionServer(
                 } catch (_: Exception) {
                     break
                 }
+                val evicted = synchronized(lock) {
+                    pendingSockets.addLast(socket)
+                    if (pendingSockets.size > MAXIMUM_PENDING_CONNECTIONS) pendingSockets.removeFirst() else null
+                }
+                evicted?.closeQuietly()
                 launch { socket.readMessages() }
             }
         }
     }
 
+    override fun expectSession() {
+        val previous = synchronized(lock) {
+            isExpecting = true
+            session = null
+            sessionSocket.also { sessionSocket = null }
+        }
+        previous?.closeQuietly()
+    }
+
     override fun send(command: SessionCommand): Boolean {
-        val writer = latestWriter ?: return false
+        val writer = synchronized(lock) { session } ?: return false
         return try {
             synchronized(writer) {
                 writer.write(SessionProtocol.encodeCommand(command))
@@ -68,18 +90,53 @@ internal class SessionServer(
     }
 
     private suspend fun Socket.readMessages() = use {
-        val writer = getOutputStream().bufferedWriter(Charsets.UTF_8)
-        latestWriter = writer
-        val reader = getInputStream().bufferedReader(Charsets.UTF_8)
-        while (true) {
-            val line = try {
-                reader.readLine()
-            } catch (_: IOException) {
-                null
-            } ?: break
-            decode(line)?.let { _messages.emit(it) }
+        try {
+            val reader = getInputStream().bufferedReader(Charsets.UTF_8)
+            val hello = awaitHello(reader) ?: return@use
+            soTimeout = 0
+            val writer = getOutputStream().bufferedWriter(Charsets.UTF_8)
+            val isSession = synchronized(lock) {
+                pendingSockets.remove(this)
+                isExpecting.also { isSession ->
+                    if (isSession) {
+                        isExpecting = false
+                        session = writer
+                        sessionSocket = this
+                    }
+                }
+            }
+            if (!isSession) return@use
+            _messages.emit(hello)
+            while (true) {
+                val line = reader.readLine() ?: break
+                decode(line)?.let { _messages.emit(it) }
+            }
+        } catch (_: IOException) {
+            Unit
+        } finally {
+            synchronized(lock) {
+                pendingSockets.remove(this)
+                if (sessionSocket === this) {
+                    sessionSocket = null
+                    session = null
+                }
+            }
         }
-        if (latestWriter === writer) latestWriter = null
+    }
+
+    /**
+     * Reads lines until one is a Hello, dropping the ones before it, or returns null when the connection ends or the
+     * deadline passes first.
+     */
+    private fun Socket.awaitHello(reader: BufferedReader): SessionMessage.Hello? {
+        val deadline = System.nanoTime() + helloTimeoutInMilliseconds * 1_000_000L
+        while (true) {
+            val remainingInMilliseconds = (deadline - System.nanoTime()) / 1_000_000L
+            if (remainingInMilliseconds <= 0) return null
+            soTimeout = remainingInMilliseconds.toInt()
+            val line = reader.readLine() ?: return null
+            (decode(line) as? SessionMessage.Hello)?.let { return it }
+        }
     }
 
     private fun decode(line: String) = try {
@@ -90,5 +147,20 @@ internal class SessionServer(
         null
     }
 
-    override fun close() = serverSocket.close()
+    override fun close() {
+        serverSocket.close()
+        val sockets = synchronized(lock) { listOfNotNull(sessionSocket) + pendingSockets }
+        sockets.forEach { it.closeQuietly() }
+    }
+
+    private fun Socket.closeQuietly() = try {
+        close()
+    } catch (_: IOException) {
+        Unit
+    }
+
+    private companion object {
+        const val HELLO_TIMEOUT_IN_MILLISECONDS = 10_000
+        const val MAXIMUM_PENDING_CONNECTIONS = 4
+    }
 }

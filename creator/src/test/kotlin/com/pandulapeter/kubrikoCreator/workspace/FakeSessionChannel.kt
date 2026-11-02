@@ -29,7 +29,14 @@ internal class FakeSessionChannel : SessionChannel {
 
     var isConnected = true
 
+    var expectedSessions = 0
+        private set
+
     fun receive(message: SessionMessage) = check(messages.tryEmit(message))
+
+    override fun expectSession() {
+        expectedSessions++
+    }
 
     override fun send(command: SessionCommand): Boolean {
         if (!isConnected) return false

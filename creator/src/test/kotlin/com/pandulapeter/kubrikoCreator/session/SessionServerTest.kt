@@ -26,81 +26,129 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetAddress
 import java.net.Socket
+import java.net.SocketException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SessionServerTest {
 
+    private val hello = SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY)
+
     @Test
-    fun messagesOfEveryConnectedSessionAreEmittedAndGarbageIsSkipped() = runBlocking {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        SessionServer(scope).use { server ->
-            val hello = SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.EDIT)
-            val failure = SessionMessage.Failure(message = "Second session")
-            val received = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
-                withTimeout(10_000) { server.messages.take(2).toList() }
+    fun onlyTheExpectedSessionsLinesAreEmittedAndGarbageBeforeItsHelloIsSkipped() = withServer(helloTimeoutInMilliseconds = 1_000) { server ->
+        val editHello = SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.EDIT)
+        val log = SessionMessage.Log(id = "1", message = "Started", details = null, source = "Game", timestamp = 0L, importance = "high")
+        val failure = SessionMessage.Failure(message = "Second session")
+        server.expectSession()
+        val received = receive(server, 2)
+        server.connect().use { session ->
+            session.writeLines("not json", "{\"type\":\"unknown\"}", SessionProtocol.encode(editHello), SessionProtocol.encode(log))
+            server.connect().use { other ->
+                other.writeLines(SessionProtocol.encode(failure))
+                assertEquals(listOf(editHello, log), received.await())
+                assertTrue(other.isClosedByServer())
             }
-            Socket(InetAddress.getLoopbackAddress(), server.port).use { socket ->
-                socket.getOutputStream().bufferedWriter().apply {
-                    write("not json\n{\"type\":\"unknown\"}\n${SessionProtocol.encode(hello)}\n")
-                    flush()
-                }
-            }
-            Socket(InetAddress.getLoopbackAddress(), server.port).use { socket ->
-                socket.getOutputStream().bufferedWriter().apply {
-                    write("${SessionProtocol.encode(failure)}\n")
-                    flush()
-                }
-            }
-            assertEquals(setOf(hello, failure), received.await().toSet())
         }
-        scope.cancel()
     }
 
     @Test
-    fun messagesArriveWhileTheSessionKeepsItsConnectionOpen() = runBlocking {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        SessionServer(scope).use { server ->
-            val hello = SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY)
-            val received = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
-                withTimeout(10_000) { server.messages.first() }
-            }
-            Socket(InetAddress.getLoopbackAddress(), server.port).use { socket ->
-                socket.getOutputStream().bufferedWriter().apply {
-                    write("${SessionProtocol.encode(hello)}\n")
-                    flush()
-                }
-                assertEquals(hello, received.await())
-            }
+    fun aConnectionBeforeAnyLaunchIsClosedWithoutEmitting() = withServer { server ->
+        val received = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+            withTimeoutOrNull(500) { server.messages.first() }
         }
-        scope.cancel()
+        server.connect().use { socket ->
+            socket.writeLines(SessionProtocol.encode(hello))
+            assertTrue(socket.isClosedByServer())
+        }
+        assertNull(received.await())
+        assertFalse(server.send(SessionCommand.BringToFront(1)))
     }
 
     @Test
-    fun commandsGoToTheSessionThatConnectedLast() = runBlocking {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        SessionServer(scope).use { server ->
-            assertFalse(server.send(SessionCommand.BringToFront(1)))
-            val hello = SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY)
-            val received = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
-                withTimeout(10_000) { server.messages.first() }
+    fun messagesArriveWhileTheSessionKeepsItsConnectionOpen() = withServer { server ->
+        server.expectSession()
+        val received = receive(server, 1)
+        server.connect().use { socket ->
+            socket.writeLines(SessionProtocol.encode(hello))
+            assertEquals(listOf(hello), received.await())
+        }
+    }
+
+    @Test
+    fun commandsGoOnlyToTheSession() = withServer { server ->
+        assertFalse(server.send(SessionCommand.BringToFront(1)))
+        server.expectSession()
+        val received = receive(server, 1)
+        server.connect().use { session ->
+            session.writeLines(SessionProtocol.encode(hello))
+            received.await()
+            server.connect().use { other ->
+                other.writeLines(SessionProtocol.encode(hello))
+                assertTrue(other.isClosedByServer())
             }
-            Socket(InetAddress.getLoopbackAddress(), server.port).use { socket ->
-                socket.getOutputStream().bufferedWriter().apply {
-                    write("${SessionProtocol.encode(hello)}\n")
-                    flush()
-                }
-                received.await()
-                val command = SessionCommand.PressKeys(2, listOf("LEFT"), 100)
+            val command = SessionCommand.PressKeys(2, listOf("LEFT"), 100)
+            assertTrue(server.send(command))
+            assertEquals(command, session.readCommand())
+        }
+    }
+
+    @Test
+    fun aConnectionThatNeverSaysHelloIsClosed() = withServer(helloTimeoutInMilliseconds = 200) { server ->
+        server.connect().use { idle ->
+            assertTrue(idle.isClosedByServer())
+        }
+        server.expectSession()
+        val received = receive(server, 1)
+        server.connect().use { session ->
+            session.writeLines(SessionProtocol.encode(hello))
+            assertEquals(listOf(hello), received.await())
+        }
+    }
+
+    @Test
+    fun anIdleConnectionMakesRoomForANewOne() = withServer { server ->
+        server.expectSession()
+        val received = receive(server, 1)
+        val idle = List(5) { server.connect() }
+        try {
+            server.connect().use { session ->
+                session.writeLines(SessionProtocol.encode(hello))
+                assertEquals(listOf(hello), received.await())
+                assertTrue(idle[0].isClosedByServer())
+                assertTrue(idle[1].isClosedByServer())
+                val command = SessionCommand.BringToFront(3)
                 assertTrue(server.send(command))
-                assertEquals(command, SessionProtocol.decodeCommand(socket.getInputStream().bufferedReader().readLine()))
+                assertEquals(command, session.readCommand())
+            }
+        } finally {
+            idle.forEach { it.close() }
+        }
+    }
+
+    @Test
+    fun theNextLaunchReplacesTheSessionOfTheLastOne() = withServer { server ->
+        server.expectSession()
+        val firstHello = receive(server, 1)
+        server.connect().use { first ->
+            first.writeLines(SessionProtocol.encode(hello))
+            assertEquals(listOf(hello), firstHello.await())
+            server.expectSession()
+            assertTrue(first.isClosedByServer())
+            val secondHello = receive(server, 1)
+            server.connect().use { second ->
+                second.writeLines(SessionProtocol.encode(hello))
+                assertEquals(listOf(hello), secondHello.await())
+                val command = SessionCommand.BringToFront(4)
+                assertTrue(server.send(command))
+                assertEquals(command, second.readCommand())
             }
         }
-        scope.cancel()
     }
 
     @Test
@@ -113,5 +161,36 @@ class SessionServerTest {
         // Connecting to the freed port proves nothing: another process, or the client itself, may be bound to it by then.
         withTimeout(10_000) { scope.coroutineContext.job.children.toList().joinAll() }
         scope.cancel()
+    }
+
+    private fun withServer(
+        helloTimeoutInMilliseconds: Int = 10_000,
+        block: suspend CoroutineScope.(SessionServer) -> Unit,
+    ) = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        try {
+            SessionServer(scope, helloTimeoutInMilliseconds).use { server -> withTimeout(10_000) { block(server) } }
+        } finally {
+            scope.cancel()
+        }
+    }
+
+    private fun CoroutineScope.receive(server: SessionServer, count: Int) = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+        withTimeout(10_000) { server.messages.take(count).toList() }
+    }
+
+    private fun SessionServer.connect() = Socket(InetAddress.getLoopbackAddress(), port).apply { soTimeout = 10_000 }
+
+    private fun Socket.writeLines(vararg lines: String) = getOutputStream().bufferedWriter().apply {
+        lines.forEach { write("$it\n") }
+        flush()
+    }
+
+    private fun Socket.readCommand() = SessionProtocol.decodeCommand(getInputStream().bufferedReader().readLine())
+
+    private fun Socket.isClosedByServer() = try {
+        getInputStream().read() == -1
+    } catch (_: SocketException) {
+        true
     }
 }

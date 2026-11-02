@@ -26,7 +26,13 @@ internal interface SessionChannel : AutoCloseable {
     val messages: Flow<SessionMessage>
 
     /**
-     * Sends [command] to the session that connected last.
+     * Starts waiting for the session of a game being launched: the first connection that says Hello after this becomes
+     * the session, and connections after it are closed, until the next launch.
+     */
+    fun expectSession()
+
+    /**
+     * Sends [command] to the session of the current launch.
      *
      * @return Whether there was a session to send it to.
      */
