@@ -52,7 +52,7 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
 Besides its tests passing, a change:
 
 - Reuses the shared building blocks instead of writing its own: `writeTextAtomically` for every file Creator writes,
-  `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.ignoredDirectoryNames` for every walk through a
+  `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.isIgnored` for every walk through a
   project, `LatestRequests` for background reads whose results may land out of order; in the UI `BufferedTextField`
   (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, and `PanelWidths` with `sidePanel`; in command tests
   `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`).

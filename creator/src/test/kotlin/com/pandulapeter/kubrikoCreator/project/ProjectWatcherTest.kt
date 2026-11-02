@@ -86,6 +86,14 @@ class ProjectWatcherTest {
     }
 
     @Test
+    fun aSourcePackageNamedLikeAToolsFolderIsWatched() {
+        write("src/commonMain/kotlin/game/Game.kt")
+        val before = ProjectWatcher.snapshot(root, generated)
+        write("src/commonMain/kotlin/game/out/Foo.kt", "class Foo")
+        assertEquals(setOf(ProjectChange.SOURCES), ProjectWatcher.changedAreas(before, ProjectWatcher.snapshot(root, generated)) { _, _ -> false })
+    }
+
+    @Test
     fun aChangeIsReportedOnTheNextCheck() = runTest {
         write(".kubriko/actors/Ball.json", "{}")
         val dispatcher = UnconfinedTestDispatcher(testScheduler)

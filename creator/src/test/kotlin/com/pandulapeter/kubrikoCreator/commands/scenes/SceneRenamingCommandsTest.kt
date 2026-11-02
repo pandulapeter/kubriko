@@ -79,7 +79,7 @@ class SceneRenamingCommandsTest {
         val context = context()
         context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.SCENES, "levels"))) { context.foldersOf(FolderGroup.SCENES) }
         assertEquals(Rejection(Res.string.error_scene_name_invalid), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "two words")))
-        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "out"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "levels/out")))
+        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "build"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "levels/build")))
         RenameScene.apply(context, RenameScene.Input("level-2", "levels/2"))
         assertEquals(Rejection(Res.string.error_folder_not_empty, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))) { context.scenes.names() }

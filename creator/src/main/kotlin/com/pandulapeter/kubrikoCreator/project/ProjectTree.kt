@@ -9,13 +9,27 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import java.io.File
+
 /**
  * What every walk through a project's files leaves out.
  */
 internal object ProjectTree {
 
     /**
-     * The folders build tools, IDEs, and version control keep their own files in, wherever they are.
+     * The folders build tools and version control keep their own files in, wherever they are.
      */
-    val ignoredDirectoryNames = setOf("build", "out", ".gradle", ".git", ".idea", ".fleet", ".vscode", ".kotlin", ".cxx", "kotlin-js-store", "node_modules", "Pods", "DerivedData")
+    val ignoredDirectoryNames = setOf("build", ".gradle", ".git", ".idea", ".kotlin", "kotlin-js-store", "node_modules")
+
+    /**
+     * The folders IDEs and native builds keep their own files in, which a package or a resource folder may be called too.
+     */
+    private val toolDirectoryNames = setOf("out", ".fleet", ".vscode", ".cxx", "Pods", "DerivedData")
+
+    /**
+     * Whether a walk through [rootDirectory] leaves [directory] out: one of [ignoredDirectoryNames] anywhere, or a tool's
+     * folder outside the `src` folder of a module.
+     */
+    fun isIgnored(directory: File, rootDirectory: File) = directory.name in ignoredDirectoryNames ||
+        (directory.name in toolDirectoryNames && "src" !in directory.relativeTo(rootDirectory).invariantSeparatorsPath.split('/').dropLast(1))
 }

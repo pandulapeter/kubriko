@@ -67,7 +67,7 @@ internal class ProjectWatcher(
         internal fun snapshot(rootDirectory: File, hiddenDirectory: String?): Map<String, FileStamp> {
             val stamps = HashMap<String, FileStamp>()
             rootDirectory.walkTopDown()
-                .onEnter { it == rootDirectory || (it.name !in ProjectTree.ignoredDirectoryNames && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
+                .onEnter { it == rootDirectory || (!ProjectTree.isIgnored(it, rootDirectory) && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
                 .filter { it.isFile }
                 .forEach { file ->
                     val path = file.relativeTo(rootDirectory).invariantSeparatorsPath

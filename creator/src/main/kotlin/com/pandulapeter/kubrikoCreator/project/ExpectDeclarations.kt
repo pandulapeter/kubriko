@@ -23,7 +23,7 @@ internal class ExpectDeclarations(
     @Synchronized
     fun any(): Boolean {
         val sources = rootDirectory.walkTopDown()
-            .onEnter { it == rootDirectory || it.isWithinSources() || it.name !in ignoredDirectoryNames }
+            .onEnter { it == rootDirectory || it.isWithinSources() || (it.name != CREATOR_DIRECTORY && !ProjectTree.isIgnored(it, rootDirectory)) }
             .filter { it.isFile && it.extension == "kt" && it.isWithinSources() }
             .toSet()
         declaresExpectBySource.keys.retainAll(sources)
@@ -38,7 +38,7 @@ internal class ExpectDeclarations(
 
     companion object {
         private const val SOURCE_DIRECTORY = "src"
-        private val ignoredDirectoryNames = ProjectTree.ignoredDirectoryNames + ".kubriko"
+        private const val CREATOR_DIRECTORY = ".kubriko"
         private val declaration = Regex("""(?m)^[\t ]*(?:@\S+[\t ]+)*(?:[a-z]+[\t ]+)*expect[\t ]+(?:[a-z]+[\t ]+)*(?:fun|class|object|interface|val|var|typealias)\b""")
 
         fun declaresExpect(text: String) = declaration.containsMatchIn(text)

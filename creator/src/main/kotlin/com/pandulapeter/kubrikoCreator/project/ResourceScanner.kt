@@ -17,7 +17,7 @@ import java.io.File
  */
 internal object ResourceScanner {
 
-    private val ignoredDirectoryNames = ProjectTree.ignoredDirectoryNames + ".kubriko"
+    private const val CREATOR_DIRECTORY = ".kubriko"
     private val spriteExtensions = setOf("png", "webp", "jpg", "jpeg", "svg")
     private val soundExtensions = setOf("wav")
     private val musicExtensions = setOf("mp3", "ogg")
@@ -27,7 +27,7 @@ internal object ResourceScanner {
      *   block-built Actor types, which the Actor types themselves stand for.
      */
     fun scan(rootDirectory: File, hiddenDirectory: String? = null): Map<ResourceGroup, List<ProjectResource>> = rootDirectory.walkTopDown()
-        .onEnter { it == rootDirectory || (it.name !in ignoredDirectoryNames && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
+        .onEnter { it == rootDirectory || (it.name != CREATOR_DIRECTORY && !ProjectTree.isIgnored(it, rootDirectory) && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
         .filter { it.isFile }
         .mapNotNull { file ->
             val relativePath = file.relativeTo(rootDirectory).invariantSeparatorsPath

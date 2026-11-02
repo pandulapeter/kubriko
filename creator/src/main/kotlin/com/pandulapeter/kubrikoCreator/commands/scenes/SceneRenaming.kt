@@ -53,10 +53,10 @@ internal fun sceneNotMoved(name: String) = Rejection(Res.string.error_scene_not_
  * The Kotlin files outside generated code that name the Scene [name] in a string, like `Game.kt` names the first one.
  */
 private fun handWrittenFilesNaming(rootDirectory: File, name: String) = rootDirectory.walkTopDown()
-    .onEnter { it.name !in ignoredDirectories }
+    .onEnter { it.name !in creatorDirectories && !ProjectTree.isIgnored(it, rootDirectory) }
     .filter { it.isFile && it.extension == "kt" && "\"$name\"" in it.readText() }
     .map { it.relativeTo(rootDirectory).invariantSeparatorsPath }
     .sorted()
     .toList()
 
-private val ignoredDirectories = ProjectTree.ignoredDirectoryNames + ".kubriko" + "generated"
+private val creatorDirectories = setOf(".kubriko", "generated")

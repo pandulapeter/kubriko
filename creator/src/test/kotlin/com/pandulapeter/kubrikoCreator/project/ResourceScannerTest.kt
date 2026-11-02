@@ -46,6 +46,7 @@ class ResourceScannerTest {
                 "src/main/composeResources/files/scenes/b.json",
                 "src/main/composeResources/files/scenes/a.json",
                 "src/main/kotlin/Game.kt",
+                "src/main/kotlin/out/Foo.kt",
                 "build/generated/src/main/kotlin/Generated.kt",
                 ".gradle/src/Cached.kt",
                 "Pods/src/main/composeResources/files/scenes/pod.json",
@@ -58,7 +59,7 @@ class ResourceScannerTest {
                 listOf("src/main/composeResources/files/scenes/a.json", "src/main/composeResources/files/scenes/b.json"),
                 resources.getValue(ResourceGroup.SCENES).map { it.relativePath },
             )
-            assertEquals(listOf(File(root, "src/main/kotlin/Game.kt")), resources.getValue(ResourceGroup.KOTLIN).map { it.file })
+            assertEquals(listOf(File(root, "src/main/kotlin/Game.kt"), File(root, "src/main/kotlin/out/Foo.kt")), resources.getValue(ResourceGroup.KOTLIN).map { it.file })
         } finally {
             root.deleteRecursively()
         }
