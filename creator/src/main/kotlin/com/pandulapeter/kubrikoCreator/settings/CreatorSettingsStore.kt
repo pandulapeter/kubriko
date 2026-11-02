@@ -9,46 +9,35 @@
  */
 package com.pandulapeter.kubrikoCreator.settings
 
+import com.pandulapeter.kubrikoCreator.foundation.JsonFileStore
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
-import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
-import kotlinx.serialization.SerializationException
+import com.pandulapeter.kubrikoCreator.foundation.valueOrNull
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.io.IOException
 import kotlin.math.abs
 
 /**
  * Keeps [CreatorSettings] in [file]. A missing or unreadable file means the defaults, and an interface scale that isn't
- * offered the closest one that is.
+ * offered the closest one that is. A
+ * save that can't be written leaves the settings applying until Kubriko Creator quits.
  */
 internal class CreatorSettingsStore(
-    private val file: File,
+    file: File,
 ) {
-    private val json = Json {
-        prettyPrint = true
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-    }
+    private val store = JsonFileStore(
+        file = file,
+        serializer = CreatorSettings.serializer(),
+        json = Json {
+            prettyPrint = true
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        },
+    )
 
-    fun load(): CreatorSettings = read()?.let { it.copy(interfaceScale = closestInterfaceScale(it.interfaceScale)) } ?: CreatorSettings()
+    fun load(): CreatorSettings = store.read().valueOrNull()?.let { it.copy(interfaceScale = closestInterfaceScale(it.interfaceScale)) } ?: CreatorSettings()
 
     fun save(settings: CreatorSettings) {
-        try {
-            file.parentFile?.mkdirs()
-            file.writeTextAtomically(json.encodeToString(CreatorSettings.serializer(), settings))
-        } catch (_: IOException) {
-            // The settings still apply until Kubriko Creator quits.
-        }
-    }
-
-    private fun read() = try {
-        if (file.isFile) json.decodeFromString(CreatorSettings.serializer(), file.readText()) else null
-    } catch (_: IOException) {
-        null
-    } catch (_: SerializationException) {
-        null
-    } catch (_: IllegalArgumentException) {
-        null
+        store.write(settings)
     }
 
     companion object {

@@ -91,4 +91,13 @@ class RecentProjectsStoreTest {
         store.add(project("first"), "First")
         assertEquals(listOf("First"), store.load().map { it.name })
     }
+
+    @Test
+    fun anUnreadableListIsntLost() {
+        file.parentFile.mkdirs()
+        file.writeText("{ not a list")
+        store.add(project("first"), "First")
+        assertEquals("{ not a list", File(file.parentFile, "recent.json.bak").readText())
+        assertEquals(listOf("First"), store.load().map { it.name })
+    }
 }

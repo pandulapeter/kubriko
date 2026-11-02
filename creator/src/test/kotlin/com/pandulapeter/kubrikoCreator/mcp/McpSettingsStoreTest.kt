@@ -74,6 +74,21 @@ class McpSettingsStoreTest {
     }
 
     @Test
+    fun anUnreadableFileIsSetAside() {
+        file.parentFile.mkdirs()
+        file.writeText("{ nope")
+        val isPosix = file.toPath().fileSystem.supportedFileAttributeViews().contains("posix")
+        if (isPosix) Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-r--r--"))
+        assertEquals("token1", store.load().token)
+        val backup = File(file.parentFile, "mcp.json.bak")
+        assertEquals("{ nope", backup.readText())
+        if (isPosix) {
+            assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file.toPath()))
+            assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(backup.toPath()))
+        }
+    }
+
+    @Test
     fun settingsNamingAToolNoLongerListedKeepTheirToken() {
         file.parentFile.mkdirs()
         file.writeText("""{"isEnabled":true,"port":9000,"token":"abc","clientCommands":{"geminiCli":"gemini","claudeCode":"my-claude"}}""")

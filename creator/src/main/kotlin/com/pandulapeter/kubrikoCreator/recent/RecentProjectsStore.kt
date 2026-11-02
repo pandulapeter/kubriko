@@ -9,28 +9,23 @@
  */
 package com.pandulapeter.kubrikoCreator.recent
 
+import com.pandulapeter.kubrikoCreator.foundation.JsonFileStore
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
-import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
-import kotlinx.serialization.SerializationException
+import com.pandulapeter.kubrikoCreator.foundation.valueOrNull
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
 import java.io.File
-import java.io.IOException
 
 /**
  * Remembers the projects opened recently, newest first, in [file]. Projects whose folder is gone are kept (the folder may
- * be on a drive that isn't mounted), and a file that can't be read counts as an empty list rather than an error. Reading,
- * changing, and writing the file happen one call at a time, whichever thread calls.
+ * be on a drive that isn't mounted), and a file that can't be read counts as an empty list rather than an error (one that
+ * can't be decoded is kept as `recent-projects.json.bak` by the next change). A list that can't be written is forgotten, not
+ * worth interrupting anyone for. Reading, changing, and writing the file happen one call at a time, whichever thread calls.
  */
 internal class RecentProjectsStore(
-    private val file: File,
+    file: File,
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) {
-    private val serializer = ListSerializer(RecentProject.serializer())
-    private val json = Json {
-        prettyPrint = true
-        ignoreUnknownKeys = true
-    }
+    private val store = JsonFileStore(file, ListSerializer(RecentProject.serializer()))
 
     private val lock = Any()
 
@@ -40,29 +35,12 @@ internal class RecentProjectsStore(
         val path = directory.absoluteFile.normalize().path
         (listOf(RecentProject(path = path, name = name, lastOpened = currentTimeMillis())) + read().filter { it.path != path })
             .take(MAXIMUM_COUNT)
-            .also(::write)
+            .also(store::write)
     }
 
-    fun remove(path: String): List<RecentProject> = synchronized(lock) { read().filter { it.path != path }.also(::write) }
+    fun remove(path: String): List<RecentProject> = synchronized(lock) { read().filter { it.path != path }.also(store::write) }
 
-    private fun read() = try {
-        if (file.isFile) json.decodeFromString(serializer, file.readText()).sortedByDescending { it.lastOpened } else emptyList()
-    } catch (_: IOException) {
-        emptyList()
-    } catch (_: SerializationException) {
-        emptyList()
-    } catch (_: IllegalArgumentException) {
-        emptyList()
-    }
-
-    private fun write(projects: List<RecentProject>) {
-        try {
-            file.parentFile?.mkdirs()
-            file.writeTextAtomically(json.encodeToString(serializer, projects))
-        } catch (_: IOException) {
-            // Forgetting the list is not worth interrupting anyone for.
-        }
-    }
+    private fun read() = store.read().valueOrNull()?.sortedByDescending { it.lastOpened }.orEmpty()
 
     companion object {
         const val MAXIMUM_COUNT = 10

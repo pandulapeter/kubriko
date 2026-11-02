@@ -54,4 +54,13 @@ class SavedConversationStoreTest {
         file.writeText("nope")
         assertEquals(emptyList(), SavedConversationStore(file).of(breakout, "claude-acp"))
     }
+
+    @Test
+    fun anUnreadableFileIsntLost() {
+        file.writeText("{ not a list")
+        val store = SavedConversationStore(file)
+        store.save(saved("a", 1))
+        assertEquals("{ not a list", File(directory, "conversations.json.bak").readText())
+        assertEquals(listOf("a"), store.of(breakout, "claude-acp").map { it.id })
+    }
 }

@@ -9,41 +9,24 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.foundation.JsonFileStore
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
-import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
+import com.pandulapeter.kubrikoCreator.foundation.valueOrNull
 import java.io.File
-import java.io.IOException
 
 /**
- * Keeps [AssistantSettings] in [file]. A missing or unreadable file means the defaults.
+ * Keeps [AssistantSettings] in [file]. A missing or unreadable file means the defaults, and a save that
+ * can't be written leaves the settings applying until Kubriko Creator quits.
  */
 internal class AssistantSettingsStore(
-    private val file: File,
+    file: File,
 ) {
-    private val json = Json {
-        prettyPrint = true
-        ignoreUnknownKeys = true
-    }
+    private val store = JsonFileStore(file, AssistantSettings.serializer())
 
-    fun load() = try {
-        if (file.isFile) json.decodeFromString(AssistantSettings.serializer(), file.readText()) else AssistantSettings()
-    } catch (_: IOException) {
-        AssistantSettings()
-    } catch (_: SerializationException) {
-        AssistantSettings()
-    } catch (_: IllegalArgumentException) {
-        AssistantSettings()
-    }
+    fun load() = store.read().valueOrNull() ?: AssistantSettings()
 
     fun save(settings: AssistantSettings) {
-        try {
-            file.parentFile?.mkdirs()
-            file.writeTextAtomically(json.encodeToString(AssistantSettings.serializer(), settings))
-        } catch (_: IOException) {
-            // The settings still apply until Kubriko Creator quits.
-        }
+        store.write(settings)
     }
 
     companion object {
