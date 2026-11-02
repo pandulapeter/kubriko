@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_parent
 import kubriko.creator.generated.resources.actor_type_parent_none
@@ -39,7 +39,7 @@ internal fun ParentChoice(
         text = stringResource(Res.string.actor_type_parent),
         style = MaterialTheme.typography.labelMedium,
     )
-    MenuButton(
+    SearchableChoiceButton(
         label = parent ?: none,
         options = listOf("") + choices,
         optionText = { it.ifEmpty { none } },

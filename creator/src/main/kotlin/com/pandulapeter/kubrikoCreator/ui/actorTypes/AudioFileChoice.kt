@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -23,7 +23,7 @@ internal fun AudioFileChoice(
     paths: List<String>,
     placeholder: StringResource,
     onSelected: (String) -> Unit,
-) = MenuButton(
+) = SearchableChoiceButton(
     label = path.ifEmpty { null }?.let(::audioFileLabel) ?: stringResource(placeholder),
     options = paths,
     optionText = { audioFileLabel(it) },

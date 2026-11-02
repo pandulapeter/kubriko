@@ -61,7 +61,9 @@ Besides its tests passing, a change:
   a change built from what the file holds goes through `update`, which reads it once),
   `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.walk` for every walk through a
   project, `LatestRequests` for background reads whose results may land out of order; in the UI `BufferedTextField`
-  (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, and `PanelWidths` with `sidePanel`; in command tests
+  (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, `SearchableChoiceButton` for every
+  choice of the project's contents (types, Scenes, sprites, audio files, Properties), which grow without bound (it filters once
+  there are more than eight; `KeyChoiceButton` ranks keys by the same `matchingOptions`), and `PanelWidths` with `sidePanel`; in command tests
   `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
   and their contracts).
 - Has its unhappy paths designed: what happens when it throws, when it is cancelled, when it is called again while the first call
