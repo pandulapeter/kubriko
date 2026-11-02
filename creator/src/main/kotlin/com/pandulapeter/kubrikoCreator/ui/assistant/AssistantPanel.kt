@@ -30,7 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -47,7 +46,6 @@ import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
-import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_install_node
 import kubriko.creator.generated.resources.action_install_uv
@@ -259,7 +257,6 @@ private fun ChatContent(
         )
     }
     var leftOut by remember(chat) { mutableStateOf(emptySet<String>()) }
-    val sendScope = rememberCoroutineScope()
     AttentionChips(
         chips = attention,
         leftOut = leftOut,
@@ -276,7 +273,7 @@ private fun ChatContent(
         isBusy = isBusy,
         onSend = { text ->
             val chips = attention.filter { it.key !in leftOut }
-            sendScope.launch { chat.send(text, AttentionChip.contentOf(chips, captureScreen)) }
+            chat.send(text) { AttentionChip.contentOf(chips, captureScreen) }
         },
         onStop = chat::stop,
     )

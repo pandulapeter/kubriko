@@ -137,14 +137,13 @@ internal class AssistantChat(
     }
 
     /**
-     * Sends [text] to the agent with [context] (what the user is looking at, [AttentionChip]) ahead of it, unless a
-     * prompt runs or the conversation isn't ready.
+     * Sends [text] to the agent with [context] (what the user is looking at, [AttentionChip], gathered once the turn
+     * starts) ahead of it, unless a prompt runs or the conversation isn't ready.
      */
-    fun send(text: String, context: List<ContentBlock> = emptyList()) {
+    fun send(text: String, context: suspend () -> List<ContentBlock> = { emptyList() }) {
         if (_isBusy.value || text.isBlank() || _state.value != ChatState.Ready || conversation == null) return
         _transcript.update { it.withUserMessage(text) }
-        lastContext = context
-        prompt(text)
+        prompt(text, context)
     }
 
     /**
@@ -154,10 +153,10 @@ internal class AssistantChat(
         if (_isBusy.value || _state.value != ChatState.Ready || !_transcript.value.needsSignIn) return
         val text = _transcript.value.items.filterIsInstance<TranscriptItem.UserMessage>().lastOrNull()?.text ?: return
         _transcript.update { it.withoutLastItem() }
-        prompt(text)
+        prompt(text) { lastContext }
     }
 
-    private fun prompt(text: String) {
+    private fun prompt(text: String, context: suspend () -> List<ContentBlock>) {
         val conversation = conversation ?: return
         _isBusy.value = true
         val log = changeLog()
@@ -166,6 +165,7 @@ internal class AssistantChat(
         log?.let { seenRevision = it.revision }
         scope.launch {
             try {
+                lastContext = context()
                 val changes = log?.let { ChangesSummary.of(it.since(since), since, _toolsId.value) }
                 val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }

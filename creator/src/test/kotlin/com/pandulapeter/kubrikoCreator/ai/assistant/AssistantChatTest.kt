@@ -18,6 +18,7 @@ import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -227,10 +228,25 @@ class AssistantChatTest {
     @Test
     fun whatTheUserLooksAtGoesAheadOfTheirMessage() = test {
         val chat = readyChat()
-        withContext(mainThread) { chat.send("hello", listOf(AttentionChip.Scene("level-1").toContent())) }
+        withContext(mainThread) { chat.send("hello") { listOf(AttentionChip.Scene("level-1").toContent()) } }
         chat.isBusy.first { !it }
         assertEquals<List<ContentBlock>>(listOf(AttentionChip.Scene("level-1").toContent()), launcher.agents.single().leadingBlocks)
         assertEquals(listOf("hello"), launcher.agents.single().prompts)
+    }
+
+    @Test
+    fun aMessageSentWhileItsContextIsGatheredIsntLost() = test {
+        val chat = readyChat()
+        val context = CompletableDeferred<List<ContentBlock>>()
+        withContext(mainThread) {
+            chat.send("first") { context.await() }
+            assertTrue(chat.isBusy.value)
+            chat.send("second")
+        }
+        assertEquals(listOf(TranscriptItem.UserMessage("first")), chat.transcript.value.items)
+        context.complete(emptyList())
+        chat.isBusy.first { !it }
+        assertEquals(listOf("first"), launcher.agents.single().prompts)
     }
 
     @Test
