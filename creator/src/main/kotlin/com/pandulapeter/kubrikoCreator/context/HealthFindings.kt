@@ -14,7 +14,12 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 /**
  * What about the open project is worth a look ([HealthChecks]).
  */
-internal suspend fun CommandContext.healthFindings(): List<HealthFinding> {
-    val scenes = sceneTypeCounts()
-    return HealthChecks.of(blockTypes?.types?.value.orEmpty(), ProjectRelations(blockTypes?.types?.value.orEmpty(), scenes), scenes.keys)
+internal suspend fun CommandContext.healthFindings(): List<HealthFinding> = healthFindings(sceneTypeCounts())
+
+/**
+ * What about the open project is worth a look, with the Scenes' Actor counts [sceneCounts] already read ([sceneTypeCounts]).
+ */
+internal fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, Int>>): List<HealthFinding> {
+    val types = blockTypes?.types?.value.orEmpty()
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), sceneCounts.keys)
 }

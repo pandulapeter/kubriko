@@ -96,3 +96,11 @@ Review fixes: 212578617 (merged Save keeps its first place), 04cd99656 (JsonFile
 - Deviation: creator/CLAUDE.md no longer has the sidebar paragraph or the package table the plan names (cut by ae027ca3e), so the rule is one bullet in its UI section.
 - Deviation: `$RUNNER_TEMP` is outside what this session may touch, so the changes set aside for the failing-test check went to the git-ignored `build/scratch/`.
 - Extra fixes: none
+
+## H02a — see next commit
+"Compute the Game map of Kubriko Creator's AI panel once per burst of changes, off the main thread, and only while it is shown." — verified: ./gradlew :creator:test (1,516 tests, none failed), ./gradlew :creator:spotlessApply, GameMapStateTest and GameMapReadingTest fail to compile without the fix, and stateFlowSourcesDontDelayTheFirstMap fails with the `drop(1)`s left out; skipped manual: none named
+- New workspace/GameMapState.kt: `GameMap(digest, findings)`, `GameMapState(changes, compute, scope, report, computeDispatcher = Dispatchers.Default)` with `gameMap: StateFlow<GameMap?>` (WhileSubscribed(0)), `DEBOUNCE_IN_MILLISECONDS = 250`, and `GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, report)` merging the six StateFlow triggers with `drop(1)`. New context/GameMapReading.kt: `CommandContext.digestAndHealthFindings()` reads the Scene counts once; `projectDigest(sceneCounts)` and `healthFindings(sceneCounts)` overloads. `WorkspaceController.gameMap` is built after `commands`. WorkspaceScreen collects it only while the Game map view is shown; AiPanel unchanged.
+- Deviation: the merged triggers are built in `GameMapState.of` rather than inline in WorkspaceController, which is at 499 of its 500 lines.
+- Deviation: stateFlowSourcesDontDelayTheFirstMap starts the sharing on an unconfined dispatcher; on a standard one the replays arrive before the first computation starts, and the test passed without the `drop(1)`s.
+- Deviation: creator/CLAUDE.md never says "Game map"; the sentence went after its description of the map in the AI section.
+- Extra fixes: none

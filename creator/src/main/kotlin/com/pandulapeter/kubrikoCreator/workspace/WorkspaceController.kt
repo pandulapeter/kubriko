@@ -308,6 +308,9 @@ internal class WorkspaceController(
         onSceneChanges = changes::onSceneChanges,
     )
 
+    /** The AI panel's Game map, computed only while it is shown. */
+    val gameMap = GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, ::reportUnexpectedProblem)
+
     private val watching = startWatching(::onProjectChanged)
 
     init {
