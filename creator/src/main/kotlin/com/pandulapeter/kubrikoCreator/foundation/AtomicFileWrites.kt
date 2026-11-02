@@ -37,7 +37,7 @@ internal fun File.writeTextAtomically(text: String, isPrivate: Boolean = false) 
         if (path.fileSystem.supportedFileAttributeViews().contains("posix")) {
             when {
                 target.exists() -> Files.setPosixFilePermissions(path, Files.getPosixFilePermissions(target.toPath()))
-                isPrivate -> Files.setPosixFilePermissions(path, setOf(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE))
+                isPrivate -> Files.setPosixFilePermissions(path, OWNER_ONLY)
             }
         }
         temporary.writeText(text)
@@ -50,3 +50,13 @@ internal fun File.writeTextAtomically(text: String, isPrivate: Boolean = false) 
         temporary.delete()
     }
 }
+
+/**
+ * Makes this file readable and writable by its owner only, where the file system has POSIX permissions.
+ */
+internal fun File.restrictToOwner() {
+    val path = toPath()
+    if (path.fileSystem.supportedFileAttributeViews().contains("posix")) Files.setPosixFilePermissions(path, OWNER_ONLY)
+}
+
+private val OWNER_ONLY = setOf(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE)

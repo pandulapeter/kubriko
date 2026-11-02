@@ -59,7 +59,7 @@ class AtomicFileWritesTest {
     @Test
     fun aNewPrivateFileIsReadableByItsOwnerOnlyAndAnExistingOneKeepsItsPermissions() {
         assumeTrue(isPosix)
-        val file = File(directory, "mcp.json")
+        val file = File(directory, "settings.json")
         file.writeTextAtomically("{}", isPrivate = true)
         assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file.toPath()))
         Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-r--r--"))

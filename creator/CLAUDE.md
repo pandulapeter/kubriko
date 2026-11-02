@@ -97,7 +97,8 @@ Besides its tests passing, a change:
   (`BlockTypesController.awaitWrites`, which builds and git commands wait for too), quitting waits for that (at most 10 seconds), and
   an opening that is cancelled closes what it made.
 - `writeTextAtomically` writes a sibling temporary file and moves it into place, so a crash leaves the old content or the new,
-  never half; a new file holding a token is readable by its owner only (`isPrivate`), and the watcher ignores the temporary files.
+  never half; a new file holding a token is readable by its owner only (`isPrivate`), as is Creator's own `mcp.json` even when an older
+  version left it readable (`restrictToOwner`), and the watcher ignores the temporary files.
 - `ProjectWatcher` polls file stamps every second. Files as Creator left them (`OwnWrites`) don't count as changed, so Creator's own
   writes reload nothing.
 - An exception nothing catches (`unexpectedProblemHandler`, on the app's scope and each workspace's) is reported in the open

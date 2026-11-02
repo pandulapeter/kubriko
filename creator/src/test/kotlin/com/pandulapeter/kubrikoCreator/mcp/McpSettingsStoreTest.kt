@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.mcp
 
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
+import org.junit.Assume.assumeTrue
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
@@ -41,6 +42,19 @@ class McpSettingsStoreTest {
         if (file.toPath().fileSystem.supportedFileAttributeViews().contains("posix")) {
             assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file.toPath()))
         }
+    }
+
+    @Test
+    fun aTokenAnOlderVersionLeftReadableByOthersBecomesReadableByItsOwnerOnly() {
+        assumeTrue(file.toPath().fileSystem.supportedFileAttributeViews().contains("posix"))
+        file.parentFile.mkdirs()
+        file.writeText("""{"isEnabled":true,"port":9000,"token":"abc"}""")
+        Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-r--r--"))
+        assertEquals("abc", store.load().token)
+        assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file.toPath()))
+        Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-r--r--"))
+        store.save(McpSettings(token = "def"))
+        assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file.toPath()))
     }
 
     @Test

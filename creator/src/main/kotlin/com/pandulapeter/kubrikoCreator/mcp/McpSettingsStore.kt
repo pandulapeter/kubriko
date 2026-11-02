@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp
 
+import com.pandulapeter.kubrikoCreator.foundation.restrictToOwner
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.SerializationException
@@ -28,14 +29,29 @@ internal class McpSettingsStore(
         ignoreUnknownKeys = true
     }
 
-    fun load(): McpSettings = read()?.takeIf { it.token.isNotBlank() && it.port in McpSettings.portRange } ?: McpSettings(token = createToken()).also(::save)
+    fun load(): McpSettings {
+        narrowPermissions()
+        return read()?.takeIf { it.token.isNotBlank() && it.port in McpSettings.portRange } ?: McpSettings(token = createToken()).also(::save)
+    }
 
     fun save(settings: McpSettings) {
         try {
             file.parentFile?.mkdirs()
+            narrowPermissions()
             file.writeTextAtomically(json.encodeToString(McpSettings.serializer(), settings), isPrivate = true)
         } catch (_: IOException) {
             // The settings still apply until Kubriko Creator quits.
+        }
+    }
+
+    /**
+     * Narrows a file an older Kubriko Creator wrote with the usual permissions, which a write keeps, to its owner.
+     */
+    private fun narrowPermissions() {
+        try {
+            if (file.isFile) file.restrictToOwner()
+        } catch (_: IOException) {
+            // The token stays as readable as it was.
         }
     }
 
