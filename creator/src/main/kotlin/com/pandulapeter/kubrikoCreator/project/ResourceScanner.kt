@@ -25,14 +25,27 @@ internal object ResourceScanner {
     /**
      * @param hiddenDirectory A folder, relative to [rootDirectory], whose files are left out: the generated code of
      *   block-built Actor types, which the Actor types themselves stand for.
+     * @param snapshot The files as [ProjectWatcher] just found them, taken with the same [hiddenDirectory], which are
+     *   used instead of walking the project again; null to walk it.
      */
-    fun scan(rootDirectory: File, hiddenDirectory: String? = null): Map<ResourceGroup, List<ProjectResource>> = rootDirectory.walkTopDown()
-        .onEnter { it == rootDirectory || (it.name != CREATOR_DIRECTORY && !ProjectTree.isIgnored(it, rootDirectory) && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
-        .filter { it.isFile }
-        .mapNotNull { file ->
-            val relativePath = file.relativeTo(rootDirectory).invariantSeparatorsPath
-            classify(relativePath)?.let { group -> ProjectResource(group, file, relativePath) }
-        }
+    fun scan(
+        rootDirectory: File,
+        hiddenDirectory: String? = null,
+        snapshot: ProjectSnapshot? = null,
+    ): Map<ResourceGroup, List<ProjectResource>> = if (snapshot == null) {
+        ProjectTree.walk(rootDirectory, skipped = setOf(CREATOR_DIRECTORY), hiddenDirectory = hiddenDirectory)
+            .filter { it.isFile }
+            .map { it.relativeTo(rootDirectory).invariantSeparatorsPath }
+            .groupResources(rootDirectory)
+    } else {
+        snapshot.stamps.keys.asSequence()
+            .filter { path -> path.split('/').dropLast(1).none { it == CREATOR_DIRECTORY } }
+            .groupResources(rootDirectory)
+    }
+
+    private fun Sequence<String>.groupResources(rootDirectory: File) = mapNotNull { relativePath ->
+        classify(relativePath)?.let { group -> ProjectResource(group, File(rootDirectory, relativePath), relativePath) }
+    }
         .sortedBy { it.relativePath }
         .groupBy { it.group }
 

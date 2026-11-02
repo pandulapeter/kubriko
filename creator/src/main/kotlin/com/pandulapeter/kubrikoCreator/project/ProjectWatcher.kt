@@ -38,9 +38,12 @@ internal class ProjectWatcher(
     private val ownWrites: OwnWrites = OwnWrites(),
 ) {
 
-    fun start(onChange: (Set<ProjectChange>) -> Unit): AutoCloseable {
+    /**
+     * Starts watching, calling [onChange] with the areas that changed and the snapshot that found them.
+     */
+    fun start(onChange: (changes: Set<ProjectChange>, snapshot: ProjectSnapshot) -> Unit): AutoCloseable {
         val job = scope.launch {
-            var previous: Map<String, FileStamp>? = null
+            var previous: ProjectSnapshot? = null
             while (isActive) {
                 try {
                     val current = withContext(ioDispatcher) { snapshot(rootDirectory, hiddenDirectory) }
@@ -48,7 +51,7 @@ internal class ProjectWatcher(
                     previous = current
                     if (last != null) {
                         val changes = changedAreas(last, current) { path, stamp -> ownWrites.isOwn(File(rootDirectory, path), stamp) }
-                        if (changes.isNotEmpty()) onChange(changes)
+                        if (changes.isNotEmpty()) onChange(changes, current)
                     }
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
@@ -62,18 +65,17 @@ internal class ProjectWatcher(
 
     companion object {
         /**
-         * The stamp of every file in an area, by its path relative to [rootDirectory].
+         * The stamp of every file in an area or in the resource tree, by its path relative to [rootDirectory].
          */
-        internal fun snapshot(rootDirectory: File, hiddenDirectory: String?): Map<String, FileStamp> {
+        internal fun snapshot(rootDirectory: File, hiddenDirectory: String?): ProjectSnapshot {
             val stamps = HashMap<String, FileStamp>()
-            rootDirectory.walkTopDown()
-                .onEnter { it == rootDirectory || (!ProjectTree.isIgnored(it, rootDirectory) && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
+            ProjectTree.walk(rootDirectory, hiddenDirectory = hiddenDirectory)
                 .filter { it.isFile }
                 .forEach { file ->
                     val path = file.relativeTo(rootDirectory).invariantSeparatorsPath
-                    if (areaOf(path) != null) stamps[path] = FileStamp(file.length(), file.lastModified())
+                    if (areaOf(path) != null || ResourceScanner.classify(path) != null) stamps[path] = FileStamp(file.length(), file.lastModified())
                 }
-            return stamps
+            return ProjectSnapshot(stamps)
         }
 
         /**
@@ -81,17 +83,17 @@ internal class ProjectWatcher(
          * than those [isOwn] says Kubriko Creator changed itself.
          */
         internal fun changedAreas(
-            previous: Map<String, FileStamp>,
-            current: Map<String, FileStamp>,
+            previous: ProjectSnapshot,
+            current: ProjectSnapshot,
             isOwn: (path: String, stamp: FileStamp) -> Boolean = { _, _ -> false },
         ): Set<ProjectChange> {
             val changes = HashSet<ProjectChange>()
             fun check(path: String) {
-                val stamp = current[path] ?: FileStamp.MISSING
-                if (stamp != (previous[path] ?: FileStamp.MISSING) && !isOwn(path, stamp)) areaOf(path)?.let(changes::add)
+                val stamp = current.stamps[path] ?: FileStamp.MISSING
+                if (stamp != (previous.stamps[path] ?: FileStamp.MISSING) && !isOwn(path, stamp)) areaOf(path)?.let(changes::add)
             }
-            current.keys.forEach(::check)
-            previous.keys.forEach { if (it !in current) check(it) }
+            current.stamps.keys.forEach(::check)
+            previous.stamps.keys.forEach { if (it !in current.stamps) check(it) }
             return changes
         }
 

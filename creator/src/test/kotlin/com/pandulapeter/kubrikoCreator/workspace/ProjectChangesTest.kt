@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.project.FileStamp
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
+import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -28,11 +30,12 @@ import kotlin.test.assertEquals
 class ProjectChangesTest {
     private val calls = mutableListOf<String>()
     private var scanCount = 0
+    private val scannedSnapshots = mutableListOf<ProjectSnapshot?>()
     private val problems = mutableListOf<Throwable>()
 
     private fun TestScope.router(
         isUnconfined: Boolean = true,
-        scan: suspend () -> Unit = { scanCount++ },
+        scan: suspend (ProjectSnapshot?) -> Unit = { scannedSnapshots += it; scanCount++ },
     ) = ProjectChanges(
         scope = CoroutineScope(
             backgroundScope.coroutineContext +
@@ -123,6 +126,32 @@ class ProjectChangesTest {
         router().onProjectChanged(setOf(ProjectChange.SCENES))
         assertEquals(listOf("regenerate", "scenes changed on disk", "code changed", "git"), calls)
         assertEquals(1, scanCount)
+    }
+
+    @Test
+    fun aWatcherChangeIsScannedFromItsSnapshotWithoutAWalk() = runTest {
+        val snapshot = ProjectSnapshot(mapOf("src/commonMain/kotlin/Game.kt" to FileStamp(1, 1)))
+        router().onProjectChanged(setOf(ProjectChange.SOURCES), snapshot)
+        assertEquals(listOf<ProjectSnapshot?>(snapshot), scannedSnapshots)
+    }
+
+    @Test
+    fun aWalkWaitingForAScanWinsOverASnapshotTheWatcherMayHaveTakenBeforeIt() = runTest {
+        val router = router(isUnconfined = false)
+        router.refreshResources()
+        router.onProjectChanged(setOf(ProjectChange.SCENES), ProjectSnapshot(emptyMap()))
+        runCurrent()
+        assertEquals(listOf<ProjectSnapshot?>(null), scannedSnapshots)
+    }
+
+    @Test
+    fun theLatestOfSeveralWaitingSnapshotsIsScanned() = runTest {
+        val router = router(isUnconfined = false)
+        val latest = ProjectSnapshot(mapOf("src/commonMain/kotlin/Game.kt" to FileStamp(2, 2)))
+        router.onProjectChanged(setOf(ProjectChange.SCENES), ProjectSnapshot(emptyMap()))
+        router.onProjectChanged(setOf(ProjectChange.SOURCES), latest)
+        runCurrent()
+        assertEquals(listOf<ProjectSnapshot?>(latest), scannedSnapshots)
     }
 
     @Test

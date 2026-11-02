@@ -99,7 +99,7 @@ class ProjectWatcherTest {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val changes = mutableListOf<Set<ProjectChange>>()
         val watching = ProjectWatcher(root, generated, CoroutineScope(backgroundScope.coroutineContext + dispatcher), dispatcher, intervalInMilliseconds = 1_000)
-            .start { changes += it }
+            .start { change, _ -> changes += change }
         advanceTimeBy(1_500)
         assertTrue(changes.isEmpty())
         write(".kubriko/actors/Wall.json", "{}")
@@ -113,6 +113,26 @@ class ProjectWatcherTest {
     }
 
     @Test
+    fun aChangeInAPackageNamedBuildIsSeen() = runTest {
+        write("src/commonMain/kotlin/com/game/build/Level.kt", "class Level")
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val changes = mutableListOf<Set<ProjectChange>>()
+        val snapshots = mutableListOf<ProjectSnapshot>()
+        val watching = ProjectWatcher(root, generated, CoroutineScope(backgroundScope.coroutineContext + dispatcher), dispatcher, intervalInMilliseconds = 1_000)
+            .start { change, snapshot ->
+                changes += change
+                snapshots += snapshot
+            }
+        advanceTimeBy(500)
+        write("src/commonMain/kotlin/com/game/build/Level.kt", "class Level(val number: Int)")
+        advanceTimeBy(1_000)
+        runCurrent()
+        assertEquals(listOf(setOf(ProjectChange.SOURCES)), changes)
+        assertEquals(ProjectWatcher.snapshot(root, generated), snapshots.single())
+        watching.close()
+    }
+
+    @Test
     fun aFailureWhileHandlingAChangeDoesNotStopTheWatching() = runTest {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val changes = mutableListOf<Set<ProjectChange>>()
@@ -120,9 +140,9 @@ class ProjectWatcherTest {
         val reported = mutableListOf<Throwable>()
         val scope = CoroutineScope(backgroundScope.coroutineContext + dispatcher + CoroutineExceptionHandler { _, exception -> reported += exception })
         val watching = ProjectWatcher(root, generated, scope, dispatcher, intervalInMilliseconds = 1_000)
-            .start {
+            .start { change, _ ->
                 if (failures++ == 0) throw IllegalStateException("Unexpected.")
-                changes += it
+                changes += change
             }
         advanceTimeBy(500)
         write(".kubriko/actors/Ball.json", "{}")

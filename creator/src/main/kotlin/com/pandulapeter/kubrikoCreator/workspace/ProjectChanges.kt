@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
+import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -24,9 +25,12 @@ import kotlinx.coroutines.launch
  *
  * A Scene edit refreshes only the Scene view and what is built from the Scenes; a new, deleted, or moved Scene or a folder
  * the resource tree too; and every change the Version control panel. Resource refreshes are coalesced: at most one scan
- * runs and one waits, however many changes arrive meanwhile.
+ * runs and one waits, however many changes arrive meanwhile. After a change the watcher found, the tree is built from the
+ * snapshot it found it in, without walking the project again, unless one of Creator's own writes, which that snapshot may
+ * predate, is waiting for a scan too.
  *
- * @param scanResources Scans the resource tree and publishes it, run by one loop in [scope].
+ * @param scanResources Scans the resource tree, from the given snapshot or, for null, by walking the project, and
+ *   publishes it, run by one loop in [scope].
  * @param onScenesChanged Tells the Scene view which Scenes changed.
  * @param onSceneRenamed Tells the Scene view that a Scene moved to another name.
  * @param onScenesChangedOnDisk Tells the Scene view that Scenes changed outside Kubriko Creator.
@@ -36,7 +40,7 @@ import kotlinx.coroutines.launch
  */
 internal class ProjectChanges(
     scope: CoroutineScope,
-    private val scanResources: suspend () -> Unit,
+    private val scanResources: suspend (snapshot: ProjectSnapshot?) -> Unit,
     private val onScenesChanged: (names: Collection<String>) -> Unit,
     private val onSceneRenamed: (oldName: String, newName: String) -> Unit,
     private val onScenesChangedOnDisk: () -> Unit,
@@ -48,13 +52,19 @@ internal class ProjectChanges(
     private val reloadTypes: () -> Unit,
     private val refreshProjectUpgrade: () -> Unit,
 ) {
-    private val resourceRefreshes = Channel<Unit>(Channel.CONFLATED)
+    private val resourceRefreshes = Channel<ResourceRefresh>(Channel.UNLIMITED)
 
     init {
         scope.launch {
-            for (request in resourceRefreshes) {
+            for (first in resourceRefreshes) {
+                var snapshot = first.snapshot
+                var isWalkNeeded = snapshot == null
+                while (true) {
+                    val next = resourceRefreshes.tryReceive().getOrNull() ?: break
+                    if (next.snapshot == null) isWalkNeeded = true else snapshot = next.snapshot
+                }
                 try {
-                    scanResources()
+                    scanResources(if (isWalkNeeded) null else snapshot)
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
                     currentCoroutineContext()[CoroutineExceptionHandler]?.handleException(currentCoroutineContext(), exception)
@@ -64,10 +74,10 @@ internal class ProjectChanges(
     }
 
     /**
-     * Scans the resource tree again, once the scan running (if any) finishes.
+     * Scans the resource tree again by walking the project, once the scan running (if any) finishes.
      */
     fun refreshResources() {
-        resourceRefreshes.trySend(Unit)
+        resourceRefreshes.trySend(ResourceRefresh(snapshot = null))
     }
 
     /**
@@ -95,9 +105,9 @@ internal class ProjectChanges(
     }
 
     /**
-     * Follows files that changed on disk outside Kubriko Creator.
+     * Follows files that changed on disk outside Kubriko Creator, which [snapshot] (if known) shows as they are now.
      */
-    fun onProjectChanged(changes: Set<ProjectChange>) {
+    fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) {
         if (ProjectChange.SETTINGS in changes) refreshFormatStatus()
         if (ProjectChange.BLOCK_TYPE_DEFINITIONS in changes) reloadTypes()
         if (ProjectChange.SOURCES in changes) {
@@ -109,11 +119,16 @@ internal class ProjectChanges(
             onScenesChangedOnDisk()
         }
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
-            refreshResources()
+            resourceRefreshes.trySend(ResourceRefresh(snapshot))
             onCodeChanged()
         }
         refreshGit()
     }
+
+    /**
+     * A request for a scan, from [snapshot] or, for null, by walking the project.
+     */
+    private class ResourceRefresh(val snapshot: ProjectSnapshot?)
 
     private fun SceneChange.names() = when (this) {
         is SceneChange.Written -> listOf(name)

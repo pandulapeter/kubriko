@@ -58,7 +58,7 @@ Besides its tests passing, a change:
 
 - Reuses the shared building blocks instead of writing its own: `writeTextAtomically` for every file Creator writes,
   `JsonFileStore` for every settings file it keeps (it sets a file it can't decode aside as `.bak` instead of replacing it),
-  `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.isIgnored` for every walk through a
+  `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.walk` for every walk through a
   project, `LatestRequests` for background reads whose results may land out of order; in the UI `BufferedTextField`
   (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, and `PanelWidths` with `sidePanel`; in command tests
   `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
@@ -108,11 +108,13 @@ Besides its tests passing, a change:
 - `writeTextAtomically` writes a sibling temporary file and moves it into place, so a crash leaves the old content or the new,
   never half; a new file holding a token is readable by its owner only (`isPrivate`), as is Creator's own `mcp.json` even when an older
   version left it readable (`restrictToOwner`), and the watcher ignores the temporary files.
-- `ProjectWatcher` polls file stamps every second. Files as Creator left them (`OwnWrites`) don't count as changed, so Creator's own
-  writes reload nothing. `ProjectChanges` is the one table routing Creator's own writes (the Scene changes `SceneStore` records,
+- `ProjectWatcher` polls file stamps every second, skipping generated code and output folders outside `src` (any name inside
+  it). Files as Creator left them (`OwnWrites`) don't count as changed, so Creator's own writes reload nothing. `ProjectChanges` is the one table routing Creator's own writes (the Scene changes `SceneStore` records,
   which `CommandExecutor` hands over after each command, and saved type batches) and the watcher's changes: a Scene edit refreshes
   only the Scene view, a new or removed Scene the resource tree too, and every change the Version control panel. Resource scans and
-  git refreshes are coalesced, so at most one runs and one waits.
+  git refreshes are coalesced, so at most one runs and one waits. The resource tree after an outside change comes from the
+  watcher's snapshot, so its one-second walk is the only periodic one; after Creator's own writes, which a snapshot may
+  predate, the project is walked.
 - An exception nothing catches (`unexpectedProblemHandler`, on the app's scope and each workspace's) is reported in the open
   project's console, and the rest keeps running.
 

@@ -93,6 +93,52 @@ class ResourceScannerTest {
     }
 
     @Test
+    fun aPackageNamedBuildIsShown() {
+        val root = createTempDirectory().toFile()
+        try {
+            listOf("src/commonMain/kotlin/com/game/build/Level.kt", "src/commonMain/composeResources/files/scenes/out/level.json").forEach {
+                File(root, it).apply { parentFile.mkdirs() }.writeText("")
+            }
+            val resources = ResourceScanner.scan(root)
+            assertEquals(listOf("src/commonMain/kotlin/com/game/build/Level.kt"), resources.getValue(ResourceGroup.KOTLIN).map { it.relativePath })
+            assertEquals(listOf("src/commonMain/composeResources/files/scenes/out/level.json"), resources.getValue(ResourceGroup.SCENES).map { it.relativePath })
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun aScanFromASnapshotEqualsAWalk() {
+        val root = createTempDirectory().toFile()
+        val hidden = "src/commonMain/kotlin/game/generated"
+        try {
+            listOf(
+                "src/commonMain/kotlin/game/Game.kt",
+                "src/commonMain/kotlin/game/build/Level.kt",
+                "$hidden/Ball.kt",
+                "src/commonMain/composeResources/files/scenes/main.json",
+                "src/commonMain/composeResources/files/scenes/main.json.creator-write.tmp",
+                "src/commonMain/composeResources/drawable/ball.png",
+                "src/commonMain/composeResources/files/theme.mp3",
+                "src/commonMain/composeResources/files/bounce.wav",
+                "app/composeResources/files/scenes/outside.json",
+                "app/composeResources/drawable/outside.png",
+                ".kubriko/project.json",
+                ".kubriko/actors/Ball.json",
+                "src/.kubriko/Kept.kt",
+                "build/src/Generated.kt",
+                "Pods/src/main/composeResources/drawable/pod.png",
+                "README.md",
+            ).forEach { File(root, it).apply { parentFile.mkdirs() }.writeText("") }
+            val walked = ResourceScanner.scan(root, hiddenDirectory = hidden)
+            assertEquals(walked, ResourceScanner.scan(root, hiddenDirectory = hidden, snapshot = ProjectWatcher.snapshot(root, hidden)))
+            assertEquals(setOf(ResourceGroup.KOTLIN, ResourceGroup.SCENES, ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC), walked.keys)
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun theSourceSetTellsApartFilesOfTheSameName() {
         fun resource(path: String) = ProjectResource(ResourceGroup.KOTLIN, File(path), path)
         assertEquals("desktopMain", ResourceScanner.sourceSetOf(resource("src/desktopMain/kotlin/game/Main.kt")))

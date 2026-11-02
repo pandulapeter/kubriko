@@ -62,7 +62,7 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
                 parentScope = scope,
                 workspaceScope = opening.scope,
                 findDesktopModulePath = { ProjectInspector.desktopModulePathOf(connection) },
-                scanResources = { ResourceScanner.scan(it, hiddenDirectory = blockTypeStore?.generatedPath) },
+                scanResources = { root, snapshot -> ResourceScanner.scan(root, hiddenDirectory = blockTypeStore?.generatedPath, snapshot = snapshot) },
                 blockTypeRepository = blockTypeStore,
                 syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
                 creatorKubrikoVersion = configuration.kubrikoVersion,

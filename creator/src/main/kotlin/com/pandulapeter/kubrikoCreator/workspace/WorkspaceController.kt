@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
@@ -101,7 +102,7 @@ internal class WorkspaceController(
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
     writeDelayInMilliseconds: Long = 0,
     ownWrites: OwnWrites = OwnWrites(),
-    private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
+    private val scanResources: (File, ProjectSnapshot?) -> Map<ResourceGroup, List<ProjectResource>> = { root, snapshot -> ResourceScanner.scan(root, snapshot = snapshot) },
     private val blockTypeRepository: BlockTypeRepository? = null,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     creatorKubrikoVersion: String = "",
@@ -109,7 +110,7 @@ internal class WorkspaceController(
     initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
     private val projectFormat: ProjectFormat = ProjectFormat(project.rootDirectory, creatorKubrikoVersion),
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader(project.rootDirectory),
-    startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
+    startWatching: (onChange: (Set<ProjectChange>, ProjectSnapshot) -> Unit) -> AutoCloseable = { AutoCloseable {} },
     generatedPath: String? = null,
     openGitRepository: () -> GitRepository? = { JGitRepository.open(project.rootDirectory) },
     createGitRepository: (message: String) -> GitRepository = { JGitRepository.create(project.rootDirectory, it) },
@@ -361,9 +362,10 @@ internal class WorkspaceController(
     }
 
     /**
-     * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them.
+     * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them; the resource tree is
+     * built from [snapshot], the files as the watcher found them, if it is given.
      */
-    fun onProjectChanged(changes: Set<ProjectChange>) = this.changes.onProjectChanged(changes)
+    fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) = this.changes.onProjectChanged(changes, snapshot)
 
     /**
      * Checks the template files again, recording the new template version if they were upgraded by hand. A project that
@@ -406,8 +408,8 @@ internal class WorkspaceController(
 
     fun refreshResources() = changes.refreshResources()
 
-    private suspend fun scanResourcesNow() {
-        val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory) to scenes.folders() }
+    private suspend fun scanResourcesNow(snapshot: ProjectSnapshot?) {
+        val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory, snapshot) to scenes.folders() }
         _resources.value = resources
         _sceneFolders.value = folders
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.

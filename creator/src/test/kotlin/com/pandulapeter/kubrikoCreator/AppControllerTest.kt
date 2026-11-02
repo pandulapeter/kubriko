@@ -75,7 +75,7 @@ class AppControllerTest {
         sessionChannel = FakeSessionChannel(),
         parentScope = scope,
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
-        scanResources = { emptyMap() },
+        scanResources = { _, _ -> emptyMap() },
     )
 
     @AfterTest

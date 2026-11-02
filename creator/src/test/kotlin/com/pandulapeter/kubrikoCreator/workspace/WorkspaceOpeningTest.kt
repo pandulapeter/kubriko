@@ -49,7 +49,7 @@ class WorkspaceOpeningTest {
             parentScope = parentScope(),
             workspaceScope = opening.scope,
             ioDispatcher = UnconfinedTestDispatcher(testScheduler),
-            scanResources = { emptyMap() },
+            scanResources = { _, _ -> emptyMap() },
             blockTypeRepository = FakeBlockTypeRepository(),
             startWatching = { opening.track(AutoCloseable { isWatcherClosed = true }) },
             openGitRepository = { null },

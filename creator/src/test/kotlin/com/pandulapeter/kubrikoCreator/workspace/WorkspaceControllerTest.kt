@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
+import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
@@ -94,9 +95,9 @@ class WorkspaceControllerTest {
         desktopModulePath: String = ":",
         findDesktopModulePath: suspend () -> String = { desktopModulePath },
         ioDispatcher: CoroutineDispatcher? = null,
-        scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = { emptyMap() },
+        scanResources: (File, ProjectSnapshot?) -> Map<ResourceGroup, List<ProjectResource>> = { _, _ -> emptyMap() },
         blockTypeRepository: FakeBlockTypeRepository? = null,
-        startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
+        startWatching: (onChange: (Set<ProjectChange>, ProjectSnapshot) -> Unit) -> AutoCloseable = { AutoCloseable {} },
         rootDirectory: File = this@WorkspaceControllerTest.rootDirectory,
         entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader(rootDirectory),
         runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
@@ -138,7 +139,7 @@ class WorkspaceControllerTest {
     @Test
     fun resourcesAreScannedFromTheProjectRootWhenOpened() = runTest {
         val scannedDirectories = mutableListOf<File>()
-        val controller = createController(scanResources = { scannedDirectories += it; mapOf(ResourceGroup.SCENES to listOf(scene)) })
+        val controller = createController(scanResources = { root, _ -> scannedDirectories += root; mapOf(ResourceGroup.SCENES to listOf(scene)) })
         assertEquals(listOf(rootDirectory), scannedDirectories)
         assertEquals(mapOf(ResourceGroup.SCENES to listOf(scene)), controller.resources.value)
     }
@@ -146,7 +147,7 @@ class WorkspaceControllerTest {
     @Test
     fun anUnexpectedFailureInTheBackgroundIsReportedInTheConsoleAndTheRestKeepsWorking() = runTest {
         var isFailing = false
-        val controller = createController(scanResources = { if (isFailing) throw IllegalStateException("Broken.") else mapOf(ResourceGroup.SCENES to listOf(scene)) })
+        val controller = createController(scanResources = { _, _ -> if (isFailing) throw IllegalStateException("Broken.") else mapOf(ResourceGroup.SCENES to listOf(scene)) })
         isFailing = true
         controller.refreshResources()
         assertContains(controller.statuses, Res.string.status_unexpected_problem)
@@ -167,9 +168,18 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun aWatcherChangeIsScannedFromTheWatchersSnapshot() = runTest {
+        val snapshots = mutableListOf<ProjectSnapshot?>()
+        val controller = createController(scanResources = { _, snapshot -> snapshots += snapshot; emptyMap() })
+        val snapshot = ProjectSnapshot(emptyMap())
+        controller.onProjectChanged(setOf(ProjectChange.SCENES), snapshot)
+        assertEquals(listOf(null, snapshot), snapshots)
+    }
+
+    @Test
     fun refreshingRescansTheResources() = runTest {
         var scanCount = 0
-        val controller = createController(scanResources = { scanCount++; emptyMap() })
+        val controller = createController(scanResources = { _, _ -> scanCount++; emptyMap() })
         controller.refreshResources()
         assertEquals(2, scanCount)
     }
@@ -486,7 +496,7 @@ class WorkspaceControllerTest {
     @Test
     fun savingAnActorTypeDoesntRescanTheResourcesWhichLeaveItsGeneratedCodeOut() = runTest {
         var scanCount = 0
-        val controller = createController(scanResources = { scanCount++; emptyMap() }, blockTypeRepository = FakeBlockTypeRepository())
+        val controller = createController(scanResources = { _, _ -> scanCount++; emptyMap() }, blockTypeRepository = FakeBlockTypeRepository())
         assertEquals(1, scanCount)
         assertNull(controller.createActorType("Player"))
         assertEquals(1, scanCount)
@@ -570,7 +580,7 @@ class WorkspaceControllerTest {
     @Test
     fun changedSourcesRescanTheResources() = runTest {
         var scanCount = 0
-        val controller = createController(scanResources = { scanCount++; emptyMap() })
+        val controller = createController(scanResources = { _, _ -> scanCount++; emptyMap() })
         controller.onProjectChanged(setOf(ProjectChange.SOURCES))
         controller.onProjectChanged(setOf(ProjectChange.SCENES))
         assertEquals(3, scanCount)

@@ -12,12 +12,12 @@ package com.pandulapeter.kubrikoCreator.project
 import java.io.File
 
 /**
- * What every walk through a project's files leaves out.
+ * How every walk through a project's files goes, and what it leaves out.
  */
 internal object ProjectTree {
 
     /**
-     * The folders build tools and version control keep their own files in, wherever they are.
+     * The folders build tools and version control keep their own files in.
      */
     val ignoredDirectoryNames = setOf("build", ".gradle", ".git", ".idea", ".kotlin", "kotlin-js-store", "node_modules")
 
@@ -27,9 +27,25 @@ internal object ProjectTree {
     private val toolDirectoryNames = setOf("out", ".fleet", ".vscode", ".cxx", "Pods", "DerivedData")
 
     /**
-     * Whether a walk through [rootDirectory] leaves [directory] out: one of [ignoredDirectoryNames] anywhere, or a tool's
-     * folder outside the `src` folder of a module.
+     * Every file and folder under [root], top down. Build, tool, and version control folders ([ignoredDirectoryNames] and
+     * the IDEs' and native builds' own) are skipped outside source folders only, so a source package or a resource
+     * folder may have any name.
+     *
+     * @param skipped The names of more folders to skip, inside source folders too.
+     * @param hiddenDirectory A folder, relative to [root], to skip.
      */
-    fun isIgnored(directory: File, rootDirectory: File) = directory.name in ignoredDirectoryNames ||
-        (directory.name in toolDirectoryNames && "src" !in directory.relativeTo(rootDirectory).invariantSeparatorsPath.split('/').dropLast(1))
+    fun walk(root: File, skipped: Set<String> = emptySet(), hiddenDirectory: String? = null): Sequence<File> = root.walkTopDown().onEnter { directory ->
+        directory == root || (
+            directory.name !in skipped &&
+                (hiddenDirectory == null || directory.relativeTo(root).invariantSeparatorsPath != hiddenDirectory) &&
+                (isWithinSources(root, directory) || !isIgnored(directory))
+            )
+    }
+
+    /**
+     * Whether [file] is inside the `src` folder of one of [root]'s modules, at any depth.
+     */
+    fun isWithinSources(root: File, file: File) = "src" in file.relativeTo(root).invariantSeparatorsPath.split('/').dropLast(1)
+
+    private fun isIgnored(directory: File) = directory.name in ignoredDirectoryNames || directory.name in toolDirectoryNames
 }

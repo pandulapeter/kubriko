@@ -105,7 +105,7 @@ class CreatorBenchmarkTest {
                     sessionChannel = FakeSessionChannel(),
                     parentScope = scope,
                     ioDispatcher = Dispatchers.IO,
-                    scanResources = { ResourceScanner.scan(it, hiddenDirectory = store.generatedPath) },
+                    scanResources = { root, snapshot -> ResourceScanner.scan(root, hiddenDirectory = store.generatedPath, snapshot = snapshot) },
                     blockTypeRepository = store,
                     syncBuildFiles = KubrikoBuildFiles(directory, "1.0.0", useMavenLocal = false)::sync,
                     generatedPath = store.generatedPath,
