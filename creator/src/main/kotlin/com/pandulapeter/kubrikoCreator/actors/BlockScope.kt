@@ -113,7 +113,7 @@ internal data class BlockScope(
                 managerTypes = types.filterIsInstance<ManagerTypeDefinition>(),
                 sceneNames = sceneNames,
                 audioFiles = audioFiles,
-                baseClassNames = actorTypes.map { it.name }.filterTo(mutableSetOf(), family::hasChildren),
+                baseClassNames = family.namesWithChildren,
                 ancestorNames = family.ancestorsOf(definition.name),
                 timerNames = if (definition is ActorTypeDefinition) {
                     val members = family.familyOf(family.rootOf(definition.name)).toSet()

@@ -51,7 +51,7 @@ internal object ActorTypeCodeGenerator {
     fun generateActorType(
         definition: ActorTypeDefinition,
         packageName: String,
-        knownActorTypeNames: Collection<String> = listOf(definition.name),
+        knownActorTypeNames: List<String> = listOf(definition.name),
         managerTypes: List<ManagerTypeDefinition> = emptyList(),
         collidableActorTypeNames: Set<String> = emptySet(),
         actorTypes: List<ActorTypeDefinition> = listOf(definition),
@@ -65,9 +65,9 @@ internal object ActorTypeCodeGenerator {
             typeName = name,
             kind = BlockTypeKind.ACTOR,
             properties = definition.properties,
-            actorTypeNames = knownActorTypeNames.toList(),
+            actorTypeNames = knownActorTypeNames,
             managerTypes = managerTypes,
-            baseClassNames = actorTypes.map { it.name }.filterTo(mutableSetOf(), family::hasChildren),
+            baseClassNames = family.namesWithChildren,
         )
         val spriteAccessor = definition.sprite?.let(SpriteFiles::accessorOf)
         val features = ActorTypeFeatures(

@@ -44,6 +44,11 @@ class ActorTypeFamilyTest {
     }
 
     @Test
+    fun namesWithChildrenAreTheParents() {
+        assertEquals(setOf("Enemy", "Flying"), family.namesWithChildren)
+    }
+
+    @Test
     fun aCycleCountsAsNoParent() {
         val cycle = ActorTypeFamily(listOf(ActorTypeDefinition(name = "A", parent = "B"), ActorTypeDefinition(name = "B", parent = "A")))
         assertTrue(cycle.ancestorsOf("A").size <= 1)
