@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.agentclientprotocol.model.AuthMethodId
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.FakeProcessRunner
 import kotlinx.coroutines.CompletableDeferred
@@ -103,6 +104,13 @@ class AssistantControllerTest {
         """{"agents": [${agents.joinToString(",")}]}"""
     }
 
+    /**
+     * Waits for the settings saved off the main thread to satisfy [predicate].
+     */
+    private suspend fun awaitSavedSettings(predicate: (AssistantSettings) -> Boolean) {
+        while (!predicate(AssistantSettingsStore(File(settingsDirectory, "assistant.json")).load())) delay(10)
+    }
+
     private suspend fun <T> onMain(block: suspend () -> T) = withContext(mainThread) { block() }
 
     private suspend fun AssistantController.startChat(): AssistantChat {
@@ -145,6 +153,31 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun withAiFeaturesOffChoosingAnAgentOrGivingAKeyChangesNothing() = test {
+        runner.aliases["claude-personal"] = "CLAUDE_CONFIG_DIR=~/.claude-personal claude"
+        val registry = registry(CODEX)
+        registry.refresh()
+        val controller = controller(registry, isAiEnabled = MutableStateFlow(false))
+        onMain { controller.findConfigurations() }
+        val personal = controller.configurations.first { it.size == 2 }.last()
+        val codex = controller.agents.first { it.size == 2 }.last()
+        val method = SignInMethod(AuthMethodId("variables"), "Variables", variables = listOf(SignInMethod.Variable("FAKE_API_KEY")))
+        onMain {
+            controller.setProject(projectDirectory)
+            controller.selectAgent(AgentChoice.Registry(codex))
+            controller.selectConfiguration(personal)
+            controller.setApiKey("sk-ant-key")
+            controller.setVariables(method, mapOf("FAKE_API_KEY" to "secret"))
+        }
+        delay(200)
+        assertTrue(controller.agent.value.isClaude)
+        assertEquals(ClaudeConfiguration.default, controller.configuration.value)
+        assertFalse(File(settingsDirectory, "assistant.json").exists())
+        assertEquals(emptyMap(), secrets.secrets)
+        assertTrue(launcher.commands.isEmpty())
+    }
+
+    @Test
     fun turningAiFeaturesOffEndsTheConversationsAndTheAgent() = test {
         val isAiEnabled = MutableStateFlow(true)
         val controller = controller(isAiEnabled = isAiEnabled)
@@ -176,8 +209,10 @@ class AssistantControllerTest {
         assertEquals(listOf("acp"), command.arguments)
         assertEquals("chat", command.environment["GOOSE_MODE"])
         assertEquals(AgentProfile.fallback, profiles.last())
+        awaitSavedSettings { it.agentId == AgentChoice.Custom.ID }
         assertEquals(AgentChoice.Custom("GOOSE_MODE=chat goose acp"), controller().agent.value)
         onMain { controller.selectAgent(AgentChoice.Registry(RegistryAgent.claude)) }
+        awaitSavedSettings { it.agentId == null }
         assertEquals("GOOSE_MODE=chat goose acp", controller().customAgentCommand)
         assertTrue(controller().agent.value.isClaude)
     }
@@ -232,6 +267,7 @@ class AssistantControllerTest {
         while (commands.size < 2) delay(10)
         assertEquals("secret", commands.last().environment["FAKE_API_KEY"])
         assertEquals(null, controller.variablesForm.value)
+        awaitSavedSettings { it.agentVariables["codex-acp"] == listOf("FAKE_API_KEY") }
         val afterRestart = controller(registry)
         afterRestart.startChat().state.first { it == ChatState.Ready }
         assertEquals("secret", commands.last().environment["FAKE_API_KEY"])
@@ -391,6 +427,7 @@ class AssistantControllerTest {
         onMain { controller.selectConfiguration(personal) }
         controller.startChat().state.first { it == ChatState.Ready }
         assertEquals("/Users/me/.claude-personal", commands.last().environment["CLAUDE_CONFIG_DIR"])
+        awaitSavedSettings { it.claudeConfigurationAlias == "claude-personal" }
         val restarted = controller()
         assertEquals("claude-personal", restarted.configuration.value.alias)
         restarted.startChat().state.first { it == ChatState.Ready }

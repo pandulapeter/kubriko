@@ -12,30 +12,20 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 import com.agentclientprotocol.model.SessionUpdate
 import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.mcp.clients.ProcessRunner
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
@@ -83,25 +73,24 @@ internal class AssistantController(
     node: NodeRuntime? = null,
     private val isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
 ) : AutoCloseable {
-    private val settings = MutableStateFlow(store.load())
-    private val _agents = MutableStateFlow(listOf(RegistryAgent.claude))
+    private val settings = AssistantSettingsState(scope, store, ioDispatcher)
+    private val selection: AgentSelection = AgentSelection(scope, settings, registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })
 
     /**
      * The registry's agents this computer can run, Claude Agent first.
      */
-    val agents = _agents.asStateFlow()
-    private val _agent = MutableStateFlow(AgentChoice.of(settings.value, _agents.value))
+    val agents = selection.agents
 
     /**
      * The agent the assistant runs.
      */
-    val agent = _agent.asStateFlow()
+    val agent = selection.agent
 
     /**
      * The command line of the custom agent, whether or not it is the one chosen.
      */
-    val customAgentCommand get() = settings.value.customAgentCommand
-    private val claude = ClaudeAccount(scope, ioDispatcher, runner, secrets, home, settings.value.claudeConfigurationAlias)
+    val customAgentCommand get() = selection.customAgentCommand
+    private val claude = ClaudeAccount(scope, ioDispatcher, runner, secrets, home, settings.value.value.claudeConfigurationAlias)
 
     /**
      * The Claude Code configurations found on this computer, the default one first.
@@ -128,50 +117,58 @@ internal class AssistantController(
      * The conversation the panel shows.
      */
     val currentChat = chatList.current
-    private val assistantLock = Mutex()
-    private val assistant = MutableStateFlow<Assistant?>(null)
-    private var lifecycle: Job? = null
-    private val agentsLoaded = CompletableDeferred<Unit>()
     private val commands = AgentCommands(runner, installer, home, ioDispatcher, node)
-    private val agentVariables = AgentVariableStore(secrets)
+    private val host: AssistantHost<Assistant> = AssistantHost(scope, ioDispatcher, isAiEnabled) {
+        selection.awaitLoaded()
+        val choice = selection.agent.value
+        val npx = commands.npx()
+        val environment = if (choice.isClaude) claude.environment() else signIns.environmentOf(choice)
+        createAssistant(commands.of(choice, npx, environment), npx, choice.profile)
+    }
+    private val signIns: AssistantSignIn = AssistantSignIn(
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+        signInLauncher = signInLauncher,
+        secrets = secrets,
+        settings = settings,
+        host = host,
+        resendRefused = { chats.value.forEach { it.resendAfterSignIn() } },
+        restart = ::restartAgent,
+    )
 
     /**
      * The agent's archive being downloaded on its first start, if one is.
      */
     val download = commands.download
-    private val _variablesForm = MutableStateFlow<SignInMethod?>(null)
 
     /**
      * The sign-in method taking environment variables the user is giving them for.
      */
-    val variablesForm = _variablesForm.asStateFlow()
-    private val _variablesFailed = MutableStateFlow(false)
+    val variablesForm = signIns.variablesForm
 
     /**
      * Whether the last variables given couldn't be kept.
      */
-    val variablesFailed = _variablesFailed.asStateFlow()
+    val variablesFailed = signIns.variablesFailed
 
     init {
-        scope.launch { loadAgents() }
         scope.launch { isAiEnabled.drop(1).filter { !it }.collect { turnOff() } }
     }
 
     /**
      * Who the agent works as, once it has said so.
      */
-    val authStatus = assistant.flatMapLatest { it?.authStatus ?: flowOf(null) }.stateIn(scope, SharingStarted.Eagerly, null)
+    val authStatus = signIns.authStatus
 
     /**
      * The ways of signing in the agent offers, once it has started.
      */
-    val signInMethods = assistant.flatMapLatest { it?.signInMethods ?: flowOf(emptyList()) }.stateIn(scope, SharingStarted.Eagerly, emptyList())
-    private val statusBeforeSignIn = MutableStateFlow<AuthStatus?>(null)
+    val signInMethods = signIns.signInMethods
 
     /**
      * Whether the agent takes images in prompts, once it has started.
      */
-    val acceptsImages = assistant.flatMapLatest { it?.capabilities ?: flowOf(null) }
+    val acceptsImages = host.current.flatMapLatest { it?.capabilities ?: flowOf(null) }
         .map { it?.promptCapabilities?.image == true }
         .stateIn(scope, SharingStarted.Eagerly, false)
 
@@ -179,14 +176,12 @@ internal class AssistantController(
      * Whether the agent said it isn't signed in, and the user hasn't signed in since. Claude Agent reports a new sign-in
      * only at the next prompt.
      */
-    val needsSignIn = combine(authStatus, statusBeforeSignIn) { status, before -> status?.isSignedIn == false && status != before }
-        .stateIn(scope, SharingStarted.Eagerly, false)
-    private val _signIn = MutableStateFlow<SignInSession?>(null)
+    val needsSignIn = signIns.needsSignIn
 
     /**
      * The sign-in command running in the panel's terminal.
      */
-    val signIn = _signIn.asStateFlow()
+    val signIn = signIns.session
 
     /**
      * Whether Claude Agent uses the user's Anthropic API key, kept in the secret store, rather than a Claude Code login.
@@ -221,26 +216,29 @@ internal class AssistantController(
     /**
      * Starts a conversation about the open project and shows it.
      */
-    fun newChat() = openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(projectDigest(), lastConversationOf(directory))) }
+    fun newChat() {
+        if (!host.isOn) return
+        openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(projectDigest(), lastConversationOf(directory))) }
+    }
 
-    private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { conversations?.of(directory, _agent.value.id)?.firstOrNull() }
+    private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { conversations?.of(directory, selection.agent.value.id)?.firstOrNull() }
 
     /**
      * Continues [conversation], an earlier one about the open project, and shows it.
      */
     fun resume(conversation: SavedConversation) {
+        if (!host.isOn) return
         if (chatList.reopen(conversation.id)) return
         openChat { owner, directory, permissions, onHistory -> owner.resumeConversation(directory, conversation.id, permissions, onHistory) }
     }
 
     private fun openChat(start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
-        if (!isAiEnabled.value) return
         val directory = project ?: return
-        val agentId = _agent.value.id
+        val agentId = selection.agent.value.id
         var owner: Assistant? = null
         val chat = AssistantChat(
             parentScope = scope,
-            start = { permissions, onHistory -> start(assistant().also { owner = it }, directory, permissions, onHistory) },
+            start = { permissions, onHistory -> start(host.get().also { owner = it }, directory, permissions, onHistory) },
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
             changeLog = changeLog,
@@ -260,26 +258,23 @@ internal class AssistantController(
     /**
      * Closes [chat], showing the conversation before it; one with something in it can be continued later.
      */
-    fun close(chat: AssistantChat) = chatList.close(chat, project, _agent.value.id)
+    fun close(chat: AssistantChat) = chatList.close(chat, project, selection.agent.value.id)
 
     /**
      * Runs [choice] from now on, which ends every conversation and starts a new one.
      */
     fun selectAgent(choice: AgentChoice) {
-        if (choice == _agent.value) return
-        _agent.value = choice
-        settings.update { it.copy(agentId = choice.id.takeUnless { choice.isClaude }, customAgentCommand = (choice as? AgentChoice.Custom)?.commandLine ?: it.customAgentCommand) }
-        store.save(settings.value)
-        restartAgent()
+        if (!host.isOn) return
+        if (selection.select(choice)) restartAgent()
     }
 
     /**
      * Uses [configuration] from now on: its own agent, so every conversation ends, and a new one starts.
      */
     fun selectConfiguration(configuration: ClaudeConfiguration) {
+        if (!host.isOn) return
         if (!claude.select(configuration)) return
         settings.update { it.copy(claudeConfigurationAlias = configuration.alias) }
-        store.save(settings.value)
         restartAgent()
     }
 
@@ -288,39 +283,8 @@ internal class AssistantController(
      * terminal method succeeds, prompts refused for want of a sign-in are sent again.
      */
     fun signIn(method: SignInMethod) {
-        if (!isAiEnabled.value) return
-        if (method.variables != null) {
-            _variablesFailed.value = false
-            _variablesForm.value = method
-            return
-        }
-        val command = method.terminal
-        if (command == null) {
-            // The agent reports a failure through the next prompt, which still asks for a sign-in.
-            scope.launch {
-                runIgnoringFailure {
-                    assistant().authenticate(method)
-                    chats.value.forEach { it.resendAfterSignIn() }
-                }
-            }
-            return
-        }
-        scope.launch {
-            _signIn.value?.stop()
-            val session = try {
-                SignInSession(method, withContext(ioDispatcher) { signInLauncher.launch(command) }, scope, ioDispatcher)
-            } catch (_: IOException) {
-                null
-            } ?: return@launch
-            val displaced = _signIn.value
-            _signIn.value = session
-            displaced?.stop()
-            if (session.exitCode.first { it != null } == 0 && _signIn.value === session) {
-                statusBeforeSignIn.value = authStatus.value
-                _signIn.value = null
-                chats.value.forEach { it.resendAfterSignIn() }
-            }
-        }
+        if (!host.isOn) return
+        signIns.signIn(method)
     }
 
     /**
@@ -328,18 +292,8 @@ internal class AssistantController(
      * starts it again (ending every conversation) and a new conversation.
      */
     fun setVariables(method: SignInMethod, values: Map<String, String>) {
-        val agentId = _agent.value.id
-        val given = values.filterValues { it.isNotBlank() }.mapValues { it.value.trim() }
-        if (method.variables.orEmpty().any { !it.isOptional && it.name !in given }) return
-        scope.launch {
-            val isKept = withContext(ioDispatcher) { agentVariables.write(agentId, given) }
-            _variablesFailed.value = !isKept
-            if (!isKept) return@launch
-            _variablesForm.value = null
-            settings.update { it.copy(agentVariables = it.agentVariables + (agentId to (it.agentVariables[agentId].orEmpty() + given.keys).distinct())) }
-            store.save(settings.value)
-            restartAgent()
-        }
+        if (!host.isOn) return
+        signIns.setVariables(selection.agent.value.id, method, values)
     }
 
     /**
@@ -357,7 +311,7 @@ internal class AssistantController(
      * Downloads a Node.js of Creator's own, then starts the conversations that couldn't start for want of one.
      */
     fun installNode() {
-        if (!isAiEnabled.value) return
+        if (!host.isOn) return
         _nodeInstallFailure.value = null
         scope.launch {
             try {
@@ -369,18 +323,12 @@ internal class AssistantController(
         }
     }
 
-    fun closeVariablesForm() {
-        _variablesForm.value = null
-    }
+    fun closeVariablesForm() = signIns.closeVariablesForm()
 
     /**
      * Ends the sign-in command and closes the panel's terminal.
      */
-    fun closeSignIn() {
-        val session = _signIn.value ?: return
-        _signIn.value = null
-        scope.launch { session.stop() }
-    }
+    fun closeSignIn() = signIns.closeSignIn()
 
     /**
      * Uses [apiKey] from now on, kept in the operating system's secret store, which starts the agent again (ending
@@ -389,6 +337,7 @@ internal class AssistantController(
      * @param onKept Called once the key is kept.
      */
     fun setApiKey(apiKey: String, onKept: () -> Unit = {}) {
+        if (!host.isOn) return
         val key = apiKey.trim().takeIf { it.isNotEmpty() } ?: return
         scope.launch {
             if (!claude.keepApiKey(key)) return@launch
@@ -401,6 +350,7 @@ internal class AssistantController(
      * Forgets the API key, so that Claude Agent signs in as Claude Code does, which starts it again.
      */
     fun removeApiKey() {
+        if (!host.isOn) return
         scope.launch {
             claude.forgetApiKey()
             restartAgent()
@@ -414,68 +364,12 @@ internal class AssistantController(
 
     private fun endChats(isAgentReplaced: Boolean = false) {
         val ended = chatList.takeAll()
-        val owner = assistant.value
-        afterPending {
+        val owner = host.current.value
+        host.afterPending {
             ended.forEach { chat -> runIgnoringFailure { chat.close() } }
             // The agent's client keeps the IDs of conversations it couldn't close, and continuing one needs it to let go.
-            if (isAgentReplaced) replaceAssistant() else if (ended.isNotEmpty() && owner?.canCloseConversations == false) replaceAssistant(expected = owner)
-            chatList.refreshSaved(project, _agent.value.id)
-        }
-    }
-
-    /** Runs [block] after the steps queued before it, so that they never interleave; a failing step doesn't stop the next. */
-    private fun afterPending(block: suspend () -> Unit) {
-        val previous = lifecycle
-        lifecycle = scope.launch {
-            previous?.join()
-            runIgnoringFailure { block() }
-        }
-    }
-
-    private suspend fun runIgnoringFailure(block: suspend () -> Unit) = try {
-        block()
-    } catch (_: CancellationException) {
-        currentCoroutineContext().ensureActive()
-    } catch (_: Exception) {
-    }
-
-    private suspend fun replaceAssistant(expected: Assistant? = null) {
-        val replaced = assistantLock.withLock {
-            assistant.value?.takeIf { expected == null || it === expected }?.also { assistant.value = null }
-        } ?: return
-        withContext(ioDispatcher) { replaced.close() }
-    }
-
-    /**
-     * The cached registry first, so that a remembered agent is known before the first conversation starts, then a fresh one.
-     */
-    private suspend fun loadAgents() {
-        if (registry == null) {
-            agentsLoaded.complete(Unit)
-            return
-        }
-        updateAgents(withContext(ioDispatcher) { registry.cached() })
-        agentsLoaded.complete(Unit)
-        isAiEnabled.first { it }
-        withContext(ioDispatcher) { registry.refresh() }?.let(::updateAgents)
-    }
-
-    private fun updateAgents(agents: List<RegistryAgent>) {
-        _agents.value = agents
-        if (assistant.value == null) _agent.value = AgentChoice.of(settings.value, _agents.value)
-    }
-
-    private suspend fun assistant(): Assistant {
-        while (lifecycle?.isCompleted == false) lifecycle?.join()
-        return assistantLock.withLock {
-            check(isAiEnabled.value) { "AI features are off." }
-            assistant.value ?: run {
-                agentsLoaded.await()
-                val choice = _agent.value
-                val npx = commands.npx()
-                val environment = if (choice.isClaude) claude.environment() else withContext(ioDispatcher) { agentVariables.read(choice.id, settings.value.agentVariables[choice.id].orEmpty()) }
-                createAssistant(commands.of(choice, npx, environment), npx, choice.profile).also { assistant.value = it }
-            }
+            if (isAgentReplaced) host.replace() else if (ended.isNotEmpty() && owner?.canCloseConversations == false) host.replace(expected = owner)
+            chatList.refreshSaved(project, selection.agent.value.id)
         }
     }
 
@@ -483,8 +377,7 @@ internal class AssistantController(
      * Ends every conversation, the sign-in, and the agent, when AI features are turned off.
      */
     private fun turnOff() {
-        _variablesForm.value = null
-        closeSignIn()
+        signIns.stop()
         endChats(isAgentReplaced = true)
     }
 
@@ -492,8 +385,7 @@ internal class AssistantController(
      * Ends the agent, when Kubriko Creator quits.
      */
     override fun close() {
-        _signIn.value?.let { session -> scope.launch { session.stop() } }
-        assistant.value?.close()
-        assistant.value = null
+        signIns.stop()
+        host.close()
     }
 }

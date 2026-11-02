@@ -11,6 +11,10 @@
 
 Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `FakeAgent` over in-process pipes.
 
+- **Panel state:** `AssistantController` (app-level, created once in `KubrikoCreatorApp`) is the panel's façade over
+  `AgentSelection` (the agent chosen and the registry), `AssistantHost` (the one `Assistant` from first use until Creator quits,
+  replaced in one ordered sequence, and the one check of AI features), and `AssistantSignIn` (sign-in, API key aside, and agent
+  variables); `AssistantSettingsState` saves their settings off the main thread.
 - **Agents:** Claude Agent is the one fully supported agent (`RegistryAgent.isTested`); every other ACP Registry agent runs on
   generic fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`), with as little per-agent code as possible, and
   is shown as untested. An agent a vendor publishes in the registry counts as meant for hosting, so vendors' terms don't gate it;
