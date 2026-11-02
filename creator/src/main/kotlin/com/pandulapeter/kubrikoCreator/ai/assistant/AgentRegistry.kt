@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Reads the [ACP Registry](https://agentclientprotocol.com/registry)'s list of agents into the ones this platform can run,
@@ -28,10 +30,20 @@ internal object AgentRegistry {
      */
     fun parse(text: String, platform: String?): List<RegistryAgent> {
         val others = json.decodeFromString(Registry.serializer(), text).agents
+            .mapNotNull(::entryOf)
             .filter { it.id != RegistryAgent.claude.id }
             .mapNotNull { entry -> entry.distribution.forPlatform(platform)?.let { RegistryAgent(entry.id, entry.name, entry.version, it) } }
             .sortedBy { it.name.lowercase() }
         return listOf(RegistryAgent.claude) + others
+    }
+
+    /** An entry this version can't read is left out rather than losing the others. */
+    private fun entryOf(element: JsonElement) = try {
+        json.decodeFromJsonElement(Entry.serializer(), element)
+    } catch (_: SerializationException) {
+        null
+    } catch (_: IllegalArgumentException) {
+        null
     }
 
     /**
@@ -68,7 +80,7 @@ internal object AgentRegistry {
 
     @Serializable
     private data class Registry(
-        @SerialName("agents") val agents: List<Entry> = emptyList(),
+        @SerialName("agents") val agents: List<JsonElement> = emptyList(),
     )
 
     @Serializable

@@ -48,7 +48,18 @@ class AgentRegistryTest {
 
     @Test
     fun somethingElseThanTheRegistryIsRejected() {
-        assertFailsWith<SerializationException> { AgentRegistry.parse("""{"agents": [{"id": 1}]}""", "darwin-aarch64") }
+        assertFailsWith<SerializationException> { AgentRegistry.parse("""{"agents": "none"}""", "darwin-aarch64") }
+    }
+
+    @Test
+    fun anEntryThatCantBeReadIsLeftOutAndTheOthersStay() {
+        val registry = """{"agents": [
+            {"id": "no-version", "name": "No version", "distribution": {"npx": {"package": "no-version"}}},
+            {"id": "odd-distribution", "name": "Odd distribution", "version": "1.0.0", "distribution": "npx"},
+            {"id": 1},
+            {"id": "good", "name": "Good", "version": "1.0.0", "distribution": {"npx": {"package": "good@1.0.0"}}}
+        ]}"""
+        assertEquals(listOf("claude-acp", "good"), AgentRegistry.parse(registry, "darwin-aarch64").map { it.id })
     }
 
     @Test
