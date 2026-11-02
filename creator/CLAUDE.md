@@ -271,7 +271,8 @@ decode is rejected with `InputProblem`'s one sentence
   `ProjectFormat.MIGRATIONS` (their count is the current version), applied at opening, and again when `project.json` changes on disk
   (`ProjectChange.SETTINGS`), recording the version after each, so one that fails is carried on next time (failing at opening fails
   the opening). A project whose version is newer opens read-only (`WorkspaceController.formatStatus`): `ReadOnlyProjectNotice` says
-  which Creator version it needs, `CommandExecutor` rejects every `WriteCommand` with the same message (`rejectChanges`), and nothing
+  which Creator version it needs, `CommandExecutor` rejects every `WriteCommand` with the same message (`CommandContext.rejectChanges`, which `check_change`
+  answers too), and nothing
   regenerates code, syncs the build files, or offers a template upgrade, while browsing, building, and playing still work.
 - **Template upgrades** (`template/ProjectUpgrader`): the template files belong to the user, so `.kubriko/project.json` records the
   `templateVersion` they have. When it is older than Creator needs, the workspace shows a notice, and its dialog shows each change as a

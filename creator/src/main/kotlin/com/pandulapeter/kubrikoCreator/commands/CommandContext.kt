@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.StateFlow
  * @param onSceneRenamed Tells the rest of the editor that a command moved a Scene to another name (and so file).
  * @param report Adds an entry to the console, for what the user should know after a command.
  * @param onProjectUpgraded Tells the rest of the editor that the project's template files were brought up to date.
+ * @param rejectChanges Why no change may be made to the project at all right now (it was saved by a newer Kubriko
+ *   Creator), or null if changes may be made.
  */
 internal class CommandContext(
     val project: CreatorProject,
@@ -44,6 +46,7 @@ internal class CommandContext(
     val onSceneRenamed: (oldName: String, newName: String) -> Unit = { _, _ -> },
     val report: (ConsoleEntry) -> Unit = {},
     val onProjectUpgraded: () -> Unit = {},
+    val rejectChanges: () -> Rejection? = { null },
 ) {
 
     /**

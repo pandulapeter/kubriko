@@ -40,6 +40,7 @@ internal object CheckChange : ReadCommand<CheckChange.Input> {
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         val command = CommandRegistry.editor[input.tool] ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_unknown, input.tool))
         if (command !is WriteCommand<*>) return CommandOutcome.Rejected(Rejection(Res.string.error_command_not_a_change, input.tool))
+        context.rejectChanges()?.let { return CommandOutcome.Rejected(it) }
         return check(context, command, input.arguments)
     }
 

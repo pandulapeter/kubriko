@@ -65,6 +65,7 @@ internal fun TestScope.commandContext(
     onSceneRenamed: (String, String) -> Unit = { _, _ -> },
     report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
+    rejectChanges: () -> Rejection? = { null },
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
     console = MutableStateFlow(console),
@@ -79,6 +80,7 @@ internal fun TestScope.commandContext(
     onSceneRenamed = onSceneRenamed,
     report = report,
     onProjectUpgraded = onProjectUpgraded,
+    rejectChanges = rejectChanges,
 )
 
 /**

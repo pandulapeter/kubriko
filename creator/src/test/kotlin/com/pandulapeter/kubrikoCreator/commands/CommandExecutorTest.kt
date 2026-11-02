@@ -252,8 +252,8 @@ class CommandExecutorTest {
     fun changesAreRejectedWhileTheProjectMayNotBeChangedAndReadsStillWork() = runTest {
         val readOnly = Rejection(Res.string.error_project_newer_format, "2.0.0")
         var rejection: Rejection? = null
-        val context = commandContext(ball)
-        val executor = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it }, rejectChanges = { rejection })
+        val context = commandContext(ball, rejectChanges = { rejection })
+        val executor = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it })
         executor.execute(width(10f))
         rejection = readOnly
         val create = Invocation(CreateActorType, ActorTypeDefinition("Wall"))
@@ -261,6 +261,8 @@ class CommandExecutorTest {
         assertEquals(CommandOutcome.Rejected(readOnly), executor.execute(create))
         assertEquals(CommandOutcome.Rejected(readOnly), executor.step(isUndo = true))
         assertIs<CommandOutcome.Success>(executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball") }))
+        val check = buildJsonObject { put("tool", "set_appearance"); put("arguments", buildJsonObject { put("actorType", "Ball"); put("width", 20) }) }
+        assertEquals(CommandOutcome.Rejected(readOnly), executor.call("check_change", check))
         assertEquals(listOf("Ball"), context.names())
         rejection = null
         assertIs<CommandOutcome.Success>(executor.step(isUndo = true))

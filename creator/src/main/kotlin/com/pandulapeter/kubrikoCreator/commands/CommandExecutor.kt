@@ -34,15 +34,11 @@ import kubriko.creator.generated.resources.error_mcp_internal
  * Changes are applied one at a time, in the order they were requested. Used from the main thread only: the history, the AI
  * steps, and the controllers it changes aren't synchronized; [com.pandulapeter.kubrikoCreator.mcp.McpToolServer] hops
  * there for tool calls.
- *
- * @param rejectChanges Why no change may be made to the project at all right now (it was saved by a newer Kubriko
- *   Creator), or null if changes may be made.
  */
 internal class CommandExecutor(
     val context: CommandContext,
     private val scope: CoroutineScope,
     private val onRejected: (Rejection) -> Unit = {},
-    private val rejectChanges: () -> Rejection? = { null },
     private val registry: CommandRegistry = CommandRegistry.editor,
 ) {
     private val _history = MutableStateFlow(CommandHistory())
@@ -64,7 +60,7 @@ internal class CommandExecutor(
     /**
      * Why [invocation] can't be applied right now, or null if it can.
      */
-    fun validate(invocation: Invocation<*>) = rejectChanges() ?: invocation.validate(context)
+    fun validate(invocation: Invocation<*>) = context.rejectChanges() ?: invocation.validate(context)
 
     /**
      * Applies [command] in the background, for user interface callbacks, reporting a rejection through [onRejected].
@@ -123,7 +119,7 @@ internal class CommandExecutor(
         val entry = (if (isUndo) history.undoable else history.redoable).lastOrNull() ?: return@withLock null
         val invocation = if (isUndo) entry.revert else entry.reapply
         val remaining = if (isUndo) history.copy(undoable = history.undoable.dropLast(1)) else history.copy(redoable = history.redoable.dropLast(1))
-        rejectChanges()?.let { return@withLock CommandOutcome.Rejected(it) }
+        context.rejectChanges()?.let { return@withLock CommandOutcome.Rejected(it) }
         val rejection = invocation.validate(context)
         if (rejection != null) {
             _history.value = remaining

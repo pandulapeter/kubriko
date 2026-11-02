@@ -304,10 +304,10 @@ internal class WorkspaceController(
             },
             report = ::appendToConsole,
             onProjectUpgraded = ::refreshProjectUpgrade,
+            rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
         ),
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
-        rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
     )
 
     private val upgrader = ProjectUpgrader(project.rootDirectory)
