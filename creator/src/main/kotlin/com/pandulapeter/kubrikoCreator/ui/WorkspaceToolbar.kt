@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
@@ -99,7 +100,7 @@ internal fun WorkspaceToolbar(
         Button(
             modifier = ToolbarButtonModifier,
             contentPadding = ToolbarButtonPadding,
-            colors = ButtonDefaults.buttonColors(containerColor = Accent.ACTION.color, contentColor = Color.White),
+            colors = ButtonDefaults.buttonColors(containerColor = Accent.ACTION.color, contentColor = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) Color.Black else Color.White),
             onClick = onPlay,
         ) {
             ButtonContent(Res.drawable.ic_play, Res.string.action_play)
