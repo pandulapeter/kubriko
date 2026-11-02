@@ -13,9 +13,11 @@ import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
+import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
@@ -85,6 +87,14 @@ class ProjectTemplateIntegrationTest {
                 parentDirectory.deleteRecursively()
             }
         }
+    }
+
+    @Test
+    fun theIntegrationProjectUsesEveryBlockAndCondition() {
+        val blocks = (listOf(everyBlockInEveryEvent, everyManager, hud) + family).flatMap { it.events }.flatMap { it.blocks }
+        assertEquals(BlockKind.entries.toSet(), blocks.mapTo(HashSet(), BlockKind::of))
+        assertEquals(ConditionKind.entries.toSet(), blocks.filterIsInstance<BlockDefinition.If>().mapTo(HashSet()) { ConditionKind.of(it.condition) })
+        assertEquals(PauseAction.entries.toSet(), blocks.filterIsInstance<BlockDefinition.PauseGame>().mapTo(HashSet()) { it.action })
     }
 
     private fun assertCompiles(connection: GradleProjectConnection, directory: File, description: String) {
