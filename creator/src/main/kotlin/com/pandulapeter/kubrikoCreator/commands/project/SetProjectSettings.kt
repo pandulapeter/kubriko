@@ -22,7 +22,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_project_settings
 import kubriko.creator.generated.resources.error_command_project_settings_empty
 import kubriko.creator.generated.resources.error_command_project_settings_unavailable
 
@@ -36,7 +35,6 @@ internal object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
     override val name = "set_project_settings"
     override val description = "Changes the settings get_project_settings reads (the name is the window, web page, and installers' title). " +
         "Settings left out stay as they are."
-    override val title = Res.string.command_set_project_settings
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project

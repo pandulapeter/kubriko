@@ -25,14 +25,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_appearance
 
 @OptIn(EditorMutation::class)
 internal object SetAppearance : WriteCommand<SetAppearance.Input> {
     override val name = "set_appearance"
     override val description = "Changes how the Actors of a block-built Actor type look. Properties left out stay as they are. " +
         "Choosing a sprite also sets the size to the image's, unless a width or height is given."
-    override val title = Res.string.command_set_appearance
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)

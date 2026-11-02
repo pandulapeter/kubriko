@@ -17,14 +17,12 @@ import com.pandulapeter.kubrikoCreator.project.GameNotes
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_read_game_notes
 
 internal object ReadGameNotes : ReadCommand<NoInput> {
     override val name = "read_game_notes"
     override val description = "Reads the game's design notes (AGENTS.md at the project's root): its mechanics, naming, and decisions, kept across " +
         "conversations. Every conversation starts with them, so read them again only after they changed."
     override val inputSerializer = NoInput.serializer()
-    override val title = Res.string.command_read_game_notes
 
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(
         JsonPrimitive(withContext(context.ioDispatcher) { GameNotes.read(context.project.rootDirectory) } ?: "The game has no notes yet."),

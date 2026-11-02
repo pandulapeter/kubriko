@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.ui
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -23,7 +22,7 @@ import kotlin.test.assertTrue
 class WorkspaceUiStateTest {
     private val uiState = WorkspaceUiState(AiPanelView.ASSISTANT)
 
-    private fun step(id: Int) = AiStep(id = id, toolName = "add_block", title = Res.string.command_add_block, target = CommandTarget.BlockType("Ball"), isRunning = false)
+    private fun step(id: Int) = AiStep(id = id, toolName = "add_block", target = CommandTarget.BlockType("Ball"), isRunning = false)
 
     @Test
     fun togglingAPanelOpensItAndTogglingAgainClosesIt() {

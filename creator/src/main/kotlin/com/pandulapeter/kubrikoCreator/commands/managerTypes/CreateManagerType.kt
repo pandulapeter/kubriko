@@ -22,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateContents
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateNewTypeName
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_create_manager_type
 
 @OptIn(EditorMutation::class)
 internal object CreateManagerType : WriteCommand<ManagerTypeDefinition> {
@@ -31,7 +30,6 @@ internal object CreateManagerType : WriteCommand<ManagerTypeDefinition> {
         "with Blocks), plus texts shown on top of the game. The game has one of each Manager type. Only the name is required. Blocks of every " +
         "Actor type and Manager type can then use its Properties (through their manager property), and texts and log Blocks can show them " +
         "as {ManagerType.property}. Kubriko Creator generates its Kotlin class and adds it to the generated KubrikoWiring."
-    override val title = Res.string.command_create_manager_type
     override val inputSerializer = ManagerTypeDefinition.serializer()
 
     override fun target(context: CommandContext, input: ManagerTypeDefinition) = CommandTarget.BlockType(input.name)

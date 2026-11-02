@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_commit
 import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
 import kubriko.creator.generated.resources.error_command_no_repository
@@ -32,7 +31,6 @@ import kubriko.creator.generated.resources.status_git_failed
 internal object Commit : WriteCommand<Commit.Input> {
     override val name = "commit"
     override val description = "Records every change of the project (new, changed, and deleted files alike) in a new git commit."
-    override val title = Res.string.command_commit
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.VersionControl

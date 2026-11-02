@@ -14,8 +14,6 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.getString
 
 /**
  * Where [this] target is, as tool results write places: `Ball#2.1`, `Scene level`.
@@ -32,9 +30,9 @@ internal fun CommandTarget.notation(): String = when (this) {
  * What a write tool returns: the revision the change made, what it changed, and the Event it changed as it is now, so
  * that the agent needn't read it again.
  */
-internal suspend fun CommandContext.writeSummary(revision: Int, title: StringResource, target: CommandTarget?): JsonObject = buildJsonObject {
+internal fun CommandContext.writeSummary(revision: Int, commandName: String, target: CommandTarget?): JsonObject = buildJsonObject {
     put("revision", revision)
-    put("changed", getString(title) + (target?.let { " at " + it.notation() } ?: ""))
+    put("changed", commandName + (target?.let { " at " + it.notation() } ?: ""))
     val type = target as? CommandTarget.BlockType ?: return@buildJsonObject
     val eventIndex = type.eventIndex ?: return@buildJsonObject
     blockTypes?.get(type.name)?.events?.getOrNull(eventIndex)?.let { event -> put("event", TypeNotation.of(eventIndex, event, ReadDetail.BLOCKS)) }

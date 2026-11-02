@@ -20,7 +20,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_read_actor_type
 
 internal object ReadActorType : ReadCommand<ReadActorType.Input> {
     override val name = "read_actor_type"
@@ -28,7 +27,6 @@ internal object ReadActorType : ReadCommand<ReadActorType.Input> {
         "(detail json returns the JSON the write tools take). Events and Blocks are addressed by their index, written before each. " +
         "Zoom in on a large type: its outline first, then one Event (eventIndex). isChangedByHand, there when true, says that its generated Kotlin class was edited outside Kubriko Creator."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_read_actor_type
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, input.eventIndex)
 

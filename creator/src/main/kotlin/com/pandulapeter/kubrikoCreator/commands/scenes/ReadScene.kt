@@ -28,7 +28,6 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_read_scene
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_page_invalid
 
@@ -38,7 +37,6 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
         "position, and saved state, with total and, when there are more, nextOffset. Narrow it to an Actor type or a rectangle, or ask for a summary " +
         "first in a large Scene: Actors per type and the bounds of their positions."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_read_scene
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 

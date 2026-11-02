@@ -22,14 +22,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_delete_scene
 import kubriko.creator.generated.resources.error_command_scene_missing
 
 @OptIn(EditorMutation::class)
 internal object DeleteScene : WriteCommand<DeleteScene.Input> {
     override val name = "delete_scene"
     override val description = "Deletes a Scene file."
-    override val title = Res.string.command_delete_scene
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

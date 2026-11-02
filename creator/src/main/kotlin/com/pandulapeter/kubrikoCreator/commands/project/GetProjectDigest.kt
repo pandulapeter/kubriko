@@ -17,7 +17,6 @@ import com.pandulapeter.kubrikoCreator.context.DigestText
 import com.pandulapeter.kubrikoCreator.context.projectDigest
 import kotlinx.serialization.json.JsonPrimitive
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_get_project_digest
 
 internal object GetProjectDigest : ReadCommand<NoInput> {
     override val name = "get_project_digest"
@@ -26,7 +25,6 @@ internal object GetProjectDigest : ReadCommand<NoInput> {
         "what refers to what (who adds, collides with, reads, changes, or goes to whom). The best first call: read_actor_type, read_scene, " +
         "and get_relations take it from there."
     override val inputSerializer = NoInput.serializer()
-    override val title = Res.string.command_get_project_digest
 
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(JsonPrimitive(DigestText.of(context.projectDigest())))
 }

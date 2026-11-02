@@ -11,13 +11,12 @@ package com.pandulapeter.kubrikoCreator.ui.mcp
 
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AiActivityBarTest {
-    private fun step(clientName: String?) = AiStep(0, "add_block", Res.string.command_add_block, null, isRunning = false, clientName = clientName)
+    private fun step(clientName: String?) = AiStep(0, "add_block", null, isRunning = false, clientName = clientName)
 
     @Test
     fun clientsAreNamedOnlyWhileStepsComeFromMoreThanOne() {

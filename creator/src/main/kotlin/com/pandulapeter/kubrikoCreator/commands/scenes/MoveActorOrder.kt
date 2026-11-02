@@ -20,14 +20,12 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_move_actor_order
 import kubriko.creator.generated.resources.error_command_index_invalid
 
 internal object MoveActorOrder : WriteCommand<MoveActorOrder.Input> {
     override val name = "move_actor_order"
     override val description = "Moves an Actor to another place in a Scene's list of Actors, which is the order they are added to the game in. " +
         "Of two Actors with the same drawing order, the later one is drawn on top."
-    override val title = Res.string.command_move_actor_order
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

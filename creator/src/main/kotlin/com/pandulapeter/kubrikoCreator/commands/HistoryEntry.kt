@@ -30,5 +30,5 @@ internal data class HistoryEntry(
     /**
      * The change the user made, which names the step in both directions.
      */
-    val title get() = reapply.title
+    val commandName get() = reapply.commandName
 }

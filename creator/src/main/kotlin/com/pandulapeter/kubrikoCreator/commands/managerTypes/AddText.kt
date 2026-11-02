@@ -27,13 +27,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_text
 
 @OptIn(EditorMutation::class)
 internal object AddText : WriteCommand<AddText.Input> {
     override val name = "add_text"
     override val description = "Adds a text that a block-built Manager type shows on top of the game, like \"Score: {score}\", which follows the Properties it shows."
-    override val title = Res.string.command_add_text
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.managerType)

@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
+import com.pandulapeter.kubrikoCreator.ui.commandTitleText
 import com.pandulapeter.kubrikoCreator.ui.description
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_keep
@@ -58,7 +59,7 @@ internal fun TurnChangesCard(
     )
     changes.changes.take(SHOWN_CHANGES).forEach { change ->
         Text(
-            text = change.target?.let { stringResource(Res.string.console_with_prefix, stringResource(change.title), it.description()) } ?: stringResource(change.title),
+            text = change.target?.let { stringResource(Res.string.console_with_prefix, commandTitleText(change.commandName), it.description()) } ?: commandTitleText(change.commandName),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,

@@ -68,7 +68,7 @@ class AssistantLiveScenariosTest {
         val chat = session.chat()
         chat.ask("Which types change the score? Answer in one sentence, and change nothing.")
         assertContains(chat.lastAnswer(), "Ball")
-        assertEquals(null, session.executor.history.value.nextUndoTitle)
+        assertEquals(null, session.executor.history.value.nextUndoCommandName)
         assertTrue(session.toolServer.calls.value.isNotEmpty(), "No tool was called.")
     }
 

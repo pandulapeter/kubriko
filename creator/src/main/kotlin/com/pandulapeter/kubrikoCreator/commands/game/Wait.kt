@@ -18,14 +18,12 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_wait
 import kubriko.creator.generated.resources.error_game_duration_invalid
 
 internal object Wait : ActionCommand<Wait.Input> {
     override val name = "wait"
     override val description = "Lets the game start_game started run for a while without input, and returns what the console showed meanwhile."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_wait
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Game
 

@@ -21,14 +21,12 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_get_project_overview
 
 internal object GetProjectOverview : ReadCommand<NoInput> {
     override val name = "get_project_overview"
     override val description = "Describes the open project: its name, its block-built Actor types and Manager types (or that it doesn't use them), " +
         "its Scenes, and whether its template files need an upgrade (see get_project_upgrade). get_project_digest says much more about the game."
     override val inputSerializer = NoInput.serializer()
-    override val title = Res.string.command_get_project_overview
 
     override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome = CommandOutcome.Success(
         buildJsonObject {

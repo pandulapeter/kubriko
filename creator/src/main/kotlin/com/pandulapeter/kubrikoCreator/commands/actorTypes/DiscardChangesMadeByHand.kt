@@ -20,7 +20,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_discard_changes_made_by_hand
 import kubriko.creator.generated.resources.error_command_not_changed_by_hand
 
 @OptIn(EditorMutation::class)
@@ -28,7 +27,6 @@ internal object DiscardChangesMadeByHand : WriteCommand<DiscardChangesMadeByHand
     override val name = "discard_changes_made_by_hand"
     override val description = "Throws away the changes made by hand (outside Kubriko Creator) to the generated Kotlin class of a block-built Actor type or Manager type, " +
         "so that Kubriko Creator updates it again. Kubriko Creator stops updating a generated class that was changed by hand. This can't be undone."
-    override val title = Res.string.command_discard_changes_made_by_hand
     override val inputSerializer = Input.serializer()
     override val isDestructive = true
 

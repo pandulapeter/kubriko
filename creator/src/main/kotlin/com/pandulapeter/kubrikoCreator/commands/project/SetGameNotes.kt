@@ -22,7 +22,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_game_notes
 import kubriko.creator.generated.resources.error_command_game_notes_too_long
 
 @OptIn(EditorMutation::class)
@@ -31,7 +30,6 @@ internal object SetGameNotes : WriteCommand<SetGameNotes.Input> {
     override val description = "Replaces the game's design notes (AGENTS.md at the project's root, Markdown) with text, or deletes them for none. Keep them " +
         "short: mechanics, naming, and decisions worth knowing in the next conversation, not what the project digest already says. Propose a change " +
         "in your answer first; the user keeps or undoes it."
-    override val title = Res.string.command_set_game_notes
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project

@@ -26,13 +26,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_edit_text
 
 @OptIn(EditorMutation::class)
 internal object EditText : WriteCommand<EditText.Input> {
     override val name = "edit_text"
     override val description = "Replaces a text a block-built Manager type shows, to change its words, position, size, or color."
-    override val title = Res.string.command_edit_text
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.managerType)

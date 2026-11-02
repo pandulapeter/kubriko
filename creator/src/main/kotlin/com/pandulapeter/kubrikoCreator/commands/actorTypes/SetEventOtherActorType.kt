@@ -23,7 +23,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_event_other_actor_type
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
 
@@ -31,7 +30,6 @@ import kubriko.creator.generated.resources.error_command_other_actor_type_not_al
 internal object SetEventOtherActorType : WriteCommand<SetEventOtherActorType.Input> {
     override val name = "set_event_other_actor_type"
     override val description = "Sets the Actor type a collision Event of a block-built Actor type reacts to overlapping."
-    override val title = Res.string.command_set_event_other_actor_type
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)

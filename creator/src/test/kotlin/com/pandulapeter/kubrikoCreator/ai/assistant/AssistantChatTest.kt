@@ -29,7 +29,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
@@ -88,15 +87,15 @@ class AssistantChatTest {
     @Test
     fun theUsersChangesSinceTheLastTurnAreSummedUpBeforeTheNextMessage() = blockingTest {
         val changeLog = ChangeLog()
-        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball"))
+        changeLog.record("add_block", CommandTarget.BlockType("Ball"))
         val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
         chat.sendAndWait("hello")
-        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 1, 0))
-        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 1, 1), origin = AiStepOrigin("tools"), isByAi = true)
+        changeLog.record("add_block", CommandTarget.BlockType("Ball", 1, 0))
+        changeLog.record("add_block", CommandTarget.BlockType("Ball", 1, 1), origin = AiStepOrigin("tools"), isByAi = true)
         chat.sendAndWait("hello")
         chat.sendAndWait("hello")
         val summary = launcher.agents.single().leadingTexts.single()
-        assertContains(summary, "Add Block at Ball#1.0")
+        assertContains(summary, "add_block at Ball#1.0")
         assertFalse("Ball#1.1" in summary)
         assertEquals(listOf("hello", "hello", "hello"), launcher.agents.single().prompts)
     }
@@ -301,27 +300,27 @@ class AssistantChatTest {
     @Test
     fun theChangesATurnStoppedWhileItsContextIsGatheredDidntSendAreSummedUpNextTime() = blockingTest {
         val changeLog = ChangeLog()
-        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball"))
+        changeLog.record("add_block", CommandTarget.BlockType("Ball"))
         val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
-        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 1, 0))
+        changeLog.record("add_block", CommandTarget.BlockType("Ball", 1, 0))
         val context = CompletableDeferred<List<ContentBlock>>()
         withContext(mainThread) { chat.send("first") { context.await() } }
         withContext(mainThread) { chat.stop() }
         chat.isBusy.first { !it }
         chat.sendAndWait("second")
-        assertContains(launcher.agents.single().leadingTexts.single(), "Add Block at Ball#1.0")
+        assertContains(launcher.agents.single().leadingTexts.single(), "add_block at Ball#1.0")
         assertEquals(listOf("second"), launcher.agents.single().prompts)
     }
 
     @Test
     fun whatATurnChangedIsOfferedToKeepOrUndo() = blockingTest {
         val changeLog = ChangeLog()
-        changeLog.record(Res.string.command_add_block, null)
+        changeLog.record("add_block", null)
         val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
         withContext(mainThread) { chat.send("wait") }
         while ("wait" !in launcher.agents.single().prompts) delay(10)
-        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 0), origin = AiStepOrigin("tools"), isByAi = true)
-        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Brick", 0), origin = AiStepOrigin("other"), isByAi = true)
+        changeLog.record("add_block", CommandTarget.BlockType("Ball", 0), origin = AiStepOrigin("tools"), isByAi = true)
+        changeLog.record("add_block", CommandTarget.BlockType("Brick", 0), origin = AiStepOrigin("other"), isByAi = true)
         withContext(mainThread) { chat.stop() }
         chat.isBusy.first { !it }
         val changes = chat.transcript.value.items.filterIsInstance<TranscriptItem.TurnChanges>().single()

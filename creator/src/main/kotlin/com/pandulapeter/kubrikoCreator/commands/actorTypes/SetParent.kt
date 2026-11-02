@@ -22,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_parent
 
 @OptIn(EditorMutation::class)
 internal object SetParent : WriteCommand<SetParent.Input> {
@@ -31,7 +30,6 @@ internal object SetParent : WriteCommand<SetParent.Input> {
         "Properties (a Property of its own with the same name only changes the initial value) and Events (an Event of its own of the same kind " +
         "replaces the parent's, and a runParentEvent Block runs the parent's there), and the parent stands for it in collision Events and " +
         "other Blocks that name an Actor type."
-    override val title = Res.string.command_set_parent
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)

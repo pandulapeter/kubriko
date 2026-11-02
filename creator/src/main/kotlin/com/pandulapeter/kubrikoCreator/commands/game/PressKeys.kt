@@ -18,7 +18,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_press_keys
 import kubriko.creator.generated.resources.error_game_duration_invalid
 import kubriko.creator.generated.resources.error_game_key_unknown
 import kubriko.creator.generated.resources.error_game_keys_count
@@ -28,7 +27,6 @@ internal object PressKeys : ActionCommand<PressKeys.Input> {
     override val description = "Holds keys down together in the game start_game started, for a while, then releases them, while the game keeps running. " +
         "Returns what the console showed meanwhile. Combine it with take_screenshot to see what the keys did."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_press_keys
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Game
 

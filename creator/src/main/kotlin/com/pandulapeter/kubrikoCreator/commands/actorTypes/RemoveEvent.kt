@@ -22,13 +22,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_remove_event
 
 @OptIn(EditorMutation::class)
 internal object RemoveEvent : WriteCommand<RemoveEvent.Input> {
     override val name = "remove_event"
     override val description = "Removes an Event and its Blocks from a block-built Actor type or Manager type."
-    override val title = Res.string.command_remove_event
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)

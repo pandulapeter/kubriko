@@ -23,7 +23,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_create_scene
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
@@ -33,7 +32,6 @@ import kubriko.creator.generated.resources.error_scene_name_taken
 internal object CreateScene : WriteCommand<CreateScene.Input> {
     override val name = "create_scene"
     override val description = "Creates a Scene file, empty unless its content is given. A game only loads the Scenes its code names."
-    override val title = Res.string.command_create_scene
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)

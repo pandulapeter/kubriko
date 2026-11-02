@@ -19,14 +19,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_take_screenshot
 
 internal object TakeScreenshot : ActionCommand<TakeScreenshot.Input> {
     override val name = "take_screenshot"
     override val description = "Returns an image of what the game start_game started shows right now, with what the console showed meanwhile. " +
         "Smaller images cost less: narrow it with width, or crop it to a region."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_take_screenshot
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Game
 

@@ -15,8 +15,6 @@ import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
-import kubriko.creator.generated.resources.command_rename_scene
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -26,13 +24,13 @@ class ChangesSummaryTest {
     @Test
     fun othersChangesAreSummedUpButTheConversationsOwnAreNot() = runTest {
         val log = ChangeLog()
-        log.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 2, 1))
-        log.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 2, 2), origin = AiStepOrigin("mine"), isByAi = true)
-        log.record(Res.string.command_rename_scene, CommandTarget.Scene("level"), step = ChangeRecord.Step.UNDO)
-        log.record(Res.string.command_add_block, null, isByAi = true)
+        log.record("add_block", CommandTarget.BlockType("Ball", 2, 1))
+        log.record("add_block", CommandTarget.BlockType("Ball", 2, 2), origin = AiStepOrigin("mine"), isByAi = true)
+        log.record("rename_scene", CommandTarget.Scene("level"), step = ChangeRecord.Step.UNDO)
+        log.record("add_block", null, isByAi = true)
         assertEquals(
-            "Changed in the editor since your last turn, by the user unless marked, oldest first: Add Block at Ball#2.1; undid Rename Scene at " +
-                "Scene level; (another AI client) Add Block. Read again what you need; the read tools say what changed since you last read it.",
+            "Changed in the editor since your last turn, by the user unless marked, oldest first: add_block at Ball#2.1; undid rename_scene at " +
+                "Scene level; (another AI client) add_block. Read again what you need; the read tools say what changed since you last read it.",
             ChangesSummary.of(log.since(0), since = 0, conversationId = "mine"),
         )
         assertNull(ChangesSummary.of(log.since(4), since = 4, conversationId = "mine"))
@@ -42,10 +40,10 @@ class ChangesSummaryTest {
     @Test
     fun changesNoLongerKeptAreCounted() = runTest {
         val log = ChangeLog(capacity = 2)
-        repeat(5) { log.record(Res.string.command_add_block, null) }
+        repeat(5) { log.record("add_block", null) }
         assertEquals(5, log.revision)
         assertEquals(
-            "Changed in the editor since your last turn, by the user unless marked, oldest first: 3 earlier changes; Add Block; Add Block. " +
+            "Changed in the editor since your last turn, by the user unless marked, oldest first: 3 earlier changes; add_block; add_block. " +
                 "Read again what you need; the read tools say what changed since you last read it.",
             ChangesSummary.of(log.since(0), since = 0, conversationId = null),
         )

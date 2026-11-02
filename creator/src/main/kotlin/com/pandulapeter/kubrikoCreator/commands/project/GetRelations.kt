@@ -26,7 +26,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_get_relations
 import kubriko.creator.generated.resources.error_command_relations_property_missing
 import kubriko.creator.generated.resources.error_command_relations_subject
 
@@ -37,7 +36,6 @@ internal object GetRelations : ReadCommand<GetRelations.Input> {
         "Properties, Log Blocks and texts showing Properties, Kotlin naming types, and Scenes placing Actors. Places are written Type#event.block, with " +
         "indexes from 0 as the other tools take them, and a Scene's count is how many Actors of the type it places. Cheaper than reading every type to find out."
     override val inputSerializer = Input.serializer()
-    override val title = Res.string.command_get_relations
 
     override fun target(context: CommandContext, input: Input) = input.type?.let { CommandTarget.BlockType(it) } ?: input.scene?.let { CommandTarget.Scene(it) }
 

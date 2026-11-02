@@ -22,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_remove_property
 
 /**
  * Removes a Property but keeps its values in the Scenes, which loading ignores, so that undoing this brings them back.
@@ -31,7 +30,6 @@ import kubriko.creator.generated.resources.command_remove_property
 internal object RemoveProperty : WriteCommand<RemoveProperty.Input> {
     override val name = "remove_property"
     override val description = "Removes a Property from a block-built Actor type or Manager type. Blocks that change it stay, but do nothing until it is added again."
-    override val title = Res.string.command_remove_property
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)

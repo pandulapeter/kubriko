@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_command_property_unknown
 import java.io.IOException
 import kotlin.test.Test
@@ -38,7 +37,6 @@ class CompositeCommandTest {
         override val name = "throwing"
         override val description = "Throws."
         override val inputSerializer = NoInput.serializer()
-        override val title = Res.string.command_set_appearance
 
         override fun validate(context: CommandContext, input: NoInput): Rejection? = null
 
@@ -87,7 +85,7 @@ class CompositeCommandTest {
         val executor = CommandExecutor(context, testScope())
         assertIs<CommandOutcome.Success>(executor.execute(composite(width(10f), height(20f))))
         assertEquals(1, executor.history.value.undoable.size)
-        assertEquals(Res.string.command_set_appearance, executor.history.value.nextUndoTitle)
+        assertEquals("set_appearance", executor.history.value.nextUndoCommandName)
         assertIs<CommandOutcome.Success>(executor.execute(width(15f)))
         assertEquals(2, executor.history.value.undoable.size)
         executor.step(isUndo = true)

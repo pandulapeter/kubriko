@@ -19,8 +19,6 @@ import com.pandulapeter.kubrikoCreator.ui.saveSnapshot
 import com.pandulapeter.kubrikoCreator.ui.showing
 import com.pandulapeter.kubrikoCreator.ui.uiTest
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_add_block
-import kubriko.creator.generated.resources.command_set_appearance
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -29,8 +27,8 @@ class TurnChangesCardTest {
     private val changes = TranscriptItem.TurnChanges(
         sinceRevision = 3,
         changes = listOf(
-            ChangeRecord(4, Res.string.command_add_block, CommandTarget.BlockType("Ball", 0, 1)),
-            ChangeRecord(5, Res.string.command_set_appearance, CommandTarget.BlockType("Paddle")),
+            ChangeRecord(4, "add_block", CommandTarget.BlockType("Ball", 0, 1)),
+            ChangeRecord(5, "set_appearance", CommandTarget.BlockType("Paddle")),
         ),
     )
 

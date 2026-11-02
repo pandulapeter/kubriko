@@ -22,14 +22,12 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_move_block
 import kubriko.creator.generated.resources.error_command_index_invalid
 
 @OptIn(EditorMutation::class)
 internal object MoveBlock : WriteCommand<MoveBlock.Input> {
     override val name = "move_block"
     override val description = "Moves a Block to another place in its Event, which changes the order Blocks run in."
-    override val title = Res.string.command_move_block
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, input.eventIndex, input.targetIndex)

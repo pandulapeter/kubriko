@@ -20,7 +20,6 @@ import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_upgrade_project
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 
@@ -33,7 +32,6 @@ internal object UpgradeProject : WriteCommand<NoInput> {
     override val name = "upgrade_project"
     override val description = "Makes the changes get_project_upgrade lists to the project's template files. They belong to the user: show them the " +
         "changes and ask first, and offer to commit before. This can't be undone, except through version control."
-    override val title = Res.string.command_upgrade_project
     override val inputSerializer = NoInput.serializer()
     override val isDestructive = true
 

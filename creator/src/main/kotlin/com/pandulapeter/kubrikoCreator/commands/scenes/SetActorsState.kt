@@ -20,13 +20,11 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.command_set_actors_state
 
 internal object SetActorsState : WriteCommand<SetActorsState.Input> {
     override val name = "set_actors_state"
     override val description = "Replaces the whole saved states of many Actors of a Scene at once, as read_scene returns them, as one step to undo: " +
         "for values set_actors_values doesn't cover, such as those of hand-written Actor types."
-    override val title = Res.string.command_set_actors_state
     override val inputSerializer = Input.serializer()
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
