@@ -46,7 +46,7 @@ prompt.
 | 2 | K | [K12, K01a, K01b], [K01c, K02a, K02b], [K03, K04, K05], [K06, K07, K08], [K11a, K11b, K09a], [K09b, K10] | main `HEAD` after phase 1→2 |
 | 3 | H | [H01, H02a, H02b], [H03a, H03b, H04], [H05, H06a, H06b], [H07a, H07b] | main `HEAD` after K |
 | 4 | M | [M01, M02a, M02b], [M03, M04, M05], [M06, M07, M08], [M09, M10, M11], [M12, M13, M14] | main `HEAD` after H |
-| 4 | D | D01 (after M, in the same worktree or main) | main `HEAD` after M |
+| 4 | D | [D01, P03] (after M, in the same worktree or main; P03 last of all) | main `HEAD` after M |
 
 **Phase 1 merge order:** T, S, G, A. T first because the other lanes' tests use its `testing` package; A last because it
 touches the most shared test files.

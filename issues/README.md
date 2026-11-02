@@ -204,6 +204,7 @@ they fix what earlier fixes in this review got wrong (the focused-field regressi
 | [M14](M14-extract-the-creator-workspace-module.md) | Extract Kubriko Creator's open-project wiring (`workspace`) into `:creator:workspace`, leave only the app's UI and settings in `:creator`, and finish the docs of the split | medium | M (4) | sound |
 | [P01](P01-measure-member-functions-in-the-size-check.md) | Make the size check measure every function, members of classes and objects included, under a name qualified by its class, and treat test fixtures as tests | medium | T (1) | amended |
 | [P02](P02-review-each-plan-file-before-the-next.md) | Review the commits of every finished plan item before the next one starts, and fix what the review finds | medium | T (1) | sound |
+| [P03](P03-refuse-growth-past-the-size-limits-and-limit-constructor-parameters.md) | Refuse a change that grows a file, function, or constructor already past its size limit, and limit primary constructors to 12 parameters | medium | D (4, last) | added after the challenge |
 | [S01](S01-refuse-scenes-of-projects-on-newer-compose-or-kotlin.md) | Refuse to draw the Scenes of a project whose Compose or Kotlin is a newer major or minor version than Creator's, and warn about any other newer shared library | medium | S (1) | sound |
 | [S02](S02-prove-released-project-classes-can-be-collected.md) | Prove with a test that a project's released class loader, and every class it defined, can be garbage collected | medium | S (1) | sound |
 | [S03](S03-one-project-output-rule-under-the-project-root.md) | Decide what the project's own build output is in one place: a classpath entry canonically under the project's root | medium | S (1) | sound |
@@ -229,12 +230,12 @@ they fix what earlier fixes in this review got wrong (the focused-field regressi
 | K | workspace, commands, persistence | K12, K01a, K01b, K01c, K02a, K02b, K03, K04, K05, K06, K07, K08, K11a, K11b, K09a, K09b, K10 | `workspace/`, `commands/`, `context/`, `scenes/SceneStore`, `project/` watcher and tree, `git/`, the JSON stores |
 | H | app shell and UI | H01, H02a, H02b, H03a, H03b, H04, H05, H06a, H06b, H07a, H07b | `AppController`, `KubrikoCreatorApp`, `ui/` (except assistant and mcp), `window/` |
 | M | modules | M01, M02a, M02b, M03–M14 | `settings.gradle.kts`, every `creator/**/build.gradle.kts`, `gradle/build-logic` |
-| D | plan folder | D01 | `creator/plan/` |
+| D | plan folder, then the size check | D01, P03 | `creator/plan/`; then P03's `check_sizes.py`, its test, and the doc phrases it names |
 
 Phase 1 runs T, S, G, and A in parallel and merges them in that order (T first: the others' tests use its `testing`
 package; A last: it shares the most test files). T03 and T05 then land on main one after the other. K, H, and M each run
 alone, in that order, because each rewrites what the next builds on: K splits `WorkspaceController` (K09) that H's state
-holders move into, and M moves every package. D01 goes last, since it removes from `creator/plan/` what the others made done.
+holders move into, and M moves every package. D01 goes last, since it removes from `creator/plan/` what the others made done. P03 follows it: the stricter size check would stop plans written under today's rule.
 
 **Shared files:** `creator/CLAUDE.md`, the package guides (`actors/CLAUDE.md`, `ai/assistant/CLAUDE.md`), and
 `creator/src/main/composeResources/values/strings.xml` are touched by most lanes; each plan edits only the sentence or key it
