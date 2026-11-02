@@ -1,0 +1,13 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <Kubriko.tools:creator-api>
+abstract interface com.pandulapeter.kubriko.creator/CreatorEntryPoint { // com.pandulapeter.kubriko.creator/CreatorEntryPoint|null[0]
+    abstract fun createSerializationManager(): com.pandulapeter.kubriko.serialization/SerializationManager<com.pandulapeter.kubriko.sceneEditor/EditableMetadata<*>, com.pandulapeter.kubriko.sceneEditor/Editable<*>> // com.pandulapeter.kubriko.creator/CreatorEntryPoint.createSerializationManager|createSerializationManager(){}[0]
+    open fun createCustomManagers(): kotlin.collections/List<com.pandulapeter.kubriko.manager/Manager> // com.pandulapeter.kubriko.creator/CreatorEntryPoint.createCustomManagers|createCustomManagers(){}[0]
+    open fun getRunningInstances(): kotlin.collections/List<com.pandulapeter.kubriko/Kubriko>? // com.pandulapeter.kubriko.creator/CreatorEntryPoint.getRunningInstances|getRunningInstances(){}[0]
+}

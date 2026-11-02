@@ -16,7 +16,9 @@ artifactMetadata {
     artifactId = "tool-creator-api"
 }
 
+@OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)
 kotlin {
+    abiValidation()
     android {
         namespace = "com.pandulapeter.kubriko.creatorApi"
     }

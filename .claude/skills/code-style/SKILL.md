@@ -80,7 +80,8 @@ that explains what the code already says.
   file changes the JVM facade class it compiles into (`FooKt`), which breaks consumers compiled against
   the old one. In published modules (those applying `kubriko-public-artifact`), split such files only by keeping the old facade
   name (`@file:JvmName` with `@file:JvmMultifileClass`) or in a release that is allowed to break binary
-  compatibility; classes and objects can move between files freely.
+  compatibility; classes and objects can move between files freely. `tool-creator-api`'s is checked by ABI validation
+  (its `api/` dump).
 
 ## Composable structure
 

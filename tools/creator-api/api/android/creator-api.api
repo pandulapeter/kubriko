@@ -1,0 +1,11 @@
+public abstract interface class com/pandulapeter/kubriko/creator/CreatorEntryPoint {
+	public fun createCustomManagers ()Ljava/util/List;
+	public abstract fun createSerializationManager ()Lcom/pandulapeter/kubriko/serialization/SerializationManager;
+	public fun getRunningInstances ()Ljava/util/List;
+}
+
+public final class com/pandulapeter/kubriko/creator/CreatorEntryPoint$DefaultImpls {
+	public static fun createCustomManagers (Lcom/pandulapeter/kubriko/creator/CreatorEntryPoint;)Ljava/util/List;
+	public static fun getRunningInstances (Lcom/pandulapeter/kubriko/creator/CreatorEntryPoint;)Ljava/util/List;
+}
+
