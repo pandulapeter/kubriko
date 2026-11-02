@@ -68,6 +68,7 @@ internal object ActorFamilyCodeGenerator {
             shapes = members.mapTo(mutableSetOf()) { it.shape },
             hasSprite = members.any { it.sprite?.let(SpriteFiles::accessorOf) != null },
             isCollidableAnyway = members.any { it.name in collidableActorTypeNames },
+            isFamily = true,
         )
         val hooks = Hooks(features, scopeOf(byName.getValue(root)))
         val usesNumberText = members.any { member ->
@@ -142,7 +143,7 @@ internal object ActorFamilyCodeGenerator {
             appendLine("    protected var ${TimerNaming.remainingField(timer)} = 0L")
             appendLine("    protected var ${TimerNaming.periodField(timer)} = 0L")
         }
-        if (features.lookups.isNotEmpty() || features.addedEvents.isNotEmpty()) {
+        if (features.overridesOnAdded) {
             appendLine()
             appendLine("    override fun onAdded(kubriko: Kubriko) {")
             features.lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }

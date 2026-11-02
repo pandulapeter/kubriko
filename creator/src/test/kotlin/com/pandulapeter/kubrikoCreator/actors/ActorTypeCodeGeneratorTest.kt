@@ -95,6 +95,13 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun anAddedToSceneEventWithoutBlocksOrManagerLookupsNeitherOverridesOnAddedNorImportsKubriko() {
+        val code = generate(EventDefinition(EventType.ADDED_TO_SCENE))
+        assertFalse("override fun onAdded(" in code, code)
+        assertFalse("import com.pandulapeter.kubriko.Kubriko\n" in code, code)
+    }
+
+    @Test
     fun everyFrameBlocksRunBeforeTheActorMoves() {
         val update = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop)))
             .substringAfter("override fun update(").substringBefore("\n    }")

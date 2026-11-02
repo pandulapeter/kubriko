@@ -28,6 +28,8 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.blockLines
  * @param shapes The shapes the Actors are drawn and collide as.
  * @param hasSprite Whether any of them is drawn as a sprite.
  * @param isCollidableAnyway Whether a collision Event of another Actor type involves them.
+ * @param isFamily Whether they are a family, whose base class runs the added-to-the-Scene hook even when its Event has
+ * no Blocks, since a child may override it.
  */
 internal class ActorTypeFeatures(
     events: List<EventDefinition>,
@@ -36,6 +38,7 @@ internal class ActorTypeFeatures(
     val shapes: Set<ActorShape>,
     hasSprite: Boolean,
     isCollidableAnyway: Boolean,
+    isFamily: Boolean,
 ) {
     private val knownActorTypeNames = scope.actorTypeNames
     val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key?.isKnown == true }
@@ -74,6 +77,11 @@ internal class ActorTypeFeatures(
         "$SPRITE_MANAGER_FIELD: SpriteManager".takeIf { hasSprite },
     ) + scope.managersUsedBy(generatedBlocks).map { "${scope.managerField(it)}: $it" }
 
+    /**
+     * Whether the Actors override onAdded, to look the Managers up or to run their added-to-the-Scene Events.
+     */
+    val overridesOnAdded = lookups.isNotEmpty() || if (isFamily) addedEvents.isNotEmpty() else addedEvents.any { it.blocks.isNotEmpty() }
+
     val imports = buildSet {
         addAll(BASE_IMPORTS)
         if (isCollidable) {
@@ -99,7 +107,7 @@ internal class ActorTypeFeatures(
         if (isDynamic) add("com.pandulapeter.kubriko.actor.traits.Dynamic")
         if (usesActorManager) add("com.pandulapeter.kubriko.manager.ActorManager")
         if (usesViewportManager) add("com.pandulapeter.kubriko.manager.ViewportManager")
-        if (lookups.isNotEmpty() || addedEvents.isNotEmpty()) add("com.pandulapeter.kubriko.Kubriko")
+        if (overridesOnAdded) add("com.pandulapeter.kubriko.Kubriko")
         if (lookups.isNotEmpty()) add("com.pandulapeter.kubriko.helpers.extensions.get")
         if (isDynamic || edgeEvents.isNotEmpty() || generatedBlocks.any { it is BlockDefinition.JumpTo || (it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames) }) {
             add("com.pandulapeter.kubriko.types.SceneOffset")

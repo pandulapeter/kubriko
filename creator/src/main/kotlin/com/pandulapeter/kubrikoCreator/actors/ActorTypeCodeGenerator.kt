@@ -81,6 +81,7 @@ internal object ActorTypeCodeGenerator {
             shapes = setOf(definition.shape),
             hasSprite = spriteAccessor != null,
             isCollidableAnyway = name in collidableActorTypeNames,
+            isFamily = false,
         )
         val keyEvents = features.keyEvents
         val edgeEvents = features.edgeEvents
@@ -129,7 +130,7 @@ internal object ActorTypeCodeGenerator {
             }
             lookups.forEach { appendLine("    private lateinit var $it") }
             appendTimerFields(timers)
-            if (lookups.isNotEmpty() || addedEvents.any { it.blocks.isNotEmpty() }) {
+            if (features.overridesOnAdded) {
                 appendLine()
                 appendLine("    override fun onAdded(kubriko: Kubriko) {")
                 lookups.forEach { appendLine("        ${it.substringBefore(':')} = kubriko.get()") }
