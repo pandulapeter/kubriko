@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.mcp.clients
 
 import com.pandulapeter.kubrikoCreator.mcp.McpController
-import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -79,7 +77,7 @@ internal class AiClientsController(
      * Registers Kubriko Creator in [setup], turning the server on first if it is off.
      */
     fun connect(setup: AiClientSetup) = perform(setup.id) {
-        enableServer()
+        mcp.enable()
         val result = withContext(ioDispatcher) {
             if (!runner.exists(setup.command)) return@withContext null
             runner.run(setup.command, setup.client.removeArguments)
@@ -106,7 +104,7 @@ internal class AiClientsController(
         when (val status = status(client)) {
             AiClientStatus.NotInstalled, is AiClientStatus.NeedsProgram -> status
             else -> {
-                enableServer()
+                mcp.enable()
                 val settings = mcp.settings.value
                 editConfigFile(client) { file ->
                     val programPath = client.requiredProgram?.let { runner.locate(it.command) }
@@ -164,13 +162,6 @@ internal class AiClientsController(
         AiClientStatus.Failed(exception.message.orEmpty())
     } catch (exception: IOException) {
         AiClientStatus.Failed(exception.message.orEmpty())
-    }
-
-    private suspend fun enableServer() {
-        if (!mcp.settings.value.isEnabled) {
-            mcp.setEnabled(true)
-            mcp.state.first { it is McpServerState.Running || it is McpServerState.Failed }
-        }
     }
 
     private fun perform(id: String, operation: suspend () -> AiClientStatus) {

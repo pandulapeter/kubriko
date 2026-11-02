@@ -55,6 +55,15 @@ internal class McpController(
     fun setEnabled(isEnabled: Boolean) = update(_settings.value.copy(isEnabled = isEnabled))
 
     /**
+     * Turns the server on, returning once it has started or failed to, or stayed off because AI features are off.
+     */
+    suspend fun enable(): McpServerState {
+        if (!_settings.value.isEnabled) setEnabled(true)
+        job?.join()
+        return _state.value
+    }
+
+    /**
      * @return Whether [port] can be used.
      */
     fun setPort(port: Int): Boolean {

@@ -16,6 +16,8 @@ import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -43,12 +45,13 @@ class AiClientsControllerTest {
         directory.deleteRecursively()
     }
 
-    private fun TestScope.controller(): AiClientsController {
+    private fun TestScope.controller(isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true)): AiClientsController {
         val created = McpController(
             server = McpToolServer(executor = { null }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
             store = McpSettingsStore(File(directory, "mcp.json")),
             scope = testScope(),
             ioDispatcher = Dispatchers.IO,
+            isAiEnabled = isAiEnabled,
         )
         created.setPort(ServerSocket(0).use { it.localPort })
         mcp = created
@@ -248,5 +251,16 @@ class AiClientsControllerTest {
         controller.awaitStatus(AiConfigFileClient.CURSOR, AiClientStatus.NotInstalled)
         assertFalse(configFileOf(AiConfigFileClient.CURSOR).exists())
         assertFalse(mcp!!.settings.value.isEnabled)
+    }
+
+    @Test
+    fun connectingWhileAiFeaturesAreOffDoesntWaitForTheServerForever() = runTest {
+        installApp(AiConfigFileClient.CURSOR)
+        val controller = controller(isAiEnabled = MutableStateFlow(false))
+        controller.connectConfigFile(AiConfigFileClient.CURSOR)
+        controller.awaitStatus(AiConfigFileClient.CURSOR, AiClientStatus.Connected)
+        assertEquals(McpServerState.Off, mcp!!.state.value)
+        controller.refresh()
+        controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.NotConnected)
     }
 }
