@@ -103,7 +103,7 @@ understand the game is shown to the user too.
   go through Keep and Undo), and a diff of what a change to them would be before it is kept.
 - **"Last time" summaries:** the agent writing a real summary at the end of a conversation, in place of the start of its last
   answer that a new conversation hears now.
-- **A smaller tool list:** (the size `TokenBudgetTest` measures) since the Block schema went to
+- **A smaller tool list** (its size is what `TokenBudgetTest` measures): since the Block schema went to
   `get_block_catalog`: terser descriptions and Claude Code's tool search, which loads tool schemas only when they are needed. Lower `TOOL_LIST_BUDGET` with it.
 - **More health checks:** a Scene nothing goes to other than the first (needs the first Scene known from `Game.kt`), and the
   findings shown where their subject is edited, beside the map's list.

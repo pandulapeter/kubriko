@@ -66,13 +66,12 @@ Besides its tests passing, a change:
 
 ## Principles
 
-1. **The library never depends on Creator.** Nothing under `engine/`, `plugins/`, or `tools/` depends on `creator`.
-2. **Plain files, plain Gradle.** Nothing the build needs lives in editor-private files; deleting `.kubriko/` never breaks a build, it
+1. **Plain files, plain Gradle.** Nothing the build needs lives in editor-private files; deleting `.kubriko/` never breaks a build, it
    only turns block-built Actor types into ordinary code.
-3. **Creator never rewrites code it didn't generate,** and stops updating generated code that was changed by hand.
-4. **Every change outside Creator-owned files is shown as a diff and confirmed.**
-5. **No engine changes for editor convenience**; editor-only runtime needs go into opt-in modules.
-6. **The AI can do exactly what the user can, through the same validated commands, and nothing else.**
+2. **Creator never rewrites code it didn't generate,** and stops updating generated code that was changed by hand.
+3. **Every change outside Creator-owned files is shown as a diff and confirmed.**
+4. **No engine changes for editor convenience**; editor-only runtime needs go into opt-in modules.
+5. **The AI can do exactly what the user can, through the same validated commands, and nothing else.**
 
 ## Files and ownership
 
@@ -195,18 +194,19 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   code changes reload; a changed superclass, interface, instance field, or a class with static state (which a reload would leave
   null or reset) restarts the game from the same Scene. A game waits for the one before it to end, since Hot Reload's pid file is
   shared.
-- **The session** (`tool-creator-session`) runs at the project's Kubriko version over a versioned protocol that only grows: a
-  session of any version runs, using what the lower of the two versions has (`SessionController.request` takes the version a
-  command needs), with the features it lacks hidden rather than refused.
+- **The session** (`tool-creator-session`) runs at the project's Kubriko version: a session of any version runs, and a command it
+  is too old for is refused (`SessionController.request` takes the version a command needs and answers `GameAnswer.Unsupported`,
+  which the game commands reject with `error_game_unsupported`).
 
 ## Scene editing
 
 Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own and not `tools/scene-editor`.
 
 - It works only when the project's Kubriko version equals Creator's: the project's classes load into a class loader whose parent is
-  Creator's (Kubriko, Compose, and Kotlin shared; `ProjectClassLoader` reads project folders first, so rebuilds can replace them),
-  and `SceneView` creates the Actors in a Kubriko instance that never runs. Another version gets a notice instead
-  (`SceneEditingState.Unsupported`), and a failed build or entry point a notice with Try again (`SceneEditingState.Failed`).
+  Creator's (Kubriko, Compose, and Kotlin shared; the project's jars are copied and the class files of its folders read before
+  anything loads, so a rebuild can replace them while they are in use), and `SceneView` creates the Actors in a Kubriko instance
+  that never runs. Another version gets a notice instead (`SceneEditingState.Unsupported`), and a failed build or entry point a
+  notice with Try again (`SceneEditingState.Failed`).
 - Creating a `SceneView` runs the project's code, so it happens off the main thread, and what that code throws (a
   `NoClassDefFoundError` too) fails the Scene, or leaves the older classes shown as outdated. A load cancelled midway closes what
   it loaded; released classes are closed a few seconds later on `releaseScope`, which outlives the workspace.
@@ -277,6 +277,6 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
 
 What Creator needs from the libraries reaches projects only through a Kubriko release, since projects resolve Kubriko from Maven
 Central and opted-in ones use Creator's own version, so a Creator release follows each Kubriko release that changes its library side.
-`tool-creator-api` keeps its binary API: `CreatorEntryPoint` only gains members with default implementations. Nothing goes into a
+Nothing goes into a
 published artifact before the Creator feature that uses it exists, and library changes Creator needs follow the public API rules in
 the root `CLAUDE.md`.

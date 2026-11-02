@@ -30,14 +30,14 @@ Beyond the theme, the interface scale, the AI features switch, and the default p
 ## Project settings
 
 Beyond the dialog (`ProjectSettingsDialog`) and Identity (`GameIdentity`), the sections below. Every value lives where the
-build reads it, so the project still builds the same in IntelliJ and without `.kubriko/` (`../CLAUDE.md` → Principles 2): `.kubriko/project.json` only
+build reads it, so the project still builds the same in IntelliJ and without `.kubriko/` (`../CLAUDE.md` → Principles 1): `.kubriko/project.json` only
 holds what Creator needs for itself.
 
 - **Identity, still to come:** raising the version number with each release export (`10-export-and-distribution.md`), and the
   Android `defaultConfig` and iOS `Info.plist` reading the keys once those targets exist (Targets below).
 - **Icons:** one square source image, from which every platform's icon is generated (Android adaptive, `.icns`, `.ico`, PNG sizes,
   the web favicon).
-- **Targets:** desktop, web, Android, and iOS, each turned on or off, as a confirmed diff of the build file (Principle 4). Android needs the
+- **Targets:** desktop, web, Android, and iOS, each turned on or off, as a confirmed diff of the build file (Principle 3). Android needs the
   SDK, iOS needs a Mac with Xcode (`12-onboarding.md`).
 - **Game:** the first Scene, aspect ratio mode, target frame rate, and the Managers and plugins in use (`KubrikoWiring` already decides
   the plugins; this shows why each is there).
