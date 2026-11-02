@@ -388,8 +388,7 @@ decode is rejected with `InputProblem`'s one sentence
   change to a tool's name, input, or validation that would break what models do fails a test without spending tokens.
 - **Token budgets** (`TokenBudgetTest`, about four characters a token): the tool list, and on `BreakoutFixture` (a Breakout grown
   to five types and a 42-Actor level) the digest, `read_actor_type` of Ball (Blocks and JSON), and `read_scene` of the level (a
-  page and the summary) each stay under a budget set just above what they cost, so that none can creep up unnoticed. The tool
-  list is about 17,000 tokens.
+  page and the summary) each stay under a budget set just above what they cost, so that none can creep up unnoticed.
 
 ## AI connection (MCP)
 
