@@ -26,15 +26,15 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
    draft).
 2. **The agent list** (see `../CLAUDE.md` → Assistant): the registry's icons in the menu (checked against each vendor's trademark rules
    first), and Claude Agent's version, pinned to the one checked, offered as an update once the registry's moves and it is checked.
-4. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is the operating system's terminal as a fallback for a sign-in command
+3. **Sign-in** (see `../CLAUDE.md` → Assistant): what is left is the operating system's terminal as a fallback for a sign-in command
    that turns out to need a terminal device.
-5. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): see whether Claude still reaches for its own Read for Kubriko's sources now that
+4. **Tools** (per conversation, see `../CLAUDE.md` → Assistant): see whether Claude still reaches for its own Read for Kubriko's sources now that
    `get_kubriko_api` exists (it keeps Read for the game's own Kotlin). Other agents
-   have no portable switch, so their `session/request_permission` for edits and commands is rejected by default (`PermissionHandler.Reject`),
-   with the user able to allow it.
-6. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
+   have no portable switch, so their `session/request_permission` for edits and commands is rejected (`PermissionHandler.rejectingChanges`),
+   whatever the user would choose; letting the user allow it is still to come.
+5. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
-7. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists).
+6. **The panel** (see `../CLAUDE.md` → Assistant): a screenshot of the open Scene as a chip too (the game's exists).
 
 **Order:** alongside `04` to `07`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
 
