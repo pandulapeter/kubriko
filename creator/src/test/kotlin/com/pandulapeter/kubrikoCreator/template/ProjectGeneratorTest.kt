@@ -140,6 +140,7 @@ class ProjectGeneratorTest {
         assertTrue("kubriko = \"1.0.0\"" in File(directory, "gradle/libs.versions.toml").readText())
         assertEquals(ProjectFormatStatus.Writable, ProjectFormat(directory, creatorVersion = "1.0.0").prepare())
         assertTrue("\"formatVersion\": ${ProjectFormat.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
+        assertTrue("\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
     }
 
     @Test

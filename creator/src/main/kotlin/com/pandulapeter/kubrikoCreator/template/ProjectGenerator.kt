@@ -83,6 +83,7 @@ internal class ProjectGenerator(
         "PACKAGE" to request.packageName,
         "KUBRIKO_VERSION" to configuration.kubrikoVersion,
         "FORMAT_VERSION" to ProjectFormat.CURRENT_VERSION.toString(),
+        "TEMPLATE_VERSION" to ProjectUpgrader.CURRENT_VERSION.toString(),
         "KOTLIN_VERSION" to configuration.kotlinVersion,
         "COMPOSE_VERSION" to configuration.composeVersion,
         "EXTRA_REPOSITORIES" to if (configuration.useMavenLocal) KubrikoBuildFiles.MAVEN_LOCAL_REPOSITORY else "",

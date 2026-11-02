@@ -1,7 +1,7 @@
 {
     "packageName": "{{PACKAGE}}",
     "sourceDirectory": "src/commonMain/kotlin",
-    "templateVersion": 9,
+    "templateVersion": {{TEMPLATE_VERSION}},
     "formatVersion": {{FORMAT_VERSION}},
     "minimumCreatorVersion": "{{KUBRIKO_VERSION}}"
 }
