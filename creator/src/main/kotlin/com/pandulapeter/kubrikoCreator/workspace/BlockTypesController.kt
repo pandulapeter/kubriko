@@ -194,6 +194,9 @@ internal class BlockTypesController(
         reason = _failure.value?.reason.orEmpty(),
     )
 
+    /**
+     * Selects the type [name], or none; the workspace selects through [SelectionController], which closes the Scene shown.
+     */
     fun select(name: String?) {
         _selectedName.value = name
     }

@@ -248,6 +248,16 @@ internal class WorkspaceController(
     )
 
     /**
+     * What the center shows, which every selection of a type or a Scene goes through.
+     */
+    val selection = SelectionController(
+        blockTypes = blockTypes,
+        sceneEditing = sceneEditing,
+        sceneOf = { name -> _resources.value[ResourceGroup.SCENES].orEmpty().firstOrNull { SceneStore.nameOf(it.file) == name } },
+        scope = scope,
+    )
+
+    /**
      * Where Creator's own writes and the watcher's changes are routed to the parts that follow them.
      */
     private val changes = ProjectChanges(
@@ -321,10 +331,7 @@ internal class WorkspaceController(
     fun createActorType(name: String): StringResource? {
         val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it.reason }
-        commands.dispatch(invocation) {
-            sceneEditing.close()
-            blockTypes?.select(name)
-        }
+        commands.dispatch(invocation) { selection.selectType(name) }
         return null
     }
 
@@ -336,10 +343,7 @@ internal class WorkspaceController(
     fun createManagerType(name: String): StringResource? {
         val invocation = Invocation(CreateManagerType, ManagerTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it.reason }
-        commands.dispatch(invocation) {
-            sceneEditing.close()
-            blockTypes?.select(name)
-        }
+        commands.dispatch(invocation) { selection.selectType(name) }
         return null
     }
 

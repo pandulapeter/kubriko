@@ -1,0 +1,41 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.workspace
+
+import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+
+/**
+ * What the workspace's center shows: one type, one Scene (being prepared, open, or failed), or nothing.
+ */
+internal sealed interface WorkspaceSelection {
+
+    data object None : WorkspaceSelection
+
+    data class BlockType(
+        val name: String,
+    ) : WorkspaceSelection
+
+    data class Scene(
+        val name: String,
+    ) : WorkspaceSelection
+}
+
+/**
+ * The name of the Scene this state shows, whether it is being prepared, open, or failed, or null when it is closed.
+ */
+internal val SceneEditingState.sceneName: String?
+    get() = when (this) {
+        SceneEditingState.Closed -> null
+        is SceneEditingState.Preparing -> SceneStore.nameOf(scene.file)
+        is SceneEditingState.Failed -> SceneStore.nameOf(scene.file)
+        is SceneEditingState.Unsupported -> SceneStore.nameOf(scene.file)
+        is SceneEditingState.Open -> sceneName
+    }

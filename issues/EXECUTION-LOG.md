@@ -86,3 +86,13 @@ Review fixes: 212578617 (merged Save keeps its first place), 04cd99656 (JsonFile
 - T05: golden fixture project per format version in creator/src/test/resources/formats/v0..v2 (FormatFixturesTest); a format raise needs a new folder.
 - Extra: the pre-commit hook unsets GIT_DIR, GIT_INDEX_FILE, and GIT_WORK_TREE before Gradle (JGit honoured them in linked worktrees); check_sizes.py names functions with nullable/generic receivers and bounded type parameters correctly; SharedLibraries also refuses newer androidx.compose minors; AssistantChat clears isBusy in invokeOnCompletion so a turn stopped before it starts ends; CollisionMask reserved as a type name.
 - Lane K was reviewed before merging; the review's fixes are the last seven lane K commits on main.
+
+# Phase 3 (CI, branch fifth-review-execution)
+
+## H01 — see next commit
+"Give Kubriko Creator's workspace one selection, a type, a Scene, or nothing, that every caller changes through SelectionController." — verified: ./gradlew :creator:test (1,509 tests, none failed), ./gradlew :creator:spotlessApply, SelectionControllerTest fails to compile without the fix; skipped manual: the :creator:run check, no display in CI
+- New workspace/WorkspaceSelection.kt (`WorkspaceSelection` None / BlockType(name) / Scene(name), and `SceneEditingState.sceneName` for every non-closed state) and workspace/SelectionController.kt (`current: StateFlow<WorkspaceSelection>`, `selectType(name)`, `openScene(name)`, `clear()`). `WorkspaceController.selection` is built right after `sceneEditing`; createActorType/createManagerType select through it. Nothing under ui/ calls `BlockTypesController.select` or `SceneEditingController.open/close` any more; the sidebar highlights a preparing or failed Scene too.
+- Deviation: the type editor renders on `selection is BlockType && sceneEditing == Closed` (not on the selection alone), since `current` is a `stateIn` that follows the Scene state one dispatch later and would otherwise show the editor beside a Scene for a frame.
+- Deviation: creator/CLAUDE.md no longer has the sidebar paragraph or the package table the plan names (cut by ae027ca3e), so the rule is one bullet in its UI section.
+- Deviation: `$RUNNER_TEMP` is outside what this session may touch, so the changes set aside for the failing-test check went to the git-ignored `build/scratch/`.
+- Extra fixes: none

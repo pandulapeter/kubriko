@@ -23,8 +23,6 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
-import com.pandulapeter.kubrikoCreator.project.ResourceGroup
-import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 
 /**
@@ -50,21 +48,8 @@ internal fun rememberSidebarDragState(controller: WorkspaceController) = remembe
 @Composable
 internal fun rememberFolderTreeActions(controller: WorkspaceController) = remember(controller) {
     FolderTreeActions(
-        onSelected = { group, name ->
-            if (group == FolderGroup.SCENES) {
-                controller.resources.value[ResourceGroup.SCENES].orEmpty().firstOrNull { SceneStore.nameOf(it.file) == name }?.let { scene ->
-                    controller.blockTypes?.select(null)
-                    controller.sceneEditing.open(scene)
-                }
-            } else {
-                controller.sceneEditing.close()
-                controller.blockTypes?.select(name)
-            }
-        },
-        onSelectionCleared = {
-            controller.sceneEditing.close()
-            controller.blockTypes?.select(null)
-        },
+        onSelected = { group, name -> if (group == FolderGroup.SCENES) controller.selection.openScene(name) else controller.selection.selectType(name) },
+        onSelectionCleared = controller.selection::clear,
         onCreateItem = { group, name ->
             when (group) {
                 FolderGroup.ACTOR_TYPES -> controller.createActorType(name)
