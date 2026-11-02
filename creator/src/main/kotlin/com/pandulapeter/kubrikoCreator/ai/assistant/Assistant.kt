@@ -13,6 +13,7 @@ import com.agentclientprotocol.model.AgentCapabilities
 import com.agentclientprotocol.model.McpServer
 import com.agentclientprotocol.model.SessionId
 import com.agentclientprotocol.model.SessionUpdate
+import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
@@ -40,7 +41,7 @@ internal class Assistant(
     private val profile: AgentProfile = AgentProfile.fallback,
     private val systemPrompt: (projectContext: String?) -> String? = { null },
     private val npx: File? = null,
-    private val agentFolders: File = File(System.getProperty("java.io.tmpdir"), "kubriko-creator-agents"),
+    private val agentFolders: File = File(settingsDirectory(), "agents/workspaces"),
 ) : AutoCloseable {
     private val serverStart = Mutex()
     private var port: Int? = null

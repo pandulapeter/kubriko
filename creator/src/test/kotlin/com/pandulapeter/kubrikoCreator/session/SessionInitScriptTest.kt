@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.session
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import java.io.File
 import kotlin.test.Test
@@ -59,6 +60,14 @@ class SessionInitScriptTest {
         assertNotEquals(SessionInitScript.classpathFileOf(project), SessionInitScript.classpathFileOf(File("/projects/other")))
         assertEquals(SessionInitScript.buildClasspathFileOf(project), SessionInitScript.buildClasspathFileOf(File("/projects/other/../game")))
         assertNotEquals(SessionInitScript.classpathFileOf(project), SessionInitScript.buildClasspathFileOf(project))
+    }
+
+    @Test
+    fun theScriptAndTheClasspathFilesAreKeptInCreatorsSettingsFolderRatherThanTheSharedTemporaryOne() {
+        val directory = File(settingsDirectory(), "session")
+        assertEquals(directory, SessionInitScript.file.parentFile)
+        assertEquals(directory, SessionInitScript.classpathFileOf(File("/projects/game")).parentFile)
+        assertEquals(directory, SessionInitScript.playDirectoryOf(File("/projects/game")).parentFile)
     }
 
     @Test

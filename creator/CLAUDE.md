@@ -77,7 +77,7 @@ lives in `plan/` (start with `plan/README.md`).
   writes the Kubriko version and runtime classpath to a file, with the folders the module's jar is packed from in place of the jar,
   found through the jar task's `source`, so the jar isn't packed; a file the jar puts elsewhere than its folder would is
   copied to `build/kubrikoCreator/moved`). Every build's arguments come from `SessionInitScript.gradleArguments`; the script and the classpath file keep their paths
-  (`kubriko-creator` in the temporary folder: the script named after its content, the classpath file after the project's path),
+  (`session` in Creator's settings folder: the script named after its content, the classpath file after the project's path),
   since Gradle reuses a configuration cache only for the same init scripts and `-P` values, and the script works with the
   configuration cache, which projects turn on themselves (template version 6). How it
   compiles from `IncrementalCompilationPolicy`: common code compiles incrementally through Kotlin's internal
@@ -464,8 +464,8 @@ without one, the fallbacks chosen from its `initialize` answer (`AgentProfile.fa
 `mcpCapabilities.http`, otherwise through `mcp-remote` run by the user's `npx` with the token in its environment
 (`ConversationToolServer`); the system prompt as the first prompt's leading text (`firstPromptLead`, not sent again once a turn has
 started); its permission requests for edit, delete, move, and execute tool calls rejected whatever the user would choose
-(`PermissionHandler.rejectingChanges`); and a working folder of its own per project in the temporary folder
-(`kubriko-creator-agents`) instead of the project's, since an agent may write files where it starts without asking (Google
+(`PermissionHandler.rejectingChanges`); and a working folder of its own per project in Creator's settings folder
+(`agents/workspaces`) instead of the project's, since an agent may write files where it starts without asking (Google
 Antigravity writes its skills there). Every agent's requests for Creator's own tools are allowed without asking
 (`PermissionHandler.allowingCreatorTools`), recognized however the agent names them (`CreatorToolName`: Claude Code's
 `mcp__kubriko-creator__read_scene`, Antigravity's `kubriko-creator_read_scene`), which the tool call cards use too. The agent is an `AgentChoice`: a `RegistryAgent` (with its `AgentDistribution`) or a custom

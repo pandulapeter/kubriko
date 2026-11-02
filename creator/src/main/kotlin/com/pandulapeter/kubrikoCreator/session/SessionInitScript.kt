@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
+import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import java.io.File
 import java.nio.file.Files
@@ -28,7 +29,7 @@ internal object SessionInitScript {
     const val WARM_UP_TASK_NAME = "kubrikoCreatorWarmUp"
     private const val RESOURCE_NAME = "kubriko-creator-session.init.gradle.kts"
 
-    private val directory get() = File(System.getProperty("java.io.tmpdir"), "kubriko-creator")
+    private val directory get() = File(settingsDirectory(), "session")
 
     /**
      * The script, named after its content, so that every version of Kubriko Creator has its own.
