@@ -24,8 +24,18 @@ internal object KubrikoApi {
      * patterns, without how the repository is built.
      */
     internal fun overviewOf(text: String) = sections.mapNotNull { (start, end) ->
-        val from = text.indexOf(start).takeIf { it >= 0 } ?: return@mapNotNull null
-        val to = text.indexOf(end, from).takeIf { it >= 0 } ?: text.length
+        val from = text.indexOfHeading(start, 0) ?: return@mapNotNull null
+        val to = text.indexOfHeading(end, from + start.length) ?: text.length
         text.substring(from, to).trim()
     }.joinToString("\n\n")
+
+    private fun String.indexOfHeading(heading: String, startIndex: Int): Int? {
+        var index = indexOf(heading, startIndex)
+        while (index >= 0) {
+            val end = index + heading.length
+            if ((index == 0 || this[index - 1] == '\n') && (end == length || this[end] == '\n' || this[end] == '\r')) return index
+            index = indexOf(heading, index + 1)
+        }
+        return null
+    }
 }

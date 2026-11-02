@@ -52,6 +52,12 @@ class KubrikoApiTest {
     }
 
     @Test
+    fun aHeadingQuotedInsideALineIsNotTakenForTheHeading() {
+        val overview = KubrikoApi.overviewOf("Keep \"## Core architecture\" and \"## Tools\" as headings.\n## Core architecture\nSee `## Tools`.\n## Tools\ndebug")
+        assertEquals("## Core architecture\nSee `## Tools`.", overview)
+    }
+
+    @Test
     fun theOverviewOfTheRootClaudeMdHasBothSections() {
         val claudeMd = File("../CLAUDE.md")
         assertTrue(claudeMd.isFile, "Run from the creator folder: ${claudeMd.absolutePath}")
