@@ -10,8 +10,9 @@
 # actors (the Block model and code generation)
 
 - Generated Kotlin compiles for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks
-  get their own `run { }` scope inside a function per kind of Event, so a `return` ends only that Event's Blocks, misplaced
-  Blocks and unchosen choices become comments) and follows the engine's no-allocation rules.
+  get their own `run { }` scope inside a function per kind of Event, so a `return` ends only that Event's Blocks, and their
+  leading import lines, like Kotlin UI's (`KotlinUi`), become the file's imports; misplaced Blocks and unchosen choices
+  become comments) and follows the engine's no-allocation rules.
 - A new Block is its `BlockDefinition` subclass, its `BlockKind` entry (every fact that is the same for each Block of the kind,
   such as `needsActor` and `onlyIn`), and its emission in `BlockCodeGenerator`, which returns its lines with what they need
   (`BlockCode`: the members the class declares, its imports, and the Manager types it reaches), so every lookup, import, and

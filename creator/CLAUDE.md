@@ -137,8 +137,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Addressing:** types and Scenes by name, Events, Blocks, and texts by index, Scene Actors by ID. The Event, Block, and Property
   commands take either kind of type (`actorType` names an Actor type or a Manager type).
 - **Renames follow everywhere:** Blocks, collision Events, placeholders, texts, Kotlin Blocks and Kotlin UI (`KotlinIdentifiers`,
-  which knows no grammar, so a local variable of the same name is renamed too), the Actors of every Scene, and a Property's saved
-  values in Scenes. Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
+  which knows no grammar, so a local variable of the same name is renamed too; the import lines a Kotlin Block or Kotlin UI
+  starts with are left alone), the Actors of every Scene, and a Property's saved values in Scenes. Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
   kind, which wouldn't load; a Property's kind can't change.
 - **Batches** (`place_actors`, `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) are one undo step each,
   and name no Actor twice and at least one. Paged reads (`read_scene`, `list_actor_types`) keep large games readable.

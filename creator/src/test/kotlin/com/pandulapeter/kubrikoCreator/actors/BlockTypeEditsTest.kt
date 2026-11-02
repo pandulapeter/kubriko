@@ -173,4 +173,20 @@ class BlockTypeEditsTest {
         )
         assertEquals(level, level.withManagerFieldsSuffixed(types))
     }
+
+    @Test
+    fun renamingAPropertyLeavesKotlinImportsAlone() {
+        val code = "import kotlin.math.sin\nkotlin = sin(kotlin)"
+        val ball = ActorTypeDefinition(
+            name = "Ball",
+            properties = listOf(PropertyDefinition.Number("kotlin")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin(code)))),
+        )
+        assertEquals(
+            BlockDefinition.Kotlin("import kotlin.math.sin\nangle = sin(angle)"),
+            ball.withPropertyReplaced("kotlin", PropertyDefinition.Number("angle")).events.single().blocks.single(),
+        )
+        val hud = ManagerTypeDefinition(name = "Hud", properties = listOf(PropertyDefinition.Number("kotlin")), kotlinUi = code)
+        assertEquals("import kotlin.math.sin\nangle = sin(angle)", (hud.withPropertyReplaced("kotlin", PropertyDefinition.Number("angle")) as ManagerTypeDefinition).kotlinUi)
+    }
 }

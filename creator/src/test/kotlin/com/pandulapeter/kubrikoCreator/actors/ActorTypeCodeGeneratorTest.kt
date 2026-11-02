@@ -256,6 +256,15 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun aKotlinBlocksImportsBecomeTheFilesImports() {
+        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("import kotlin.math.sin\nvelocity = SceneOffset(sin(1f).sceneUnit, velocity.y)"))))
+        val imports = code.lines().filter { it.startsWith("import ") }
+        assertContains(imports, "import kotlin.math.sin")
+        assertEquals(imports.sorted(), imports)
+        assertContains(code, "        run {\n            velocity = SceneOffset(sin(1f).sceneUnit, velocity.y)\n        }\n")
+    }
+
+    @Test
     fun anEmptyKotlinBlockGeneratesNothing() {
         assertEquals(emptyList(), BlockCodeGenerator.blockCode(BlockDefinition.Kotlin(" \n "), EventType.EVERY_FRAME, BlockScope("Ball")).lines)
     }

@@ -211,17 +211,18 @@ internal object BlockCodeGenerator {
     /**
      * Each Kotlin Block gets a scope of its own, like GameMaker's code actions, so two of them can declare the same name.
      * Its code may use anything an Actor has, so it gets all of it, and the type of its velocity is imported in an Actor
-     * type's file.
+     * type's file. The import lines it starts with become imports of the file, as Kotlin UI's do ([KotlinUi]).
      */
     private fun kotlinCode(block: BlockDefinition.Kotlin, scope: BlockScope): BlockCode {
-        val lines = block.code.lines().map { it.trimEnd() }.dropWhile { it.isEmpty() }.dropLastWhile { it.isEmpty() }
-        if (lines.isEmpty()) return BlockCode.NONE
+        val (imports, statements) = KotlinUi.splitImports(block.code)
+        val lines = statements.dropWhile { it.isEmpty() }
+        if (lines.isEmpty()) return BlockCode(emptyList(), imports = imports.toSet())
         return BlockCode(
             lines = listOf("run {") + lines.map { if (it.isEmpty()) it else INDENT + it } + "}",
             needs = setOf(BlockNeed.MOVEMENT, BlockNeed.ACTOR_MANAGER, BlockNeed.VIEWPORT_MANAGER),
-            imports = setOfNotNull(
+            imports = imports.toSet() + setOfNotNull(
                 SCENE_OFFSET_IMPORT.takeIf { scope.kind == BlockTypeKind.ACTOR },
-                ABSOLUTE_VALUE_IMPORT.takeIf { KotlinIdentifiers.find(block.code).any { it.name == ABSOLUTE_VALUE } },
+                ABSOLUTE_VALUE_IMPORT.takeIf { KotlinIdentifiers.find(lines.joinToString("\n")).any { it.name == ABSOLUTE_VALUE } },
             ),
         )
     }

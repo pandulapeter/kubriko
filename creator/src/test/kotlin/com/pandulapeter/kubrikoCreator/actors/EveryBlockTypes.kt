@@ -39,7 +39,7 @@ internal object EveryBlockTypes {
         BlockDefinition.SetNumber(),
         BlockDefinition.ChangeNumber(property = "missing"),
         BlockDefinition.Log(message = "{title}: {score} ({isShielded}) {missing}"),
-        BlockDefinition.Kotlin(code = "if (isShielded) score += 1f"),
+        BlockDefinition.Kotlin(code = "import kotlin.math.sin\n\nif (isShielded) score += 1f + sin(0f)"),
         BlockDefinition.AddActor("EveryBlock", x = 10f, y = -5f),
         BlockDefinition.AddActor("Ball", isRelative = false),
         BlockDefinition.AddActor("Missing"),

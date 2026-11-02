@@ -72,6 +72,15 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
+    fun aKotlinBlocksImportsBecomeTheFilesImports() {
+        val code = generate(game.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("import kotlin.math.sin\nscore = sin(score)"))))))
+        val imports = code.lines().filter { it.startsWith("import ") }
+        assertTrue("import kotlin.math.sin" in imports, code)
+        assertEquals(imports.sorted(), imports)
+        assertContains(code, "        run {\n            score = sin(score)\n        }\n")
+    }
+
+    @Test
     fun keysAndTimersWorkAsInActorTypes() {
         val code = generate(
             game.copy(

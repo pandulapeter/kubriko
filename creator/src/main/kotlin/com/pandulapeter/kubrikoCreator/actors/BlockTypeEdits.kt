@@ -168,13 +168,29 @@ private fun BlockTypeDefinition.withTexts(change: (String) -> String) = when (th
 }
 
 /**
- * The code of its Kotlin Blocks and, for a Manager type, its Kotlin UI changed by [change].
+ * The code of its Kotlin Blocks and, for a Manager type, its Kotlin UI changed by [change], except the import lines it
+ * starts with.
  */
-private fun BlockTypeDefinition.withKotlinCode(change: (String) -> String) = withBlocks { if (it is BlockDefinition.Kotlin) it.copy(code = change(it.code)) else it }.let { changed ->
-    when (changed) {
-        is ManagerTypeDefinition -> changed.copy(kotlinUi = changed.kotlinUi?.let(change))
-        is ActorTypeDefinition -> changed
+private fun BlockTypeDefinition.withKotlinCode(change: (String) -> String): BlockTypeDefinition {
+    val statementsChange = { code: String -> withStatementsChanged(code, change) }
+    return withBlocks { if (it is BlockDefinition.Kotlin) it.copy(code = statementsChange(it.code)) else it }.let { changed ->
+        when (changed) {
+            is ManagerTypeDefinition -> changed.copy(kotlinUi = changed.kotlinUi?.let(statementsChange))
+            is ActorTypeDefinition -> changed
+        }
     }
+}
+
+/**
+ * [code] with [change] applied to what follows the import lines it starts with, which are kept exactly as they are, so a
+ * rename never touches a package name.
+ */
+private fun withStatementsChanged(code: String, change: (String) -> String): String {
+    val lines = code.lines()
+    val headerSize = KotlinUi.headerLineCount(code)
+    if (headerSize == 0) return change(code)
+    if (headerSize == lines.size) return code
+    return lines.take(headerSize).joinToString("\n") + "\n" + change(lines.drop(headerSize).joinToString("\n"))
 }
 
 private val BlockTypeDefinition.scope get() = BlockScope(name, kind, properties)

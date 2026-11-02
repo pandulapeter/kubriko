@@ -25,6 +25,14 @@ class KotlinUiTest {
     }
 
     @Test
+    fun splitImportsTakesOnlyTheLeadingImportLines() {
+        assertEquals(
+            listOf("a.B", "c.D as E") to listOf("val x = 1", "import f.G"),
+            KotlinUi.splitImports("import a.B\n\nimport c.D as E\nval x = 1\nimport f.G"),
+        )
+    }
+
+    @Test
     fun codeWithoutStatementsIsNoUi() {
         assertNull(KotlinUi.of(null))
         assertNull(KotlinUi.of(" \n "))

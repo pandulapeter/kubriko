@@ -116,6 +116,13 @@ class BlockCodeTest {
     }
 
     @Test
+    fun anImportOnlyKotlinBlockGeneratesNoStatements() {
+        val code = BlockCodeGenerator.blockCode(BlockDefinition.Kotlin("import kotlin.math.sin"), EventType.EVERY_FRAME, actorScope)
+        assertEquals(emptyList(), code.lines)
+        assertEquals(setOf("kotlin.math.sin"), code.imports)
+    }
+
+    @Test
     fun aManagersActorOnlyBlocksNeedNothing() {
         val managerScope = BlockScope("Game", BlockTypeKind.MANAGER, game.properties, listOf("Ball"), listOf(game))
         listOf(BlockDefinition.RemoveOther, BlockDefinition.RemoveSelf, BlockDefinition.MoveTowardsNearest("Ball")).forEach { block ->

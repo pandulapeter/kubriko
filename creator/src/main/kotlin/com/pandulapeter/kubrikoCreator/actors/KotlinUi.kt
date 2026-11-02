@@ -30,11 +30,28 @@ internal data class KotlinUi(
          * The Kotlin UI written as [code], or null if it has no statements.
          */
         fun of(code: String?): KotlinUi? {
-            val lines = code.orEmpty().lines().map { it.trimEnd() }
-            val headerSize = lines.indexOfFirst { it.isNotBlank() && !it.trimStart().startsWith(IMPORT) }.takeIf { it >= 0 } ?: lines.size
-            val imports = lines.take(headerSize).filter { it.isNotBlank() }.map { it.trim().removePrefix(IMPORT).trim() }.filter { it.isNotEmpty() }
-            val statements = lines.drop(headerSize).dropLastWhile { it.isEmpty() }
+            val (imports, statements) = splitImports(code.orEmpty())
             return if (statements.isEmpty()) null else KotlinUi(imports, statements)
+        }
+
+        /**
+         * The import lines [code] starts with (blank lines among them included), up to its first other line.
+         */
+        fun headerLineCount(code: String): Int {
+            val lines = code.lines()
+            return lines.indexOfFirst { it.isNotBlank() && !it.trimStart().startsWith(IMPORT) }.takeIf { it >= 0 } ?: lines.size
+        }
+
+        /**
+         * The imports [code] starts with, without `import ` (an alias kept as written), and its remaining lines, without
+         * trailing spaces and trailing blank lines. An import after the first statement stays a statement, for the
+         * compiler to report.
+         */
+        fun splitImports(code: String): Pair<List<String>, List<String>> {
+            val lines = code.lines().map { it.trimEnd() }
+            val headerSize = headerLineCount(code)
+            val imports = lines.take(headerSize).filter { it.isNotBlank() }.map { it.trim().removePrefix(IMPORT).trim() }.filter { it.isNotEmpty() }
+            return imports to lines.drop(headerSize).dropLastWhile { it.isEmpty() }
         }
 
         private const val IMPORT = "import "

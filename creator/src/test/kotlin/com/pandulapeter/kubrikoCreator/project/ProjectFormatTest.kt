@@ -100,4 +100,19 @@ class ProjectFormatTest {
         assertEquals(ProjectFormatStatus.Writable, format(migration("first")).prepare())
         assertEquals(emptyList(), applied)
     }
+
+    @Test
+    fun theKotlinBlockImportsVersionChangesNoFileAndAnOlderCreatorReadsItOnly() {
+        val typeFile = File(rootDirectory, ".kubriko/actors/Ball.json").apply { parentFile.mkdirs() }
+        val typeText = """{ "name": "Ball", "events": [ { "type": "everyFrame", "blocks": [ { "type": "kotlin", "code": "import kotlin.math.sin\\nprintln(sin(0f))" } ] } ] }"""
+        typeFile.writeText(typeText)
+        settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": ${ProjectFormat.CURRENT_VERSION - 1} }""")
+        assertEquals(ProjectFormatStatus.Writable, ProjectFormat(rootDirectory, creatorVersion = "1.2.0").prepare())
+        assertEquals(ProjectFormat.CURRENT_VERSION, settings().getValue("formatVersion").jsonPrimitive.int)
+        assertEquals(typeText, typeFile.readText())
+        assertEquals(
+            ProjectFormatStatus.ReadOnly(ProjectFormat.CURRENT_VERSION, "1.2.0"),
+            ProjectFormat(rootDirectory, creatorVersion = "1.1.0", migrations = ProjectFormat.MIGRATIONS.dropLast(1)).prepare(),
+        )
+    }
 }

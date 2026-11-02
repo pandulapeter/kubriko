@@ -53,7 +53,7 @@ class ManagerFieldMigrationTest {
         assertEquals("things", loaded.types.single { it.name == "Ball" }.folder)
         assertEquals(gameText, gameFile.readText())
         assertEquals("{ not json", File(root, ".kubriko/actors/things/Broken.json").readText())
-        assertTrue("\"formatVersion\": 1" in settingsFile.readText())
+        assertTrue("\"formatVersion\": ${ProjectFormat.CURRENT_VERSION}" in settingsFile.readText())
     }
 
     @Test

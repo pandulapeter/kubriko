@@ -174,6 +174,15 @@ class ActorFamilyCodeGeneratorTest {
     }
 
     @Test
+    fun aChildsKotlinBlockImportGoesIntoTheChildsFileOnly() {
+        val sinBat = bat.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("import kotlin.math.sin\nhp = sin(hp)")))))
+        val types = listOf(enemy, sinBat, wall)
+        fun generate(definition: ActorTypeDefinition) = ActorTypeCodeGenerator.generateActorType(definition, "com.example.game", types.map { it.name }, actorTypes = types)
+        assertContains(generate(sinBat), "\nimport kotlin.math.sin\n")
+        assertFalse("import kotlin.math.sin" in generate(enemy))
+    }
+
+    @Test
     fun aChildFileImportsOnlyWhatItsClassesUse() {
         val code = generate(bat)
         assertFalse("import com.pandulapeter.kubriko.collision.CollisionDetector\n" in code)
