@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
-import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
+import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_remove_event
 import kubriko.creator.generated.resources.ic_close
@@ -64,7 +64,7 @@ internal fun EventListItem(
         .heightIn(min = 36.dp)
         .alpha(if (dragState.dragged == index) 0.4f else 1f)
         .then(if (isSelected) Modifier.background(Accent.EVENT.container) else Modifier)
-        .background(rememberFlashColor(flashKey, Accent.EVENT.color))
+        .flashBackground(flashKey, Accent.EVENT.color)
         .dropLines(isDropAbove, isDropBelow)
         .listDragSource(dragState) { index }
         .clickable { if (!dragState.isClickAfterDrag) onClick() }

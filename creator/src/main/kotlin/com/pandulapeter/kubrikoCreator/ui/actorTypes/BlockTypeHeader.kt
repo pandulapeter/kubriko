@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,7 +39,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
-import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
+import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_manager_type
@@ -77,7 +76,7 @@ internal fun BlockTypeHeader(
     modifier = Modifier
         .fillMaxWidth()
         .heightIn(min = 52.dp)
-        .background(rememberFlashColor(flashKey))
+        .flashBackground(flashKey)
         .padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,

@@ -29,7 +29,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
-import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
+import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -55,7 +55,7 @@ internal fun SidebarItem(
         .padding(horizontal = 6.dp)
         .clip(MaterialTheme.shapes.small)
         .then(if (isSelected) Modifier.background(accent?.container ?: MaterialTheme.colorScheme.secondaryContainer) else Modifier)
-        .background(rememberFlashColor(flashKey))
+        .flashBackground(flashKey)
         .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
         .semantics { selected = isSelected }
         .padding(start = 22.dp + SIDEBAR_INDENT * depth, end = 6.dp),

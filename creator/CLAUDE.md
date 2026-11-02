@@ -439,7 +439,7 @@ asked (`ScreenshotImage`), and every step first
   also the ACP tool call's ID. Each step also carries the name the MCP client gave itself (`AiStep.clientName`, from the SDK's session). The workspace shows
   them in `AiActivityBar` (step number, the step before, the current one pulsing while it runs, each named after its client while
   steps come from more than one, a Follow switch), follows the AI to the Actor type and Event it works on,
-  and lights up the finished step's target (`rememberFlashColor`) in the editor and the sidebar (`ui/AiFollowing.kt`).
+  and lights up the finished step's target (`flashBackground`) in the editor and the sidebar (`ui/AiFollowing.kt`).
 - Tests talk to a real server on localhost through the SDK's client, run real shell commands, and play a fake session.
 
 ## Assistant (ACP)

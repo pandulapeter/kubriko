@@ -15,20 +15,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 
 /**
- * A background color that lights up in [color] whenever [key] becomes a new non-null value and then fades away, to show
- * what just changed.
+ * Draws a background that lights up in [color] whenever [key] becomes a new non-null value and then fades away, to show
+ * what just changed. The animation is read while drawing, so it doesn't recompose what it is on.
  */
 @Composable
-internal fun rememberFlashColor(key: Any?, color: Color = MaterialTheme.colorScheme.tertiary): Color {
+internal fun Modifier.flashBackground(key: Any?, color: Color = MaterialTheme.colorScheme.tertiary): Modifier {
     val strength = remember { Animatable(0f) }
     LaunchedEffect(key) {
         if (key != null) strength.snapTo(1f)
         strength.animateTo(0f, tween(if (key == null) FADE_OUT_DURATION else FLASH_DURATION))
     }
-    return color.copy(alpha = MAXIMUM_ALPHA * strength.value)
+    return drawBehind { drawRect(color.copy(alpha = MAXIMUM_ALPHA * strength.value)) }
 }
 
 private const val FLASH_DURATION = 1800

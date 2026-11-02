@@ -42,7 +42,6 @@ import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
-import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_event
 import kubriko.creator.generated.resources.action_override_event

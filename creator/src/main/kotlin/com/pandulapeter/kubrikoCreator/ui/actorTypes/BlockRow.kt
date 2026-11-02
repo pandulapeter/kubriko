@@ -40,7 +40,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.accentEdge
-import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
+import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_drag_block
 import kubriko.creator.generated.resources.action_remove
@@ -86,7 +86,7 @@ internal fun BlockRow(
         .clip(MaterialTheme.shapes.small)
         .background(if (nesting.role == BlockNesting.Role.PLAIN) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
         .accentEdge(BlockKind.of(block).category.accent.color)
-        .background(rememberFlashColor(flashKey, BlockKind.of(block).category.accent.color))
+        .flashBackground(flashKey, BlockKind.of(block).category.accent.color)
         .padding(start = 8.dp, top = 2.dp, bottom = 6.dp),
     verticalArrangement = Arrangement.spacedBy(2.dp),
 ) {
