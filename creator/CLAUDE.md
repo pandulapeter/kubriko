@@ -473,7 +473,8 @@ Antigravity writes its skills there). Every agent's requests for Creator's own t
 command line (`CustomAgentCommand`: variables set in front, then the program, found through the login shell when named without a
 folder, and its arguments); only Claude Agent is tested (`RegistryAgent.isTested`), and every other agent shows as untested. The registry's agents
 (`AgentRegistry`: npx first, then this platform's build, then uvx, Claude Agent pinned to its checked version and first, an entry it can't read left out) come from
-`AgentRegistryStore`, cached as `agent-registry.json` in the settings folder and fetched again at every start; a remembered agent is
+`AgentRegistryStore`, cached as `agent-registry.json` in the settings folder and fetched again at every start (a fetched list none of
+whose entries it can read keeps the cache); a remembered agent is
 resolved from the cache before the first conversation starts. A uvx agent without `uvx` fails with `UV_MISSING`. A binary agent (Google Antigravity, Cursor, goose, and others) is
 downloaded on its first start by `BinaryAgentInstaller` into `tools/agents/<id>/<version>` in the settings folder (checked against
 the registry's SHA-256 where it gives one; zips unpacked in Kotlin, refusing entries outside the folder, tar archives by the

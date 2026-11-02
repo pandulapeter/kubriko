@@ -26,11 +26,14 @@ internal object AgentRegistry {
 
     /**
      * @param platform This platform's key in the registry's binary distributions ([platformKey]).
-     * @throws kotlinx.serialization.SerializationException If [text] isn't the registry's format.
+     * @throws kotlinx.serialization.SerializationException If [text] isn't the registry's format, or lists agents none of
+     * which can be read.
      */
     fun parse(text: String, platform: String?): List<RegistryAgent> {
-        val others = json.decodeFromString(Registry.serializer(), text).agents
-            .mapNotNull(::entryOf)
+        val elements = json.decodeFromString(Registry.serializer(), text).agents
+        val entries = elements.mapNotNull(::entryOf)
+        if (entries.isEmpty() && elements.isNotEmpty()) throw SerializationException("None of the registry's agents could be read.")
+        val others = entries
             .filter { it.id != RegistryAgent.claude.id }
             .mapNotNull { entry -> entry.distribution.forPlatform(platform)?.let { RegistryAgent(entry.id, entry.name, entry.version, it) } }
             .sortedBy { it.name.lowercase() }

@@ -63,6 +63,20 @@ class AgentRegistryTest {
     }
 
     @Test
+    fun aRegistryOfOnlyUnreadableEntriesIsRejectedAndTheCacheStays() {
+        val unreadable = """{"agents": [{"id": 1}, {"id": "no-version", "name": "No version", "distribution": {}}]}"""
+        assertFailsWith<SerializationException> { AgentRegistry.parse(unreadable, "darwin-aarch64") }
+        assertEquals(listOf(RegistryAgent.claude), AgentRegistry.parse("""{"agents": []}""", "darwin-aarch64"))
+        val cache = File(directory, "agent-registry.json")
+        var response = REGISTRY
+        val store = AgentRegistryStore(cache, "darwin-aarch64") { response }
+        assertEquals(4, store.refresh()?.size)
+        response = unreadable
+        assertNull(store.refresh())
+        assertEquals(4, store.cached().size)
+    }
+
+    @Test
     fun platformsAreNamedAsTheRegistryNamesThem() {
         assertEquals("darwin-aarch64", AgentRegistry.platformKey("Mac OS X", "aarch64"))
         assertEquals("windows-x86_64", AgentRegistry.platformKey("Windows 11", "amd64"))
