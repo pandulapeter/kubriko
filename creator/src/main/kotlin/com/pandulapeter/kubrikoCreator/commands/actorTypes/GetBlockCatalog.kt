@@ -34,6 +34,7 @@ internal object GetBlockCatalog : ReadCommand<NoInput> {
         "which Events allow which Blocks (in an Actor type; a Manager type has no Blocks that need an Actor), and the properties of each Block."
     override val inputSerializer = NoInput.serializer()
     override val title = Res.string.command_get_block_catalog
+    override val readsProject = false
 
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(catalog)
 

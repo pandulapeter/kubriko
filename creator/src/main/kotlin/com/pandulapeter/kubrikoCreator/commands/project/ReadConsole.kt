@@ -24,6 +24,7 @@ internal object ReadConsole : ReadCommand<ReadConsole.Input> {
         "and the logs of the running game."
     override val inputSerializer = Input.serializer()
     override val title = Res.string.command_read_console
+    override val readsProject = false
 
     override suspend fun read(context: CommandContext, input: Input) = CommandOutcome.Success(context.console.value.takeLast(input.limit.coerceAtLeast(0)).toJsonArray())
 

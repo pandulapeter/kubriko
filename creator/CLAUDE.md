@@ -125,7 +125,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Kinds:** a `ReadCommand` is never recorded. A `WriteCommand`'s `validate` returns a `Rejection` in the user's words, and `apply`
   returns the inverse `Invocation` (none for git operations, which can't be undone); one that rewrites files without an inverse
   (discarding changes, the template upgrade) says `isRewritingFiles`, which clears the history. An `ActionCommand` (build, play)
-  runs outside the change lock.
+  runs outside the change lock; a `ReadCommand` runs under it, so an AI never reads a change half made (one that reads only
+  Creator's own knowledge says `readsProject = false`, so a download doesn't hold up edits).
 - **`CommandExecutor`** (one per workspace) applies changes one at a time. Consecutive changes with the same `mergeKey` (typing into
   one field) are one undo step, as are those `mergesWith` joins (the renames of one Property); steps of different conversations,
   or of an AI client and the user, never merge. A step that no longer validates, or whose type or Scene changed outside Kubriko

@@ -66,7 +66,8 @@ internal class CommandExecutor(
 
     /**
      * Applies [command] in the background, for user interface callbacks, reporting a rejection through [onRejected].
-     * A change that needs no disk or git access shows before this returns, so text fields never lag behind what was typed.
+     * A change that needs no disk or git access shows before this returns, unless an AI tool call holds the change lock, so
+     * text fields never lag behind what was typed.
      */
     fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit = {}) {
         scope.launch(start = CoroutineStart.UNDISPATCHED) { execute(invocation).report(onSuccess) }
@@ -185,7 +186,7 @@ internal class CommandExecutor(
         var rejection: Rejection? = null
         try {
             val outcome = when (command) {
-                is ReadCommand -> command.read(context, input)
+                is ReadCommand -> if (command.readsProject) changes.withLock { command.read(context, input) } else command.read(context, input)
                 is WriteCommand -> execute(Invocation(command, input), origin, isByAi = true)
                 is ActionCommand -> command.run(context, input)
             }

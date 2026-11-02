@@ -32,6 +32,7 @@ internal object GetKubrikoApi : ReadCommand<GetKubrikoApi.Input> {
         "object, with its documentation, at the project's Kubriko version."
     override val inputSerializer = Input.serializer()
     override val title = Res.string.command_get_kubriko_api
+    override val readsProject = false
     private val sources by lazy { KubrikoSources(CreatorConfiguration.load().kubrikoVersion, File(settingsDirectory(), "tools/kubriko-sources")) }
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {

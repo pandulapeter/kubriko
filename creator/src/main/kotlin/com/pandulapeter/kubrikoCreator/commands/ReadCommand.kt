@@ -14,5 +14,14 @@ package com.pandulapeter.kubrikoCreator.commands
  */
 internal interface ReadCommand<I> : EditorCommand<I> {
 
+    /**
+     * Whether it reads the open project, and so waits for a change in progress; false for one that reads only Kubriko
+     * Creator's own knowledge.
+     */
+    val readsProject: Boolean get() = true
+
+    /**
+     * Reports what [input] asks for. Runs while no change is being made (when [readsProject]), so it must not make one.
+     */
     suspend fun read(context: CommandContext, input: I): CommandOutcome
 }

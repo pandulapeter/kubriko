@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
+import com.pandulapeter.kubrikoCreator.commands.project.GetKubrikoApi
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
@@ -28,10 +29,13 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -43,6 +47,7 @@ import kubriko.creator.generated.resources.command_add_block
 import kubriko.creator.generated.resources.command_create_actor_type
 import kubriko.creator.generated.resources.command_edit_block
 import kubriko.creator.generated.resources.command_read_actor_type
+import kubriko.creator.generated.resources.command_read_console
 import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_changed_outside
@@ -460,5 +465,83 @@ class CommandExecutorTest {
         assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
         assertEquals(0, failingReads)
         assertEquals(SceneDocument.format(listOf(placed)), context.scenes.read("level"))
+    }
+
+    private val gate = CompletableDeferred<Unit>()
+
+    /**
+     * Changes the Ball type, waits for [gate], then makes the Scene `level` hold an Actor of the type `After`.
+     */
+    private val gatedChange = object : WriteCommand<NoInput> {
+        override val name = "gated"
+        override val description = "gated"
+        override val inputSerializer = NoInput.serializer()
+        override val title = Res.string.command_set_appearance
+
+        override fun validate(context: CommandContext, input: NoInput): Rejection? = null
+
+        @OptIn(EditorMutation::class)
+        override suspend fun apply(context: CommandContext, input: NoInput): Applied {
+            context.blockTypes!!.put(ball.copy(width = 99f))
+            gate.await()
+            context.scenes.write("level", SceneDocument.format(listOf(SceneActorEntry("After", "{}", "a"))))
+            return Applied(inverse = null)
+        }
+    }
+
+    @OptIn(EditorMutation::class)
+    private fun TestScope.gatedExecutor(registry: CommandRegistry = CommandRegistry.editor) = commandContext(ball).apply {
+        scenes.write("level", SceneDocument.format(listOf(SceneActorEntry("Before", "{}", "b"))))
+    }.let { context ->
+        CommandExecutor(context = context, scope = testScope(), registry = registry).also { executor ->
+            launch { executor.execute(Invocation(gatedChange, NoInput)) }
+            runCurrent()
+        }
+    }
+
+    @Test
+    fun aReadWaitsForAChangeInProgress() = runTest {
+        val executor = gatedExecutor()
+        var outcome: CommandOutcome? = null
+        launch { outcome = executor.call("read_scene", buildJsonObject { put("scene", "level") }) }
+        runCurrent()
+        assertNull(outcome)
+        gate.complete(Unit)
+        advanceUntilIdle()
+        val result = assertIs<CommandOutcome.Success>(outcome).result.toString()
+        assertTrue("After" in result && "Before" !in result, result)
+    }
+
+    @Test
+    fun readsDontBlockEachOtherAndActionsDontWaitForAChange() = runTest {
+        val (executor, _) = executor(ball)
+        assertIs<CommandOutcome.Success>(executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball") }))
+        assertIs<CommandOutcome.Success>(executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball") }))
+        val held = gatedExecutor()
+        var outcome: CommandOutcome? = null
+        launch { outcome = held.call("wait", buildJsonObject { put("milliseconds", 10) }) }
+        runCurrent()
+        assertIs<CommandOutcome.Success>(outcome)
+        gate.complete(Unit)
+    }
+
+    @Test
+    fun aReadOfCreatorsOwnKnowledgeDoesntWaitForAChange() = runTest {
+        val ownKnowledge = object : ReadCommand<NoInput> {
+            override val name = "own_knowledge"
+            override val description = "own_knowledge"
+            override val inputSerializer = NoInput.serializer()
+            override val title = Res.string.command_read_console
+            override val readsProject = false
+
+            override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(JsonPrimitive("known"))
+        }
+        val executor = gatedExecutor(CommandRegistry(listOf(ownKnowledge)))
+        var outcome: CommandOutcome? = null
+        launch { outcome = executor.call("own_knowledge", JsonObject(emptyMap())) }
+        runCurrent()
+        assertEquals(CommandOutcome.Success(JsonPrimitive("known")), outcome)
+        gate.complete(Unit)
+        assertFalse(GetKubrikoApi.readsProject)
     }
 }
