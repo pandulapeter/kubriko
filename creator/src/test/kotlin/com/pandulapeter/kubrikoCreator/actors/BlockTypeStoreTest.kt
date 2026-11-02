@@ -538,6 +538,72 @@ class BlockTypeStoreTest {
         assertFalse(File(root, ".kubriko/actors/Ball.json").exists())
     }
 
+    @Test
+    fun aMovedTypeLeavesNoOldFile() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.load()
+        store.save(ball.withFolder("a"))
+        store.save(ball.withFolder("b"))
+        assertFalse(File(root, ".kubriko/actors/a/Ball.json").exists())
+        assertTrue(File(root, ".kubriko/actors/b/Ball.json").isFile)
+        store.save(ball.withFolder("a"))
+        assertFalse(File(root, ".kubriko/actors/b/Ball.json").exists())
+        assertEquals(listOf(ball.withFolder("a")), store.load().types)
+    }
+
+    @Test
+    fun deleteRemovesEveryFileOfTheName() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.load()
+        store.save(ball)
+        store.save(ManagerTypeDefinition(name = "Ball"))
+        store.delete("Ball")
+        assertFalse(File(root, ".kubriko/actors/Ball.json").exists())
+        assertFalse(File(root, ".kubriko/managers/Ball.json").exists())
+    }
+
+    @Test
+    fun aStoreUsedBeforeLoadingStillFindsOldFiles() {
+        optIn()
+        BlockTypeStore.open(root)!!.save(ball.withFolder("old"))
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball.withFolder("new"))
+        assertFalse(File(root, ".kubriko/actors/old/Ball.json").exists())
+        assertTrue(File(root, ".kubriko/actors/new/Ball.json").isFile)
+    }
+
+    @Test
+    fun aFileCopiedInAfterLoadingIsLeftForTheNextLoadToReport() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball)
+        store.load()
+        File(root, ".kubriko/actors/Ball.json").copyTo(File(root, ".kubriko/actors/toys/Ball.json"))
+        store.save(ball.withFolder("balls"))
+        assertTrue(File(root, ".kubriko/actors/toys/Ball.json").isFile)
+        assertFalse(File(root, ".kubriko/actors/Ball.json").exists())
+        assertEquals(
+            listOf(".kubriko/actors/balls/Ball.json", ".kubriko/actors/toys/Ball.json"),
+            store.load().unreadableFiles.map { it.path },
+        )
+    }
+
+    @Test
+    fun anUnreadableFileIsNeverDeletedThroughTheIndex() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val broken = File(root, ".kubriko/actors/toys/Ball.json").apply { parentFile.mkdirs() }.apply { writeText("not JSON") }
+        store.load()
+        store.save(ball.withFolder("balls"))
+        store.save(ball)
+        store.delete("Ball")
+        assertEquals("not JSON", broken.readText())
+        assertFalse(File(root, ".kubriko/actors/balls/Ball.json").exists())
+        assertFalse(File(root, ".kubriko/actors/Ball.json").exists())
+    }
+
     private fun BlockTypeStore.saveAndRegenerate(definition: BlockTypeDefinition): Set<String> {
         save(definition)
         return regenerateAll().changedByHand

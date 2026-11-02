@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.benchmark
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -64,6 +65,28 @@ class CreatorBenchmarkTest {
             scope.cancel()
             executor.shutdown()
             parentDirectory.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun timeSavingEveryTypeOfALargeProject() {
+        assumeTrue(System.getenv("KUBRIKO_CREATOR_BENCHMARK") == "true")
+        val directory = createTempDirectory().toFile()
+        try {
+            File(directory, BlockTypeStore.SETTINGS_FILE).apply { parentFile.mkdirs() }.writeText("""{ "packageName": "${BenchmarkProject.PACKAGE_NAME}" }""")
+            val store = checkNotNull(BlockTypeStore.open(directory))
+            val types = List(SAVED_TYPE_COUNT) { index -> ActorTypeDefinition(name = BenchmarkProject.actorTypeName(index)).withFolder("folder${index % 10}") }
+            types.forEach(store::save)
+            store.load()
+            // The first rounds warm the JIT up, so only the last one's time is printed.
+            repeat(SAVE_ROUND_COUNT) { round ->
+                val start = System.nanoTime()
+                types.forEach(store::save)
+                val time = System.nanoTime() - start
+                if (round == SAVE_ROUND_COUNT - 1) println("BENCHMARK %-80s total %8.1f ms".format("Save $SAVED_TYPE_COUNT types in a project of $SAVED_TYPE_COUNT", time / 1e6))
+            }
+        } finally {
+            directory.deleteRecursively()
         }
     }
 
@@ -153,6 +176,8 @@ class CreatorBenchmarkTest {
 
     private companion object {
         const val TYPING_COUNT = 10
+        const val SAVED_TYPE_COUNT = 200
+        const val SAVE_ROUND_COUNT = 3
         const val TIMEOUT_IN_MILLISECONDS = 15 * 60 * 1000L
     }
 }

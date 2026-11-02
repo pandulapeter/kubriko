@@ -38,11 +38,25 @@ internal class BlockTypeStore private constructor(
      */
     private var unreadableFiles = emptySet<File>()
 
+    /**
+     * The definition files of each kind by name, as the last [load] found them and [save] and [delete] changed them since,
+     * so that a write needn't walk the definitions folder. Until the first [load] ([isIndexed]), writes walk it instead.
+     */
+    private val filesByName = HashMap<BlockTypeKind, HashMap<String, MutableSet<File>>>()
+    private var isIndexed = false
+
+    /**
+     * Synchronized with [save] and [delete], which a write batch may run on another thread while a reload loads.
+     */
+    @Synchronized
     override fun load(): LoadedBlockTypes {
         val readable = ArrayList<Pair<String, BlockTypeDefinition>>()
         val unreadable = ArrayList<UnreadableBlockTypeFile>()
+        filesByName.clear()
         BlockTypeKind.entries.forEach { kind ->
+            val index = filesByName.getOrPut(kind) { HashMap() }
             definitionFiles(kind).forEach { file ->
+                index.getOrPut(file.nameWithoutExtension) { HashSet() } += file
                 val path = file.relativeTo(rootDirectory).invariantSeparatorsPath
                 val definition = try {
                     decode(kind, file.readText()).withFolder(folderOf(kind, file))
@@ -69,6 +83,7 @@ internal class BlockTypeStore private constructor(
             }
         }
         unreadableFiles = unreadable.mapTo(HashSet()) { File(rootDirectory, it.path) }
+        isIndexed = true
         return LoadedBlockTypes(types.sortedBy { it.name }, unreadable.sortedBy { it.path })
     }
 
@@ -100,8 +115,12 @@ internal class BlockTypeStore private constructor(
     }
 
     /**
-     * Writes [definition], without regenerating any code ([regenerate] does that, once for many changes).
+     * Writes [definition], without regenerating any code ([regenerate] does that, once for many changes), and deletes the
+     * other files of its name and kind that the last [load] found or this store wrote since (those of a type moved to
+     * another folder). A file of the same name copied into another folder after that load is left alone, and the next
+     * load reports both as the same name held twice.
      */
+    @Synchronized
     override fun save(definition: BlockTypeDefinition) {
         val text = when (definition) {
             is ActorTypeDefinition -> json.encodeToString(ActorTypeDefinition.serializer(), definition)
@@ -109,15 +128,16 @@ internal class BlockTypeStore private constructor(
         }
         val file = File(rootDirectory, definitionPath(definition))
         if (file in unreadableFiles) throw IOException("${file.path} couldn't be read, so it isn't written over.")
-        // A type moved to another folder leaves its old file behind otherwise.
-        definitionFiles(definition.kind).filter { it.nameWithoutExtension == definition.name && it != file && it !in unreadableFiles }.forEach { it.delete(); ownWrites.record(it) }
+        deleteDefinitionFiles(definition.kind, definition.name, except = file)
         file.parentFile.mkdirs()
         file.writeTextAtomically(text + "\n")
         ownWrites.record(file)
+        if (isIndexed) filesByName.getValue(definition.kind).getOrPut(definition.name) { HashSet() } += file
     }
 
+    @Synchronized
     override fun delete(name: String) {
-        BlockTypeKind.entries.forEach { kind -> definitionFiles(kind).filter { it.nameWithoutExtension == name && it !in unreadableFiles }.forEach { it.delete(); ownWrites.record(it) } }
+        BlockTypeKind.entries.forEach { kind -> deleteDefinitionFiles(kind, name) }
         generatedFile(name).delete()
         generatedTexts.remove(name)
         changedByHand.remove(name)
@@ -278,6 +298,29 @@ internal class BlockTypeStore private constructor(
     private fun definitionsDirectory(kind: BlockTypeKind) = File(rootDirectory, "$CREATOR_DIRECTORY/${definitionsFolder(kind)}")
 
     private fun definitionFiles(kind: BlockTypeKind) = definitionsDirectory(kind).walkTopDown().filter { it.isFile && it.extension == "json" }.toList()
+
+    private fun definitionFilesNamed(kind: BlockTypeKind, name: String): Set<File> = if (isIndexed) {
+        filesByName.getValue(kind)[name].orEmpty()
+    } else {
+        definitionFiles(kind).filterTo(HashSet()) { it.nameWithoutExtension == name }
+    }
+
+    /**
+     * Deletes the readable definition files of [name] and [kind] other than [except], keeping the index in step.
+     */
+    private fun deleteDefinitionFiles(kind: BlockTypeKind, name: String, except: File? = null) {
+        val deleted = definitionFilesNamed(kind, name).filter { it != except && it !in unreadableFiles }.onEach { file ->
+            file.delete()
+            ownWrites.record(file)
+        }
+        if (isIndexed && deleted.isNotEmpty()) {
+            val index = filesByName.getValue(kind)
+            index[name]?.let { files ->
+                files.removeAll { it in deleted && !it.exists() }
+                if (files.isEmpty()) index.remove(name)
+            }
+        }
+    }
 
     private fun folderOf(kind: BlockTypeKind, file: File) = file.parentFile.relativeTo(definitionsDirectory(kind)).invariantSeparatorsPath
 
