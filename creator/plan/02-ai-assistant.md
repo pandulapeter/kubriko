@@ -20,41 +20,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), and numbering steps per project
   rather than per run of Creator.
 
-## Next: in-app assistant panel
-
-A chat panel inside Creator, built in Compose, hosting the agent the user picks: Claude by default, signed in with the user's own Claude
-subscription or their API key, and any other agent of the ACP Registry beside it. Creator becomes an Agent Client
-Protocol (ACP) client, exactly as Android Studio is.
-
-### How Android Studio does it
-
-Read from Android Studio 2026.2.2's running processes and settings on October 29, 2026, while hosting this very conversation:
-
-- **The agent comes from the [ACP Registry](https://agentclientprotocol.com/registry)**
-  (`https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json`): its settings remember `lastSelectedAgentId` `claude-acp`,
-  and it starts that entry's `distribution`, `npx` → `@agentclientprotocol/claude-agent-acp@0.99.0`, as `npm exec` with the user's own
-  Node.js. Each entry has an `id`, `name`, `version`, `description`, `icon`, `license`, and a `distribution` of `npx` (package and args),
-  per-platform `binary` archives, or `uvx`. Codex is `codex-acp` (npx); 43 agents in all.
-- **The adapter** (`claude-agent-acp`, by Anthropic, Zed, and JetBrains, Apache-2.0; listed as "proprietary" because of what it runs)
-  speaks ACP over stdio and drives Claude Code through the Agent SDK, which starts the unmodified `claude` binary shipped in
-  `@anthropic-ai/claude-agent-sdk-<platform>` with `--input-format stream-json --output-format stream-json
-  --permission-prompt-tool=stdio --include-partial-messages --setting-sources=user,project,local --session-id=<id>`.
-- **Studio's tools reach Claude as an MCP server per conversation:** `--mcp-config` names
-  `http://127.0.0.1:<port>/mcp/conversations/<conversation id>` with a bearer token, and Claude's own `Bash`, `Read`, `Write`, and
-  `Edit` are disallowed (the client's `_meta.claudeCode.options` in `session/new`), so every change goes through Studio's tools,
-  which keep its buffers and undo in step. Studio's Android-specific system prompt is appended to Claude Code's own (ACP's
-  `systemPrompt` in `append` mode).
-- **Sign-in never passes through Studio:** no key or token is in the agent's environment; Claude Code uses its own stored login. The
-  adapter's `initialize` answer lists `authMethods`: "Claude Subscription" (`claude-ai-login`, which runs `claude auth login --claudeai`),
-  "Anthropic Console" (`console-login`, API billing), and custom gateways. A client that advertises terminal auth
-  (`clientCapabilities.auth.terminal`, or `_meta["terminal-auth"]`) gets the command and runs it in a terminal it shows, so sign-in
-  completes in Anthropic's own browser flow. The adapter pushes `_auth/status_update` with the identity in use (subscription, API key,
-  gateway, or none), probed with `claude auth status --json` at start and at every prompt.
-- **Model, mode, and effort** are ACP session config options; Studio keeps the user's choice (`acpConfigOptions` → `opus`).
-
-### What Creator needs
-
-All of it lives in a new `ai/assistant` package; the MCP connection for outside clients stays as it is.
+## The assistant panel
 
 1. **ACP client** (`AcpAgent`, see `../CLAUDE.md` → Assistant): move to protocol version 2 once it is final (the adapter serves its
    draft).
@@ -81,15 +47,9 @@ binary, from npm the first time an agent is chosen. Bundling it would mean redis
 Claude Code, which the terms tie to the Commercial Terms. Claude Code keeps its login in its own credential store, so a user already
 signed in to `claude` is signed in in Creator too.
 
-**Dropped:** the direct Anthropic Java SDK backend this plan used to lead with. Claude Agent over ACP takes an API key just as well,
-so one path serves both kinds of user and brings Claude Code's agent loop, compaction, and subagents with it. Revisit only if the
-Node.js requirement proves a problem. Local models need no backend of their own either: registry agents such as goose and OpenCode
-talk to an OpenAI-compatible local server (Ollama, LM Studio, Foundry Local). Apple's on-device model is too small for Creator's tool list
-(a 4,096-token context against about 6,000 tokens of tools, checked October 2026).
-
 ### What the terms allow
 
-Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) page, read October 29, 2026:
+Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) page:
 
 - Third-party apps may not offer Claude.ai login of their own, route requests through a user's plan themselves, or collect,
   store, or intermediate Claude.ai credentials; sign-in must complete through Anthropic's own flow. Creator never does: Claude Code
@@ -102,14 +62,13 @@ Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-c
   names: the panel says "Assistant", the agent is "Claude Agent" as the registry names it, and showing the registry's icon is checked
   against Anthropic's trademark guidelines first.
 
-Android Studio, Zed, and JetBrains IDEs host the same adapter the same way, and the page now covers hosting explicitly, so this no longer
-blocks building. Before release, confirm with Anthropic (the page points to sales) whether a free, MPL-2.0 desktop app that launches the
-adapter needs to accept the Commercial Terms itself, naming Android Studio as the precedent.
+Android Studio, Zed, and JetBrains IDEs host the same adapter the same way. Before release, confirm with Anthropic (the page points
+to sales) whether a free, MPL-2.0 desktop app that launches the adapter needs to accept the Commercial Terms itself, naming Android
+Studio as the precedent.
 
 ### Other agents and services
 
-Agents come and go faster than Creator can follow them: Gemini CLI, listed in the registry in October 2026, stopped serving
-individuals by November 2026 in favor of Antigravity. So Creator writes as little per-agent code as it can. Claude Agent is the one
+Agents come and go faster than Creator can follow them, so Creator writes as little per-agent code as it can. Claude Agent is the one
 agent it fully supports. Every other agent runs on generic fallbacks, chosen from what its `initialize` answer advertises, and is
 marked untested in the list; when a vendor renames, retires, or replaces an agent, the registry changes and Creator follows without
 code of its own.
@@ -130,9 +89,9 @@ Assistant, for the fallbacks that exist): Claude's is the only one. What is left
 A profile is written only for an agent that is popular, stable, and checked in a real session, and only for what the fallbacks
 can't do. The one candidate so far:
 
-| Agent | Known (read October 29, 2026) | To check |
+| Agent | Known | To check |
 |---|---|---|
-| Codex (`codex-acp` 2.4.0, npx, Apache-2.0) | Takes client MCP servers over HTTP; ChatGPT login, `CODEX_API_KEY` / `OPENAI_API_KEY`, or a custom gateway; `INITIAL_AGENT_MODE=read-only` and a sandbox mode; `CODEX_CONFIG` merged into its session config; ships its own `@openai/codex`. | The system prompt through `CODEX_CONFIG` (Codex's developer instructions) or leading text; whether read-only still lets MCP tools run; `CODEX_HOME` for accounts. Out of quota on this Mac until November 21, 2026. |
+| Codex (`codex-acp` 2.4.0, npx, Apache-2.0) | Takes client MCP servers over HTTP; ChatGPT login, `CODEX_API_KEY` / `OPENAI_API_KEY`, or a custom gateway; `INITIAL_AGENT_MODE=read-only` and a sandbox mode; `CODEX_CONFIG` merged into its session config; ships its own `@openai/codex`. | The system prompt through `CODEX_CONFIG` (Codex's developer instructions) or leading text; whether read-only still lets MCP tools run; `CODEX_HOME` for accounts. |
 
 The registry's other agents are listed with the fallbacks alone and marked untested, and a custom agent gets them too.
 
@@ -142,8 +101,7 @@ Agent's gateway sign-in (offered when the client advertises `auth._meta.gateway`
 OpenCode or goose. Creator keeps only the keys and addresses the user gives it, in the keychain, never a login.
 
 **Terms per vendor:** an agent a vendor publishes in the ACP Registry is taken as meant for hosting in clients like Creator, so its
-terms don't gate it (the user's decision, November 2026, after Google Antigravity's terms turned out to bar "third party software"
-while Google lists the same server for other editors). Names and icons still follow each vendor's trademark rules.
+terms don't gate it (the user's decision). Names and icons still follow each vendor's trademark rules.
 
 ## Context for large games
 
