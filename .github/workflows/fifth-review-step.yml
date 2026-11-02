@@ -118,6 +118,8 @@ jobs:
               "Bash(ls:*)" "Bash(cat:*)" "Bash(head:*)" "Bash(tail:*)" "Bash(wc:*)" "Bash(grep:*)" "Bash(find:*)" \
               "Bash(sed:*)" "Bash(awk:*)" "Bash(sort:*)" "Bash(uniq:*)" "Bash(diff:*)" "Bash(test:*)" "Bash(tr:*)" \
               "Bash(mkdir:*)" "Bash(cp:*)" "Bash(mv:*)" "Bash(rm:*)" "Bash(jq:*)" "Bash(echo:*)" "Bash(cd:*)" \
+              "Bash(printenv:*)" "Bash(paste:*)" "Bash(bc:*)" "Bash(cut:*)" "Bash(xargs:*)" "Bash(touch:*)" \
+              "Bash(basename:*)" "Bash(dirname:*)" "Bash(git check-ignore:*)" "Bash(git stash list)" \
             --disallowedTools "Bash(git push --force:*)" "Bash(git push -f:*)" "Bash(git rebase:*)" "Bash(git reset --hard:*)" \
               "WebFetch" "WebSearch" \
             --max-budget-usd "$BUDGET" --output-format stream-json --verbose \
@@ -156,7 +158,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          body="$RUNNER_TEMP/pr-body.md"
+          body="build/scratch/pr-body.md"; mkdir -p build/scratch
           [ -s "$body" ] || echo "Lands the remaining plans of the fifth review; see the commits." > "$body"
           if gh pr view "$BRANCH" --json number >/dev/null 2>&1; then
             gh pr edit "$BRANCH" --body-file "$body"

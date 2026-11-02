@@ -22,7 +22,7 @@ batches already landed every plan whose file is gone from `issues/`.
    improvise another fix. Append one line `- <ID>: <why>` to `issues/SKIPPED.md`, commit that alone
    (`Skip review plan <ID>, <why in a few words>.`), push, and move on.
 3. Add the tests it asks for. They must fail without the fix; show it by setting your main changes aside (copy them to
-   `$RUNNER_TEMP`), checking those paths out, running the test, and copying them back. Never `git stash`.
+   `build/scratch/`, which git ignores), checking those paths out, running the test, and copying them back. Never `git stash`.
 4. Update the `CLAUDE.md` lines, package guides, and `strings.xml` entries it names.
 5. Verify:
    - `./gradlew :creator:test` (the whole suite) and `./gradlew :creator:spotlessApply`;
@@ -47,7 +47,10 @@ batches already landed every plan whose file is gone from `issues/`.
   fails without the fix, after the plan that exposed it, push it, and add it to the log under `Extra fixes`.
 - **Git:** never branch, merge, rebase, force-push, bump a version, publish, or dispatch a workflow.
 - **Scope:** never edit `.github/workflows/fifth-review-*.yml` or `issues/pipeline/`.
-- **Scratch files** go to `$RUNNER_TEMP`.
+- **Scratch files** go to `build/scratch/` in the checkout (git ignores it); edits outside the checkout are refused.
+- **Shell:** only plain commands are allowed (git, `./gradlew`, `python3 .github/scripts/…`, and the usual read-only tools).
+  Don't start a command with a variable assignment (`F=… && cp`), don't run inline Python or heredoc scripts, and don't
+  write through `cat >`; use the Read, Edit, and Write tools for files, and full paths instead of variables.
 
 ## The log entry for each plan
 
