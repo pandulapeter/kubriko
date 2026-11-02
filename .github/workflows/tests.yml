@@ -53,7 +53,7 @@ jobs:
       # Android's ICU refuses a regular expression's bare brace the JVM, and so every test, accepts.
       - name: Check the regular expressions' braces
         run: python3 .github/scripts/check_regexes.py
-      # A pull request or a push to main pushes no Kotlin file or top-level function past the code-style skill's
+      # A pull request or a push to main pushes no Kotlin file or function past the code-style skill's
       # limits; what was past them already may change. A push is judged against what main was before it, all of its
       # commits together.
       - name: Check the file and function sizes

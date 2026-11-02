@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.kt|*.kts) jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",additionalContext:\"Kubriko code-style skill applies to this Kotlin file (.claude/skills/code-style/SKILL.md): comment with restraint (do not narrate routine code); use KDoc (/** */), never //, for any declaration-level doc; document 100% of public API in published modules; never explain already-fixed bugs; prefer clear names over comments; keep main files under 500 lines and top-level functions (Composables above all) under 120, so split while writing; match the surrounding file style.\"}}' ;; esac",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.kt|*.kts) jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",additionalContext:\"Kubriko code-style skill applies to this Kotlin file (.claude/skills/code-style/SKILL.md): comment with restraint (do not narrate routine code); use KDoc (/** */), never //, for any declaration-level doc; document 100% of public API in published modules; never explain already-fixed bugs; prefer clear names over comments; keep main files under 500 lines and functions (Composables above all, and members of classes and objects) under 120, so split while writing; match the surrounding file style.\"}}' ;; esac",
             "statusMessage": "Loading code-style conventions"
           }
         ]

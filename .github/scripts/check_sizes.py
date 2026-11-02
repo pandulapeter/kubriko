@@ -9,8 +9,8 @@
 """
 Keeps a change from pushing a file or a function past the sizes the code-style skill sets.
 
-Main Kotlin sources (tests are left out) should be at most FILE_LINES lines long, and a top-level function — a
-Composable above all — at most FUNCTION_LINES. Data tables can be exempted by name in EXEMPT.
+Main Kotlin sources (tests are left out) should be at most FILE_LINES lines long, and a function (top-level or a
+member of a class, object, or interface) — a Composable above all — at most FUNCTION_LINES. Data tables can be exempted by name in EXEMPT.
 
 Only crossing a limit fails: a Kotlin file or function within it before the change and past it after. What was already
 past it may grow or shrink, since splitting it is a refactor of its own that a review sweep plans, so no list of
@@ -39,10 +39,15 @@ EXEMPT = ()
 
 
 DECLARATION = re.compile(
-    r"^(?:(?:public|internal|private|protected|inline|suspend|operator|infix|override|actual|expect|tailrec|external)\s+)*fun\s"
+    r"^(\s*)(?:@[\w.]+(?:\([^)]*\))?\s+)*(?:(?:public|internal|private|protected|inline|suspend|operator|infix|override|actual|"
+    r"expect|tailrec|external|open|abstract|final)\s+)*fun\s+(?!interface\b)"
+)
+CLASS_HEADER = re.compile(
+    r"^\s*(?:@[\w.]+(?:\([^)]*\))?\s+)*(?:(?:public|internal|private|protected|inner|value|inline|annotation|abstract|open|"
+    r"final|sealed|data|enum|fun|companion|actual|expect|external)\s+)*(?:(?:class|interface)\s+([\w`]+)|object\b\s*([\w`]+)?)"
 )
 FUNCTION_NAME = re.compile(r"fun\s+(?:<[^>]*>\s*)?([\w.`]+(?:<[^>]*>)?[\w.`]*)\s*\(")
-TEST_SOURCES = re.compile(r"/src/\w*[Tt]est/")
+TEST_SOURCES = re.compile(r"/src/\w*[Tt]est(?:Fixtures)?/")
 CONTINUATION = tuple(".?:+-*/&|=")
 
 
@@ -88,35 +93,85 @@ def code_only(lines):
     return result
 
 
-def top_level_functions(text):
-    """(name, first line, length in lines) of every function declared at the top level of a Kotlin file."""
+def function_end(code, start):
+    """The last line of the function declared on a line: where its brackets close, or the last line its expression
+    body continues on, a line indented deeper than the declaration that starts with a continuation character."""
+    indentation = len(code[start]) - len(code[start].lstrip())
+    depth = 0
+    has_opened = False
+    end = start
+    while end < len(code):
+        for character in code[end]:
+            if character in "([{":
+                depth += 1
+                has_opened = True
+            elif character in ")]}":
+                depth -= 1
+        if has_opened and depth == 0 and not code[end].rstrip().endswith("="):
+            following = next((line for line in code[end + 1:] if line.strip()), "")
+            if not (len(following) - len(following.lstrip()) > indentation and following.strip().startswith(CONTINUATION)):
+                return end
+        end += 1
+    return len(code) - 1
+
+
+def class_name(code_line):
+    """The name a class, object, or interface header opens a body for, "Companion" for an unnamed companion object,
+    "" for an anonymous object, and None for a line that is not such a header."""
+    header = CLASS_HEADER.match(code_line)
+    if not header:
+        return None
+    if header.group(1):
+        return header.group(1)
+    if header.group(2):
+        return header.group(2)
+    return "Companion" if re.search(r"\bcompanion\s+object\b", code_line) else ""
+
+
+def functions(text):
+    """(qualified name, first line, length in lines) of every function of a Kotlin file that is not inside another
+    function: top-level ones and members of classes, objects, and interfaces at any depth, named "Outer.Inner.name"."""
     lines = text.split("\n")
     code = code_only(lines)
-    functions = []
-    start = 0
-    while start < len(code):
-        if not DECLARATION.match(code[start]):
-            start += 1
+    found = []
+    enclosing = []
+    pending = None
+    braces = 0
+    parentheses = 0
+    index = 0
+    while index < len(code):
+        if DECLARATION.match(code[index]):
+            end = function_end(code, index)
+            name = FUNCTION_NAME.search(lines[index])
+            name = name.group(1) if name else lines[index].strip()
+            found.append((".".join([outer for outer, _ in enclosing] + [name]), index + 1, end - index + 1))
+            braces += sum(line.count("{") - line.count("}") for line in code[index:end + 1])
+            pending = None
+            index = end + 1
             continue
-        depth = 0
-        has_opened = False
-        end = start
-        while end < len(code):
-            for character in code[end]:
-                if character in "([{":
-                    depth += 1
-                    has_opened = True
-                elif character in ")]}":
-                    depth -= 1
-            if has_opened and depth == 0 and not code[end].rstrip().endswith("="):
-                following = next((line for line in code[end + 1:] if line.strip()), "")
-                if not (following[:1].isspace() and following.strip().startswith(CONTINUATION)):
-                    break
-            end += 1
-        name = FUNCTION_NAME.search(lines[start])
-        functions.append((name.group(1) if name else lines[start].strip(), start + 1, end - start + 1))
-        start = end + 1
-    return functions
+        header = class_name(code[index])
+        if header is not None:
+            pending = header
+            parentheses = 0
+        for character in code[index]:
+            if character in "([":
+                parentheses += 1
+            elif character in ")]":
+                parentheses -= 1
+            elif character == "{":
+                braces += 1
+                if pending is not None and parentheses <= 0:
+                    if pending:
+                        enclosing.append((pending, braces))
+                    pending = None
+            elif character == "}":
+                if enclosing and enclosing[-1][1] == braces:
+                    enclosing.pop()
+                braces -= 1
+        if pending is not None and parentheses <= 0 and not code[index].rstrip().endswith((",", ":")):
+            pending = None
+        index += 1
+    return found
 
 
 def measure(paths, read):
@@ -126,7 +181,7 @@ def measure(paths, read):
         if is_main_kotlin(path):
             text = read(path)
             sizes[path] = (text.count("\n") + (0 if text.endswith("\n") else 1), FILE_LINES, "lines")
-            for name, _, length in top_level_functions(text):
+            for name, _, length in functions(text):
                 key = f"{path}::{name}"
                 if key not in sizes or sizes[key][0] < length:
                     sizes[key] = (length, FUNCTION_LINES, "lines")
