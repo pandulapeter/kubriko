@@ -18,8 +18,9 @@ import com.pandulapeter.kubriko.serialization.SerializationManager
 /**
  * The opt-in contract between a game and Kubriko Creator.
  *
- * Kubriko Creator runs a project's Scenes in a separate process started from the project's own build, so it cannot
- * know how the game creates its [SerializationManager] or which Managers its Actors need. A project hands these over
+ * Kubriko Creator draws a project's Scenes with the project's own classes, built by the project's own build and loaded
+ * into Creator, and plays the game in a process of its own, so it cannot know how the game creates its
+ * [SerializationManager] or which Managers its Actors need. A project hands these over
  * by implementing this interface with a public class that has a no-argument constructor, and registering that class
  * as a Java service: a file named `META-INF/services/com.pandulapeter.kubriko.creator.CreatorEntryPoint` in the desktop
  * resources, containing the class's fully qualified name. Kubriko Creator generates both for the projects it manages.
@@ -31,8 +32,8 @@ interface CreatorEntryPoint {
     /**
      * Creates a new [SerializationManager] that knows every Actor type that can be placed in a Scene.
      *
-     * Called once per Scene editor session. The Scene editor disposes the returned instance when it closes, so this
-     * must return a new instance on every call.
+     * Called whenever Kubriko Creator shows a Scene with a new build of the project's classes. Kubriko Creator disposes
+     * the returned instance when it stops showing them, so this must return a new instance on every call.
      */
     fun createSerializationManager(): SerializationManager<EditableMetadata<*>, Editable<*>>
 
