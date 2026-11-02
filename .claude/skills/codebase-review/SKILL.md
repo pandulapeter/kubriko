@@ -1,6 +1,6 @@
 ---
 name: codebase-review
-description: The Kubriko review-sweep process — read-only area reviewers plus a CLAUDE.md reviewer in every sweep; verified findings that are simple are fixed on the spot during the review, one commit each; complex ones become one plan file each, indexed by a README.md into parallel lanes with an EXECUTION.md orchestrator brief; and later the execution of those plans (one worktree per lane, one one-line commit per fix, merged in a fixed lane order). Invoke this skill WHENEVER the user asks to review, audit or sweep the codebase (or an area, a platform, performance, stability, "before release/launch"), OR asks to execute, carry out or land the plans in issues/ (or "follow EXECUTION.md"). Not for reviewing a single diff or PR — that is /code-review.
+description: The Kubriko review-sweep process — read-only area reviewers plus a scoped check of the CLAUDE.md files under the paths changed since the last sweep; verified findings that are simple are fixed on the spot during the review, one commit each; complex ones become one plan file each, indexed by a README.md into parallel lanes with an EXECUTION.md orchestrator brief; and later the execution of those plans (one worktree per lane, one one-line commit per fix, merged in a fixed lane order). Invoke this skill WHENEVER the user asks to review, audit or sweep the codebase (or an area, a platform, performance, stability, "before release/launch"), OR asks to execute, carry out or land the plans in issues/ (or "follow EXECUTION.md"). Not for reviewing a single diff or PR — that is /code-review.
 ---
 
 # Codebase review sweeps
@@ -37,7 +37,7 @@ quality.
 1. **Area reviewers in parallel** — one `Agent` per area, all spawned in one message, each told: the commit, the
    angle, its area's files, what earlier sweeps settled (so it skips them), and that it must not edit anything. Each
    returns findings with file:line, the quoted code, a concrete failure scenario, severity, platforms, and a proposed
-   fix. Every sweep also has the docs reviewer of section 6. Optionally one agent does a **live run** (a stress run
+   fix. Every sweep also has the docs check of section 6. Optionally one agent does a **live run** (a stress run
    of the app at scale, a throttled link) and reports measurements.
 2. **Verify every finding against HEAD** — a second pass (you, or writer agents per area) re-reads the code, and where
    a pure function is involved, proves it with a throwaway test in the scratchpad or an untracked probe test that is
@@ -216,24 +216,24 @@ fixed during the review. Everything above still holds, with these additions.
 
 ## 6. The CLAUDE.md files, in every sweep
 
-Whatever the angle, one reviewer in step 1 reviews every `CLAUDE.md` file (and the skills' repo-specific sections)
-for three things. Its findings are almost always simple, so they are fixed during the review.
+The `CLAUDE.md` files exist to save tokens, so checking them must stay cheap. In every sweep, one agent on a cheaper
+model (section 0) checks **only** the `CLAUDE.md` files of the directories the last sweep's range touched
+(`git diff --name-only <previous review commit>..HEAD`, each changed path's nearest `CLAUDE.md` and its parents), plus
+those of the sweep's own area, and **only for false claims**: a class, function, file, setting, or behaviour named that
+the code contradicts (grep it). What is false is fixed or dropped, one commit per file; a rule the code no longer follows
+is either the code's bug (a finding) or the doc's (fixed). Run the stale-name script of the repository section first
+and hand the agent its output, so it reads the flagged lines rather than every file.
 
-- **Relevant**: each file holds only what a reader changing code there cannot see in the code — invariants, rules a
-  plausible change would break, the one-sentence why behind a surprising design, platform quirks. Narration of what the
-  code does, inventories (files, classes, tests, strings, parameters), history ("used to", review numbers, dates), and
-  long justifications are cut.
-- **Up to date**: every class, function, file, setting, and behaviour a file names is checked against the code (grep
-  it); what is false is fixed or dropped. A rule the code no longer follows is either the code's bug (a finding) or the
-  doc's (fixed).
-- **Not too long, and in the right place**: each level holds only what applies to everything below it — the root the
-  repository-wide rules, a module's file the module's, a package's file the package's — and never repeats its parent
-  or a sibling; a rule lives in one file and others point to it, or say nothing. Default budgets, unless the repository
-  section sets others: root ≤ 2,500 words, a module's ≤ 1,500, a package's ≤ 600 (`wc -w`). A file over budget is cut,
-  not split into more prose; a package with nothing non-obvious to say has no `CLAUDE.md`.
+Not in a sweep, unless the user asks for a docs audit:
+- **No trimming for budget, relevance, or placement.** A word budget matters only for what a change adds; cutting
+  narration across many files costs more tokens than the files save, and every cut then needs a read to prove no rule
+  was lost.
+- No full read of every file, and no regression read of docs-only commits beyond the fix agent's own diff check.
 
-The docs reviewer also reads the diff of the review's own fixes at the end, so that fixes leave the files as tight as
-they found them.
+What a `CLAUDE.md` should hold, for the edits a change makes anyway (and for an audit when asked): only what a reader
+changing code there cannot see in the code — invariants, rules a plausible change would break, the one-sentence why
+behind a surprising design, platform quirks; each rule in one file, at the level it applies to. Budgets for those
+edits, unless the repository section sets others: root ≤ 2,500 words, a module's ≤ 1,500, a package's ≤ 600 (`wc -w`).
 
 ## This repository: Kubriko
 
@@ -266,6 +266,8 @@ they found them.
   `./gradlew :creator:test`, a plain JVM test task that `desktopTest` doesn't run. Its plans go in `creator/plan/`, not
   `issues/`, as `creator/plan/README.md` says. Its `CLAUDE.md` holds rules and each feature's non-obvious behaviour in a few
   sentences, within about 4,000 words; its package guides keep the default 600.
+- **Stale names in docs:** `python3 .github/scripts/check_doc_names.py [paths…]` lists backticked names and paths in
+  `CLAUDE.md` files that occur nowhere in the code; the pre-commit hook runs it on staged `CLAUDE.md` files.
 - **Tests:** `./gradlew desktopTest`, or `./gradlew :<module>:desktopTest` for the modules a lane touched. A change to the
   web bridge's embedded JS also runs `node engine/src/webMain/checkTriangleBridge.mjs`.
 - **Compile checks:** `./gradlew :<module>:build` for each module touched; the Showcase on the platform a change is
