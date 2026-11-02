@@ -17,6 +17,6 @@ class ClosingTimeoutTest {
 
     @Test
     fun quittingOutlastsTheOpenProjectsWaitForItsWrites() {
-        assertTrue(CLOSING_TIMEOUT_IN_MILLISECONDS > CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS)
+        assertTrue(AppController.CLOSING_TIMEOUT_IN_MILLISECONDS > CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS)
     }
 }

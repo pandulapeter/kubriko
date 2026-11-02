@@ -13,6 +13,9 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
+import com.pandulapeter.kubrikoCreator.session.GameLaunch
+import com.pandulapeter.kubrikoCreator.session.GameProcess
+import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
@@ -24,12 +27,16 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_project_folder_not_empty
@@ -69,18 +76,83 @@ class AppControllerTest {
         recentProjectsStore = recentProjectsStore,
     )
 
-    private fun TestScope.workspace(scope: CoroutineScope) = WorkspaceController(
-        project = CreatorProject(rootDirectory = directory, name = "game"),
+    private val playingDirectory = File(temporaryDirectory, "playing")
+    private val playClasspathFile = SessionInitScript.playClasspathFileOf(playingDirectory)
+    private val gameStopped = CompletableDeferred<Unit>()
+
+    private fun TestScope.workspace(
+        scope: CoroutineScope,
+        rootDirectory: File = directory,
+        runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
+    ) = WorkspaceController(
+        project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
         build = FakeProjectBuild().also(builds::add),
         sessionChannel = FakeSessionChannel(),
         parentScope = scope,
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         scanResources = { _, _ -> emptyMap() },
+        runGame = runGame,
     )
+
+    /**
+     * A controller whose projects play a game that stops only once [gameStopped] completes, so closing one takes until then.
+     */
+    private fun TestScope.createSlowlyClosingController() = createController { directory, scope ->
+        openedDirectories += directory
+        workspace(scope, playingDirectory) { _, _ ->
+            try {
+                awaitCancellation()
+            } finally {
+                withContext(NonCancellable) { gameStopped.await() }
+            }
+        }
+    }
+
+    private fun AppController.openAndPlay() {
+        openProject(playingDirectory)
+        assertIs<AppScreen.Workspace>(screen.value).controller.play()
+        playClasspathFile.writeText("kubrikoVersion=1.0.0\nlaunch.java=/java\nlaunch.mainClass=M\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
+        builds.last().currentRun.finish(isSuccessful = true)
+    }
 
     @AfterTest
     fun tearDown() {
+        gameStopped.complete(Unit)
+        playClasspathFile.delete()
         temporaryDirectory.deleteRecursively()
+    }
+
+    @Test
+    fun reopeningAProjectWaitsUntilThePreviousOneClosed() = runTest {
+        val controller = createSlowlyClosingController()
+        controller.openAndPlay()
+        controller.openProject(playingDirectory)
+        assertEquals(AppScreen.Opening(playingDirectory), controller.screen.value)
+        assertEquals(1, openedDirectories.size)
+        gameStopped.complete(Unit)
+        assertEquals(2, openedDirectories.size)
+        assertIs<AppScreen.Workspace>(controller.screen.value)
+    }
+
+    @Test
+    fun reopeningGivesUpWaitingAfterTheTimeout() = runTest {
+        val controller = createSlowlyClosingController()
+        controller.openAndPlay()
+        controller.openProject(playingDirectory)
+        advanceTimeBy(AppController.CLOSING_TIMEOUT_IN_MILLISECONDS - 1)
+        assertEquals(1, openedDirectories.size)
+        advanceTimeBy(2)
+        assertEquals(2, openedDirectories.size)
+    }
+
+    @Test
+    fun creatingAProjectRightAfterClosingOneWaitsForTheClose() = runTest {
+        val controller = createSlowlyClosingController()
+        controller.openAndPlay()
+        controller.createProject(request)
+        assertEquals(1, openedDirectories.size)
+        gameStopped.complete(Unit)
+        assertEquals(listOf(playingDirectory, request.directory), openedDirectories)
     }
 
     @Test

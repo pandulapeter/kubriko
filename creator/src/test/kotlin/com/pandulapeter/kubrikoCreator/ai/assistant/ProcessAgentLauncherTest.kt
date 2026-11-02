@@ -9,7 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
+import com.pandulapeter.kubrikoCreator.session.GameProcessTestGame
+import com.pandulapeter.kubrikoCreator.session.LiveGameProcesses
 import org.junit.Assume.assumeFalse
+import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -17,6 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class ProcessAgentLauncherTest {
     private val directory = createTempDirectory().toFile()
@@ -33,6 +37,18 @@ class ProcessAgentLauncherTest {
         assertEquals(listOf(npx.program, "--yes", "package"), ProcessAgentLauncher.commandLineOf(npx, isWindows = false))
         val exe = AgentCommand("""C:\tools\agent.exe""")
         assertEquals(listOf(exe.program), ProcessAgentLauncher.commandLineOf(exe, isWindows = true))
+    }
+
+    @Test
+    fun aRunningAgentIsTrackedUntilItStops() {
+        val pidFile = File(directory, "pid")
+        val java = GameProcessTestGame.sleepingJava(File(directory, "classpath.args"), pidFile).command()
+        val channel = ProcessAgentLauncher(directory).launch(AgentCommand(java.first(), java.drop(1)))
+        repeat(100) { if (pidFile.length() == 0L) Thread.sleep(100) }
+        val pid = pidFile.readText().toLong()
+        assertTrue(pid in LiveGameProcesses)
+        channel.stop()
+        assertFalse(pid in LiveGameProcesses)
     }
 
     @Test

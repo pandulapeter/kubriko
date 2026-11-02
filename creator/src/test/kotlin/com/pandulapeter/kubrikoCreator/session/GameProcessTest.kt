@@ -71,6 +71,31 @@ class GameProcessTest {
     }
 
     @Test
+    fun stoppingTheGameAlsoStopsTheProcessesItStarted() = runBlocking {
+        val pidFile = File(root, "pids")
+        val game = async(Dispatchers.Default) {
+            process.run(launch, mapOf(GameProcessTestGame.MODE_PROPERTY to "spawn", GameProcessTestGame.PID_FILE_PROPERTY to pidFile.path))
+        }
+        withTimeout(10_000) { while (pidFile.length() == 0L) delay(20) }
+        val pids = pidFile.readText().split(' ').map(String::toLong)
+        withTimeout(20_000) { game.cancelAndJoin() }
+        pids.forEach { pid -> assertFalse(ProcessHandle.of(pid).map(ProcessHandle::isAlive).orElse(false), "process $pid is still alive") }
+    }
+
+    @Test
+    fun aRunningGameIsTrackedUntilItEnds() = runBlocking {
+        val pidFile = File(root, "pid")
+        val game = async(Dispatchers.Default) {
+            process.run(launch, mapOf(GameProcessTestGame.MODE_PROPERTY to "sleep", GameProcessTestGame.PID_FILE_PROPERTY to pidFile.path))
+        }
+        withTimeout(10_000) { while (pidFile.length() == 0L) delay(20) }
+        val pid = pidFile.readText().toLong()
+        assertTrue(pid in LiveGameProcesses)
+        withTimeout(10_000) { game.cancelAndJoin() }
+        assertFalse(pid in LiveGameProcesses)
+    }
+
+    @Test
     fun theProjectsClassFilesAreCopiedAndEverythingElseIsUsedWhereItIs() {
         val classes = File(project, "build/classes").apply { mkdirs() }
         File(classes, "game/Ball.class").apply { parentFile.mkdirs() }.writeText("ball")

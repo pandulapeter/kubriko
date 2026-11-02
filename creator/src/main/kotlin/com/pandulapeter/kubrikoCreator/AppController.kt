@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
+import com.pandulapeter.kubrikoCreator.workspace.CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_not_opened
 import java.io.File
@@ -80,6 +82,7 @@ internal class AppController(
         scope.launch(ioDispatcher) { recentProjectsStore.remove(project.path) }
     }
     private var job: Job? = null
+    private var closing: Job? = null
 
     fun showNewProject() {
         closeProject()
@@ -90,6 +93,7 @@ internal class AppController(
         closeProject()
         _screen.value = AppScreen.CreatingProject(request.directory)
         launchOperation {
+            awaitClosing()
             val directory = try {
                 withContext(ioDispatcher) { projectCreator.create(request) }
             } catch (exception: ProjectCreationException) {
@@ -105,6 +109,7 @@ internal class AppController(
         closeProject()
         _screen.value = AppScreen.Opening(directory)
         launchOperation {
+            awaitClosing()
             _screen.value = try {
                 val workspace = workspaceOpener.open(directory, scope)
                 try {
@@ -136,14 +141,38 @@ internal class AppController(
     }
 
     /**
+     * Waits until the project closed last is closed, so that a project opened again doesn't load its types while the old
+     * workspace still writes them.
+     */
+    private suspend fun awaitClosing() {
+        withTimeoutOrNull(CLOSING_TIMEOUT_IN_MILLISECONDS) { closing?.join() }
+    }
+
+    /**
      * Closes the open project, if any.
      *
-     * @return The job that finishes once its changes are written, which an app that is quitting waits for.
+     * @return The job that finishes once its game is gone and its changes are written, which an app that is quitting
+     *   waits for.
      */
     fun closeProject(): Job? {
         job?.cancel()
-        val closing = (_screen.value as? AppScreen.Workspace)?.controller?.close()
+        val closingWorkspace = (_screen.value as? AppScreen.Workspace)?.controller?.close()?.also { closing = it }
         _screen.value = AppScreen.Welcome()
-        return closing
+        return closingWorkspace
+    }
+
+    companion object {
+        /**
+         * How long closing a project may take after its wait for a failed write ([CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS]) ran
+         * out: stopping its work and closing its Gradle connection.
+         */
+        private const val CLOSE_WORK_MARGIN_IN_MILLISECONDS = 5_000L
+
+        /**
+         * How long quitting, and opening a project, wait for the open project to close, so that a write that never ends
+         * can't keep the window open. It outlasts the project's own wait for its writes, so the project is always closed
+         * first.
+         */
+        const val CLOSING_TIMEOUT_IN_MILLISECONDS = CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS + CLOSE_WORK_MARGIN_IN_MILLISECONDS
     }
 }

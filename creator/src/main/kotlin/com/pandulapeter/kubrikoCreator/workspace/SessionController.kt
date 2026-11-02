@@ -202,4 +202,13 @@ internal class SessionController(
         job?.cancel()
         channel.close()
     }
+
+    /**
+     * Closes like [close], then waits until the game that played is gone, with every process it started.
+     */
+    suspend fun closeAndJoin() {
+        val running = job
+        close()
+        running?.join()
+    }
 }

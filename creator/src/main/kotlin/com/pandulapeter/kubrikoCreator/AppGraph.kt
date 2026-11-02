@@ -65,7 +65,7 @@ internal class AppGraph(
      * processes), the assistant's pending restarts, and the open project's writes side by side, then the settings' last
      * save. Called on the main thread.
      */
-    suspend fun shutdown(timeoutInMilliseconds: Long = CLOSING_TIMEOUT_IN_MILLISECONDS) = shutDownSideBySide(
+    suspend fun shutdown(timeoutInMilliseconds: Long = AppController.CLOSING_TIMEOUT_IN_MILLISECONDS) = shutDownSideBySide(
         timeoutInMilliseconds = timeoutInMilliseconds,
         ioDispatcher = ioDispatcher,
         offMainThread = listOf(mcp::close, assistant::close),

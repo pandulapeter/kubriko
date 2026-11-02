@@ -30,7 +30,28 @@ object GameProcessTestGame {
                 System.getProperty(PID_FILE_PROPERTY)?.let { File(it).writeText(ProcessHandle.current().pid().toString()) }
                 Thread.sleep(60_000)
             }
+            "spawn" -> {
+                val pidFile = File(System.getProperty(PID_FILE_PROPERTY))
+                val child = sleepingJava(File(pidFile.path + ".args"), File(pidFile.path + ".child")).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start()
+                pidFile.writeText("${ProcessHandle.current().pid()} ${child.pid()}")
+                Thread.sleep(60_000)
+            }
             else -> println("Played.")
         }
+    }
+
+    /**
+     * A command running this game in its sleeping mode with this JVM's classpath, passed through [argumentFile], since
+     * Windows caps a command line at 32,767 characters.
+     */
+    fun sleepingJava(argumentFile: File, pidFile: File): ProcessBuilder {
+        argumentFile.writeText(JavaArgumentFile.format(listOf("-cp", System.getProperty("java.class.path"))))
+        return ProcessBuilder(
+            File(System.getProperty("java.home"), "bin/java").path,
+            "@${argumentFile.path}",
+            "-D$MODE_PROPERTY=sleep",
+            "-D$PID_FILE_PROPERTY=${pidFile.path}",
+            GameProcessTestGame::class.java.name,
+        )
     }
 }
