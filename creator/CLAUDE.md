@@ -12,7 +12,9 @@
 A standalone desktop app for making Kubriko games without IntelliJ, inspired by GameMaker 6.1: Actor types and Manager types are
 built from Events and Blocks and generated into plain Kotlin, Actors are placed in Scenes, and the game is played with one click.
 This file holds the rules a change to Creator keeps and the why behind its less obvious designs; the code and its KDoc say what
-each part does. What is planned lives in `plan/` (start with `plan/README.md`).
+each part does. What is planned lives in `plan/` (start with `plan/README.md`). Two packages have guides of their own: the Block
+model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/actors/CLAUDE.md`) and the in-app assistant
+(`src/main/kotlin/com/pandulapeter/kubrikoCreator/ai/assistant/CLAUDE.md`).
 
 ## Running and testing
 
@@ -225,42 +227,6 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
 - The editor's instance ticks without the focus (`shouldPauseOnFocusLoss = false`), since a Scene swapped in while Creator is in
   the background would otherwise draw nothing until it is focused.
 
-## Code generation
-
-- Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks
-  get their own `run { }` scope, Blocks outside their Event and unchosen choices become comments) and follow the engine's
-  no-allocation rules. `ProjectTemplateIntegrationTest` compiles every Event and Block.
-- It reads like the examples' hand-written code: an Actor type is `Dynamic` only when it moves or has work every frame (a Kotlin
-  Block counts), looks up only the Managers its Blocks use, and is `Collidable` only when a collision Event involves it.
-- Generated Actors behave like a careful hand-written game's (`ActorClassCode`): movement steps at most 33 ms at a time, so a hitch
-  can't move a fast Actor through a thin one; the remove Blocks set `isRemoved` at once, which `update`, collisions, and
-  moveTowardsNearest skip until Kubriko removes the Actor after the frame, so a Brick can't score twice; Dynamic types are
-  `isAlwaysActive`, since a Scene can be larger than the screen; edge Events use the bounding box, so pivots, rotation, and scale
-  don't move the edges; collision branches put descendants before their ancestors; the mask follows the body every frame, centered
-  on it wherever its pivot is.
-- Timers are two `Long` fields each, counted down at the start of `update`, rather than Kubriko's `Timer`, whose duration is fixed,
-  so starting one never allocates; no Property may end like those fields. Manager Properties are Compose state
-  (`mutableFloatStateOf` for numbers, so nothing boxes).
-- `BlockScope` is what a type's Blocks can refer to, for the generator, validation, and the editor alike. A Manager type is reached
-  through a field named after it with `Manager` after it (`BlockScope.managerField`), so no Property may end with `Manager` and no
-  Manager type may be called `Viewport`, `KeyboardInput`, or `Sprite`.
-- Parent Actor types are real Kotlin inheritance (`ActorFamilyCodeGenerator`): the family's topmost type gets an abstract
-  `<Name>Base` with each Event as an `open` hook, and every type a final class that keeps its state and draws itself, since Kubriko
-  registers saveable types as `T : Editable<T>`, which a subclass can't implement again. Names ending in `Base` are reserved.
-- Key Events take any key Compose knows (`composeKeys`, one entry per `Key` constant, so Creator stops compiling rather than
-  generating code that doesn't when Compose drops one).
-- `KubrikoWiring.createManagers` creates every Manager type, `GeneratedScenes`, and only the plugin Managers the game uses
-  (`PluginManagers`), so a game that doesn't use a plugin doesn't depend on it; `GeneratedAudio` is written only while the game
-  plays audio. A Manager with key Events adds itself as an Actor, and `GeneratedScenes` adds it back after each Scene's
-  `removeAll`. Key presses arrive while paused, so Actors' key Events return early then and Managers' still run, so a key can
-  resume the game. `GeneratedScenes` ignores a request for the Scene it is already loading, so goToScene every frame doesn't
-  restart the load forever.
-- Sprites are found through `Res.allDrawableResources[accessor]` rather than their accessor, so a deleted image doesn't break the
-  build; images in qualified folders aren't offered, since the sprite plugin doesn't scale them back.
-- `BlockTypeStore` writes only files whose code changed (known without reading them while their length and modification time are
-  its own), never writes over a generated file changed by hand, and deletes the generated files of types that no longer exist
-  unless they were changed by hand; the console names both.
-
 ## AI
 
 - **One AI panel** holds both ways of working with AI (an outside client over MCP, and the in-app assistant), since nobody uses
@@ -288,35 +254,6 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
   without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
   cost.
-
-## Assistant
-
-The in-app assistant (`ai/assistant`) hosts Agent Client Protocol agents through the official Kotlin SDK.
-
-- **Agents:** Claude Agent is the one fully supported agent (`RegistryAgent.isTested`); every other ACP Registry agent runs on
-  generic fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`), with as little per-agent code as possible, and is
-  shown as untested. An agent a vendor publishes in the registry counts as meant for hosting, so vendors' terms don't gate it; names
-  and icons follow each vendor's trademark rules.
-- **Nothing of any agent ships with Creator:** the registry's distribution fetches it on first use. Bundling would mean
-  redistributing a proprietary binary and preinstalling Claude Code, which its terms tie to the Commercial Terms.
-- **Creator's tools make every change:** the agent gets neither file system nor terminal access, its requests to edit, delete, move,
-  or execute are rejected whatever the user would choose (`PermissionHandler.rejectingChanges`), Claude Agent has `Bash`, `Write`,
-  `Edit`, and `NotebookEdit` disallowed, and each agent works in a folder of its own per project (`agents/workspaces`), since an
-  agent may write files where it starts without asking. Creator's own tools are allowed without asking
-  (`PermissionHandler.allowingCreatorTools`), recognized however the agent names them (`CreatorToolName`).
-- **Tools per conversation:** the assistant's `McpToolServer` has no outside token; each conversation gets an address and token of
-  its own, and closing it turns those tools off. Conversations end when the project closes or changes, since their tools work on
-  whatever project is open.
-- **Signing in never passes through Creator:** the agent signs in by itself, a terminal method runs in the agent's environment so it
-  signs in to the same configuration, and the API key lives in the system's secret store, passed to the secret tool on standard
-  input (never its arguments) and to the agent only as `ANTHROPIC_API_KEY`.
-- **Processes:** one that ends unasked is started again and its conversations loaded again, but one that exits soon after starting
-  several times in a row is `Failed` until it is used again. A conversation closed during this run is reopened as it was, since the
-  SDK refuses `session/load` for an ID it still holds.
-- **Downloads** (`BinaryAgentInstaller`, `NodeRuntime`) are checked against the published SHA-256 where there is one and refuse
-  archive entries outside their folder.
-- **Turns:** a turn that changed the project ends with Keep and Undo, which reverts the conversation's own changes through the undo
-  history while they are the newest (`CommandExecutor.undoTurn`).
 
 ## Settings
 
