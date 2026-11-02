@@ -39,7 +39,7 @@ internal fun LabeledSwitch(
     verticalAlignment = Alignment.CenterVertically,
 ) {
     Text(
-        modifier = Modifier.padding(end = 8.dp),
+        modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
         text = label,
         style = labelStyle,
     )
