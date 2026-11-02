@@ -45,6 +45,8 @@ import kotlinx.coroutines.launch
  * @param start Starts the conversation, or continues an earlier one, handing what came before to its second argument.
  * @param end Ends the conversation [start] started.
  * @param toolsIdOf The ID of the address at which a conversation reaches Kubriko Creator's tools.
+ * @param forgetReads Forgets what a conversation read through its tools, after a cancelled turn whose results it may
+ *   never have seen, so that its next reads are answered in full.
  * @param undoTurn Reverts what the conversation at a tool address changed after a revision, returning how many of its
  *   changes stay ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]).
  * @param onTurnEnded Called after each turn with the conversation's ID, title, and the agent's last answer, so that it can
@@ -57,6 +59,7 @@ internal class AssistantChat(
     private val start: suspend (PermissionHandler, onHistory: suspend (SessionUpdate) -> Unit) -> AgentConversation,
     private val end: suspend (AgentConversation) -> Unit,
     private val toolsIdOf: (AgentConversation) -> String? = { null },
+    private val forgetReads: (AgentConversation) -> Unit = {},
     private val changeLog: () -> ChangeLog? = { null },
     private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?) -> Unit = { _, _, _ -> },
     private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
@@ -173,6 +176,7 @@ internal class AssistantChat(
                 val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
                 _transcript.update { it.withTurnEnd(response.stopReason) }
+                if (response.stopReason == StopReason.CANCELLED) forgetReads(conversation)
                 if (log != null && turnStart != null) {
                     val toolsId = _toolsId.value
                     _transcript.update { transcript -> transcript.withTurnChanges(turnStart, log.since(turnStart).filter { it.step == null && it.origin?.conversationId == toolsId }) }
@@ -181,6 +185,7 @@ internal class AssistantChat(
                 if (title != null) onTurnEnded(conversation.id.value, title, _transcript.value.items.filterIsInstance<TranscriptItem.AgentMessage>().lastOrNull()?.text)
             } catch (exception: CancellationException) {
                 if (!currentCoroutineContext().isActive) throw exception
+                forgetReads(conversation)
                 _transcript.update { it.withFailure(FailureReason.AGENT_STOPPED) }
             } catch (_: ConversationLostException) {
                 _transcript.update { it.withFailure(FailureReason.CONVERSATION_LOST) }

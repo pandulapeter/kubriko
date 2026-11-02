@@ -50,6 +50,7 @@ class AssistantChatTest {
     private val launcher = FakeAgentLauncher({ FakeAgent(isSignedIn = isSignedIn) })
     private val agent = AcpAgent(AgentCommand("fake-agent"), launcher, AcpAgent.clientInfo("1.0.0"), scope, Dispatchers.IO)
     private val ended = CopyOnWriteArrayList<AgentConversation>()
+    private val forgotten = CopyOnWriteArrayList<AgentConversation>()
 
     @AfterTest
     fun tearDown() {
@@ -74,6 +75,7 @@ class AssistantChatTest {
                 conversation.close()
             },
             toolsIdOf = { "tools" },
+            forgetReads = { forgotten += it },
             changeLog = { changeLog },
             undoTurn = { toolsId, sinceRevision ->
                 undoneTurns += toolsId to sinceRevision
@@ -155,6 +157,33 @@ class AssistantChatTest {
         withContext(mainThread) { chat.stop() }
         chat.isBusy.first { !it }
         assertEquals(TranscriptItem.TurnEnded(StopReason.CANCELLED), chat.transcript.value.items.last())
+    }
+
+    @Test
+    fun aCancelledTurnForgetsWhatTheConversationRead() = test {
+        val chat = readyChat()
+        withContext(mainThread) { chat.send("wait") }
+        while ("wait" !in launcher.agents.single().prompts) delay(10)
+        withContext(mainThread) { chat.stop() }
+        chat.isBusy.first { !it }
+        assertEquals(listOf(chat.conversationId.value), forgotten.map { it.id.value })
+    }
+
+    @Test
+    fun aTurnStoppedBeforeItIsSentForgetsNothing() = test {
+        val chat = readyChat()
+        val context = CompletableDeferred<List<ContentBlock>>()
+        withContext(mainThread) { chat.send("wait") { context.await() } }
+        withContext(mainThread) { chat.stop() }
+        chat.isBusy.first { !it }
+        assertEquals(TranscriptItem.TurnEnded(StopReason.CANCELLED), chat.transcript.value.items.last())
+        assertTrue(forgotten.isEmpty())
+    }
+
+    @Test
+    fun aFinishedTurnForgetsNothing() = test {
+        readyChat().sendAndWait("hello")
+        assertTrue(forgotten.isEmpty())
     }
 
     @Test

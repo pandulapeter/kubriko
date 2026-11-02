@@ -188,6 +188,11 @@ internal class McpToolServer(
         conversationReads.forget(id)
     }
 
+    /**
+     * Forgets what the conversation with [id] read, so that it is answered in full again; its tools stay on.
+     */
+    fun forgetReads(id: String) = conversationReads.forget(id)
+
     private fun isAuthorized(authorization: String?, queryToken: String?, expectedToken: ByteArray) =
         MessageDigest.isEqual(authorization.orEmpty().toByteArray(), "Bearer ".toByteArray() + expectedToken) ||
             MessageDigest.isEqual(queryToken.orEmpty().toByteArray(), expectedToken)
@@ -279,7 +284,7 @@ internal class McpToolServer(
         private const val FULL_PARAMETER = "full"
         private val fullSchema = buildJsonObject {
             put("type", "boolean")
-            put("description", "Whether to return the whole result even if this conversation has read it before, rather than what changed since.")
+            put("description", "Whether to return the whole result even if this conversation has read it before, rather than what changed since. Pass it whenever you don't have the earlier result, for example after a subagent read it.")
         }
         const val TOKEN_PARAMETER = "token"
         const val SERVER_NAME = "kubriko-creator"

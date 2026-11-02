@@ -265,9 +265,11 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
   since Kubriko pauses unfocused games, and screenshots come from the game's own `SkiaLayer`, so they need no OS permission; `start_game` waits until the game has drawn Actors, where the session and the entry point
   can report them.
 - **Context:** every conversation starts with the fixed system prompt, then the project digest and the game's notes, so the cached
-  prefix stays the same. A conversation's reads remember what they returned (`ConversationReads`) and answer again with what
-  changed (`ResultDelta`; `full: true` for the whole); outside clients always get it whole. Before each prompt the conversation hears
-  what anyone else changed since its last one (`ChangesSummary`).
+  prefix stays the same. A conversation's reads remember what they returned (`ConversationReads`, forgotten with the conversation
+  and when a turn is cancelled) and answer again with what changed (`ResultDelta`; `full: true` for the whole); outside clients
+  always get it whole. Every delta tells the agent to read again with `full: true` when it no longer has the earlier result, since
+  a subagent (Claude Agent's game explorer) reads through the same address and compaction drops old results. Before each prompt
+  the conversation hears what anyone else changed since its last one (`ChangesSummary`).
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
   without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
   cost.

@@ -312,7 +312,7 @@ class McpToolServerTest {
             assertEquals(ResultDelta.UNCHANGED, text(callTool("read_actor_type", read)))
             callTool("add_event", mapOf("actorType" to "Ball", "type" to "keyPressed"))
             assertEquals(
-                """{"sinceYourLastRead":"Only what changed since you last read it in this conversation. Pass full: true for the whole result.","changed":{"events[6]":"6 When Spacebar is pressed"}}""",
+                """{"sinceYourLastRead":"Only what changed since you last read it in this conversation. If that result isn't in front of you (a subagent read it, or it was summarized), read again with full: true.","changed":{"events[6]":"6 When Spacebar is pressed"}}""",
                 text(callTool("read_actor_type", read)),
             )
             assertContains(text(callTool("read_actor_type", read + ("full" to true))), "appearance")
@@ -320,6 +320,23 @@ class McpToolServerTest {
             assertFalse(listTools().tools.single { it.name == "add_event" }.inputSchema.properties.orEmpty().containsKey("full"))
         }
         connected(port) { assertContains(text(callTool("read_actor_type", read)), "appearance") }
+    }
+
+    @Test
+    fun forgettingAConversationsReadsAnswersInFullAgainAndKeepsItsTools() = runTest {
+        val events = (1..6).map { EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("A line long enough to make the whole type worth not sending again: $it"))) }
+        val executor = CommandExecutor(commandContext(ActorTypeDefinition("Ball", events = events)), testScope())
+        val port = start(executor)
+        val conversation = server!!.openConversation()
+        val read = mapOf("actorType" to "Ball")
+        connected(port, conversation.path, conversation.token) {
+            assertContains(text(callTool("read_actor_type", read)), "appearance")
+            assertEquals(ResultDelta.UNCHANGED, text(callTool("read_actor_type", read)))
+        }
+        server!!.forgetReads(conversation.id)
+        connected(port, conversation.path, conversation.token) {
+            assertContains(text(callTool("read_actor_type", read)), "appearance")
+        }
     }
 
     private fun text(result: CallToolResult) = (result.content.first() as TextContent).text

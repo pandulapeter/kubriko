@@ -147,6 +147,13 @@ internal class Assistant(
     fun toolsIdOf(conversation: AgentConversation) = toolConversations[conversation]
 
     /**
+     * Forgets what [conversation] read through its tools, so that each read is answered in full again.
+     */
+    fun forgetReads(conversation: AgentConversation) {
+        toolConversations[conversation]?.let(toolServer::forgetReads)
+    }
+
+    /**
      * Ends [conversation] and turns its tools off.
      */
     suspend fun closeConversation(conversation: AgentConversation) {

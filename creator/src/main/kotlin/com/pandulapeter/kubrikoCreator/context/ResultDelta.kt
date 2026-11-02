@@ -26,9 +26,10 @@ import kotlinx.serialization.json.putJsonObject
  */
 internal object ResultDelta {
 
-    const val UNCHANGED = "Unchanged since you last read it in this conversation. Pass full: true for the whole result."
-    private const val CHANGED = "Only what changed since you last read it in this conversation. Pass full: true for the whole result."
-    private const val LINES_CHANGED = "The lines that changed since you last read it in this conversation, - as they were and + as they are. Pass full: true for the whole result."
+    private const val RECOVERY = "If that result isn't in front of you (a subagent read it, or it was summarized), read again with full: true."
+    const val UNCHANGED = "Unchanged since you last read it in this conversation. $RECOVERY"
+    private const val CHANGED = "Only what changed since you last read it in this conversation. $RECOVERY"
+    private const val LINES_CHANGED = "The lines that changed since you last read it in this conversation, - as they were and + as they are. $RECOVERY"
 
     fun of(previous: JsonElement, current: JsonElement): JsonElement = when {
         previous == current -> JsonPrimitive(UNCHANGED)

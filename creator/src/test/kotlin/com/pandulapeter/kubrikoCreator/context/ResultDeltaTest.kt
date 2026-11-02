@@ -11,8 +11,11 @@ package com.pandulapeter.kubrikoCreator.context
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ResultDeltaTest {
     private val padding = "x".repeat(400)
@@ -31,7 +34,7 @@ class ResultDeltaTest {
         val current = Json.parseToJsonElement("""{"name":"Ball","padding":"$padding","events":["0 a","1 B"],"appearance":"circle"}""")
         val delta = ResultDelta.of(previous, current).toString()
         assertEquals(
-            """{"sinceYourLastRead":"Only what changed since you last read it in this conversation. Pass full: true for the whole result.","changed":{"events[1]":"1 B","appearance":"circle"},"removed":["events[2]","parent"]}""",
+            """{"sinceYourLastRead":"Only what changed since you last read it in this conversation. If that result isn't in front of you (a subagent read it, or it was summarized), read again with full: true.","changed":{"events[1]":"1 B","appearance":"circle"},"removed":["events[2]","parent"]}""",
             delta,
         )
     }
@@ -40,6 +43,18 @@ class ResultDeltaTest {
     fun aTextReturnsTheLinesThatChanged() {
         val delta = ResultDelta.of(JsonPrimitive("$padding\nBall\nBrick"), JsonPrimitive("$padding\nBall\nPaddle")) as JsonPrimitive
         assertEquals(listOf("- Brick", "+ Paddle"), delta.content.lines().drop(1))
+    }
+
+    @Test
+    fun everyDeltaSaysHowToGetTheWholeResultBack() {
+        val previous = Json.parseToJsonElement("""{"name":"Ball","padding":"$padding"}""")
+        val current = Json.parseToJsonElement("""{"name":"Paddle","padding":"$padding"}""")
+        val unchanged = ResultDelta.of(previous, previous) as JsonPrimitive
+        val objectDelta = ResultDelta.of(previous, current).jsonObject.getValue("sinceYourLastRead").jsonPrimitive
+        val textDelta = ResultDelta.of(JsonPrimitive("$padding\nBall"), JsonPrimitive("$padding\nPaddle")) as JsonPrimitive
+        listOf(unchanged.content, objectDelta.content, textDelta.content.lines().first()).forEach { text ->
+            assertTrue(text.endsWith("read again with full: true."), text)
+        }
     }
 
     @Test

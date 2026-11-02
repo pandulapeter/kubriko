@@ -180,6 +180,7 @@ internal class AssistantController(
             start = { permissions, onHistory -> start(host.get().also { owner = it }, directory, permissions, onHistory) },
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
+            forgetReads = { conversation -> owner?.forgetReads(conversation) },
             changeLog = changeLog,
             undoTurn = undoTurn,
             onTurnEnded = { id, title, lastAnswer ->
