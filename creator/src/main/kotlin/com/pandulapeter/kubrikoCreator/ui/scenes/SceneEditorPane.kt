@@ -141,21 +141,21 @@ internal fun SceneEditorPane(
         }
         SceneCanvas(
             modifier = Modifier.weight(1f).fillMaxHeight(),
-        view = view,
-        actors = state.actors,
-        previews = state.previews,
-        isSceneReadable = state.problem == null,
-        selectedId = selectedId,
-        onSelect = { selectedId = it },
-        onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
-        onRemove = onRemove,
-        dragState = actorTypeDragState,
-        onPlace = { actorTypeName, x, y ->
-            val actorId = SceneDocument.newId(view.entries.map { it.id })
-            selectedId = actorId
-            onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y, actorId)))
-        },
-    )
+            view = view,
+            actors = state.actors,
+            previews = state.previews,
+            isSceneReadable = state.problem == null,
+            selectedId = selectedId,
+            onSelect = { selectedId = it },
+            onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
+            onRemove = onRemove,
+            dragState = actorTypeDragState,
+            onPlace = { actorTypeName, x, y ->
+                val actorId = SceneDocument.newId(view.entries.map { it.id })
+                selectedId = actorId
+                onCommand(Invocation(PlaceActor, PlaceActor.Input(state.sceneName, actorTypeName, x, y, actorId)))
+            },
+        )
         VerticalDivider()
         SceneInspector(
             modifier = Modifier.sidePanel(PanelWidths.SCENE_INSPECTOR),

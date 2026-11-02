@@ -155,110 +155,110 @@ internal fun BlockTypeEditor(
         BoxWithConstraints(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
-        val columns = remember(maxWidth) { BlockTypeEditorColumns.of(maxWidth) }
-        Row(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            LazyColumn(
-                modifier = Modifier.width(columns.properties).fillMaxHeight(),
+            val columns = remember(maxWidth) { BlockTypeEditorColumns.of(maxWidth) }
+            Row(
+                modifier = Modifier.fillMaxSize(),
             ) {
-                if (definition is ActorTypeDefinition) {
-                    item {
-                        Column {
-                            AppearanceColumn(
-                                definition = definition,
-                                sprites = sprites,
-                                onChange = { onCommand(Invocation(SetAppearance, it)) },
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                LazyColumn(
+                    modifier = Modifier.width(columns.properties).fillMaxHeight(),
+                ) {
+                    if (definition is ActorTypeDefinition) {
+                        item {
+                            Column {
+                                AppearanceColumn(
+                                    definition = definition,
+                                    sprites = sprites,
+                                    onChange = { onCommand(Invocation(SetAppearance, it)) },
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                            }
+                        }
+                    }
+                    propertyListItems(
+                        properties = definition.properties,
+                        inheritedProperties = inheritance.properties,
+                        emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
+                        onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
+                        onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
+                        onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
+                    )
+                    if (definition is ManagerTypeDefinition) {
+                        item {
+                            Column {
+                                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                                ScreenTextList(
+                                    texts = definition.texts,
+                                    onAdded = { onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition(text = "{${definition.properties.firstOrNull()?.name ?: "score"}}")))) },
+                                    onChanged = { index, text -> onCommand(Invocation(EditText, EditText.Input(name, index, text))) },
+                                    onRemoved = { index -> onCommand(Invocation(RemoveText, RemoveText.Input(name, index))) },
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                                KotlinUiSection(
+                                    managerTypeName = name,
+                                    code = definition.kotlinUi,
+                                    onCodeChange = { onCommand(Invocation(SetKotlinUi, SetKotlinUi.Input(name, it))) },
+                                )
+                            }
                         }
                     }
                 }
-                propertyListItems(
-                    properties = definition.properties,
-                    inheritedProperties = inheritance.properties,
-                    emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
-                    onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
-                    onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
-                    onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
+                VerticalDivider()
+                EventList(
+                    modifier = Modifier.width(columns.events).fillMaxHeight(),
+                    typeKind = definition.kind,
+                    events = definition.events,
+                    listIdentity = name,
+                    inheritedEvents = inheritance.events,
+                    onOverride = { event ->
+                        onCommand(Invocation(AddEvent, AddEvent.Input(name, event.type, event.key, event.otherActorType, event.timer, listOf(BlockDefinition.RunParentEvent))))
+                        requestedEventIndex = definition.events.size
+                    },
+                    selectedIndex = eventIndex,
+                    onSelected = { requestedEventIndex = it },
+                    onAdded = { type ->
+                        onCommand(Invocation(AddEvent, AddEvent.Input(name, type)))
+                        requestedEventIndex = definition.events.size
+                    },
+                    onMoved = { index, targetIndex ->
+                        onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
+                        requestedEventIndex = selectedEventIndexAfterMove(eventIndex, index, targetIndex)
+                    },
+                    onRemoved = { index ->
+                        onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
+                        if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
+                    },
+                    highlight = highlight,
                 )
-                if (definition is ManagerTypeDefinition) {
-                    item {
-                        Column {
-                            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                            ScreenTextList(
-                                texts = definition.texts,
-                                onAdded = { onCommand(Invocation(AddText, AddText.Input(name, ScreenTextDefinition(text = "{${definition.properties.firstOrNull()?.name ?: "score"}}")))) },
-                                onChanged = { index, text -> onCommand(Invocation(EditText, EditText.Input(name, index, text))) },
-                                onRemoved = { index -> onCommand(Invocation(RemoveText, RemoveText.Input(name, index))) },
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                            KotlinUiSection(
-                                managerTypeName = name,
-                                code = definition.kotlinUi,
-                                onCodeChange = { onCommand(Invocation(SetKotlinUi, SetKotlinUi.Input(name, it))) },
-                            )
+                VerticalDivider()
+                EventBlocks(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    event = event,
+                    scope = scope,
+                    onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
+                    onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
+                    onTimerRename = { oldName, newName -> onCommand(Invocation(RenameTimer, RenameTimer.Input(name, oldName, newName))) },
+                    onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
+                    onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
+                    dragState = dragState,
+                    onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
+                    highlight = highlight?.takeIf { it.eventIndex == eventIndex },
+                    listIdentity = name to eventIndex,
+                    scrollToEndRequest = blockListScrollToEndRequest,
+                )
+                VerticalDivider()
+                BlockPalette(
+                    modifier = Modifier.width(columns.palette).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    eventType = event?.type,
+                    typeKind = definition.kind,
+                    dragState = dragState,
+                    onBlockKindSelected = { kind ->
+                        eventIndex?.let {
+                            onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault())))
+                            blockListScrollToEndRequest++
                         }
-                    }
-                }
+                    },
+                )
             }
-            VerticalDivider()
-            EventList(
-                modifier = Modifier.width(columns.events).fillMaxHeight(),
-                typeKind = definition.kind,
-                events = definition.events,
-                listIdentity = name,
-                inheritedEvents = inheritance.events,
-                onOverride = { event ->
-                    onCommand(Invocation(AddEvent, AddEvent.Input(name, event.type, event.key, event.otherActorType, event.timer, listOf(BlockDefinition.RunParentEvent))))
-                    requestedEventIndex = definition.events.size
-                },
-                selectedIndex = eventIndex,
-                onSelected = { requestedEventIndex = it },
-                onAdded = { type ->
-                    onCommand(Invocation(AddEvent, AddEvent.Input(name, type)))
-                    requestedEventIndex = definition.events.size
-                },
-                onMoved = { index, targetIndex ->
-                    onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
-                    requestedEventIndex = selectedEventIndexAfterMove(eventIndex, index, targetIndex)
-                },
-                onRemoved = { index ->
-                    onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
-                    if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
-                },
-                highlight = highlight,
-            )
-            VerticalDivider()
-            EventBlocks(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                event = event,
-                scope = scope,
-                onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
-                onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
-                onTimerRename = { oldName, newName -> onCommand(Invocation(RenameTimer, RenameTimer.Input(name, oldName, newName))) },
-                onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
-                onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
-                dragState = dragState,
-                onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
-                highlight = highlight?.takeIf { it.eventIndex == eventIndex },
-                listIdentity = name to eventIndex,
-                scrollToEndRequest = blockListScrollToEndRequest,
-            )
-            VerticalDivider()
-            BlockPalette(
-                modifier = Modifier.width(columns.palette).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                eventType = event?.type,
-                typeKind = definition.kind,
-                dragState = dragState,
-                onBlockKindSelected = { kind ->
-                    eventIndex?.let {
-                        onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault())))
-                        blockListScrollToEndRequest++
-                    }
-                },
-            )
-        }
         }
     }
     DragPreview(dragState)
