@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
+import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.coroutines.test.TestScope
@@ -53,11 +54,11 @@ class SceneCommandsTest {
     private val ball = ActorTypeDefinition(name = "Ball", width = 30f, height = 40f)
     private val wall = SceneActorEntry("Wall", """{"body":{"position":{"x":1.0,"y":2.0}}}""", "wall")
     private val music = SceneActorEntry("Music", """{"volume":1.0}""", "music")
-    private val changedScenes = mutableListOf<String>()
 
     @OptIn(EditorMutation::class)
-    private fun TestScope.context(vararg actors: SceneActorEntry, audioFiles: AudioFiles? = null) = commandContext(ball, audioFiles = audioFiles, onScenesChanged = { changedScenes += it }).apply {
+    private fun TestScope.context(vararg actors: SceneActorEntry, audioFiles: AudioFiles? = null) = commandContext(ball, audioFiles = audioFiles).apply {
         scenes.write("main", SceneDocument.format(actors.toList()))
+        scenes.takeChanges()
     }
 
     private fun CommandContext.main() = scenes.read("main")?.let(SceneDocument::parse)
@@ -69,7 +70,9 @@ class SceneCommandsTest {
         assertEquals(listOf("level-1", "main"), context.scenes.names())
         assertEquals("[]", context.scenes.read("level-1"))
         assertEquals(listOf("main"), context.assertRoundTrip(Invocation(DeleteScene, DeleteScene.Input("level-1"))) { context.scenes.names() })
-        assertEquals(List(6) { "level-1" }, changedScenes)
+        val created = SceneChange.Written("level-1", isNew = true)
+        val deleted = SceneChange.Deleted("level-1")
+        assertEquals(listOf(created, deleted, created, deleted, created, deleted), context.scenes.takeChanges())
     }
 
     @Test
@@ -192,10 +195,9 @@ class SceneCommandsTest {
     @Test
     fun renamingAnActorTypeRenamesItsActorsInEveryScene() = runTest {
         val context = context(SceneActorEntry("Ball", "{}"), wall)
-        changedScenes.clear()
         val actors = context.assertRoundTrip(Invocation(RenameActorType, RenameActorType.Input("Ball", "Puck"))) { context.main() }!!
         assertEquals(listOf("Puck", "Wall"), actors.map { it.typeId })
-        assertEquals(listOf("main", "main", "main"), changedScenes)
+        assertEquals(List(3) { SceneChange.Written("main", isNew = false) }, context.scenes.takeChanges())
         assertNull(context.blockTypes!!["Ball"])
     }
 }

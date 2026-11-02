@@ -36,8 +36,6 @@ internal suspend fun CommandContext.renameScene(oldName: String, newName: String
             if (renamed != definition) blockTypes.put(renamed)
         }
     }
-    onSceneRenamed(oldName, newName)
-    onScenesChanged(listOf(oldName, newName))
     withContext(ioDispatcher) { handWrittenFilesNaming(project.rootDirectory, oldName) }.forEach { path ->
         report(ConsoleEntry.Status(Res.string.warning_scene_named_in_code, isError = true, arguments = listOf(path, oldName, newName)))
     }

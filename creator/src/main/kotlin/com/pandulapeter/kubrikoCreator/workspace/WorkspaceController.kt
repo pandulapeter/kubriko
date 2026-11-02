@@ -23,7 +23,6 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.context.KotlinBlockScopeChecks
-import com.pandulapeter.kubrikoCreator.foundation.LatestRequests
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.git.GitRepository
@@ -124,7 +123,6 @@ internal class WorkspaceController(
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
     private val _sceneFolders = MutableStateFlow(emptySet<String>())
-    private val resourceScans = LatestRequests()
 
     /**
      * The folders of the Scenes folder, empty ones too.
@@ -178,6 +176,27 @@ internal class WorkspaceController(
     val scenes = SceneStore(project.rootDirectory, ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
 
     /**
+     * Where Creator's own writes and the watcher's changes are routed to the parts that follow them.
+     */
+    private val changes = ProjectChanges(
+        scope = scope,
+        scanResources = ::scanResourcesNow,
+        onScenesChanged = { sceneEditing.onScenesChanged(it) },
+        onSceneRenamed = { oldName, newName ->
+            val file = scenes.fileOf(newName)
+            sceneEditing.onSceneRenamed(oldName, ProjectResource(ResourceGroup.SCENES, file, file.relativeTo(project.rootDirectory).invariantSeparatorsPath))
+        },
+        onScenesChangedOnDisk = { sceneEditing.onScenesChangedOnDisk() },
+        markSceneOutdated = { sceneEditing.markOutdated() },
+        regenerate = { blockTypes?.regenerate() },
+        onCodeChanged = { gameBuilds.onCodeChanged() },
+        refreshGit = { git.refresh() },
+        refreshFormatStatus = ::refreshFormatStatus,
+        reloadTypes = { blockTypes?.reloadFromDisk() },
+        refreshProjectUpgrade = ::refreshProjectUpgrade,
+    )
+
+    /**
      * The Scene shown in Kubriko Creator's own window. Declared before [blockTypes], whose changes it hears about.
      */
     val sceneEditing = SceneEditingController(
@@ -207,13 +226,7 @@ internal class WorkspaceController(
             repository = repository,
             scope = scope,
             ioDispatcher = ioDispatcher,
-            onSaved = { haveTypesChanged ->
-                refreshResources()
-                if (haveTypesChanged) {
-                    sceneEditing.markOutdated()
-                    gameBuilds.onCodeChanged()
-                }
-            },
+            onSaved = { haveTypesChanged -> changes.onTypesSaved(haveTypesChanged) },
             onSaveFailed = { appendToConsole(it.toConsoleEntry()) },
             onSavedAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_block_types_saved_again)) },
             onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
@@ -305,16 +318,6 @@ internal class WorkspaceController(
             ioDispatcher = ioDispatcher,
             audioFiles = { AudioFiles.of(_resources.value) },
             spriteFiles = { SpriteFiles.of(_resources.value) },
-            onScenesChanged = { names ->
-                refreshResources()
-                sceneEditing.onScenesChanged(names)
-                blockTypes?.regenerate()
-                gameBuilds.onCodeChanged()
-            },
-            onSceneRenamed = { oldName, newName ->
-                val file = scenes.fileOf(newName)
-                sceneEditing.onSceneRenamed(oldName, ProjectResource(ResourceGroup.SCENES, file, file.relativeTo(project.rootDirectory).invariantSeparatorsPath))
-            },
             report = ::appendToConsole,
             onProjectUpgraded = ::refreshProjectUpgrade,
             projectUpgrade = { _projectUpgrade.value },
@@ -322,6 +325,7 @@ internal class WorkspaceController(
         ),
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
+        onSceneChanges = { changes.onSceneChanges(it) },
     )
 
     private val upgrader = ProjectUpgrader(project.rootDirectory)
@@ -348,23 +352,7 @@ internal class WorkspaceController(
     /**
      * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them.
      */
-    fun onProjectChanged(changes: Set<ProjectChange>) {
-        if (ProjectChange.SETTINGS in changes) refreshFormatStatus()
-        if (ProjectChange.BLOCK_TYPE_DEFINITIONS in changes) blockTypes?.reloadFromDisk()
-        if (ProjectChange.SOURCES in changes) {
-            sceneEditing.markOutdated()
-            refreshProjectUpgrade()
-        }
-        if (ProjectChange.SCENES in changes) {
-            blockTypes?.regenerate()
-            sceneEditing.onScenesChangedOnDisk()
-        }
-        if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
-            refreshResources()
-            gameBuilds.onCodeChanged()
-        }
-        git.refresh()
-    }
+    fun onProjectChanged(changes: Set<ProjectChange>) = this.changes.onProjectChanged(changes)
 
     /**
      * Checks the template files again, recording the new template version if they were upgraded by hand. A project that
@@ -405,17 +393,14 @@ internal class WorkspaceController(
         }
     }
 
-    fun refreshResources() {
-        val request = resourceScans.start()
-        scope.launch {
-            val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory) to scenes.folders() }
-            if (resourceScans.isLatest(request)) {
-                _resources.value = resources
-                _sceneFolders.value = folders
-                // After the new resources are in, so that Scenes outside the Scenes folder are found too.
-                withContext(ioDispatcher) { scenes.refresh() }
-            }
-        }
+    fun refreshResources() = changes.refreshResources()
+
+    private suspend fun scanResourcesNow() {
+        val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory) to scenes.folders() }
+        _resources.value = resources
+        _sceneFolders.value = folders
+        // After the new resources are in, so that Scenes outside the Scenes folder are found too.
+        withContext(ioDispatcher) { scenes.refresh() }
     }
 
     /**

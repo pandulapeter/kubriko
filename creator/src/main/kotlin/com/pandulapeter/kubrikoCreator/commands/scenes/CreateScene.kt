@@ -56,7 +56,6 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
             true
         }
         if (!isWritten) return Applied.failed(Rejection(Res.string.error_scene_name_taken))
-        context.onScenesChanged(listOf(input.scene))
         return Applied(inverse = Invocation(DeleteScene, DeleteScene.Input(input.scene)))
     }
 

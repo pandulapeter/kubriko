@@ -15,6 +15,8 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assume.assumeFalse
 import java.io.File
 import java.io.IOException
@@ -52,6 +54,41 @@ class SceneStoreTest {
         }
         assertEquals(originals, files.map { it.readBytes().toList() })
         assertEquals(actors, failing.actors("a"))
+    }
+
+    @Test
+    fun mutationsRecordTheirChanges() {
+        store.write("main", "[]")
+        store.write("main", SceneDocument.format(listOf(SceneActorEntry("Ball", "{}", "ball"))))
+        store.move("main", "levels/first")
+        store.createFolder("empty")
+        store.changeStates(setOf("Ball")) { JsonObject(it + ("speed" to JsonPrimitive(2))) }
+        store.delete("levels/first")
+        store.deleteFolder("empty")
+        assertEquals(
+            listOf(
+                SceneChange.Written("main", isNew = true),
+                SceneChange.Written("main", isNew = false),
+                SceneChange.Moved("main", "levels/first"),
+                SceneChange.FoldersChanged,
+                SceneChange.Written("levels/first", isNew = false),
+                SceneChange.Deleted("levels/first"),
+                SceneChange.FoldersChanged,
+            ),
+            store.takeChanges(),
+        )
+        assertEquals(emptyList(), store.takeChanges())
+    }
+
+    @Test
+    fun aFailingWriteAllRecordsNothing() {
+        val failing = SceneStore(root, writeText = { file, text -> if (file.name == "b.json") throw IOException("Locked.") else file.writeTextAtomically(text) }) { scanned }
+        failing.write("a", "[]")
+        failing.takeChanges()
+        assertFailsWith<IOException> {
+            failing.writeAll(listOf("a", "b").associateWith { name -> listOf(SceneActorEntry("Puck", "{}", name)) })
+        }
+        assertEquals(emptyList(), failing.takeChanges())
     }
 
     private fun scan(vararg files: File) {

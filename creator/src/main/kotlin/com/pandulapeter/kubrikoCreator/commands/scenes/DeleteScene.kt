@@ -40,7 +40,6 @@ internal object DeleteScene : WriteCommand<DeleteScene.Input> {
         val (content, description) = withContext(context.ioDispatcher) {
             (context.scenes.read(input.scene).orEmpty() to context.scenes.descriptions.of(input.scene)).also { context.scenes.delete(input.scene) }
         }
-        context.onScenesChanged(listOf(input.scene))
         return Applied(inverse = Invocation(CreateScene, CreateScene.Input(input.scene, content, description)))
     }
 

@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
+import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -55,11 +56,11 @@ class PropertyCommandsTest {
             EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("score", value = 3f)))),
         ),
     )
-    private val changedScenes = mutableListOf<String>()
 
     @OptIn(EditorMutation::class)
-    private fun TestScope.context(vararg actors: SceneActorEntry) = commandContext(player, onScenesChanged = { changedScenes += it }).apply {
+    private fun TestScope.context(vararg actors: SceneActorEntry) = commandContext(player).apply {
         scenes.write("main", SceneDocument.format(actors.toList()))
+        scenes.takeChanges()
     }
 
     private fun CommandContext.player() = blockTypes!!["Player"]!!
@@ -86,7 +87,7 @@ class PropertyCommandsTest {
         assertEquals(listOf(BlockDefinition.ChangeNumber("points", 2f), BlockDefinition.Log("Score: {points}, {scoreboard}")), renamed.first.events[0].blocks)
         assertEquals(listOf(BlockDefinition.If(ConditionDefinition.Number("points", value = 3f))), renamed.first.events[1].blocks)
         assertEquals(listOf("""{"points":12.0,"title":"Hi"}""", """{"score":7.0}"""), renamed.second)
-        assertEquals(listOf("main"), changedScenes.distinct())
+        assertEquals(setOf(SceneChange.Written("main", isNew = false)), context.scenes.takeChanges().toSet())
     }
 
     @Test
@@ -106,7 +107,7 @@ class PropertyCommandsTest {
         Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Toggle("isShielded"))).apply(context)
         Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Text("name"))).apply(context)
         assertEquals(listOf("""{"lives":2,"isShielded":true,"name":"Ann"}"""), context.states())
-        assertEquals(emptyList(), changedScenes)
+        assertEquals(emptyList(), context.scenes.takeChanges())
     }
 
     @Test

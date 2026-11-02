@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.context.writeSummary
+import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -36,12 +37,16 @@ import kubriko.creator.generated.resources.error_mcp_internal
  * Changes are applied one at a time, in the order they were requested. Used from the main thread only: the history, the AI
  * steps, and the controllers it changes aren't synchronized; [com.pandulapeter.kubrikoCreator.mcp.McpToolServer] hops
  * there for tool calls.
+ *
+ * @param onSceneChanges Receives what each command, undo, or redo changed in the Scene files, as the Scenes recorded it,
+ *   once it finished (whether it succeeded or not), still holding the change lock.
  */
 internal class CommandExecutor(
     val context: CommandContext,
     private val scope: CoroutineScope,
     private val onRejected: (Rejection) -> Unit = {},
     private val registry: CommandRegistry = CommandRegistry.editor,
+    private val onSceneChanges: (List<SceneChange>) -> Unit = {},
 ) {
     private val _history = MutableStateFlow(CommandHistory())
     val history = _history.asStateFlow()
@@ -80,20 +85,28 @@ internal class CommandExecutor(
      * for an AI client, the revision it made and what it changed ([writeSummary]).
      */
     private suspend fun execute(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome = changes.withLock {
-        validate(invocation)?.let { return@withLock CommandOutcome.Rejected(it) }
+        try {
+            applyChange(invocation, origin, isByAi)
+        } finally {
+            deliverSceneChanges()
+        }
+    }
+
+    private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome {
+        validate(invocation)?.let { return CommandOutcome.Rejected(it) }
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
-            return@withLock CommandOutcome.Rejected(failureOf(exception))
+            return CommandOutcome.Rejected(failureOf(exception))
         }
-        applied.failure?.let { return@withLock CommandOutcome.Rejected(it) }
+        applied.failure?.let { return CommandOutcome.Rejected(it) }
         if (applied.isRewritingFiles) _history.value = CommandHistory()
         val target = invocation.target(context)
         val revision = changeLog.record(invocation.title, target, origin, isByAi)
         applied.inverse?.let { inverse ->
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
-        CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.title, target) else applied.result)
+        return CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.title, target) else applied.result)
     }
 
     /**
@@ -122,29 +135,37 @@ internal class CommandExecutor(
      * @return What happened, or null if there was nothing to step.
      */
     suspend fun step(isUndo: Boolean): CommandOutcome? = changes.withLock {
+        try {
+            stepHistory(isUndo)
+        } finally {
+            deliverSceneChanges()
+        }
+    }
+
+    private suspend fun stepHistory(isUndo: Boolean): CommandOutcome? {
         val history = _history.value
-        val entry = (if (isUndo) history.undoable else history.redoable).lastOrNull() ?: return@withLock null
+        val entry = (if (isUndo) history.undoable else history.redoable).lastOrNull() ?: return null
         val invocation = if (isUndo) entry.revert else entry.reapply
         val remaining = if (isUndo) history.copy(undoable = history.undoable.dropLast(1)) else history.copy(redoable = history.redoable.dropLast(1))
-        context.rejectChanges()?.let { return@withLock CommandOutcome.Rejected(it) }
+        context.rejectChanges()?.let { return CommandOutcome.Rejected(it) }
         changedOutside(entry)?.let { name ->
             _history.value = remaining
-            return@withLock CommandOutcome.Rejected(Rejection(Res.string.error_command_changed_outside, name))
+            return CommandOutcome.Rejected(Rejection(Res.string.error_command_changed_outside, name))
         }
         val rejection = invocation.validate(context)
         if (rejection != null) {
             _history.value = remaining
-            return@withLock CommandOutcome.Rejected(rejection)
+            return CommandOutcome.Rejected(rejection)
         }
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
             _history.value = remaining
-            return@withLock CommandOutcome.Rejected(failureOf(exception))
+            return CommandOutcome.Rejected(failureOf(exception))
         }
         applied.failure?.let {
             _history.value = remaining
-            return@withLock CommandOutcome.Rejected(it)
+            return CommandOutcome.Rejected(it)
         }
         val revision = changeLog.record(invocation.title, invocation.target(context), step = if (isUndo) ChangeRecord.Step.UNDO else ChangeRecord.Step.REDO)
         val stepped = applied.inverse?.copy(isRestoring = true)?.let { inverse ->
@@ -155,7 +176,7 @@ internal class CommandExecutor(
             isUndo -> remaining.copy(redoable = remaining.redoable + stepped)
             else -> remaining.copy(undoable = remaining.undoable + stepped)
         }
-        CommandOutcome.Success(applied.result)
+        return CommandOutcome.Success(applied.result)
     }
 
     /**
@@ -230,6 +251,10 @@ internal class CommandExecutor(
             is CommandTarget.Scene -> changed.name
             else -> null
         }
+    }
+
+    private fun deliverSceneChanges() {
+        context.scenes.takeChanges().takeIf { it.isNotEmpty() }?.let(onSceneChanges)
     }
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {

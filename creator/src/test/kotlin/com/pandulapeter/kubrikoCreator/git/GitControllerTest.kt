@@ -14,8 +14,10 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_git_committed
@@ -45,6 +47,23 @@ class GitControllerTest {
             ioDispatcher = UnconfinedTestDispatcher(testScheduler),
             report = { reports += it },
         )
+    }
+
+    @Test
+    fun refreshesAreConflated() = runTest {
+        val repository = FakeGitRepository()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val controller = GitController(
+            openRepository = { repository },
+            createRepository = { repository },
+            generatedPath = generated,
+            scope = CoroutineScope(backgroundScope.coroutineContext + dispatcher),
+            ioDispatcher = dispatcher,
+            report = { reports += it },
+        )
+        repeat(10) { controller.refresh() }
+        runCurrent()
+        assertTrue(repository.statusCalls in 1..2, "${repository.statusCalls} status reads.")
     }
 
     @Test

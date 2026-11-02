@@ -82,5 +82,4 @@ internal fun CommandContext.readScene(name: String) = checkNotNull(scenes.actors
 @OptIn(EditorMutation::class)
 internal suspend fun CommandContext.writeScene(name: String, actors: List<SceneActorEntry>) {
     withContext(ioDispatcher) { scenes.write(name, actors) }
-    onScenesChanged(listOf(name))
 }

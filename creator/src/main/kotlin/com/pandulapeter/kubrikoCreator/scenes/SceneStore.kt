@@ -19,6 +19,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * The Scene files of a project, by name: the file's path in the Scenes folder without `.json` (`levels/1-1`), since
@@ -27,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap
  * and change a large Scene without reading it again; a file changed elsewhere is read again the next time it is asked for.
  * The names are known from the last [refresh] and Creator's own writes, so validating a command reads nothing. What
  * changes every Scene finds them on disk instead ([scanNames]), so that it doesn't miss one made outside Creator since.
+ * Every change it makes is recorded for [takeChanges], so that what changed is known without each caller saying so.
  *
  * @param sceneResources The Scene files the last scan of the project found. Scenes created since then are found in the
  *   folder new Scenes go to.
@@ -63,6 +65,14 @@ internal class SceneStore(
     private var knownNames: List<String>? = null
     private val addedDuringWalk = HashSet<String>()
     private val removedDuringWalk = HashSet<String>()
+    private val recordedChanges = ConcurrentLinkedQueue<SceneChange>()
+
+    /**
+     * The changes made since the last call, oldest first.
+     */
+    fun takeChanges(): List<SceneChange> = buildList {
+        while (true) add(recordedChanges.poll() ?: break)
+    }
 
     /**
      * The names of every Scene, sorted, as of the last [refresh] and Creator's own writes since (before the first refresh,
@@ -117,7 +127,7 @@ internal class SceneStore(
 
     @EditorMutation
     fun createFolder(path: String) {
-        File(sceneDirectory, path).mkdirs()
+        if (File(sceneDirectory, path).mkdirs()) recordedChanges += SceneChange.FoldersChanged
     }
 
     /**
@@ -126,7 +136,7 @@ internal class SceneStore(
     @EditorMutation
     fun deleteFolder(path: String) {
         val folder = File(sceneDirectory, path)
-        if (folder.walkTopDown().none { it.isFile }) folder.deleteRecursively()
+        if (folder.isDirectory && folder.walkTopDown().none { it.isFile } && folder.deleteRecursively()) recordedChanges += SceneChange.FoldersChanged
     }
 
     /**
@@ -156,6 +166,7 @@ internal class SceneStore(
         ownWrites.record(target)
         onRemoved(oldName)
         onWritten(newName)
+        recordedChanges += SceneChange.Moved(oldName, newName)
         descriptions.move(oldName, newName)
         return true
     }
@@ -185,21 +196,27 @@ internal class SceneStore(
     fun problemOf(name: String) = cached(name)?.problem
 
     @EditorMutation
-    fun write(name: String, content: String) = write(name, content, actors = null)
+    fun write(name: String, content: String) {
+        recordedChanges += writeFile(name, content, actors = null)
+    }
 
     /**
      * Writes [actors] as the Scene [name], keeping them as they are for the next command instead of parsing them again.
      */
     @EditorMutation
-    fun write(name: String, actors: List<SceneActorEntry>) = write(name, SceneDocument.format(actors), actors)
+    fun write(name: String, actors: List<SceneActorEntry>) {
+        recordedChanges += writeFile(name, SceneDocument.format(actors), actors)
+    }
 
-    private fun write(name: String, content: String, actors: List<SceneActorEntry>?) {
-        val file = file(name) ?: File(sceneDirectory, "$name.$EXTENSION")
+    private fun writeFile(name: String, content: String, actors: List<SceneActorEntry>?): SceneChange.Written {
+        val existing = file(name)
+        val file = existing ?: File(sceneDirectory, "$name.$EXTENSION")
         file.parentFile.mkdirs()
         writeText(file, content)
         ownWrites.record(file)
         cache[file] = CachedScene(content, file.length(), file.lastModified(), actors)
         onWritten(name)
+        return SceneChange.Written(name, isNew = existing == null)
     }
 
     private val cache = ConcurrentHashMap<File, CachedScene>()
@@ -242,17 +259,17 @@ internal class SceneStore(
 
     @EditorMutation
     fun delete(name: String) {
-        deleteFile(name)
+        if (deleteFile(name)) recordedChanges += SceneChange.Deleted(name)
         descriptions.set(name, null)
     }
 
-    private fun deleteFile(name: String) {
-        file(name)?.let { file ->
-            file.delete()
-            cache.remove(file)
-            ownWrites.record(file)
-            onRemoved(name)
-        }
+    private fun deleteFile(name: String): Boolean {
+        val file = file(name) ?: return false
+        file.delete()
+        cache.remove(file)
+        ownWrites.record(file)
+        onRemoved(name)
+        return true
     }
 
     /**
@@ -275,28 +292,27 @@ internal class SceneStore(
     }.mapValues { (_, changed) -> changed.associate { (before, _) -> before.id to before.state } }
 
     /**
-     * Writes every Scene in [changes], or, when one can't be written, puts back those written before it and throws.
+     * Writes every Scene in [changes], or, when one can't be written, puts back those written before it and throws,
+     * recording no change.
      */
     @EditorMutation
     fun writeAll(changes: Map<String, List<SceneActorEntry>>) {
         val originals = changes.keys.associateWith { name -> cached(name)?.text }
-        val written = ArrayList<String>()
+        val written = ArrayList<SceneChange.Written>()
         try {
-            changes.forEach { (name, actors) ->
-                write(name, actors)
-                written += name
-            }
+            changes.forEach { (name, actors) -> written += writeFile(name, SceneDocument.format(actors), actors) }
         } catch (exception: IOException) {
-            written.forEach { name ->
+            written.forEach { change ->
                 try {
-                    val original = originals.getValue(name)
-                    if (original != null) write(name, original) else deleteFile(name)
+                    val original = originals.getValue(change.name)
+                    if (original != null) writeFile(change.name, original, actors = null) else deleteFile(change.name)
                 } catch (restoreException: IOException) {
                     exception.addSuppressed(restoreException)
                 }
             }
             throw exception
         }
+        recordedChanges += written
     }
 
     /**

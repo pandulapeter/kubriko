@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.foldersOf
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -43,18 +44,20 @@ import kotlin.test.assertEquals
 
 class SceneRenamingCommandsTest {
     private val door = ActorTypeDefinition(name = "Door", events = listOf(EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.GoToScene("main")))))
-    private val renames = mutableListOf<Pair<String, String>>()
     private val reports = mutableListOf<ConsoleEntry>()
 
     @OptIn(EditorMutation::class)
     private fun TestScope.context(): CommandContext {
         val root = testDirectory()
         File(root, "src/commonMain/kotlin/Game.kt").apply { parentFile.mkdirs() }.writeText("""createManagers(firstScene = "main")""")
-        return commandContext(door, rootDirectory = root, onSceneRenamed = { old, new -> renames += old to new }, report = { reports += it }).apply {
+        return commandContext(door, rootDirectory = root, report = { reports += it }).apply {
             scenes.write("main", "[]")
             scenes.write("level-2", "[]")
+            scenes.takeChanges()
         }
     }
+
+    private fun CommandContext.renames() = scenes.takeChanges().filterIsInstance<SceneChange.Moved>().map { it.oldName to it.newName }
 
     private fun CommandContext.goToScene() = (blockTypes!!.actorType("Door")!!.events.single().blocks.single() as BlockDefinition.GoToScene).scene
 
@@ -63,7 +66,7 @@ class SceneRenamingCommandsTest {
         val context = context()
         val moved = context.assertRoundTrip(Invocation(RenameScene, RenameScene.Input("main", "levels/1-1"))) { context.scenes.names() to context.goToScene() }
         assertEquals(listOf("level-2", "levels/1-1") to "levels/1-1", moved)
-        assertEquals(listOf("main" to "levels/1-1", "levels/1-1" to "main", "main" to "levels/1-1"), renames)
+        assertEquals(listOf("main" to "levels/1-1", "levels/1-1" to "main", "main" to "levels/1-1"), context.renames())
         assertEquals(
             ConsoleEntry.Status(Res.string.warning_scene_named_in_code, isError = true, arguments = listOf("src/commonMain/kotlin/Game.kt", "main", "levels/1-1")),
             reports.first(),
@@ -97,7 +100,7 @@ class SceneRenamingCommandsTest {
             assertEquals(Rejection(Res.string.error_scene_not_moved, "main"), applied.failure)
             assertEquals(listOf("level-2", "main"), context.scenes.names())
             assertEquals("main", context.goToScene())
-            assertEquals(emptyList(), renames)
+            assertEquals(emptyList(), context.renames())
         } finally {
             folder.setWritable(true)
         }

@@ -30,8 +30,6 @@ import kubriko.creator.generated.resources.error_command_generated_code_not_writ
  * @param blockTypes The project's block-built types, or null if the project hasn't opted in to them.
  * @param audioFiles The sounds and music of the project, or null if they aren't known, so they aren't checked.
  * @param spriteFiles The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
- * @param onScenesChanged Tells the rest of the editor which Scene files a command changed.
- * @param onSceneRenamed Tells the rest of the editor that a command moved a Scene to another name (and so file).
  * @param report Adds an entry to the console, for what the user should know after a command.
  * @param onProjectUpgraded Tells the rest of the editor that the project's template files were brought up to date.
  * @param projectUpgrade What the project's template files need, as last checked in the background, so that validating
@@ -49,8 +47,6 @@ internal class CommandContext(
     val ioDispatcher: CoroutineDispatcher,
     val audioFiles: () -> AudioFiles? = { null },
     val spriteFiles: () -> SpriteFiles? = { null },
-    val onScenesChanged: (names: Collection<String>) -> Unit,
-    val onSceneRenamed: (oldName: String, newName: String) -> Unit = { _, _ -> },
     val report: (ConsoleEntry) -> Unit = {},
     val onProjectUpgraded: () -> Unit = {},
     val projectUpgrade: () -> TemplateUpgrade = { TemplateUpgrade.UpToDate },

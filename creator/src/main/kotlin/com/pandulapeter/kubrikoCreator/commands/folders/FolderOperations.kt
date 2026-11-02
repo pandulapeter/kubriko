@@ -19,10 +19,7 @@ import kotlinx.coroutines.withContext
 @EditorMutation
 internal suspend fun CommandContext.createFolder(group: FolderGroup, path: String) {
     when (val kind = group.kind) {
-        null -> {
-            withContext(ioDispatcher) { scenes.createFolder(path) }
-            onScenesChanged(emptyList())
-        }
+        null -> withContext(ioDispatcher) { scenes.createFolder(path) }
         else -> requireBlockTypes.createFolder(kind, path)
     }
 }
@@ -30,10 +27,7 @@ internal suspend fun CommandContext.createFolder(group: FolderGroup, path: Strin
 @EditorMutation
 internal suspend fun CommandContext.deleteFolder(group: FolderGroup, path: String) {
     when (val kind = group.kind) {
-        null -> {
-            withContext(ioDispatcher) { scenes.deleteFolder(path) }
-            onScenesChanged(emptyList())
-        }
+        null -> withContext(ioDispatcher) { scenes.deleteFolder(path) }
         else -> requireBlockTypes.deleteFolder(kind, path)
     }
 }

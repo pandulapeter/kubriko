@@ -22,9 +22,11 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
 import com.pandulapeter.kubrikoCreator.commands.project.GetKubrikoApi
+import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
+import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
@@ -79,6 +81,19 @@ class CommandExecutorTest {
     private fun CommandContext.names() = blockTypes!!.actorTypes.value.map { it.name }
 
     private fun width(width: Float) = Invocation(SetAppearance, SetAppearance.Input("Ball", width = width))
+
+    @Test
+    fun sceneChangesAreDeliveredOnce() = runTest {
+        val context = commandContext()
+        val delivered = mutableListOf<List<SceneChange>>()
+        val executor = CommandExecutor(context = context, scope = testScope(), onSceneChanges = { delivered.add(it) })
+        executor.execute(Invocation(CreateScene, CreateScene.Input("a")))
+        assertEquals<List<List<SceneChange>>>(listOf(listOf(SceneChange.Written("a", isNew = true))), delivered)
+        executor.step(isUndo = true)
+        assertEquals(listOf(listOf(SceneChange.Written("a", isNew = true)), listOf(SceneChange.Deleted("a"))), delivered)
+        executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
+        assertEquals(2, delivered.size)
+    }
 
     @Test
     fun changesAreUndoneAndRedoneInOrder() = runTest {

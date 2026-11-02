@@ -109,7 +109,10 @@ Besides its tests passing, a change:
   never half; a new file holding a token is readable by its owner only (`isPrivate`), as is Creator's own `mcp.json` even when an older
   version left it readable (`restrictToOwner`), and the watcher ignores the temporary files.
 - `ProjectWatcher` polls file stamps every second. Files as Creator left them (`OwnWrites`) don't count as changed, so Creator's own
-  writes reload nothing.
+  writes reload nothing. `ProjectChanges` is the one table routing Creator's own writes (the Scene changes `SceneStore` records,
+  which `CommandExecutor` hands over after each command, and saved type batches) and the watcher's changes: a Scene edit refreshes
+  only the Scene view, a new or removed Scene the resource tree too, and every change the Version control panel. Resource scans and
+  git refreshes are coalesced, so at most one runs and one waits.
 - An exception nothing catches (`unexpectedProblemHandler`, on the app's scope and each workspace's) is reported in the open
   project's console, and the rest keeps running.
 

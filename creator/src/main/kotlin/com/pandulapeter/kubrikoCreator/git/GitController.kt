@@ -11,8 +11,12 @@ package com.pandulapeter.kubrikoCreator.git
 
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -29,7 +33,8 @@ import java.io.IOException
 
 /**
  * The project's version control: what changed since the last commit, committing it, the history, and discarding
- * changes. Operations run one at a time, off the main thread.
+ * changes. Operations run one at a time, off the main thread; refreshes are coalesced, so that at most one runs and one
+ * waits however many are requested.
  *
  * @param openRepository The project's repository, or null if it has none.
  * @param createRepository Makes the project a repository, committing everything with the given message.
@@ -47,17 +52,26 @@ internal class GitController(
     private val _state = MutableStateFlow<GitState>(GitState.Loading)
     val state = _state.asStateFlow()
     private val operations = Mutex()
+    private val refreshes = Channel<Unit>(Channel.CONFLATED)
 
     init {
+        scope.launch {
+            for (request in refreshes) {
+                try {
+                    if (perform { repository -> (repository?.let { readState(it) } ?: GitState.NoRepository) to Unit } == null) {
+                        report(ConsoleEntry.Status(Res.string.status_git_failed, isError = true))
+                    }
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    currentCoroutineContext()[CoroutineExceptionHandler]?.handleException(currentCoroutineContext(), exception)
+                }
+            }
+        }
         refresh()
     }
 
     fun refresh() {
-        scope.launch {
-            if (perform { repository -> (repository?.let { readState(it) } ?: GitState.NoRepository) to Unit } == null) {
-                report(ConsoleEntry.Status(Res.string.status_git_failed, isError = true))
-            }
-        }
+        refreshes.trySend(Unit)
     }
 
     /**

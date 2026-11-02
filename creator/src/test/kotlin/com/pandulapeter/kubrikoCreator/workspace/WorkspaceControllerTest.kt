@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
+import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import kotlinx.coroutines.CompletableDeferred
@@ -101,6 +102,7 @@ class WorkspaceControllerTest {
         runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
         initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
         writeDelayInMilliseconds: Long = 0,
+        gitRepository: FakeGitRepository? = null,
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -118,6 +120,7 @@ class WorkspaceControllerTest {
             runGame = runGame,
             initialFormatStatus = initialFormatStatus,
             writeDelayInMilliseconds = writeDelayInMilliseconds,
+            openGitRepository = { gitRepository },
         )
     }
 
@@ -211,6 +214,18 @@ class WorkspaceControllerTest {
         advanceTimeBy(101)
         assertEquals(listOf("save Player", "regenerate"), repository.writes)
         assertEquals(1, build.runs.size)
+    }
+
+    @Test
+    fun creatorsOwnSaveRefreshesGit() = runTest {
+        val gitRepository = FakeGitRepository()
+        val controller = createController(blockTypeRepository = FakeBlockTypeRepository(), writeDelayInMilliseconds = 100, gitRepository = gitRepository)
+        advanceTimeBy(101)
+        val statusCalls = gitRepository.statusCalls
+        assertNull(controller.createActorType("Player"))
+        assertEquals(statusCalls, gitRepository.statusCalls)
+        advanceTimeBy(101)
+        assertTrue(gitRepository.statusCalls > statusCalls)
     }
 
     @Test
@@ -458,12 +473,12 @@ class WorkspaceControllerTest {
     }
 
     @Test
-    fun savingAnActorTypeRescansTheResourcesSoItsGeneratedCodeShowsUp() = runTest {
+    fun savingAnActorTypeDoesntRescanTheResourcesWhichLeaveItsGeneratedCodeOut() = runTest {
         var scanCount = 0
         val controller = createController(scanResources = { scanCount++; emptyMap() }, blockTypeRepository = FakeBlockTypeRepository())
-        assertEquals(2, scanCount)
+        assertEquals(1, scanCount)
         assertNull(controller.createActorType("Player"))
-        assertEquals(3, scanCount)
+        assertEquals(1, scanCount)
         assertEquals("Player", controller.blockTypes!!.selectedName.value)
     }
 
