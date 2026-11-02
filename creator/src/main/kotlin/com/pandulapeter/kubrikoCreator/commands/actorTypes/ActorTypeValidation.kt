@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.actorTypeReference
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
@@ -46,12 +47,14 @@ import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
+import kubriko.creator.generated.resources.error_command_parent_cycle
 import kubriko.creator.generated.resources.error_command_parent_property_kind
 import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_sound_missing
+import kubriko.creator.generated.resources.error_command_sprite_missing
 import kubriko.creator.generated.resources.error_command_text_size_invalid
 import kubriko.creator.generated.resources.error_command_timer_invalid
 import kubriko.creator.generated.resources.error_command_timer_not_allowed
@@ -167,21 +170,43 @@ internal fun validateProperty(property: PropertyDefinition, properties: List<Pro
         ?: if (property is PropertyDefinition.Number && !property.initialValue.isFinite()) Rejection(Res.string.error_command_number_invalid) else null
 
 /**
- * Why [this] new type can't be part of a project with [actorTypeNames] and [managerTypes].
+ * Why the new type [definition] can't be part of the project: its Blocks are checked against the project with it, so
+ * an Actor type's Blocks may use what its parent has.
  */
-internal fun BlockTypeDefinition.validateContents(actorTypeNames: Collection<String>, managerTypes: List<ManagerTypeDefinition>): Rejection? {
-    val scope = BlockScope(
-        typeName = name,
-        kind = kind,
-        properties = properties,
-        actorTypeNames = if (this is ActorTypeDefinition) actorTypeNames + name else actorTypeNames.toList(),
-        managerTypes = if (this is ManagerTypeDefinition) managerTypes + this else managerTypes,
-    )
-    return (this as? ActorTypeDefinition)?.let { validateSize(it.width, it.height) }
-        ?: properties.indices.firstNotNullOfOrNull { index -> validateProperty(properties[index], properties.take(index)) }
-        ?: events.firstNotNullOfOrNull { validateEvent(it, scope) }
-        ?: (this as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it) }
+internal fun CommandContext.validateContents(definition: BlockTypeDefinition): Rejection? {
+    val types = requireBlockTypes.types.value + definition
+    val scope = BlockScope.of(definition, types, scenes.names(), audioFiles())
+    val actorType = definition as? ActorTypeDefinition
+    return actorType?.let { validateSize(it.width, it.height) }
+        ?: actorType?.parent?.let { parent -> validateNewParent(definition.name, parent, actorType.properties) }
+        ?: actorType?.sprite?.ifEmpty { null }?.let { validateSprite(it) }
+        ?: definition.properties.indices.firstNotNullOfOrNull { index -> validateProperty(definition.properties[index], definition.properties.take(index)) }
+        ?: definition.events.firstNotNullOfOrNull { validateEvent(it, scope) }
+        ?: (definition as? ManagerTypeDefinition)?.texts?.firstNotNullOfOrNull { validateText(it) }
 }
+
+/**
+ * Why the Actor type [actorType], with its own [properties], can't inherit from [parent]: it doesn't exist, it would make
+ * a cycle, or it has a Property of one of those names of another kind.
+ */
+internal fun CommandContext.validateNewParent(actorType: String, parent: String, properties: List<PropertyDefinition>): Rejection? {
+    val actorTypes = requireBlockTypes.actorTypes.value
+    return validateActorType(parent) ?: when {
+        ActorTypeFamily.isAncestor(actorType, parent, actorTypes.associate { it.name to it.parent }) -> Rejection(Res.string.error_command_parent_cycle, parent, actorType)
+        else -> {
+            val inherited = ActorTypeFamily(actorTypes).propertiesOf(parent).associateBy { it.name }
+            properties.firstOrNull { property ->
+                inherited[property.name]?.let { PropertyKind.of(it) != PropertyKind.of(property) } == true
+            }?.let { Rejection(Res.string.error_command_parent_property_kind, it.name, parent) }
+        }
+    }
+}
+
+/**
+ * Why an Actor type can't be drawn as [sprite]: it isn't an image of the project.
+ */
+internal fun CommandContext.validateSprite(sprite: String): Rejection? =
+    if (SpriteFiles.accessorOf(sprite) == null || spriteFiles()?.files?.containsKey(sprite) == false) Rejection(Res.string.error_command_sprite_missing, sprite) else null
 
 /**
  * Why [text] can't be shown by a Manager type.

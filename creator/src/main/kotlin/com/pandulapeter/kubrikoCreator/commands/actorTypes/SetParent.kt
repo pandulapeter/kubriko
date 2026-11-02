@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
-import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -23,8 +21,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_parent
-import kubriko.creator.generated.resources.error_command_parent_cycle
-import kubriko.creator.generated.resources.error_command_parent_property_kind
 
 @OptIn(EditorMutation::class)
 internal object SetParent : WriteCommand<SetParent.Input> {
@@ -39,16 +35,7 @@ internal object SetParent : WriteCommand<SetParent.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType) ?: input.parent?.let { parent ->
-        val actorTypes = context.requireBlockTypes.actorTypes.value
-        context.validateActorType(parent) ?: when {
-            ActorTypeFamily.isAncestor(input.actorType, parent, actorTypes.associate { it.name to it.parent }) -> Rejection(Res.string.error_command_parent_cycle, parent, input.actorType)
-            else -> {
-                val inherited = ActorTypeFamily(actorTypes).propertiesOf(parent).associateBy { it.name }
-                context.requireActorType(input.actorType).properties.firstOrNull { property ->
-                    inherited[property.name]?.let { PropertyKind.of(it) != PropertyKind.of(property) } == true
-                }?.let { Rejection(Res.string.error_command_parent_property_kind, it.name, parent) }
-            }
-        }
+        context.validateNewParent(input.actorType, parent, context.requireActorType(input.actorType).properties)
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {

@@ -128,6 +128,19 @@ class ActorTypeCommandsTest {
     }
 
     @Test
+    fun newActorTypesAreValidatedAgainstTheProject() = runTest {
+        val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("hp"))), wall, spriteFiles = SpriteFiles())
+        val setsHp = EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", 1f)))
+        assertNull(context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Ball", events = listOf(setsHp))))
+        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Nope"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Nope")))
+        assertEquals(
+            Rejection(Res.string.error_command_scene_missing, "nowhere"),
+            context.rejection(CreateActorType, ActorTypeDefinition("Bat", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.GoToScene("nowhere")))))),
+        )
+        assertEquals(Rejection(Res.string.error_command_sprite_missing, "drawable/bat.png"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", sprite = "drawable/bat.png")))
+    }
+
+    @Test
     fun projectsWithoutBlockBuiltActorTypesRejectActorTypeCommands() = runTest {
         val context = commandContext(blockTypes = null)
         assertEquals(Rejection(Res.string.error_command_no_actor_types), context.rejection(CreateActorType, ball))

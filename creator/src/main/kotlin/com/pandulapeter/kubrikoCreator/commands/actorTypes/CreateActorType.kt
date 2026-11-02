@@ -32,7 +32,7 @@ internal object CreateActorType : WriteCommand<ActorTypeDefinition> {
     override fun target(context: CommandContext, input: ActorTypeDefinition) = CommandTarget.BlockType(input.name)
 
     override fun validate(context: CommandContext, input: ActorTypeDefinition): Rejection? = validateRestoring(context, input)
-        ?: context.requireBlockTypes.let { types -> input.validateContents(types.actorTypes.value.map { it.name }, types.managerTypes.value) }
+        ?: context.validateContents(input)
 
     override fun validateRestoring(context: CommandContext, input: ActorTypeDefinition) = context.validateNewTypeName(input.name, BlockTypeKind.ACTOR)
 

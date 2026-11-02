@@ -25,7 +25,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_set_appearance
-import kubriko.creator.generated.resources.error_command_sprite_missing
 
 @OptIn(EditorMutation::class)
 internal object SetAppearance : WriteCommand<SetAppearance.Input> {
@@ -39,12 +38,7 @@ internal object SetAppearance : WriteCommand<SetAppearance.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType) ?: run {
         val definition = context.requireActorType(input.actorType)
-        val sprite = input.sprite?.ifEmpty { null }
-        val spriteFiles = context.spriteFiles()
-        when {
-            sprite != null && (SpriteFiles.accessorOf(sprite) == null || spriteFiles?.files?.containsKey(sprite) == false) -> Rejection(Res.string.error_command_sprite_missing, sprite)
-            else -> validateSize(input.width ?: definition.width, input.height ?: definition.height)
-        }
+        input.sprite?.ifEmpty { null }?.let { context.validateSprite(it) } ?: validateSize(input.width ?: definition.width, input.height ?: definition.height)
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
