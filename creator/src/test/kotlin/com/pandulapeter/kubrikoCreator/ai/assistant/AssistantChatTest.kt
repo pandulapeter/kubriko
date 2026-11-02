@@ -262,6 +262,21 @@ class AssistantChatTest {
     }
 
     @Test
+    fun theChangesATurnStoppedWhileItsContextIsGatheredDidntSendAreSummedUpNextTime() = test {
+        val changeLog = ChangeLog()
+        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball"))
+        val chat = newChat(changeLog).also { chat -> chat.state.first { it == ChatState.Ready } }
+        changeLog.record(Res.string.command_add_block, CommandTarget.BlockType("Ball", 1, 0))
+        val context = CompletableDeferred<List<ContentBlock>>()
+        withContext(mainThread) { chat.send("first") { context.await() } }
+        withContext(mainThread) { chat.stop() }
+        chat.isBusy.first { !it }
+        chat.sendAndWait("second")
+        assertContains(launcher.agents.single().leadingTexts.single(), "Add Block at Ball#1.0")
+        assertEquals(listOf("second"), launcher.agents.single().prompts)
+    }
+
+    @Test
     fun whatATurnChangedIsOfferedToKeepOrUndo() = test {
         val changeLog = ChangeLog()
         changeLog.record(Res.string.command_add_block, null)

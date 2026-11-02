@@ -164,11 +164,11 @@ internal class AssistantChat(
         val log = changeLog()
         val since = seenRevision
         val turnStart = log?.revision
-        log?.let { seenRevision = it.revision }
         val turn = scope.launch(start = CoroutineStart.LAZY) {
             try {
                 lastContext = context()
                 turnGatheringContext = null
+                turnStart?.let { seenRevision = it }
                 val changes = log?.let { ChangesSummary.of(it.since(since), since, _toolsId.value) }
                 val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
