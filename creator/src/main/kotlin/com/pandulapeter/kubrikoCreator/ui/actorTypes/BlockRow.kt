@@ -114,7 +114,7 @@ internal fun BlockRow(
         )
         IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
     }
-    if (kind !in kindsWithoutParameters) {
+    if (kind.hasInlineParameters) {
         Row(
             modifier = Modifier.padding(start = 46.dp),
         ) {
@@ -283,18 +283,16 @@ private fun OffsetParameters(
 private const val NESTING_INDENT = 20
 
 /**
- * The Blocks whose title says it all; a Kotlin Block's code gets a field of its own below.
+ * False for the Blocks whose title says it all; a Kotlin Block's code gets a field of its own below.
  */
-private val kindsWithoutParameters = setOf(
-    BlockKind.STOP,
-    BlockKind.BOUNCE_OFF_EDGE,
-    BlockKind.REMOVE_SELF,
-    BlockKind.BOUNCE_OFF_OTHER,
-    BlockKind.REMOVE_OTHER,
-    BlockKind.ELSE,
-    BlockKind.END,
-    BlockKind.RUN_PARENT_EVENT,
-    BlockKind.KOTLIN,
-    BlockKind.RESTART_SCENE,
-    BlockKind.STOP_MUSIC,
-)
+private val BlockKind.hasInlineParameters
+    get() = when (this) {
+        BlockKind.STOP, BlockKind.RUN_PARENT_EVENT, BlockKind.BOUNCE_OFF_EDGE, BlockKind.REMOVE_SELF, BlockKind.BOUNCE_OFF_OTHER,
+        BlockKind.REMOVE_OTHER, BlockKind.ELSE, BlockKind.END, BlockKind.KOTLIN, BlockKind.RESTART_SCENE, BlockKind.STOP_MUSIC,
+        -> false
+        BlockKind.SET_VELOCITY, BlockKind.ADD_TO_VELOCITY, BlockKind.JUMP_TO, BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER,
+        BlockKind.SET_TEXT, BlockKind.SET_TOGGLE, BlockKind.ADD_ACTOR, BlockKind.MOVE_TOWARDS_NEAREST, BlockKind.START_TIMER,
+        BlockKind.STOP_TIMER, BlockKind.GO_TO_SCENE, BlockKind.PAUSE_GAME, BlockKind.PLAY_SOUND, BlockKind.PLAY_MUSIC,
+        BlockKind.IF, BlockKind.REPEAT, BlockKind.LOG,
+        -> true
+    }
