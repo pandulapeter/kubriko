@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_identity_application_id_invalid
 import kubriko.creator.generated.resources.error_identity_name_invalid

@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.mcp
 
 import com.pandulapeter.kubrikoCreator.foundation.settingsDirectory
-import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.File

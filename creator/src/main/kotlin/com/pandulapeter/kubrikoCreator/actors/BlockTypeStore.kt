@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
-import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import kotlinx.serialization.json.Json
 import java.io.File

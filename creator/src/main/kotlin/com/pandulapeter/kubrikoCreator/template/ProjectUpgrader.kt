@@ -14,9 +14,9 @@ import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
-import com.pandulapeter.kubrikoCreator.project.writeTextAtomically
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
