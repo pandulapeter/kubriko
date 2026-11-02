@@ -80,6 +80,10 @@ quality.
    - check it against every other plan, in any lane, that changes the same behaviour or relies on it;
    - check the threading, ordering and lifecycle the fix itself introduces, not only the ones it removes;
    - for a published API, check how the known consumers call it.
+   - check every fact the plan states about the code against the code: each API it calls exists, with that signature,
+     in the source set or module the plan calls it from (a library function present only in another source set), and
+     each claim about what the UI shows, and where, holds at HEAD. Plans that passed the challenge have failed at
+     execution on exactly these.
 
    Plans that change timing, threading, lifecycle or a public contract get the closest look. Each plan comes back
    **sound**, **amended** (the challenger rewrites the plan and adds `**Challenged:** amended — <what changed>` under
