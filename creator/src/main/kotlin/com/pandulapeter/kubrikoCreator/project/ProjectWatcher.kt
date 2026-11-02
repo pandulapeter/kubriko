@@ -61,15 +61,13 @@ internal class ProjectWatcher(
     }
 
     companion object {
-        private val ignoredDirectoryNames = setOf("build", ".gradle", ".git", ".idea", ".kotlin", "kotlin-js-store", "node_modules")
-
         /**
          * The stamp of every file in an area, by its path relative to [rootDirectory].
          */
         internal fun snapshot(rootDirectory: File, hiddenDirectory: String?): Map<String, FileStamp> {
             val stamps = HashMap<String, FileStamp>()
             rootDirectory.walkTopDown()
-                .onEnter { it == rootDirectory || (it.name !in ignoredDirectoryNames && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
+                .onEnter { it == rootDirectory || (it.name !in ProjectTree.ignoredDirectoryNames && it.relativeTo(rootDirectory).invariantSeparatorsPath != hiddenDirectory) }
                 .filter { it.isFile }
                 .forEach { file ->
                     val path = file.relativeTo(rootDirectory).invariantSeparatorsPath

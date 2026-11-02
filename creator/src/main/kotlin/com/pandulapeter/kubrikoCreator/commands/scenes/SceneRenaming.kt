@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.ProjectTree
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_scene_not_moved
@@ -58,4 +59,4 @@ private fun handWrittenFilesNaming(rootDirectory: File, name: String) = rootDire
     .sorted()
     .toList()
 
-private val ignoredDirectories = setOf("build", ".gradle", ".git", ".kotlin", ".kubriko", "generated")
+private val ignoredDirectories = ProjectTree.ignoredDirectoryNames + ".kubriko" + "generated"

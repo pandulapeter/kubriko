@@ -30,6 +30,7 @@ import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_folder_not_empty
+import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
@@ -69,6 +70,7 @@ class SceneRenamingCommandsTest {
         assertEquals(Rejection(Res.string.error_scene_name_taken), RenameScene.validate(context, RenameScene.Input("level-2", "Levels/1-1")))
         assertEquals(Rejection(Res.string.error_scene_name_invalid), RenameScene.validate(context, RenameScene.Input("level-2", "levels//2")))
         assertEquals(Rejection(Res.string.error_command_scene_missing, "ghost"), RenameScene.validate(context, RenameScene.Input("ghost", "x")))
+        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "node_modules"), RenameScene.validate(context, RenameScene.Input("level-2", "node_modules/2")))
     }
 
     @Test
@@ -76,6 +78,7 @@ class SceneRenamingCommandsTest {
         val context = context()
         context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.SCENES, "levels"))) { context.foldersOf(FolderGroup.SCENES) }
         assertEquals(Rejection(Res.string.error_scene_name_invalid), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "two words")))
+        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "out"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "levels/out")))
         RenameScene.apply(context, RenameScene.Input("level-2", "levels/2"))
         assertEquals(Rejection(Res.string.error_folder_not_empty, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))) { context.scenes.names() }

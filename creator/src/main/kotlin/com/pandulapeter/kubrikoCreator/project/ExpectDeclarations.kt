@@ -38,10 +38,7 @@ internal class ExpectDeclarations(
 
     companion object {
         private const val SOURCE_DIRECTORY = "src"
-        private val ignoredDirectoryNames = setOf(
-            "build", "out", ".gradle", ".git", ".idea", ".fleet", ".vscode", ".kotlin", ".kubriko", ".cxx", "kotlin-js-store", "node_modules", "Pods",
-            "DerivedData",
-        )
+        private val ignoredDirectoryNames = ProjectTree.ignoredDirectoryNames + ".kubriko"
         private val declaration = Regex("""(?m)^[\t ]*(?:@\S+[\t ]+)*(?:[a-z]+[\t ]+)*expect[\t ]+(?:[a-z]+[\t ]+)*(?:fun|class|object|interface|val|var|typealias)\b""")
 
         fun declaresExpect(text: String) = declaration.containsMatchIn(text)

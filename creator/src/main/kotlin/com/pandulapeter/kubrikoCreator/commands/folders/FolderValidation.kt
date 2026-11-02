@@ -19,6 +19,7 @@ import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_folder_exists
 import kubriko.creator.generated.resources.error_folder_missing
 import kubriko.creator.generated.resources.error_folder_name_invalid
+import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
 
 /**
@@ -54,6 +55,8 @@ internal fun CommandContext.validateNewFolder(group: FolderGroup, path: String):
     path.isEmpty() || !FolderPaths.isValid(path) -> Rejection(Res.string.error_folder_name_invalid)
     // A Scene's folders are part of its name.
     group == FolderGroup.SCENES && !SceneNaming.isValid(path) -> Rejection(Res.string.error_scene_name_invalid)
+    group == FolderGroup.SCENES && SceneNaming.reservedFolderOf(path, isFolder = true) != null ->
+        Rejection(Res.string.error_scene_folder_reserved, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
     foldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(Res.string.error_folder_exists, path)
     else -> validateFolder(group, FolderPaths.parentOf(path))
 }

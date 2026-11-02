@@ -17,7 +17,7 @@ import java.io.File
  */
 internal object ResourceScanner {
 
-    private val ignoredDirectoryNames = setOf("build", ".gradle", ".git", ".idea", ".kotlin", ".kubriko", "kotlin-js-store", "node_modules")
+    private val ignoredDirectoryNames = ProjectTree.ignoredDirectoryNames + ".kubriko"
     private val spriteExtensions = setOf("png", "webp", "jpg", "jpeg", "svg")
     private val soundExtensions = setOf("wav")
     private val musicExtensions = setOf("mp3", "ogg")

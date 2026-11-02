@@ -48,6 +48,7 @@ class ResourceScannerTest {
                 "src/main/kotlin/Game.kt",
                 "build/generated/src/main/kotlin/Generated.kt",
                 ".gradle/src/Cached.kt",
+                "Pods/src/main/composeResources/files/scenes/pod.json",
                 "app/build/composeResources/files/scenes/copy.json",
                 "README.md",
             ).forEach { File(root, it).apply { parentFile.mkdirs() }.writeText("") }

@@ -478,6 +478,7 @@
     <string name="command_move_to_folder">Move to folder</string>
     <string name="error_folder_name_invalid">Start a folder's name with a letter or a number, then use letters, numbers, spaces, dashes, and underscores.</string>
     <string name="error_scene_name_invalid">Use only letters, numbers, dashes, and underscores, like level-1.</string>
+    <string name="error_scene_folder_reserved">A Scene folder can't be called %1$s, since Kubriko Creator skips such folders, as build tools do.</string>
     <string name="error_scene_name_taken">There's already a Scene with that name.</string>
     <string name="command_create_scene">Create Scene</string>
     <string name="command_delete_scene">Delete Scene</string>

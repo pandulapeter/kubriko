@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.scenes
 
+import com.pandulapeter.kubrikoCreator.project.ProjectTree
+
 /**
  * The rules for Scene names, which are paths: folder names and the file's name separated by `/` (`levels/1-1`).
  */
@@ -17,4 +19,12 @@ internal object SceneNaming {
     private val partPattern = Regex("[A-Za-z0-9][A-Za-z0-9_-]*")
 
     fun isValid(name: String) = name.split('/').all(partPattern::matches)
+
+    /**
+     * The first folder of [name] that Kubriko Creator skips, as build tools do, so a Scene in it would never show up, or
+     * null. When [isFolder], [name] is a folder, so its last part counts too.
+     */
+    fun reservedFolderOf(name: String, isFolder: Boolean = false) = name.split('/')
+        .let { parts -> if (isFolder) parts else parts.dropLast(1) }
+        .firstOrNull { it in ProjectTree.ignoredDirectoryNames }
 }

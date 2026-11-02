@@ -39,6 +39,7 @@ import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kubriko.creator.generated.resources.error_command_scene_invalid
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_size_invalid
+import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kotlin.test.Test
@@ -81,6 +82,9 @@ class SceneCommandsTest {
         val context = context()
         assertEquals(Rejection(Res.string.error_scene_name_invalid), CreateScene.validate(context, CreateScene.Input("my level")))
         assertEquals(Rejection(Res.string.error_scene_name_taken), CreateScene.validate(context, CreateScene.Input("MAIN")))
+        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "build"), CreateScene.validate(context, CreateScene.Input("levels/build/1")))
+        assertEquals(null, CreateScene.validate(context, CreateScene.Input("build")))
+        assertEquals(null, CreateScene.validate(context, CreateScene.Input("builds/1")))
         assertEquals(Rejection(Res.string.error_command_scene_content_invalid), CreateScene.validate(context, CreateScene.Input("other", "{}")))
         assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), DeleteScene.validate(context, DeleteScene.Input("other")))
     }

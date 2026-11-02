@@ -23,6 +23,7 @@ import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_rename_scene
 import kubriko.creator.generated.resources.error_command_scene_missing
+import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
 
@@ -39,6 +40,7 @@ internal object RenameScene : WriteCommand<RenameScene.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
         !context.scenes.exists(input.scene) -> Rejection(Res.string.error_command_scene_missing, input.scene)
         !SceneNaming.isValid(input.newName) -> Rejection(Res.string.error_scene_name_invalid)
+        SceneNaming.reservedFolderOf(input.newName) != null -> Rejection(Res.string.error_scene_folder_reserved, SceneNaming.reservedFolderOf(input.newName).orEmpty())
         context.scenes.names().any { it != input.scene && it.equals(input.newName, ignoreCase = true) } -> Rejection(Res.string.error_scene_name_taken)
         else -> null
     }

@@ -81,6 +81,7 @@ class ProjectWatcherTest {
         val before = ProjectWatcher.snapshot(root, generated)
         write("$generated/Ball.kt", "class Ball")
         write("build/classes/Game.class", "binary")
+        write("Pods/src/Pod.kt", "class Pod")
         assertEquals(before, ProjectWatcher.snapshot(root, generated))
     }
 

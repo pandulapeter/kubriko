@@ -25,6 +25,7 @@ import kotlinx.serialization.Serializable
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_create_scene
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
+import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_invalid
 import kubriko.creator.generated.resources.error_scene_name_taken
 
@@ -42,6 +43,7 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
 
     override fun validateRestoring(context: CommandContext, input: Input): Rejection? = when {
         !SceneNaming.isValid(input.scene) -> Rejection(Res.string.error_scene_name_invalid)
+        SceneNaming.reservedFolderOf(input.scene) != null -> Rejection(Res.string.error_scene_folder_reserved, SceneNaming.reservedFolderOf(input.scene).orEmpty())
         context.scenes.names().any { it.equals(input.scene, ignoreCase = true) } -> Rejection(Res.string.error_scene_name_taken)
         else -> null
     }
