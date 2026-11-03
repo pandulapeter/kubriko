@@ -11,13 +11,14 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.RegeneratedCode
-import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeFileProblem
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.store.RegeneratedCode
+import com.pandulapeter.kubrikoCreator.actors.store.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
 import com.pandulapeter.kubrikoCreator.actors.withParents
@@ -157,7 +158,7 @@ internal class BlockTypesController(
                 onFirstLoaded(_types.value)
             } catch (exception: Exception) {
                 if (exception is CancellationException) throw exception
-                setUnreadableFiles(listOf(UnreadableBlockTypeFile(BlockTypeStore.CREATOR_DIRECTORY, BlockTypeFileProblem.Unparsable(exception.message ?: exception.toString()))))
+                setUnreadableFiles(listOf(UnreadableBlockTypeFile(DefinitionPaths.CREATOR_DIRECTORY, BlockTypeFileProblem.Unparsable(exception.message ?: exception.toString()))))
             }
             for (request in writeRequests) {
                 delay(writeDelayInMilliseconds)

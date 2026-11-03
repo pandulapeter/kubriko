@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 
 /**
  * Template version 2: `GameEntryPoint.kt` hands the generated Manager types to the Scene editor, as `Game.kt` hands them

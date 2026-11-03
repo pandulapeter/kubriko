@@ -9,9 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.CreatorProjectSettings
+import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDescriptions
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -65,7 +66,7 @@ class FormatFixturesTest {
             val project = testDirectory()
             File(fixture, BlockTypeStore.SETTINGS_FILE).copyTo(File(project, BlockTypeStore.SETTINGS_FILE))
             BlockTypeStore.open(project)!!.save(type)
-            val path = BlockTypeStore.definitionPath(type)
+            val path = DefinitionPaths.definitionPath(type)
             assertEquals(File(fixture, path).readText(), File(project, path).readText(), "$path is written differently.")
         }
     }

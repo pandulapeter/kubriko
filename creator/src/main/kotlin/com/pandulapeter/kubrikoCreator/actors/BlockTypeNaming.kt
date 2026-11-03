@@ -22,11 +22,11 @@ internal object BlockTypeNaming {
      */
     const val BASE_SUFFIX = "Base"
     private val reservedNames = setOf(
-        ActorTypeCodeGenerator.REGISTRY_NAME,
-        ManagerTypeCodeGenerator.WIRING_NAME,
-        ScenesCodeGenerator.SCENES_NAME,
-        SceneSettingsCodeGenerator.SETTINGS_NAME,
-        AudioCodeGenerator.AUDIO_NAME,
+        GeneratedNames.ACTOR_TYPES,
+        GeneratedNames.WIRING,
+        GeneratedNames.SCENES,
+        GeneratedNames.SCENE_SETTINGS,
+        GeneratedNames.AUDIO,
         "MusicManager", "SoundManager", "SpriteManager", "Res", "IntSize", "FilterQuality",
         "State", "Color", "Key", "Kubriko", "SceneOffset", "SceneSize", "Manager", "ActorManager", "ViewportManager", "StateManager", "Logger", "Random",
         "Box", "BasicText", "Composable", "Modifier", "Alignment", "TextStyle", "WindowInsets",

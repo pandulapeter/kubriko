@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

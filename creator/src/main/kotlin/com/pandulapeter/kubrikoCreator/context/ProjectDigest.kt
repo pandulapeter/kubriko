@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.context
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 
 /**
  * A map of the game that Kubriko Creator computes from its model, not the AI: its types by folder, each with what it is

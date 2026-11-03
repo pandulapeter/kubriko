@@ -9,6 +9,8 @@
 -->
 # actors (the Block model and code generation)
 
+- `actors` is the model, `actors.codegen` turns it into Kotlin, `actors.store` reads and writes `.kubriko/`; the model never
+  imports the other two (`PackageLayeringTest`), so what both need, such as `GeneratedNames` and `DefinitionPaths`, is model.
 - Generated Kotlin compiles for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks
   get their own `run { }` scope inside a function per kind of Event, so a `return` ends only that Event's Blocks, and their
   leading import lines, like Kotlin UI's (`KotlinUi`), become the file's imports; misplaced Blocks and unchosen choices

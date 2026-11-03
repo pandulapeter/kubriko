@@ -9,12 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.git
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
-import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
-import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 
 /**
  * Groups changed files the way Kubriko Creator thinks of them: an Actor type's or Manager type's definition and its
@@ -22,7 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
  */
 internal object ChangeGrouping {
 
-    private val definitionPaths = BlockTypeKind.entries.map { "${BlockTypeStore.CREATOR_DIRECTORY}/${BlockTypeStore.definitionsFolder(it)}/" }
+    private val definitionPaths = BlockTypeKind.entries.map { "${DefinitionPaths.CREATOR_DIRECTORY}/${DefinitionPaths.definitionsFolder(it)}/" }
     private val generatedFilesOfNoType = setOf(
         ActorTypeCodeGenerator.REGISTRY_NAME,
         ManagerTypeCodeGenerator.WIRING_NAME,

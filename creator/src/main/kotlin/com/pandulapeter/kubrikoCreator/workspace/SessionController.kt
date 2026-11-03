@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation

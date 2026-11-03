@@ -40,7 +40,7 @@ class PackageLayeringTest {
     private val layers = listOf(
         Layer("foundation", "foundation", "console"),
         Layer("ui-components", "ui.components", "ui.theme"),
-        Layer("core", "schema", "actors", "project", *coreSceneFiles),
+        Layer("core", "schema", "actors", "actors.codegen", "actors.store", "project", *coreSceneFiles),
         Layer("gradle-session", "gradle", "session"),
         Layer("git", "git"),
         Layer("template", "template"),
@@ -58,7 +58,14 @@ class PackageLayeringTest {
         "session/HotReloadLaunchTest.kt -> scenes.ProjectClasspath" to "M06",
         "template/ProjectTemplateIntegrationTest.kt -> scenes.ProjectClasspath" to "M06",
     )
-    private val sources by lazy { (creatorSourceRoots() + creatorTestRoots()).flatMap(::sourceFilesIn) }
+
+    /**
+     * The order of the packages inside the core layer's `actors`: the Block model, the code generated from it, and the files
+     * it is stored in. Only main sources are held to it, since the model's tests check it against the generated code.
+     */
+    private val actorsSublayers = listOf("actors", "actors.codegen", "actors.store")
+    private val mainSources by lazy { creatorSourceRoots().flatMap(::sourceFilesIn) }
+    private val sources by lazy { mainSources + creatorTestRoots().flatMap(::sourceFilesIn) }
 
     @Test
     fun noImportRunsToAHigherLayer() {
@@ -99,6 +106,16 @@ class PackageLayeringTest {
         val misplaced = sources.filter { it.module != APP_MODULE && layerOf(it)?.module != it.module }
             .map { "${it.module}: ${it.path} (${layerOf(it)?.module})" }
         assertTrue(misplaced.isEmpty(), "Files in the module of another layer:\n${misplaced.joinToString("\n")}")
+    }
+
+    @Test
+    fun theActorsModelDoesNotImportCodegenOrStore() {
+        val violations = mainSources.flatMap { source ->
+            val sourceIndex = actorsSublayers.indexOf(source.unit)
+            if (sourceIndex < 0) return@flatMap emptyList()
+            source.imports.filter { actorsSublayers.indexOf(it.unit) > sourceIndex }.map { "${source.path} -> ${it.name}" }
+        }
+        assertTrue(violations.isEmpty(), "Imports that run from the actors model to code generation or storage:\n${violations.joinToString("\n")}")
     }
 
     private fun sourceFilesIn(root: File): List<SourceFile> {

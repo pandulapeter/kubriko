@@ -11,8 +11,8 @@ package com.pandulapeter.kubrikoCreator.testing
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

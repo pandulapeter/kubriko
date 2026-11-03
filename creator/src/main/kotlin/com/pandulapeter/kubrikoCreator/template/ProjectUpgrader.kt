@@ -9,10 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
-import com.pandulapeter.kubrikoCreator.actors.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector

@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 
 /**
  * Template version 8: `Game.kt` adds its Kubriko instance to the generated `KubrikoWiring.runningInstances` while it is

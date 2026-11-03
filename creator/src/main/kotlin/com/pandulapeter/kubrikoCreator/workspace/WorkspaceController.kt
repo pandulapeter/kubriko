@@ -12,9 +12,9 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation

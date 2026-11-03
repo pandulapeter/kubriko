@@ -12,13 +12,13 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeFileProblem
+import com.pandulapeter.kubrikoCreator.actors.store.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.commands.UnsavedWrites
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges

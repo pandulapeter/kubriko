@@ -11,10 +11,10 @@ package com.pandulapeter.kubrikoCreator.testing
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
-import com.pandulapeter.kubrikoCreator.actors.LoadedBlockTypes
-import com.pandulapeter.kubrikoCreator.actors.RegeneratedCode
-import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.store.LoadedBlockTypes
+import com.pandulapeter.kubrikoCreator.actors.store.RegeneratedCode
+import com.pandulapeter.kubrikoCreator.actors.store.UnreadableBlockTypeFile
 import java.io.IOException
 
 internal class FakeBlockTypeRepository(
