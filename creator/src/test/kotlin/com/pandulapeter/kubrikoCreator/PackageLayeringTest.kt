@@ -89,6 +89,17 @@ class PackageLayeringTest {
         assertTrue(misplaced.isEmpty(), "Files in the module of another layer:\n${misplaced.joinToString("\n")}")
     }
 
+    /**
+     * Main sources only, since a test of what the app bundles (`CreatorLibrariesBundlingTest`) belongs to the app.
+     */
+    @Test
+    fun noExtractedLayerIsLeftInTheApp() {
+        val extractedModules = sources.map { it.module }.toSet() - APP_MODULE
+        val leftBehind = mainSources.filter { it.module == APP_MODULE && layerOf(it)?.module in extractedModules }
+            .map { "${it.path} (${layerOf(it)?.module})" }
+        assertTrue(leftBehind.isEmpty(), "Files left in the app whose layer has a module of its own:\n${leftBehind.joinToString("\n")}")
+    }
+
     @Test
     fun theActorsModelDoesNotImportCodegenOrStore() {
         val violations = mainSources.flatMap { source ->
