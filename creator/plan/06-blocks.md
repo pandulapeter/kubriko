@@ -10,7 +10,8 @@
 # Blocks, Actor types, and Manager types
 
 Blocks are the heart of the product. Each addition below lands with its command and AI tool (`02-ai-assistant.md`), generator tests, and a
-case in the integration test's every-Block types (an Actor type and two Manager types).
+case in the integration test's every-Block types (an Actor type and two Manager types), and is one entry of the Block descriptor
+(`BlockKind`), whose exhaustive `when`s then show every place it needs.
 
 ## More for Manager types
 
@@ -70,7 +71,8 @@ its metadata to `GameSerialization`; shown as a diff and confirmed (offering a c
 
 ## Scene editor (Creator's own, `ui/scenes`)
 
-Selecting, moving, removing, placing from the sidebar, and the inspector exist (`scenes/`, `ui/scenes/`). Next: editors
+Selecting, moving, removing, placing from the sidebar, and the inspector exist (`scenes/` in `:creator:core`, the live preview's
+`sceneRuntime` in `:creator:scene-runtime`, and `ui/scenes/`). Next: editors
 for hand-written types' other state values (through `set_actor_state`), resize and rotate handles, an outline that follows rotation,
 snapping to a grid, keyboard nudging, duplicating, placing hand-written Actor types (their default state through their metadata), sprite
 thumbnails in the sidebar while dragging, multi-select, and layer filtering and locking. None of it needs a library change. A changed

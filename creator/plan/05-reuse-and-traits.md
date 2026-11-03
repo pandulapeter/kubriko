@@ -14,7 +14,11 @@ Kubriko's own Traits. Without them, 20 enemy types are 20 copies of the same Blo
 Every addition lands with its command, AI tool, generator tests, and a case in the integration test's every-Block types, as in
 `06-blocks.md`.
 
-**Order:** functions, then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter.
+**Order:** functions, then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter. Both
+build on how code is generated (`:creator:core`'s `actors.codegen`): a Block is one descriptor (`BlockKind`), its code a structured
+`BlockCode` that names its imports and features, one emitter writes every Actor class, standalone or in a family
+(`ActorClassEmitter`), and each kind of Event is a function of its own (`EventFunctions`). A function is then one more member the
+emitter writes, and a Trait one more feature `BlockCode` reports; their commands go into `:creator:commands`.
 
 ## Parent Actor types
 
@@ -28,7 +32,6 @@ What parent Actor types (`ActorTypeFamily`, `set_parent`) still lack:
 - **Deleting a parent** is rejected while it has children; offer instead to copy what they inherit into them.
 - **Other Actors' Properties:** once Blocks can read another Actor's Property (`other.hp`), a parent's work for every child, and
   counting Actors of a type includes children.
-- **Imports per file** rather than per family (some generated files import what they don't use).
 
 ## Functions
 
@@ -36,7 +39,8 @@ Named Block lists with parameters (number, text, toggle) and an optional result,
 scripts:
 
 - **On an Actor type:** methods of its Actors, inherited by children and overridable (the parent's runs through "Run the parent's
-  function"). Generated as Kotlin functions on the class (and the family's base class).
+  function"). Generated as Kotlin functions on the class (and the family's base class). A Kotlin Block's `return` ends its
+  Event's function, so "Run function" and function results must not change what an existing Kotlin Block's `return` does.
 - **On a Manager type:** game-wide ones (`Game.resetLevel()`), callable from any type through the Manager, as Properties are now.
 - **Local values:** temporary number, text, and toggle values inside one Event or function (generated as local `var`s), for
   calculations that don't belong in a Property.

@@ -11,7 +11,7 @@
 
 Claude edits Kubriko games through the same validated operations the user has, so its work stays inside the editor's constraints by
 construction, shows up as readable Events and Blocks, and can be inspected, tweaked, or undone like any other change. What exists (the
-commands, the MCP server, one-click setup, the game tools, and the activity view) is in `commands/`, `mcp/`, and `ai/assistant`.
+commands, the MCP server, one-click setup, the game tools, and the activity view) is in `:creator:commands` (`commands`, `context`) and `:creator:ai` (`mcp`, `ai/assistant`).
 
 ## More for the MCP server
 

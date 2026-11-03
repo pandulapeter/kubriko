@@ -23,8 +23,9 @@ files where the format allows it, so the project stays readable in IntelliJ and 
 
 ## Search
 
-- **Filter field** at the top of the sidebar (and Cmd/Ctrl+F there): narrows every group to the items whose names match (folders on the
-  way stay open, matches highlighted), case-insensitive, matching words anywhere (`brk` finds `Brick` too, as IDEs do). Escape clears it.
+- **The sidebar's filter field** (`SidebarFilter.kt`) keeps the items whose names contain the query, ignoring case, with the
+  folders on the way open. Left: Cmd/Ctrl+F to focus it, the matches highlighted, and matching words anywhere (`brk` finds `Brick`
+  too, as IDEs do).
 - **Quick open** (Cmd/Ctrl+P, or Shift twice): a list over everything (types, Scenes, sprites, sounds, Kotlin files, and Properties and
   functions by their type) that opens the chosen one.
 - **Find usages:** from a type, Property, sprite, sound, or Scene, every Block, condition, text, Scene, and collision Event that refers
@@ -36,4 +37,4 @@ files where the format allows it, so the project stays readable in IntelliJ and 
 
 ## Order
 
-The filter field and quick open next, then find usages; sprite folders with the sprite editor's files.
+The rest of the filter field and quick open next, then find usages; sprite folders with the sprite editor's files.

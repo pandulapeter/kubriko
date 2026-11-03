@@ -37,16 +37,18 @@ Every user-made thing is unlimited, and the editor stays usable with many of the
 
 Found in review rather than measured, but each grows with the project and runs often enough to matter:
 
-- **Wide families regenerate quadratically.** Generating one member of a family (`ActorFamilyCodeGenerator`) builds the family's
-  `ActorTypeFeatures` and a `BlockScope` (each O(types)) again, and `ActorTypeFamily.childrenOf` scans every parent link per call
-  (`descendantsOf` recursively), so 200 enemies under one parent cost about 200 × 200 scopes per regeneration, after every edit;
-  `PluginManagers.of` also builds a second `ActorTypeFamily`. `BenchmarkProject` only has families of ten, so nothing catches it.
-  Direction: a wide family in the benchmark, a children map in `ActorTypeFamily`, the features computed once per family per
-  regeneration, and the family passed into `PluginManagers.of`.
-- **The Block editor rebuilds the project's scope per keystroke.** `WorkspaceScreen` remembers `BlockScope.of(…)` (which builds an
-  `ActorTypeFamily` of every type), `Inheritance.of`, and the folder groups on the whole `blockTypes` list, which changes with every
-  character typed into a Block, on the main thread. Direction: remember them on a structural projection (names, parents, Properties,
-  Timers), or derive them in `BlockTypesController` off the main thread, and add a UI-latency case to `CreatorBenchmarkTest`.
+- **Wide families regenerate quadratically.** Every member of a family shares one `ActorTypeFamily` per regeneration, but
+  generating each member (`ActorFamilyCodeGenerator`, in `:creator:core`'s `actors.codegen`) builds the family's
+  `ActorTypeFeatures` with a `BlockScope` per member (each O(types)) again, and `ActorTypeFamily.childrenOf` scans every parent
+  link per call (`descendantsOf` recursively), so 200 enemies under one parent cost about 200 × 200 scopes per regeneration,
+  after every edit; `PluginManagers.of` also builds a second `ActorTypeFamily`. `BenchmarkProject` only has families of ten, so
+  nothing catches it. Direction: a wide family in the benchmark, a children map in `ActorTypeFamily`, the features computed once
+  per family per regeneration, and the family passed into `PluginManagers.of`.
+- **The Block editor rebuilds the project's scope per keystroke.** `WorkspaceCenter` remembers the `ActorTypeFamily`,
+  `BlockScope.of(…)`, and `Inheritance.of`, and `rememberFolderTreeGroups` the folder groups, on the whole `blockTypes` list,
+  which changes with every character typed into a Block, on the main thread. Direction: remember them on a structural projection
+  (names, parents, Properties, Timers), or derive them off the main thread in a state holder beside `WorkspaceUiState` (as
+  `GameMapState` derives the Game map), and add a UI-latency case to `CreatorBenchmarkTest`.
 - **Renaming rewrites Scenes per keystroke.** `EditProperty` renames a Property's values in every Scene (`changeSceneStates`) on each
   keystroke of the name field, so a type placed in 50 Scenes rewrites up to 50 files per character; and renaming a Scene folder calls
   `renameScene` per Scene, each walking the whole project and reading every `.kt` file (`SceneRenaming.kt`). Direction: rename in
@@ -59,11 +61,11 @@ Found in review rather than measured, but each grows with the project and runs o
   full, since it scrolls on a change of size (`ui/Console.kt`), and each new line reopens a collapsed console
   (`ui/WorkspaceConsole.kt`). Direction: append in batches into a ring buffer, follow the end only while the list is at its end, and
   open the console by itself once per play session.
-- **Choosers list everything.** `MenuButton` composes every option of a `DropdownMenu`, which the Actor type, Scene, audio, and parent
-  choices use, with no filter or folders: choosing a collision target among 300 types means scrolling them all. Direction:
-  `KeyChoiceButton`'s popup (a search field over a `LazyColumn`), generalized, with folder paths.
-- **Sidebar rows** are rebuilt inside the lazy list's builder on every AI step's flash (`FolderTreeSection`), and each composed row
-  searches its group linearly. Direction: remember the rows per group and carry the item in the row.
+- **Two choosers list everything.** The Scene settings' music choice (`SceneSettingsInspector`) and the type header's list of
+  further children (`BlockTypeHeader`) still compose every option of a `MenuButton`'s `DropdownMenu`. Direction:
+  `SearchableChoiceButton`, which the other project choices use, and folder paths in its options.
+- **Sidebar rows** are rebuilt inside the lazy list's builder on every AI step's flash (`folderTreeSection` calls `folderTreeRows`
+  each time). Direction: remember the rows per group.
 
 ## Measured, not assumed
 
