@@ -22,8 +22,8 @@ import kotlin.test.assertTrue
 
 class NodeRuntimeTest {
     private val directory = createTempDirectory().toFile()
-    private val tools = File(directory, "tools")
-    private val downloads = mutableListOf<String>()
+    private val releases = TestNodeReleases(directory)
+    private val downloads get() = releases.downloads
     private val isWindows = System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")
 
     @AfterTest
@@ -31,34 +31,12 @@ class NodeRuntimeTest {
         directory.deleteRecursively()
     }
 
-    private fun archive(): File {
-        val content = File(directory, "content/node-v24.11.1-darwin-arm64/bin").also { it.mkdirs() }
-        File(content, "npx").writeText("#!/bin/sh")
-        File(content, "node").writeText("#!/bin/sh")
-        val archive = File(directory, "node.tar.gz")
-        ProcessBuilder("tar", "-czf", archive.path, "-C", File(directory, "content").path, ".").start().waitFor()
-        return archive
-    }
-
-    private fun runtime(sums: (File) -> String, platform: String? = "darwin-aarch64"): NodeRuntime {
-        val archive = archive()
-        val installer = BinaryAgentInstaller(tools, isWindows = isWindows, download = { url, target, _ ->
-            downloads += url
-            archive.copyTo(target, overwrite = true)
-        })
-        return NodeRuntime(installer, File(tools, NodeRuntime.NODE_ID), platform) { url ->
-            when {
-                url.endsWith("index.json") -> INDEX
-                url.endsWith("SHASUMS256.txt") -> sums(archive)
-                else -> null
-            }
-        }
-    }
+    private fun runtime(sums: (File) -> String, platform: String? = "darwin-aarch64") = releases.runtime(sums, platform)
 
     @Test
     fun theNewestLtsReleaseForThisPlatformIsDownloadedCheckedAndFoundAgain() {
         assumeFalse(isWindows)
-        val runtime = runtime({ "${BinaryAgentInstaller.sha256Of(it)}  node-v24.11.1-darwin-arm64.tar.gz\nabc  node-v24.11.1-win-x64.zip" })
+        val runtime = runtime(releases::validSums)
         assertNull(runtime.installedNpx())
         val npx = runtime.install()
         assertEquals(listOf("https://nodejs.org/dist/v24.11.1/node-v24.11.1-darwin-arm64.tar.gz"), downloads)
@@ -84,12 +62,8 @@ class NodeRuntimeTest {
         assertEquals("darwin-arm64", NodeRuntime.nodePlatformOf("darwin-aarch64"))
         assertEquals("win-x64", NodeRuntime.nodePlatformOf("windows-x86_64"))
         assertNull(NodeRuntime.nodePlatformOf(null))
-        assertEquals("v24.11.1", NodeRuntime.latestLts(INDEX))
+        assertEquals("v24.11.1", NodeRuntime.latestLts(TestNodeReleases.INDEX))
         assertNull(NodeRuntime.latestLts("nope"))
         assertEquals("abc", NodeRuntime.checksumOf("abc  node.zip\ndef  other.zip", "node.zip"))
-    }
-
-    private companion object {
-        const val INDEX = """[{"version":"v25.2.0","lts":false},{"version":"v24.11.1","lts":"Krypton"},{"version":"v22.20.0","lts":"Jod"}]"""
     }
 }
