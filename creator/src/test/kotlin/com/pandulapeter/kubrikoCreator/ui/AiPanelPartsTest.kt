@@ -18,6 +18,8 @@ import androidx.compose.ui.test.performClick
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
+import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
@@ -73,6 +75,25 @@ class AiPanelPartsTest {
         onNodeWithText("Keep").performClick()
         assertEquals(listOf(4), kept)
         saveSnapshot("transcript")
+    }
+
+    @Test
+    fun aToolCallNamesWhatItsStepWorkedOnAndGoesThereWhenClicked() = uiTest {
+        val step = AiStep(id = 7, toolName = "add_block", target = CommandTarget.BlockType("Ball", 1, null), isRunning = false, origin = AiStepOrigin("c", "1"))
+        val shown = mutableListOf<AiStep>()
+        showing {
+            AssistantTranscriptList(
+                items = listOf(TranscriptItem.ToolCall(ToolCallId("1"), "kubriko-creator_add_block", status = ToolCallStatus.COMPLETED)),
+                isBusy = false,
+                steps = mapOf(ToolCallId("1") to step),
+                onShowStep = { shown += it },
+            )
+        }
+        onNodeWithText("Ball, Event 2", substring = true).performClick()
+        assertEquals(listOf(step), shown)
+        onNodeWithText("Ball, Event 2", substring = true).performClick()
+        assertEquals(listOf(step, step), shown)
+        saveSnapshot("transcript-tool-call-target")
     }
 
     @Test
