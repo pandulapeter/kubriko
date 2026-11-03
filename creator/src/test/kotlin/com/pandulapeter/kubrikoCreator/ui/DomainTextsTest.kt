@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus
+import com.pandulapeter.kubrikoCreator.project.GameSettingsProblem
 import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
@@ -34,6 +35,7 @@ class DomainTextsTest {
     private val enums = listOf<Pair<KClass<*>, List<DomainText>>>(
         NameProblem::class to NameProblem.entries,
         IdentityProblem::class to IdentityProblem.entries,
+        GameSettingsProblem::class to GameSettingsProblem.entries,
         ProjectProblem::class to ProjectProblem.entries,
         TemplateProblem::class to TemplateProblem.entries,
         SceneProblem::class to SceneProblem.entries,

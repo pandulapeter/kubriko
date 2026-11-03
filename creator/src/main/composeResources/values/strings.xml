@@ -721,6 +721,9 @@
     <string name="error_identity_version_number_invalid">The version number is a whole number from 1 to %1$s.</string>
     <string name="error_identity_application_id_invalid">"%1$s" isn't an application ID: at least two parts joined by dots, like com.example.mygame, each starting with a letter.</string>
     <string name="error_identity_text_invalid">The vendor and the description are one line of at most %1$s characters each.</string>
+    <string name="error_game_settings_first_scene_invalid">"%1$s" isn't a Scene name: folder names and a name separated by slashes, like levels/1-1.</string>
+    <string name="error_game_settings_viewport_size_invalid">The viewport's width and height are numbers from 1 to %1$s.</string>
+    <string name="error_game_settings_frame_rate_invalid">The frame rate is a whole number of updates per second from 1 to %1$s, or 0 for every frame the display shows.</string>
     <string name="project_settings_title">Project settings</string>
     <string name="project_settings_unreadable">Couldn't read this project's settings: %1$s</string>
     <string name="project_settings_section_identity">Identity</string>

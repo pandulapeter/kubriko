@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus
+import com.pandulapeter.kubrikoCreator.project.GameSettingsProblem
 import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
@@ -34,6 +35,7 @@ internal val DomainText.resource: StringResource
     get() = when (this) {
         is NameProblem -> toResource()
         is IdentityProblem -> toResource()
+        is GameSettingsProblem -> toResource()
         is ProjectProblem -> toResource()
         is TemplateProblem -> toResource()
         is SceneProblem -> toResource()
