@@ -132,7 +132,7 @@ class HotPathAllocationTest {
         val targetFrameRate = TargetFrameRate.Limit(30)
         var frameTime = 0L
         var sink = 0L
-        val bytes = measureAllocatedBytesPerRun(warmUpRuns = 200, measuredRuns = 50) {
+        val bytes = measureAllocatedBytesPerRun(warmUpRuns = 2_000, measuredRuns = 1_000) {
             for (i in 0 until 300) {
                 frameTime += 8
                 sink += scheduler.onFrame(frameTime, frameTime, canTick = true, targetFrameRate = targetFrameRate)
