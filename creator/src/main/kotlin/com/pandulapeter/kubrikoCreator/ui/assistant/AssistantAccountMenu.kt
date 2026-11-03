@@ -89,6 +89,6 @@ internal fun accountActions(methods: List<SignInMethod>, hasApiKey: Boolean, can
 private fun AuthStatus?.label() = when {
     this == null -> stringResource(Res.string.assistant_account_api_key)
     !isSignedIn -> stringResource(Res.string.assistant_account_not_signed_in)
-    email != null -> stringResource(Res.string.assistant_account_signed_in, label, email)
+    email != null -> stringResource(Res.string.assistant_account_signed_in, label, email.orEmpty())
     else -> label
 }

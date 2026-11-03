@@ -1,0 +1,143 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ai.assistant
+
+import com.agentclientprotocol.agent.Agent
+import com.agentclientprotocol.model.AcpMethod
+import com.agentclientprotocol.model.AcpNotification
+import com.agentclientprotocol.protocol.Protocol
+import com.agentclientprotocol.transport.StdioTransport
+import com.pandulapeter.kubrikoCreator.testing.parked
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
+import java.io.IOException
+import java.nio.channels.Channels
+import java.nio.channels.Pipe
+import java.util.concurrent.CopyOnWriteArrayList
+
+/**
+ * Launches [FakeAgent]s in this process, talking to Kubriko Creator over pipes as a real agent's process would.
+ *
+ * @param failingLaunches How many launches fail before one succeeds.
+ */
+public class FakeAgentLauncher(
+    private val fakeAgent: () -> FakeAgent = { FakeAgent() },
+    var failingLaunches: Int = 0,
+) : AgentLauncher {
+    val commands = CopyOnWriteArrayList<AgentCommand>()
+    val channels = CopyOnWriteArrayList<FakeAgentChannel>()
+    val agents = CopyOnWriteArrayList<FakeAgent>()
+
+    override fun launch(command: AgentCommand): AgentChannel {
+        commands += command
+        if (failingLaunches > 0) {
+            failingLaunches--
+            throw IOException("No such program: ${command.program}")
+        }
+        val agent = fakeAgent()
+        return FakeAgentChannel(agent).also {
+            agents += agent
+            channels += it
+        }
+    }
+
+    fun close() = channels.forEach { it.stop() }
+}
+
+public class FakeAgentChannel(
+    private val agent: FakeAgent,
+) : AgentChannel {
+    private val toCreator = Pipe.open()
+    private val fromCreator = Pipe.open()
+    private val errorPipe = Pipe.open()
+    private val exit = CompletableDeferred<Int>()
+    val agentScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    override val fromAgent = Channels.newInputStream(toCreator.source()).parked()
+    override val toAgent = Channels.newOutputStream(fromCreator.sink())!!
+    override val errors = Channels.newInputStream(errorPipe.source()).parked()
+    private val agentWriter = Channels.newOutputStream(toCreator.sink()).bufferedWriter()
+    private val errorWriter = Channels.newOutputStream(errorPipe.sink()).bufferedWriter()
+    val isStopped get() = exit.isCompleted
+    private val protocol: Protocol
+
+    init {
+        val reader = Channels.newInputStream(fromCreator.source()).bufferedReader()
+        val transport = StdioTransport(
+            parentScope = agentScope,
+            ioDispatcher = Dispatchers.IO,
+            input = flow { while (true) emit(reader.readLine() ?: break) },
+            output = { line ->
+                synchronized(agentWriter) {
+                    agentWriter.write(line)
+                    agentWriter.newLine()
+                    agentWriter.flush()
+                }
+            },
+        )
+        protocol = Protocol(agentScope, transport)
+        Agent(protocol, agent.support(this))
+        protocol.start()
+        if (agent.exitsAtStart != null) crash(agent.exitsAtStart)
+    }
+
+    /**
+     * Sends `_auth/status_update`, as Claude Agent does, saying the agent works as [kind] ([label]).
+     */
+    fun pushAuthStatus(kind: String, label: String, email: String? = null) = protocol.sendNotificationRaw(
+        AcpMethod.AcpNotificationMethod(AuthStatus.METHOD, StatusUpdate.serializer()),
+        buildJsonObject {
+            putJsonObject("authStatus") {
+                put("kind", kind)
+                put("label", label)
+                email?.let { putJsonObject("account") { put("email", it) } }
+            }
+        },
+    )
+
+    @Serializable
+    private class StatusUpdate(
+        @Suppress("PropertyName") override val _meta: JsonElement? = null,
+    ) : AcpNotification
+
+    fun writeError(line: String) = synchronized(errorWriter) {
+        errorWriter.write(line)
+        errorWriter.newLine()
+        errorWriter.flush()
+    }
+
+    /**
+     * Ends the agent as a crashing process would: its streams close and it exits with [exitCode].
+     */
+    fun crash(exitCode: Int) {
+        if (exit.isCompleted) return
+        agentScope.cancel()
+        runCatching { toCreator.sink().close() }
+        runCatching { errorPipe.sink().close() }
+        runCatching { fromCreator.source().close() }
+        exit.complete(exitCode)
+    }
+
+    override suspend fun awaitExit() = exit.await()
+
+    override fun stop() = crash(STOPPED_EXIT_CODE)
+
+    companion object {
+        const val STOPPED_EXIT_CODE = 143
+    }
+}
