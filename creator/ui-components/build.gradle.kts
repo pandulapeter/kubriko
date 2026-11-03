@@ -17,7 +17,7 @@ dependencies {
     api(projects.creator.foundation)
     api(projects.tools.uiComponents)
     api(compose.desktop.currentOs)
-    implementation(libs.compose.resources)
+    api(libs.compose.resources)
     testFixturesApi(compose.desktop.uiTestJUnit4)
     testFixturesApi(libs.kotlin.test)
 }
