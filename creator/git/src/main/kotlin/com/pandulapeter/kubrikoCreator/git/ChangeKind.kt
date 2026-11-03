@@ -10,20 +10,15 @@
 package com.pandulapeter.kubrikoCreator.git
 
 /**
- * What the version control panel shows.
+ * How a file differs from the last commit.
  */
-internal sealed interface GitState {
-
-    data object Loading : GitState
+public enum class ChangeKind {
+    ADDED,
+    MODIFIED,
+    DELETED,
 
     /**
-     * The project isn't the root of a git repository.
+     * Left in conflict by a merge that git couldn't finish on its own.
      */
-    data object NoRepository : GitState
-
-    data class Ready(
-        val branch: String?,
-        val changes: List<ChangeEntry>,
-        val history: List<CommitSummary>,
-    ) : GitState
+    CONFLICTING,
 }

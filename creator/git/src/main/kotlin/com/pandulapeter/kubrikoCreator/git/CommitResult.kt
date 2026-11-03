@@ -12,19 +12,25 @@ package com.pandulapeter.kubrikoCreator.git
 /**
  * What asking for a commit did, decided from the repository's status at that moment rather than from the last [GitState].
  */
-internal sealed interface CommitResult {
+public sealed interface CommitResult {
 
-    data object Committed : CommitResult
+    /**
+     * Every change is in a new commit.
+     */
+    public data object Committed : CommitResult
 
-    data object NothingToCommit : CommitResult
+    /**
+     * Nothing differed from the last commit.
+     */
+    public data object NothingToCommit : CommitResult
 
     /**
      * A merge left files in conflict, so nothing was committed.
      */
-    data object Conflicts : CommitResult
+    public data object Conflicts : CommitResult
 
     /**
      * The repository couldn't be read or written, or is gone.
      */
-    data object Failed : CommitResult
+    public data object Failed : CommitResult
 }

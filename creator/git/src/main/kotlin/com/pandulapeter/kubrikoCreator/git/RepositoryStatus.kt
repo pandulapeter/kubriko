@@ -9,13 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.git
 
-import com.pandulapeter.kubrikoCreator.foundation.DomainText
-
 /**
- * What version control reports in the console, and why its operations fail.
+ * What a repository looks like right now.
+ *
+ * @param branch The checked-out branch, or null when no branch is checked out.
  */
-internal enum class GitStatus(override val english: String) : DomainText {
-    COMMITTED("The changes are committed."),
-    FAILED("The version control operation failed."),
-    REPOSITORY_CREATED("The project is now under version control."),
-}
+public data class RepositoryStatus(
+    public val branch: String?,
+    public val changes: List<FileChange>,
+)

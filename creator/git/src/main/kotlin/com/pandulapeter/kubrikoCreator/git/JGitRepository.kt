@@ -19,11 +19,11 @@ import java.io.File
  * A git repository on disk, through JGit, so that nothing has to be installed and every platform behaves the same.
  * Commits use the author configured for git (`user.name` and `user.email`), as the git command line would.
  */
-internal class JGitRepository private constructor(
+public class JGitRepository private constructor(
     private val rootDirectory: File,
 ) : GitRepository {
 
-    override fun status() = git { git ->
+    override fun status(): RepositoryStatus = git { git ->
         val status = git.status().call()
         val changes = buildList {
             (status.untracked + status.added).forEach { add(FileChange(it, ChangeKind.ADDED)) }
@@ -37,14 +37,14 @@ internal class JGitRepository private constructor(
         )
     }
 
-    override fun commitAll(message: String) = git { git ->
+    override fun commitAll(message: String): Unit = git { git ->
         git.add().addFilepattern(".").call()
         git.add().setUpdate(true).addFilepattern(".").call()
         git.commit().setMessage(message).call()
         Unit
     }
 
-    override fun history(limit: Int) = git { git ->
+    override fun history(limit: Int): List<CommitSummary> = git { git ->
         try {
             git.log().setMaxCount(limit).call().map { commit ->
                 CommitSummary(
@@ -59,7 +59,7 @@ internal class JGitRepository private constructor(
         }
     }
 
-    override fun discard(paths: Collection<String>) = git { git ->
+    override fun discard(paths: Collection<String>): Unit = git { git ->
         val head = git.repository.resolve(Constants.HEAD)
         val headTree = head?.let { git.repository.parseCommit(it).tree }
         val committed = paths.filter { path -> headTree != null && TreeWalk.forPath(git.repository, path, headTree) != null }
@@ -76,18 +76,18 @@ internal class JGitRepository private constructor(
 
     private fun <T> git(action: (Git) -> T) = Git.open(rootDirectory).use(action)
 
-    companion object {
+    public companion object {
 
         /**
          * The repository [directory] is the root of, or null if it isn't the root of one (a project inside a larger
          * repository is left to other tools).
          */
-        fun open(directory: File) = if (File(directory, Constants.DOT_GIT).exists()) JGitRepository(directory) else null
+        public fun open(directory: File): JGitRepository? = if (File(directory, Constants.DOT_GIT).exists()) JGitRepository(directory) else null
 
         /**
          * Makes [directory] a repository on a `main` branch, with everything in it committed with [message].
          */
-        fun create(directory: File, message: String): JGitRepository {
+        public fun create(directory: File, message: String): JGitRepository {
             Git.init().setDirectory(directory).setInitialBranch("main").call().close()
             return JGitRepository(directory).apply { commitAll(message) }
         }
