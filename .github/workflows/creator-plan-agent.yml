@@ -1,0 +1,151 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
+# Temporary: one run has Claude Code carry out the next item of creator/plan, starting from creator/plan/HANDOVER.md
+# and keeping it up to date, then push its commits straight to main. Meant to be dispatched by hand, one run at a time.
+#
+# Needs one of these repository secrets: CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`, billed to the subscription)
+# or ANTHROPIC_API_KEY. Pushes made with the workflow's token start no other workflow, so Tests doesn't run on them;
+# the pre-commit hook (enabled below) and the prompt's test runs stand in for it.
+
+name: '[Creator] Next plan item (temporary)'
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Claude model'
+        default: 'claude-opus-5-5'
+      instructions:
+        description: 'Extra instructions for this run (optional)'
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: creator-plan-agent
+  cancel-in-progress: false
+
+jobs:
+  next-item:
+    name: Next plan item
+    runs-on: ubuntu-latest
+    # GitHub's ceiling for a hosted runner's job; the prompt tells Claude to wrap up well before it.
+    timeout-minutes: 360
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Set up JDK 21 and Gradle
+        uses: ./.github/actions/setup-jdk
+      - name: Set up git
+        run: |
+          git config user.name 'Pandula Péter'
+          git config user.email 'pandulapeter@gmail.com'
+          git config core.hooksPath .githooks
+          echo "START_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Carry out the next plan item
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL: ${{ inputs.model }}
+          EXTRA_INSTRUCTIONS: ${{ inputs.instructions }}
+        run: |
+          # An empty secret still sets its variable, which would shadow the other one.
+          [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ] || unset CLAUDE_CODE_OAUTH_TOKEN
+          [ -n "$ANTHROPIC_API_KEY" ] || unset ANTHROPIC_API_KEY
+          DEADLINE=$(date -u -d '+300 minutes' '+%H:%M UTC')
+          cat > "$RUNNER_TEMP/prompt.md" <<EOF
+          You are running unattended in a GitHub Actions job on a fresh Ubuntu runner, on a checkout of main. Nobody will
+          answer questions: make every decision yourself, the way the repository's rules and the plan point.
+
+          Your task: carry out exactly one item of Kubriko Creator's plan, the next one, and finish it completely.
+          1. Read creator/plan/HANDOVER.md, creator/plan/README.md, creator/CLAUDE.md, and CLAUDE.md. HANDOVER.md → Next names
+             where to continue. If it says a previous session stopped before finishing an item (or before its review),
+             finishing that is this run's item. Otherwise the item is the next one Next names (one section or item of a plan
+             file, such as one part of Project settings, not a whole plan file).
+          2. Implement it to the repository's Definition of done (creator/CLAUDE.md), with its tests, its command, and its AI
+             tool where the rules ask for them.
+          3. Follow README.md's finishing step: review the item's commits (git log $START_SHA..HEAD) with the /code-review skill
+             at high effort (if that skill isn't available, review the range yourself just as thoroughly), and fix what it finds
+             in commits of their own.
+          4. Delete the finished item from its plan file (a plan file left empty is deleted and the rest renumbered), describe
+             in creator/CLAUDE.md only the rules it introduces that the code can't show, and rewrite HANDOVER.md: Status, Next
+             (the item after this one), and To check by hand (add what only a person in the real app can check; drop nothing
+             you didn't verify yourself). Keep its "Ask before every push" line: it is for interactive sessions, not for you.
+          5. Stop after this one item. Do not start the next.
+
+          Committing and pushing:
+          - Commit on main, never on a new branch, in small steps of one one-line sentence each (load the commit-messages skill
+            before the first commit). Stage explicit paths, never git add -A.
+          - The pre-commit hook runs the checks and the unit tests; never bypass it with --no-verify. If it fails, fix the cause.
+          - After each commit: git pull --rebase origin main, then git push origin HEAD:main. You are allowed to push to main
+            without asking. Never force-push. Never change anything under .github/workflows (this job's token can't push it).
+          - Keep HANDOVER.md true at every push, so a run that is cut off leaves the next one an accurate starting point.
+
+          Time: the job is killed at 6 hours. If it is $DEADLINE or later (check with date -u) and the item isn't finished,
+          wrap up instead: commit what works, write in HANDOVER.md → Next exactly where you stopped and what is left (including
+          the review, if it hasn't run), and push.
+
+          How the user wants the work done (their standing feedback, which this runner doesn't have as memory):
+          - Highest quality, never traded for speed. Before writing a helper, store, walker, dialog, or component, search for
+            the existing one and extend it. Design the unhappy paths up front: throws, cancellation, a second concurrent call,
+            failed writes, CRLF files, Windows paths, outside changes on disk. Nothing blocks the main thread.
+          - Every new piece of Creator lands with solid unit tests in the same change. Tests check against fixed literals or the
+            real implementation, not round-trips through the same code; fakes get contract tests.
+          - No known bugs left behind: a bug you find along the way is fixed in its own commit with a test that fails without
+            the fix, not listed as a follow-up.
+          - creator/plan/ holds only unimplemented work: no "Done" notes, history, or past decisions. HANDOVER.md keeps only
+            status, next, the manual checks still owed, and live-app notes.
+          - Creator's UI is desktop-scale: compact components from its ui/components, icons with tooltips, logical layout. You
+            can't see the app here; check new screens through the offscreen snapshot tests (UiSnapshots) and look at the images.
+          - Use the Oxford comma in every list of three or more items in all prose: docs, UI text, and commit messages.
+          - The public API of the published library modules must not change without the user's consent; if the item seems to
+            need such a change, find a way that doesn't, or stop and say so in HANDOVER.md.
+
+          When you finish, reply with a short summary: the item, its commits, what the review fixed, and what HANDOVER.md now
+          says is next.
+          EOF
+          if [ -n "$EXTRA_INSTRUCTIONS" ]; then
+            printf '\nExtra instructions for this run, from the user:\n%s\n' "$EXTRA_INSTRUCTIONS" >> "$RUNNER_TEMP/prompt.md"
+          fi
+          claude -p "$(cat "$RUNNER_TEMP/prompt.md")" \
+            --model "$MODEL" \
+            --permission-mode bypassPermissions \
+            --output-format stream-json --verbose \
+            | tee "$RUNNER_TEMP/transcript.jsonl" \
+            | jq -r --unbuffered '
+                if .type == "assistant" then
+                  .message.content[]? |
+                  if .type == "text" then .text
+                  elif .type == "tool_use" then "→ \(.name): \(.input | tostring | .[0:300])"
+                  else empty end
+                elif .type == "result" then "\n=== \(.subtype) after \(.num_turns) turns, $\(.total_cost_usd // 0) ===\n\(.result // "")"
+                else empty end'
+      # Commits Claude made but didn't get to push (a failure or the timeout) still reach main; uncommitted work doesn't.
+      - name: Push what was committed
+        if: always()
+        run: |
+          git fetch origin main
+          if [ -n "$(git log --oneline origin/main..HEAD)" ]; then
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+          git log --oneline "$START_SHA"..HEAD
+      - name: Upload the transcript
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: claude-transcript
+          path: ${{ runner.temp }}/transcript.jsonl
+          if-no-files-found: ignore
