@@ -33,7 +33,7 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 - **Tools:** pencil, eraser, line, rectangle and ellipse (outline or filled), flood fill (contiguous or every pixel of the color), color
   picker, and a rectangular selection that moves, copies, and pastes (also between frames and sprites).
 - **Colors:** a left and a right color (left and right mouse buttons, as in GameMaker), picked with the shared
-  `ui/components/ColorPickerDialog` (hue, saturation, brightness, opacity, and hex code; `checkerboard()` for what is see-through), transparency as a color, a palette that the
+  `ColorPickerDialog` of `:creator:ui-components` (made public for this; hue, saturation, brightness, opacity, and hex code; `checkerboard()` for what is see-through), transparency as a color, a palette that the
   project keeps (`.kubriko/palette.json`), and the colors the sprite already uses.
 - **Whole image:** flip, rotate by 90 degrees, shift with wrapping, resize the canvas (anchored), and scale by a whole number, applied to one
   frame or to all of them.
@@ -54,7 +54,12 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
   pixels it replaced. Reading tools return the frame as an image, as `take_screenshot` does.
 - Pixels are an `IntArray` per frame with pure operations (flood fill, shapes, transforms, compositing the onion skin), so the tests need
   no Skia; PNGs are read and written with `javax.imageio`. The canvas draws an `ImageBitmap` of the frame with `FilterQuality.None`.
-- Written in the background and in order, like Block types, and reloaded when the PNG changes on disk (edited in another program).
+- Written in the background and in order with the Block types' failure rules (`../CLAUDE.md` → Threads, writes, and failures, and
+  Project files): a failed write is retried and reported, Build and Play warn naming what isn't saved, and git commands wait until
+  it is on disk; reloaded when the PNG changes on disk (edited in another program). Its writes reach the resource tree, the Scene
+  view, and the playing game through `ProjectChanges`, as the type store's do.
+- The frames, their operations, and the sheet's store go into `:creator:core` (which runs no engine), the commands into
+  `:creator:commands`, and the editor into the app's `ui`.
 
 ## Sprites in the game
 

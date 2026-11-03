@@ -23,12 +23,12 @@ started), fix what it finds in commits of their own, and only then delete the it
 The files are numbered in the order they are worked on. Every item of `01` to `05` is to be done, none capped in number.
 
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
-   flooded console, long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
+   flooded console, two long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.
 2. [AI assistant](02-ai-assistant.md) - what is left of the in-app assistant (ACP protocol 2, the registry's icons, other agents'
    fallbacks, Codex's profile), more context for large games, and more for the MCP server, alongside `04` to `07`.
 3. [Settings](03-settings.md) - the rest of Project settings (Game, Targets, Release, Icons, and Signing) and of Creator settings.
-4. [Folders and search](04-resource-organization.md) - the sidebar filter, quick open, find usages, and the search AI tools.
+4. [Folders and search](04-resource-organization.md) - the rest of the sidebar filter, quick open, find usages, and the search AI tools.
 5. [Reuse, Traits, and bigger games](05-reuse-and-traits.md) - functions, Traits, and what bigger games need.
 6. [Blocks, Actor types, and Manager types](06-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
    sheets and animation, UI elements, the Paddle game template, Convert to code, and more drag and drop.
@@ -42,6 +42,20 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
 12. [Onboarding](12-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
 13. [Later](13-later.md) - code editor, language server, asset editor extension point.
+
+## Structure
+
+Each item's code goes into the lowest of Creator's ten modules that can hold it (`../CLAUDE.md` → Modules): the model, code
+generation, and project files in `:creator:core`, a command in `:creator:commands`, the open project's wiring in
+`:creator:workspace` (with every change routed through `ProjectChanges`), and screen state in a tested holder such as
+`WorkspaceUiState` rather than in a Composable. Left of the structure itself, before the classes involved grow further:
+
+- **Six `ui` parts still take a controller** (`AiPanel`, `WorkspaceAiSidePanel`, `WorkspaceGitSidePanel`, `WorkspaceDialogs`,
+  `rememberWorkspaceUiState`, and `SidebarState`'s `remember` functions). Direction: hand them what they use, then a
+  `PackageLayeringTest` case allowing controllers only in `ui/AppContent.kt` and `ui/WorkspaceScreen.kt`.
+- **Five constructors take more than 12 parameters** (`WorkspaceController` 23, `AssistantController` 18,
+  `SceneEditingController` 17, `BlockTypesController` 15, and `CommandContext` 13), which the size check lets shrink but not
+  grow. Direction: take a responsibility out of each (for `WorkspaceController`, a factory that builds its collaborators).
 
 ## Vision
 

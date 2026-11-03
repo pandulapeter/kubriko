@@ -68,8 +68,8 @@ What someone who knows neither Kotlin nor Gradle meets when something goes wrong
   "an Actor type can't have a gameStarted one", "Only keyPressed Events have a key"), though the editor calls them "When the game starts";
   a Timer named `class` is told to start with a lowercase letter; and project names with accents (`Kalandjáték`) are refused for not using
   "only letters". Direction: the editor's Event titles in user-facing rejections (the AI gets both), and one message per actual reason.
-- **The git panel** clears the commit message even when the commit fails (`ui/git/GitPanel.kt`), and puts the commit form below
-  every change, out of sight in a big change set. Direction: clear it on success only, and put the form first.
+- **The git panel** puts the commit form below every change (`ui/git/GitPanel.kt`), out of sight in a big change set. Direction:
+  put the form first.
 
 ## Opening a project from version control
 
