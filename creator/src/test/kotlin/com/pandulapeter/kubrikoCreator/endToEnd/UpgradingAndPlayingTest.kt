@@ -69,8 +69,8 @@ class UpgradingAndPlayingTest {
             assertTrue(first.countOf(GOLD) == 0, "Gold Bricks were drawn as their color, not the sprite.")
             assertTrue(first.countOf(BRICK) == 0, "Bricks of the main Scene were drawn.")
             val gems = assertNotNull(first.boundsOf(SPRITE_COLOR), "No sprite was drawn.")
-            // The viewport is as tall as the game, and VIEWPORT_WIDTH by VIEWPORT_HEIGHT units large, in the middle.
-            val scale = first.height / VIEWPORT_HEIGHT
+            // The viewport is VIEWPORT_WIDTH by VIEWPORT_HEIGHT units, as large as fits the game, in its middle.
+            val scale = minOf(first.width / VIEWPORT_WIDTH, first.height / VIEWPORT_HEIGHT)
             assertTrue(abs(gems.width - 120 * scale) <= 3, "The sprites are ${gems.width} pixels wide, not ${120 * scale} (at $scale pixels a unit).")
             assertTrue(abs(gems.centerX - (first.width / 2 + 30 * scale)) <= 3, "The sprites are at $gems, not where the Scene puts them (at $scale pixels a unit).")
             val text = assertNotNull(first.boundsOf(TEXT), "The Game's texts weren't drawn.")
@@ -80,8 +80,10 @@ class UpgradingAndPlayingTest {
         step("A change to Game.kt by hand reaches the running game") {
             val game = File(project, "src/commonMain/kotlin/com/example/breakout/Game.kt")
             val text = game.readText()
-            val changed = text.replace(VIEWPORT_MODIFIER, "modifier = modifier.background(Color(0xFF${"%06X".format(VIEWPORT_COLOR)})),")
-            assertTrue(changed != text, "Game.kt has no `$VIEWPORT_MODIFIER` to change:\n$text")
+            val viewport = text.indexOf("KubrikoViewport(")
+            val modifier = text.indexOf(VIEWPORT_MODIFIER, startIndex = viewport.coerceAtLeast(0))
+            assertTrue(viewport >= 0 && modifier >= 0, "Game.kt has no KubrikoViewport with `$VIEWPORT_MODIFIER`:\n$text")
+            val changed = text.replaceRange(modifier, modifier + VIEWPORT_MODIFIER.length, "modifier = modifier.background(Color(0xFF${"%06X".format(VIEWPORT_COLOR)})),")
             game.writeText(
                 changed.replaceFirst(
                     "import androidx.compose.runtime.Composable",
