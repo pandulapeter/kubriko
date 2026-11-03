@@ -80,7 +80,7 @@ class UpgradingAndPlayingTest {
         step("A change to Game.kt by hand reaches the running game") {
             val game = File(project, "src/commonMain/kotlin/com/example/breakout/Game.kt")
             val text = game.readText()
-            val changed = text.replace(VIEWPORT_MODIFIER, "modifier = modifier.background(Color(0xFF${"%06X".format(BAR_COLOR)})),")
+            val changed = text.replace(VIEWPORT_MODIFIER, "modifier = modifier.background(Color(0xFF${"%06X".format(VIEWPORT_COLOR)})),")
             assertTrue(changed != text, "Game.kt has no `$VIEWPORT_MODIFIER` to change:\n$text")
             game.writeText(
                 changed.replaceFirst(
@@ -88,8 +88,11 @@ class UpgradingAndPlayingTest {
                     "import androidx.compose.foundation.background\nimport androidx.compose.runtime.Composable\nimport androidx.compose.ui.graphics.Color",
                 ),
             )
-            val reloaded = awaitGame("reloaded", timeout = 2.minutes) { ImageChecks.matches(it.getRGB(2, it.height / 2), BAR_COLOR) }
-            assertTrue(ImageChecks.matches(reloaded.getRGB(2, reloaded.height / 2), BAR_COLOR), "The bar left of the viewport isn't the color Game.kt now gives it.")
+            // KubrikoViewport's modifier is the viewport's own, so the color fills it and leaves the bars beside it as they were.
+            fun viewportPixel(image: BufferedImage) = image.getRGB(image.width / 2, image.height - 10)
+            val reloaded = awaitGame("reloaded", timeout = 2.minutes) { ImageChecks.matches(viewportPixel(it), VIEWPORT_COLOR) }
+            assertTrue(ImageChecks.matches(viewportPixel(reloaded), VIEWPORT_COLOR), "The viewport isn't the color Game.kt now gives it.")
+            assertFalse(ImageChecks.matches(reloaded.getRGB(2, reloaded.height / 2), VIEWPORT_COLOR), "The bars beside the viewport took its color too.")
             assertTrue(reloaded.boundsOf(SPRITE_COLOR) != null, "The Gold Bricks are gone after the change.")
         }
         step("A frame rate broken by hand fails the build with a message naming it") {
@@ -158,7 +161,7 @@ class UpgradingAndPlayingTest {
         const val SPRITE_NAME = "gem"
         const val SPRITE_SIZE = 16
         const val SPRITE_COLOR = 0x22AA22
-        const val BAR_COLOR = 0xAA2244
+        const val VIEWPORT_COLOR = 0xAA2244
         const val GOLD = 0xFFC857
         const val BRICK = 0x6060AA
         const val TEXT = 0x202020
