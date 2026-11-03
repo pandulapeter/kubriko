@@ -62,6 +62,8 @@ internal fun GameSettingsSection(
     description = Res.string.project_settings_game_description,
 ) {
     val settings = reading.settings
+    // A key the build can't read shows its default, which choosing has to write all the same.
+    fun isChange(isSame: Boolean, key: String) = !isSame || key in reading.invalidKeys
     if (reading.invalidKeys.isNotEmpty()) {
         ProblemText(stringResource(Res.string.project_settings_unreadable_keys, reading.invalidKeys.joinToString()))
     }
@@ -70,7 +72,7 @@ internal fun GameSettingsSection(
             label = settings.firstScene,
             options = scenes,
             optionText = { it },
-            onSelected = { if (it != settings.firstScene) onChange(SetProjectSettings.Input(firstScene = it)) },
+            onSelected = { if (isChange(it == settings.firstScene, GameSettings.FIRST_SCENE)) onChange(SetProjectSettings.Input(firstScene = it)) },
         )
     }
     if (settings.firstScene !in scenes) {
@@ -81,7 +83,7 @@ internal fun GameSettingsSection(
             label = stringResource(settings.aspectRatio.label),
             options = AspectRatio.entries,
             optionText = { stringResource(it.label) },
-            onSelected = { if (it != settings.aspectRatio) onChange(SetProjectSettings.Input(aspectRatio = it)) },
+            onSelected = { if (isChange(it == settings.aspectRatio, GameSettings.ASPECT_RATIO)) onChange(SetProjectSettings.Input(aspectRatio = it)) },
         )
     }
     Text(
@@ -93,6 +95,7 @@ internal fun GameSettingsSection(
     if (settings.aspectRatio.usesWidth || settings.aspectRatio.usesHeight) {
         ViewportSizeFields(
             settings = settings,
+            invalidKeys = reading.invalidKeys,
             onChange = onChange,
         )
     }
@@ -101,7 +104,7 @@ internal fun GameSettingsSection(
             label = frameRateText(settings.frameRate),
             options = frameRateOptions(settings.frameRate),
             optionText = { frameRateText(it) },
-            onSelected = { if (it != settings.frameRate) onChange(SetProjectSettings.Input(frameRate = it)) },
+            onSelected = { if (isChange(it == settings.frameRate, GameSettings.FRAME_RATE)) onChange(SetProjectSettings.Input(frameRate = it)) },
         )
     }
 }
@@ -112,6 +115,7 @@ internal fun GameSettingsSection(
 @Composable
 private fun ViewportSizeFields(
     settings: GameSettings,
+    invalidKeys: List<String>,
     onChange: (SetProjectSettings.Input) -> Unit,
 ) {
     var problem by remember { mutableStateOf<Pair<GameSettingsProblem, List<String>>?>(null) }
@@ -128,7 +132,7 @@ private fun ViewportSizeFields(
                 modifier = Modifier.width(SIZE_FIELD_WIDTH),
                 label = Res.string.project_settings_viewport_width,
                 value = settings.viewportWidth,
-                onValueChange = { if (it != settings.viewportWidth) change(SetProjectSettings.Input(viewportWidth = it)) else problem = null },
+                onValueChange = { if (it != settings.viewportWidth || GameSettings.VIEWPORT_WIDTH in invalidKeys) change(SetProjectSettings.Input(viewportWidth = it)) else problem = null },
             )
         }
         if (settings.aspectRatio.usesHeight) {
@@ -136,7 +140,7 @@ private fun ViewportSizeFields(
                 modifier = Modifier.width(SIZE_FIELD_WIDTH),
                 label = Res.string.project_settings_viewport_height,
                 value = settings.viewportHeight,
-                onValueChange = { if (it != settings.viewportHeight) change(SetProjectSettings.Input(viewportHeight = it)) else problem = null },
+                onValueChange = { if (it != settings.viewportHeight || GameSettings.VIEWPORT_HEIGHT in invalidKeys) change(SetProjectSettings.Input(viewportHeight = it)) else problem = null },
             )
         }
     }

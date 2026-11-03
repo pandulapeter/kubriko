@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -160,6 +162,23 @@ class ProjectSettingsDialogTest {
         }
         onNodeWithText("doesn't read its first Scene, aspect ratio, and frame rate", substring = true).assertExists()
         onNodeWithText("Review changes").assertExists()
+    }
+
+    @Test
+    fun choosingTheDefaultThatAnUnreadableValueShowsWritesIt() = uiTest(width = 640, height = 900) {
+        val changes = mutableListOf<SetProjectSettings.Input>()
+        showing {
+            ProjectSettingsDialog(
+                settings = ProjectSettingsSnapshot(identity, GameSettingsReading(GameSettings(), listOf(GameSettings.ASPECT_RATIO)), emptyList(), scenes = listOf("main")),
+                onChange = { changes += it },
+                onReviewUpgrade = null,
+                onDismiss = {},
+            )
+        }
+        onNodeWithText("Dynamic").performScrollTo().performClick()
+        onAllNodesWithText("Dynamic").onLast().performClick()
+        waitForIdle()
+        assertEquals(listOf(SetProjectSettings.Input(aspectRatio = AspectRatio.DYNAMIC)), changes)
     }
 
     @Test
