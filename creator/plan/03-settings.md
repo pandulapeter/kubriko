@@ -29,17 +29,14 @@ Beyond the theme, the interface scale, the AI features switch, and the default p
 
 ## Project settings
 
-Beyond the dialog (`ProjectSettingsDialog`), Identity (`GameIdentity`), and Game (`GameSettings`, with the libraries in use), the
-sections below. Every value lives where the
+Beyond the dialog (`ProjectSettingsDialog`), Identity (`GameIdentity`), Game (`GameSettings`, with the libraries in use), and Targets
+(`GameTargets`), the sections below. Every value lives where the
 build reads it, so the project still builds the same in IntelliJ and without `.kubriko/` (`../CLAUDE.md` → Principles 1): `.kubriko/project.json` only
 holds what Creator needs for itself.
 
-- **Identity, still to come:** raising the version number with each release export (`10-export-and-distribution.md`), and the
-  Android `defaultConfig` and iOS `Info.plist` reading the keys once those targets exist (Targets below).
+- **Identity, still to come:** raising the version number with each release export (`10-export-and-distribution.md`).
 - **Icons:** one square source image, from which every platform's icon is generated (Android adaptive, `.icns`, `.ico`, PNG sizes,
   the web favicon).
-- **Targets:** desktop, web, Android, and iOS, each turned on or off, as a confirmed diff of the build file (Principle 3). Android needs the
-  SDK, iOS needs a Mac with Xcode (`12-onboarding.md`).
 - **Release:** whether release builds are obfuscated (on by default), and extra shrinker rules for hand-written code
   (`10-export-and-distribution.md` → Build variants).
 - **Signing:** which key each target uses, from the keys on this machine (below).
@@ -54,6 +51,6 @@ platform details are in `10-export-and-distribution.md`.
 
 ## AI tools
 
-`get_project_settings` and `set_project_settings` exist for Identity and Game; Targets and Release join them, with the same diffs and
-confirmations as the panel (the tool list's budget in `TokenBudgetTest` will need raising).
+`get_project_settings` and `set_project_settings` exist for Identity and Game, and `get_target_change` and `set_target` for Targets;
+Release joins them, with the same diffs and confirmations as the panel (the tool list's budget in `TokenBudgetTest` will need raising).
 Signing and Creator settings get no tools: one is secret, the other is the user's own.

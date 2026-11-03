@@ -16,7 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.ProjectUpgrades
+import com.pandulapeter.kubrikoCreator.commands.ProjectBuildFiles
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
@@ -39,6 +39,7 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.CoroutineDispatcher
@@ -121,6 +122,11 @@ public class WorkspaceController(
      * and played, rejecting every change, and generating no code.
      */
     public val formatStatus: StateFlow<ProjectFormatStatus> = _formatStatus.asStateFlow()
+
+    /**
+     * The platforms the game is built for, turned on and off through `set_target`, or null if they can't be changed here.
+     */
+    public val targets: GameTargets? get() = files.targets
 
     private val upgrader = ProjectUpgrader(project.rootDirectory)
     private val _projectUpgrade = MutableStateFlow<TemplateUpgrade>(TemplateUpgrade.UpToDate)
@@ -259,10 +265,12 @@ public class WorkspaceController(
             audioFiles = { AudioFiles.of(_resources.value) },
             spriteFiles = { SpriteFiles.of(_resources.value) },
             report = ::appendToConsole,
-            projectUpgrades = object : ProjectUpgrades {
+            buildFiles = object : ProjectBuildFiles {
                 override fun current() = _projectUpgrade.value
 
                 override fun onUpgraded() = refreshProjectUpgrade()
+
+                override val targets = files.targets
             },
             rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
         ),

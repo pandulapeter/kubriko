@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 
 /**
  * A switch with its [label] before it, toggled by a click on either, which also names it for accessibility.
+ *
+ * @param enabled Whether it can be toggled; a disabled one still shows its state.
  */
 @Composable
 public fun LabeledSwitch(
@@ -33,8 +35,9 @@ public fun LabeledSwitch(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     labelStyle: TextStyle = MaterialTheme.typography.bodySmall,
+    enabled: Boolean = true,
 ): Unit = Row(
-    modifier = modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
+    modifier = modifier.toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically,
 ) {
@@ -46,5 +49,6 @@ public fun LabeledSwitch(
     Switch(
         checked = checked,
         onCheckedChange = null,
+        enabled = enabled,
     )
 }

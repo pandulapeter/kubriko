@@ -715,6 +715,8 @@
     <string name="action_open_creator_settings">Kubriko Creator settings</string>
     <string name="command_set_project_settings">Change the project settings</string>
     <string name="command_get_project_settings">Read the project settings</string>
+    <string name="command_get_target_change">Check what a target changes</string>
+    <string name="command_set_target">Turn a target on or off</string>
     <string name="error_command_project_settings_empty">Name at least one setting to change.</string>
     <string name="error_command_first_scene_not_followed">The game still starts with %1$s, since gradle.properties couldn't be changed: %2$s</string>
     <string name="error_command_game_settings_unavailable">This project's build doesn't read its first Scene, aspect ratio, and frame rate from gradle.properties yet. Upgrade its template files first.</string>
@@ -785,4 +787,24 @@
     <string name="library_sprites">Sprites</string>
     <string name="library_creator_api">Kubriko Creator's entry point</string>
     <string name="library_scene_editor_api">Scene editor API</string>
+    <string name="project_settings_section_targets">Targets</string>
+    <string name="project_settings_targets_description">The platforms the game is built for. Turning one on or off changes the build files, which are yours, so you see every change first.</string>
+    <string name="target_desktop">Desktop (Windows, macOS, and Linux)</string>
+    <string name="target_web">Web</string>
+    <string name="target_android">Android</string>
+    <string name="target_ios">iOS</string>
+    <string name="target_change_title_on">Build the game for %1$s</string>
+    <string name="target_change_title_off">Stop building the game for %1$s</string>
+    <string name="target_change_message">These changes go into the project's build files. Turning it back undoes them; the files it creates stay.</string>
+    <string name="target_change_created">New files: %1$s</string>
+    <string name="error_target_already_off">The game isn't built for %1$s.</string>
+    <string name="error_target_already_on">The game is built for %1$s already.</string>
+    <string name="error_target_android_sdk_missing">Android needs the Android SDK, which isn't on this computer. Install it (Android Studio does), or set ANDROID_HOME.</string>
+    <string name="error_target_android_sdk_missing_while_on">The game is built for Android, but the Android SDK isn't on this computer, so the project can't build. Install it, or turn Android off.</string>
+    <string name="error_target_application_id_not_for_ios">iOS bundle IDs can't hold underscores, which "%1$s" has. Change the application ID first.</string>
+    <string name="error_target_changed_by_hand">The build files don't look like the template's anymore, so %1$s has to be turned on or off in them by hand.</string>
+    <string name="error_target_changed_while_applying">A build file changed while %1$s was being turned on or off, so nothing was changed. Try again.</string>
+    <string name="error_target_desktop_always_on">Kubriko Creator plays and edits the game on the desktop, so it's always built for it.</string>
+    <string name="error_target_template_outdated">The project's template files need an upgrade first.</string>
+    <string name="error_target_xcode_missing">iOS needs a Mac with Xcode, which this computer doesn't have.</string>
 </resources>

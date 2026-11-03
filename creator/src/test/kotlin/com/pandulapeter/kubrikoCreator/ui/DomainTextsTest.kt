@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneStatus
+import com.pandulapeter.kubrikoCreator.template.TargetProblem
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.testing.creatorSourceRoots
 import com.pandulapeter.kubrikoCreator.ui.components.FieldError
@@ -38,6 +39,7 @@ class DomainTextsTest {
         GameSettingsProblem::class to GameSettingsProblem.entries,
         ProjectProblem::class to ProjectProblem.entries,
         TemplateProblem::class to TemplateProblem.entries,
+        TargetProblem::class to TargetProblem.entries,
         SceneProblem::class to SceneProblem.entries,
         SceneStatus::class to SceneStatus.entries,
         GitStatus::class to GitStatus.entries,

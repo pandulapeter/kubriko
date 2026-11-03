@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.session.SessionServer
+import com.pandulapeter.kubrikoCreator.template.GameTargets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -78,6 +79,7 @@ public class GradleWorkspaceOpener(
                     startWatching = { onChange ->
                         opening.track(ProjectWatcher(directory, blockTypeStore?.generatedPath, opening.scope, Dispatchers.IO, ownWrites = ownWrites).start(onChange))
                     },
+                    targets = GameTargets(directory, configuration.android),
                 ),
                 blockTypeSetup = blockTypeStore?.let { store ->
                     BlockTypesSetup(

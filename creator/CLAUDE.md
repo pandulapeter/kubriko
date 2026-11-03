@@ -32,7 +32,9 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
     desktop and web, with an Actor type and two Manager types using every Event and Block, and resolves the desktop runtime
     classpath as playing does (compiling alone misses a library whose repository is missing). For an unreleased
     `library.version`, run it after a `:creator:run` with `<library.version>-creator`. `Tests` runs it nightly (and on a
-    manual dispatch) in its `publish-check` job, against that job's `0.0.0-check` publish.
+    manual dispatch) in its `publish-check` job, against that job's `0.0.0-check` publish. Its `everyTargetBuilds` turns every
+    target on and builds the Android app and, through `xcodebuild` for the simulator, the iOS app; it needs the Android SDK
+    and a Mac with Xcode.
   - `KUBRIKO_CREATOR_BENCHMARK=true` times a 200-type project without Gradle (`CreatorBenchmarkTest`) and, with
     `KUBRIKO_CREATOR_VERSION`, builds it for real (`CreatorBuildBenchmarkTest`; more Gradle arguments through
     `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`).
@@ -152,6 +154,8 @@ Besides its tests passing, a change:
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff. |
 | The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
 | The `game.*` keys of `gradle.properties` (the game's identity and settings) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
+| A target's own files (`androidApp/`, `iosApp/`, `src/androidMain`, `src/iosMain`) | User after creation | Created by turning the target on when missing, never rewritten, and kept when it is turned off. |
+| The `PRODUCT_BUNDLE_IDENTIFIER` line of `iosApp/Configuration/Config.xcconfig` | Creator | Follows `game.applicationId`; the Xcode build fails, naming both, while they differ. |
 | `.kubriko/local/` | Creator | Git-ignored. |
 
 ## Threads, writes, and failures
@@ -381,6 +385,16 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (the viewport's width and height only for the aspect ratios that use them), and the two change together. A value the build
   can't read shows its default and is written again when chosen. Renaming a Scene, or its folder, follows the first Scene;
   deleting the first Scene is refused, but undoing its creation isn't.
+- **Targets** (`template/GameTargets`) are turned on and off as a confirmed diff of the build files (`set_target`, whose
+  inverse turns them back): only the template's shape is edited, a file that lost it is left to the user, and turning one off
+  removes it from the build and leaves its files. The desktop is always on, since playing and the Scene editor run through it.
+  Android is a library target of the game's module plus an `androidApp` module that packages it, since the Android Gradle
+  plugin's application plugin can't share a module with Kotlin Multiplatform; turning it on needs the Android SDK and writes
+  `sdk.dir` into `local.properties` when nothing else names it. iOS is a framework that the Xcode project in `iosApp/` builds
+  through Gradle; the game's name and version reach the app through a plist Gradle writes and the last build phase copies in,
+  but the bundle ID is a build setting Xcode reads before any phase runs, so Creator keeps the `.xcconfig` line. A project on
+  `creator.localKubriko` has only the desktop and web publications, so building it for Android or iOS needs a full
+  `publishToMavenLocal -Pcreator.localKubriko=true`.
 - The libraries in use (`LibraryInUse`) are those the sources name, as the build sync decides them, each with what needs it
   (`PluginUse`, from which the generated Managers' plugins come too).
 

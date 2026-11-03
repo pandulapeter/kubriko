@@ -69,7 +69,7 @@ class ProjectSettingsCommandsTest {
         val result = assertIs<CommandOutcome.Success>(GetProjectSettings.read(commandContext(rootDirectory = root), NoInput)).result
         assertEquals(
             """{"identity":{"name":"My Game","versionName":"1.0.0","versionNumber":1,"applicationId":"com.example.mygame","vendor":"","description":""},""" +
-                """"game":null,"libraries":[{"library":"engine","usedBy":"every game"},{"library":"tool-creator-api","usedBy":"every game"}]}""",
+                """"game":null,"targets":null,"libraries":[{"library":"engine","usedBy":"every game"},{"library":"tool-creator-api","usedBy":"every game"}]}""",
             result.toString(),
         )
     }

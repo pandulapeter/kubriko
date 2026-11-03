@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneStatus
+import com.pandulapeter.kubrikoCreator.template.TargetProblem
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.ui.components.FieldError
 import com.pandulapeter.kubrikoCreator.ui.texts.toResource
@@ -38,6 +39,7 @@ internal val DomainText.resource: StringResource
         is GameSettingsProblem -> toResource()
         is ProjectProblem -> toResource()
         is TemplateProblem -> toResource()
+        is TargetProblem -> toResource()
         is SceneProblem -> toResource()
         is SceneStatus -> toResource()
         is GitStatus -> toResource()

@@ -65,11 +65,15 @@ public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
         val changedGame = game?.let(input::appliedTo)
         changedIdentity?.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
         changedGame?.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
+        val targets = context.buildFiles.targets
+        val applicationId = changedIdentity?.applicationId?.takeIf { it != identity.applicationId }
+        applicationId?.let { targets?.refusalOfApplicationId(it) }?.let { return@withContext Applied.failed(Rejection(it.problem, it.arguments)) }
         GradlePropertiesFile.update(root) { text ->
             val withIdentity = changedIdentity?.writtenTo(text) ?: text
             val sizeKeys = input.aspectRatio?.let { reading?.unreadableSizeKeysOf(it) }.orEmpty()
             changedGame?.writtenTo(withIdentity, input.gameKeys() + sizeKeys) ?: withIdentity
         }
+        applicationId?.let { targets?.writeApplicationId(it) }
         Applied(inverse = Invocation(SetProjectSettings, input.revertedTo(identity, game)))
     }
 

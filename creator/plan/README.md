@@ -28,7 +28,7 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
    what the benchmarks show is needed.
 2. [AI assistant](02-ai-assistant.md) - what is left of the in-app assistant (ACP protocol 2, the registry's icons, other agents'
    fallbacks, Codex's profile), more context for large games, and more for the MCP server, alongside `04` to `07`.
-3. [Settings](03-settings.md) - the rest of Project settings (Targets, Release, Icons, and Signing) and of Creator settings.
+3. [Settings](03-settings.md) - the rest of Project settings (Release, Icons, and Signing) and of Creator settings.
 4. [Folders and search](04-resource-organization.md) - the rest of the sidebar filter, quick open, find usages, and the search AI tools.
 5. [Reuse, Traits, and bigger games](05-reuse-and-traits.md) - functions, Traits, and what bigger games need.
 6. [Blocks, Actor types, and Manager types](06-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite

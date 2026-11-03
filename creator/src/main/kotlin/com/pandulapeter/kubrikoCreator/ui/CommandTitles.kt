@@ -63,6 +63,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectUpgrade
 import com.pandulapeter.kubrikoCreator.commands.project.GetRelations
+import com.pandulapeter.kubrikoCreator.commands.project.GetTargetChange
 import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
 import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
@@ -70,6 +71,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.ReadGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.project.SetGameNotes
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
+import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -118,6 +120,7 @@ import kubriko.creator.generated.resources.command_get_project_overview
 import kubriko.creator.generated.resources.command_get_project_settings
 import kubriko.creator.generated.resources.command_get_project_upgrade
 import kubriko.creator.generated.resources.command_get_relations
+import kubriko.creator.generated.resources.command_get_target_change
 import kubriko.creator.generated.resources.command_get_version_control_status
 import kubriko.creator.generated.resources.command_list_actor_types
 import kubriko.creator.generated.resources.command_list_manager_types
@@ -163,6 +166,7 @@ import kubriko.creator.generated.resources.command_set_kotlin_ui
 import kubriko.creator.generated.resources.command_set_parent
 import kubriko.creator.generated.resources.command_set_project_settings
 import kubriko.creator.generated.resources.command_set_scene_settings
+import kubriko.creator.generated.resources.command_set_target
 import kubriko.creator.generated.resources.command_start_game
 import kubriko.creator.generated.resources.command_start_version_control
 import kubriko.creator.generated.resources.command_stop_game
@@ -241,6 +245,7 @@ private val commandTitles = mapOf(
     GetProjectOverview.name to Res.string.command_get_project_overview,
     GetProjectSettings.name to Res.string.command_get_project_settings,
     GetProjectUpgrade.name to Res.string.command_get_project_upgrade,
+    GetTargetChange.name to Res.string.command_get_target_change,
     GetRelations.name to Res.string.command_get_relations,
     GetVersionControlStatus.name to Res.string.command_get_version_control_status,
     Play.name to Res.string.command_play,
@@ -249,6 +254,7 @@ private val commandTitles = mapOf(
     SetDescription.name to Res.string.command_set_description,
     SetGameNotes.name to Res.string.command_set_game_notes,
     SetProjectSettings.name to Res.string.command_set_project_settings,
+    SetTarget.name to Res.string.command_set_target,
     UpgradeProject.name to Res.string.command_upgrade_project,
     CreateScene.name to Res.string.command_create_scene,
     DeleteScene.name to Res.string.command_delete_scene,

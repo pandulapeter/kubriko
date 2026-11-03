@@ -9,13 +9,15 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 
 /**
- * The template upgrade the project needs, as commands see it: as last checked in the background, so that validating reads no
- * files, and told when a command brought the template files up to date.
+ * The project's build files that came from its template, as commands see them: the upgrade they need (as last checked in
+ * the background, so that validating reads no files, and told when a command brought them up to date), and the targets they
+ * build the game for.
  */
-public interface ProjectUpgrades {
+public interface ProjectBuildFiles {
 
     /**
      * What the project's template files need, as last checked.
@@ -23,15 +25,21 @@ public interface ProjectUpgrades {
     public fun current(): TemplateUpgrade
 
     /**
-     * Tells the rest of the editor that the project's template files were brought up to date.
+     * Tells the rest of the editor that the project's template files were brought up to date, or that its build files
+     * changed otherwise (a target was turned on or off).
      */
     public fun onUpgraded()
 
+    /**
+     * The targets the game is built for, or null if they can't be changed here.
+     */
+    public val targets: GameTargets? get() = null
+
     public companion object {
         /**
-         * A project whose template files need nothing, with no one to tell.
+         * A project whose template files need nothing, with no one to tell, and no targets to change.
          */
-        public val UpToDate: ProjectUpgrades = object : ProjectUpgrades {
+        public val UpToDate: ProjectBuildFiles = object : ProjectBuildFiles {
             override fun current(): TemplateUpgrade = TemplateUpgrade.UpToDate
 
             override fun onUpgraded() = Unit

@@ -32,6 +32,8 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
+import com.pandulapeter.kubrikoCreator.template.GameTarget
+import com.pandulapeter.kubrikoCreator.template.TargetState
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import com.pandulapeter.kubrikoCreator.ui.text
@@ -49,13 +51,17 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param settings The project's settings, or null while they are being read, or if they couldn't be ([failure]).
  * @param failure Why the settings couldn't be read, if they couldn't.
+ * @param targets The platforms the game is built for, or null if they can't be changed here.
+ * @param onToggleTarget Asks to turn a target on or off, which is shown before it is made.
  * @param onReviewUpgrade Opens the template upgrade that makes the build read the settings, if there is one.
  */
 @Composable
 internal fun ProjectSettingsDialog(
     settings: ProjectSettingsSnapshot?,
     failure: Throwable? = null,
+    targets: List<TargetState>? = null,
     onChange: (SetProjectSettings.Input) -> Unit,
+    onToggleTarget: (GameTarget, Boolean) -> Unit = { _, _ -> },
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
 ) = CreatorDialog(
@@ -80,6 +86,7 @@ internal fun ProjectSettingsDialog(
                         settings.identity == null -> UnavailableNotice(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE, onReviewUpgrade)
                         settings.game == null -> UnavailableNotice(CommandProblem.GAME_SETTINGS_UNAVAILABLE, onReviewUpgrade)
                     }
+                    targets?.let { TargetsSection(targets = it, onToggle = onToggleTarget) }
                     LibrariesSection(libraries = settings.libraries)
                 }
             }

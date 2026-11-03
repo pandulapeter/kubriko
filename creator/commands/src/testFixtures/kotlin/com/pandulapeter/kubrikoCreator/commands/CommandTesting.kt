@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
@@ -73,6 +74,7 @@ public fun TestScope.commandContext(
     report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
     projectUpgrade: () -> TemplateUpgrade = { TemplateUpgrade.UpToDate },
+    targets: GameTargets? = null,
     rejectChanges: () -> Rejection? = { null },
     ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
     sceneWriteText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
@@ -88,10 +90,12 @@ public fun TestScope.commandContext(
     audioFiles = { audioFiles },
     spriteFiles = { spriteFiles },
     report = report,
-    projectUpgrades = object : ProjectUpgrades {
+    buildFiles = object : ProjectBuildFiles {
         override fun current() = projectUpgrade()
 
         override fun onUpgraded() = onProjectUpgraded()
+
+        override val targets = targets
     },
     rejectChanges = rejectChanges,
 )

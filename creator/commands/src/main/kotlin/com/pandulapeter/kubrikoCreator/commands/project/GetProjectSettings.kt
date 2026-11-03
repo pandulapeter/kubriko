@@ -20,11 +20,13 @@ import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.GameSettingsReading
 import com.pandulapeter.kubrikoCreator.project.LibraryInUse
 import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
+import com.pandulapeter.kubrikoCreator.template.TargetState
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -32,7 +34,7 @@ import kotlinx.serialization.json.putJsonArray
 public object GetProjectSettings : ReadCommand<NoInput> {
     override val name: String = "get_project_settings"
     override val description: String = "Reads the game's identity (name, version name and number, application ID, vendor, and description), how it runs " +
-        "(first Scene, aspect ratio, viewport size, and frame rate), and the Kubriko libraries its build uses, with what uses each. A group " +
+        "(first Scene, aspect ratio, viewport size, and frame rate), the targets it is built for (see get_target_change), and the Kubriko libraries its build uses, with what uses each. A group " +
         "whose template is too old to have it is null (see get_project_upgrade)."
     override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
 
@@ -40,11 +42,14 @@ public object GetProjectSettings : ReadCommand<NoInput> {
 
     override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome {
         val definitions = context.blockTypes?.types?.value.orEmpty()
-        val snapshot = withContext(context.ioDispatcher) { ProjectSettingsSnapshot.read(context.project.rootDirectory, definitions, context.scenes) }
+        val (snapshot, targets) = withContext(context.ioDispatcher) {
+            ProjectSettingsSnapshot.read(context.project.rootDirectory, definitions, context.scenes) to context.buildFiles.targets?.read()
+        }
         return CommandOutcome.Success(
             buildJsonObject {
                 put("identity", snapshot.identity?.let(::identityJson) ?: JsonNull)
                 put("game", snapshot.game?.let(::gameJson) ?: JsonNull)
+                put("targets", targets?.let(::targetsJson) ?: JsonNull)
                 putJsonArray("libraries") { snapshot.libraries.forEach { add(libraryJson(it)) } }
             },
         )
@@ -68,6 +73,18 @@ public object GetProjectSettings : ReadCommand<NoInput> {
         put("frameRate", settings.frameRate)
         if (reading.invalidKeys.isNotEmpty()) {
             putJsonArray("unreadable") { reading.invalidKeys.forEach { add(it.removePrefix(GAME_KEY_PREFIX)) } }
+        }
+    }
+
+    private fun targetsJson(targets: List<TargetState>) = buildJsonArray {
+        targets.forEach { state ->
+            add(
+                buildJsonObject {
+                    put("target", state.target.key)
+                    put("isOn", state.isOn)
+                    state.problem?.let { put("note", it.english) }
+                },
+            )
         }
     }
 

@@ -26,8 +26,8 @@ import kotlinx.coroutines.withContext
  * @param audioFiles The sounds and music of the project, or null if they aren't known, so they aren't checked.
  * @param spriteFiles The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
  * @param report Adds an entry to the console, for what the user should know after a command.
- * @param projectUpgrades The template upgrade the project needs, as last checked in the background, so that validating
- *   reads no files, and who to tell once a command applied it.
+ * @param buildFiles The project's build files that came from its template: the upgrade they need, as last checked in the
+ *   background, so that validating reads no files, who to tell once a command changed them, and the game's targets.
  * @param rejectChanges Why no change may be made to the project at all right now (it was saved by a newer Kubriko
  *   Creator), or null if changes may be made.
  */
@@ -42,7 +42,7 @@ public class CommandContext(
     public val audioFiles: () -> AudioFiles? = { null },
     public val spriteFiles: () -> SpriteFiles? = { null },
     public val report: (ConsoleEntry) -> Unit = {},
-    public val projectUpgrades: ProjectUpgrades = ProjectUpgrades.UpToDate,
+    public val buildFiles: ProjectBuildFiles = ProjectBuildFiles.UpToDate,
     public val rejectChanges: () -> Rejection? = { null },
 ) {
 
