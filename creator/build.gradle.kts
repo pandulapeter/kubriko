@@ -20,6 +20,7 @@ dependencies {
     // (sceneRuntime/ClassLoaderEntryPointLoader.kt).
     implementation(projects.creator.foundation)
     implementation(projects.creator.core)
+    implementation(projects.creator.gradleSession)
     implementation(projects.creator.uiComponents)
     implementation(projects.plugins.audioPlayback)
     implementation(projects.plugins.collision)
@@ -47,6 +48,7 @@ dependencies {
     implementation(libs.mcp.server)
     testImplementation(testFixtures(projects.creator.foundation))
     testImplementation(testFixtures(projects.creator.core))
+    testImplementation(testFixtures(projects.creator.gradleSession))
     testImplementation(testFixtures(projects.creator.uiComponents))
     testImplementation(libs.kotlin.test)
     testImplementation(compose.desktop.uiTestJUnit4)

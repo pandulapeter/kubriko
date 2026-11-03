@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
-import com.pandulapeter.kubrikoCreator.session.GameProcessTestGame
 import com.pandulapeter.kubrikoCreator.session.LiveGameProcesses
+import com.pandulapeter.kubrikoCreator.testing.GameProcessTestGame
 import org.junit.Assume.assumeFalse
 import java.io.File
 import java.util.concurrent.TimeUnit
