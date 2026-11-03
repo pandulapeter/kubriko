@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -73,7 +74,7 @@ internal fun WorkspaceAiSidePanel(
                 selectedType = selectedBlockType?.name,
                 isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
                 console = consoleEntries.value,
-                canSendGameScreen = sessionState is SessionState.Running && isAcceptingImages.value,
+                canSendGameScreen = sessionState is SessionState.Running && sessionState.target == PlayTarget.DESKTOP && isAcceptingImages.value,
             )
         }
     }

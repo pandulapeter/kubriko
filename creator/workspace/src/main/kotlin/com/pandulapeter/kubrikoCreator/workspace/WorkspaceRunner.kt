@@ -87,7 +87,7 @@ internal class WorkspaceRunner(
      * to that, and turns the final answer into a [GameStep] with the console lines of the time it took.
      */
     private suspend fun step(action: suspend (GameAnswer) -> GameAnswer): GameStep {
-        (sessions.state.value as? SessionState.Running)?.target?.takeIf { it != PlayTarget.DESKTOP }?.let { return GameStep.Elsewhere(it) }
+        sessions.state.value.playTarget?.takeIf { it != PlayTarget.DESKTOP }?.let { return GameStep.Elsewhere(it) }
         val (answer, console) = this.console.record {
             when (val focused = sessions.request(ANSWER_TIMEOUT, create = SessionCommand::BringToFront)) {
                 is GameAnswer.Answered -> if (focused.message is SessionMessage.CommandFailed) focused else action(focused)

@@ -57,6 +57,12 @@ internal class SessionController(
     var job: Job? = null
         private set
     private var lastFirstScene: String? = null
+
+    /**
+     * Where the session started last plays, set as it is started, before [state] follows.
+     */
+    @Volatile
+    private var sessionTarget = PlayTarget.DESKTOP
     private var lastPrepareLaunch: suspend () -> GameLaunchPreparation = { GameLaunchPreparation.Unavailable }
     private var protocolVersion = SessionProtocol.VERSION
     private val commandIds = AtomicInteger()
@@ -80,28 +86,17 @@ internal class SessionController(
     ) {
         lastFirstScene = firstScene
         lastPrepareLaunch = prepareLaunch
-        val previousJob = job
-        previousJob?.cancel()
-        job = scope.launch {
-            // A game started with Compose Hot Reload writes where it can be reached into a file the previous one deletes as it ends.
-            previousJob?.join()
+        launchSession(PlayTarget.DESKTOP) {
             channel.expectSession()
             _state.value = SessionState.Starting(SessionMode.PLAY)
-            try {
-                val isSuccessful = when (val preparation = prepareLaunch()) {
-                    is GameLaunchPreparation.Ready -> runGame(preparation.launch, systemPropertiesOf(firstScene)).also(::reportFailure).isSuccessful
-                    GameLaunchPreparation.Unavailable -> runTask(
-                        SessionInitScript.SESSION_TASK_NAME,
-                        mapOf("kubrikoCreatorPort" to channel.port.toString(), "kubrikoCreatorMode" to "play") +
-                            firstScene?.let { mapOf("kubrikoCreatorScene" to it) }.orEmpty(),
-                    )
-                    GameLaunchPreparation.Failed -> false
-                }
-                if (isSuccessful) console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_ENDED))
-            } catch (exception: IOException) {
-                console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_NOT_STARTED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
-            } finally {
-                _state.value = SessionState.Idle
+            when (val preparation = prepareLaunch()) {
+                is GameLaunchPreparation.Ready -> runGame(preparation.launch, systemPropertiesOf(firstScene)).also(::reportFailure).isSuccessful
+                GameLaunchPreparation.Unavailable -> runTask(
+                    SessionInitScript.SESSION_TASK_NAME,
+                    mapOf("kubrikoCreatorPort" to channel.port.toString(), "kubrikoCreatorMode" to "play") +
+                        firstScene?.let { mapOf("kubrikoCreatorScene" to it) }.orEmpty(),
+                )
+                GameLaunchPreparation.Failed -> false
             }
         }
     }
@@ -110,18 +105,27 @@ internal class SessionController(
      * Plays the game on [target] through [run] rather than a session process, replacing the session that runs, if any:
      * [run] calls its argument once the game is up, and plays until it returns whether it ended well, or is cancelled.
      */
-    fun playElsewhere(target: PlayTarget, run: suspend (onUp: () -> Unit) -> Boolean) {
+    fun playElsewhere(target: PlayTarget, run: suspend (onUp: () -> Unit) -> Boolean) = launchSession(target) {
+        _state.value = SessionState.Starting(SessionMode.PLAY, target)
+        run {
+            _state.value = SessionState.Running(SessionMode.PLAY, target)
+            console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED))
+        }
+    }
+
+    /**
+     * Replaces the session that runs, if any, with one on [target] that runs [session] once the previous one is gone (a
+     * game started with Compose Hot Reload writes where it can be reached into a file the previous one deletes as it
+     * ends), and is idle again once it returns whether it ended well.
+     */
+    private fun launchSession(target: PlayTarget, session: suspend () -> Boolean) {
+        sessionTarget = target
         val previousJob = job
         previousJob?.cancel()
         job = scope.launch {
             previousJob?.join()
-            _state.value = SessionState.Starting(SessionMode.PLAY, target)
             try {
-                val isSuccessful = run {
-                    _state.value = SessionState.Running(SessionMode.PLAY, target)
-                    console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED))
-                }
-                if (isSuccessful) console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_ENDED))
+                if (session()) console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_ENDED))
             } catch (exception: IOException) {
                 console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_NOT_STARTED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
             } finally {
@@ -135,13 +139,7 @@ internal class SessionController(
      * runs: a game stopped since the restart was asked for stays stopped.
      */
     fun restart() {
-        if (job?.isActive == true && isOnDesktop()) play(lastFirstScene, lastPrepareLaunch)
-    }
-
-    private fun isOnDesktop() = when (val state = _state.value) {
-        SessionState.Idle -> true
-        is SessionState.Starting -> state.target == PlayTarget.DESKTOP
-        is SessionState.Running -> state.target == PlayTarget.DESKTOP
+        if (job?.isActive == true && sessionTarget == PlayTarget.DESKTOP) play(lastFirstScene, lastPrepareLaunch)
     }
 
     private fun systemPropertiesOf(firstScene: String?) = mapOf(

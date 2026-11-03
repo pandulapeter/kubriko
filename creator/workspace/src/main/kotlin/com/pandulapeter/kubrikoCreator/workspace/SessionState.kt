@@ -38,3 +38,13 @@ public sealed interface SessionState {
         public val target: PlayTarget = PlayTarget.DESKTOP,
     ) : SessionState
 }
+
+/**
+ * Where this session's game plays, or null when none does.
+ */
+public val SessionState.playTarget: PlayTarget?
+    get() = when (this) {
+        SessionState.Idle -> null
+        is SessionState.Starting -> target
+        is SessionState.Running -> target
+    }

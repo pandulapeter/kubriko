@@ -295,4 +295,16 @@ class SessionControllerTest {
         hello()
         assertEquals(SessionState.Running(SessionMode.PLAY), controller.state.value)
     }
+
+    @Test
+    fun aRestartAskedForWhileTheGameMovesElsewhereStartsNoDesktopGame() = runTest {
+        val controller = createController()
+        controller.play()
+        hello()
+        val starts = tasks.size
+        controller.playElsewhere(PlayTarget.WEB) { awaitCancellation() }
+        controller.restart()
+        assertEquals(starts, tasks.size)
+        assertEquals(SessionState.Starting(SessionMode.PLAY, PlayTarget.WEB), controller.state.value)
+    }
 }

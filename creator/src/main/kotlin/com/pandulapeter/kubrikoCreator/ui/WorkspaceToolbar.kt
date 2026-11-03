@@ -280,6 +280,6 @@ internal fun SessionState.description() = when (this) {
     is SessionState.Starting -> Res.string.session_starting
     is SessionState.Running -> when (mode) {
         SessionMode.EDIT -> Res.string.session_editing
-        SessionMode.PLAY -> if (target == PlayTarget.WEB) Res.string.session_playing_in_browser else Res.string.session_playing
+        SessionMode.PLAY -> if (target.kind == PlayTarget.Kind.WEB) Res.string.session_playing_in_browser else Res.string.session_playing
     }
 }
