@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
+import com.pandulapeter.kubrikoCreator.workspace.workspaceController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,7 +100,7 @@ class CreatorBenchmarkTest {
         var totalStart = System.nanoTime()
         val controller = withContext(main) {
             timed({ mainTime = it }) {
-                WorkspaceController(
+                workspaceController(
                     project = CreatorProject(rootDirectory = directory, name = "Benchmark"),
                     build = FakeProjectBuild(),
                     sessionChannel = FakeSessionChannel(),

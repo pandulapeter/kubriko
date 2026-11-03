@@ -86,7 +86,7 @@ Test helpers other modules share live in a module's `src/testFixtures` (reached 
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
 and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`;
 gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`; commands'
-`CommandTesting.kt`, `FakeProjectRunner`, and `BreakoutFixture`; ai's `FakeAgent` and `FakeAgentLauncher`).
+`CommandTesting.kt`, `FakeProjectRunner`, and `BreakoutFixture`; ai's `FakeAgent` and `FakeAgentLauncher`; workspace's `WorkspaceTesting.kt`).
 
 ## Definition of done
 

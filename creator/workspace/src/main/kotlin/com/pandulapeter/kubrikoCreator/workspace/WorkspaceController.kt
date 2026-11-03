@@ -12,7 +12,6 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
-import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
@@ -25,14 +24,9 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.git.GitController
-import com.pandulapeter.kubrikoCreator.git.GitRepository
-import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy
-import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ExpectDeclarations
-import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
-import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
@@ -40,15 +34,10 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
-import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
-import com.pandulapeter.kubrikoCreator.sceneRuntime.EntryPointLoader
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
-import com.pandulapeter.kubrikoCreator.session.GameLaunch
-import com.pandulapeter.kubrikoCreator.session.GameProcess
-import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -66,7 +55,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.File
 import java.io.IOException
 
 /**
@@ -74,35 +62,30 @@ import java.io.IOException
  *
  * Its parts are built in dependency order, each reading only those built before it.
  *
+ * @param processes The Gradle connection, the game process, and the session channel the project is built and run through.
  * @param workspaceScope The scope everything the workspace starts runs in, which closing it cancels: a child of
- *   [parentScope], made by whoever also starts the [sessionChannel] and the watcher in it.
+ *   [parentScope], made by whoever also starts [processes]' session channel and the watcher in it.
+ * @param files How the workspace notices what changed in the project's files.
+ * @param blockTypeSetup What the project's block-built types need, null if the project hasn't opted in to block-built types
+ *   (it has no `.kubriko/project.json`).
+ * @param sceneRuntime What the project's classes are loaded next to in the Scene editor.
  * @param initialFormatStatus Whether the project may be changed, as [projectFormat] found it while opening it, which it
  *   checks again whenever `.kubriko/project.json` changes.
+ * @param gitRepositories Opens the project's repository, or makes the project one.
  */
 public class WorkspaceController(
     public val project: CreatorProject,
-    private val build: ProjectBuild,
-    private val sessionChannel: SessionChannel,
+    private val processes: ProjectProcesses,
     private val parentScope: CoroutineScope,
     workspaceScope: CoroutineScope = workspaceScopeOf(parentScope),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    findDesktopModulePath: suspend () -> String = { ":" },
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
-    writeDelayInMilliseconds: Long = 0,
-    private val ownWrites: OwnWrites = OwnWrites(),
-    private val scanResources: (File, ProjectSnapshot?) -> Map<ResourceGroup, List<ProjectResource>> = { root, snapshot -> ResourceScanner.scan(root, snapshot = snapshot) },
-    private val blockTypeRepository: BlockTypeRepository? = null,
-    syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
-    creatorKubrikoVersion: String = "",
-    creatorLibraries: Map<String, String> = emptyMap(),
+    private val files: WorkspaceFiles = WorkspaceFiles(),
+    blockTypeSetup: BlockTypesSetup? = null,
+    sceneRuntime: SceneRuntimeSetup = SceneRuntimeSetup(creatorKubrikoVersion = "", entryPointLoader = ClassLoaderEntryPointLoader(project.rootDirectory)),
     initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
-    private val projectFormat: ProjectFormat = ProjectFormat(project.rootDirectory, creatorKubrikoVersion),
-    entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader(project.rootDirectory),
-    startWatching: (onChange: (Set<ProjectChange>, ProjectSnapshot) -> Unit) -> AutoCloseable = { AutoCloseable {} },
-    generatedPath: String? = null,
-    openGitRepository: () -> GitRepository? = { JGitRepository.open(project.rootDirectory) },
-    createGitRepository: (message: String) -> GitRepository = { JGitRepository.create(project.rootDirectory, it) },
-    runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = GameProcess(project.rootDirectory, SessionInitScript.playDirectoryOf(project.rootDirectory))::run,
+    private val projectFormat: ProjectFormat = ProjectFormat(project.rootDirectory, sceneRuntime.creatorKubrikoVersion),
+    gitRepositories: GitRepositories = GitRepositories.of(project.rootDirectory),
 ) {
     /**
      * Everything the workspace starts runs here, and stops when it is closed.
@@ -113,7 +96,7 @@ public class WorkspaceController(
      * The Gradle path of the module that runs the game on desktop, asked from Gradle in the background as soon as the
      * workspace opens, since only builds need it.
      */
-    private val desktopModulePath = DesktopModuleLookup(scope, ioDispatcher, findDesktopModulePath)
+    private val desktopModulePath = DesktopModuleLookup(scope, ioDispatcher, processes.findDesktopModulePath)
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
 
     /** The project's resources, by group, as the last scan found them. */
@@ -151,13 +134,13 @@ public class WorkspaceController(
     /**
      * The project's Scene files, by name.
      */
-    public val scenes: SceneStore = SceneStore(project.rootDirectory, ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
+    public val scenes: SceneStore = SceneStore(project.rootDirectory, files.ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
 
     /** The project's version control. */
     public val git: GitController = GitController(
-        openRepository = openGitRepository,
-        createRepository = createGitRepository,
-        generatedPath = generatedPath,
+        openRepository = gitRepositories.open,
+        createRepository = gitRepositories.create,
+        generatedPath = blockTypeSetup?.generatedPath,
         scope = scope,
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
@@ -171,20 +154,20 @@ public class WorkspaceController(
     /**
      * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
      */
-    public val blockTypes: BlockTypesController? = blockTypeRepository?.let { repository ->
+    public val blockTypes: BlockTypesController? = blockTypeSetup?.let { setup ->
         BlockTypesController(
-            repository = repository,
+            repository = setup.repository,
             scope = scope,
             ioDispatcher = ioDispatcher,
             listener = BlockTypesReport(consoleLog) { haveTypesChanged -> savedTypeBatches.trySend(haveTypesChanged) },
-            syncBuildFiles = syncBuildFiles,
-            writeDelayInMilliseconds = writeDelayInMilliseconds,
+            syncBuildFiles = setup.syncBuildFiles,
+            writeDelayInMilliseconds = setup.writeDelayInMilliseconds,
             isReadOnly = { _formatStatus.value is ProjectFormatStatus.ReadOnly },
         )
     }
     private val tasks = CreatorTaskRunner(
         rootDirectory = project.rootDirectory,
-        build = build,
+        build = processes.build,
         desktopModulePath = desktopModulePath,
         incrementalCompilation = incrementalCompilation,
         console = consoleLog,
@@ -192,11 +175,11 @@ public class WorkspaceController(
         currentTimeMillis = currentTimeMillis,
     )
     private val sessions = SessionController(
-        channel = sessionChannel,
+        channel = processes.sessionChannel,
         runTask = tasks::run,
         console = consoleLog,
         scope = scope,
-        runGame = runGame,
+        runGame = processes.runGame,
     )
 
     /** Whether the session process is idle, starting, or running. */
@@ -215,7 +198,7 @@ public class WorkspaceController(
      * The Scene shown in Kubriko Creator's own window.
      */
     public val sceneEditing: SceneEditingController = SceneEditingController(
-        runtime = SceneRuntimeSetup(creatorKubrikoVersion, creatorLibraries, entryPointLoader),
+        runtime = sceneRuntime,
         classes = WorkspaceSceneClasses(tasks, incrementalCompilation, SessionInitScript.classpathFileOf(project.rootDirectory), blockTypes),
         sources = WorkspaceSceneSources(scenes, resources, blockTypes),
         scope = scope,
@@ -291,7 +274,7 @@ public class WorkspaceController(
     /** The AI panel's Game map, computed only while it is shown. */
     public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, ::reportUnexpectedProblem)
 
-    private val watching = startWatching(::onProjectChanged)
+    private val watching = files.startWatching(::onProjectChanged)
 
     init {
         scope.launch {
@@ -401,8 +384,8 @@ public class WorkspaceController(
      * the watcher would then never report, or by walking the project.
      */
     private suspend fun scanResourcesNow(snapshot: ProjectSnapshot?) {
-        val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == ownWrites.generation }
-        val (resources, folders) = withContext(ioDispatcher) { scanResources(project.rootDirectory, currentSnapshot) to scenes.folders() }
+        val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == files.ownWrites.generation }
+        val (resources, folders) = withContext(ioDispatcher) { files.scanResources(project.rootDirectory, currentSnapshot) to scenes.folders() }
         _resources.value = resources
         _sceneFolders.value = folders
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.
@@ -449,7 +432,7 @@ public class WorkspaceController(
             withTimeoutOrNull(CLOSE_GAME_TIMEOUT_IN_MILLISECONDS) { sessions.closeAndJoin() }
             blockTypes?.let { withTimeoutOrNull(CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS) { it.awaitWritten() } }
             scope.cancel()
-            withContext(ioDispatcher) { build.close() }
+            withContext(ioDispatcher) { processes.build.close() }
         }
     }
 }

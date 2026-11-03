@@ -22,6 +22,10 @@ import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
+import com.pandulapeter.kubrikoCreator.session.GameProcess
+import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.session.SessionServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,24 +64,36 @@ public class GradleWorkspaceOpener(
             val connection = opening.track(GradleProjectConnection(directory))
             WorkspaceController(
                 project = project,
-                build = connection,
-                sessionChannel = opening.track(SessionServer(opening.scope)),
+                processes = ProjectProcesses(
+                    build = connection,
+                    sessionChannel = opening.track(SessionServer(opening.scope)),
+                    runGame = GameProcess(directory, SessionInitScript.playDirectoryOf(directory))::run,
+                    findDesktopModulePath = { DesktopModules.pathOf(connection) },
+                ),
                 parentScope = scope,
                 workspaceScope = opening.scope,
-                findDesktopModulePath = { DesktopModules.pathOf(connection) },
-                scanResources = { root, snapshot -> ResourceScanner.scan(root, hiddenDirectory = blockTypeStore?.generatedPath, snapshot = snapshot) },
-                blockTypeRepository = blockTypeStore,
-                syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
-                creatorKubrikoVersion = configuration.kubrikoVersion,
-                creatorLibraries = creatorLibraries,
+                files = WorkspaceFiles(
+                    ownWrites = ownWrites,
+                    scanResources = { root, snapshot -> ResourceScanner.scan(root, hiddenDirectory = blockTypeStore?.generatedPath, snapshot = snapshot) },
+                    startWatching = { onChange ->
+                        opening.track(ProjectWatcher(directory, blockTypeStore?.generatedPath, opening.scope, Dispatchers.IO, ownWrites = ownWrites).start(onChange))
+                    },
+                ),
+                blockTypeSetup = blockTypeStore?.let { store ->
+                    BlockTypesSetup(
+                        repository = store,
+                        generatedPath = store.generatedPath,
+                        syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
+                        writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
+                    )
+                },
+                sceneRuntime = SceneRuntimeSetup(
+                    creatorKubrikoVersion = configuration.kubrikoVersion,
+                    creatorLibraries = creatorLibraries,
+                    entryPointLoader = ClassLoaderEntryPointLoader(directory),
+                ),
                 initialFormatStatus = formatStatus,
                 projectFormat = projectFormat,
-                generatedPath = blockTypeStore?.generatedPath,
-                writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
-                ownWrites = ownWrites,
-                startWatching = { onChange ->
-                    opening.track(ProjectWatcher(directory, blockTypeStore?.generatedPath, opening.scope, Dispatchers.IO, ownWrites = ownWrites).start(onChange))
-                },
             ).also { it.sceneEditing.prepare() }
         }
     }

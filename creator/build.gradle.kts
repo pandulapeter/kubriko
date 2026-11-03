@@ -35,6 +35,7 @@ dependencies {
     testImplementation(testFixtures(projects.creator.foundation))
     testImplementation(testFixtures(projects.creator.gradleSession))
     testImplementation(testFixtures(projects.creator.ai))
+    testImplementation(testFixtures(projects.creator.workspace))
     testImplementation(testFixtures(projects.creator.uiComponents))
     testImplementation(libs.kotlin.test)
     testImplementation(compose.desktop.uiTestJUnit4)

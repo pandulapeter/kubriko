@@ -24,9 +24,9 @@ import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
-import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceStatus
+import com.pandulapeter.kubrikoCreator.workspace.workspaceController
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -89,7 +89,7 @@ class AppControllerTest {
         scope: CoroutineScope,
         rootDirectory: File = directory,
         runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = { _, _ -> GameProcess.Exit(0, emptyList()) },
-    ) = WorkspaceController(
+    ) = workspaceController(
         project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
         build = FakeProjectBuild().also(builds::add),
         sessionChannel = FakeSessionChannel(),

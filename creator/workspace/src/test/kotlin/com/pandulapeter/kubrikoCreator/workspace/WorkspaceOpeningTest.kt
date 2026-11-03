@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
+import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
@@ -44,15 +45,20 @@ class WorkspaceOpeningTest {
         workspaceJob = opening.scope.launch { awaitCancellation() }
         WorkspaceController(
             project = CreatorProject(rootDirectory = testDirectory(), name = "game"),
-            build = opening.track(build),
-            sessionChannel = opening.track(channel),
+            processes = ProjectProcesses(
+                build = opening.track(build),
+                sessionChannel = opening.track(channel),
+                runGame = { _, _ -> GameProcess.Exit(0, emptyList()) },
+            ),
             parentScope = parentScope(),
             workspaceScope = opening.scope,
             ioDispatcher = UnconfinedTestDispatcher(testScheduler),
-            scanResources = { _, _ -> emptyMap() },
-            blockTypeRepository = FakeBlockTypeRepository(),
-            startWatching = { opening.track(AutoCloseable { isWatcherClosed = true }) },
-            openGitRepository = { null },
+            files = WorkspaceFiles(
+                scanResources = { _, _ -> emptyMap() },
+                startWatching = { opening.track(AutoCloseable { isWatcherClosed = true }) },
+            ),
+            blockTypeSetup = BlockTypesSetup(FakeBlockTypeRepository()),
+            gitRepositories = GitRepositories(open = { null }, create = { error("No repository is created here.") }),
         ).also { afterCreating(opening) }
     }
 
