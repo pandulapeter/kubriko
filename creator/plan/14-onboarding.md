@@ -26,7 +26,8 @@ downloaded by the wrapper inside a build, with nothing to show for it but the co
 - **Downloads that survive real networks:** resumed after a dropped connection or a restart, checksums verified before unpacking, mirrors or a
   manual file as the fallback, proxy settings read from the OS (and editable), and a clear error that says what to do.
 - **The Android SDK** through its command-line tools, with the licenses shown and accepted in Creator (`12-export-and-distribution.md`), and
-  only the packages the templates need.
+  only the packages the templates need. The command-line tools stay installed, since creating an Android emulator from Play's menu
+  (`03-playing-on-every-target.md` → Setting up emulators and simulators) runs their `avdmanager` and `sdkmanager`.
 - **Warming up:** after the downloads, the starter template is built once in the background, so the user's first project doesn't wait for
   Gradle to fill its caches.
 - **Settings → Components** shows the same list later: versions, disk use, update, repair, and remove.
