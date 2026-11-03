@@ -9,14 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.commands.AiStep
-import com.pandulapeter.kubrikoCreator.mcp.McpController
-import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 
 /**
  * What the workspace screen shows besides the project: its side panels, its dialogs, and whether it follows the AI.
@@ -96,12 +92,4 @@ internal class WorkspaceUiState(
     fun hideProjectSettings() {
         isShowingProjectSettings = false
     }
-}
-
-/**
- * The workspace screen's own state for [controller]'s project, which a project opened next starts afresh.
- */
-@Composable
-internal fun rememberWorkspaceUiState(controller: WorkspaceController, mcp: McpController) = remember(controller) {
-    WorkspaceUiState(if (mcp.settings.value.isEnabled) AiPanelView.OWN_TOOL else AiPanelView.ASSISTANT)
 }

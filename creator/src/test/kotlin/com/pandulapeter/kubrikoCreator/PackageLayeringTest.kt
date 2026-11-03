@@ -19,7 +19,8 @@ import kotlin.test.assertTrue
 /**
  * Holds Kubriko Creator's packages to the layers of the Gradle modules they are split into, lowest first: an import may only
  * run to the same or a lower layer, and each file sits in the module of its layer. Gradle already refuses an import of a
- * module a module doesn't depend on; this catches an upward import inside one module and a file in the wrong module.
+ * module a module doesn't depend on; this catches an upward import inside one module and a file in the wrong module. Only the
+ * screens' entry files ([entryFiles]) take the app, workspace, or assistant controller.
  *
  * [layers] mirrors the `:creator:*` modules of `settings.gradle.kts`, the app (`:creator`) last.
  *
@@ -42,6 +43,17 @@ class PackageLayeringTest {
         Layer("app", "", "ui", "settings", "recent", "window", "benchmark"),
     )
     private val knownExceptions = emptyMap<String, String>()
+
+    /**
+     * The files of the app's `ui` packages that may take the app, workspace, or assistant controller: the screens' entry files,
+     * which hand every other part the holders, state, and callbacks it uses. It never grows to admit a part.
+     */
+    private val entryFiles = setOf("ui/AppContent.kt", "ui/WorkspaceScreen.kt")
+
+    /**
+     * The controllers only [entryFiles] import, as their imports name them (relative to `com.pandulapeter.kubrikoCreator`).
+     */
+    private val controllers = setOf("AppController", "workspace.WorkspaceController", "ai.assistant.AssistantController")
 
     /**
      * The order of the packages inside the core layer's `actors`: the Block model, the code generated from it, and the files
@@ -111,6 +123,18 @@ class PackageLayeringTest {
             source.imports.filter { actorsSublayers.indexOf(it.unit) > sourceIndex }.map { "${source.path} -> ${it.name}" }
         }
         assertTrue(violations.isEmpty(), "Imports that run from the actors model to code generation or storage:\n${violations.joinToString("\n")}")
+    }
+
+    /**
+     * A `ui` part handed a whole controller can reach everything in it and can only be tested with a real one, so only the
+     * [entryFiles] import one. Star imports need no check: ktlint's no-wildcard-imports rule refuses them.
+     */
+    @Test
+    fun onlyEntryFilesTakeTheControllers() {
+        val violations = mainSources
+            .filter { it.module == APP_MODULE && (it.unit == "ui" || it.unit.startsWith("ui.")) && it.path !in entryFiles }
+            .flatMap { source -> source.imports.filter { it.name in controllers }.map { "${source.path} -> ${it.name}" } }
+        assertTrue(violations.isEmpty(), "Parts that take a controller; pass them the state and callbacks they use instead:\n${violations.joinToString("\n")}")
     }
 
     private fun sourceFilesIn(root: File): List<SourceFile> {

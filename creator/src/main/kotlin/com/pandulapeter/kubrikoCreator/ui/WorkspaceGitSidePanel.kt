@@ -16,29 +16,34 @@ import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
+import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
 import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
-import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The workspace's Version control panel, after the splitter that resizes it, with every change made through a command.
+ *
+ * @param onCommand Dispatches a command, calling its second argument once the command succeeded.
  */
 @Composable
 internal fun WorkspaceGitSidePanel(
-    controller: WorkspaceController,
+    gitState: StateFlow<GitState>,
+    onRefresh: () -> Unit,
+    onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     width: PanelWidthState,
     row: PanelRow,
 ) {
     PanelSplitter(width, row)
     GitPanel(
         modifier = Modifier.sidePanel(width.widthIn(row)),
-        state = controller.git.state,
-        onRefresh = controller.git::refresh,
-        onStartVersionControl = { controller.commands.dispatch(Invocation(StartVersionControl, NoInput)) },
-        onCommit = { message, onCommitted -> controller.commands.dispatch(Invocation(Commit, Commit.Input(message)), onSuccess = onCommitted) },
-        onDiscard = { change -> controller.commands.dispatch(Invocation(DiscardChanges, DiscardChanges.Input(change.paths))) },
+        state = gitState,
+        onRefresh = onRefresh,
+        onStartVersionControl = { onCommand(Invocation(StartVersionControl, NoInput)) {} },
+        onCommit = { message, onCommitted -> onCommand(Invocation(Commit, Commit.Input(message)), onCommitted) },
+        onDiscard = { change -> onCommand(Invocation(DiscardChanges, DiscardChanges.Input(change.paths))) {} },
     )
 }
