@@ -8,6 +8,7 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.sceneRuntime
+import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -68,6 +69,17 @@ class SceneViewTest {
         assertEquals(SceneCamera(SceneOffset(300f.sceneUnit, (-40f).sceneUnit), 2f), view.camera)
         view.centerOn("ghost")
         assertEquals(SceneOffset(300f.sceneUnit, (-40f).sceneUnit), view.camera.position)
+    }
+
+    @Test
+    fun zoomedOutAPixelIsMoreOfTheSceneAndActorsArePickedWhereTheyAreDrawn() = runTest {
+        view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f)))
+        view.camera = SceneCamera(SceneOffset.Zero, 0.5f)
+        val origin = view.toScene(Offset.Zero)
+        assertEquals(200f, (view.toScene(Offset(100f, 0f)).x - origin.x).raw, 0.01f)
+        assertEquals(50f, view.toScreen(SceneOffset(100f.sceneUnit, 0f.sceneUnit)).x - view.toScreen(SceneOffset.Zero).x, 0.01f)
+        assertEquals("b", pickAt(100f, 0f))
+        assertNull(pickAt(50f, 0f))
     }
 
     @Test
