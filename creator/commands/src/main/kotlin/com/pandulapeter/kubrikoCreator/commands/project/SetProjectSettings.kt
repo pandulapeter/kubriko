@@ -59,14 +59,16 @@ public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val root = context.project.rootDirectory
         val identity = if (input.namesIdentity()) GameIdentity.read(root) ?: return@withContext Applied.failed(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE) else null
-        val game = if (input.namesGame()) GameSettings.read(root)?.settings ?: return@withContext Applied.failed(CommandProblem.GAME_SETTINGS_UNAVAILABLE) else null
+        val reading = if (input.namesGame()) GameSettings.read(root) ?: return@withContext Applied.failed(CommandProblem.GAME_SETTINGS_UNAVAILABLE) else null
+        val game = reading?.settings
         val changedIdentity = identity?.let(input::appliedTo)
         val changedGame = game?.let(input::appliedTo)
         changedIdentity?.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
         changedGame?.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
         GradlePropertiesFile.update(root) { text ->
             val withIdentity = changedIdentity?.writtenTo(text) ?: text
-            changedGame?.writtenTo(withIdentity, input.gameKeys()) ?: withIdentity
+            val sizeKeys = input.aspectRatio?.let { reading?.unreadableSizeKeysOf(it) }.orEmpty()
+            changedGame?.writtenTo(withIdentity, input.gameKeys() + sizeKeys) ?: withIdentity
         }
         Applied(inverse = Invocation(SetProjectSettings, input.revertedTo(identity, game)))
     }

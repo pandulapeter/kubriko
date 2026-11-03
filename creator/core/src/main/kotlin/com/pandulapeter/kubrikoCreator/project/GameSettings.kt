@@ -88,8 +88,7 @@ public data class GameSettings(
 
         /**
          * The settings [text] (a `gradle.properties`) holds, reading a missing key as its default, and the keys whose
-         * values the build can't read, as the build file's block parses them: the viewport's width and height only when
-         * the aspect ratio uses them.
+         * values the build can't read, as the build file's block parses them.
          */
         public fun of(text: String): GameSettingsReading {
             val invalidKeys = mutableListOf<String>()
@@ -107,8 +106,6 @@ public data class GameSettings(
                     if (raw == DISPLAY_FRAME_RATE_VALUE) EVERY_DISPLAY_FRAME else raw.toIntOrNull()?.takeIf { it in 1..MAXIMUM_FRAME_RATE }
                 },
             )
-            if (!aspectRatio.usesWidth) invalidKeys -= VIEWPORT_WIDTH
-            if (!aspectRatio.usesHeight) invalidKeys -= VIEWPORT_HEIGHT
             return GameSettingsReading(settings, invalidKeys.sortedBy(ALL_KEYS::indexOf))
         }
 
@@ -133,10 +130,32 @@ public data class GameSettings(
 }
 
 /**
- * The game's [settings] as `gradle.properties` holds them, and the keys of those it holds that the build can't read
- * ([invalidKeys]), which [settings] has at their defaults.
+ * The game's [settings] as `gradle.properties` holds them, and the keys it holds values of that the build can't read
+ * ([unreadableKeys]), which [settings] has at their defaults.
  */
 public data class GameSettingsReading(
     val settings: GameSettings,
-    val invalidKeys: List<String> = emptyList(),
-)
+    val unreadableKeys: List<String> = emptyList(),
+) {
+    /**
+     * The [unreadableKeys] the build reads, and so fails on: the viewport's width and height only when the aspect ratio
+     * uses them.
+     */
+    val invalidKeys: List<String>
+        get() = unreadableKeys.filter { key ->
+            when (key) {
+                GameSettings.VIEWPORT_WIDTH -> settings.aspectRatio.usesWidth
+                GameSettings.VIEWPORT_HEIGHT -> settings.aspectRatio.usesHeight
+                else -> true
+            }
+        }
+
+    /**
+     * The keys of the viewport's size that [aspectRatio] would make the build read although they are unreadable, which
+     * choosing it has to write as [settings] has them.
+     */
+    public fun unreadableSizeKeysOf(aspectRatio: AspectRatio): List<String> = listOfNotNull(
+        GameSettings.VIEWPORT_WIDTH.takeIf { aspectRatio.usesWidth && it in unreadableKeys },
+        GameSettings.VIEWPORT_HEIGHT.takeIf { aspectRatio.usesHeight && it in unreadableKeys },
+    )
+}

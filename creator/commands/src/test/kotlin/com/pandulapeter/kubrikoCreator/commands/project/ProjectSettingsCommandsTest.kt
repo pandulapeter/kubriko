@@ -105,6 +105,19 @@ class ProjectSettingsCommandsTest {
     }
 
     @Test
+    fun choosingAnAspectRatioWritesTheUnreadableSizeItUses() = runTest {
+        projectReadingItsSettings()
+        properties.writeText(properties.readText().replace("game.viewportWidth=1920", "game.viewportWidth=wide").replace("game.viewportHeight=1080", "game.viewportHeight=tall"))
+        val context = commandContext(rootDirectory = root)
+        assertEquals(emptyList(), GameSettings.read(root)?.invalidKeys)
+        CommandExecutor(context, testScope()).execute(Invocation(SetProjectSettings, SetProjectSettings.Input(aspectRatio = AspectRatio.FIT_HORIZONTAL)))
+        val after = properties.readText()
+        assertContains(after, "game.viewportWidth=1920\n")
+        assertContains(after, "game.viewportHeight=tall\n")
+        assertEquals(emptyList(), GameSettings.read(root)?.invalidKeys)
+    }
+
+    @Test
     fun invalidGameSettingsAreRejected() = runTest {
         projectReadingItsSettings()
         val context = commandContext(rootDirectory = root)
