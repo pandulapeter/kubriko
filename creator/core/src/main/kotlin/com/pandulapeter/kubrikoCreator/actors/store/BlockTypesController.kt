@@ -50,30 +50,14 @@ import kotlinx.coroutines.withContext
  * without that type would break the build; the file is never written over or deleted. Neither happens while [isReadOnly]
  * either: the project was saved by a newer Kubriko Creator, whose code this one would generate wrongly.
  *
- * @param onSaved Called after each batch, with whether the types changed, rather than only the Scenes they were
- *   regenerated for.
- * @param onSaveFailed Called with what a batch couldn't write, once until the failure changes.
- * @param onSavedAgain Called when a batch succeeds after one failed.
- * @param onFileUnreadable Called for each definition file found unreadable, once until it changes.
- * @param onFilesReadableAgain Called when no definition file is unreadable any more.
- * @param onLeftoversRemoved Called with the generated files (by path) a regeneration deleted, since their types no longer exist.
- * @param onLeftoverChangedByHand Called for each generated file (by path) whose type no longer exists but which was
- *   changed by hand, so it was kept, once until it is gone.
+ * @param listener Told what the controller did; see [BlockTypesListener].
  */
 public class BlockTypesController(
     private val repository: BlockTypeRepository,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
-    private val onSaved: (haveTypesChanged: Boolean) -> Unit,
-    private val onSaveFailed: (FailedWrite) -> Unit,
-    private val onSavedAgain: () -> Unit = {},
-    private val onFileUnreadable: (UnreadableBlockTypeFile) -> Unit = {},
-    private val onFirstLoaded: (List<BlockTypeDefinition>) -> Unit = {},
-    private val onFilesReadableAgain: () -> Unit = {},
-    private val onLeftoversRemoved: (List<String>) -> Unit = {},
-    private val onLeftoverChangedByHand: (String) -> Unit = {},
+    private val listener: BlockTypesListener,
     syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
-    private val onBuildFilesSynced: (KubrikoBuildFileChanges) -> Unit = {},
     private val writeDelayInMilliseconds: Long = 0,
     private val isReadOnly: () -> Boolean = { false },
 ) : BlockTypes {
@@ -149,7 +133,7 @@ public class BlockTypesController(
                 emptyFolders = withContext(ioDispatcher) { BlockTypeKind.entries.associateWith(repository::folders) }
                 setUnreadableFiles(loaded.unreadableFiles)
                 setTypes(loaded.types)
-                onFirstLoaded(_types.value)
+                listener.onFirstLoaded(_types.value)
             } catch (exception: Exception) {
                 if (exception is CancellationException) throw exception
                 setUnreadableFiles(listOf(UnreadableBlockTypeFile(DefinitionPaths.CREATOR_DIRECTORY, BlockTypeFileProblem.Unparsable(exception.message ?: exception.toString()))))
@@ -308,8 +292,8 @@ public class BlockTypesController(
     private fun setUnreadableFiles(files: List<UnreadableBlockTypeFile>) {
         val previous = _unreadableFiles.value
         _unreadableFiles.value = files
-        files.filter { it !in previous }.forEach(onFileUnreadable)
-        if (files.isEmpty() && previous.isNotEmpty()) onFilesReadableAgain()
+        files.filter { it !in previous }.forEach(listener::onFileUnreadable)
+        if (files.isEmpty() && previous.isNotEmpty()) listener.onFilesReadableAgain()
     }
 
     private fun setTypes(types: List<BlockTypeDefinition>) {
@@ -378,14 +362,14 @@ public class BlockTypesController(
                 consecutiveFailures = 0
                 if (_failure.value != null) {
                     _failure.value = null
-                    onSavedAgain()
+                    listener.onSavedAgain()
                 }
                 _changedByHand.value = regenerated.changedByHand
-                if (regenerated.removedLeftovers.isNotEmpty()) onLeftoversRemoved(regenerated.removedLeftovers)
-                regenerated.leftoversChangedByHand.filter { it !in leftoversChangedByHand }.sorted().forEach(onLeftoverChangedByHand)
+                if (regenerated.removedLeftovers.isNotEmpty()) listener.onLeftoversRemoved(regenerated.removedLeftovers)
+                regenerated.leftoversChangedByHand.filter { it !in leftoversChangedByHand }.sorted().forEach(listener::onLeftoverChangedByHand)
                 leftoversChangedByHand = regenerated.leftoversChangedByHand
-                completed.buildFileChanges?.let(onBuildFilesSynced)
-                onSaved(haveTypesChanged)
+                completed.buildFileChanges?.let(listener::onBuildFilesSynced)
+                listener.onSaved(haveTypesChanged)
             }
         } finally {
             if (isReloadRequested && !hasUnwritten) {
@@ -405,7 +389,7 @@ public class BlockTypesController(
             delay(retryDelay)
             writeRequests.trySend(Unit)
         }
-        if (failure != previous) onSaveFailed(failure)
+        if (failure != previous) listener.onSaveFailed(failure)
     }
 
     private companion object {
