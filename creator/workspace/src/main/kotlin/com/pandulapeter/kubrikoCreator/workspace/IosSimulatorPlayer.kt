@@ -143,7 +143,7 @@ internal class IosSimulatorPlayer(
         var hasCrashed = false
         val beforeStart = ArrayDeque<String>()
         val processLine = Regex(Regex.escape(bundleId) + """: \d+""")
-        val exitCode = tools.stream(listOf("xcrun", "simctl", "launch", "--console-pty", "--terminate-running-process", udid, bundleId) + switches) { raw ->
+        val exitCode = tools.stream(TERMINAL + listOf("xcrun", "simctl", "launch", "--console-pty", "--terminate-running-process", udid, bundleId) + switches) { raw ->
             val line = raw.trimEnd('\r')
             when {
                 // simctl names the app's process once it runs, sometimes after the app's first lines.
@@ -186,6 +186,12 @@ internal class IosSimulatorPlayer(
         private const val COMMAND_TIMEOUT_IN_MILLISECONDS = 10_000L
         private const val INSTALL_TIMEOUT_IN_MILLISECONDS = 2 * 60_000L
         private const val KOTLIN_ERROR_PREFIX = "e: "
+
+        /**
+         * Runs a command in a terminal of its own, since `simctl` holds back what it prints into a pipe, the line naming
+         * the app's process included, until the app ends.
+         */
+        val TERMINAL = listOf("script", "-q", "/dev/null")
 
         /**
          * What Kotlin/Native prints when the game throws an exception nothing catches.

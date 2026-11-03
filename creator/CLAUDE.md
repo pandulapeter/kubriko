@@ -336,7 +336,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   `simctl bootstatus -b` boots the simulator, which the Simulator app then shows. Xcode's build waits for the writes and holds
   the classpath build lock (`CreatorTaskRunner.runOutside`), since its build phase runs Gradle on the same project. The
   switches reach the app as launch arguments, which `NSUserDefaults` reads as property lists, so a Scene's name is quoted. `simctl launch --console-pty` prints what the app prints (a pty, so its output
-  isn't held back in a buffer) and names its process once it runs, sometimes after the app's first lines, so those are held
+  isn't held back in a buffer), run inside `script`, since `simctl` itself holds back what it prints into a pipe until the
+  app ends, and names the app's process once it runs, sometimes after the app's first lines, so those are held
   until then. Stop is `simctl terminate`.
 - **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so a Log Block also
   prints what it logs (on one line, as `[source] message`), and the Scene loader its failures: Creator reads them back from a

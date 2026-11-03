@@ -38,7 +38,7 @@ class IosSimulatorPlayerTest {
     private val app = File(root, "${IosSimulatorPlayer.BUILD_PATH}/${IosSimulatorPlayer.PRODUCTS_PATH}/Game.app")
     private val build = "xcodebuild -project ${File(root, IosSimulatorPlayer.PROJECT_PATH).path} -scheme iosApp -configuration Debug -sdk iphonesimulator " +
         "-destination id=U1 -derivedDataPath ${File(root, IosSimulatorPlayer.BUILD_PATH).path} CODE_SIGNING_ALLOWED=NO build"
-    private val launch = "simctl launch --console-pty --terminate-running-process U1 com.example.mygame -kubriko.creator.logging YES"
+    private val launch = "-q /dev/null xcrun simctl launch --console-pty --terminate-running-process U1 com.example.mygame -kubriko.creator.logging YES"
 
     private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
