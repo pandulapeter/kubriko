@@ -28,7 +28,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
-import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
@@ -100,15 +99,12 @@ internal fun SidebarFolderRow(
         RowActionsButton(
             modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
             menu = menu,
-            label = Res.string.action_more_options,
-        )
-        RightClickMenu(
-            menu,
-            listOfNotNull(
+            actions = listOfNotNull(
                 ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder, onClick = onNewFolder),
                 ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit, onClick = onRename),
                 ContextAction(stringResource(Res.string.action_delete_folder), Res.drawable.ic_delete, isDestructive = true, onClick = onDelete).takeIf { row.isEmpty },
             ),
+            label = Res.string.action_more_options,
         )
     }
 }

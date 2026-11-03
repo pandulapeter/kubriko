@@ -22,6 +22,7 @@ import kubriko.creator.generated.resources.assistant_account_remove_api_key
 import kubriko.creator.generated.resources.assistant_account_sign_in
 import kubriko.creator.generated.resources.assistant_account_signed_in
 import kubriko.creator.generated.resources.assistant_account_use_api_key
+import kubriko.creator.generated.resources.assistant_setup_account
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -39,25 +40,27 @@ internal fun AssistantAccountMenu(
     onRemoveApiKey: () -> Unit,
 ) {
     if (status == null && !hasApiKey) return
-    WithTooltip(stringResource(Res.string.assistant_account_menu, LocalAgent.current.name)) {
-        MenuButton(
-            label = status.label(),
-            options = accountActions(methods, hasApiKey, canKeepApiKey),
-            optionText = { action ->
-                when (action) {
-                    is AccountAction.SignIn -> stringResource(Res.string.assistant_account_sign_in, action.method.name)
-                    AccountAction.UseApiKey -> stringResource(Res.string.assistant_account_use_api_key)
-                    AccountAction.RemoveApiKey -> stringResource(Res.string.assistant_account_remove_api_key)
-                }
-            },
-            onSelected = { action ->
-                when (action) {
-                    is AccountAction.SignIn -> onSignIn(action.method)
-                    AccountAction.UseApiKey -> onUseApiKey()
-                    AccountAction.RemoveApiKey -> onRemoveApiKey()
-                }
-            },
-        )
+    AssistantSetupRow(stringResource(Res.string.assistant_setup_account)) {
+        WithTooltip(stringResource(Res.string.assistant_account_menu, LocalAgent.current.name)) {
+            MenuButton(
+                label = status.label(),
+                options = accountActions(methods, hasApiKey, canKeepApiKey),
+                optionText = { action ->
+                    when (action) {
+                        is AccountAction.SignIn -> stringResource(Res.string.assistant_account_sign_in, action.method.name)
+                        AccountAction.UseApiKey -> stringResource(Res.string.assistant_account_use_api_key)
+                        AccountAction.RemoveApiKey -> stringResource(Res.string.assistant_account_remove_api_key)
+                    }
+                },
+                onSelected = { action ->
+                    when (action) {
+                        is AccountAction.SignIn -> onSignIn(action.method)
+                        AccountAction.UseApiKey -> onUseApiKey()
+                        AccountAction.RemoveApiKey -> onRemoveApiKey()
+                    }
+                },
+            )
+        }
     }
 }
 

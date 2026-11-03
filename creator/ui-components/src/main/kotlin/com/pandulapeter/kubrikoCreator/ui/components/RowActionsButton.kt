@@ -9,30 +9,31 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.ic_more
 import org.jetbrains.compose.resources.StringResource
 
 /**
- * The ⋮ button that opens [menu] under itself: the same [RightClickMenu] a right-click on its row opens, so what a row
- * offers is the same whichever way it is asked for.
+ * The ⋮ button that opens [menu] of [actions] under itself: the same [RightClickMenu] a right-click on its row opens, so
+ * what a row offers is the same whichever way it is asked for. The menu is held by the button, so opening it never moves
+ * anything in the row.
  */
 @Composable
 public fun RowActionsButton(
     menu: RightClickMenuState,
+    actions: List<ContextAction>,
     label: StringResource,
     modifier: Modifier = Modifier,
-) {
-    val anchor = remember { arrayOfNulls<LayoutCoordinates>(1) }
+): Unit = Box(modifier) {
+    val anchor = rememberMenuAnchor(menu)
     IconActionButton(
-        modifier = modifier.onGloballyPositioned { anchor[0] = it },
+        modifier = anchor.modifier,
         icon = Res.drawable.ic_more,
         label = label,
-        onClick = { anchor[0]?.let(menu::openBelow) },
+        onClick = anchor::open,
     )
+    RightClickMenu(menu, actions)
 }

@@ -9,8 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -84,6 +86,8 @@ class AssistantPanelTest {
         chat
     }
 
+    private fun ComposeUiTest.openSetup() = onNodeWithContentDescription("Assistant setup", substring = true).performClick()
+
     @Test
     fun anUntestedAgentShowsTheUntestedNoteAndNoClaudeOptions() = uiTest {
         val model = FakeAssistantPanelModel(agent = untested).apply {
@@ -102,6 +106,8 @@ class AssistantPanelTest {
             AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {})
         }
         onNodeWithText(note).assertExists()
+        onNodeWithText(accountLabel).assertDoesNotExist()
+        openSetup()
         onNodeWithText(configurationLabel).assertDoesNotExist()
         onNodeWithText(accountLabel).performClick()
         saveSnapshot("assistant-panel-untested")
@@ -127,6 +133,8 @@ class AssistantPanelTest {
             AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {})
         }
         onNodeWithText(note).assertExists()
+        openSetup()
+        saveSnapshot("assistant-setup")
         onNodeWithText(configurationLabel).assertExists()
         onNodeWithText(accountLabel).performClick()
         saveSnapshot("assistant-panel-claude")
@@ -154,6 +162,7 @@ class AssistantPanelTest {
             save = stringResource(Res.string.action_save)
             AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {})
         }
+        openSetup()
         onNodeWithText(agentLabel).performClick()
         onNodeWithText(customAgent).performClick()
         onAllNodes(hasSetTextAction())[0].performTextInput("goose acp")

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -108,13 +109,15 @@ internal fun EventListItem(
                 )
             }
         }
-        IconActionButton(
-            modifier = Modifier.revealedWhen(hover.isActive || isSelected),
-            icon = Res.drawable.ic_close,
-            label = Res.string.action_remove_event,
-            onClick = onRemove,
-        )
-        RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove_event), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+        Box {
+            IconActionButton(
+                modifier = Modifier.revealedWhen(hover.isActive || isSelected),
+                icon = Res.drawable.ic_close,
+                label = Res.string.action_remove_event,
+                onClick = onRemove,
+            )
+            RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove_event), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+        }
     }
 }
 

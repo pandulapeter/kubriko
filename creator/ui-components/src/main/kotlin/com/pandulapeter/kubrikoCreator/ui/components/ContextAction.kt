@@ -15,7 +15,8 @@ import org.jetbrains.compose.resources.DrawableResource
 /**
  * One entry of a [RightClickMenu]: its [label], with an optional [description] under it, and its [icon], drawn in the
  * error color when [isDestructive]. One that [isChecked] (true or false) is a choice that stays on or off, shown by a
- * check mark in place of the icon.
+ * check mark in place of the icon; one that [isCurrent] is the choice made now, marked by a check at its end. A line
+ * sets it apart from the entries above it when [isSeparated].
  */
 @Immutable
 public class ContextAction(
@@ -24,5 +25,7 @@ public class ContextAction(
     public val isDestructive: Boolean = false,
     public val description: String? = null,
     public val isChecked: Boolean? = null,
+    public val isCurrent: Boolean = false,
+    public val isSeparated: Boolean = false,
     public val onClick: () -> Unit,
 )

@@ -10,21 +10,10 @@
 package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.painterResource
 
 /**
  * An icon button that opens a menu of [options].
@@ -39,31 +28,16 @@ public fun <T> MenuIconButton(
     onSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
 ): Unit = Box(modifier) {
-    var isExpanded by remember { mutableStateOf(false) }
+    val menu = rememberRightClickMenuState()
+    val anchor = rememberMenuAnchor(menu)
     IconActionButton(
+        modifier = anchor.modifier,
         icon = icon,
         label = label,
-        onClick = { isExpanded = true },
+        onClick = anchor::open,
     )
-    DropdownMenu(
-        expanded = isExpanded,
-        onDismissRequest = { isExpanded = false },
-        shape = MenuStyle.shape,
-        containerColor = MenuStyle.color,
-        border = MenuStyle.border,
-        shadowElevation = MenuStyle.elevation,
-    ) {
-        options.forEach { option ->
-            DropdownMenuItem(
-                text = { Text(optionText(option)) },
-                leadingIcon = optionIcon(option)?.let { optionIconResource ->
-                    { Icon(modifier = Modifier.size(16.dp), painter = painterResource(optionIconResource), contentDescription = null) }
-                },
-                onClick = {
-                    isExpanded = false
-                    onSelected(option)
-                },
-            )
-        }
-    }
+    RightClickMenu(
+        state = menu,
+        actions = options.map { option -> ContextAction(label = optionText(option), icon = optionIcon(option)) { onSelected(option) } },
+    )
 }

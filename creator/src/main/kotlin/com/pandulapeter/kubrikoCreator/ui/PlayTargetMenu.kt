@@ -14,28 +14,23 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTargets
-import com.pandulapeter.kubrikoCreator.ui.components.MenuStyle
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
+import com.pandulapeter.kubrikoCreator.ui.components.rememberMenuAnchor
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_choose_play_target
 import kubriko.creator.generated.resources.action_more_play_targets
 import kubriko.creator.generated.resources.ic_android
-import kubriko.creator.generated.resources.ic_check
 import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_desktop
 import kubriko.creator.generated.resources.ic_iphone
@@ -59,14 +54,15 @@ internal fun PlayTargetMenu(
     onChosen: (PlayTarget) -> Unit,
     onMoreTargets: () -> Unit,
 ) = Box {
-    var isExpanded by remember { mutableStateOf(false) }
+    val menu = rememberRightClickMenuState()
+    val anchor = rememberMenuAnchor(menu)
     WithTooltip(stringResource(Res.string.action_choose_play_target)) {
         TextButton(
-            modifier = Modifier.height(32.dp),
+            modifier = anchor.modifier.height(32.dp),
             contentPadding = PaddingValues(start = 8.dp, end = 4.dp),
             onClick = {
                 onOpened()
-                isExpanded = true
+                anchor.open()
             },
         ) {
             Icon(modifier = Modifier.size(16.dp), painter = painterResource(iconOf(targets.chosen.kind)), contentDescription = null)
@@ -74,39 +70,12 @@ internal fun PlayTargetMenu(
             Icon(modifier = Modifier.size(16.dp), painter = painterResource(Res.drawable.ic_chevron), contentDescription = null)
         }
     }
-    DropdownMenu(
-        expanded = isExpanded,
-        onDismissRequest = { isExpanded = false },
-        shape = MenuStyle.shape,
-        containerColor = MenuStyle.color,
-        border = MenuStyle.border,
-        shadowElevation = MenuStyle.elevation,
-    ) {
-        targets.available.forEach { target ->
-            DropdownMenuItem(
-                text = { Text(playTargetText(target)) },
-                leadingIcon = { Icon(modifier = Modifier.size(16.dp), painter = painterResource(iconOf(target.kind)), contentDescription = null) },
-                trailingIcon = if (target == targets.chosen) {
-                    { Icon(modifier = Modifier.size(16.dp), painter = painterResource(Res.drawable.ic_check), contentDescription = null) }
-                } else {
-                    null
-                },
-                onClick = {
-                    isExpanded = false
-                    onChosen(target)
-                },
-            )
-        }
-        HorizontalDivider()
-        DropdownMenuItem(
-            text = { Text(stringResource(Res.string.action_more_play_targets)) },
-            leadingIcon = { Icon(modifier = Modifier.size(16.dp), painter = painterResource(Res.drawable.ic_settings), contentDescription = null) },
-            onClick = {
-                isExpanded = false
-                onMoreTargets()
-            },
-        )
-    }
+    RightClickMenu(
+        state = menu,
+        actions = targets.available.map { target ->
+            ContextAction(label = playTargetText(target), icon = iconOf(target.kind), isCurrent = target == targets.chosen) { onChosen(target) }
+        } + ContextAction(label = stringResource(Res.string.action_more_play_targets), icon = Res.drawable.ic_settings, isSeparated = true, onClick = onMoreTargets),
+    )
 }
 
 /**

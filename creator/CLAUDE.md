@@ -456,15 +456,23 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   category), and Play is green.
 - Beginner-friendly by default: one Block category at a time, Blocks added by a click or a drag, and anything advanced (the package
   of a new project) under More options.
-- **Calm and desktop-like:** soft, low-contrast colors (`CreatorColors`, never pure white or black text), small corners, and
+- **Calm and desktop-like:** soft, low-contrast colors (`CreatorColors`, never pure white or black text), compact controls
+  (`CreatorTheme` turns off Material's 48dp touch targets, so a control takes only the room it draws), small corners, and
   dialogs of several groups as a list of pages beside the chosen one rather than one long scroll. A row shows its main action;
   the rest (remove, or a ⋮ `RowActionsButton` opening the same `RightClickMenu` as a right-click) fade in while it is pointed
-  at or focused, never only in the right-click menu. Every menu and popup looks like one (`MenuStyle`: brighter than any panel,
-  with an edge and a shadow), so it never reads as part of the panel it opened from. A clickable row's background and press feedback span its whole panel (a padded settings page's rows reach
+  at or focused, never only in the right-click menu. Every menu is a `RightClickMenu` (compact rows, scrolling to the popover's
+  edges; `MenuButton`, `MenuIconButton`, and `RowActionsButton` open one under themselves through a `MenuAnchor`), and every
+  menu and popup looks like one (`MenuStyle`: brighter than any panel,
+  with an edge and a shadow), so it never reads as part of the panel it opened from, and is held by the button it belongs
+  to (`RowActionsButton`, or a `Box` with it), since a popup counts as one more child of the row it is in and would move
+  its neighbours. A panel's background reaches its divider: a `PanelSplitter` is a one-pixel line with its grip laid over
+  both neighbours. Settings that rarely change stay behind a button rather than on screen (the assistant's agent, account,
+  configuration, and options are in its header's setup `Popover`). A clickable row's background and press feedback span its whole panel (a padded settings page's rows reach
   past the padding with `fullBleed`); only what is drawn as a card (a Block, a chip) keeps its own shape.
 - **Nothing pops in:** panels, pages, notices, list rows, and dialogs move or fade with `CreatorMotion`'s durations. What
   replaces a live Scene preview fades in (`fadeInOnChange`) rather than crossfading, which would keep two previews running.
-- **Usable at any window size:** the type editor folds its details, and then its palette, into tabs beside the Events
+- **Usable at any window size:** what sits side by side shrinks together and then stacks (the empty workspace's cards), never
+  squeezing only the last of them; the type editor folds its details, and then its palette, into tabs beside the Events
   (`BlockTypeEditorColumns`) before the Blocks lose their room, Block parameters wrap, and labels end in an ellipsis rather
   than wrapping a header.
 - The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.

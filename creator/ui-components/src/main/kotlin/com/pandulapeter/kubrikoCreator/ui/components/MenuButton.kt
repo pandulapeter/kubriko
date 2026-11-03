@@ -10,17 +10,11 @@
 package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 
 /**
- * An outlined button showing the chosen option, with a chevron, that opens a menu of [options].
+ * A button showing [label] that opens a menu of [options], each shown by [optionText], calling [onSelected] with the one
+ * chosen. The option shown by [label] is marked as the current one.
  */
 @Composable
 public fun <T> MenuButton(
@@ -29,27 +23,19 @@ public fun <T> MenuButton(
     optionText: @Composable (T) -> String,
     onSelected: (T) -> Unit,
 ): Unit = Box {
-    var isExpanded by remember { mutableStateOf(false) }
-    MenuButtonFace(
-        label = label,
-        onClick = { isExpanded = true },
-    )
-    DropdownMenu(
-        expanded = isExpanded,
-        onDismissRequest = { isExpanded = false },
-        shape = MenuStyle.shape,
-        containerColor = MenuStyle.color,
-        border = MenuStyle.border,
-        shadowElevation = MenuStyle.elevation,
-    ) {
-        options.forEach { option ->
-            DropdownMenuItem(
-                text = { Text(optionText(option)) },
-                onClick = {
-                    isExpanded = false
-                    onSelected(option)
-                },
-            )
-        }
+    val menu = rememberRightClickMenuState()
+    val anchor = rememberMenuAnchor(menu)
+    Box(anchor.modifier) {
+        MenuButtonFace(
+            label = label,
+            onClick = anchor::open,
+        )
     }
+    RightClickMenu(
+        state = menu,
+        actions = options.map { option ->
+            val text = optionText(option)
+            ContextAction(label = text, isCurrent = text == label) { onSelected(option) }
+        },
+    )
 }

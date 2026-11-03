@@ -713,7 +713,10 @@
     <string name="assistant_input_hint">Ask the assistant (Enter sends, Shift+Enter starts a new line)</string>
     <string name="assistant_thinking">Thinking</string>
     <string name="assistant_working">Working…</string>
-    <string name="assistant_option_value">%1$s: %2$s</string>
+    <string name="action_assistant_setup">Assistant setup (%1$s)</string>
+    <string name="assistant_setup_agent">Agent</string>
+    <string name="assistant_setup_account">Account</string>
+    <string name="assistant_setup_configuration">Configuration</string>
     <string name="assistant_plan">Plan</string>
     <string name="assistant_permission">The assistant asks to use %1$s.</string>
     <string name="assistant_failure_node_missing">%1$s needs Node.js, which your shell can't find. Install it, then try again.</string>

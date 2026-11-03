@@ -10,16 +10,21 @@
 package com.pandulapeter.kubrikoCreator.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 
 /**
  * Kubriko's theme with the Creator's own colors, [CreatorTypography], and desktop-sized corners, light or dark as [theme]
- * says ([ThemeChoice.SYSTEM] following the operating system as Kubriko's theme does).
+ * says ([ThemeChoice.SYSTEM] following the operating system as Kubriko's theme does). Controls take only the room they
+ * draw, without Material's 48dp touch targets, which a desktop app driven by a mouse doesn't need and which left a
+ * control's height of empty space around every button, chip, and switch.
  */
 @Composable
 public fun CreatorTheme(
@@ -35,8 +40,12 @@ public fun CreatorTheme(
         colorScheme = if (isDark) CreatorDarkColors else CreatorLightColors,
         typography = CreatorTypography(),
         shapes = CreatorShapes,
-        content = content,
-    )
+    ) {
+        CompositionLocalProvider(
+            LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
+            content = content,
+        )
+    }
 }
 
 /**

@@ -29,7 +29,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
-import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
@@ -109,9 +108,9 @@ internal fun SidebarItem(
             RowActionsButton(
                 modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
                 menu = menu,
+                actions = actions,
                 label = Res.string.action_more_options,
             )
-            RightClickMenu(menu, actions)
         }
     }
 }

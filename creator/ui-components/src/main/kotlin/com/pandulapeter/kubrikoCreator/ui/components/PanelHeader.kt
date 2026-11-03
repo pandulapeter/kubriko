@@ -40,7 +40,7 @@ public fun PanelHeader(
     actions: @Composable RowScope.() -> Unit = {},
 ): Unit = Row(
     modifier = modifier.fillMaxWidth().heightIn(min = 36.dp).padding(start = 12.dp, end = 4.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    horizontalArrangement = Arrangement.spacedBy(0.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {
     if (accent == null) {
@@ -57,7 +57,7 @@ public fun PanelHeader(
         )
     }
     Text(
-        modifier = Modifier.weight(1f),
+        modifier = Modifier.padding(start = 8.dp, end = 4.dp).weight(1f),
         text = title,
         style = MaterialTheme.typography.titleSmall,
         maxLines = 1,

@@ -127,13 +127,15 @@ internal fun BlockRow(
                 text = stringResource(kind.title),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            IconActionButton(
-                modifier = Modifier.revealedWhen(hover.isActive),
-                icon = Res.drawable.ic_close,
-                label = Res.string.action_remove,
-                onClick = onRemove,
-            )
-            RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+            Box {
+                IconActionButton(
+                    modifier = Modifier.revealedWhen(hover.isActive),
+                    icon = Res.drawable.ic_close,
+                    label = Res.string.action_remove,
+                    onClick = onRemove,
+                )
+                RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+            }
         }
         if (kind.hasInlineParameters) {
             Box(

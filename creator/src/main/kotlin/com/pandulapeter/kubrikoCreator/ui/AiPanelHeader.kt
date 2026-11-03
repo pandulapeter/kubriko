@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
-import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
@@ -115,9 +114,6 @@ private fun MoreAiOptions(
     RowActionsButton(
         menu = menu,
         label = Res.string.action_ai_panel_more,
-    )
-    RightClickMenu(
-        state = menu,
         actions = listOf(
             ContextAction(
                 label = stringResource(Res.string.game_map_title),

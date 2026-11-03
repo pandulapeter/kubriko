@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,14 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
+import com.pandulapeter.kubrikoCreator.ui.components.rememberMenuAnchor
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_chip_actor_type
@@ -57,44 +57,46 @@ internal fun AttentionLine(
 ) {
     if (chips.isEmpty()) return
     val menu = rememberRightClickMenuState()
-    val anchor = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    val anchor = rememberMenuAnchor(menu)
     val included = chips.filter { it.key !in leftOut }.map { it.label() }
-    WithTooltip(stringResource(Res.string.assistant_chip_hint)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { anchor[0] = it }
-                .clickable { anchor[0]?.let(menu::openBelow) }
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                modifier = Modifier.size(14.dp),
-                painter = painterResource(Res.drawable.ic_open_with),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                modifier = Modifier.weight(1f),
-                text = if (included.isEmpty()) stringResource(Res.string.assistant_context_none) else stringResource(Res.string.assistant_context_with, included.joinToString(SEPARATOR)),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Icon(
-                modifier = Modifier.size(12.dp),
-                painter = painterResource(Res.drawable.ic_chevron),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+    Box {
+        WithTooltip(stringResource(Res.string.assistant_chip_hint)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(anchor.modifier)
+                    .clickable(onClick = anchor::open)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    modifier = Modifier.size(14.dp),
+                    painter = painterResource(Res.drawable.ic_open_with),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = if (included.isEmpty()) stringResource(Res.string.assistant_context_none) else stringResource(Res.string.assistant_context_with, included.joinToString(SEPARATOR)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Icon(
+                    modifier = Modifier.size(12.dp),
+                    painter = painterResource(Res.drawable.ic_chevron),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
+        RightClickMenu(
+            state = menu,
+            actions = chips.map { chip -> ContextAction(label = chip.label(), isChecked = chip.key !in leftOut) { onToggle(chip) } },
+        )
     }
-    RightClickMenu(
-        state = menu,
-        actions = chips.map { chip -> ContextAction(label = chip.label(), isChecked = chip.key !in leftOut) { onToggle(chip) } },
-    )
 }
 
 @Composable

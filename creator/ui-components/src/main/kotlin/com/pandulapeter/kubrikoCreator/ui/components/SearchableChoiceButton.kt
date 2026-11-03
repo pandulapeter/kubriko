@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -99,9 +100,7 @@ private fun ChoicePanel(
 ) {
     var query by remember { mutableStateOf("") }
     val matches = remember(query, titles) { matchingOptions(query, titles.indices.toList(), titleOf = { titles[it] }) }
-    Column(
-        modifier = Modifier.padding(vertical = 6.dp),
-    ) {
+    Column {
         if (titles.size > SEARCH_THRESHOLD) {
             ChoiceSearchField(
                 query = query,
@@ -120,6 +119,7 @@ private fun ChoicePanel(
         }
         LazyColumn(
             modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp),
+            contentPadding = PaddingValues(vertical = 4.dp),
         ) {
             items(matches, key = { it }) { index ->
                 Text(
@@ -149,7 +149,7 @@ private fun ChoiceSearchField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
-            .padding(bottom = 4.dp)
+            .padding(top = 8.dp, bottom = 4.dp)
             .focusRequester(focusRequester)
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false

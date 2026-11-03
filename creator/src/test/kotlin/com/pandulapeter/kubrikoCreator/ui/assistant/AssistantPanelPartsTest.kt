@@ -119,19 +119,16 @@ class AssistantPanelPartsTest {
     }
 
     @Test
-    fun theAgentLineMarksAnUntestedAgentAndOffersTheOthers() = uiTest {
+    fun theAgentMenuMarksAnUntestedAgentAndOffersTheOthers() = uiTest {
         val chosen = mutableListOf<AgentChoice>()
         showing {
-            AgentRow(
+            AgentMenu(
                 agent = antigravity,
                 agents = listOf(RegistryAgent.claude, antigravity.agent),
                 customAgentCommand = "goose acp",
-                canClose = true,
-                onAgentSelected = { chosen += it },
+                onSelected = { chosen += it },
                 onEnterCustomAgent = {},
                 onOpenLog = {},
-                onNewConversation = {},
-                onCloseConversation = {},
             )
         }
         onNodeWithText("Google Antigravity (untested)").performClick()

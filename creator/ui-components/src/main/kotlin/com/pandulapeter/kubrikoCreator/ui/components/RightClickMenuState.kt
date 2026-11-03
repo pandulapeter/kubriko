@@ -44,7 +44,10 @@ public class RightClickMenuState {
         if (coordinates.isAttached) positionInWindow = coordinates.localToWindow(Offset(0f, coordinates.size.height.toFloat()))
     }
 
-    internal fun close() {
+    /**
+     * Closes the menu.
+     */
+    public fun close() {
         positionInWindow = null
     }
 }

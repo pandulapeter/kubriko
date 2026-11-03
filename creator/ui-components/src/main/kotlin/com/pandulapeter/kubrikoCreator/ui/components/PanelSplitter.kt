@@ -17,11 +17,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -31,6 +32,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.panel_resize
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.panel_resize_height
@@ -55,23 +57,33 @@ public fun PanelSplitter(
     val description = stringResource(if (isVertical) Res.string.panel_resize_height else Res.string.panel_resize)
     Box(
         modifier = Modifier
-            .then(if (isVertical) Modifier.height(8.dp).fillMaxWidth() else Modifier.width(8.dp).fillMaxHeight())
-            .pointerHoverIcon(PointerIcon(Cursor(if (isVertical) Cursor.N_RESIZE_CURSOR else Cursor.E_RESIZE_CURSOR)))
-            .draggable(
-                state = rememberDraggableState { deltaInPixels ->
-                    val deltaInDp = deltaInPixels / density
-                    onDrag(if (side == PanelSide.START) deltaInDp else -deltaInDp)
-                },
-                orientation = if (isVertical) Orientation.Vertical else Orientation.Horizontal,
-                onDragStopped = { onDragStopped() },
-            )
-            .pointerInput(onReset) { detectTapGestures(onDoubleTap = { onReset() }) }
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
+            .zIndex(1f)
+            .then(if (isVertical) Modifier.height(1.dp).fillMaxWidth() else Modifier.width(1.dp).fillMaxHeight()),
     ) {
         if (isVertical) HorizontalDivider() else VerticalDivider()
+        Box(
+            modifier = Modifier
+                .then(if (isVertical) Modifier.requiredHeight(HANDLE_SIZE).fillMaxWidth() else Modifier.requiredWidth(HANDLE_SIZE).fillMaxHeight())
+                .pointerHoverIcon(PointerIcon(Cursor(if (isVertical) Cursor.N_RESIZE_CURSOR else Cursor.E_RESIZE_CURSOR)))
+                .draggable(
+                    state = rememberDraggableState { deltaInPixels ->
+                        val deltaInDp = deltaInPixels / density
+                        onDrag(if (side == PanelSide.START) deltaInDp else -deltaInDp)
+                    },
+                    orientation = if (isVertical) Orientation.Vertical else Orientation.Horizontal,
+                    onDragStopped = { onDragStopped() },
+                )
+                .pointerInput(onReset) { detectTapGestures(onDoubleTap = { onReset() }) }
+                .semantics { contentDescription = description },
+        )
     }
 }
+
+/**
+ * How wide the grip of a splitter is: it lies over the edges of the panels on both sides of its one-pixel line, so their
+ * backgrounds reach the line while it stays easy to grab.
+ */
+private val HANDLE_SIZE = 8.dp
 
 /**
  * The [PanelSplitter] of the panel whose width [state] holds, in [row].

@@ -9,12 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.agentclientprotocol.model.SessionConfigOption
 import com.agentclientprotocol.model.SessionConfigSelectOption
 import com.agentclientprotocol.model.SessionConfigSelectOptions
@@ -25,59 +20,59 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ai_client_variant
 import kubriko.creator.generated.resources.assistant_configuration_default
 import kubriko.creator.generated.resources.assistant_configuration_menu
-import kubriko.creator.generated.resources.assistant_option_value
+import kubriko.creator.generated.resources.assistant_setup_configuration
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Who the agent works as ([account]), the Claude Code configuration Claude Agent signs in with (when
- * [configurations] holds more than the default one), and the options the agent offers for the conversation
- * (its model, mode, or effort), each as a menu.
+ * The assistant's setup beyond its agent and account: which Claude Code configuration it runs (when there is a choice), and
+ * the options the agent's session offers, such as its model, one row each.
  */
 @Composable
-internal fun AssistantOptionsRow(
+internal fun AssistantSetupOptions(
     configuration: ClaudeConfiguration,
     configurations: List<ClaudeConfiguration>,
     configOptions: List<SessionConfigOption>,
     onConfigurationSelected: (ClaudeConfiguration) -> Unit,
     onConfigOptionSelected: (SessionConfigOption.Select, SessionConfigSelectOption) -> Unit,
-    modifier: Modifier = Modifier,
-    account: @Composable () -> Unit = {},
-) = FlowRow(
-    modifier = modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-    horizontalArrangement = Arrangement.spacedBy(6.dp),
-    verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
-    account()
     if (configurations.size > 1 || (configurations.isNotEmpty() && configuration != ClaudeConfiguration.default)) {
-        WithTooltip(stringResource(Res.string.assistant_configuration_menu)) {
-            MenuButton(
-                label = configuration.title(),
-                options = configurations,
-                optionText = { it.title() },
-                onSelected = onConfigurationSelected,
-            )
+        AssistantSetupRow(stringResource(Res.string.assistant_setup_configuration)) {
+            WithTooltip(stringResource(Res.string.assistant_configuration_menu)) {
+                MenuButton(
+                    label = configuration.title(),
+                    options = configurations,
+                    optionText = { it.title() },
+                    onSelected = onConfigurationSelected,
+                )
+            }
         }
     }
     configOptions.filterIsInstance<SessionConfigOption.Select>().forEach { option ->
         val choices = choicesOf(option)
-        WithTooltip(option.description ?: option.name) {
-            MenuButton(
-                label = choices.firstOrNull { it.value == option.currentValue }?.let { stringResource(Res.string.assistant_option_value, option.name, it.name) } ?: option.name,
-                options = choices,
-                optionText = { it.name },
-                onSelected = { onConfigOptionSelected(option, it) },
-            )
+        AssistantSetupRow(option.name) {
+            WithTooltip(option.description ?: option.name) {
+                MenuButton(
+                    label = choices.firstOrNull { it.value == option.currentValue }?.name ?: option.name,
+                    options = choices,
+                    optionText = { it.name },
+                    onSelected = { onConfigOptionSelected(option, it) },
+                )
+            }
         }
     }
+}
+
+/**
+ * What the session's options are set to, by the names of their current choices, for summing the setup up in a line.
+ */
+internal fun currentChoices(configOptions: List<SessionConfigOption>): List<String> = configOptions.filterIsInstance<SessionConfigOption.Select>().mapNotNull { option ->
+    choicesOf(option).firstOrNull { it.value == option.currentValue }?.name
 }
 
 @Composable
 private fun ClaudeConfiguration.title() = variant?.let { stringResource(Res.string.ai_client_variant, stringResource(Res.string.assistant_configuration_default), it) }
     ?: stringResource(Res.string.assistant_configuration_default)
 
-/**
- * Every value [option] can take, its groups flattened.
- */
 internal fun choicesOf(option: SessionConfigOption.Select) = when (val options = option.options) {
     is SessionConfigSelectOptions.Flat -> options.options
     is SessionConfigSelectOptions.Grouped -> options.groups.flatMap { it.options }

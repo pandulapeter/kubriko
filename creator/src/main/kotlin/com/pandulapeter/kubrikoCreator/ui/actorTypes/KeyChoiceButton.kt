@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -100,11 +101,9 @@ private fun KeyChoicePanel(
     val commonTitles = KeyChoice.common.associateWith { it.text() }
     val keys = remember(query, commonTitles) { matchingKeys(query) { commonTitles[it] ?: readableKeyName(it.composeKeyName) } }
     LaunchedEffect(isListening) { focusRequester.requestFocus() }
-    Column(
-        modifier = Modifier.padding(vertical = 6.dp),
-    ) {
+    Column {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (isListening) {
@@ -146,6 +145,7 @@ private fun KeyChoicePanel(
         }
         LazyColumn(
             modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp),
+            contentPadding = PaddingValues(vertical = 4.dp),
         ) {
             items(keys, key = { it.composeKeyName }) { key ->
                 Text(

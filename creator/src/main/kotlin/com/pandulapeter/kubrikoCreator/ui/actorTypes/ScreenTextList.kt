@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -123,8 +124,10 @@ private fun ScreenTextRow(
                 onValueChange = { onChange(text.copy(text = it)) },
                 label = stringResource(Res.string.manager_type_text),
             )
-            IconActionButton(modifier = Modifier.revealedWhen(hover.isActive), icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
-            RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+            Box {
+                IconActionButton(modifier = Modifier.revealedWhen(hover.isActive), icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
+                RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+            }
         }
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),

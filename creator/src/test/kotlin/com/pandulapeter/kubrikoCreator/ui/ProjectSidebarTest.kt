@@ -18,6 +18,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -120,7 +121,7 @@ class ProjectSidebarTest {
     }
 
     @Test
-    fun everyRowsMoreOptionsButtonIsInTheSamePlace() = uiTest(width = 300, height = 600) {
+    fun everyRowsMoreOptionsButtonLinesUpWithTheHeadersAddButtonAndStaysThereWhileAMenuIsOpen() = uiTest(width = 300, height = 600) {
         showing {
             ProjectSidebar(
                 modifier = Modifier.fillMaxSize(),
@@ -130,9 +131,15 @@ class ProjectSidebarTest {
                 dragState = SidebarDragState(),
             )
         }
-        val edges = onAllNodesWithContentDescription("More options").fetchSemanticsNodes().map { it.boundsInRoot.left to it.boundsInRoot.right }
+        val add = onNodeWithContentDescription("New Actor type").fetchSemanticsNode().boundsInRoot
+        val edges = onAllNodesWithContentDescription("More options").fetchSemanticsNodes().map { it.boundsInRoot.right }
         assertTrue(edges.size >= 3, "Only ${edges.size} rows offer more options")
-        assertEquals(1, edges.distinct().size, "The buttons are at $edges")
+        assertEquals(setOf(add.right, add.left), edges.toSet(), "A row's more options button lines up with a header's +, which a header's own is just before")
+        val before = onAllNodesWithContentDescription("More options").fetchSemanticsNodes().map { it.boundsInRoot }
+        onNodeWithText("Level").performMouseInput { rightClick() }
+        onNodeWithText("Delete Scene").assertExists()
+        val whileOpen = onAllNodesWithContentDescription("More options").fetchSemanticsNodes().map { it.boundsInRoot }
+        assertEquals(before, whileOpen, "Opening a menu moved the buttons")
     }
 
     @Test

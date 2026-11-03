@@ -35,14 +35,17 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
+import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
+import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_empty
 import kubriko.creator.generated.resources.assistant_note
 import kubriko.creator.generated.resources.assistant_note_untested
+import kubriko.creator.generated.resources.assistant_setup_agent
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -100,41 +103,16 @@ private fun AssistantPanelContent(
         model.findConfigurations()
         if (model.currentChat.value == null) model.newChat()
     }
-    AgentRow(
-        agent = LocalAgent.current,
-        agents = model.agents.collectAsState().value,
-        customAgentCommand = model.customAgentCommand,
-        canClose = chat != null,
-        onAgentSelected = model::selectAgent,
-        onEnterCustomAgent = { isEnteringCustomAgent = true },
-        onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
-        onNewConversation = model::newChat,
-        onCloseConversation = { chat?.let(model::close) },
-    )
-    ConversationMenu(
+    AssistantHeaderOf(
+        model = model,
         chats = chats,
-        current = chat,
-        savedConversations = model.savedConversations.collectAsState().value,
-        onSelected = model::select,
-        onResume = model::resume,
+        chat = chat,
+        authStatus = authStatus,
+        signInMethods = signInMethods,
+        hasApiKey = hasApiKey,
+        onEnterCustomAgent = { isEnteringCustomAgent = true },
+        onUseApiKey = { isEnteringApiKey = true },
     )
-    AssistantOptionsRow(
-        configuration = model.configuration.collectAsState().value,
-        configurations = model.configurations.collectAsState().value,
-        configOptions = chat?.configOptions?.collectAsState()?.value.orEmpty(),
-        onConfigurationSelected = model::selectConfiguration,
-        onConfigOptionSelected = { option, choice -> chat?.setConfigOption(option.id, SessionConfigOptionValue.of(choice.value.value)) },
-    ) {
-        AssistantAccountMenu(
-            status = authStatus,
-            methods = signInMethods,
-            hasApiKey = hasApiKey,
-            canKeepApiKey = model.canKeepApiKey,
-            onSignIn = model::signIn,
-            onUseApiKey = { isEnteringApiKey = true },
-            onRemoveApiKey = model::removeApiKey,
-        )
-    }
     if (isEnteringCustomAgent) {
         CustomAgentForm(
             initialCommand = model.customAgentCommand,
@@ -183,6 +161,78 @@ private fun AssistantPanelContent(
         }
     }
 }
+
+/**
+ * The header of [model]'s panel, with the conversation [chat] it shows and its setup.
+ */
+@Composable
+private fun AssistantHeaderOf(
+    model: AssistantPanelModel,
+    chats: List<AssistantChat>,
+    chat: AssistantChat?,
+    authStatus: AuthStatus?,
+    signInMethods: List<SignInMethod>,
+    hasApiKey: Boolean,
+    onEnterCustomAgent: () -> Unit,
+    onUseApiKey: () -> Unit,
+) {
+    val agent = LocalAgent.current
+    val configOptions = chat?.configOptions?.collectAsState()?.value.orEmpty()
+    AssistantHeader(
+        setupSummary = (listOf(agent.name) + currentChoices(configOptions)).joinToString(SUMMARY_SEPARATOR),
+        canClose = chat != null,
+        onNewConversation = model::newChat,
+        onCloseConversation = { chat?.let(model::close) },
+        conversation = { modifier ->
+            ConversationMenu(
+                modifier = modifier,
+                chats = chats,
+                current = chat,
+                savedConversations = model.savedConversations.collectAsState().value,
+                onSelected = model::select,
+                onResume = model::resume,
+            )
+        },
+    ) { close ->
+        AssistantSetupRow(stringResource(Res.string.assistant_setup_agent)) {
+            AgentMenu(
+                agent = agent,
+                agents = model.agents.collectAsState().value,
+                customAgentCommand = model.customAgentCommand,
+                onSelected = model::selectAgent,
+                onEnterCustomAgent = {
+                    close()
+                    onEnterCustomAgent()
+                },
+                onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
+            )
+        }
+        AssistantAccountMenu(
+            status = authStatus,
+            methods = signInMethods,
+            hasApiKey = hasApiKey,
+            canKeepApiKey = model.canKeepApiKey,
+            onSignIn = { method ->
+                close()
+                model.signIn(method)
+            },
+            onUseApiKey = {
+                close()
+                onUseApiKey()
+            },
+            onRemoveApiKey = model::removeApiKey,
+        )
+        AssistantSetupOptions(
+            configuration = model.configuration.collectAsState().value,
+            configurations = model.configurations.collectAsState().value,
+            configOptions = configOptions,
+            onConfigurationSelected = model::selectConfiguration,
+            onConfigOptionSelected = { option, choice -> chat?.setConfigOption(option.id, SessionConfigOptionValue.of(choice.value.value)) },
+        )
+    }
+}
+
+private const val SUMMARY_SEPARATOR = " · "
 
 @Composable
 private fun ChatContent(
