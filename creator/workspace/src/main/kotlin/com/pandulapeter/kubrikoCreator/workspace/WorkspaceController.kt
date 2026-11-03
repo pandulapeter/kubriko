@@ -42,6 +42,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
+import com.pandulapeter.kubrikoCreator.template.TargetHost
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -212,7 +213,7 @@ public class WorkspaceController(
             ioDispatcher = ioDispatcher,
         ),
         iosSimulators = ::iosSimulators,
-        ios = IosSimulatorPlayer(project.rootDirectory, ::iosSimulators, processes.tools, consoleLog, ioDispatcher),
+        ios = IosSimulatorPlayer(project.rootDirectory, ::iosSimulators, tasks::runOutside, processes.tools, consoleLog, ioDispatcher),
     )
 
     /** Where the game can be played, and where Play plays it. */
@@ -453,7 +454,7 @@ public class WorkspaceController(
 
     private fun androidDevices() = files.targets?.androidSdk()?.let { AndroidDevices(it, processes.tools) }
 
-    private fun iosSimulators() = files.targets?.takeIf { it.canBuildIos }?.let { IosSimulators(processes.tools) }
+    private fun iosSimulators() = IosSimulators(processes.tools).takeIf { files.targets?.canBuildIos ?: TargetHost.System.canBuildIos }
 
     /** Stops the session process, if one runs. */
     public fun stopSession(): Unit = sessions.stop()

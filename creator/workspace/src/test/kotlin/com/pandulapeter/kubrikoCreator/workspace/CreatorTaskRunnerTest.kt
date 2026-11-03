@@ -185,6 +185,19 @@ class CreatorTaskRunnerTest {
     }
 
     @Test
+    fun aBuildOutsideGradleWaitsForTheWritesAndTheClasspathBuild() = runTest {
+        val writes = CompletableDeferred<UnsavedWrites?>()
+        val runner = createRunner(awaitWrites = { writes.await() })
+        val events = mutableListOf<String>()
+        val outside = backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) { runner.runOutside { events += "built"; true } }
+        assertEquals(emptyList(), events, "the build waits for the writes")
+        writes.complete(null)
+        assertTrue(outside.await())
+        assertEquals(listOf("built"), events)
+        assertEquals(listOf(WorkspaceStatus.BUILDING), statuses)
+    }
+
+    @Test
     fun problemsAppearWithTheirLocationRelativeToTheProject() = runTest {
         start(createRunner())
         build.currentRun.onEvent(GradleBuildEvent.Problem("Unresolved reference", File(rootDirectory, "src/Ball.kt"), line = 3, column = 5))

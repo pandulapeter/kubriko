@@ -24,10 +24,13 @@ import java.io.File
  * ends, the simulator shuts down, or it is stopped, which ends the app.
  *
  * @param simulators This Mac's simulators, or null if it can't build for iOS.
+ * @param runOutside Runs Xcode's build as Kubriko Creator's own builds run ([CreatorTaskRunner.runOutside]), since its
+ *   build phase runs Gradle on the same project.
  */
 internal class IosSimulatorPlayer(
     private val rootDirectory: File,
     private val simulators: () -> IosSimulators?,
+    private val runOutside: suspend (suspend () -> Boolean) -> Boolean,
     private val tools: ToolProcesses,
     private val console: ConsoleLog,
     private val ioDispatcher: CoroutineDispatcher,
@@ -47,15 +50,15 @@ internal class IosSimulatorPlayer(
             console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_XCODE_MISSING, isError = true))
             return false
         }
-        builtAlongside(build = { build(udid) }, ready = { booted(simulators, udid, name) }) ?: return false
-        val app = withContext(ioDispatcher) { buildDirectory.resolve(PRODUCTS_PATH).listFiles().orEmpty().firstOrNull { it.isDirectory && it.extension == "app" } }
+        builtAlongside(build = { runOutside { build(udid) } }, ready = { booted(simulators, udid, name) }) ?: return false
+        val app = withContext(ioDispatcher) { newestApp() }
         val bundleId = app?.let { bundleIdOf(it) } ?: run {
             console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_APP_MISSING, isError = true, arguments = listOf(File(BUILD_PATH, PRODUCTS_PATH).path)))
             return false
         }
         val installed = tools.run(listOf("xcrun", "simctl", "install", udid, app.path), INSTALL_TIMEOUT_IN_MILLISECONDS)
         if (!installed.isSuccessful) {
-            console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_INSTALL_FAILED, isError = true, arguments = listOf(name, reasonOf(installed.output, installed.exitCode))))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_INSTALL_FAILED, isError = true, arguments = listOf(name, failureReasonOf(installed.output, installed.exitCode))))
             return false
         }
         return try {
@@ -67,35 +70,35 @@ internal class IosSimulatorPlayer(
     }
 
     /**
-     * Builds the app with Xcode, which builds the game's framework through Gradle, showing its errors (or, when it names
-     * none, the end of its output) when it fails.
+     * Builds the app with Xcode, which builds the game's framework through Gradle, showing its errors (Xcode's and
+     * Kotlin's), or, when it names none, the end of its output, when it fails.
      */
     private suspend fun build(udid: String): Boolean {
-        console.append(ConsoleEntry.Status(WorkspaceStatus.BUILDING))
-        val tail = ArrayDeque<String>()
-        val errors = mutableListOf<String>()
+        val tail = OutputTail()
+        val errors = LinkedHashSet<String>()
         val command = listOf(
             "xcrun", "xcodebuild", "-project", File(rootDirectory, PROJECT_PATH).path, "-scheme", SCHEME, "-configuration", "Debug",
             "-sdk", "iphonesimulator", "-destination", "id=$udid", "-derivedDataPath", buildDirectory.path, "CODE_SIGNING_ALLOWED=NO", "build",
         )
         val exitCode = tools.stream(command) { line ->
-            synchronized(tail) {
-                tail.addLast(line)
-                if (tail.size > OUTPUT_TAIL_SIZE) tail.removeFirst()
-                if ("error:" in line && line.trim() !in errors) errors += line.trim()
-            }
+            tail.add(line)
+            if ("error:" in line || line.startsWith(KOTLIN_ERROR_PREFIX)) synchronized(errors) { errors += line.trim() }
         }
         if (exitCode == 0) return true
         console.append(ConsoleEntry.Status(WorkspaceStatus.BUILD_FAILED, isError = true))
-        synchronized(tail) { errors.ifEmpty { tail.toList() } }.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
+        synchronized(errors) { errors.toList() }.ifEmpty { tail.toList() }.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
         return false
     }
 
     /**
-     * Boots the simulator if it is shut down and shows it, returning whether it is ready, or false, as the console says.
+     * Boots the simulator if it is shut down and shows it, returning true once it is ready, or null, as the console says.
      */
     private suspend fun booted(simulators: IosSimulators, udid: String, name: String): Boolean? {
-        val simulator = simulators.available().firstOrNull { it.udid == udid } ?: run {
+        val available = simulators.available() ?: run {
+            console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATORS_UNREADABLE, isError = true))
+            return null
+        }
+        val simulator = available.firstOrNull { it.udid == udid } ?: run {
             console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_MISSING, isError = true, arguments = listOf(name)))
             return null
         }
@@ -103,12 +106,11 @@ internal class IosSimulatorPlayer(
             console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_BOOTING, arguments = listOf(name)))
             val booted = tools.run(listOf("xcrun", "simctl", "bootstatus", udid, "-b"), bootTimeoutInMilliseconds)
             if (!booted.isSuccessful) {
-                val reason = if (booted.exitCode == null) (bootTimeoutInMilliseconds / 60_000).toString() else null
                 console.append(
-                    if (reason != null) {
-                        ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT, isError = true, arguments = listOf(name, reason))
+                    if (booted.hasTimedOut) {
+                        ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT, isError = true, arguments = listOf(name, minutesOf(bootTimeoutInMilliseconds)))
                     } else {
-                        ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED, isError = true, arguments = listOf(name, reasonOf(booted.output, booted.exitCode)))
+                        ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED, isError = true, arguments = listOf(name, failureReasonOf(booted.output, booted.exitCode)))
                     },
                 )
                 return null
@@ -117,6 +119,11 @@ internal class IosSimulatorPlayer(
         tools.run(listOf("open", "-a", "Simulator", "--args", "-CurrentDeviceUDID", udid), COMMAND_TIMEOUT_IN_MILLISECONDS)
         return true
     }
+
+    /**
+     * The app the last build made, which is the newest one if an earlier build, under another product name, left one too.
+     */
+    private fun newestApp() = buildDirectory.resolve(PRODUCTS_PATH).listFiles().orEmpty().filter { it.isDirectory && it.extension == "app" }.maxByOrNull { it.lastModified() }
 
     private suspend fun bundleIdOf(app: File) = tools.run(listOf("/usr/bin/plutil", "-extract", "CFBundleIdentifier", "raw", "-o", "-", File(app, "Info.plist").path), COMMAND_TIMEOUT_IN_MILLISECONDS)
         .takeIf { it.isSuccessful }
@@ -131,7 +138,7 @@ internal class IosSimulatorPlayer(
      */
     private suspend fun launch(simulators: IosSimulators, udid: String, bundleId: String, firstScene: String?, name: String, onUp: () -> Unit): Boolean {
         val switches = listOf("-" + ManagerTypeCodeGenerator.LOGGING_PROPERTY, "YES") +
-            firstScene?.let { listOf("-" + ManagerTypeCodeGenerator.FIRST_SCENE_PROPERTY, it) }.orEmpty()
+            firstScene?.let { listOf("-" + ManagerTypeCodeGenerator.FIRST_SCENE_PROPERTY, propertyListString(it)) }.orEmpty()
         var hasStarted = false
         var hasCrashed = false
         val beforeStart = ArrayDeque<String>()
@@ -153,9 +160,10 @@ internal class IosSimulatorPlayer(
             if (CRASH_MARKER in line) hasCrashed = true
         }
         val failure = when {
-            !hasStarted -> ConsoleEntry.Status(WorkspaceStatus.IOS_NOT_STARTED, isError = true, arguments = listOf(name, reasonOf(beforeStart.joinToString("\n"), exitCode)))
-            simulators.available().none { it.udid == udid && it.isBooted } -> ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_SHUT_DOWN, isError = true, arguments = listOf(name))
+            !hasStarted -> ConsoleEntry.Status(WorkspaceStatus.IOS_NOT_STARTED, isError = true, arguments = listOf(name, failureReasonOf(beforeStart.joinToString("\n"), exitCode)))
+            simulators.available()?.none { it.udid == udid && it.isBooted } == true -> ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_SHUT_DOWN, isError = true, arguments = listOf(name))
             hasCrashed -> ConsoleEntry.Status(WorkspaceStatus.IOS_GAME_CRASHED, isError = true, arguments = listOf(name))
+            exitCode != 0 -> ConsoleEntry.Status(WorkspaceStatus.IOS_GAME_EXITED, isError = true, arguments = listOf(name, exitCode.toString()))
             else -> return true
         }
         console.append(failure)
@@ -163,8 +171,6 @@ internal class IosSimulatorPlayer(
     }
 
     private fun entryOf(line: String) = if (CRASH_MARKER in line) ConsoleEntry.BuildOutput(line) else PrintedLogs.entryOf(line)
-
-    private fun reasonOf(output: String, exitCode: Int?) = output.lines().map(String::trim).lastOrNull { it.isNotEmpty() } ?: "exit code $exitCode"
 
     internal companion object {
         const val BOOT_TIMEOUT_IN_MILLISECONDS = 5 * 60_000L
@@ -179,11 +185,17 @@ internal class IosSimulatorPlayer(
         val PRODUCTS_PATH: String = listOf("Build", "Products", "Debug-iphonesimulator").joinToString(File.separator)
         private const val COMMAND_TIMEOUT_IN_MILLISECONDS = 10_000L
         private const val INSTALL_TIMEOUT_IN_MILLISECONDS = 2 * 60_000L
-        private const val OUTPUT_TAIL_SIZE = 30
+        private const val KOTLIN_ERROR_PREFIX = "e: "
 
         /**
          * What Kotlin/Native prints when the game throws an exception nothing catches.
          */
         private const val CRASH_MARKER = "Uncaught Kotlin exception"
+
+        /**
+         * [value] as a quoted property list string, since `NSUserDefaults` reads a launch argument's value as a property
+         * list, which would turn `(Boss)` into an array.
+         */
+        fun propertyListString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
     }
 }

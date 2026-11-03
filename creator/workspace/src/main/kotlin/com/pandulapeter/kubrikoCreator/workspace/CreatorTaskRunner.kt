@@ -61,7 +61,16 @@ internal class CreatorTaskRunner(
      */
     suspend fun runAt(taskPath: String): Boolean = runBuild(properties = emptyMap(), isSession = false, reportsTime = false) { taskPath }
 
-    private suspend fun runBuild(properties: Map<String, String>, isSession: Boolean, reportsTime: Boolean, taskPathIn: (modulePath: String) -> String): Boolean {
+    /**
+     * Runs a build Kubriko Creator doesn't run through Gradle itself (Xcode's, whose build phase runs Gradle), as [run]
+     * runs its own: once the changes made so far are written, and never alongside another build of the classpath.
+     */
+    suspend fun <T> runOutside(build: suspend () -> T): T {
+        startBuild()
+        return classpathBuildLock.withLock { build() }
+    }
+
+    private suspend fun startBuild() {
         console.append(ConsoleEntry.Status(WorkspaceStatus.BUILDING))
         awaitWrites()?.let { unsaved ->
             console.append(
@@ -71,6 +80,10 @@ internal class CreatorTaskRunner(
                 },
             )
         }
+    }
+
+    private suspend fun runBuild(properties: Map<String, String>, isSession: Boolean, reportsTime: Boolean, taskPathIn: (modulePath: String) -> String): Boolean {
+        startBuild()
         val modulePath = try {
             desktopModulePath.await()
         } catch (exception: ProjectInspectionException) {
@@ -83,7 +96,7 @@ internal class CreatorTaskRunner(
             return false
         }
         var startTime = 0L
-        val outputTail = ArrayDeque<String>()
+        val outputTail = OutputTail()
         val hasReportedProblems = AtomicBoolean(false)
         suspend fun runBuild() = incrementalCompilation.build { mode ->
             startTime = currentTimeMillis()
@@ -92,10 +105,7 @@ internal class CreatorTaskRunner(
                 arguments = SessionInitScript.gradleArguments(properties, mode),
                 onEvent = { event ->
                     when (event) {
-                        is GradleBuildEvent.Output -> synchronized(outputTail) {
-                            outputTail.addLast(event.line)
-                            if (outputTail.size > OUTPUT_TAIL_SIZE) outputTail.removeFirst()
-                        }
+                        is GradleBuildEvent.Output -> outputTail.add(event.line)
                         is GradleBuildEvent.Problem -> {
                             hasReportedProblems.set(true)
                             console.append(event.toConsoleEntry())
@@ -113,7 +123,7 @@ internal class CreatorTaskRunner(
         }
         if (!isSuccessful) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.BUILD_FAILED, isError = true))
-            if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
+            if (!hasReportedProblems.get()) outputTail.toList().forEach { console.append(ConsoleEntry.BuildOutput(it)) }
         }
         if (isSuccessful && reportsTime) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.BUILT, arguments = listOf(secondsSince(startTime))))
@@ -153,8 +163,4 @@ internal class CreatorTaskRunner(
     )
 
     private fun secondsSince(startTime: Long) = ((currentTimeMillis() - startTime) / 100 / 10f).toString()
-
-    private companion object {
-        const val OUTPUT_TAIL_SIZE = 30
-    }
 }

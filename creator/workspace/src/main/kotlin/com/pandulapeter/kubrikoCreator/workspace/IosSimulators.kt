@@ -42,16 +42,16 @@ internal class IosSimulators(
     /**
      * Every simulator the game can be played on: those that are booted first, then the newest iOS versions first.
      */
-    suspend fun targets(): List<PlayTarget> = available()
+    suspend fun targets(): List<PlayTarget> = available().orEmpty()
         .sortedWith(compareByDescending<Simulator> { it.isBooted }.thenComparator { first, second -> compareVersions(second.version, first.version) }.thenBy { it.name })
         .map { PlayTarget(id = PREFIX + it.udid, kind = PlayTarget.Kind.IOS, name = "${it.name} (${it.runtime})") }
 
     /**
-     * The simulators `simctl` lists now, or none if it can't.
+     * The simulators `simctl` lists now, or null if it can't list them.
      */
-    suspend fun available(): List<Simulator> {
+    suspend fun available(): List<Simulator>? {
         val result = tools.run(listOf("xcrun", "simctl", "list", "devices", "available", "--json"), TIMEOUT_IN_MILLISECONDS)
-        return if (result.isSuccessful) parse(result.output) else emptyList()
+        return if (result.isSuccessful) parse(result.output) else null
     }
 
     companion object {

@@ -333,8 +333,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   tests replace with `FakeToolProcesses`, replaying what the tools printed.
 - **iOS simulators** (`IosSimulatorPlayer`): listed only once the iOS target is on and the Mac has Xcode. Xcode builds the
   app (its Gradle build phase builds the game's framework) into `build/kubriko-creator/ios-simulator` while
-  `simctl bootstatus -b` boots the simulator, which the Simulator app then shows; the switches reach the app as launch
-  arguments, which `NSUserDefaults` reads. `simctl launch --console-pty` prints what the app prints (a pty, so its output
+  `simctl bootstatus -b` boots the simulator, which the Simulator app then shows. Xcode's build waits for the writes and holds
+  the classpath build lock (`CreatorTaskRunner.runOutside`), since its build phase runs Gradle on the same project. The
+  switches reach the app as launch arguments, which `NSUserDefaults` reads as property lists, so a Scene's name is quoted. `simctl launch --console-pty` prints what the app prints (a pty, so its output
   isn't held back in a buffer) and names its process once it runs, sometimes after the app's first lines, so those are held
   until then. Stop is `simctl terminate`.
 - **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so a Log Block also

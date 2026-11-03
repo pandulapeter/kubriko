@@ -33,6 +33,7 @@ class IosSimulatorPlayerTest {
     private val tools = FakeToolProcesses()
     private val console = ConsoleLog()
     private var canBuildIos = true
+    private var outsideBuilds = 0
     private val target = PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)")
     private val app = File(root, "${IosSimulatorPlayer.BUILD_PATH}/${IosSimulatorPlayer.PRODUCTS_PATH}/Game.app")
     private val build = "xcodebuild -project ${File(root, IosSimulatorPlayer.PROJECT_PATH).path} -scheme iosApp -configuration Debug -sdk iphonesimulator " +
@@ -44,6 +45,10 @@ class IosSimulatorPlayerTest {
     private fun player() = IosSimulatorPlayer(
         rootDirectory = root,
         simulators = { if (canBuildIos) IosSimulators(tools) else null },
+        runOutside = { build ->
+            outsideBuilds++
+            build()
+        },
         tools = tools,
         console = console,
         ioDispatcher = Dispatchers.IO,
@@ -64,9 +69,10 @@ class IosSimulatorPlayerTest {
         tools.answer("simctl list devices available --json", simulator("Shutdown"), simulator("Booted"))
         tools.answer("simctl bootstatus U1 -b", ok("Device already booted, nothing to do.\n"))
         builds()
-        tools.stream("$launch -kubriko.creator.scene levels/it's 1", listOf("2026-11-03 20:01:54.789 Game[4321:5460775] early\r", "com.example.mygame: 4321\r", "[Ball] Hit a brick\r", "plain", "com.example.mygame: 99"), keepsRunning = false)
+        tools.stream("$launch -kubriko.creator.scene \"(levels)/it's \\\"1\\\"\"", listOf("2026-11-03 20:01:54.789 Game[4321:5460775] early\r", "com.example.mygame: 4321\r", "[Ball] Hit a brick\r", "plain", "com.example.mygame: 99"), keepsRunning = false)
         var isUp = false
-        assertTrue(player().play(target, firstScene = "levels/it's 1") { isUp = true })
+        assertTrue(player().play(target, firstScene = "(levels)/it's \"1\"") { isUp = true })
+        assertEquals(1, outsideBuilds)
         assertTrue(isUp)
         assertTrue(tools.ran("-a Simulator --args -CurrentDeviceUDID U1"))
         assertContains(console.entries.value, ConsoleEntry.Log(message = "Hit a brick", source = "Ball", isImportant = true))
@@ -75,8 +81,7 @@ class IosSimulatorPlayerTest {
             listOf("2026-11-03 20:01:54.789 Game[4321:5460775] early", "Hit a brick", "plain", "com.example.mygame: 99"),
             console.entries.value.filterIsInstance<ConsoleEntry.Log>().map { it.message },
         )
-        assertEquals(setOf(WorkspaceStatus.IOS_SIMULATOR_BOOTING, WorkspaceStatus.BUILDING), statuses.take(2).toSet())
-        assertEquals(listOf(WorkspaceStatus.IOS_GAME_STARTED), statuses.drop(2))
+        assertEquals(listOf(WorkspaceStatus.IOS_SIMULATOR_BOOTING, WorkspaceStatus.IOS_GAME_STARTED), statuses)
     }
 
     @Test
@@ -124,12 +129,14 @@ class IosSimulatorPlayerTest {
                 }
             }
         }
-        val player = IosSimulatorPlayer(root, { IosSimulators(slowBuild) }, slowBuild, console, Dispatchers.IO)
+        val player = IosSimulatorPlayer(root, { IosSimulators(slowBuild) }, { it() }, slowBuild, console, Dispatchers.IO)
         assertFalse(withTimeout(5_000) { player.play(target, firstScene = null) {} })
         assertTrue(buildCancelled.isCompleted)
         tools.answer("simctl list devices available --json", simulator("Shutdown"))
-        tools.answer("simctl bootstatus U1 -b", ToolResult(exitCode = null, output = ""), failed("Unable to boot the Simulator.\n"))
+        tools.answer("simctl bootstatus U1 -b", ToolResult(exitCode = null, output = "", hasTimedOut = true), failed("Unable to boot the Simulator.\n"))
         assertFalse(withTimeout(5_000) { player.play(target, firstScene = null) {} })
+        assertFalse(withTimeout(5_000) { player.play(target, firstScene = null) {} })
+        tools.answer("simctl list devices available --json", failed("CoreSimulatorService connection became invalid"))
         assertFalse(withTimeout(5_000) { player.play(target, firstScene = null) {} })
         assertEquals(
             listOf(
@@ -138,10 +145,12 @@ class IosSimulatorPlayerTest {
                 WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT,
                 WorkspaceStatus.IOS_SIMULATOR_BOOTING,
                 WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED,
+                WorkspaceStatus.IOS_SIMULATORS_UNREADABLE,
             ),
             statuses.filter { it != WorkspaceStatus.BUILDING },
         )
-        assertEquals(listOf("iPhone 16 (iOS 18.2)", "Unable to boot the Simulator."), console.entries.value.filterIsInstance<ConsoleEntry.Status>().last().arguments)
+        assertEquals(listOf("iPhone 16 (iOS 18.2)", "5"), console.entries.value.filterIsInstance<ConsoleEntry.Status>().first { it.text == WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT }.arguments)
+        assertEquals(listOf("iPhone 16 (iOS 18.2)", "Unable to boot the Simulator."), console.entries.value.filterIsInstance<ConsoleEntry.Status>().first { it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED }.arguments)
     }
 
     @Test
@@ -176,6 +185,36 @@ class IosSimulatorPlayerTest {
             listOf(WorkspaceStatus.IOS_GAME_CRASHED, WorkspaceStatus.IOS_SIMULATOR_SHUT_DOWN),
             console.entries.value.filterIsInstance<ConsoleEntry.Status>().filter { it.isError }.map { it.text },
         )
+    }
+
+    @Test
+    fun aGameThatEndsWithAnExitCodeSaysSoButAListThatFailsAfterwardsIsntAShutDown() = blockingTest {
+        tools.answer("simctl list devices available --json", simulator("Booted"), failed("timed out"))
+        builds()
+        tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false)
+        assertTrue(player().play(target, firstScene = null) {})
+        tools.answer("simctl list devices available --json", simulator("Booted"))
+        tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false, exitCode = 134)
+        assertFalse(player().play(target, firstScene = null) {})
+        assertEquals(listOf("iPhone 16 (iOS 18.2)", "134"), console.entries.value.filterIsInstance<ConsoleEntry.Status>().single { it.isError }.arguments)
+        assertEquals(WorkspaceStatus.IOS_GAME_EXITED, statuses.last())
+    }
+
+    @Test
+    fun theNewestAppIsInstalled() = blockingTest {
+        tools.answer("simctl list devices available --json", simulator("Booted"))
+        builds()
+        File(app.parentFile, "Old.app").apply { mkdirs() }.setLastModified(app.lastModified() - 60_000)
+        tools.answer("-extract CFBundleIdentifier raw -o - ${File(app.parentFile, "Old.app/Info.plist").path}", ok("com.example.old\n"))
+        tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false)
+        assertTrue(player().play(target, firstScene = null) {})
+        assertTrue(tools.ran("simctl install U1 ${app.path}"))
+    }
+
+    @Test
+    fun aSceneReachesTheAppAsAPropertyListString() {
+        assertEquals("\"levels/1-1\"", IosSimulatorPlayer.propertyListString("levels/1-1"))
+        assertEquals("\"(Boss) \\\\ \\\"x\\\"\"", IosSimulatorPlayer.propertyListString("(Boss) \\ \"x\""))
     }
 
     @Test

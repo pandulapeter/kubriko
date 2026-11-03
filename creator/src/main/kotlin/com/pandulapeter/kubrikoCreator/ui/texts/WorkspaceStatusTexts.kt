@@ -46,6 +46,7 @@ import kubriko.creator.generated.resources.status_generated_leftover_changed_by_
 import kubriko.creator.generated.resources.status_generated_leftovers_removed
 import kubriko.creator.generated.resources.status_ios_app_missing
 import kubriko.creator.generated.resources.status_ios_game_crashed
+import kubriko.creator.generated.resources.status_ios_game_exited
 import kubriko.creator.generated.resources.status_ios_game_started
 import kubriko.creator.generated.resources.status_ios_install_failed
 import kubriko.creator.generated.resources.status_ios_not_started
@@ -54,6 +55,7 @@ import kubriko.creator.generated.resources.status_ios_simulator_missing
 import kubriko.creator.generated.resources.status_ios_simulator_not_booted
 import kubriko.creator.generated.resources.status_ios_simulator_shut_down
 import kubriko.creator.generated.resources.status_ios_simulator_timed_out
+import kubriko.creator.generated.resources.status_ios_simulators_unreadable
 import kubriko.creator.generated.resources.status_ios_xcode_missing
 import kubriko.creator.generated.resources.status_kotlin_block_scope_changed
 import kubriko.creator.generated.resources.status_kubriko_libraries_added
@@ -111,6 +113,8 @@ internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.IOS_SIMULATOR_SHUT_DOWN -> Res.string.status_ios_simulator_shut_down
     WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT -> Res.string.status_ios_simulator_timed_out
     WorkspaceStatus.IOS_XCODE_MISSING -> Res.string.status_ios_xcode_missing
+    WorkspaceStatus.IOS_GAME_EXITED -> Res.string.status_ios_game_exited
+    WorkspaceStatus.IOS_SIMULATORS_UNREADABLE -> Res.string.status_ios_simulators_unreadable
     WorkspaceStatus.BLOCK_TYPE_NOT_SAVED -> Res.string.status_block_type_not_saved
     WorkspaceStatus.BLOCK_TYPES_SAVED_AGAIN -> Res.string.status_block_types_saved_again
     WorkspaceStatus.BROWSER_NOT_OPENED -> Res.string.status_browser_not_opened

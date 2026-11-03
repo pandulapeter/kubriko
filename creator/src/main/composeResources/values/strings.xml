@@ -111,6 +111,7 @@
     <string name="status_android_sdk_missing">There's no Android SDK on this computer, so the game can't be played on Android.</string>
     <string name="status_ios_app_missing">The iOS build finished, but there's no app in %1$s to install.</string>
     <string name="status_ios_game_crashed">The game stopped with an error on %1$s.</string>
+    <string name="status_ios_game_exited">The game on %1$s ended with exit code %2$s.</string>
     <string name="status_ios_game_started">The game plays on %1$s. What it prints shows here.</string>
     <string name="status_ios_install_failed">The game couldn't be installed on %1$s: %2$s</string>
     <string name="status_ios_not_started">The game couldn't be started on %1$s: %2$s</string>
@@ -119,6 +120,7 @@
     <string name="status_ios_simulator_not_booted">The simulator %1$s couldn't be started: %2$s</string>
     <string name="status_ios_simulator_shut_down">The simulator %1$s shut down, so the game ended.</string>
     <string name="status_ios_simulator_timed_out">The simulator %1$s wasn't ready within %2$s minutes, so the game wasn't played on it.</string>
+    <string name="status_ios_simulators_unreadable">Xcode couldn't list this Mac's simulators, so the game wasn't played. Opening Xcode once may finish setting it up.</string>
     <string name="status_ios_xcode_missing">The game can be played on iOS only on a Mac with Xcode.</string>
     <string name="status_browser_not_opened">The browser couldn't be opened, so open %1$s in one to play.</string>
     <string name="status_web_game_missing">The web build finished, but there's no game at %1$s to play.</string>
