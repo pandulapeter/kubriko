@@ -171,7 +171,8 @@ same-named helper scripts and committed into the wrong worktree:
 2. Implement exactly the plan, taking the recommended option. Re-locate moved code by the quoted snippet. If the plan
    is wrong, impossible, or its own "drop this plan if" condition holds, **do not improvise another fix**: revert the
    working tree, leave the plan file, note why, move on.
-3. Add the tests it asks for; update the `CLAUDE.md` files and strings it names.
+3. Add the tests it asks for; update the `CLAUDE.md` files and strings it names. A file, function or constructor already
+   past its size limit may not end a commit longer than it began, nor may one be pushed past it (code-style).
 4. Verify with the commands in the last section — the tests, and a compile of every platform the change touches.
    A check that needs a device, an account, a store or a network condition is skipped, and named in the lane
    report only if a mistake there would hurt.
