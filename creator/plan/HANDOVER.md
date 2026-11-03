@@ -25,18 +25,19 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-The end-to-end checks' pass is done: Not yet verified is settled, and both scenarios (`OpeningAndPlayingTest` and
-`UpgradingAndPlayingTest`) pass headless in `Tests`' `creator-end-to-end` job. `UpgradingAndPlayingTest` found that stopping a game
-while a hot reload ran could start it again (fixed in `GameReloader`, and `SessionController.restart` now restarts only a session
-that runs). Its review ran: it fixed the restart race, a reload reported for a stopped game, the card colors built on every
-recomposition, and the scenarios' measurements. One finding was left as is: `AssistantCard` gives its whole content the stronger
-outline color, which suits whatever else a card may hold too. Never run a scenario on the user's Mac, where the game tools bring
-windows to the front.
+Project settings → Targets is done (`a03a3f435..74182f7f9`): web, Android, and iOS turn on and off in the Targets section and through
+`get_target_change` / `set_target`, each as a diff confirmed by its `changeId`; Android adds a library target and an `androidApp`
+module, iOS a framework and an Xcode project in `iosApp/`, both taking the game's identity. `ProjectTemplateIntegrationTest.everyTargetBuilds`
+builds the Android APK and, through `xcodebuild`, the iOS app for the simulator, and passes locally (it needs the Android SDK and Xcode,
+and a full `publishToMavenLocal -Pcreator.localKubriko=true`, since `:creator:run` publishes only the desktop and web). Its review ran
+and fixed: an Apply that could write a diff other than the one shown, catalog entries other entries still used being removed, an
+undo that dropped what the user added inside a target's blocks (undo now exists only where turning back is exact), a stale `sdk.dir`,
+a half-written change when a write fails, brackets in strings or comments ending a build block, Xcode selected outside
+`/Applications`, the bundle ID when iOS is turned on again, and two duplicated helpers. No end-to-end scenario was added: the integration
+test covers the real builds and playing's classpath after the toggles.
 
-Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the
-dialog behind the toolbar's settings menu, and `get_project_settings` / `set_project_settings`). Next is Targets, then Release,
-Icons, and Signing, each extending the same dialog and tools. Then `04` to `07` in order. What is left in
-`01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+Next in `03-settings.md` is Release, then Icons and Signing, each extending the same dialog and tools. Then `04` to `07` in order.
+What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## Before a release
 
@@ -51,6 +52,8 @@ never item by item.
   audio.
 - Hearing a played game: music and sounds from Blocks, music pausing and resuming with the window's focus, a non-looping music
   played again, and going between Scenes with the same and different music.
+- A game with Android and iOS turned on running on a phone or tablet of each (the integration test builds both apps but never
+  launches them).
 - The Scene editor's middle-button pan and scroll pan with a real mouse wheel.
 - A real Claude sign-in through the browser (with a scratch `CLAUDE_CONFIG_DIR`) and a real API key in the macOS keychain.
 - The Linux (`secret-tool`) and Windows (Credential Locker) secret stores.
