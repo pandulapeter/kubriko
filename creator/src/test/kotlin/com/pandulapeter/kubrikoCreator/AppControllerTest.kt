@@ -10,8 +10,8 @@
 package com.pandulapeter.kubrikoCreator
 
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
-import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.session.GameLaunch

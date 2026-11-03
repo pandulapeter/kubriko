@@ -25,39 +25,20 @@ import kotlin.test.assertTrue
  * passing it in), never added here.
  */
 class PackageLayeringTest {
-    private val coreSceneFiles = arrayOf(
-        "scenes/SceneStore",
-        "scenes/SceneDocument",
-        "scenes/SceneActorEntry",
-        "scenes/SceneSettingsState",
-        "scenes/SceneDescriptions",
-        "scenes/SceneNaming",
-        "scenes/ActorStateEdits",
-        "scenes/SceneFileProblem",
-        "scenes/ScenePatch",
-        "scenes/SceneChange",
-    )
     private val layers = listOf(
         Layer("foundation", "foundation", "console"),
         Layer("ui-components", "ui.components", "ui.theme"),
-        Layer("core", "schema", "actors", "actors.codegen", "actors.store", "project", *coreSceneFiles),
+        Layer("core", "schema", "actors", "actors.codegen", "actors.store", "project", "scenes"),
         Layer("gradle-session", "gradle", "session"),
         Layer("git", "git"),
         Layer("template", "template"),
         Layer("commands", "commands", "context"),
         Layer("ai", "ai", "mcp"),
-        Layer("scene-runtime", "scenes"),
+        Layer("scene-runtime", "sceneRuntime"),
         Layer("workspace", "workspace"),
         Layer("app", "", "ui", "settings", "recent", "window", "benchmark"),
     )
-    private val knownExceptions = mapOf(
-        "project/ProjectInspector.kt -> gradle.GradleProjectConnection" to "M06",
-        "actors/KotlinIdentifiersTest.kt -> template.ProjectNaming" to "M06",
-        "commands/CommandTesting.kt -> workspace.BlockTypesController" to "M06",
-        "session/GameLaunchTest.kt -> scenes.ProjectClasspath" to "M06",
-        "session/HotReloadLaunchTest.kt -> scenes.ProjectClasspath" to "M06",
-        "template/ProjectTemplateIntegrationTest.kt -> scenes.ProjectClasspath" to "M06",
-    )
+    private val knownExceptions = emptyMap<String, String>()
 
     /**
      * The order of the packages inside the core layer's `actors`: the Block model, the code generated from it, and the files

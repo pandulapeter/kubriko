@@ -16,7 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel

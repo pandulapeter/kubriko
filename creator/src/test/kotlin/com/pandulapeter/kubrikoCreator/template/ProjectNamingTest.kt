@@ -31,6 +31,11 @@ class ProjectNamingTest {
     }
 
     @Test
+    fun aPackageNamedLikeAKeywordIsRejected() {
+        assertEquals(TemplateProblem.PACKAGE_NAME_INVALID, ProjectNaming.validatePackageName("com.typealias"))
+    }
+
+    @Test
     fun theProjectIdIsTheNameInLowercaseKebabCase() {
         assertEquals("my-game", ProjectNaming.projectId("My Game"))
         assertEquals("space-shooter-2", ProjectNaming.projectId("  Space__Shooter - 2 "))

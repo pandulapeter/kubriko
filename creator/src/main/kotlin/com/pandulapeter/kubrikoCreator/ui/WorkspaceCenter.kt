@@ -27,7 +27,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout

@@ -52,10 +52,10 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorTypeLook
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
-import com.pandulapeter.kubrikoCreator.scenes.SceneView
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 
 /**

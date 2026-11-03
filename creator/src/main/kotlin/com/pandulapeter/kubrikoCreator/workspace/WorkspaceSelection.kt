@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 
 /**

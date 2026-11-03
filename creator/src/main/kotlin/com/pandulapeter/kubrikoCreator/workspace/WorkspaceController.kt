@@ -8,13 +8,13 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.workspace
-
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -42,10 +42,10 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
-import com.pandulapeter.kubrikoCreator.scenes.ActorTypeLook
-import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
-import com.pandulapeter.kubrikoCreator.scenes.EntryPointLoader
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorTypeLook
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
+import com.pandulapeter.kubrikoCreator.sceneRuntime.EntryPointLoader
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess

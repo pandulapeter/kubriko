@@ -23,7 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.scenes.ActorValueChanges
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
-import com.pandulapeter.kubrikoCreator.scenes.ActorBodyValues
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField

@@ -18,8 +18,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
-import com.pandulapeter.kubrikoCreator.scenes.SceneProblem
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest

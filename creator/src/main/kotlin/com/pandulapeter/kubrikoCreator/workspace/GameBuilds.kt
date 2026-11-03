@@ -11,9 +11,9 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.project.ProjectOutput
-import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.ClassShape
 import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
+import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

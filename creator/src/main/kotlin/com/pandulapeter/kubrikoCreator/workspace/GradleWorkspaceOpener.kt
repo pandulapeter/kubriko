@@ -8,16 +8,16 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.workspace
-
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.foundation.CreatorLibraries
+import com.pandulapeter.kubrikoCreator.gradle.DesktopModules
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
+import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
-import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
@@ -60,7 +60,7 @@ internal class GradleWorkspaceOpener(private val configuration: CreatorConfigura
                 sessionChannel = opening.track(SessionServer(opening.scope)),
                 parentScope = scope,
                 workspaceScope = opening.scope,
-                findDesktopModulePath = { ProjectInspector.desktopModulePathOf(connection) },
+                findDesktopModulePath = { DesktopModules.pathOf(connection) },
                 scanResources = { root, snapshot -> ResourceScanner.scan(root, hiddenDirectory = blockTypeStore?.generatedPath, snapshot = snapshot) },
                 blockTypeRepository = blockTypeStore,
                 syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,

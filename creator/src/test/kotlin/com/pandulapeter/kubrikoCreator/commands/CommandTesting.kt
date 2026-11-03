@@ -10,11 +10,12 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
 package com.pandulapeter.kubrikoCreator.commands
-
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -24,7 +25,6 @@ import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
-import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi

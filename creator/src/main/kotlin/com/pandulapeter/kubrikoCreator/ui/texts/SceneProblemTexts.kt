@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.texts
 
-import com.pandulapeter.kubrikoCreator.scenes.SceneProblem
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_entry_point_missing
 import kubriko.creator.generated.resources.error_entry_point_multiple
