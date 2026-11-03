@@ -11,18 +11,14 @@ package com.pandulapeter.kubrikoCreator
 
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentErrorLog
-import com.pandulapeter.kubrikoCreator.ai.assistant.AgentRegistryStore
+import com.pandulapeter.kubrikoCreator.ai.assistant.AgentSources
 import com.pandulapeter.kubrikoCreator.ai.assistant.Assistant
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
-import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSettingsStore
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantStorage
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantSystemPrompt
-import com.pandulapeter.kubrikoCreator.ai.assistant.BinaryAgentInstaller
-import com.pandulapeter.kubrikoCreator.ai.assistant.NodeRuntime
+import com.pandulapeter.kubrikoCreator.ai.assistant.OpenProjectAccess
 import com.pandulapeter.kubrikoCreator.ai.assistant.ProcessAgentLauncher
-import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversationStore
-import com.pandulapeter.kubrikoCreator.ai.assistant.SystemSecretStore
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
-import com.pandulapeter.kubrikoCreator.context.ConversationStart
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
@@ -123,12 +119,10 @@ internal class AppGraph(
             executor: () -> CommandExecutor?,
         ): AssistantController {
             val errorLog = AgentErrorLog.default()
-            val installer = BinaryAgentInstaller.default()
             return AssistantController(
                 scope = scope,
                 runner = ShellProcessRunner(),
-                store = AssistantSettingsStore.default(),
-                secrets = SystemSecretStore(),
+                storage = AssistantStorage.default(errorLogFile = errorLog.file),
                 signInLauncher = ProcessAgentLauncher(File(System.getProperty("user.home"))),
                 ioDispatcher = Dispatchers.IO,
                 createAssistant = { command, npx, profile ->
@@ -148,14 +142,8 @@ internal class AppGraph(
                         npx = npx,
                     )
                 },
-                projectDigest = { executor()?.context?.let { ConversationStart.of(it) } },
-                changeLog = { executor()?.changeLog },
-                undoTurn = { toolsId, sinceRevision -> executor()?.undoTurn(toolsId, sinceRevision) ?: 0 },
-                registry = AgentRegistryStore.default(),
-                installer = installer,
-                node = NodeRuntime(installer, File(BinaryAgentInstaller.defaultDirectory(), NodeRuntime.NODE_ID)),
-                errorLogFile = errorLog.file,
-                conversations = SavedConversationStore.default(),
+                openProject = OpenProjectAccess.of(executor),
+                sources = AgentSources.default(),
                 isAiEnabled = isAiEnabled,
             )
         }
