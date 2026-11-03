@@ -1,0 +1,99 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.commands.project
+
+import com.pandulapeter.kubrikoCreator.commands.Applied
+import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import com.pandulapeter.kubrikoCreator.schema.Description
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+/**
+ * Changes the game's identity, which lives in `gradle.properties` where the build reads it (see [GameIdentity]). The
+ * files are read only when applying, off the main thread, so validating checks the input alone: `check_change` accepts
+ * a value that applying then refuses (an invalid application ID, or a project without its settings).
+ */
+@OptIn(EditorMutation::class)
+public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
+    override val name: String = "set_project_settings"
+    override val description: String = "Changes the settings get_project_settings reads (the name is the window, web page, and installers' title). " +
+        "Settings left out stay as they are."
+    override val inputSerializer: KSerializer<Input> = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project
+
+    override fun validate(context: CommandContext, input: Input): Rejection? = if (input == Input()) Rejection(CommandProblem.PROJECT_SETTINGS_EMPTY) else null
+
+    override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
+        val root = context.project.rootDirectory
+        val previous = GameIdentity.read(root) ?: return@withContext Applied.failed(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE)
+        val changed = input.appliedTo(previous)
+        changed.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
+        GameIdentity.write(root, changed)
+        Applied(inverse = Invocation(SetProjectSettings, input.revertedTo(previous)))
+    }
+
+    override fun mergeKey(input: Input): Any? = "project-settings:" + input.namedSettings().joinToString()
+
+    @Serializable
+    public data class Input(
+        @Description("The game's name.")
+        @SerialName("name") val name: String? = null,
+        @Description("The version players see, like 1.2.0.")
+        @SerialName("versionName") val versionName: String? = null,
+        @Description("The version number stores compare, from 1.")
+        @SerialName("versionNumber") val versionNumber: Int? = null,
+        @Description("The application ID, like com.example.mygame.")
+        @SerialName("applicationId") val applicationId: String? = null,
+        @Description("Who makes the game, empty for none.")
+        @SerialName("vendor") val vendor: String? = null,
+        @Description("One line about the game, empty for none.")
+        @SerialName("description") val description: String? = null,
+    ) {
+        public fun appliedTo(identity: GameIdentity): GameIdentity = identity.copy(
+            name = name ?: identity.name,
+            versionName = versionName ?: identity.versionName,
+            versionNumber = versionNumber ?: identity.versionNumber,
+            applicationId = applicationId ?: identity.applicationId,
+            vendor = vendor ?: identity.vendor,
+            description = description ?: identity.description,
+        )
+
+        /**
+         * What sets the settings this changes back to their values in [identity].
+         */
+        internal fun revertedTo(identity: GameIdentity) = Input(
+            name = name?.let { identity.name },
+            versionName = versionName?.let { identity.versionName },
+            versionNumber = versionNumber?.let { identity.versionNumber },
+            applicationId = applicationId?.let { identity.applicationId },
+            vendor = vendor?.let { identity.vendor },
+            description = description?.let { identity.description },
+        )
+
+        internal fun namedSettings() = listOfNotNull(
+            name?.let { "name" },
+            versionName?.let { "versionName" },
+            versionNumber?.let { "versionNumber" },
+            applicationId?.let { "applicationId" },
+            vendor?.let { "vendor" },
+            description?.let { "description" },
+        )
+    }
+}

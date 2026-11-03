@@ -62,11 +62,11 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 
 Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
 gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
-module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), `:creator:template` (project templates and upgrades, with the template files as its resources), and `:creator:ui-components`
+module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), `:creator:template` (project templates and upgrades, with the template files as its resources), `:creator:commands` (`commands` and `context`, the AI context the commands read, with the engine overview `get_kubriko_api` hands the AI as its resource), and `:creator:ui-components`
 (`ui.components`, `ui.theme`, with their own resources and the UI test fixtures). Each child module applies `kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
-and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`; gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`), and `PackageLayeringTest` keeps every file in its module's layer.
+and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`; gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`; commands' `CommandTesting.kt`, `FakeProjectRunner`, and `BreakoutFixture`), and `PackageLayeringTest` keeps every file in its module's layer.
 
 ## Definition of done
 
@@ -81,7 +81,7 @@ Besides its tests passing, a change:
   choice of the project's contents (types, Scenes, sprites, audio files, Properties), which grow without bound (it filters once
   there are more than eight; `KeyChoiceButton` ranks keys by the same `matchingOptions`), and `PanelWidths` with `sidePanel` and
   `PanelSplitter` for every side panel; in command tests
-  `commands/CommandTesting.kt` (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
+  `CommandTesting.kt` in `:creator:commands' test fixtures (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
   and their contracts).
 - Has its unhappy paths designed: what happens when it throws, when it is cancelled, when it is called again while the first call
   runs, when a file has Windows line breaks, and when its file changes outside Creator.

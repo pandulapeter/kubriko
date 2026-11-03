@@ -146,7 +146,7 @@ class McpToolServerTest {
         assertEquals("""{"revision":1,"changed":"create_actor_type at Ball"}""", (result.content.single() as TextContent).text)
         assertEquals(listOf("Ball"), context.blockTypes!!.actorTypes.value.map { it.name })
         executor.step(isUndo = true)
-        assertTrue(context.blockTypes.actorTypes.value.isEmpty())
+        assertTrue(context.blockTypes!!.actorTypes.value.isEmpty())
     }
 
     @Test

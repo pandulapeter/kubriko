@@ -23,6 +23,7 @@ dependencies {
     implementation(projects.creator.gradleSession)
     implementation(projects.creator.git)
     implementation(projects.creator.template)
+    implementation(projects.creator.commands)
     implementation(projects.creator.uiComponents)
     implementation(projects.plugins.audioPlayback)
     implementation(projects.plugins.collision)
@@ -50,6 +51,7 @@ dependencies {
     testImplementation(testFixtures(projects.creator.core))
     testImplementation(testFixtures(projects.creator.gradleSession))
     testImplementation(testFixtures(projects.creator.git))
+    testImplementation(testFixtures(projects.creator.commands))
     testImplementation(testFixtures(projects.creator.uiComponents))
     testImplementation(libs.kotlin.test)
     testImplementation(compose.desktop.uiTestJUnit4)
@@ -91,11 +93,6 @@ tasks.register("allTests") {
     group = "verification"
     dependsOn(tasks.test)
     dependsOn(subprojects.map { "${it.path}:test" })
-}
-
-// The engine's overview, which get_kubriko_api hands the AI.
-tasks.processResources {
-    from(rootProject.file("CLAUDE.md")) { rename { "kubriko-overview.md" } }
 }
 
 // Pinned, since each module's resources need a package of their own (:creator:ui-components has another).
