@@ -45,7 +45,8 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
     `creator/build/end-to-end/<scenario>`, and whoever runs a scenario looks at them before calling a change done. The fixture
     stays at template version 7 with no format version, so every upgrade and migration runs on it; never upgrade its files.
     Synthetic input to the window is only for what no tool can do. For an unreleased `library.version`, publish to Maven
-    Local first, as `:creator:run` does (`-Pcreator.localKubriko=true`).
+    Local first, as `:creator:run` does (`-Pcreator.localKubriko=true`). `Tests` runs them nightly (and on a manual dispatch) in
+    its `creator-end-to-end` job, keeping the images as an artifact.
   - `KUBRIKO_CREATOR_CLAUDE_AGENT=true` (`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks a Claude Code configuration) runs the real
     Claude Agent on an existing login: `ClaudeAgentLiveTest`, and `AssistantLiveScenariosTest`'s headless conversations on the
     Breakout fixture, which check what the project became, not the words. They cost a few requests on the user's subscription,

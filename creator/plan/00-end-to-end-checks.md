@@ -11,14 +11,8 @@
 
 Creator is written by AI, so the AI verifies it in the real app, the way a person would, instead of leaving checks to the user.
 The harness that does it exists (`endToEnd/` in `:creator`'s tests; `../CLAUDE.md` → Running and testing says how it runs). What
-is left is settling `HANDOVER.md` → Not yet verified, mostly by deleting it, and running the checks nightly. Unit tests are
+is left is settling `HANDOVER.md` → Not yet verified, mostly by deleting it. Unit tests are
 preferred to scenarios (`../CLAUDE.md` → Running and testing says which deserve one), so the scenarios stay few.
-
-## Running it nightly
-
-- A job in `Tests` that runs the scenarios under `xvfb-run -s "-screen 0 1920x1080x24"` after its `publish-check` job's publish
-  (`KUBRIKO_CREATOR_E2E=true KUBRIKO_CREATOR_VERSION=0.0.0-check`), keeping `creator/build/end-to-end` as an artifact. It needs a
-  session whose token can change `.github/workflows`, which the unattended plan agent's can't.
 
 ## Settling Not yet verified
 

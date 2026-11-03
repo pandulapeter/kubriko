@@ -24,7 +24,7 @@ started), fix what it finds in commits of their own, verify it with unit tests f
 The files are numbered in the order they are worked on. Every item of `00` to `05` is to be done, none capped in number.
 
 0. [End-to-end checks](00-end-to-end-checks.md) - one pass settling the unverified checks, mostly by deleting what unit tests cover,
-   a few scenarios for what could really break, and the harness run nightly.
+   and a few scenarios for what could really break.
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
    flooded console, two long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.
