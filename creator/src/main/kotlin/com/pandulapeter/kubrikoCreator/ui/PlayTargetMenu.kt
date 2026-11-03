@@ -30,6 +30,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_choose_play_target
 import kubriko.creator.generated.resources.action_more_play_targets
+import kubriko.creator.generated.resources.action_set_up_android_emulators
+import kubriko.creator.generated.resources.action_set_up_ios_simulators
 import kubriko.creator.generated.resources.ic_android
 import kubriko.creator.generated.resources.ic_apple
 import kubriko.creator.generated.resources.ic_chevron
@@ -45,7 +47,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Where Play plays the game: the chosen place, and a menu of every place it can be played now, looked for again each time
- * it opens ([onOpened]), with the way to turn more targets on ([onMoreTargets]).
+ * it opens ([onOpened]), with the way to turn more targets on ([onMoreTargets]). Android's and iOS's devices are in menus
+ * of their own, ending in the way to set up more emulators or simulators ([onSetUpMore]); only the top level has icons.
  */
 @Composable
 internal fun PlayTargetMenu(
@@ -53,6 +56,7 @@ internal fun PlayTargetMenu(
     onOpened: () -> Unit,
     onChosen: (PlayTarget) -> Unit,
     onMoreTargets: () -> Unit,
+    onSetUpMore: (PlayTarget.Kind) -> Unit,
 ) = Box {
     val menu = rememberRightClickMenuState()
     val anchor = rememberMenuAnchor(menu)
@@ -72,8 +76,22 @@ internal fun PlayTargetMenu(
     }
     RightClickMenu(
         state = menu,
-        actions = targets.available.map { target ->
-            ContextAction(label = playTargetText(target), icon = iconOf(target.kind), isCurrent = target == targets.chosen) { onChosen(target) }
+        actions = PlayTargetMenuEntry.of(targets.available).map { entry ->
+            when (entry) {
+                is PlayTargetMenuEntry.Place -> ContextAction(
+                    label = playTargetText(entry.target),
+                    icon = iconOf(entry.target.kind),
+                    isCurrent = entry.target == targets.chosen,
+                ) { onChosen(entry.target) }
+                is PlayTargetMenuEntry.Group -> ContextAction(
+                    label = kindText(entry.kind),
+                    icon = iconOf(entry.kind),
+                    isCurrent = targets.chosen in entry.targets,
+                    children = entry.targets.map { target ->
+                        ContextAction(label = playTargetText(target), isCurrent = target == targets.chosen) { onChosen(target) }
+                    } + ContextAction(label = setUpText(entry.kind), isSeparated = true) { onSetUpMore(entry.kind) },
+                )
+            }
         } + ContextAction(label = stringResource(Res.string.action_more_play_targets), icon = Res.drawable.ic_settings, isSeparated = true, onClick = onMoreTargets),
     )
 }
@@ -82,12 +100,18 @@ internal fun PlayTargetMenu(
  * How the menu names [target]: by what it calls itself, or by its kind.
  */
 @Composable
-private fun playTargetText(target: PlayTarget) = target.name ?: when (target.kind) {
+private fun playTargetText(target: PlayTarget) = target.name ?: kindText(target.kind)
+
+@Composable
+private fun kindText(kind: PlayTarget.Kind) = when (kind) {
     PlayTarget.Kind.DESKTOP -> stringResource(Res.string.play_target_desktop)
     PlayTarget.Kind.WEB -> stringResource(Res.string.play_target_web)
     PlayTarget.Kind.ANDROID -> stringResource(Res.string.play_target_android)
     PlayTarget.Kind.IOS -> stringResource(Res.string.play_target_ios)
 }
+
+@Composable
+private fun setUpText(kind: PlayTarget.Kind) = stringResource(if (kind == PlayTarget.Kind.IOS) Res.string.action_set_up_ios_simulators else Res.string.action_set_up_android_emulators)
 
 private fun iconOf(kind: PlayTarget.Kind) = when (kind) {
     PlayTarget.Kind.DESKTOP -> Res.drawable.ic_desktop

@@ -17,12 +17,14 @@ import kotlinx.serialization.Serializable
  *
  * @param id How the AI and the saved choice name it, the same each time this computer finds it.
  * @param name What the place calls itself (a device's model), or null for one that is named by its [kind] alone.
+ * @param isVirtual Whether it is an emulator or a simulator rather than a device.
  */
 @Serializable
 public data class PlayTarget(
     @SerialName("id") val id: String,
     @SerialName("kind") val kind: Kind,
     @SerialName("name") val name: String? = null,
+    @SerialName("isVirtual") val isVirtual: Boolean = false,
 ) {
     /**
      * What kind of place a [PlayTarget] is.

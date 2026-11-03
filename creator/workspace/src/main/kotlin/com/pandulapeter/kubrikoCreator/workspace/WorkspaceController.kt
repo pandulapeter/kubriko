@@ -456,6 +456,13 @@ public class WorkspaceController(
 
     private fun iosSimulators() = IosSimulators(processes.tools).takeIf { files.targets?.canBuildIos ?: TargetHost.System.canBuildIos }
 
+    /**
+     * Opens where more places of [kind] to play on are set up (emulators, simulators), off the main thread.
+     */
+    public fun openDeviceSetup(kind: PlayTarget.Kind) {
+        scope.launch(ioDispatcher) { DeviceSetup(processes.openBrowser, processes.tools, consoleLog).open(kind) }
+    }
+
     /** Stops the session process, if one runs. */
     public fun stopSession(): Unit = sessions.stop()
 

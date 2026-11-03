@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
 class IosSimulatorsTest {
     private val tools = FakeToolProcesses()
 
-    private fun ios(udid: String, name: String) = PlayTarget(id = "ios-simulator:$udid", kind = PlayTarget.Kind.IOS, name = name)
+    private fun ios(udid: String, name: String) = PlayTarget(id = "ios-simulator:$udid", kind = PlayTarget.Kind.IOS, name = name, isVirtual = true)
 
     @Test
     fun bootedSimulatorsComeFirstThenTheNewestIosVersions() = blockingTest {

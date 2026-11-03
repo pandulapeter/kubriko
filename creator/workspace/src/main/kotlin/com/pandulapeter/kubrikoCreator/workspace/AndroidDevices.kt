@@ -89,7 +89,7 @@ internal class AndroidDevices(
         private const val TIMEOUT_IN_MILLISECONDS = 10_000L
         private val avdNamePattern = Regex("[A-Za-z0-9._-]+")
 
-        fun emulatorTarget(avd: String) = PlayTarget(id = EMULATOR_PREFIX + avd, kind = PlayTarget.Kind.ANDROID, name = avd.replace('_', ' '))
+        fun emulatorTarget(avd: String) = PlayTarget(id = EMULATOR_PREFIX + avd, kind = PlayTarget.Kind.ANDROID, name = avd.replace('_', ' '), isVirtual = true)
 
         /**
          * A line of `adb devices -l` (`serial state key:value…`), or null for its header and the daemon's notes.

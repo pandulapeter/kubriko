@@ -217,6 +217,7 @@ private fun WorkspaceToolbarOf(
     onRefresh = controller::refreshResources,
     onOpenProjectSettings = { uiState.showProjectSettings() },
     onOpenTargets = { uiState.showProjectSettings(ProjectSettingsPage.TARGETS) },
+    onSetUpMoreDevices = controller::openDeviceSetup,
     onOpenSettings = onOpenSettings,
     onCloseProject = onCloseProject,
 )

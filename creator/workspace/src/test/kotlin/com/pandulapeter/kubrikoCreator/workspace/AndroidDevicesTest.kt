@@ -24,7 +24,7 @@ class AndroidDevicesTest {
     private val tools = FakeToolProcesses()
     private val devices = AndroidDevices(sdk, tools, isWindows = false)
 
-    private fun android(id: String, name: String) = PlayTarget(id = id, kind = PlayTarget.Kind.ANDROID, name = name)
+    private fun android(id: String, name: String) = PlayTarget(id = id, kind = PlayTarget.Kind.ANDROID, name = name, isVirtual = id.startsWith("android-emulator:"))
 
     @Test
     fun connectedDevicesComeFirstThenTheEmulatorsThatArentRunning() = blockingTest {

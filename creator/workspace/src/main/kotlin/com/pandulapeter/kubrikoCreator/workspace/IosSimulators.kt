@@ -44,7 +44,7 @@ internal class IosSimulators(
      */
     suspend fun targets(): List<PlayTarget> = available().orEmpty()
         .sortedWith(compareByDescending<Simulator> { it.isBooted }.thenComparator { first, second -> compareVersions(second.version, first.version) }.thenBy { it.name })
-        .map { PlayTarget(id = PREFIX + it.udid, kind = PlayTarget.Kind.IOS, name = "${it.name} (${it.runtime})") }
+        .map { PlayTarget(id = PREFIX + it.udid, kind = PlayTarget.Kind.IOS, name = "${it.name} (${it.runtime})", isVirtual = true) }
 
     /**
      * The simulators `simctl` lists now, or null if it can't list them.

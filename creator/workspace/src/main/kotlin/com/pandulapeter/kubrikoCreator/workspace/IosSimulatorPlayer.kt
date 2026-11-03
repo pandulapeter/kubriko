@@ -120,7 +120,7 @@ internal class IosSimulatorPlayer(
         }
         val shown = tools.run(listOf("open", "-a", "Simulator", "--args", "-CurrentDeviceUDID", udid), COMMAND_TIMEOUT_IN_MILLISECONDS)
             .takeIf { it.isSuccessful }
-            ?: tools.run(listOf("open", "-b", DEVICE_HUB_BUNDLE_ID), COMMAND_TIMEOUT_IN_MILLISECONDS)
+            ?: tools.run(SIMULATOR_APPS.first(), COMMAND_TIMEOUT_IN_MILLISECONDS)
         if (!shown.isSuccessful) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN, isError = true, arguments = listOf(name, failureReasonOf(shown.output, shown.exitCode))))
         }
@@ -193,7 +193,12 @@ internal class IosSimulatorPlayer(
         private const val COMMAND_TIMEOUT_IN_MILLISECONDS = 10_000L
         private const val INSTALL_TIMEOUT_IN_MILLISECONDS = 2 * 60_000L
         private const val KOTLIN_ERROR_PREFIX = "e: "
-        private const val DEVICE_HUB_BUNDLE_ID = "com.apple.dt.Devices"
+
+        /**
+         * Opens the apps that show and add simulators, newest first: DeviceHub, which takes the Simulator app's place in
+         * Xcode 27, then that app.
+         */
+        val SIMULATOR_APPS = listOf(listOf("open", "-b", "com.apple.dt.Devices"), listOf("open", "-a", "Simulator"))
 
         /**
          * Runs a command in a terminal of its own, since `simctl` holds back what it prints into a pipe, the line naming

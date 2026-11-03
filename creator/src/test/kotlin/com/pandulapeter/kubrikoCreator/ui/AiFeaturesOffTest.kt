@@ -69,6 +69,7 @@ class AiFeaturesOffTest {
             onRefresh = {},
             onOpenProjectSettings = {},
             onOpenTargets = {},
+            onSetUpMoreDevices = {},
             onOpenSettings = {},
             onCloseProject = {},
         )

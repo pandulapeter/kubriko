@@ -26,28 +26,57 @@ class PlayTargetMenuTest {
     @Test
     fun theMenuLooksAgainWhenItOpensAndChoosesWhereToPlay() = uiTest {
         val other = PlayTarget(id = "other", kind = PlayTarget.Kind.DESKTOP, name = "Other window")
-        val phone = PlayTarget(id = "android:serial", kind = PlayTarget.Kind.ANDROID, name = "Pixel 7")
-        val emulator = PlayTarget(id = "android-emulator:Medium_Phone", kind = PlayTarget.Kind.ANDROID, name = "Medium Phone")
-        val simulator = PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)")
         val events = mutableListOf<String>()
         showing {
             PlayTargetMenu(
-                targets = PlayTargets(listOf(PlayTarget.DESKTOP, other, PlayTarget.WEB, phone, emulator, simulator), chosen = PlayTarget.DESKTOP),
+                targets = PlayTargets(listOf(PlayTarget.DESKTOP, other, PlayTarget.WEB), chosen = PlayTarget.DESKTOP),
                 onOpened = { events += "opened" },
                 onChosen = { events += "chose ${it.id}" },
                 onMoreTargets = { events += "more" },
+                onSetUpMore = { events += "set up $it" },
             )
         }
         onNodeWithText("Desktop").performClick()
         waitForIdle()
         onNodeWithText("Build for more platforms…").assertExists()
-        onNodeWithText("Pixel 7").assertExists()
-        onNodeWithText("Medium Phone").assertExists()
-        onNodeWithText("iPhone 16 (iOS 18.2)").assertExists()
-        saveSnapshot("play-target-menu")
         onNodeWithText("Other window").performClick()
         waitForIdle()
         assertEquals(listOf("opened", "chose other"), events)
+    }
+
+    @Test
+    fun androidAndIosDevicesAreInMenusOfTheirOwnEndingInSettingUpMore() = uiTest(width = 640, height = 480) {
+        val phone = PlayTarget(id = "android:serial", kind = PlayTarget.Kind.ANDROID, name = "Pixel 7")
+        val emulator = PlayTarget(id = "android-emulator:Medium_Phone", kind = PlayTarget.Kind.ANDROID, name = "Medium Phone", isVirtual = true)
+        val simulator = PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)", isVirtual = true)
+        val events = mutableListOf<String>()
+        showing {
+            PlayTargetMenu(
+                targets = PlayTargets(listOf(PlayTarget.DESKTOP, PlayTarget.WEB, emulator, phone, simulator), chosen = PlayTarget.DESKTOP),
+                onOpened = {},
+                onChosen = { events += "chose ${it.id}" },
+                onMoreTargets = {},
+                onSetUpMore = { events += "set up $it" },
+            )
+        }
+        onNodeWithText("Desktop").performClick()
+        waitForIdle()
+        onNodeWithText("Pixel 7").assertDoesNotExist()
+        onNodeWithText("Android").performClick()
+        waitForIdle()
+        onNodeWithText("Pixel 7").assertExists()
+        onNodeWithText("Set up more emulators…").assertExists()
+        saveSnapshot("play-target-menu-android")
+        onNodeWithText("Medium Phone").performClick()
+        waitForIdle()
+        onNodeWithText("Pixel 7").assertDoesNotExist()
+        onNodeWithText("Desktop").performClick()
+        waitForIdle()
+        onNodeWithText("iOS").performClick()
+        waitForIdle()
+        onNodeWithText("Set up more simulators…").performClick()
+        waitForIdle()
+        assertEquals(listOf("chose android-emulator:Medium_Phone", "set up IOS"), events)
     }
 
     @Test
@@ -59,6 +88,7 @@ class PlayTargetMenuTest {
                 onOpened = {},
                 onChosen = { events += "chose ${it.id}" },
                 onMoreTargets = { events += "more" },
+                onSetUpMore = {},
             )
         }
         onNodeWithText("Desktop").performClick()

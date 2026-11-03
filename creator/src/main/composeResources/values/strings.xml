@@ -17,6 +17,8 @@
     <string name="action_choose_play_target">Where to play the game</string>
     <string name="action_more_play_targets">Build for more platforms…</string>
     <string name="play_target_android">Android</string>
+    <string name="action_set_up_android_emulators">Set up more emulators…</string>
+    <string name="action_set_up_ios_simulators">Set up more simulators…</string>
     <string name="play_target_desktop">Desktop</string>
     <string name="play_target_ios">iOS</string>
     <string name="play_target_web">Browser</string>
@@ -115,6 +117,7 @@
     <string name="status_ios_game_started">The game plays on %1$s. What it prints shows here.</string>
     <string name="status_ios_install_failed">The game couldn't be installed on %1$s: %2$s</string>
     <string name="status_ios_not_started">The game couldn't be started on %1$s: %2$s</string>
+    <string name="status_ios_simulator_apps_missing">Neither DeviceHub nor the Simulator app, where simulators are added, could be opened. Xcode opens them from Open Developer Tool.</string>
     <string name="status_ios_simulator_booting">Starting the simulator %1$s, which can take a minute…</string>
     <string name="status_ios_simulator_missing">The simulator %1$s isn't on this Mac anymore. Choose another place in Play's menu.</string>
     <string name="status_ios_simulator_not_booted">The simulator %1$s couldn't be started: %2$s</string>

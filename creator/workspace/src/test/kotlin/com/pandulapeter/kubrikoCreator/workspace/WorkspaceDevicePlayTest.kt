@@ -112,7 +112,7 @@ class WorkspaceDevicePlayTest {
         assertEquals(listOf(PlayTarget.DESKTOP, PlayTarget.WEB), controller.playTargets.refresh().available)
         turnOn(GameTarget.IOS)
         assertEquals(
-            listOf(PlayTarget.DESKTOP, PlayTarget.WEB, PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)")),
+            listOf(PlayTarget.DESKTOP, PlayTarget.WEB, PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)", isVirtual = true)),
             controller.playTargets.refresh().available,
         )
     }
