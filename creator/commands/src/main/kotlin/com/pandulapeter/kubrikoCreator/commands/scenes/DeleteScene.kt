@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @OptIn(EditorMutation::class)
 public object DeleteScene : WriteCommand<DeleteScene.Input> {
@@ -35,7 +36,7 @@ public object DeleteScene : WriteCommand<DeleteScene.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = if (context.scenes.exists(input.scene)) null else Rejection(CommandProblem.SCENE_MISSING, input.scene)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val isFirst = withContext(context.ioDispatcher) { firstSceneSettings(context.project.rootDirectory)?.firstScene == input.scene }
+        val isFirst = !input.isUndoingCreation && withContext(context.ioDispatcher) { firstSceneSettings(context.project.rootDirectory)?.firstScene == input.scene }
         if (isFirst) return Applied.failed(Rejection(CommandProblem.SCENE_IS_FIRST, input.scene))
         val (content, description) = withContext(context.ioDispatcher) {
             (context.scenes.read(input.scene).orEmpty() to context.scenes.descriptions.of(input.scene)).also { context.scenes.delete(input.scene) }
@@ -43,9 +44,14 @@ public object DeleteScene : WriteCommand<DeleteScene.Input> {
         return Applied(inverse = Invocation(CreateScene, CreateScene.Input(input.scene, content, description)))
     }
 
+    /**
+     * @param isUndoingCreation Whether this undoes the Scene's creation, which goes ahead even if the game starts with it,
+     *   since the game started with a missing Scene before then too.
+     */
     @Serializable
     public data class Input(
         @Description(Descriptions.SCENE_NAME)
         @SerialName("scene") val scene: String,
+        @Transient val isUndoingCreation: Boolean = false,
     )
 }

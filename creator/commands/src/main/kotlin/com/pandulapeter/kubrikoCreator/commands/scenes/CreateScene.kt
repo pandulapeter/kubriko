@@ -51,7 +51,7 @@ public object CreateScene : WriteCommand<CreateScene.Input> {
             true
         }
         if (!isWritten) return Applied.failed(Rejection(CommandProblem.SCENE_NAME_TAKEN))
-        return Applied(inverse = Invocation(DeleteScene, DeleteScene.Input(input.scene)))
+        return Applied(inverse = Invocation(DeleteScene, DeleteScene.Input(input.scene, isUndoingCreation = true)))
     }
 
     @Serializable

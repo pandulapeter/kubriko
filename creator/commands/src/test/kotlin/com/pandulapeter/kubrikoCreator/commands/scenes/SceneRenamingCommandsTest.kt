@@ -179,4 +179,11 @@ class SceneRenamingCommandsTest {
         RenameScene.apply(context, RenameScene.Input("level-2", "main"))
         assertEquals(Rejection(CommandProblem.SCENE_IS_FIRST, "main"), DeleteScene.apply(context, DeleteScene.Input("main")).failure, "the default first Scene")
     }
+
+    @Test
+    fun creatingTheMissingFirstSceneCanBeUndone() = runTest {
+        val context = context()
+        context.startingWith("intro")
+        assertEquals(listOf("intro", "level-2", "main"), context.assertRoundTrip(Invocation(CreateScene, CreateScene.Input("intro", "[]"))) { context.scenes.names() })
+    }
 }
