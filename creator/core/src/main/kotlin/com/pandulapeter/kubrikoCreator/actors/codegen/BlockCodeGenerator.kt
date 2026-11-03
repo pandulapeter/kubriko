@@ -48,7 +48,6 @@ public object BlockCodeGenerator {
     private const val ABSOLUTE_VALUE = "absoluteValue"
     private const val SCENE_UNIT_EXTENSION_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.sceneUnit"
     private const val NORMALIZED_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.normalized"
-    private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
     private const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
     private const val RANDOM_IMPORT = "kotlin.random.Random"
 
@@ -212,10 +211,9 @@ public object BlockCodeGenerator {
         return BlockCode(
             lines = listOf(
                 "if (${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}) " +
-                    "Logger.log(message = ${message.code}, source = ${stringLiteral(scope.typeName)})",
+                    "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOG_FUNCTION}(message = ${message.code}, source = ${stringLiteral(scope.typeName)})",
             ),
             needs = if (message.usesNumberText) setOf(BlockNeed.NUMBER_TEXT) else emptySet(),
-            imports = setOf(LOGGER_IMPORT),
             managers = message.managers,
         )
     }

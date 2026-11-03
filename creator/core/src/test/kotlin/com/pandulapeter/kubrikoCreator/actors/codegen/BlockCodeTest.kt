@@ -52,7 +52,6 @@ class BlockCodeTest {
     fun everyBlockStatesWhatItsCodeNeeds() {
         val sceneOffset = "com.pandulapeter.kubriko.types.SceneOffset"
         val absoluteValue = "kotlin.math.absoluteValue"
-        val logger = "com.pandulapeter.kubriko.logger.Logger"
         val defaults = mapOf(
             BlockKind.SET_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
             BlockKind.ADD_TO_VELOCITY to Expected(setOf(MOVEMENT), setOf(sceneOffset)),
@@ -81,7 +80,7 @@ class BlockCodeTest {
             BlockKind.ELSE to Expected(),
             BlockKind.REPEAT to Expected(),
             BlockKind.END to Expected(),
-            BlockKind.LOG to Expected(imports = setOf(logger)),
+            BlockKind.LOG to Expected(),
             BlockKind.KOTLIN to Expected(),
         )
         assertEquals(BlockKind.entries.toSet(), defaults.keys)
@@ -110,8 +109,8 @@ class BlockCodeTest {
             BlockDefinition.If(ConditionDefinition.Velocity()) to Expected(setOf(MOVEMENT)),
             BlockDefinition.If(ConditionDefinition.Chance()) to Expected(imports = setOf("kotlin.random.Random")),
             BlockDefinition.If(ConditionDefinition.Paused()) to Expected(setOf(STATE_MANAGER)),
-            BlockDefinition.Log("{speed}") to Expected(setOf(NUMBER_TEXT), setOf(logger)),
-            BlockDefinition.Log("{Game.score}") to Expected(setOf(NUMBER_TEXT), setOf(logger), setOf("Game")),
+            BlockDefinition.Log("{speed}") to Expected(setOf(NUMBER_TEXT)),
+            BlockDefinition.Log("{Game.score}") to Expected(setOf(NUMBER_TEXT), managers = setOf("Game")),
             BlockDefinition.Kotlin("velocity = SceneOffset.Zero") to Expected(setOf(MOVEMENT, ACTOR_MANAGER, VIEWPORT_MANAGER), setOf(sceneOffset)),
         )
         variants.forEach { (block, expected) -> assertEquals(expected, codeOf(block, EventType.EVERY_FRAME), block.toString()) }

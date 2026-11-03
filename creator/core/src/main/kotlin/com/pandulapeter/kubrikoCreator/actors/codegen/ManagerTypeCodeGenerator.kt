@@ -51,6 +51,11 @@ public object ManagerTypeCodeGenerator {
      */
     public const val LOGGING_FLAG: String = "isLoggingEnabled"
     public const val LOGGING_PROPERTY: String = "kubriko.creator.logging"
+
+    /**
+     * The function of [WIRING_NAME] that the Log Blocks log through.
+     */
+    public const val LOG_FUNCTION: String = "log"
     public const val FIRST_SCENE_FLAG: String = "firstSceneOverride"
 
     /**
@@ -184,6 +189,7 @@ public object ManagerTypeCodeGenerator {
         if (pluginManagers.usesAudio) appendLine("import com.pandulapeter.kubriko.audioPlayback.SoundManager")
         if (pluginManagers.usesCollisions) appendLine("import com.pandulapeter.kubriko.collision.CollisionManager")
         if (pluginManagers.usesKeyboard) appendLine("import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager")
+        appendLine("import com.pandulapeter.kubriko.logger.Logger")
         appendLine("import com.pandulapeter.kubriko.manager.Manager")
         if (pluginManagers.usesSprites) appendLine("import com.pandulapeter.kubriko.sprites.SpriteManager")
         appendLine("import kotlin.concurrent.Volatile")
@@ -198,6 +204,15 @@ public object ManagerTypeCodeGenerator {
         appendLine("     * `$LOGGING_PROPERTY`); a released game leaves it off, since every log allocates.")
         appendLine("     */")
         appendLine("    var $LOGGING_FLAG = false")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Logs [message] from [source], and prints it too while Kubriko Creator plays the game, which reads what a game in the")
+        appendLine("     * browser or on a phone prints, since only the desktop's session reports what Kubriko's Logger holds.")
+        appendLine("     */")
+        appendLine("    fun $LOG_FUNCTION(message: String, source: String, details: String? = null) {")
+        appendLine("        Logger.log(message = message, details = details, source = source)")
+        appendLine("        if ($LOGGING_FLAG) println(if (details == null) \"[${'$'}source] ${'$'}message\" else \"[${'$'}source] ${'$'}message ${'$'}details\")")
+        appendLine("    }")
         appendLine()
         appendLine("    /**")
         appendLine("     * The Scene the game starts with instead of the one `Game.kt` names, when Kubriko Creator plays it from a Scene (the")
