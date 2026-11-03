@@ -13,7 +13,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -73,7 +72,7 @@ internal fun SidebarItem(
             .rightClickMenu(menu)
             .hoverReveal(hover)
             .semantics { selected = isSelected }
-            .padding(start = SIDEBAR_ROW_START + SIDEBAR_INDENT * depth, end = if (actions.isEmpty()) 12.dp else 2.dp),
+            .padding(start = SIDEBAR_ROW_START + SIDEBAR_INDENT * depth, end = if (actions.isEmpty()) 12.dp else SIDEBAR_ROW_END),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -84,24 +83,29 @@ internal fun SidebarItem(
             contentDescription = null,
             tint = accent?.color ?: color.copy(alpha = 0.7f),
         )
-        Text(
-            modifier = Modifier.weight(1f, fill = false),
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = color,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        if (detail != null) {
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = detail,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f, fill = false),
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = color,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
+            if (detail != null) {
+                Text(
+                    text = detail,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
         }
         if (actions.isNotEmpty()) {
-            Spacer(Modifier.weight(1f))
             RowActionsButton(
                 modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
                 menu = menu,
@@ -121,3 +125,9 @@ internal val SIDEBAR_INDENT = 14.dp
  * Where a row's icon starts outside every folder.
  */
 internal val SIDEBAR_ROW_START = 28.dp
+
+/**
+ * How far a row's last button (its ⋮) is from the sidebar's edge, the same as a group header's, so it is in the same
+ * place on every row.
+ */
+internal val SIDEBAR_ROW_END = 4.dp

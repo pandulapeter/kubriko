@@ -17,6 +17,7 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -35,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.testing.uiTest
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class ProjectSidebarTest {
@@ -115,6 +117,22 @@ class ProjectSidebarTest {
             release()
         }
         waitForIdle()
+    }
+
+    @Test
+    fun everyRowsMoreOptionsButtonIsInTheSamePlace() = uiTest(width = 300, height = 600) {
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = folderGroups,
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+            )
+        }
+        val edges = onAllNodesWithContentDescription("More options").fetchSemanticsNodes().map { it.boundsInRoot.left to it.boundsInRoot.right }
+        assertTrue(edges.size >= 3, "Only ${edges.size} rows offer more options")
+        assertEquals(1, edges.distinct().size, "The buttons are at $edges")
     }
 
     @Test

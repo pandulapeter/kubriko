@@ -95,7 +95,8 @@ class UpgradingAndPlayingTest {
             )
             // KubrikoViewport's modifier is the viewport's own, so the color fills it and leaves the bars beside it as they were.
             fun viewportPixel(image: BufferedImage) = image.getRGB(image.width / 2, image.height - 10)
-            val reloaded = awaitGame("reloaded", timeout = 2.minutes) { ImageChecks.matches(viewportPixel(it), VIEWPORT_COLOR) }
+            // A reload can create the game's Kubriko instance again, whose sprites then load a few frames after its first one.
+            val reloaded = awaitGame("reloaded", timeout = 2.minutes) { ImageChecks.matches(viewportPixel(it), VIEWPORT_COLOR) && it.boundsOf(SPRITE_COLOR) != null }
             assertTrue(ImageChecks.matches(viewportPixel(reloaded), VIEWPORT_COLOR), "The viewport isn't the color Game.kt now gives it.")
             assertFalse(ImageChecks.matches(reloaded.getRGB(2, reloaded.height / 2), VIEWPORT_COLOR), "The bars beside the viewport took its color too.")
             assertTrue(reloaded.boundsOf(SPRITE_COLOR) != null, "The Gold Bricks are gone after the change.")

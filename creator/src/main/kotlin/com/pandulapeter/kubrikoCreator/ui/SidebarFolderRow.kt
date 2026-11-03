@@ -73,7 +73,7 @@ internal fun SidebarFolderRow(
             .clickable(onClick = onToggle)
             .hoverReveal(hover)
             .rightClickMenu(menu)
-            .padding(start = SIDEBAR_ROW_START - CHEVRON_ROOM + SIDEBAR_INDENT * row.depth, end = 2.dp),
+            .padding(start = SIDEBAR_ROW_START - CHEVRON_ROOM + SIDEBAR_INDENT * row.depth, end = SIDEBAR_ROW_END),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

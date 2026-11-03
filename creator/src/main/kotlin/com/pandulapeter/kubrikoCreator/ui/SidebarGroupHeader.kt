@@ -30,7 +30,8 @@ import kubriko.creator.generated.resources.ic_create_new_folder
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The header of a sidebar group with folders: its + adds an item, and its ⋮ (shown while it is pointed at) and its
+ * The header of a sidebar group with folders: its + adds an item, and its ⋮ (shown while it is pointed at, at the end of
+ * the row as on every other row of the sidebar) and its
  * right-click menu offer that and a new folder, as a folder row's do. Dropping an item on it moves it out of its folder.
  */
 @Composable
@@ -48,15 +49,15 @@ internal fun SidebarGroupHeader(
         title = stringResource(group.title),
         accent = group.accent,
     ) {
-        RowActionsButton(
-            modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
-            menu = menu,
-            label = Res.string.action_more_options,
-        )
         IconActionButton(
             icon = Res.drawable.ic_add,
             label = group.newItemLabel,
             onClick = onNewItem,
+        )
+        RowActionsButton(
+            modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
+            menu = menu,
+            label = Res.string.action_more_options,
         )
         RightClickMenu(
             menu,
