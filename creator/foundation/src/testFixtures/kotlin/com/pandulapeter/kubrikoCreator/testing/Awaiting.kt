@@ -26,7 +26,7 @@ import kotlin.time.Duration.Companion.seconds
  * @throws AssertionError When [condition] still doesn't hold after [timeout]. Not a cancellation, so that a wait in a launched
  * coroutine fails its test instead of only ending that coroutine.
  */
-internal suspend fun awaitTrue(
+public suspend fun awaitTrue(
     timeout: Duration = 5.seconds,
     description: String? = null,
     condition: () -> Boolean,

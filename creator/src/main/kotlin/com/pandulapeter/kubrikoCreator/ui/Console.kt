@@ -114,9 +114,9 @@ private fun ConsoleLine(
 @Composable
 private fun ConsoleEntry.text() = when (this) {
     is ConsoleEntry.Status -> text.text(arguments)
-    is ConsoleEntry.Problem -> if (location == null) message else stringResource(Res.string.console_with_prefix, location, message)
+    is ConsoleEntry.Problem -> location?.let { stringResource(Res.string.console_with_prefix, it, message) } ?: message
     is ConsoleEntry.BuildOutput -> line
-    is ConsoleEntry.Log -> if (source == null) message else stringResource(Res.string.console_with_prefix, source, message)
+    is ConsoleEntry.Log -> source?.let { stringResource(Res.string.console_with_prefix, it, message) } ?: message
     is ConsoleEntry.SessionFailure -> message
 }
 

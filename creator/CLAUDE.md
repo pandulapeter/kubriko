@@ -22,7 +22,8 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
   `creator.localKubriko` for any build that runs it and puts the Maven Local publish tasks first. That publishes the libraries as
   `<library.version>-creator` (so they never shadow a real release) and bundles that version and `mavenLocal()` into
   `creator.properties`, so projects use them. Packaged builds, and `-Pcreator.localKubriko=false`, bundle the released version.
-- `./gradlew :creator:test` runs the unit tests (also on Windows and Linux in `Tests`). Run the whole suite before every commit,
+- `./gradlew :creator:allTests` runs every module's unit tests (also on Windows and Linux in `Tests`); `:creator:<module>:test
+  --tests …` runs one module's. Run the whole suite before every commit,
   not only the tests you touched: tests elsewhere catch leaks and races (a server left running, an exception escaping a scope),
   and Windows paths differ (write expected paths with `File`, not `/`).
 - Opt-in tests, skipped without their switch:
@@ -54,6 +55,16 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
   app's theme and interface scale without a window, asserts its texts and clicks, and saves a PNG under `build/ui-snapshots`.
   Every new UI gets one. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
   (`screencapture -l <window id>`) before it is called done; `plan/HANDOVER.md` → Working with the live app says how.
+
+## Modules
+
+Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
+gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
+module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`). Each child module applies
+`kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
+Test helpers other modules share live in a module's `src/testFixtures` (reached through
+`testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
+and `creatorSourceRoots()` for tests that read the sources), and `PackageLayeringTest` keeps every file in its module's layer.
 
 ## Definition of done
 

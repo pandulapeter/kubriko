@@ -20,4 +20,4 @@ private val testDirectories = ConcurrentLinkedQueue<File>().also { directories -
 /**
  * A new temporary directory, deleted when the tests' JVM exits.
  */
-internal fun testDirectory(): File = createTempDirectory("kubriko-creator-test").toFile().also(testDirectories::add)
+public fun testDirectory(): File = createTempDirectory("kubriko-creator-test").toFile().also(testDirectories::add)

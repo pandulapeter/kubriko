@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.testing.creatorSourceRoots
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -69,13 +70,14 @@ class CommandRegistryTest {
 
     @Test
     fun onlyCommandsChangeTheProject() {
-        val sources = File("src/main/kotlin/com/pandulapeter/kubrikoCreator")
-        assertTrue(sources.isDirectory, "Run from the creator folder: ${sources.absolutePath}")
-        val optingIn = sources.walkTopDown()
-            .filter { it.extension == "kt" && "OptIn(EditorMutation" in it.readText() }
-            .map { it.relativeTo(sources).invariantSeparatorsPath }
-            .filterNot { it.startsWith("commands/") }
-            .toList()
+        val optingIn = creatorSourceRoots().flatMap { root ->
+            val sources = File(root, "com/pandulapeter/kubrikoCreator")
+            sources.walkTopDown()
+                .filter { it.extension == "kt" && "OptIn(EditorMutation" in it.readText() }
+                .map { it.relativeTo(sources).invariantSeparatorsPath }
+                .filterNot { it.startsWith("commands/") }
+                .toList()
+        }
         assertTrue(optingIn.isEmpty(), "Only commands may change the project: $optingIn")
     }
 

@@ -18,6 +18,7 @@ plugins {
 dependencies {
     // Every published module a project could use, so that a project's classes loaded next to Creator's share them
     // (scenes/ClassLoaderEntryPointLoader.kt).
+    implementation(projects.creator.foundation)
     implementation(projects.plugins.audioPlayback)
     implementation(projects.plugins.collision)
     implementation(projects.plugins.gamepadInput)
@@ -42,31 +43,12 @@ dependencies {
     implementation(libs.kotlinx.serialization)
     implementation(libs.ktor.server.cio)
     implementation(libs.mcp.server)
+    testImplementation(testFixtures(projects.creator.foundation))
     testImplementation(libs.kotlin.test)
     testImplementation(compose.desktop.uiTestJUnit4)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.client.cio)
     testImplementation(libs.mcp.client)
-}
-
-/**
- * The versions Kubriko Creator writes into the projects it creates: the ones this repository builds Kubriko with. With
- * `creator.localKubriko`, projects use the libraries just published to Maven Local instead (see creator/CLAUDE.md).
- */
-val generateCreatorProperties = tasks.register("generateCreatorProperties") {
-    val outputDirectory = layout.buildDirectory.dir("generated/creatorProperties")
-    val properties = mapOf(
-        "kubrikoVersion" to rootProject.version.toString(),
-        "kotlinVersion" to libs.versions.kotlin.get(),
-        "composeVersion" to libs.versions.compose.multiplatform.get(),
-        "gradleVersion" to libs.versions.gradle.toolingApi.get(),
-        "useMavenLocal" to (gradle.startParameter.projectProperties["creator.localKubriko"] == "true").toString(),
-    )
-    inputs.properties(properties)
-    outputs.dir(outputDirectory)
-    doLast {
-        outputDirectory.get().file("creator.properties").asFile.writeText(properties.entries.joinToString("\n") { "${it.key}=${it.value}" })
-    }
 }
 
 /**
@@ -90,8 +72,18 @@ val generateCreatorLibraries = tasks.register("generateCreatorLibraries") {
 }
 
 sourceSets.main {
-    resources.srcDir(generateCreatorProperties)
     resources.srcDir(generateCreatorLibraries)
+}
+
+tasks.test {
+    systemProperty("kubrikoCreator.directory", projectDir.absolutePath)
+}
+
+// Every Creator module's unit tests: :creator:test runs only the app's.
+tasks.register("allTests") {
+    group = "verification"
+    dependsOn(tasks.test)
+    dependsOn(subprojects.map { "${it.path}:test" })
 }
 
 // The engine's overview, which get_kubriko_api hands the AI.

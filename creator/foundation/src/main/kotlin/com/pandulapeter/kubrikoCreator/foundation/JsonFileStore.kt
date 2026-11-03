@@ -22,7 +22,7 @@ import java.io.IOException
  * A write never replaces a file it can't read: one whose content can't be decoded is first moved aside to `<name>.bak`
  * next to it (replacing an older one), and one that can't be read at all (locked by another program, say) isn't written.
  */
-internal class JsonFileStore<T>(
+public class JsonFileStore<T>(
     private val file: File,
     private val serializer: KSerializer<T>,
     private val isPrivate: Boolean = false,
@@ -31,7 +31,10 @@ internal class JsonFileStore<T>(
 ) {
     private val backup get() = File(file.parentFile, "${file.name}.bak")
 
-    fun read(): Read<T> = try {
+    /**
+     * What the file holds now.
+     */
+    public fun read(): Read<T> = try {
         if (file.isFile) Read.Found(json.decodeFromString(serializer, readText(file))) else Read.Missing
     } catch (exception: IOException) {
         Read.Unreadable(exception.reason(), isContentBroken = false)
@@ -44,7 +47,7 @@ internal class JsonFileStore<T>(
     /**
      * Writes [value], returning false when the file was left as it was.
      */
-    fun write(value: T): Boolean = update { value }
+    public fun write(value: T): Boolean = update { value }
 
     /**
      * Writes what [change] makes of the value in the file, read once, so that a value built from an earlier [read] can't
@@ -52,7 +55,7 @@ internal class JsonFileStore<T>(
      * aside first), and returns null to leave the file as it is. It isn't called while the file can't be read at all.
      * Returns whether the file was written.
      */
-    fun update(change: (current: T?) -> T?): Boolean {
+    public fun update(change: (current: T?) -> T?): Boolean {
         val current = read()
         if (current is Read.Unreadable && (!current.isContentBroken || !setAside())) return false
         val value = change(current.valueOrNull()) ?: return false
@@ -78,20 +81,29 @@ internal class JsonFileStore<T>(
     /**
      * What [read] found.
      */
-    sealed interface Read<out T> {
-        data object Missing : Read<Nothing>
+    public sealed interface Read<out T> {
+        /**
+         * There is no file.
+         */
+        public data object Missing : Read<Nothing>
 
-        data class Found<T>(val value: T) : Read<T>
+        /**
+         * The file holds [value].
+         */
+        public data class Found<T>(val value: T) : Read<T>
 
         /**
          * The file is there but gave no value: its content is broken when [isContentBroken], otherwise it couldn't be read
          * now and may be fine later.
          */
-        data class Unreadable(val reason: String, val isContentBroken: Boolean) : Read<Nothing>
+        public data class Unreadable(val reason: String, val isContentBroken: Boolean) : Read<Nothing>
     }
 
-    companion object {
-        val defaultJson = Json {
+    public companion object {
+        /**
+         * Indented, and reading files that hold keys this version doesn't know.
+         */
+        public val defaultJson: Json = Json {
             prettyPrint = true
             ignoreUnknownKeys = true
         }
@@ -101,4 +113,4 @@ internal class JsonFileStore<T>(
 /**
  * The value [JsonFileStore.read] found, or null when the file is missing or can't be read.
  */
-internal fun <T> JsonFileStore.Read<T>.valueOrNull() = (this as? JsonFileStore.Read.Found<T>)?.value
+public fun <T> JsonFileStore.Read<T>.valueOrNull(): T? = (this as? JsonFileStore.Read.Found<T>)?.value

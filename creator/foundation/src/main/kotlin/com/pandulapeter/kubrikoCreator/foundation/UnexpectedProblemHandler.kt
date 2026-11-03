@@ -15,7 +15,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
  * Catches what a coroutine of Kubriko Creator throws and nothing caught (an unexpected exception from JGit, Gradle, or a
  * project's class), so that it is printed and [report]ed instead of being lost or ending the app, and the rest keeps working.
  */
-internal fun unexpectedProblemHandler(report: (Throwable) -> Unit) = CoroutineExceptionHandler { _, exception ->
+public fun unexpectedProblemHandler(report: (Throwable) -> Unit): CoroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
     exception.printStackTrace()
     report(exception)
 }

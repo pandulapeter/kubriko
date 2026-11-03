@@ -54,6 +54,7 @@ include(
     ":app:shared",
     ":app:web",
     ":creator",
+    ":creator:foundation",
     ":engine",
     ":examples:demo-content-shaders",
     ":examples:demo-isometric-graphics",

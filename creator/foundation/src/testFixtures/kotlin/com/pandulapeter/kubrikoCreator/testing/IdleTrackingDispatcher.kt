@@ -24,14 +24,17 @@ import kotlin.time.Duration.Companion.seconds
  * Idle means no coroutine queued or running on it. A coroutine suspended on a flow or a delay is idle, which is what a negative
  * assertion wants: nothing is going to happen without a new event. So is one blocked in [parkedWhile].
  */
-internal class IdleTrackingDispatcher(
+public class IdleTrackingDispatcher(
     private val delegate: CoroutineDispatcher,
 ) : CoroutineDispatcher() {
     private val pending = AtomicInteger()
 
-    val isIdle get() = pending.get() == 0
+    /**
+     * Whether nothing is queued or running on this dispatcher now.
+     */
+    public val isIdle: Boolean get() = pending.get() == 0
 
-    override fun isDispatchNeeded(context: CoroutineContext) = delegate.isDispatchNeeded(context)
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean = delegate.isDispatchNeeded(context)
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         pending.incrementAndGet()
@@ -54,17 +57,17 @@ internal class IdleTrackingDispatcher(
      * Returns once nothing is queued or running on this dispatcher, on two polls in a row: a read that just returned from
      * [parkedWhile] is counted again only once its `finally` runs.
      */
-    suspend fun awaitIdle(timeout: Duration = 5.seconds) = awaitAllIdle(listOf(this), timeout)
+    public suspend fun awaitIdle(timeout: Duration = 5.seconds): Unit = awaitAllIdle(listOf(this), timeout)
 
-    fun park() = pending.decrementAndGet()
+    internal fun park() = pending.decrementAndGet()
 
-    fun unpark() = pending.incrementAndGet()
+    internal fun unpark() = pending.incrementAndGet()
 
-    companion object {
+    public companion object {
         /**
          * The tracked dispatcher whose block runs on this thread, if any.
          */
-        val current = ThreadLocal<IdleTrackingDispatcher?>()
+        internal val current = ThreadLocal<IdleTrackingDispatcher?>()
     }
 }
 
@@ -73,7 +76,7 @@ internal class IdleTrackingDispatcher(
  * running it. The code under test reads the fakes' pipes with blocking calls, so without this a tracked dispatcher reading from a
  * live fake would never go idle.
  */
-internal fun <T> parkedWhile(block: () -> T): T {
+public fun <T> parkedWhile(block: () -> T): T {
     val dispatcher = IdleTrackingDispatcher.current.get() ?: return block()
     dispatcher.park()
     try {
@@ -86,15 +89,15 @@ internal fun <T> parkedWhile(block: () -> T): T {
 /**
  * This stream, with every read and [InputStream.available] call going through [parkedWhile].
  */
-internal fun InputStream.parked(): InputStream = ParkedInputStream(this)
+public fun InputStream.parked(): InputStream = ParkedInputStream(this)
 
 /**
  * Returns once every one of [dispatchers] is idle at the same time, on two polls in a row, since one can hand work to another.
  */
-internal suspend fun awaitIdle(
+public suspend fun awaitIdle(
     vararg dispatchers: IdleTrackingDispatcher,
     timeout: Duration = 5.seconds,
-) = awaitAllIdle(dispatchers.toList(), timeout)
+): Unit = awaitAllIdle(dispatchers.toList(), timeout)
 
 private suspend fun awaitAllIdle(dispatchers: List<IdleTrackingDispatcher>, timeout: Duration) {
     var idlePolls = 0

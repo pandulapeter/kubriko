@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * The shared range lies outside every system's ephemeral range (Linux 32768–60999, macOS and Windows 49152–65535), where the
  * port-0 binds of other tests in the same JVM land, so nothing else takes a port between handing it out and the test binding it.
  */
-internal class TestPorts(
+public class TestPorts(
     private val range: IntRange,
 ) {
     private val counter = AtomicInteger()
@@ -29,7 +29,7 @@ internal class TestPorts(
      *
      * @throws IllegalStateException When a full lap of the range finds none.
      */
-    fun next(): Int {
+    public fun next(): Int {
         repeat(range.count()) {
             val port = range.first + Math.floorMod(counter.getAndIncrement(), range.count())
             if (isFree(port)) return port
@@ -39,7 +39,10 @@ internal class TestPorts(
 
     private fun isFree(port: Int) = runCatching { ServerSocket(port, 1, InetAddress.getByName("127.0.0.1")).close() }.isSuccess
 
-    companion object {
-        val shared = TestPorts(20_000 until 24_000)
+    public companion object {
+        /**
+         * The range every test shares, so that two of them never hand out the same port.
+         */
+        public val shared: TestPorts = TestPorts(20_000 until 24_000)
     }
 }
