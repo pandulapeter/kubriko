@@ -1,0 +1,106 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.actors
+
+/**
+ * How a project's Actor types inherit from each other through their `parent`, like GameMaker's parent objects: a child
+ * gets its ancestors' Properties and Events, and replaces an Event of theirs with one of its own of the same kind.
+ *
+ * Built from every Actor type of the project; a `parent` naming no Actor type, or making a cycle, counts as none.
+ */
+public class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
+    private val byName = actorTypes.associateBy { it.name }
+    private val parents: Map<String, String> = actorTypes.associate { it.name to it.parent }.let { declaredParents ->
+        actorTypes.mapNotNull { type ->
+            type.parent?.takeIf { it in byName && !isAncestor(type.name, it, declaredParents) }?.let { type.name to it }
+        }.toMap()
+    }
+    internal val namesWithChildren: Set<String> = parents.values.toSet()
+
+    public fun parentOf(name: String): String? = parents[name]
+
+    /**
+     * The ancestors of [name], its parent first.
+     */
+    public fun ancestorsOf(name: String): List<String> = generateSequence(parents[name]) { parents[it] }.toList()
+
+    public fun childrenOf(name: String): List<String> = parents.filterValues { it == name }.keys.sorted()
+
+    /**
+     * Every Actor type that inherits from [name], however far down.
+     */
+    public fun descendantsOf(name: String): List<String> = childrenOf(name).flatMap { listOf(it) + descendantsOf(it) }
+
+    public fun hasChildren(name: String): Boolean = name in namesWithChildren
+
+    /**
+     * [name] and every Actor type that inherits from it: what a reference to [name] stands for.
+     */
+    public fun familyOf(name: String): List<String> = listOf(name) + descendantsOf(name)
+
+    /**
+     * The topmost ancestor of [name], or [name] itself.
+     */
+    public fun rootOf(name: String): String = ancestorsOf(name).lastOrNull() ?: name
+
+    /**
+     * The Properties of [name]: its ancestors' (the topmost one's first), with the initial values the nearest one that
+     * names them again gives them, then its own new ones.
+     */
+    public fun propertiesOf(name: String): List<PropertyDefinition> {
+        val chain = (ancestorsOf(name).reversed() + name).mapNotNull(byName::get)
+        val properties = LinkedHashMap<String, PropertyDefinition>()
+        chain.forEach { type ->
+            type.properties.forEach { property ->
+                val inherited = properties[property.name]
+                if (inherited == null || PropertyKind.of(inherited) == PropertyKind.of(property)) properties[property.name] = property
+            }
+        }
+        return properties.values.toList()
+    }
+
+    /**
+     * The type of [name]'s family line that declares its Property [property]: the topmost one naming it with its kind.
+     */
+    public fun declarerOf(name: String, property: String): String? {
+        val kind = propertiesOf(name).firstOrNull { it.name == property }?.let(PropertyKind::of) ?: return null
+        return (ancestorsOf(name).reversed() + name).firstOrNull { type -> byName[type]?.properties?.any { it.name == property && PropertyKind.of(it) == kind } == true }
+    }
+
+    /**
+     * The Events [name]'s Actors react to: its own, and each of its ancestors' that none nearer to it replaces.
+     */
+    public fun eventsOf(name: String): List<EventDefinition> {
+        val own = byName[name]?.events.orEmpty()
+        val inherited = parents[name]?.let(::eventsOf).orEmpty().filter { event -> own.none { it.replaces(event) } }
+        return inherited + own
+    }
+
+    public companion object {
+
+        /**
+         * Whether [ancestor] is [name] or one of its ancestors, going by [parents] (each type's parent, if any).
+         */
+        public fun isAncestor(ancestor: String, name: String, parents: Map<String, String?>): Boolean {
+            val visited = mutableSetOf<String>()
+            var current: String? = name
+            while (current != null && visited.add(current)) {
+                if (current == ancestor) return true
+                current = parents[current]
+            }
+            return false
+        }
+
+        /**
+         * Whether [this] Event takes the place of [other], an ancestor's: the same [EventDefinition.trigger].
+         */
+        public fun EventDefinition.replaces(other: EventDefinition): Boolean = trigger == other.trigger
+    }
+}

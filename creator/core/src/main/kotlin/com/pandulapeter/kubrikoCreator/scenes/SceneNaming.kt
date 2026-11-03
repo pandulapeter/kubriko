@@ -1,0 +1,30 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.scenes
+
+import com.pandulapeter.kubrikoCreator.project.ProjectTree
+
+/**
+ * The rules for Scene names, which are paths: folder names and the file's name separated by `/` (`levels/1-1`).
+ */
+public object SceneNaming {
+
+    private val partPattern = Regex("[A-Za-z0-9][A-Za-z0-9_-]*")
+
+    public fun isValid(name: String): Boolean = name.split('/').all(partPattern::matches)
+
+    /**
+     * The first folder of [name] that Kubriko Creator skips, as build tools do, so a Scene in it would never show up, or
+     * null. When [isFolder], [name] is a folder, so its last part counts too.
+     */
+    public fun reservedFolderOf(name: String, isFolder: Boolean = false): String? = name.split('/')
+        .let { parts -> if (isFolder) parts else parts.dropLast(1) }
+        .firstOrNull { it in ProjectTree.ignoredDirectoryNames }
+}

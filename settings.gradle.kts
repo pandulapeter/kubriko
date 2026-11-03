@@ -55,6 +55,7 @@ include(
     ":app:web",
     ":creator",
     ":creator:foundation",
+    ":creator:core",
     ":creator:ui-components",
     ":engine",
     ":examples:demo-content-shaders",

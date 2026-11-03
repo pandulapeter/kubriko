@@ -103,15 +103,20 @@ internal fun validateSize(width: Float, height: Float) = if (width.isFinite() &&
  * Why [event] can't be part of the type [scope] is about. Its collision Event may only refer to the Actor types of the
  * scope.
  */
-internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection? = when {
-    !event.type.isAvailableIn(scope.kind) -> Rejection(CommandProblem.EVENT_NOT_ALLOWED, event.type.serialName)
-    event.key != null && event.type != EventType.KEY_PRESSED -> Rejection(CommandProblem.KEY_NOT_ALLOWED)
-    event.key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, event.key.composeKeyName)
-    event.otherActorType != null && event.type != EventType.COLLISION -> Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
-    event.timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(CommandProblem.TIMER_NOT_ALLOWED)
-    event.timer != null && !TimerNaming.isValid(event.timer) -> Rejection(CommandProblem.TIMER_INVALID)
-    event.otherActorType != null && event.otherActorType !in scope.actorTypeNames -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, event.otherActorType)
-    else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, scope) }
+internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection? {
+    val key = event.key
+    val timer = event.timer
+    val otherActorType = event.otherActorType
+    return when {
+        !event.type.isAvailableIn(scope.kind) -> Rejection(CommandProblem.EVENT_NOT_ALLOWED, event.type.serialName)
+        key != null && event.type != EventType.KEY_PRESSED -> Rejection(CommandProblem.KEY_NOT_ALLOWED)
+        key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, key.composeKeyName)
+        otherActorType != null && event.type != EventType.COLLISION -> Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
+        timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(CommandProblem.TIMER_NOT_ALLOWED)
+        timer != null && !TimerNaming.isValid(timer) -> Rejection(CommandProblem.TIMER_INVALID)
+        otherActorType != null && otherActorType !in scope.actorTypeNames -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, otherActorType)
+        else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, scope) }
+    }
 }
 
 /**
@@ -129,8 +134,9 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
     block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false -> Rejection(CommandProblem.SOUND_MISSING, block.sound)
     block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false -> Rejection(CommandProblem.MUSIC_MISSING, block.music)
     else -> block.propertyReference?.let { reference ->
+        val manager = reference.manager
         when {
-            reference.manager != null && scope.propertiesOf(reference.manager) == null -> Rejection(CommandProblem.MANAGER_TYPE_MISSING, reference.manager)
+            manager != null && scope.propertiesOf(manager) == null -> Rejection(CommandProblem.MANAGER_TYPE_MISSING, manager)
             reference.name.isNotEmpty() && !scope.hasProperty(reference) -> Rejection(CommandProblem.PROPERTY_MISSING, reference.name, reference.kind.serialName)
             else -> null
         }

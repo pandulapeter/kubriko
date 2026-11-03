@@ -13,7 +13,7 @@ A standalone desktop app for making Kubriko games without IntelliJ, inspired by 
 built from Events and Blocks and generated into plain Kotlin, Actors are placed in Scenes, and the game is played with one click.
 This file holds the rules a change to Creator keeps and the why behind its less obvious designs; the code and its KDoc say what
 each part does. What is planned lives in `plan/` (start with `plan/README.md`). Two packages have guides of their own: the Block
-model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/actors/CLAUDE.md`) and the in-app assistant
+model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator/actors/CLAUDE.md`) and the in-app assistant
 (`src/main/kotlin/com/pandulapeter/kubrikoCreator/ai/assistant/CLAUDE.md`).
 
 ## Running and testing
@@ -62,11 +62,11 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
 
 Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
 gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
-module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`) and `:creator:ui-components`
+module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), and `:creator:ui-components`
 (`ui.components`, `ui.theme`, with their own resources and the UI test fixtures). Each child module applies `kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
-and `creatorSourceRoots()` for tests that read the sources), and `PackageLayeringTest` keeps every file in its module's layer.
+and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`), and `PackageLayeringTest` keeps every file in its module's layer.
 
 ## Definition of done
 
@@ -196,7 +196,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   meaning for an existing field (any change an older Creator would read and then handle wrongly). A raise that needs no rewrite is
   an empty `FormatMigration { }` whose KDoc names what it added, so an older Creator opens the project read-only with the version
   it needs instead of dropping fields; type files are still read ignoring unknown keys. `PersistedShapeTest` pins the persisted
-  shape per format version (`persisted-shape-<version>.txt`; never edit a released version's file). `FormatFixturesTest` pins the files as written, with one fixture project per version (`src/test/resources/formats/v<version>`): a raise copies the newest folder to a new one and edits the copy to show what it adds, a released version's folder is never edited, and an older fixture is read through `ProjectFormat.prepare()`. A name added to
+  shape per format version (`persisted-shape-<version>.txt`; never edit a released version's file). `FormatFixturesTest` pins the files as written, with one fixture project per version (`core/src/test/resources/formats/v<version>`): a raise copies the newest folder to a new one and edits the copy to show what it adds, a released version's folder is never edited, and an older fixture is read through `ProjectFormat.prepare()`. A name added to
   `PropertyNaming`'s reserved names makes existing files with such a Property unreadable, so it needs a raise whose migration
   renames the Property with `withPropertyReplaced` (`BlockTypeEdits`), which Blocks, placeholders, and Kotlin follow.
   Each raise is a `FormatMigration` in `ProjectFormat.MIGRATIONS`, applied at opening and when `project.json` changes, recording the
