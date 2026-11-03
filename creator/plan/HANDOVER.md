@@ -25,12 +25,10 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-`00-end-to-end-checks.md`'s first slice (Project settings: Game and Identity), which adds the harness's synthetic input to Creator's
-window. The harness is built and reviewed (its review fixed a generated-code collision with a type called `Column`, the launch
-command's JetBrains Runtime and Windows length limit, the wait's timeouts, and weak screenshot checks), and `OpeningAndPlayingTest`
-passes under Xvfb: Breakout at template version 7 opens, builds, and plays, with its Bricks, Ball, and stacked texts where they
-belong. After the slice, each later item is verified with the checks before it is called done, and one slice of Not yet verified is
-done before each. Then the rest of Project settings in `03-settings.md`, as follows.
+`00-end-to-end-checks.md` → Settling Not yet verified: one pass over the list below, mostly deleting what unit tests and
+snapshots cover, with a few scenarios only for what could really break. The harness is built and reviewed, and
+`OpeningAndPlayingTest` passes under Xvfb (Breakout at template version 7 opens, builds, and plays). After that pass, the rest
+of Project settings in `03-settings.md`, as follows.
 
 Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the dialog behind the
 toolbar's settings menu, and `get_project_settings` / `set_project_settings`; see Not yet verified). Next is Targets, then
@@ -47,9 +45,8 @@ never item by item.
 
 ## Not yet verified
 
-What was built and unit-tested but not yet seen working in the real app. The end-to-end checks (`00-end-to-end-checks.md`) work
-through it: each bullet becomes a scenario and is deleted, or moves to Before a release. Nothing new is added here once the
-harness exists; a new item is verified before it is done.
+What was built and unit-tested but not yet seen working in the real app, settled by `00-end-to-end-checks.md` → Settling Not yet
+verified (mostly deleted, rarely a scenario). Nothing new is added here; a new item is verified before it is done.
 
 **Project settings: Game (built and unit-tested, and template version 10 built for real by `ProjectTemplateIntegrationTest`; not yet
 seen in the app)**

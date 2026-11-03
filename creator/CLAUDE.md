@@ -63,9 +63,12 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 - UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`testing/UiSnapshots.kt` in `:creator:ui-components`'
   test fixtures) renders a composable in the app's theme and interface scale without a window, asserts its texts and clicks,
   and saves a PNG under the module's `build/ui-snapshots`.
-  Every new UI gets one. What needs the real app (windows, focus, a played game) is verified there by the agent before it is
-  called done, never handed to the user as a check: through a scenario of the end-to-end checks, which each plan item adds to.
-  Only what needs hardware or an account no agent has goes to `plan/HANDOVER.md` → Before a release.
+  Every new UI gets one. Nothing is handed to the user as a check. Unit tests and snapshots come first and cover all they can
+  reach; an end-to-end scenario costs a real Creator, a Gradle build, and the agent's time looking at images, so one is added
+  only for what they can't reach and could really break or be built wrong (a real build of an upgraded project, a played game's
+  behaviour, processes and windows working together), never for a label, a menu entry, a field's validation, or a layout, and
+  a scenario checks several things in one Creator start. Only what needs hardware or an account no agent has goes to
+  `plan/HANDOVER.md` → Before a release.
 
 ## Modules
 
