@@ -48,10 +48,7 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
 Each item's code goes into the lowest of Creator's ten modules that can hold it (`../CLAUDE.md` → Modules): the model, code
 generation, and project files in `:creator:core`, a command in `:creator:commands`, the open project's wiring in
 `:creator:workspace` (with every change routed through `ProjectChanges`), and screen state in a tested holder such as
-`WorkspaceUiState` rather than in a Composable. Left of the structure itself, before the classes involved grow further:
-
-- **`WorkspaceController`'s constructor takes 23 parameters**, which the size check lets shrink but not grow. Direction: group
-  them by the part each feeds (`issues/`).
+`WorkspaceUiState` rather than in a Composable.
 
 ## Vision
 

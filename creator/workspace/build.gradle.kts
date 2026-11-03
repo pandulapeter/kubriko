@@ -17,6 +17,7 @@ dependencies {
     api(projects.creator.git)
     api(projects.creator.sceneRuntime)
     implementation(projects.creator.template)
+    testFixturesApi(testFixtures(projects.creator.gradleSession))
     testImplementation(testFixtures(projects.creator.foundation))
     testImplementation(testFixtures(projects.creator.core))
     testImplementation(testFixtures(projects.creator.commands))

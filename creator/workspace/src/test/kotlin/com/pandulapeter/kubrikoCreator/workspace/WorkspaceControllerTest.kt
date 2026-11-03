@@ -99,7 +99,7 @@ class WorkspaceControllerTest {
         ownWrites: OwnWrites = OwnWrites(),
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
-        return WorkspaceController(
+        return workspaceController(
             project = CreatorProject(rootDirectory = rootDirectory, name = "game"),
             build = build,
             sessionChannel = channel,
