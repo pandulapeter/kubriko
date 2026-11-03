@@ -115,6 +115,9 @@ sealed class ActorManager(
          * @param initialActors The actors to start the game with. Added when the [Kubriko] instance is started (the first
          * `TickSource.start()`), after every Manager has been initialized; they are in [allActors] by the time `start()` returns.
          * @param shouldUpdateActorsWhileNotRunning Whether [Dynamic] actors should receive updates even when the game is paused.
+         * The game also counts as paused while it is unfocused (see `StateManager.isRunning`), so a game that keeps running in the
+         * background needs this together with `shouldPauseOnFocusLoss = false` on `TickSource.viewportFrames`. When enabled, the
+         * actors also keep updating after `StateManager.updateIsRunning(false)`.
          * @param shouldPutFarAwayActorsToSleep Whether [Dynamic] actors far outside the viewport should stop receiving updates.
          * Has no effect while the viewport has no size (e.g. no `KubrikoViewport` is mounted): every Dynamic actor is updated then.
          * @param farAwayActorSleepMargin How far outside the viewport's scene-space bounds a [Dynamic] actor may stray before it is

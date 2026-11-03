@@ -222,7 +222,11 @@ abstract class TickSource {
         /**
          * Creates the default viewport-frame based [TickSource].
          *
-         * @param shouldPauseOnFocusLoss when true, ticks will only be emitted when the window is focused.
+         * @param shouldPauseOnFocusLoss when true, ticks will only be emitted when the window is focused. Setting it to false
+         * keeps the ticks coming, but `StateManager.isRunning` still turns false while unfocused, so `Dynamic` actors stop
+         * updating unless the `ActorManager` is created with `shouldUpdateActorsWhileNotRunning = true`. Ticks still need
+         * display frames: if the platform stops delivering them (a minimized window, for example), they stop too; use
+         * [fixedFrequency] for updates independent of the window.
          *
          * A gap of more than two seconds between display frames (the app was in the background) restarts the timeline
          * instead of being emitted as one delta; that time is not added to `MetadataManager.totalRuntimeInMilliseconds`

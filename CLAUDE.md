@@ -186,7 +186,7 @@ Decouples the update loop from the viewport. Passed to `Kubriko.newInstance()`.
 
 | Factory | Behavior |
 |---|---|
-| `TickSource.viewportFrames()` | Default. Started by `KubrikoViewport`; ticks from Compose frames while visible and focused. Pauses on focus loss by default. |
+| `TickSource.viewportFrames()` | Default. Started by `KubrikoViewport`; ticks from Compose frames while visible and focused. Pauses on focus loss by default; `shouldPauseOnFocusLoss = false` keeps it ticking, but `StateManager.isRunning` still turns false, so Dynamic actors also need `ActorManager`'s `shouldUpdateActorsWhileNotRunning = true`. |
 | `TickSource.fixedRate(intervalInMilliseconds)` | Coroutine-based; delta = configured interval. First tick delta = 0. Requires explicit `start()`. |
 | `TickSource.fixedFrequency(ticksPerSecond)` | Coroutine-based; delta = measured elapsed time. Re-syncs if behind; a gap over 2 s restarts the timeline with a 0 delta. First tick delta = 0. Requires explicit `start()`. |
 | `TickSource.manual()` | Advances only on explicit `tick(deltaTimeInMilliseconds)`. Deterministic; use for tests/replay. Requires `start()`. |
