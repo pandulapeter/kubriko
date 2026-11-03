@@ -383,3 +383,9 @@ file can't be pushed from this CI job (no `workflows` permission), which M10's `
 - `PackageLayeringTest`: every test kept (`everyLayerHasSources` and M08's `noExtractedLayerIsLeftInTheApp` too, since a workspace file put back in the app still compiles); `knownExceptions` stays an empty map as the extension point; its KDoc says what Gradle already enforces, what the test still catches, and that `layers` mirrors `settings.gradle.kts`' `:creator:*` modules.
 - Docs: creator/CLAUDE.md's Modules is the complete list, lowest first, with the two rules and the fixtures; the interim `PackageLayeringTest` bullet of Running and testing is folded into it. `gradle/build-logic/CLAUDE.md`'s `kubriko-creator-module` row lists the ten modules. The root CLAUDE.md's `creator/` line already said the plan's sentence.
 - Extra fixes: none
+
+## Review of M01 … M14
+Read-only review of lane M's range, every finding checked against the code. No correctness bugs found.
+- Fixed in bbe152a86: `:creator:ui-components` declared `libs.compose.resources` as `implementation`, though its public components (`FieldError`, `NewNameField`, `IconActionButton`, `MenuIconButton`, `PanelHeader`, `NumberField`) expose `StringResource` and `DrawableResource`; it is `api` now. The app keeps its own declaration, since it imports the library directly and generates resources of its own.
+- Fixed in 74367b831: the root CLAUDE.md's `gradle/build-logic/` bullet said Kubriko Creator applies only `kubriko-style`; its modules apply `kubriko-creator-module`, its app `kubriko-style`. The same commit closes a backtick in creator/CLAUDE.md (`` `:creator:commands`' test fixtures ``).
+- Dropped: wording in CreatorConfiguration/SessionInitScript messages, a mismatched backtick in creator/CLAUDE.md (fixed above with the docs commit), pre-existing behaviours.
