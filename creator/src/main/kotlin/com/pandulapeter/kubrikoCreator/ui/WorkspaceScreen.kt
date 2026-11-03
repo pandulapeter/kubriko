@@ -278,6 +278,8 @@ private fun WorkspaceDialogsOf(
     uiState = uiState,
     projectUpgrade = projectUpgrade,
     rootDirectory = controller.project.rootDirectory,
+    blockTypes = controller.blockTypes?.types,
+    scenes = controller.scenes,
     history = controller.commands.history,
     gitState = controller.git.state,
     onCommand = controller.commands::dispatch,

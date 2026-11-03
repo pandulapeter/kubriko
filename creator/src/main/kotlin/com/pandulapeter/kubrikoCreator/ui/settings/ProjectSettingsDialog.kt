@@ -28,15 +28,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import com.pandulapeter.kubrikoCreator.ui.text
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_done
 import kubriko.creator.generated.resources.action_review_upgrade
-import kubriko.creator.generated.resources.error_command_project_settings_unavailable
 import kubriko.creator.generated.resources.project_settings_identity_description
 import kubriko.creator.generated.resources.project_settings_section_identity
 import kubriko.creator.generated.resources.project_settings_title
@@ -46,14 +47,13 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Project settings: the game's, kept in the project where its build reads them.
  *
- * @param identity The game's identity, or null if the project's build doesn't read one ([isLoaded]) or it is still being read.
+ * @param settings The project's settings, or null while they are being read, or if they couldn't be ([failure]).
  * @param failure Why the settings couldn't be read, if they couldn't.
  * @param onReviewUpgrade Opens the template upgrade that makes the build read the settings, if there is one.
  */
 @Composable
 internal fun ProjectSettingsDialog(
-    identity: GameIdentity?,
-    isLoaded: Boolean,
+    settings: ProjectSettingsSnapshot?,
     failure: Throwable? = null,
     onChange: (SetProjectSettings.Input) -> Unit,
     onReviewUpgrade: (() -> Unit)?,
@@ -73,11 +73,15 @@ internal fun ProjectSettingsDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                 )
-                identity != null -> IdentitySection(
-                    identity = identity,
-                    onChange = onChange,
-                )
-                isLoaded -> UnavailableNotice(onReviewUpgrade = onReviewUpgrade)
+                settings != null -> {
+                    settings.identity?.let { IdentitySection(identity = it, onChange = onChange) }
+                    settings.game?.let { GameSettingsSection(reading = it, scenes = settings.scenes, onChange = onChange) }
+                    when {
+                        settings.identity == null -> UnavailableNotice(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE, onReviewUpgrade)
+                        settings.game == null -> UnavailableNotice(CommandProblem.GAME_SETTINGS_UNAVAILABLE, onReviewUpgrade)
+                    }
+                    LibrariesSection(libraries = settings.libraries)
+                }
             }
         }
     },
@@ -143,14 +147,18 @@ private fun IdentityTextField(
     }
 }
 
+/**
+ * Says that the build doesn't read some of the settings yet ([problem]), offering the template upgrade if there is one.
+ */
 @Composable
 private fun UnavailableNotice(
+    problem: CommandProblem,
     onReviewUpgrade: (() -> Unit)?,
 ) = Column(
     verticalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     Text(
-        text = stringResource(Res.string.error_command_project_settings_unavailable),
+        text = problem.text(),
         style = MaterialTheme.typography.bodyMedium,
     )
     if (onReviewUpgrade != null) {

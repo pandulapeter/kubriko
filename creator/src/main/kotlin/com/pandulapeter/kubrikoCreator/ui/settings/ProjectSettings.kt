@@ -13,10 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
-import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
+import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -26,27 +28,32 @@ import java.io.IOException
 /**
  * [ProjectSettingsDialog] for the project in [rootDirectory], reading its settings again after every change to the
  * project (undo included), and each time it opens, so that a value changed by hand in the file shows.
+ *
+ * @param blockTypes The project's Block-built types, which say why it uses its libraries.
+ * @param scenes The project's Scenes, which the game can start with.
  */
 @Composable
 internal fun ProjectSettings(
     rootDirectory: File,
+    blockTypes: StateFlow<List<BlockTypeDefinition>>?,
+    scenes: SceneStore,
     history: StateFlow<CommandHistory>,
     onCommand: (Invocation<*>) -> Unit,
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
 ) {
     val currentHistory by history.collectAsState()
-    val identity by produceState<Result<GameIdentity?>?>(null, rootDirectory, currentHistory) {
+    val settings by produceState<Result<ProjectSettingsSnapshot>?>(null, rootDirectory, currentHistory) {
+        val definitions = blockTypes?.value.orEmpty()
         value = try {
-            Result.success(withContext(Dispatchers.IO) { GameIdentity.read(rootDirectory) })
+            Result.success(withContext(Dispatchers.IO) { ProjectSettingsSnapshot.read(rootDirectory, definitions, scenes) })
         } catch (exception: IOException) {
             Result.failure(exception)
         }
     }
     ProjectSettingsDialog(
-        identity = identity?.getOrNull(),
-        isLoaded = identity != null,
-        failure = identity?.exceptionOrNull(),
+        settings = settings?.getOrNull(),
+        failure = settings?.exceptionOrNull(),
         onChange = { onCommand(Invocation(SetProjectSettings, it)) },
         onReviewUpgrade = onReviewUpgrade,
         onDismiss = onDismiss,

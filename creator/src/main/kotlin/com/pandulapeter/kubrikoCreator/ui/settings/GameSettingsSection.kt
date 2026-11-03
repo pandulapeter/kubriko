@@ -1,0 +1,182 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.ui.settings
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
+import com.pandulapeter.kubrikoCreator.project.AspectRatio
+import com.pandulapeter.kubrikoCreator.project.GameSettings
+import com.pandulapeter.kubrikoCreator.project.GameSettingsProblem
+import com.pandulapeter.kubrikoCreator.project.GameSettingsReading
+import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
+import com.pandulapeter.kubrikoCreator.ui.components.NumberField
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
+import com.pandulapeter.kubrikoCreator.ui.text
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.project_settings_aspect_ratio
+import kubriko.creator.generated.resources.project_settings_first_scene
+import kubriko.creator.generated.resources.project_settings_frame_rate
+import kubriko.creator.generated.resources.project_settings_frame_rate_display
+import kubriko.creator.generated.resources.project_settings_frame_rate_limit
+import kubriko.creator.generated.resources.project_settings_game_description
+import kubriko.creator.generated.resources.project_settings_section_game
+import kubriko.creator.generated.resources.project_settings_unreadable_keys
+import kubriko.creator.generated.resources.project_settings_viewport_height
+import kubriko.creator.generated.resources.project_settings_viewport_width
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+
+/**
+ * The Game section of Project settings: the first Scene, the aspect ratio with the viewport's size, and the frame rate.
+ *
+ * @param scenes The project's Scenes, which the game can start with.
+ */
+@Composable
+internal fun GameSettingsSection(
+    reading: GameSettingsReading,
+    scenes: List<String>,
+    onChange: (SetProjectSettings.Input) -> Unit,
+) = SettingsSection(
+    title = Res.string.project_settings_section_game,
+    description = Res.string.project_settings_game_description,
+) {
+    val settings = reading.settings
+    if (reading.invalidKeys.isNotEmpty()) {
+        ProblemText(stringResource(Res.string.project_settings_unreadable_keys, reading.invalidKeys.joinToString()))
+    }
+    SettingRow(Res.string.project_settings_first_scene) {
+        SearchableChoiceButton(
+            label = settings.firstScene,
+            options = scenes,
+            optionText = { it },
+            onSelected = { if (it != settings.firstScene) onChange(SetProjectSettings.Input(firstScene = it)) },
+        )
+    }
+    if (settings.firstScene !in scenes) {
+        ProblemText(CommandProblem.SCENE_MISSING.text(listOf(settings.firstScene)))
+    }
+    SettingRow(Res.string.project_settings_aspect_ratio) {
+        MenuButton(
+            label = stringResource(settings.aspectRatio.label),
+            options = AspectRatio.entries,
+            optionText = { stringResource(it.label) },
+            onSelected = { if (it != settings.aspectRatio) onChange(SetProjectSettings.Input(aspectRatio = it)) },
+        )
+    }
+    Text(
+        modifier = Modifier.padding(start = LABEL_WIDTH),
+        text = stringResource(settings.aspectRatio.description),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    if (settings.aspectRatio.usesWidth || settings.aspectRatio.usesHeight) {
+        ViewportSizeFields(
+            settings = settings,
+            onChange = onChange,
+        )
+    }
+    SettingRow(Res.string.project_settings_frame_rate) {
+        MenuButton(
+            label = frameRateText(settings.frameRate),
+            options = frameRateOptions(settings.frameRate),
+            optionText = { frameRateText(it) },
+            onSelected = { if (it != settings.frameRate) onChange(SetProjectSettings.Input(frameRate = it)) },
+        )
+    }
+}
+
+/**
+ * The width and height fields of the aspect ratios that use them; a size out of range isn't applied, and says why.
+ */
+@Composable
+private fun ViewportSizeFields(
+    settings: GameSettings,
+    onChange: (SetProjectSettings.Input) -> Unit,
+) {
+    var problem by remember { mutableStateOf<Pair<GameSettingsProblem, List<String>>?>(null) }
+    fun change(input: SetProjectSettings.Input) {
+        problem = input.appliedTo(settings).validate()
+        if (problem == null) onChange(input)
+    }
+    Row(
+        modifier = Modifier.padding(start = LABEL_WIDTH),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (settings.aspectRatio.usesWidth) {
+            NumberField(
+                modifier = Modifier.width(SIZE_FIELD_WIDTH),
+                label = Res.string.project_settings_viewport_width,
+                value = settings.viewportWidth,
+                onValueChange = { if (it != settings.viewportWidth) change(SetProjectSettings.Input(viewportWidth = it)) else problem = null },
+            )
+        }
+        if (settings.aspectRatio.usesHeight) {
+            NumberField(
+                modifier = Modifier.width(SIZE_FIELD_WIDTH),
+                label = Res.string.project_settings_viewport_height,
+                value = settings.viewportHeight,
+                onValueChange = { if (it != settings.viewportHeight) change(SetProjectSettings.Input(viewportHeight = it)) else problem = null },
+            )
+        }
+    }
+    problem?.let { (reason, arguments) -> ProblemText(reason.text(arguments)) }
+}
+
+@Composable
+private fun frameRateText(frameRate: Int) = if (frameRate == GameSettings.EVERY_DISPLAY_FRAME) {
+    stringResource(Res.string.project_settings_frame_rate_display)
+} else {
+    stringResource(Res.string.project_settings_frame_rate_limit, frameRate)
+}
+
+/**
+ * A setting's [label] beside its [control].
+ */
+@Composable
+private fun SettingRow(
+    label: StringResource,
+    control: @Composable () -> Unit,
+) = Row(
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    Text(
+        modifier = Modifier.width(LABEL_WIDTH),
+        text = stringResource(label),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    control()
+}
+
+@Composable
+private fun ProblemText(
+    text: String,
+) = Text(
+    text = text,
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.error,
+)
+
+private val SIZE_FIELD_WIDTH = 120.dp
+private val LABEL_WIDTH = 120.dp
