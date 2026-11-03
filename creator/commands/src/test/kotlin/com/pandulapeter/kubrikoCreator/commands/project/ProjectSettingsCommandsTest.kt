@@ -79,7 +79,9 @@ class ProjectSettingsCommandsTest {
         projectReadingItsSettings()
         properties.writeText(properties.readText().replace("game.aspectRatio=dynamic", "game.aspectRatio=fitVertical").replace("game.frameRate=60", "game.frameRate=fast"))
         File(root, "src/commonMain/kotlin/Game.kt").apply { parentFile.mkdirs() }.writeText("import com.pandulapeter.kubriko.physics.PhysicsManager\n")
-        File(root, "src/commonMain/kotlin/generated/Ball.kt").apply { parentFile.mkdirs() }.writeText("import com.pandulapeter.kubriko.collision.Collidable\n")
+        File(root, ".kubriko").mkdirs()
+        File(root, ".kubriko/project.json").writeText("""{ "packageName": "game" }""")
+        File(root, "src/commonMain/kotlin/game/generated/Ball.kt").apply { parentFile.mkdirs() }.writeText("import com.pandulapeter.kubriko.collision.Collidable\n")
         val ball = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Ball")))
         val result = assertIs<CommandOutcome.Success>(GetProjectSettings.read(commandContext(ball, rootDirectory = root), NoInput)).result.jsonObject
         assertEquals(

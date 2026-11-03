@@ -11,9 +11,12 @@ package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.PluginUse
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import kotlinx.serialization.SerializationException
 import java.io.File
+import java.io.IOException
 
 /**
  * A Kubriko library the game's build depends on, as [KubrikoBuildFiles] decides from its sources, and why.
@@ -36,28 +39,30 @@ public data class LibraryInUse(
 
     public companion object {
         private const val SOURCE_DIRECTORY = "src"
-        private const val GENERATED_DIRECTORY = "generated"
 
         /**
          * Every library the project in [rootDirectory] uses, in [KubrikoArtifact]'s order: those its sources name, as its
          * build does, with [definitions] and the [scenes] saying why. Reads every Kotlin file and Scene, so it is called
-         * off the main thread.
+         * off the main thread; one that can't be read right now (another program holds it on Windows) is left out.
          */
         public fun read(rootDirectory: File, definitions: List<BlockTypeDefinition>, scenes: SceneStore): List<LibraryInUse> {
             val sources = ProjectTree.walk(File(rootDirectory, SOURCE_DIRECTORY))
                 .filter { it.isFile && it.extension == "kt" }
-                .associate { it.relativeTo(rootDirectory).invariantSeparatorsPath to it.readText() }
-            val sceneMusic = scenes.names().sorted().mapNotNull { scene -> scenes.read(scene)?.let(SceneSettingsState::musicOf)?.let { scene to it } }.toMap()
-            return of(sources, PluginUse.of(definitions, sceneMusic))
+                .mapNotNull { file -> readOrNull { file.readText() }?.let { file.relativeTo(rootDirectory).invariantSeparatorsPath to it } }
+                .toMap()
+            val sceneMusic = scenes.names().sorted().mapNotNull { scene -> readOrNull { scenes.read(scene) }?.let(SceneSettingsState::musicOf)?.let { scene to it } }.toMap()
+            return of(sources, PluginUse.of(definitions, sceneMusic), generatedPathOf(rootDirectory))
         }
 
         /**
          * The libraries the Kotlin [sources] (their texts by their paths) name, with the [uses] of each.
+         *
+         * @param generatedPath Where the project's generated code is, or null for a project without block-built types.
          */
-        internal fun of(sources: Map<String, String>, uses: List<PluginUse>): List<LibraryInUse> {
+        internal fun of(sources: Map<String, String>, uses: List<PluginUse>, generatedPath: String?): List<LibraryInUse> {
             val namedBy = sources.mapValues { (_, text) -> KubrikoArtifact.namedIn(text) }
             val used = KubrikoArtifact.ALWAYS_USED + namedBy.values.flatten()
-            val (generated, handWritten) = namedBy.entries.partition { (path, _) -> GENERATED_DIRECTORY in path.split('/').dropLast(1) }
+            val (generated, handWritten) = namedBy.entries.partition { (path, _) -> generatedPath != null && path.startsWith("$generatedPath/") }
             return KubrikoArtifact.entries.filter { it in used }.map { artifact ->
                 LibraryInUse(
                     artifact = artifact,
@@ -66,6 +71,20 @@ public data class LibraryInUse(
                     isUsedByGeneratedCode = generated.any { artifact in it.value },
                 )
             }
+        }
+
+        private fun generatedPathOf(rootDirectory: File) = try {
+            BlockTypeStore.open(rootDirectory)?.generatedPath
+        } catch (_: IOException) {
+            null
+        } catch (_: SerializationException) {
+            null
+        }
+
+        private fun <T> readOrNull(read: () -> T): T? = try {
+            read()
+        } catch (_: IOException) {
+            null
         }
     }
 }
