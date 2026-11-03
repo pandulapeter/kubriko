@@ -12,15 +12,23 @@ package com.pandulapeter.kubrikoCreator.foundation
 import java.io.File
 
 /**
- * Kubriko Creator's settings folder, where each platform keeps application settings.
+ * Kubriko Creator's settings folder, where each platform keeps application settings, unless the
+ * [SETTINGS_DIRECTORY_PROPERTY] system property names another (the end-to-end checks give each run a folder of its own).
  */
 public fun settingsDirectory(
+    override: String? = System.getProperty(SETTINGS_DIRECTORY_PROPERTY),
     operatingSystem: String = System.getProperty("os.name").orEmpty().lowercase(),
     home: String = System.getProperty("user.home"),
     appData: String? = System.getenv("APPDATA"),
     xdgConfigHome: String? = System.getenv("XDG_CONFIG_HOME"),
 ): File = when {
+    !override.isNullOrBlank() -> File(override)
     "mac" in operatingSystem -> File(home, "Library/Application Support/Kubriko Creator")
     "windows" in operatingSystem -> File(appData ?: "$home/AppData/Roaming", "Kubriko Creator")
     else -> File(xdgConfigHome ?: "$home/.config", "kubriko-creator")
 }
+
+/**
+ * The system property that moves [settingsDirectory] elsewhere.
+ */
+public const val SETTINGS_DIRECTORY_PROPERTY: String = "kubriko.creator.settingsDirectory"

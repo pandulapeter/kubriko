@@ -17,9 +17,27 @@ class SettingsDirectoryTest {
 
     @Test
     fun eachPlatformKeepsSettingsInItsUsualPlace() {
-        assertEquals(File("/Users/me/Library/Application Support/Kubriko Creator"), settingsDirectory("mac os x", "/Users/me", null, null))
-        assertEquals(File("C:/Users/me/AppData/Roaming", "Kubriko Creator"), settingsDirectory("windows 11", "C:/Users/me", "C:/Users/me/AppData/Roaming", null))
-        assertEquals(File("/home/me/.config/kubriko-creator"), settingsDirectory("linux", "/home/me", null, null))
-        assertEquals(File("/xdg/kubriko-creator"), settingsDirectory("linux", "/home/me", null, "/xdg"))
+        assertEquals(File("/Users/me/Library/Application Support/Kubriko Creator"), settingsDirectory(null, "mac os x", "/Users/me", null, null))
+        assertEquals(File("C:/Users/me/AppData/Roaming", "Kubriko Creator"), settingsDirectory(null, "windows 11", "C:/Users/me", "C:/Users/me/AppData/Roaming", null))
+        assertEquals(File("/home/me/.config/kubriko-creator"), settingsDirectory(null, "linux", "/home/me", null, null))
+        assertEquals(File("/xdg/kubriko-creator"), settingsDirectory(null, "linux", "/home/me", null, "/xdg"))
+    }
+
+    @Test
+    fun aFolderTheSystemPropertyNamesTakesThePlatformsPlace() {
+        assertEquals(File("/runs/one/settings"), settingsDirectory("/runs/one/settings", "linux", "/home/me", null, "/xdg"))
+        assertEquals(File("C:/runs/one"), settingsDirectory("C:/runs/one", "windows 11", "C:/Users/me", "C:/Users/me/AppData/Roaming", null))
+        assertEquals(File("/home/me/.config/kubriko-creator"), settingsDirectory(" ", "linux", "/home/me", null, null))
+    }
+
+    @Test
+    fun theSystemPropertyIsReadWhenNoFolderIsGiven() {
+        val previous = System.getProperty(SETTINGS_DIRECTORY_PROPERTY)
+        try {
+            System.setProperty("kubriko.creator.settingsDirectory", "/runs/two")
+            assertEquals(File("/runs/two"), settingsDirectory())
+        } finally {
+            if (previous == null) System.clearProperty(SETTINGS_DIRECTORY_PROPERTY) else System.setProperty(SETTINGS_DIRECTORY_PROPERTY, previous)
+        }
     }
 }
