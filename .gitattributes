@@ -1,0 +1,14 @@
+# This file is part of Kubriko.
+# Copyright (c) Pandula Péter 2025-2026.
+# https://github.com/pandulapeter/kubriko
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+# If a copy of the MPL was not distributed with this file, You can obtain one at
+# https://mozilla.org/MPL/2.0/.
+
+# Every checkout gets the same bytes as the repository, whatever core.autocrlf says (Windows runners and installs turn it
+# on), so tests and bundled templates read the same files on every platform. Windows line breaks in users' files are
+# handled by the code and tested with literals, never by what git checks out.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf

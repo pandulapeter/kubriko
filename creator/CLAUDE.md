@@ -25,7 +25,8 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 - `./gradlew :creator:allTests` runs every module's unit tests (also on Windows and Linux in `Tests`); `:creator:<module>:test
   --tests …` runs one module's. Run the whole suite before every commit,
   not only the tests you touched: tests elsewhere catch leaks and races (a server left running, an exception escaping a scope),
-  and Windows paths differ (write expected paths with `File`, not `/`).
+  and Windows paths differ (write expected paths with `File`, not `/`). Line breaks don't: `.gitattributes` checks every file
+  out with `\n` on Windows too, so a test of Windows line breaks writes `\r\n` as a literal.
 - Opt-in tests, skipped without their switch:
   - `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=<version>` (`ProjectTemplateIntegrationTest`, in `:creator:template`) generates every template for real and builds it for
     desktop and web, with an Actor type and two Manager types using every Event and Block, and resolves the desktop runtime
