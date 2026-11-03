@@ -61,6 +61,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -80,8 +81,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param initialFormatStatus Whether the project may be changed, as [projectFormat] found it while opening it, which it
  *   checks again whenever `.kubriko/project.json` changes.
  */
-internal class WorkspaceController(
-    val project: CreatorProject,
+public class WorkspaceController(
+    public val project: CreatorProject,
     private val build: ProjectBuild,
     private val sessionChannel: SessionChannel,
     private val parentScope: CoroutineScope,
@@ -116,25 +117,29 @@ internal class WorkspaceController(
      */
     private val desktopModulePath = DesktopModuleLookup(scope, ioDispatcher, findDesktopModulePath)
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
-    val resources = _resources.asStateFlow()
+
+    /** The project's resources, by group, as the last scan found them. */
+    public val resources: StateFlow<Map<ResourceGroup, List<ProjectResource>>> = _resources.asStateFlow()
     private val _sceneFolders = MutableStateFlow(emptySet<String>())
 
     /**
      * The folders of the Scenes folder, empty ones too.
      */
-    val sceneFolders = _sceneFolders.asStateFlow()
+    public val sceneFolders: StateFlow<Set<String>> = _sceneFolders.asStateFlow()
     private val incrementalCompilation = IncrementalCompilationPolicy(
         hasExpectDeclarations = ExpectDeclarations(project.rootDirectory).let { declarations -> { withContext(ioDispatcher) { declarations.any() } } },
     )
     private val consoleLog = ConsoleLog()
-    val console = consoleLog.entries
+
+    /** The lines of the workspace console, oldest first. */
+    public val console: StateFlow<List<ConsoleEntry>> = consoleLog.entries
     private val _formatStatus = MutableStateFlow(initialFormatStatus)
 
     /**
      * Whether this Kubriko Creator may change the project: one saved by a newer Kubriko Creator is only browsed, built,
      * and played, rejecting every change, and generating no code.
      */
-    val formatStatus = _formatStatus.asStateFlow()
+    public val formatStatus: StateFlow<ProjectFormatStatus> = _formatStatus.asStateFlow()
 
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     private val upgrader = ProjectUpgrader(project.rootDirectory)
@@ -144,14 +149,15 @@ internal class WorkspaceController(
      * What the project's template files (`Game.kt` and its neighbors, which belong to the user) need for this version of
      * Kubriko Creator.
      */
-    val projectUpgrade = _projectUpgrade.asStateFlow()
+    public val projectUpgrade: StateFlow<TemplateUpgrade> = _projectUpgrade.asStateFlow()
 
     /**
      * The project's Scene files, by name.
      */
-    val scenes = SceneStore(project.rootDirectory, ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
+    public val scenes: SceneStore = SceneStore(project.rootDirectory, ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
 
-    val git = GitController(
+    /** The project's version control. */
+    public val git: GitController = GitController(
         openRepository = openGitRepository,
         createRepository = createGitRepository,
         generatedPath = generatedPath,
@@ -168,7 +174,7 @@ internal class WorkspaceController(
     /**
      * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
      */
-    val blockTypes: BlockTypesController? = blockTypeRepository?.let { repository ->
+    public val blockTypes: BlockTypesController? = blockTypeRepository?.let { repository ->
         BlockTypesController(
             repository = repository,
             scope = scope,
@@ -203,7 +209,9 @@ internal class WorkspaceController(
         scope = scope,
         runGame = runGame,
     )
-    val sessionState = sessions.state
+
+    /** Whether the session process is idle, starting, or running. */
+    public val sessionState: StateFlow<SessionState> = sessions.state
     private val gameBuilds = GameBuilds(
         rootDirectory = project.rootDirectory,
         sessions = sessions,
@@ -217,7 +225,7 @@ internal class WorkspaceController(
     /**
      * The Scene shown in Kubriko Creator's own window.
      */
-    val sceneEditing = SceneEditingController(
+    public val sceneEditing: SceneEditingController = SceneEditingController(
         creatorKubrikoVersion = creatorKubrikoVersion,
         creatorLibraries = creatorLibraries,
         runTask = tasks::run,
@@ -239,7 +247,7 @@ internal class WorkspaceController(
     /**
      * What the center shows, which every selection of a type or a Scene goes through.
      */
-    val selection = SelectionController(
+    public val selection: SelectionController = SelectionController(
         blockTypes = blockTypes,
         sceneEditing = sceneEditing,
         sceneOf = { name -> _resources.value[ResourceGroup.SCENES].orEmpty().firstOrNull { SceneStore.nameOf(it.file) == name } },
@@ -270,7 +278,7 @@ internal class WorkspaceController(
     /**
      * Every change to the project goes through here, so that it can be undone, and the AI can make it too.
      */
-    val commands = CommandExecutor(
+    public val commands: CommandExecutor = CommandExecutor(
         context = CommandContext(
             project = project,
             console = console,
@@ -298,7 +306,7 @@ internal class WorkspaceController(
     )
 
     /** The AI panel's Game map, computed only while it is shown. */
-    val gameMap = GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, ::reportUnexpectedProblem)
+    public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, ::reportUnexpectedProblem)
 
     private val watching = startWatching(::onProjectChanged)
 
@@ -320,7 +328,7 @@ internal class WorkspaceController(
      *
      * @return Why [name] can't be used, or null if the Actor type is being created.
      */
-    fun createActorType(name: String): Rejection? {
+    public fun createActorType(name: String): Rejection? {
         val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it }
         commands.dispatch(invocation) { selection.selectType(name) }
@@ -332,7 +340,7 @@ internal class WorkspaceController(
      *
      * @return Why [name] can't be used, or null if the Manager type is being created.
      */
-    fun createManagerType(name: String): Rejection? {
+    public fun createManagerType(name: String): Rejection? {
         val invocation = Invocation(CreateManagerType, ManagerTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it }
         commands.dispatch(invocation) { selection.selectType(name) }
@@ -344,14 +352,14 @@ internal class WorkspaceController(
      *
      * @return Why [name] can't be used, or null if the Scene is being created.
      */
-    fun createScene(name: String) = dispatchIfValid(Invocation(CreateScene, CreateScene.Input(name)))
+    public fun createScene(name: String): Rejection? = dispatchIfValid(Invocation(CreateScene, CreateScene.Input(name)))
 
     /**
      * Applies [invocation] unless it is rejected.
      *
      * @return Why it was rejected, or null if it is being applied.
      */
-    fun dispatchIfValid(invocation: Invocation<*>): Rejection? {
+    public fun dispatchIfValid(invocation: Invocation<*>): Rejection? {
         commands.validate(invocation)?.let { return it }
         commands.dispatch(invocation)
         return null
@@ -361,13 +369,13 @@ internal class WorkspaceController(
      * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them; the resource tree is
      * built from [snapshot], the files as the watcher found them, if it is given.
      */
-    fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) = this.changes.onProjectChanged(changes, snapshot)
+    internal fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) = this.changes.onProjectChanged(changes, snapshot)
 
     /**
      * Checks the template files again, recording the new template version if they were upgraded by hand. A project that
      * may not be changed is offered no upgrade.
      */
-    fun refreshProjectUpgrade() {
+    internal fun refreshProjectUpgrade() {
         scope.launch {
             _projectUpgrade.value = withContext(ioDispatcher) {
                 if (_formatStatus.value is ProjectFormatStatus.ReadOnly) {
@@ -402,7 +410,8 @@ internal class WorkspaceController(
         }
     }
 
-    fun refreshResources() = changes.refreshResources()
+    /** Scans the project's resources again. */
+    public fun refreshResources(): Unit = changes.refreshResources()
 
     /**
      * Scans the resource tree from [snapshot], unless one of Creator's own writes came after it was taken, whose change
@@ -421,23 +430,25 @@ internal class WorkspaceController(
      * Plays the game, from its first Scene or [firstScene], which a project whose template files are older than that
      * ([projectUpgrade]) may not honor, as the console says then.
      */
-    fun play(firstScene: String? = null) {
+    public fun play(firstScene: String? = null) {
         if (firstScene != null && _projectUpgrade.value is TemplateUpgrade.Needed) {
             appendToConsole(ConsoleEntry.Status(WorkspaceStatus.PLAY_FROM_SCENE_NEEDS_UPGRADE, arguments = listOf(firstScene)))
         }
         sessions.play(firstScene, gameBuilds::prepareLaunch)
     }
 
-    fun stopSession() = sessions.stop()
+    /** Stops the session process, if one runs. */
+    public fun stopSession(): Unit = sessions.stop()
 
     /**
      * Says in the console that something failed that nothing expected to, naming the exception.
      */
-    fun reportUnexpectedProblem(exception: Throwable) {
+    public fun reportUnexpectedProblem(exception: Throwable) {
         appendToConsole(ConsoleEntry.Status(WorkspaceStatus.UNEXPECTED_PROBLEM, isError = true, arguments = listOf(exception.toString())))
     }
 
-    fun clearConsole() = consoleLog.clear()
+    /** Empties the workspace console. */
+    public fun clearConsole(): Unit = consoleLog.clear()
 
     private fun appendToConsole(entry: ConsoleEntry) = consoleLog.append(entry)
 
@@ -471,7 +482,7 @@ internal class WorkspaceController(
      *
      * @return The job that finishes closing it, for an app that is quitting to wait for.
      */
-    fun close(): Job {
+    public fun close(): Job {
         watching.close()
         sceneEditing.dispose()
         return parentScope.launch(start = CoroutineStart.UNDISPATCHED) {

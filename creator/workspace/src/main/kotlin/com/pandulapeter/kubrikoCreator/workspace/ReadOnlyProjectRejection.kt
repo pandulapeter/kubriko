@@ -16,5 +16,5 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 /**
  * Why no change may be made to a project a newer Kubriko Creator saved, which its notice says too.
  */
-internal fun ProjectFormatStatus.ReadOnly.toRejection() = creatorVersion?.let { Rejection(ProjectProblem.NEWER_FORMAT, it) }
+public fun ProjectFormatStatus.ReadOnly.toRejection(): Rejection = creatorVersion?.let { Rejection(ProjectProblem.NEWER_FORMAT, it) }
     ?: Rejection(ProjectProblem.NEWER_FORMAT_UNKNOWN_VERSION)

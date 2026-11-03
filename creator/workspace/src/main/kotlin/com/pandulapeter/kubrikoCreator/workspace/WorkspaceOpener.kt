@@ -15,7 +15,10 @@ import java.io.File
 /**
  * Turns a project folder into a [WorkspaceController], or throws.
  */
-internal fun interface WorkspaceOpener {
+public fun interface WorkspaceOpener {
 
-    suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController
+    /**
+     * Opens the project in [directory], running everything it starts in a child of [scope].
+     */
+    public suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController
 }

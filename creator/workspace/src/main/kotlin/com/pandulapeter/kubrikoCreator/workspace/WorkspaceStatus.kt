@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 /**
  * What an open project reports in the console: builds, sessions, type files, and upgrades.
  */
-internal enum class WorkspaceStatus(override val english: String) : DomainText {
+public enum class WorkspaceStatus(override val english: String) : DomainText {
     BLOCK_TYPE_NOT_SAVED("%1\$s couldn't be saved: %2\$s"),
     BLOCK_TYPES_SAVED_AGAIN("Kubriko Creator could write its changes again."),
     BUILD_FAILED("The build failed."),

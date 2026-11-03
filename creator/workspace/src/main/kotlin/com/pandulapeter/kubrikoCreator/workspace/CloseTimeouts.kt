@@ -14,9 +14,9 @@ import com.pandulapeter.kubrikoCreator.session.GameProcess
 /**
  * How long [WorkspaceController.close] waits for the game to stop, which is as long as stopping it can take.
  */
-internal const val CLOSE_GAME_TIMEOUT_IN_MILLISECONDS = GameProcess.STOP_TIMEOUT_IN_MILLISECONDS
+public const val CLOSE_GAME_TIMEOUT_IN_MILLISECONDS: Long = GameProcess.STOP_TIMEOUT_IN_MILLISECONDS
 
 /**
  * How long [WorkspaceController.close] waits for a failed write to succeed before it stops the workspace anyway.
  */
-internal const val CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS = 10_000L
+public const val CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS: Long = 10_000L

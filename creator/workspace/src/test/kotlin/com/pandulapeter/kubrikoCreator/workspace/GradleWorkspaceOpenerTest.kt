@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class GradleWorkspaceOpenerTest {
-    private val opener = GradleWorkspaceOpener(CreatorConfiguration.load())
+    private val opener = GradleWorkspaceOpener(CreatorConfiguration.load(), loadCreatorLibraries = { emptyMap() })
 
     @Test
     fun aFolderThatIsNotAGradleProjectIsRefused() = runTest {
