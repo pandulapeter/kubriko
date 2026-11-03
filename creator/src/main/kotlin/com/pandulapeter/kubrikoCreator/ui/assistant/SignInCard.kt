@@ -9,13 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,14 +38,7 @@ internal fun SignInCard(
     onSignIn: (SignInMethod) -> Unit,
     onUseApiKey: () -> Unit,
     modifier: Modifier = Modifier,
-) = Column(
-    modifier = modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(8.dp))
-        .padding(10.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-) {
+) = AssistantCard(modifier) {
     Text(
         text = stringResource(Res.string.assistant_sign_in_title, LocalAgent.current.name),
         style = MaterialTheme.typography.titleSmall,

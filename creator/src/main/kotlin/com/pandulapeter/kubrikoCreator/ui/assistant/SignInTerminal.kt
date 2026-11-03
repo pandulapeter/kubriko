@@ -9,15 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -59,14 +55,7 @@ internal fun SignInTerminal(
     session: SignInSession,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-) = Column(
-    modifier = modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(8.dp))
-        .padding(10.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-) {
+) = AssistantCard(modifier) {
     val output by session.output.collectAsState()
     val exitCode by session.exitCode.collectAsState()
     Text(

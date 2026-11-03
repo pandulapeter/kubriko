@@ -9,13 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,14 +44,7 @@ internal fun CustomAgentForm(
     onSave: (String) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
-) = Column(
-    modifier = modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(8.dp))
-        .padding(10.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-) {
+) = AssistantCard(modifier) {
     var command by remember { mutableStateOf(initialCommand.orEmpty()) }
     val save = { if (command.isNotBlank()) onSave(command.trim()) }
     Text(
