@@ -324,6 +324,16 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   `SessionState` names the target, and the game tools refuse it (`GameStep.Elsewhere`), since only the desktop's session
   answers them. `-Dkubriko.creator.browser=none` keeps the browser closed (the end-to-end scenarios load the page in a
   headless Chrome of their own).
+- **Android** (`AndroidPlayer`): devices and emulators come from the SDK the project builds with, an emulator named by its
+  virtual device, since its serial changes with every start. One that isn't running is started while
+  `:androidApp:assembleDebug` builds, detached and writing to a file rather than a pipe, so it outlives the game and Creator.
+  The application ID is the build's (`output-metadata.json`), whatever the build file sets it from. The console shows what
+  the app's process prints and its errors (`logcat --pid`), never the rest of the device's log; Stop is `am force-stop`, and
+  a change while it plays reaches it the next time it is played. `adb` and `emulator` run through `ToolProcesses`, which
+  tests replace with `FakeToolProcesses`, replaying what the tools printed.
+- **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so the generated
+  `KubrikoWiring.log` (what Log Blocks and the Scene loader call) also prints each one while logging is on, as
+  `[source] message`: Creator reads it back from a device's output (`PrintedLogs`), and the browser shows it in its console.
 - **The session** (`tool-creator-session`) runs at the project's Kubriko version and reports to `SessionServer` (which takes only
   the first connection that says Hello after each launch): a session of any version runs, and a command it is too old for is
   refused (`SessionController.request` takes the version a command needs and answers `GameAnswer.Unsupported`, which the game

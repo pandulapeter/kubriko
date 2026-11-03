@@ -10,10 +10,13 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.session_editing
 import kubriko.creator.generated.resources.session_playing
+import kubriko.creator.generated.resources.session_playing_in_browser
+import kubriko.creator.generated.resources.session_playing_on_android
 import kubriko.creator.generated.resources.session_starting
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,5 +30,10 @@ class SessionStateDescriptionTest {
         assertEquals(Res.string.session_starting, SessionState.Starting(SessionMode.PLAY).description())
         assertEquals(Res.string.session_playing, SessionState.Running(SessionMode.PLAY).description())
         assertEquals(Res.string.session_editing, SessionState.Running(SessionMode.EDIT).description())
+        assertEquals(Res.string.session_playing_in_browser, SessionState.Running(SessionMode.PLAY, PlayTarget.WEB).description())
+        assertEquals(
+            Res.string.session_playing_on_android,
+            SessionState.Running(SessionMode.PLAY, PlayTarget(id = "android:serial", kind = PlayTarget.Kind.ANDROID, name = "Pixel 7")).description(),
+        )
     }
 }

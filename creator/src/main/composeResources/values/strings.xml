@@ -16,6 +16,7 @@
     <string name="action_play">Play</string>
     <string name="action_choose_play_target">Where to play the game</string>
     <string name="action_more_play_targets">Build for more platforms…</string>
+    <string name="play_target_android">Android</string>
     <string name="play_target_desktop">Desktop</string>
     <string name="play_target_web">Browser</string>
     <string name="action_play_from_scene">Play from this Scene</string>
@@ -81,6 +82,7 @@
     <string name="session_starting">Building…</string>
     <string name="session_playing">Playing</string>
     <string name="session_playing_in_browser">Playing in the browser</string>
+    <string name="session_playing_on_android">Playing on Android</string>
     <string name="session_editing">Editing a Scene</string>
     <string name="console_title">Console</string>
     <string name="console_with_prefix">%1$s: %2$s</string>
@@ -89,6 +91,21 @@
     <string name="status_building_with_unwritten_generated_code">Building with the generated code as it is on disk, since Kubriko Creator couldn't write it: %1$s</string>
     <string name="status_session_started">Session started.</string>
     <string name="status_session_ended">Session ended.</string>
+    <string name="status_android_app_missing">The Android build finished, but there's no app in %1$s to install.</string>
+    <string name="status_android_device_left">%1$s was disconnected, so the game ended.</string>
+    <string name="status_android_device_not_connected">%1$s isn't connected, so the game can't be played on it. Connect it, or choose another place in Play's menu.</string>
+    <string name="status_android_device_offline">%1$s doesn't answer (it's %2$s), so the game can't be played on it. Connect it again, then play again.</string>
+    <string name="status_android_device_unauthorized">%1$s doesn't allow this computer to debug it yet. Unlock it, allow USB debugging when it asks, then play again.</string>
+    <string name="status_android_emulator_failed">The emulator %1$s stopped before it was ready. The last lines it printed:</string>
+    <string name="status_android_emulator_starting">Starting the emulator %1$s, which can take a minute…</string>
+    <string name="status_android_emulator_timed_out">The emulator %1$s wasn't ready within %2$s minutes, so the game wasn't played on it.</string>
+    <string name="status_android_game_crashed">The game stopped with an error on %1$s.</string>
+    <string name="status_android_game_started">The game plays on %1$s. Its logs and errors show here.</string>
+    <string name="status_android_install_failed">The game couldn't be installed on %1$s: %2$s</string>
+    <string name="status_android_install_incompatible">The game couldn't be installed on %1$s, since a build of it signed on another computer is there. Uninstall that one from the device, then play again.</string>
+    <string name="status_android_installing">Installing the game on %1$s…</string>
+    <string name="status_android_not_started">The game couldn't be started on %1$s: %2$s</string>
+    <string name="status_android_sdk_missing">There's no Android SDK on this computer, so the game can't be played on Android.</string>
     <string name="status_browser_not_opened">The browser couldn't be opened, so open %1$s in one to play.</string>
     <string name="status_web_game_missing">The web build finished, but there's no game at %1$s to play.</string>
     <string name="status_web_game_reloaded">Built again, so the game's page loads again.</string>

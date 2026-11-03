@@ -58,6 +58,11 @@ public class GameTargets(
     }
 
     /**
+     * The Android SDK the game builds with on this computer, or null if there is none.
+     */
+    public fun androidSdk(): File? = host.androidSdk(rootDirectory)
+
+    /**
      * What turning [target] on (or off, as [isOn] says) takes, without changing anything.
      */
     public fun change(target: GameTarget, isOn: Boolean): TargetChange {

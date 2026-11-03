@@ -15,6 +15,21 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
  * What an open project reports in the console: builds, sessions, type files, and upgrades.
  */
 public enum class WorkspaceStatus(override val english: String) : DomainText {
+    ANDROID_APP_MISSING("The Android build finished, but there's no app in %1\$s to install."),
+    ANDROID_DEVICE_LEFT("%1\$s was disconnected, so the game ended."),
+    ANDROID_DEVICE_NOT_CONNECTED("%1\$s isn't connected, so the game can't be played on it. Connect it, or choose another place in Play's menu."),
+    ANDROID_DEVICE_OFFLINE("%1\$s doesn't answer (it's %2\$s), so the game can't be played on it. Connect it again, then play again."),
+    ANDROID_DEVICE_UNAUTHORIZED("%1\$s doesn't allow this computer to debug it yet. Unlock it, allow USB debugging when it asks, then play again."),
+    ANDROID_EMULATOR_FAILED("The emulator %1\$s stopped before it was ready. The last lines it printed:"),
+    ANDROID_EMULATOR_STARTING("Starting the emulator %1\$s, which can take a minute…"),
+    ANDROID_EMULATOR_TIMED_OUT("The emulator %1\$s wasn't ready within %2\$s minutes, so the game wasn't played on it."),
+    ANDROID_GAME_CRASHED("The game stopped with an error on %1\$s."),
+    ANDROID_GAME_STARTED("The game plays on %1\$s. Its logs and errors show here."),
+    ANDROID_INSTALL_FAILED("The game couldn't be installed on %1\$s: %2\$s"),
+    ANDROID_INSTALL_INCOMPATIBLE("The game couldn't be installed on %1\$s, since a build of it signed on another computer is there. Uninstall that one from the device, then play again."),
+    ANDROID_INSTALLING("Installing the game on %1\$s…"),
+    ANDROID_NOT_STARTED("The game couldn't be started on %1\$s: %2\$s"),
+    ANDROID_SDK_MISSING("There's no Android SDK on this computer, so the game can't be played on Android."),
     BLOCK_TYPE_NOT_SAVED("%1\$s couldn't be saved: %2\$s"),
     BLOCK_TYPES_SAVED_AGAIN("Kubriko Creator could write its changes again."),
     BROWSER_NOT_OPENED("The browser couldn't be opened, so open %1\$s in one to play."),

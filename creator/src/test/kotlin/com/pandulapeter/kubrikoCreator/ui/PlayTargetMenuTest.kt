@@ -26,10 +26,12 @@ class PlayTargetMenuTest {
     @Test
     fun theMenuLooksAgainWhenItOpensAndChoosesWhereToPlay() = uiTest {
         val other = PlayTarget(id = "other", kind = PlayTarget.Kind.DESKTOP, name = "Other window")
+        val phone = PlayTarget(id = "android:serial", kind = PlayTarget.Kind.ANDROID, name = "Pixel 7")
+        val emulator = PlayTarget(id = "android-emulator:Medium_Phone", kind = PlayTarget.Kind.ANDROID, name = "Medium Phone")
         val events = mutableListOf<String>()
         showing {
             PlayTargetMenu(
-                targets = PlayTargets(listOf(PlayTarget.DESKTOP, other), chosen = PlayTarget.DESKTOP),
+                targets = PlayTargets(listOf(PlayTarget.DESKTOP, other, PlayTarget.WEB, phone, emulator), chosen = PlayTarget.DESKTOP),
                 onOpened = { events += "opened" },
                 onChosen = { events += "chose ${it.id}" },
                 onMoreTargets = { events += "more" },
@@ -38,6 +40,8 @@ class PlayTargetMenuTest {
         onNodeWithText("Desktop").performClick()
         waitForIdle()
         onNodeWithText("Build for more platforms…").assertExists()
+        onNodeWithText("Pixel 7").assertExists()
+        onNodeWithText("Medium Phone").assertExists()
         saveSnapshot("play-target-menu")
         onNodeWithText("Other window").performClick()
         waitForIdle()

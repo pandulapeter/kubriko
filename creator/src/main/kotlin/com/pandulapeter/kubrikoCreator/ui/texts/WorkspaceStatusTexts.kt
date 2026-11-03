@@ -11,6 +11,21 @@ package com.pandulapeter.kubrikoCreator.ui.texts
 
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceStatus
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_android_app_missing
+import kubriko.creator.generated.resources.status_android_device_left
+import kubriko.creator.generated.resources.status_android_device_not_connected
+import kubriko.creator.generated.resources.status_android_device_offline
+import kubriko.creator.generated.resources.status_android_device_unauthorized
+import kubriko.creator.generated.resources.status_android_emulator_failed
+import kubriko.creator.generated.resources.status_android_emulator_starting
+import kubriko.creator.generated.resources.status_android_emulator_timed_out
+import kubriko.creator.generated.resources.status_android_game_crashed
+import kubriko.creator.generated.resources.status_android_game_started
+import kubriko.creator.generated.resources.status_android_install_failed
+import kubriko.creator.generated.resources.status_android_install_incompatible
+import kubriko.creator.generated.resources.status_android_installing
+import kubriko.creator.generated.resources.status_android_not_started
+import kubriko.creator.generated.resources.status_android_sdk_missing
 import kubriko.creator.generated.resources.status_block_type_not_saved
 import kubriko.creator.generated.resources.status_block_types_saved_again
 import kubriko.creator.generated.resources.status_browser_not_opened
@@ -57,6 +72,21 @@ import org.jetbrains.compose.resources.StringResource
  * The string the user is shown for this [WorkspaceStatus].
  */
 internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
+    WorkspaceStatus.ANDROID_APP_MISSING -> Res.string.status_android_app_missing
+    WorkspaceStatus.ANDROID_DEVICE_LEFT -> Res.string.status_android_device_left
+    WorkspaceStatus.ANDROID_DEVICE_NOT_CONNECTED -> Res.string.status_android_device_not_connected
+    WorkspaceStatus.ANDROID_DEVICE_OFFLINE -> Res.string.status_android_device_offline
+    WorkspaceStatus.ANDROID_DEVICE_UNAUTHORIZED -> Res.string.status_android_device_unauthorized
+    WorkspaceStatus.ANDROID_EMULATOR_FAILED -> Res.string.status_android_emulator_failed
+    WorkspaceStatus.ANDROID_EMULATOR_STARTING -> Res.string.status_android_emulator_starting
+    WorkspaceStatus.ANDROID_EMULATOR_TIMED_OUT -> Res.string.status_android_emulator_timed_out
+    WorkspaceStatus.ANDROID_GAME_CRASHED -> Res.string.status_android_game_crashed
+    WorkspaceStatus.ANDROID_GAME_STARTED -> Res.string.status_android_game_started
+    WorkspaceStatus.ANDROID_INSTALL_FAILED -> Res.string.status_android_install_failed
+    WorkspaceStatus.ANDROID_INSTALL_INCOMPATIBLE -> Res.string.status_android_install_incompatible
+    WorkspaceStatus.ANDROID_INSTALLING -> Res.string.status_android_installing
+    WorkspaceStatus.ANDROID_NOT_STARTED -> Res.string.status_android_not_started
+    WorkspaceStatus.ANDROID_SDK_MISSING -> Res.string.status_android_sdk_missing
     WorkspaceStatus.BLOCK_TYPE_NOT_SAVED -> Res.string.status_block_type_not_saved
     WorkspaceStatus.BLOCK_TYPES_SAVED_AGAIN -> Res.string.status_block_types_saved_again
     WorkspaceStatus.BROWSER_NOT_OPENED -> Res.string.status_browser_not_opened

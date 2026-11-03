@@ -172,6 +172,19 @@ class CreatorTaskRunnerTest {
     }
 
     @Test
+    fun aTaskOfAnotherModuleRunsByItsPathAfterTheClasspathBuildAndFailsLikeAnyOther() = runTest {
+        val runner = createRunner(findDesktopModulePath = { ":game" })
+        start(runner)
+        val android = backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) { runner.runAt(":androidApp:assembleDebug") }
+        assertEquals(1, build.runs.size, "the task waits for the classpath build")
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(":androidApp:assembleDebug", build.currentRun.taskPath)
+        build.currentRun.finish(isSuccessful = false)
+        assertFalse(android.await())
+        assertEquals(WorkspaceStatus.BUILD_FAILED, statuses.last())
+    }
+
+    @Test
     fun problemsAppearWithTheirLocationRelativeToTheProject() = runTest {
         start(createRunner())
         build.currentRun.onEvent(GradleBuildEvent.Problem("Unresolved reference", File(rootDirectory, "src/Ball.kt"), line = 3, column = 5))

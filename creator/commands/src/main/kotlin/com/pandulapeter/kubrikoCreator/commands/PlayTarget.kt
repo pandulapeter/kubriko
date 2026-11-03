@@ -13,7 +13,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * A place the game can be played: a window on this computer, or the browser.
+ * A place the game can be played: a window on this computer, the browser, or an Android device or emulator.
  *
  * @param id How the AI and the saved choice name it, the same each time this computer finds it.
  * @param name What the place calls itself (a device's model), or null for one that is named by its [kind] alone.
@@ -40,6 +40,12 @@ public data class PlayTarget(
          */
         @SerialName("web")
         WEB,
+
+        /**
+         * An Android device connected to this computer, or an emulator, which is started when it isn't running.
+         */
+        @SerialName("android")
+        ANDROID,
     }
 
     public companion object {

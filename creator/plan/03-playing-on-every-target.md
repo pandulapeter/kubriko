@@ -9,23 +9,14 @@
 -->
 # Playing on every target
 
-Play runs the game on the desktop only. Targets (`05-settings.md`) builds it for the web, Android, and iOS too, but nothing shows it
-running there. This plan lets Play run it in a browser, on an Android device or emulator, and on an iOS simulator or device, from the
-same button, so that what a target turns on can be seen working. It comes before the rest of Settings, since Release, Icons, and
+Play runs the game on the desktop, in the browser, and on an Android device or emulator. Targets (`05-settings.md`) builds it for
+iOS too, but nothing shows it running there. This plan lets Play run it on an iOS simulator or device, from the same button, so that
+what a target turns on can be seen working. It comes before the rest of Settings, since Release, Icons, and
 Signing only matter once exporting does (`12-export-and-distribution.md`), while this is what makes Targets useful now.
 
-Worked on in this order, each item shipped and reviewed on its own: Android, iOS simulator; then iOS devices, which wait for
-Signing. Each adds its kind to `PlayTarget.Kind`, a source of places to `PlayTargetChoice`, and its start to
-`WorkspaceController.play` through `SessionController.playElsewhere`, as the web's `WebPlayer` does.
-
-## Android
-
-- Devices from `adb devices -l` and emulators from `emulator -list-avds`, through the SDK `05-settings.md` → Targets finds. An emulator
-  that isn't running is started and waited for (`sys.boot_completed`); none is created here (`14-onboarding.md` downloads the SDK, and
-  creating an emulator joins it).
-- Builds `:androidApp:assembleDebug`, installs it with `adb install -r`, starts it with `am start`, and streams `adb logcat` for its
-  process into the console; Stop is `am force-stop`. A device that leaves mid-game ends the game, with the reason.
-- More than one device is chosen from the menu, never guessed; an unauthorized device says how to allow it.
+Worked on in this order, each item shipped and reviewed on its own: the iOS simulator; then iOS devices, which wait for Signing.
+Each adds its kind to `PlayTarget.Kind`, a source of places and its start to `TargetPlayers`, which `WorkspaceController.play`
+runs through `SessionController.playElsewhere`, as Android's `AndroidPlayer` does.
 
 ## iOS simulator
 
@@ -41,8 +32,8 @@ Signing. Each adds its kind to `PlayTarget.Kind`, a source of places to `PlayTar
 
 ## Testing
 
-- `adb`, `emulator`, `simctl`, `xcodebuild`, and `devicectl` run behind one process interface with a fake that replays recorded
-  outputs, so the device lists, the state of each launch, and every failure (no device, unauthorized, boot timeout, install refused,
-  a crash) are unit tested; the web server is tested for real on localhost.
+- `simctl`, `xcodebuild`, and `devicectl` run through `ToolProcesses`, as `adb` and `emulator` do, with `FakeToolProcesses` replaying
+  recorded outputs, so the device lists, the state of each launch, and every failure (no simulator, boot timeout, install refused, a
+  crash) are unit tested.
 - The integration test already builds every target; launching on a real emulator or simulator needs hardware acceleration and windows
   that CI's runners can't give reliably, so it goes to `HANDOVER.md` → Before a release, alongside playing on real devices.

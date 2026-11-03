@@ -37,8 +37,10 @@ import kubriko.creator.generated.resources.action_more_play_targets
 import kubriko.creator.generated.resources.ic_check
 import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_desktop
+import kubriko.creator.generated.resources.ic_phone
 import kubriko.creator.generated.resources.ic_settings
 import kubriko.creator.generated.resources.ic_web
+import kubriko.creator.generated.resources.play_target_android
 import kubriko.creator.generated.resources.play_target_desktop
 import kubriko.creator.generated.resources.play_target_web
 import org.jetbrains.compose.resources.painterResource
@@ -112,9 +114,11 @@ internal fun PlayTargetMenu(
 private fun playTargetText(target: PlayTarget) = target.name ?: when (target.kind) {
     PlayTarget.Kind.DESKTOP -> stringResource(Res.string.play_target_desktop)
     PlayTarget.Kind.WEB -> stringResource(Res.string.play_target_web)
+    PlayTarget.Kind.ANDROID -> stringResource(Res.string.play_target_android)
 }
 
 private fun iconOf(kind: PlayTarget.Kind) = when (kind) {
     PlayTarget.Kind.DESKTOP -> Res.drawable.ic_desktop
     PlayTarget.Kind.WEB -> Res.drawable.ic_web
+    PlayTarget.Kind.ANDROID -> Res.drawable.ic_phone
 }

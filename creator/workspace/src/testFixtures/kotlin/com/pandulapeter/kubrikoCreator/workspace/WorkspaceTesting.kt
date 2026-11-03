@@ -64,9 +64,14 @@ public fun workspaceController(
     createGitRepository: (message: String) -> GitRepository = { JGitRepository.create(project.rootDirectory, it) },
     targets: GameTargets? = null,
     openBrowser: (URI) -> Boolean = { true },
+    tools: ToolProcesses? = null,
 ): WorkspaceController = WorkspaceController(
     project = project,
-    processes = ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePath, openBrowser),
+    processes = if (tools == null) {
+        ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePath, openBrowser)
+    } else {
+        ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePath, openBrowser, tools)
+    },
     parentScope = parentScope,
     ioDispatcher = ioDispatcher,
     files = WorkspaceFiles(ownWrites, scanResources, startWatching, targets),

@@ -40,7 +40,6 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
-import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -194,18 +193,30 @@ public class WorkspaceController(
     /** Whether the session process is idle, starting, or running. */
     public val sessionState: StateFlow<SessionState> = sessions.state
 
-    private val webPlayer = WebPlayer(
-        runTask = tasks::run,
-        moduleDirectory = { File(project.rootDirectory, desktopModulePath.await().removePrefix(":").replace(':', File.separatorChar)) },
-        openBrowser = processes.openBrowser,
-        console = consoleLog,
-        ioDispatcher = ioDispatcher,
+    private val players = TargetPlayers(
+        targets = { files.targets },
+        androidDevices = ::androidDevices,
+        web = WebPlayer(
+            runTask = tasks::run,
+            moduleDirectory = { File(project.rootDirectory, desktopModulePath.await().removePrefix(":").replace(':', File.separatorChar)) },
+            openBrowser = processes.openBrowser,
+            console = consoleLog,
+            ioDispatcher = ioDispatcher,
+        ),
+        android = AndroidPlayer(
+            rootDirectory = project.rootDirectory,
+            devices = ::androidDevices,
+            runTask = tasks::runAt,
+            tools = processes.tools,
+            console = consoleLog,
+            ioDispatcher = ioDispatcher,
+        ),
     )
 
     /** Where the game can be played, and where Play plays it. */
     public val playTargets: PlayTargetChoice = PlayTargetChoice(
         rootDirectory = project.rootDirectory,
-        sources = listOf { if (files.targets?.read()?.any { it.target == GameTarget.WEB && it.isOn } == true) listOf(PlayTarget.WEB) else emptyList() },
+        sources = players.sources,
         scope = scope,
         ioDispatcher = ioDispatcher,
     )
@@ -258,7 +269,7 @@ public class WorkspaceController(
         regenerate = { blockTypes?.regenerate() },
         onCodeChanged = {
             gameBuilds.onCodeChanged()
-            webPlayer.onCodeChanged()
+            players.onCodeChanged()
         },
         refreshGit = git::refresh,
         refreshFormatStatus = ::refreshFormatStatus,
@@ -434,9 +445,11 @@ public class WorkspaceController(
         }
         when (target.kind) {
             PlayTarget.Kind.DESKTOP -> sessions.play(firstScene, gameBuilds::prepareLaunch)
-            PlayTarget.Kind.WEB -> sessions.playElsewhere(target) { onUp -> webPlayer.play(firstScene, onUp) }
+            PlayTarget.Kind.WEB, PlayTarget.Kind.ANDROID -> sessions.playElsewhere(target) { onUp -> players.play(target, firstScene, onUp) }
         }
     }
+
+    private fun androidDevices() = files.targets?.androidSdk()?.let { AndroidDevices(it, processes.tools) }
 
     /** Stops the session process, if one runs. */
     public fun stopSession(): Unit = sessions.stop()

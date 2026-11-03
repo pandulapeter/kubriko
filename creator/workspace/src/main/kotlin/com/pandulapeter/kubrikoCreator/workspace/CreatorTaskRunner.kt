@@ -50,7 +50,18 @@ internal class CreatorTaskRunner(
      *
      * @return Whether the build succeeded.
      */
-    suspend fun run(taskName: String, properties: Map<String, String>): Boolean {
+    suspend fun run(taskName: String, properties: Map<String, String>): Boolean = runBuild(
+        properties = properties,
+        isSession = taskName == SessionInitScript.SESSION_TASK_NAME,
+        reportsTime = taskName == SessionInitScript.CLASSPATH_TASK_NAME,
+    ) { modulePath -> taskPathOf(modulePath, taskName) }
+
+    /**
+     * Runs the task at [taskPath] (in any of the project's modules), as [run] does.
+     */
+    suspend fun runAt(taskPath: String): Boolean = runBuild(properties = emptyMap(), isSession = false, reportsTime = false) { taskPath }
+
+    private suspend fun runBuild(properties: Map<String, String>, isSession: Boolean, reportsTime: Boolean, taskPathIn: (modulePath: String) -> String): Boolean {
         console.append(ConsoleEntry.Status(WorkspaceStatus.BUILDING))
         awaitWrites()?.let { unsaved ->
             console.append(
@@ -77,7 +88,7 @@ internal class CreatorTaskRunner(
         suspend fun runBuild() = incrementalCompilation.build { mode ->
             startTime = currentTimeMillis()
             build.run(
-                taskPath = taskPathOf(modulePath, taskName),
+                taskPath = taskPathIn(modulePath),
                 arguments = SessionInitScript.gradleArguments(properties, mode),
                 onEvent = { event ->
                     when (event) {
@@ -93,7 +104,7 @@ internal class CreatorTaskRunner(
                 },
             )
         }
-        val isSuccessful = if (taskName != SessionInitScript.SESSION_TASK_NAME) {
+        val isSuccessful = if (!isSession) {
             classpathBuildLock.withLock { runBuild() }
         } else {
             // A session's build lasts as long as the game runs, so it only waits for the classpath build before it.
@@ -104,7 +115,7 @@ internal class CreatorTaskRunner(
             console.append(ConsoleEntry.Status(WorkspaceStatus.BUILD_FAILED, isError = true))
             if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
         }
-        if (isSuccessful && taskName == SessionInitScript.CLASSPATH_TASK_NAME) {
+        if (isSuccessful && reportsTime) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.BUILT, arguments = listOf(secondsSince(startTime))))
         }
         return isSuccessful

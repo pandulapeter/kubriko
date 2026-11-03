@@ -73,6 +73,7 @@ import kubriko.creator.generated.resources.ic_undo
 import kubriko.creator.generated.resources.session_editing
 import kubriko.creator.generated.resources.session_playing
 import kubriko.creator.generated.resources.session_playing_in_browser
+import kubriko.creator.generated.resources.session_playing_on_android
 import kubriko.creator.generated.resources.session_starting
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -284,6 +285,10 @@ internal fun SessionState.description() = when (this) {
     is SessionState.Starting -> Res.string.session_starting
     is SessionState.Running -> when (mode) {
         SessionMode.EDIT -> Res.string.session_editing
-        SessionMode.PLAY -> if (target.kind == PlayTarget.Kind.WEB) Res.string.session_playing_in_browser else Res.string.session_playing
+        SessionMode.PLAY -> when (target.kind) {
+            PlayTarget.Kind.DESKTOP -> Res.string.session_playing
+            PlayTarget.Kind.WEB -> Res.string.session_playing_in_browser
+            PlayTarget.Kind.ANDROID -> Res.string.session_playing_on_android
+        }
     }
 }
