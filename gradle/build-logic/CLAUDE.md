@@ -32,7 +32,7 @@ Desktop, iOS and Wasm share a `skikoMain` source set (Skia through Skiko), added
 
 All targets use JDK 21 toolchain (`jvmToolchain(21)`).
 
-The iOS and Wasm test runs are disabled (they need a simulator or a browser), along with their dependencies and the test binaries they would consume; their `compileTestKotlin*` compilations still run in `build`, so `commonTest` must compile for every target. The Wasm test tasks are matched by name, so re-check the `:engine:build --dry-run` task count after a KGP upgrade.
+The iOS and Wasm test runs are disabled (they need a simulator or a browser), along with their dependencies and the test binaries they would consume; their `compileTestKotlin*` compilations still run in `build`, so `commonTest` must compile for every target. Android's host test compilation (`withHostTest`) is declared for the same reason, and because AGP warns about every module with a `commonTest` folder otherwise; its run (`testAndroidHostTest`) is disabled, since the tests run on the desktop JVM. The Wasm test tasks are matched by name, so re-check the `:engine:build --dry-run` task count after a KGP upgrade.
 
 ## Version constraints
 

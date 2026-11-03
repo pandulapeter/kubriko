@@ -13,6 +13,7 @@ import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.Project
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.configure
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
@@ -31,6 +32,7 @@ internal fun Project.configureKotlinMultiplatform(
         minSdk = libs.findVersion("android-minSdk").get().toString().toInt()
         compileSdk = libs.findVersion("android-compileSdk").get().toString().toInt()
         androidResources.enable = true
+        withHostTest { }
         packaging {
             resources {
                 excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -44,6 +46,7 @@ internal fun Project.configureKotlinMultiplatform(
     wasmJs {
         browser()
     }
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
             group("skiko") {
@@ -76,6 +79,11 @@ internal fun Project.configureKotlinMultiplatform(
     tasks.withType(KotlinNativeLink::class.java).matching { it.binary is TestExecutable }.configureEach { enabled = false }
     tasks.withType(KotlinJsIrLink::class.java).matching { it.name.startsWith("compileTest") }.configureEach { enabled = false }
     tasks.matching { it.name.startsWith("wasmJsTestTest") && it.name.endsWith("ExecutableCompileSync") }.configureEach { enabled = false }
+    // The Android host compilation is declared only so that commonTest compiles for Android too; its tests run on the desktop JVM.
+    tasks.matching { it.name == "testAndroidHostTest" }.configureEach {
+        enabled = false
+        setDependsOn(emptyList<Any>())
+    }
     // Libraries declare no Wasm executable, which this Compose check demands only for the browser test runs disabled above.
     tasks.matching { it.name == "checkComposeUiTestConfigurationForWasmJs" }.configureEach { enabled = false }
 }
