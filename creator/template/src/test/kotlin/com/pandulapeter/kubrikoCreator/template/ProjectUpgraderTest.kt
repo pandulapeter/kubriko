@@ -13,6 +13,7 @@ package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.GameSettings
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -91,6 +92,36 @@ class ProjectUpgraderTest {
         assertEquals(newPage, page.readText())
         assertEquals(newMain, mainFile.readText())
         assertContains(newProperties, "game.name=My Game\n")
+    }
+
+    @Test
+    fun upgradingAVersion9ProjectReadsTheFirstSceneAspectRatioAndFrameRateFromGradleProperties() {
+        val build = File(directory, "build.gradle.kts")
+        val properties = File(directory, "gradle.properties")
+        val gameFile = File(packageDirectory, "Game.kt")
+        val newBuild = build.readText()
+        val newProperties = properties.readText()
+        build.writeText(newBuild.substringBefore("\nval gameFirstScene"))
+        properties.writeText(newProperties.lines().filterNot { line -> GameSettings.ALL_KEYS.any { line.startsWith("$it=") } }.joinToString("\n"))
+        gameFile.writeText(VERSION_9_GAME.replace("\"main\"", "\"levels/1-1\""))
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 9 }""")
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", "build.gradle.kts", "gradle.properties"), upgrade.changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newBuild, build.readText())
+        assertEquals(newProperties.replace("game.firstScene=main", "game.firstScene=levels/1-1"), properties.readText())
+        assertEquals(newGame, gameFile.readText())
+    }
+
+    @Test
+    fun aGameIsLeftToTheUserWhenTheBuildFileCantMakeItsSettings() {
+        val build = File(directory, "build.gradle.kts")
+        build.writeText("plugins {\n    kotlin(\"jvm\")\n}\n")
+        File(packageDirectory, "Game.kt").writeText(VERSION_9_GAME)
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 9 }""")
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf("$PACKAGE_PATH/Game.kt", "build.gradle.kts"), upgrade.byHand)
+        assertEquals(emptyList(), upgrade.changes.map { it.path })
     }
 
     @Test
@@ -318,6 +349,48 @@ class ProjectUpgraderTest {
             |    }
             |    DisposableEffect(kubriko) {
             |        onDispose { kubriko.dispose() }
+            |    }
+            |    KubrikoViewport(
+            |        modifier = modifier,
+            |        kubriko = kubriko,
+            |    )
+            |}
+            |
+        """.trimMargin()
+
+        /**
+         * `Game.kt` as template version 9 made it, starting with a Scene named in the file.
+         */
+        private val VERSION_9_GAME = """
+            |package com.example.mygame
+            |
+            |import androidx.compose.runtime.Composable
+            |import androidx.compose.runtime.DisposableEffect
+            |import androidx.compose.runtime.remember
+            |import androidx.compose.ui.Modifier
+            |import com.pandulapeter.kubriko.Kubriko
+            |import com.pandulapeter.kubriko.KubrikoViewport
+            |import com.example.mygame.generated.KubrikoWiring
+            |
+            |/**
+            | * The whole game: a viewport showing the first Scene.
+            | */
+            |@Composable
+            |fun Game(
+            |    modifier: Modifier = Modifier,
+            |) {
+            |    val kubriko = remember {
+            |        Kubriko.newInstance(
+            |            GameSerialization.createSerializationManager(),
+            |            *KubrikoWiring.createManagers(firstScene = "main").toTypedArray(),
+            |        )
+            |    }
+            |    DisposableEffect(kubriko) {
+            |        KubrikoWiring.runningInstances += kubriko
+            |        onDispose {
+            |            KubrikoWiring.runningInstances -= kubriko
+            |            kubriko.dispose()
+            |        }
             |    }
             |    KubrikoViewport(
             |        modifier = modifier,

@@ -17,12 +17,12 @@ import com.pandulapeter.kubrikoCreator.template.UpgradedFile.WhenMissing
  */
 internal object TemplateSteps {
     val FILES = listOf(
-        UpgradedFile({ it.gamePath }, listOf(SceneWiringUpgrade, PluginManagersUpgrade, RunningInstancesUpgrade.GameStep), WhenMissing.BY_HAND),
+        UpgradedFile({ it.gamePath }, listOf(SceneWiringUpgrade, PluginManagersUpgrade, RunningInstancesUpgrade.GameStep, GameSettingsUpgrade.GameStep), WhenMissing.BY_HAND),
         UpgradedFile({ it.entryPointPath }, listOf(SceneEditorManagersUpgrade, RunningInstancesUpgrade.EntryPointStep), WhenMissing.BY_HAND),
         UpgradedFile({ it.mainPath }, listOf(LoggingSwitchUpgrade, FirstSceneOverrideUpgrade, GameIdentityUpgrade.MainStep), WhenMissing.BY_HAND),
-        UpgradedFile({ GameIdentity.BUILD_FILE }, listOf(GameIdentityUpgrade.BuildFileStep), WhenMissing.BY_HAND),
+        UpgradedFile({ GameIdentity.BUILD_FILE }, listOf(GameIdentityUpgrade.BuildFileStep, GameSettingsUpgrade.BuildFileStep), WhenMissing.BY_HAND),
         UpgradedFile({ it.pagePath }, listOf(GameIdentityUpgrade.PageStep), WhenMissing.SKIP),
-        UpgradedFile({ GameIdentity.GRADLE_PROPERTIES_FILE }, listOf(GradleCachesUpgrade, GameIdentityUpgrade.PropertiesStep), WhenMissing.CREATE_EMPTY),
+        UpgradedFile({ GameIdentity.GRADLE_PROPERTIES_FILE }, listOf(GradleCachesUpgrade, GameIdentityUpgrade.PropertiesStep, GameSettingsUpgrade.PropertiesStep), WhenMissing.CREATE_EMPTY),
         UpgradedFile({ it.sceneLoaderPath }, emptyList(), WhenMissing.SKIP, deletion = SceneWiringUpgrade.SceneLoaderDeletion),
     )
 }

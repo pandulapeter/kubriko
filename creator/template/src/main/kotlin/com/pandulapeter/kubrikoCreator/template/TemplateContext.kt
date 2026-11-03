@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.project.GameSettings
 
 /**
  * What the [TemplateStep]s of one upgrade check share: where the template's files are in the project, and how to read them.
@@ -36,6 +37,11 @@ internal class TemplateContext(
      * The game's name: the desktop window's title, the web page's, or the project's, as the files are before any change.
      */
     val gameName by lazy { read(mainPath)?.let(GameIdentityUpgrade::windowTitleOf) ?: read(pagePath)?.let(GameIdentityUpgrade::pageTitleOf) ?: projectName() }
+
+    /**
+     * The Scene the game starts with, as `Game.kt` names it before any change, or the default one when it names none.
+     */
+    val firstScene by lazy { read(gamePath)?.let(GameSettingsUpgrade::firstSceneOf) ?: GameSettings.DEFAULT_FIRST_SCENE }
 
     fun read(path: String) = reader(path)
 

@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.manager.ViewportManager
 import {{PACKAGE}}.generated.KubrikoWiring
 
 /**
@@ -18,7 +19,11 @@ fun Game(
     val kubriko = remember {
         Kubriko.newInstance(
             GameSerialization.createSerializationManager(),
-            *KubrikoWiring.createManagers(firstScene = "main").toTypedArray(),
+            ViewportManager.newInstance(
+                aspectRatioMode = GameSettings.ASPECT_RATIO_MODE,
+                initialTargetFrameRate = GameSettings.TARGET_FRAME_RATE,
+            ),
+            *KubrikoWiring.createManagers(firstScene = GameSettings.FIRST_SCENE).toTypedArray(),
         )
     }
     DisposableEffect(kubriko) {

@@ -43,9 +43,10 @@ class ProjectUpgradeCommandsTest {
         File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
         File(root, "gradle.properties").writeText(
             "org.gradle.caching=true\norg.gradle.configuration-cache=true\n" +
-                "game.name=Game\ngame.versionName=1.0.0\ngame.versionNumber=1\ngame.applicationId=com.example.game\ngame.vendor=\ngame.description=\n",
+                "game.name=Game\ngame.versionName=1.0.0\ngame.versionNumber=1\ngame.applicationId=com.example.game\ngame.vendor=\ngame.description=\n" +
+                "game.firstScene=main\ngame.aspectRatio=dynamic\ngame.viewportWidth=1920\ngame.viewportHeight=1080\ngame.frameRate=60\n",
         )
-        File(root, "build.gradle.kts").writeText("// Reads game.name.\n")
+        File(root, "build.gradle.kts").writeText("// Reads game.name and game.firstScene into commonMain.\n")
         game.parentFile.mkdirs()
         game.writeText("package com.example.game\n\nimport a.B\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
         File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled and KubrikoWiring.firstSceneOverride.\n")
@@ -60,7 +61,7 @@ class ProjectUpgradeCommandsTest {
         assertEquals("true", upgrade.getValue("isNeeded").jsonPrimitive.content)
         val changes = upgrade.getValue("changes") as JsonArray
         assertEquals(listOf("src/commonMain/kotlin/com/example/game/Game.kt", "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"), changes.map { it.jsonObject.getValue("path").jsonPrimitive.content })
-        assertContains(changes[0].jsonObject.getValue("after").jsonPrimitive.content, "    *KubrikoWiring.createManagers(firstScene = \"main\").toTypedArray(),\n)")
+        assertContains(changes[0].jsonObject.getValue("after").jsonPrimitive.content, "    *KubrikoWiring.createManagers(firstScene = GameSettings.FIRST_SCENE).toTypedArray(),\n)")
         assertEquals("""{"name":"game","usesBlockBuiltActorTypes":true,"actorTypes":[],"managerTypes":[],"scenes":[],"needsUpgrade":true}""", assertIs<CommandOutcome.Success>(GetProjectOverview.read(context, NoInput)).result.toString())
     }
 

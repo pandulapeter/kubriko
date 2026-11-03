@@ -1,0 +1,67 @@
+val gameFirstScene = providers.gradleProperty("game.firstScene").orElse("main")
+val gameAspectRatio = providers.gradleProperty("game.aspectRatio").orElse("dynamic")
+val gameViewportWidth = providers.gradleProperty("game.viewportWidth").orElse("1920")
+val gameViewportHeight = providers.gradleProperty("game.viewportHeight").orElse("1080")
+val gameFrameRate = providers.gradleProperty("game.frameRate").orElse("60")
+
+val generateGameSettings by tasks.registering {
+    val directory = layout.buildDirectory.dir("generated/gameSettings")
+    val values = mapOf(
+        "game.firstScene" to gameFirstScene,
+        "game.aspectRatio" to gameAspectRatio,
+        "game.viewportWidth" to gameViewportWidth,
+        "game.viewportHeight" to gameViewportHeight,
+        "game.frameRate" to gameFrameRate,
+    )
+    values.forEach { (key, value) -> inputs.property(key, value) }
+    outputs.dir(directory)
+    doLast {
+        fun value(key: String) = values.getValue(key).get().trim()
+        fun size(key: String) = value(key).toFloatOrNull()?.takeIf { it in 1f..100000f }
+            ?: throw GradleException("$key in gradle.properties is a number from 1 to 100000, not \"${value(key)}\".")
+        val viewportWidth = size("game.viewportWidth")
+        val viewportHeight = size("game.viewportHeight")
+        val width = "${viewportWidth}f.sceneUnit"
+        val height = "${viewportHeight}f.sceneUnit"
+        val aspectRatioMode = when (val mode = value("game.aspectRatio")) {
+            "dynamic" -> "ViewportManager.AspectRatioMode.Dynamic"
+            "fitHorizontal" -> "ViewportManager.AspectRatioMode.FitHorizontal($width)"
+            "fitVertical" -> "ViewportManager.AspectRatioMode.FitVertical($height)"
+            "fixed" -> "ViewportManager.AspectRatioMode.Fixed(ratio = ${viewportWidth / viewportHeight}f, width = $width)"
+            "stretched" -> "ViewportManager.AspectRatioMode.Stretched(SceneSize($width, $height))"
+            else -> throw GradleException("game.aspectRatio in gradle.properties is dynamic, fitHorizontal, fitVertical, fixed, or stretched, not \"$mode\".")
+        }
+        val frameRate = when (val rate = value("game.frameRate")) {
+            "display" -> "TargetFrameRate.DisplayDefault"
+            else -> "TargetFrameRate.Limit(" + (
+                rate.toIntOrNull()?.takeIf { it in 1..1000 }
+                    ?: throw GradleException("game.frameRate in gradle.properties is a whole number from 1 to 1000, or display, not \"$rate\".")
+                ) + ")"
+        }
+        val firstScene = value("game.firstScene").takeIf { it.split('/').all { part -> Regex("[A-Za-z0-9][A-Za-z0-9_-]*").matches(part) } }
+            ?: throw GradleException("game.firstScene in gradle.properties is a Scene's name, like levels/1-1, not \"${value("game.firstScene")}\".")
+        directory.get().file("GameSettings.kt").asFile.apply {
+            parentFile.mkdirs()
+            writeText(
+                """
+                |package {{PACKAGE}}
+                |
+                |import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+                |import com.pandulapeter.kubriko.manager.ViewportManager
+                |import com.pandulapeter.kubriko.types.SceneSize
+                |import com.pandulapeter.kubriko.types.TargetFrameRate
+                |
+                |object GameSettings {
+                |    const val FIRST_SCENE = "$firstScene"
+                |    val ASPECT_RATIO_MODE: ViewportManager.AspectRatioMode = $aspectRatioMode
+                |    val TARGET_FRAME_RATE: TargetFrameRate = $frameRate
+                |}
+                |""".trimMargin(),
+            )
+        }
+    }
+}
+
+kotlin.sourceSets.commonMain {
+    kotlin.srcDir(generateGameSettings)
+}
