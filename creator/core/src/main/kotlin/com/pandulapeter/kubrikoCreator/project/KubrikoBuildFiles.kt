@@ -91,7 +91,7 @@ public class KubrikoBuildFiles(
     }
 
     public companion object {
-        internal const val CATALOG_FILE = "gradle/libs.versions.toml"
+        internal const val CATALOG_FILE = VersionCatalog.FILE
         public const val BUILD_FILE: String = "build.gradle.kts"
         public const val SETTINGS_FILE: String = "settings.gradle.kts"
         private const val SOURCE_DIRECTORY = "src"

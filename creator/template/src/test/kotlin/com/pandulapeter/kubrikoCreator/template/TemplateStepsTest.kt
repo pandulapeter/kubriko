@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
+import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -21,7 +21,7 @@ import kotlin.test.assertTrue
 
 class TemplateStepsTest {
     private val parentDirectory = createTempDirectory().toFile()
-    private val configuration = CreatorConfiguration(kubrikoVersion = "1.0.0", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = false)
+    private val configuration = testConfiguration()
     private val directory = ProjectGenerator(configuration, wrapperInstaller = { _, _ -> }, startVersionControl = { _, _ -> })
         .create(NewProjectRequest(name = "My Game", packageName = "com.example.mygame", parentDirectory = parentDirectory))
     private val context = TemplateContext("com.example.mygame", "src/commonMain/kotlin", { path -> File(directory, path).takeIf { it.isFile }?.readText()?.withUnixLineBreaks() }) { "my-game" }

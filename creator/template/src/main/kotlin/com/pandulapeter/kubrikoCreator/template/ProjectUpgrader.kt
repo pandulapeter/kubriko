@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
-import com.pandulapeter.kubrikoCreator.project.withLineBreaksOf
 import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -98,9 +97,7 @@ public class ProjectUpgrader(
             upgrade.changes.forEach { change ->
                 val file = File(rootDirectory, change.path)
                 val raw = if (file.isFile) file.readText() else ""
-                if (raw.withUnixLineBreaks() == change.before) {
-                    if (change.after == null) file.delete() else file.writeTextAtomically(change.after.withLineBreaksOf(raw))
-                }
+                if (raw.withUnixLineBreaks() == change.before) change.writeTo(file, raw)
             }
         }
         return check().also { if (it == TemplateUpgrade.UpToDate) recordVersion() }
@@ -112,6 +109,11 @@ public class ProjectUpgrader(
     public fun recordVersionIfUpToDate() {
         if (recordedVersion()?.let { it < CURRENT_VERSION } == true && check() == TemplateUpgrade.UpToDate) recordVersion()
     }
+
+    /**
+     * The package the project's template files are in, or null if it isn't opted in.
+     */
+    internal val packageName: String? get() = readSettings()?.get("packageName")?.jsonPrimitive?.content
 
     private fun read(path: String) = File(rootDirectory, path).takeIf { it.isFile }?.readText()?.withUnixLineBreaks()
 

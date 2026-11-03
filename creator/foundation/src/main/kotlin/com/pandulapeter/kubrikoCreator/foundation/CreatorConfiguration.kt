@@ -22,6 +22,7 @@ public data class CreatorConfiguration(
     val kotlinVersion: String,
     val composeVersion: String,
     val gradleVersion: String,
+    val android: AndroidVersions,
     val useMavenLocal: Boolean,
 ) {
     public companion object {
@@ -43,6 +44,12 @@ public data class CreatorConfiguration(
             kotlinVersion = bundled.require("kotlinVersion"),
             composeVersion = bundled.require("composeVersion"),
             gradleVersion = bundled.require("gradleVersion"),
+            android = AndroidVersions(
+                gradlePlugin = bundled.require("androidGradlePluginVersion"),
+                compileSdk = bundled.require("androidCompileSdk").toInt(),
+                minSdk = bundled.require("androidMinSdk").toInt(),
+                activity = bundled.require("androidxActivityVersion"),
+            ),
             useMavenLocal = (overrides.getProperty("kubriko.creator.useMavenLocal") ?: bundled.getProperty("useMavenLocal")) == "true",
         )
 

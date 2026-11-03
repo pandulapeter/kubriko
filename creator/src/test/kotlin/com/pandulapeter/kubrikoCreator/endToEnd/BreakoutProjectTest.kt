@@ -9,11 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.endToEnd
 
-import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import java.io.File
 import javax.sound.sampled.AudioFileFormat
@@ -27,7 +27,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class BreakoutProjectTest {
-    private val configuration = CreatorConfiguration(kubrikoVersion = "9.9.9-creator", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = true)
+    private val configuration = testConfiguration(kubrikoVersion = "9.9.9-creator", useMavenLocal = true)
     private val directory = BreakoutProject.create(testDirectory(), configuration, wrapperInstaller = { _, _ -> })
 
     @Test

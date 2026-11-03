@@ -1,0 +1,2 @@
+src/wasmJsMain/kotlin/__PACKAGE__/Main.kt
+src/wasmJsMain/resources/index.html

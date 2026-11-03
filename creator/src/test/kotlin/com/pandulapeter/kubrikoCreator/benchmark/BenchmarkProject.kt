@@ -22,12 +22,12 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
-import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectGenerator
+import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -51,7 +51,7 @@ internal object BenchmarkProject {
     }
 
     private val offlineGenerator = ProjectGenerator(
-        CreatorConfiguration(kubrikoVersion = "1.0.0", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = false),
+        testConfiguration(),
         wrapperInstaller = { _, _ -> },
         startVersionControl = { _, _ -> },
     )

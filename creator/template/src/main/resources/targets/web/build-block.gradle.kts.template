@@ -1,0 +1,7 @@
+tasks.named<ProcessResources>("wasmJsProcessResources") {
+    val title = gameName.map { it.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") }
+    inputs.property("title", title)
+    filesMatching("index.html") {
+        filter { it.replace("@GAME_NAME@", title.get()) }
+    }
+}

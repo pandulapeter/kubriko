@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.endToEnd
 
-import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.mcp.McpSettings
+import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import org.junit.Assume.assumeTrue
 import java.io.File
@@ -33,7 +33,7 @@ class CreatorProcessTest {
 
     @Test
     fun itsArgumentsAreTheAppsWithItsOwnSettingsTheGivenKubrikoAndTheClasspath() {
-        val configuration = CreatorConfiguration(kubrikoVersion = "9.9.9-creator", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = true)
+        val configuration = testConfiguration(kubrikoVersion = "9.9.9-creator", useMavenLocal = true)
         val settings = File("runs", "settings")
         assertEquals(
             listOf(

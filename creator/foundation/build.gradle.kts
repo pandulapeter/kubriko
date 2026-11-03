@@ -22,6 +22,10 @@ val generateCreatorProperties = tasks.register("generateCreatorProperties") {
         "kotlinVersion" to libs.versions.kotlin.get(),
         "composeVersion" to libs.versions.compose.multiplatform.get(),
         "gradleVersion" to libs.versions.gradle.toolingApi.get(),
+        "androidGradlePluginVersion" to libs.versions.gradle.asProvider().get(),
+        "androidCompileSdk" to libs.versions.android.compileSdk.get(),
+        "androidMinSdk" to libs.versions.android.minSdk.get(),
+        "androidxActivityVersion" to libs.versions.androidx.activity.get(),
         "useMavenLocal" to (gradle.startParameter.projectProperties["creator.localKubriko"] == "true").toString(),
     )
     inputs.properties(properties)

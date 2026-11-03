@@ -1,0 +1,18 @@
+import ComposeApp
+import SwiftUI
+import UIKit
+
+struct GameView: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController {
+        MainViewControllerKt.MainViewController()
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+struct ContentView: View {
+    var body: some View {
+        GameView()
+            .ignoresSafeArea()
+    }
+}

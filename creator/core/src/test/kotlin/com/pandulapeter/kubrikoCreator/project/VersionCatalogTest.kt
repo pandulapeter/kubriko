@@ -26,4 +26,44 @@ class VersionCatalogTest {
         """.trimMargin()
         assertEquals(mapOf(KubrikoArtifact.ENGINE to "kubriko-engine"), VersionCatalog.kubrikoLibraries(catalog))
     }
+
+    @Test
+    fun anEntryGoesWhereItKeepsItsSectionSorted() {
+        val catalog = "[versions]\nkotlin = \"2.4.21\"\n\n[plugins]\ncompose = { id = \"a\" }\nkotlin-multiplatform = { id = \"b\" }\n"
+        assertEquals(
+            "[versions]\nkotlin = \"2.4.21\"\n\n[plugins]\nandroid-application = { id = \"c\" }\ncompose = { id = \"a\" }\nkotlin-multiplatform = { id = \"b\" }\n",
+            VersionCatalog.withEntry(catalog, VersionCatalog.PLUGINS, "android-application", "{ id = \"c\" }"),
+        )
+    }
+
+    @Test
+    fun anEntryOfAnUnsortedSectionGoesLast() {
+        val catalog = "[versions]\nkotlin = \"1\"\ncompose = \"2\"\n\n[plugins]\n"
+        assertEquals(
+            "[versions]\nkotlin = \"1\"\ncompose = \"2\"\nandroid = \"3\"\n\n[plugins]\n",
+            VersionCatalog.withEntry(catalog, VersionCatalog.VERSIONS, "android", "\"3\""),
+        )
+    }
+
+    @Test
+    fun aMissingSectionIsAddedAtTheEnd() {
+        assertEquals(
+            "[versions]\nkotlin = \"1\"\n\n[plugins]\nandroid = { id = \"a\" }\n",
+            VersionCatalog.withEntry("[versions]\nkotlin = \"1\"\n\n", VersionCatalog.PLUGINS, "android", "{ id = \"a\" }"),
+        )
+    }
+
+    @Test
+    fun anEntryThatIsThereAlreadyIsKeptAsItIs() {
+        val catalog = "[versions]\nandroid = \"1\"\n"
+        assertEquals(catalog, VersionCatalog.withEntry(catalog, VersionCatalog.VERSIONS, "android", "\"2\""))
+    }
+
+    @Test
+    fun anEntryIsRemovedOnlyFromItsSection() {
+        val catalog = "[versions]\nandroid = \"1\"\n\n[plugins]\nandroid = { id = \"a\" }\n"
+        assertEquals("[versions]\nandroid = \"1\"\n\n[plugins]\n", VersionCatalog.withoutEntry(catalog, VersionCatalog.PLUGINS, "android"))
+        assertEquals(false, VersionCatalog.hasEntry(VersionCatalog.withoutEntry(catalog, VersionCatalog.PLUGINS, "android"), VersionCatalog.PLUGINS, "android"))
+        assertEquals(true, VersionCatalog.hasEntry(catalog, VersionCatalog.VERSIONS, "android"))
+    }
 }

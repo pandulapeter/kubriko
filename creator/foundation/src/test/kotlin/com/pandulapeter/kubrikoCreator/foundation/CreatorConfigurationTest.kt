@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.foundation
 
+import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import java.util.Properties
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,12 +17,15 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CreatorConfigurationTest {
-    private val bundled = properties("kubrikoVersion" to "1.0.0", "kotlinVersion" to "2.4.21", "composeVersion" to "1.12.1", "gradleVersion" to "9.7.1")
+    private val bundled = properties(
+        "kubrikoVersion" to "1.0.0", "kotlinVersion" to "2.4.21", "composeVersion" to "1.12.1", "gradleVersion" to "9.7.1",
+        "androidGradlePluginVersion" to "9.5.0", "androidCompileSdk" to "37", "androidMinSdk" to "29", "androidxActivityVersion" to "1.13.0",
+    )
 
     @Test
     fun theBundledVersionsAreUsedByDefault() {
         assertEquals(
-            CreatorConfiguration(kubrikoVersion = "1.0.0", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = false),
+            testConfiguration(),
             CreatorConfiguration.from(bundled, Properties()),
         )
     }
@@ -50,9 +54,10 @@ class CreatorConfigurationTest {
     @Test
     fun theBuildBundlesEveryVersion() {
         val configuration = CreatorConfiguration.load()
-        listOf(configuration.kubrikoVersion, configuration.kotlinVersion, configuration.composeVersion, configuration.gradleVersion).forEach {
+        listOf(configuration.kubrikoVersion, configuration.kotlinVersion, configuration.composeVersion, configuration.gradleVersion, configuration.android.gradlePlugin, configuration.android.activity).forEach {
             assertTrue(it.matches(Regex("\\d+\\.\\d+.*")), it)
         }
+        assertTrue(configuration.android.minSdk in 21..configuration.android.compileSdk)
     }
 
     private fun properties(vararg entries: Pair<String, String>) = Properties().apply { entries.forEach { (key, value) -> setProperty(key, value) } }

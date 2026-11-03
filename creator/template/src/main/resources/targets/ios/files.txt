@@ -1,0 +1,6 @@
+iosApp/Configuration/Config.xcconfig
+iosApp/iosApp.xcodeproj/project.pbxproj
+iosApp/iosApp/ContentView.swift
+iosApp/iosApp/Info.plist
+iosApp/iosApp/iOSApp.swift
+src/iosMain/kotlin/__PACKAGE__/MainViewController.kt

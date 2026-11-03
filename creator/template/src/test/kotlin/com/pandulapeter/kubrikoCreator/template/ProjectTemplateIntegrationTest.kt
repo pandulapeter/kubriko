@@ -31,12 +31,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
 import java.awt.image.BufferedImage
 import java.io.File
+import java.util.zip.ZipFile
 import javax.imageio.ImageIO
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -51,8 +53,7 @@ class ProjectTemplateIntegrationTest {
     @Test
     fun everyTemplateGeneratesAProjectThatCompilesForEveryTarget() {
         assumeTrue(System.getenv("KUBRIKO_CREATOR_INTEGRATION") == "true")
-        val bundled = CreatorConfiguration.load()
-        val configuration = System.getenv("KUBRIKO_CREATOR_VERSION")?.let { bundled.copy(kubrikoVersion = it, useMavenLocal = true) } ?: bundled
+        val configuration = configuration()
         ProjectTemplate.entries.forEach { template ->
             val parentDirectory = createTempDirectory().toFile()
             try {
@@ -89,12 +90,76 @@ class ProjectTemplateIntegrationTest {
         }
     }
 
+    /**
+     * Turns every target on in the starter template and builds each, the Android app and the iOS app through Xcode, for the
+     * simulator, included; then turns the web off and plays as before. Needs the Android SDK and a Mac with Xcode.
+     */
+    @Test
+    fun everyTargetBuilds() {
+        assumeTrue(System.getenv("KUBRIKO_CREATOR_INTEGRATION") == "true")
+        val parentDirectory = createTempDirectory().toFile()
+        try {
+            assumeTrue("Building for Android needs the Android SDK", TargetHost.System.androidSdk(parentDirectory) != null)
+            assumeTrue("Building for iOS needs a Mac with Xcode", TargetHost.System.canBuildIos)
+            val directory = ProjectGenerator(configuration()).create(
+                NewProjectRequest(name = "Every Target", packageName = "com.example.targets", parentDirectory = parentDirectory),
+            )
+            val targets = GameTargets(directory, configuration().android)
+            listOf(GameTarget.ANDROID, GameTarget.IOS).forEach { target ->
+                assertTrue(targets.apply(assertIs<TargetChange.Proposed>(targets.change(target, isOn = true))), target.key)
+            }
+            GradleProjectConnection(directory).use { connection ->
+                assertEquals(":", runBlocking { DesktopModules.pathOf(connection) })
+                assertCompiles(connection, directory, "every target")
+                assertTaskRuns(connection, ":androidApp:assembleDebug", "every target")
+                val apk = directory.resolve("androidApp/build/outputs/apk/debug/androidApp-debug.apk")
+                assertTrue(ZipFile(apk).use { zip -> zip.entries().asSequence().any { it.name.endsWith("files/scenes/main.json") } }, "The APK has no Scenes")
+                assertXcodeBuilds(directory)
+                assertTrue(targets.apply(assertIs<TargetChange.Proposed>(targets.change(GameTarget.WEB, isOn = false))), "web")
+                assertTaskRuns(connection, "compileKotlinDesktop", "every target but the web")
+                assertRuntimeClasspathResolves(connection, "every target but the web")
+            }
+        } finally {
+            parentDirectory.deleteRecursively()
+        }
+    }
+
     @Test
     fun theIntegrationProjectUsesEveryBlockAndCondition() {
         val blocks = EveryBlockTypes.all.flatMap { it.events }.flatMap { it.blocks }
         assertEquals(BlockKind.entries.toSet(), blocks.mapTo(HashSet(), BlockKind::of))
         assertEquals(ConditionKind.entries.toSet(), blocks.filterIsInstance<BlockDefinition.If>().mapTo(HashSet()) { ConditionKind.of(it.condition) })
         assertEquals(PauseAction.entries.toSet(), blocks.filterIsInstance<BlockDefinition.PauseGame>().mapTo(HashSet()) { it.action })
+    }
+
+    private fun configuration(): CreatorConfiguration {
+        val bundled = CreatorConfiguration.load()
+        return System.getenv("KUBRIKO_CREATOR_VERSION")?.let { bundled.copy(kubrikoVersion = it, useMavenLocal = true) } ?: bundled
+    }
+
+    private fun assertTaskRuns(connection: GradleProjectConnection, task: String, description: String) {
+        val output = StringBuilder()
+        val isSuccessful = runBlocking { connection.run(taskPath = task, arguments = emptyList(), onEvent = { output.appendLine(it.toString()) }) }
+        assertTrue(isSuccessful, "$description: $task fails:\n$output")
+    }
+
+    /**
+     * Builds the iOS app for the simulator with Xcode, which builds the game's framework through Gradle, and checks that the
+     * game's identity reached the app.
+     */
+    private fun assertXcodeBuilds(directory: File) {
+        val derivedData = directory.resolve("build/xcode-derived-data")
+        val process = ProcessBuilder(
+            "xcodebuild", "-project", "iosApp/iosApp.xcodeproj", "-scheme", "iosApp", "-configuration", "Debug", "-sdk", "iphonesimulator",
+            "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", derivedData.path, "ARCHS=arm64", "CODE_SIGNING_ALLOWED=NO", "build",
+        ).directory(directory).redirectErrorStream(true).start()
+        val output = process.inputStream.bufferedReader().readText()
+        assertEquals(0, process.waitFor(), "Xcode can't build the iOS app:\n${output.takeLast(20_000)}")
+        val app = derivedData.resolve("Build/Products/Debug-iphonesimulator/Game.app")
+        val displayName = ProcessBuilder("/usr/bin/plutil", "-extract", "CFBundleDisplayName", "raw", "-o", "-", app.resolve("Info.plist").path).start()
+            .inputStream.bufferedReader().readText().trim()
+        assertEquals("Every Target", displayName, "The app's name")
+        assertTrue(app.walkTopDown().any { it.path.endsWith("files/scenes/main.json") }, "The app has no Scenes")
     }
 
     private fun assertCompiles(connection: GradleProjectConnection, directory: File, description: String) {

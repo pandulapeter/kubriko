@@ -11,9 +11,9 @@
 
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.GameSettings
+import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -26,7 +26,7 @@ import kotlin.test.assertNull
 
 class ProjectUpgraderTest {
     private val parentDirectory = createTempDirectory().toFile()
-    private val configuration = CreatorConfiguration(kubrikoVersion = "1.0.0", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = false)
+    private val configuration = testConfiguration()
     private val directory = ProjectGenerator(configuration, wrapperInstaller = { _, _ -> }, startVersionControl = { _, _ -> })
         .create(NewProjectRequest(name = "My Game", packageName = "com.example.mygame", parentDirectory = parentDirectory))
     private val packageDirectory = File(directory, "src/commonMain/kotlin/com/example/mygame")

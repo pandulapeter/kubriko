@@ -10,16 +10,15 @@
 package com.pandulapeter.kubrikoCreator.project
 
 /**
- * Line-based edits of the dependencies of a Kotlin Multiplatform build file (`build.gradle.kts`), which leave every other
- * line as it was.
+ * Line-based edits of a Kotlin Multiplatform build file (`build.gradle.kts`), which leave every other line as it was.
  */
-internal object BuildScript {
+public object BuildScript {
     private const val COMMON_DEPENDENCIES = "commonMain.dependencies {"
 
     /**
      * Whether [text] refers to the version catalog library with [accessor] anywhere.
      */
-    fun refersTo(text: String, accessor: String) = Regex("""\b${Regex.escape(accessor)}\b(?![.\w])""").containsMatchIn(text)
+    public fun refersTo(text: String, accessor: String): Boolean = Regex("""\b${Regex.escape(accessor)}\b(?![.\w])""").containsMatchIn(text)
 
     /**
      * [text] with an `implementation` line for each of [added] in its common dependencies, and without the lines that
@@ -27,7 +26,7 @@ internal object BuildScript {
      *
      * @return The changed text, or null if something has to be added but the file has no common dependencies block.
      */
-    fun withDependencies(text: String, added: Collection<String>, removed: Collection<String>): String? {
+    internal fun withDependencies(text: String, added: Collection<String>, removed: Collection<String>): String? {
         val removedLines = removed.mapTo(mutableSetOf()) { "implementation($it)" } + removed.map { "api($it)" }
         val lines = text.lines().filterNot { it.trim() in removedLines }.toMutableList()
         added.forEach { accessor ->
@@ -49,12 +48,13 @@ internal object BuildScript {
     }
 
     /**
-     * The index of the line closing the block opened on the line at [start], or null if it isn't closed.
+     * The index of the line closing the block (of braces or parentheses) opened on the line at [start], or null if it isn't
+     * closed.
      */
-    private fun blockEnd(lines: List<String>, start: Int): Int? {
+    public fun blockEnd(lines: List<String>, start: Int): Int? {
         var depth = 0
         for (index in start until lines.size) {
-            depth += lines[index].count { it == '{' } - lines[index].count { it == '}' }
+            depth += lines[index].count { it == '{' || it == '(' } - lines[index].count { it == '}' || it == ')' }
             if (depth <= 0) return index
         }
         return null

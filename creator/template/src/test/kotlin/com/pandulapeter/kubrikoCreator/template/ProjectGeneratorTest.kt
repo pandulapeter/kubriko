@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
+import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -26,7 +27,7 @@ import kotlin.test.assertTrue
 
 class ProjectGeneratorTest {
     private val parentDirectory = createTempDirectory().toFile()
-    private val configuration = CreatorConfiguration(kubrikoVersion = "1.0.0", kotlinVersion = "2.4.21", composeVersion = "1.12.1", gradleVersion = "9.7.1", useMavenLocal = false)
+    private val configuration = testConfiguration()
     private val request = NewProjectRequest(name = "My Game", packageName = "com.example.mygame", parentDirectory = parentDirectory)
     private val wrapperInstallations = mutableListOf<Pair<File, String>>()
     private val template = listOf(

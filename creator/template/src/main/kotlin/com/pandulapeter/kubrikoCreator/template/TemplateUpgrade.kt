@@ -35,10 +35,13 @@ public sealed interface TemplateUpgrade {
 /**
  * A change to one file, relative to the project root, shown as a diff before it is made.
  *
+ * @param before The file's content with Unix line breaks, empty for a file that is created.
  * @param after The new content of the file, or null if it is deleted.
+ * @param isNew Whether the file is created, so that it is named rather than shown line by line.
  */
 public data class ProposedFileChange(
     public val path: String,
     public val before: String,
     public val after: String?,
+    public val isNew: Boolean = false,
 )

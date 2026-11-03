@@ -1,0 +1,3 @@
+androidApp/build.gradle.kts
+androidApp/src/main/AndroidManifest.xml
+src/androidMain/kotlin/__PACKAGE__/MainActivity.kt

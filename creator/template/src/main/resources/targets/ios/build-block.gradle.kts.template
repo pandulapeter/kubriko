@@ -1,0 +1,23 @@
+val writeXcodeGameInfo by tasks.registering {
+    val file = layout.buildDirectory.file("xcode-game/GameInfo.plist")
+    val values = mapOf(
+        "CFBundleDisplayName" to gameName,
+        "CFBundleShortVersionString" to gameVersionName,
+        "CFBundleVersion" to gameVersionNumber,
+        "GameApplicationId" to gameApplicationId,
+    )
+    values.forEach { (key, value) -> inputs.property(key, value) }
+    outputs.file(file)
+    doLast {
+        fun xml(value: String) = value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        val entries = values.entries.joinToString("") { (key, value) -> "    <key>$key</key>\n    <string>${xml(value.get().trim())}</string>\n" }
+        file.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" +
+                    "<plist version=\"1.0\">\n<dict>\n$entries</dict>\n</plist>\n",
+            )
+        }
+    }
+}

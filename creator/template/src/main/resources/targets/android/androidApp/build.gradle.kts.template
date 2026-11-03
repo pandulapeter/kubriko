@@ -1,0 +1,30 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+val gameName = providers.gradleProperty("game.name").orElse(rootProject.name)
+val gameVersionName = providers.gradleProperty("game.versionName").orElse("1.0.0")
+val gameVersionNumber = providers.gradleProperty("game.versionNumber").orElse("1")
+val gameApplicationId = providers.gradleProperty("game.applicationId").orElse("{{PACKAGE}}")
+
+android {
+    namespace = "{{PACKAGE}}.app"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    defaultConfig {
+        applicationId = gameApplicationId.get()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.compileSdk.get().toInt()
+        versionCode = gameVersionNumber.get().trim().toInt()
+        versionName = gameVersionName.get()
+        manifestPlaceholders["gameName"] = gameName.get()
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+dependencies {
+    implementation(project(":"))
+}
