@@ -112,7 +112,6 @@ public object ManagerTypeCodeGenerator {
             needs.forEach { addAll(importsOf(it)) }
             addAll(blockCode.imports)
             if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
-            if (definition.texts.groupBy { it.position }.values.any { it.size > 1 }) add("androidx.compose.foundation.layout.Column")
             if (texts.isNotEmpty() || kotlinUi != null) addAll(COMPOSABLE_IMPORTS)
             kotlinUi?.imports?.let(::addAll)
         }.sorted()
@@ -273,7 +272,8 @@ public object ManagerTypeCodeGenerator {
                 if (indices.size == 1) {
                     appendText(texts[indices.single()], indices.single(), indent = "            ", alignment = position.alignment)
                 } else {
-                    appendLine("            Column(")
+                    // By its full name, since the project may have a type called Column in the generated package.
+                    appendLine("            androidx.compose.foundation.layout.Column(")
                     appendLine("                modifier = Modifier.align(Alignment.${position.alignment}),")
                     appendLine("                horizontalAlignment = Alignment.${position.horizontalAlignment},")
                     appendLine("            ) {")
