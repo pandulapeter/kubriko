@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.junit.Assume.assumeFalse
 import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
@@ -63,6 +64,7 @@ class AssistantControllerTest {
     private val profiles = CopyOnWriteArrayList<AgentProfile>()
     private val controllers = mutableListOf<AssistantController>()
     private val projectDirectory = File("/projects/breakout")
+    private val isWindows = System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")
 
     @AfterTest
     fun tearDown() {
@@ -76,6 +78,7 @@ class AssistantControllerTest {
     private fun controller(
         registry: AgentRegistryStore? = null,
         installer: BinaryAgentInstaller? = null,
+        node: NodeRuntime? = null,
         isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
         secretStore: SecretStore = secrets,
         scope: CoroutineScope = this.scope,
@@ -101,7 +104,7 @@ class AssistantControllerTest {
                 agentFolders = File(settingsDirectory, "agents"),
             )
         },
-        sources = AgentSources(registry = registry, installer = installer),
+        sources = AgentSources(registry = registry, installer = installer, node = node),
         home = "/Users/me",
         clock = { 1_000 },
         isAiEnabled = isAiEnabled,
@@ -364,6 +367,33 @@ class AssistantControllerTest {
         runner.installed.clear()
         val chat = controller().startChat()
         assertEquals(ChatState.Failed(FailureReason.NODE_MISSING), chat.state.first { it is ChatState.Failed })
+    }
+
+    @Test
+    fun downloadingNodeStartsTheConversationsThatHadNoneWithIt() = blockingTest {
+        assumeFalse(isWindows)
+        runner.installed.clear()
+        val releases = TestNodeReleases(settingsDirectory)
+        val node = releases.runtime()
+        val controller = controller(node = node)
+        val chat = controller.startChat()
+        assertEquals(ChatState.Failed(FailureReason.NODE_MISSING), chat.state.first { it is ChatState.Failed })
+        onMain { controller.installNode() }
+        chat.state.first { it == ChatState.Ready }
+        assertEquals(node.installedNpx()?.path, commands.last().program)
+        assertNull(controller.nodeInstallFailure.value)
+    }
+
+    @Test
+    fun aFailedNodeDownloadIsSaidAndTheConversationStaysWithoutIt() = blockingTest {
+        assumeFalse(isWindows)
+        runner.installed.clear()
+        val controller = controller(node = TestNodeReleases(settingsDirectory).runtime(sums = { "0000  node-v24.11.1-darwin-arm64.tar.gz" }))
+        val chat = controller.startChat()
+        chat.state.first { it is ChatState.Failed }
+        onMain { controller.installNode() }
+        assertTrue(controller.nodeInstallFailure.first { it != null }!!.isNotEmpty())
+        assertEquals(ChatState.Failed(FailureReason.NODE_MISSING), chat.state.value)
     }
 
     @Test
