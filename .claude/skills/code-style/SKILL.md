@@ -62,7 +62,10 @@ that explains what the code already says.
   never `Utils.kt` / `Helpers.kt`.
 - **Files and functions stay small.** Main Kotlin files stay under 500 lines, and functions (Composables
   above all, and members of classes and objects) under 120. `.github/scripts/check_sizes.py` enforces both in the pre-commit hook, after every edit Claude
-  makes, and in `Tests`, but only on crossing a limit: what is already past one may change. A file that outgrows the
+  makes, and in `Tests`, and a change may neither push a file, function, or constructor past its limit nor make one already
+  past it longer (or give it more parameters): it moves code out instead, so a split always passes. A primary constructor
+  takes at most 12 parameters (a data class's are its fields and don't count): a class that needs more has more than one
+  responsibility. A file that outgrows the
   limit is split by cohesion as part of the change that grows it: private state classes become `internal` top-level classes in files of their
   own, a pure algorithm moves next to its users in a file named for it. A single algorithm that splitting
   would only scatter may stay whole.

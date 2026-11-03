@@ -54,7 +54,7 @@ jobs:
       - name: Check the regular expressions' braces
         run: python3 .github/scripts/check_regexes.py
       # A pull request or a push to main pushes no Kotlin file or function past the code-style skill's
-      # limits; what was past them already may change. A push is judged against what main was before it, all of its
+      # limits, nor grows what is already past them. A push is judged against what main was before it, all of its
       # commits together.
       - name: Check the file and function sizes
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}

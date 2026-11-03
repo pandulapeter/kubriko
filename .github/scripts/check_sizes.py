@@ -7,22 +7,26 @@
 # https://mozilla.org/MPL/2.0/.
 
 """
-Keeps a change from pushing a file or a function past the sizes the code-style skill sets.
+Keeps a change from pushing a file, a function, or a constructor past the sizes the code-style skill sets, or from
+growing one already past them.
 
-Main Kotlin sources (tests are left out) should be at most FILE_LINES lines long, and a function (top-level or a
-member of a class, object, or interface) — a Composable above all — at most FUNCTION_LINES. Data tables can be exempted by name in EXEMPT.
+Main Kotlin sources (tests are left out) should be at most FILE_LINES lines long, a function (top-level or a member of
+a class, object, or interface) — a Composable above all — at most FUNCTION_LINES, and the primary constructor of a
+class, nested or not, should take at most CONSTRUCTOR_PARAMETERS parameters (a data class's are its fields and are not
+counted). Data tables can be exempted by name in EXEMPT.
 
-Only crossing a limit fails: a Kotlin file or function within it before the change and past it after. What was already
-past it may grow or shrink, since splitting it is a refactor of its own that a review sweep plans, so no list of
-exceptions is kept and nothing is to be updated when a file moves or shrinks. A file git sees as renamed is judged
-against its old path, and a function against its old self wherever in the change it was.
+A Kotlin file, function or constructor fails when the change takes it past its limit, or when it was already past it
+and the change makes it longer (a constructor: gives it more parameters) than it was; staying as long or shrinking
+passes, so a split that moves code out of it does. Nothing is stored: the base revision is the only reference, so no
+list of exceptions is kept and nothing is to be updated when a file moves or shrinks. A file git sees as renamed is
+judged against its old path, and a function or class against its old self wherever in the change it was.
 
 With no arguments it judges the staged change against HEAD (.githooks/pre-commit); `--base <rev>` judges the working
 tree against that revision (tests.yml, on a pull request or a push to main). `--hook` is the Claude Code edit hook
 (.claude/settings.json): it reads the hook's JSON from stdin and judges the file the edit wrote against HEAD, so that a
-file is split while it is being written; an edit that grows what is already past its limit gets a note instead. `--shell-hook` is the Claude Code hook after a shell command, which may have written any
-file without the edit hook seeing it: it judges the working tree against HEAD, files git does not track yet included,
-and reports failures only, since a note would repeat after every command.
+file is split while it is being written. `--shell-hook` is the Claude Code hook after a shell command, which may have
+written any file without the edit hook seeing it: it judges the working tree against HEAD, files git does not track
+yet included.
 """
 
 import fnmatch
@@ -34,6 +38,7 @@ import sys
 
 FILE_LINES = 500
 FUNCTION_LINES = 120
+CONSTRUCTOR_PARAMETERS = 12
 
 EXEMPT = ()
 
@@ -45,6 +50,15 @@ DECLARATION = re.compile(
 CLASS_HEADER = re.compile(
     r"^\s*(?:@[\w.]+(?:\([^)]*\))?\s+)*(?:(?:public|internal|private|protected|inner|value|inline|annotation|abstract|open|"
     r"final|sealed|data|enum|fun|companion|actual|expect|external)\s+)*(?:(?:class|interface)\s+([\w`]+)|object\b\s*([\w`]+)?)"
+)
+CLASS = re.compile(r"(?<![\w:.])(data\s+)?class\s+([\w`]+)")
+PRIMARY_CONSTRUCTOR = re.compile(
+    r"\s*(?:(?:@[\w.]+(?:\([^()]*\))?|public|internal|private|protected)\s*)*(?:constructor\s*)?\("
+)
+PARAMETER = re.compile(
+    r"\s*(?:@[\w.:]+(?:\([^()]*\))?\s*)*"
+    r"(?:(?:private|internal|public|protected|override|open|final|vararg|crossinline|noinline|actual)\s+)*"
+    r"(?:(?:val|var)\s+)?[\w`]+\s*:"
 )
 TEST_SOURCES = re.compile(r"/src/\w*[Tt]est(?:Fixtures)?/")
 CONTINUATION = tuple(".?:+-*/&|=")
@@ -203,8 +217,46 @@ def functions(text):
     return found
 
 
+def constructors(text):
+    """(name, parameter count) of every class with a primary constructor in a Kotlin file, nested ones included.
+
+    The parameter list is cut at the commas outside brackets, and only a piece that starts like a parameter (its
+    annotations and modifiers, then `name:`) counts, so a comma inside a default's call, lambda or type arguments
+    (`Map<String, Int>`) and a trailing comma do not.
+    """
+    code = "\n".join(code_only(text.split("\n")))
+    result = []
+    for match in CLASS.finditer(code):
+        # A data class's parameters are its fields, not collaborators: a record with many of them is not a hub.
+        if match.group(1):
+            continue
+        index = match.end()
+        if code.startswith("<", index):
+            index = angle_brackets_end(code, index)
+        opening = PRIMARY_CONSTRUCTOR.match(code, index)
+        if not opening:
+            continue
+        index = opening.end()
+        depth = 0
+        pieces = [""]
+        while index < len(code) and depth >= 0:
+            character = code[index]
+            if character in "([{":
+                depth += 1
+            elif character in ")]}":
+                depth -= 1
+            if character == "," and depth == 0:
+                pieces.append("")
+            elif depth >= 0:
+                pieces[-1] += character
+            index += 1
+        result.append((match.group(2), sum(1 for piece in pieces if PARAMETER.match(piece))))
+    return result
+
+
 def measure(paths, read):
-    """Every size the check limits, as {key: (size, limit, unit)}; a function's key is "<path>::<name>"."""
+    """Every size the check limits, as {key: (size, limit, unit)}; a function's key is "<path>::<name>", a primary
+    constructor's "<path>::class <name>"."""
     sizes = {}
     for path in paths:
         if is_main_kotlin(path):
@@ -214,28 +266,32 @@ def measure(paths, read):
                 key = f"{path}::{name}"
                 if key not in sizes or sizes[key][0] < length:
                     sizes[key] = (length, FUNCTION_LINES, "lines")
+            for name, count in constructors(text):
+                key = f"{path}::class {name}"
+                if key not in sizes or sizes[key][0] < count:
+                    sizes[key] = (count, CONSTRUCTOR_PARAMETERS, "parameters")
     return sizes
 
 
 def judged(before, after):
-    """(failures, notes) of a change, from what measure() gives for the files it touched before and after it."""
+    """The failures of a change, from what measure() gives for the files it touched before and after it."""
     failures = []
-    notes = []
     for key, (size, limit, unit) in sorted(after.items()):
         if size <= limit:
             continue
         previous = before.get(key)
         if previous is None and "::" in key:
-            # A function moved to another file in the same change is still the function it was.
+            # A function or class moved to another file in the same change is still the one it was.
             name = key.split("::", 1)[1]
             previous = next((value for other, value in before.items() if other.endswith(f"::{name}")), None)
-        if previous is not None and previous[0] > limit:
-            notes.append(f"{key} is {size} {unit}, past the limit of {limit}; if the change added a responsibility, "
-                         "give it a file or function of its own.")
-        else:
-            failures.append(f"{key} is {size} {unit}, past the limit of {limit}; split it by cohesion (see the "
-                            "code-style skill).")
-    return failures, notes
+        if previous is None or previous[0] <= limit:
+            advice = "give the class fewer responsibilities" if unit == "parameters" else "split it by cohesion"
+            failures.append(f"{key} is {size} {unit}, past the limit of {limit}; {advice} (see the code-style skill).")
+        elif size > previous[0]:
+            advice = "take a responsibility out of the class" if unit == "parameters" else "move code out of it"
+            failures.append(f"{key} grew from {previous[0]} to {size} {unit}, already past the limit of {limit}; "
+                            f"{advice}, never into it (see the code-style skill).")
+    return failures
 
 
 def git(*arguments):
@@ -277,26 +333,20 @@ def judged_change(paths, base, read_after):
 
 
 def checked_edit(hook_input):
-    """For the Claude Code hook: (failures, notes) of the one file an edit wrote, against HEAD in its own checkout."""
+    """For the Claude Code hook: the failures of the one file an edit wrote, against HEAD in its own checkout."""
     tool_input = hook_input.get("tool_input") or {}
     path = tool_input.get("file_path") or ""
     if not path or not os.path.isfile(path):
-        return [], []
+        return []
     top = subprocess.run(
         ["git", "-C", os.path.dirname(path), "rev-parse", "--show-toplevel"], capture_output=True, text=True,
     ).stdout.strip()
     if not top:
-        return [], []
+        return []
     os.chdir(top)
     relative = os.path.relpath(os.path.realpath(path), os.path.realpath(top))
     # A file the edit left as HEAD has it is not in the diff, and one HEAD lacks reads as empty there.
-    failures, notes = judged_change({relative: changed("HEAD", False).get(relative, relative)}, "HEAD", read_file)
-    # Every edit of a file already past its limit would repeat the note; only one that adds lines earns it.
-    if "old_string" in tool_input or "edits" in tool_input:
-        edits = tool_input.get("edits") or [tool_input]
-        if sum(edit.get("new_string", "").count("\n") - edit.get("old_string", "").count("\n") for edit in edits) <= 0:
-            notes = []
-    return failures, notes
+    return judged_change({relative: changed("HEAD", False).get(relative, relative)}, "HEAD", read_file)
 
 
 def checked_tree():
@@ -310,32 +360,21 @@ def checked_tree():
     for path in git("ls-files", "--others", "--exclude-standard", "-z").split("\0"):
         if path:
             paths.setdefault(path, None)
-    failures, _ = judged_change(paths, "HEAD", read_file)
-    return failures
+    return judged_change(paths, "HEAD", read_file)
 
 
 def main(arguments):
-    if "--shell-hook" in arguments:
-        failures = checked_tree()
+    if "--shell-hook" in arguments or "--hook" in arguments:
+        failures = checked_tree() if "--shell-hook" in arguments else checked_edit(json.load(sys.stdin))
         if failures:
             print("\n".join(failures), file=sys.stderr)
             return 2
         return 0
-    if "--hook" in arguments:
-        failures, notes = checked_edit(json.load(sys.stdin))
-        if failures:
-            print("\n".join(failures + notes), file=sys.stderr)
-            return 2
-        if notes:
-            print(json.dumps({"hookSpecificOutput": {
-                "hookEventName": "PostToolUse", "additionalContext": "\n".join(notes),
-            }}))
-        return 0
     if "--base" in arguments:
         base = arguments[arguments.index("--base") + 1]
-        failures, _ = judged_change(changed(base, False), base, read_file)
+        failures = judged_change(changed(base, False), base, read_file)
     else:
-        failures, _ = judged_change(changed("HEAD", True), "HEAD", lambda path: shown("", path))
+        failures = judged_change(changed("HEAD", True), "HEAD", lambda path: shown("", path))
     for problem in failures:
         print(f"::error::{problem}" if "--base" in arguments else problem, file=sys.stderr)
     return 1 if failures else 0
