@@ -50,13 +50,21 @@ public enum class KubrikoArtifact(
          * point Kubriko Creator relies on are always among them.
          */
         internal fun usedBy(sources: Sequence<String>): Set<KubrikoArtifact> {
-            val used = mutableSetOf(ENGINE, CREATOR_API)
-            sources.forEach { source ->
-                packagePattern.findAll(source).forEach { match ->
-                    entries.firstOrNull { it.packageSegment == match.groupValues[1] }?.let(used::add)
-                }
-            }
+            val used = ALWAYS_USED.toMutableSet()
+            sources.forEach { source -> used += namedIn(source) }
             return used
         }
+
+        /**
+         * The libraries other than the engine whose packages the Kotlin [source] names.
+         */
+        internal fun namedIn(source: String): Set<KubrikoArtifact> = packagePattern.findAll(source).mapNotNullTo(HashSet()) { match ->
+            entries.firstOrNull { it.packageSegment == match.groupValues[1] }
+        }
+
+        /**
+         * The libraries every game uses: the engine, and the entry point Kubriko Creator relies on.
+         */
+        public val ALWAYS_USED: Set<KubrikoArtifact> = setOf(ENGINE, CREATOR_API)
     }
 }
