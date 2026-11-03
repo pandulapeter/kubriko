@@ -42,21 +42,23 @@ class OpeningAndPlayingTest {
             val started = tools.call("start_game", timeout = 10.minutes)
             assertTrue(!started.isError && started["hasStarted"]?.jsonPrimitive?.boolean == true, started.text)
         }
-        val first = step("The game draws the Gold Bricks in their column") {
-            captureGame("game").also { game ->
-                val gold = assertNotNull(game.boundsOf(GOLD), "No Gold Brick was drawn.")
-                // The level puts its Gold Bricks in the fifth column, whose middle is 30 units left of the screen's.
-                assertTrue(abs(gold.centerX - (game.width / 2 - 30)) <= 2, "The Gold Bricks are at $gold, not in their column.")
-                assertTrue(abs(gold.width - BreakoutFixture.brick.width.toInt()) <= 2, "The Gold Bricks are ${gold.width} pixels wide.")
-                assertTrue(game.countOf(BRICK) > game.countOf(GOLD) * 5, "The other Bricks weren't drawn around them.")
-                val ball = assertNotNull(game.boundsOf(BALL), "The Ball wasn't drawn.")
-                val ballSize = BreakoutFixture.ball.width.toInt()
-                assertTrue(abs(ball.width - ballSize) <= 2 && abs(ball.height - ballSize) <= 2, "The Ball is drawn ${ball.width}×${ball.height} pixels large.")
-            }
+        val first = step("take_screenshot shows the game") { captureGame("game") }
+        // take_screenshot scales the game down to at most 1280 pixels wide, so how many pixels a unit is depends on the display.
+        val scale = step("The game draws the Gold Bricks in their column") {
+            val gold = assertNotNull(first.boundsOf(GOLD), "No Gold Brick was drawn.")
+            val scale = gold.height / GOLD_COLUMN_HEIGHT
+            // The level puts its Gold Bricks in the fifth column, whose middle is 30 units left of the screen's.
+            assertTrue(abs(gold.centerX - (first.width / 2 - 30 * scale)) <= 2, "The Gold Bricks are at $gold, not in their column (at $scale pixels a unit).")
+            assertTrue(abs(gold.width - BreakoutFixture.brick.width * scale) <= 2, "The Gold Bricks are ${gold.width} pixels wide (at $scale pixels a unit).")
+            assertTrue(first.countOf(BRICK) > first.countOf(GOLD) * 5, "The other Bricks weren't drawn around them.")
+            val ball = assertNotNull(first.boundsOf(BALL), "The Ball wasn't drawn.")
+            val ballSize = BreakoutFixture.ball.width * scale
+            assertTrue(abs(ball.width - ballSize) <= 2 && abs(ball.height - ballSize) <= 2, "The Ball is drawn ${ball.width}×${ball.height} pixels large (at $scale pixels a unit).")
+            scale
         }
         step("The Game's two texts at the top left are one under the other") {
             val text = assertNotNull(first.boundsOf(TEXT), "The Game's texts weren't drawn.")
-            val lineHeight = BreakoutFixture.game.texts.first().size
+            val lineHeight = BreakoutFixture.game.texts.first().size * scale
             assertTrue(text.height > lineHeight * 1.5f, "The texts are only ${text.height} pixels tall, so they are drawn over each other.")
         }
         step("The Ball moves while the rest stays") {
@@ -72,6 +74,10 @@ class OpeningAndPlayingTest {
         const val BRICK = 0x6060AA
         const val BALL = 0xFFFFFF
         const val TEXT = 0x202020
+        /**
+         * The level's column of four Gold Bricks, 30 units apart and 24 tall, from the top of the first to the bottom of the last.
+         */
+        const val GOLD_COLUMN_HEIGHT = 3 * 30f + 24f
         /**
          * The smallest window Kubriko Creator lets itself be (KubrikoCreatorApp.kt), at the display's scale of 1.
          */
