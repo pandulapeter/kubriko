@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 /**
  * Which Actor of a Scene is under a point, as the Scene editor picks it for a click ([SceneBoundsGrid]).
  */
-internal object SceneHitTest {
+public object SceneHitTest {
 
     /**
      * Where an Actor is drawn, in scene units.
@@ -21,7 +21,7 @@ internal object SceneHitTest {
      * @param drawingOrder Lower is drawn on top, as Kubriko's `Visible.drawingOrder`.
      * @param isBackground Whether it is only picked when nothing else is there (the Scene settings, which fill the bounds).
      */
-    data class Bounds(
+    public data class Bounds(
         val index: Int,
         val left: Float,
         val top: Float,
@@ -30,14 +30,14 @@ internal object SceneHitTest {
         val drawingOrder: Float = 0f,
         val isBackground: Boolean = false,
     ) {
-        fun contains(x: Float, y: Float) = x in left..right && y in top..bottom
+        internal fun contains(x: Float, y: Float) = x in left..right && y in top..bottom
     }
 
     /**
      * Whether these bounds are drawn above [other]: those of a background never are, then the lowest drawing order is,
      * and of equal ones the Actor added later, which Kubriko draws later.
      */
-    fun Bounds.isDrawnAbove(other: Bounds) = when {
+    internal fun Bounds.isDrawnAbove(other: Bounds) = when {
         isBackground != other.isBackground -> !isBackground
         drawingOrder != other.drawingOrder -> drawingOrder < other.drawingOrder
         else -> index > other.index

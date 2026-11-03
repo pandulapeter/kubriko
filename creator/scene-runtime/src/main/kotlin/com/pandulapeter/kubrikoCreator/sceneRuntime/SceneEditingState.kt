@@ -17,14 +17,17 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 /**
  * The Scene shown in Kubriko Creator's own window, if any.
  */
-internal sealed interface SceneEditingState {
+public sealed interface SceneEditingState {
 
-    data object Closed : SceneEditingState
+    /**
+     * No Scene is open.
+     */
+    public data object Closed : SceneEditingState
 
     /**
      * The project is being compiled and its classes loaded.
      */
-    data class Preparing(
+    public data class Preparing(
         val scene: ProjectResource,
     ) : SceneEditingState
 
@@ -35,7 +38,7 @@ internal sealed interface SceneEditingState {
      * @param reason What went wrong, for the user.
      * @param arguments The values of the [reason]'s placeholders.
      */
-    data class Failed(
+    public data class Failed(
         val scene: ProjectResource,
         val reason: SceneProblem,
         val arguments: List<String> = emptyList(),
@@ -45,7 +48,7 @@ internal sealed interface SceneEditingState {
      * The project's Kubriko version isn't Creator's, or its Compose or Kotlin is newer, so its classes can't be drawn in
      * Creator's window.
      */
-    data class Unsupported(
+    public data class Unsupported(
         val scene: ProjectResource,
         val reason: SceneProblem,
         val arguments: List<String>,
@@ -61,7 +64,7 @@ internal sealed interface SceneEditingState {
      *   whose Actors the editor draws from them until newer classes are swapped in.
      * @param problem Why the Scene file can't be read, which no command can change until it is fixed by hand.
      */
-    data class Open(
+    public data class Open(
         val scene: ProjectResource,
         val entryPoint: CreatorEntryPoint,
         val actors: List<SceneActorEntry>,
@@ -71,6 +74,9 @@ internal sealed interface SceneEditingState {
         val previews: Map<String, ActorTypeLook> = emptyMap(),
         val problem: SceneFileProblem? = null,
     ) : SceneEditingState {
-        val sceneName get() = SceneStore.nameOf(scene.file)
+        /**
+         * The Scene's name, from its file's.
+         */
+        public val sceneName: String get() = SceneStore.nameOf(scene.file)
     }
 }

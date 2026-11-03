@@ -61,6 +61,7 @@ include(
     ":creator:template",
     ":creator:commands",
     ":creator:ai",
+    ":creator:scene-runtime",
     ":creator:ui-components",
     ":engine",
     ":examples:demo-content-shaders",

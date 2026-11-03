@@ -62,7 +62,7 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 
 Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
 gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
-module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), `:creator:template` (project templates and upgrades, with the template files as its resources), `:creator:commands` (`commands` and `context`, the AI context the commands read, with the engine overview `get_kubriko_api` hands the AI as its resource), `:creator:ai` (the MCP server and the in-app assistant: `mcp`, `ai`, with the ACP SDK in its API, since the assistant's state carries its model types), and `:creator:ui-components`
+module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), `:creator:template` (project templates and upgrades, with the template files as its resources), `:creator:commands` (`commands` and `context`, the AI context the commands read, with the engine overview `get_kubriko_api` hands the AI as its resource), `:creator:ai` (the MCP server and the in-app assistant: `mcp`, `ai`, with the ACP SDK in its API, since the assistant's state carries its model types), `:creator:scene-runtime` (`sceneRuntime`, the Scene editor's runtime: the project class loading, the live preview, and sprites, with the engine, `tools:creator-api`, and every published plugin, the only Creator module that runs the engine), and `:creator:ui-components`
 (`ui.components`, `ui.theme`, with their own resources and the UI test fixtures). Each child module applies `kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
@@ -266,11 +266,11 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 
 ## Scene editing
 
-Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own and not `tools/scene-editor`.
+Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in `:creator:scene-runtime`'s `sceneRuntime/`, and `ui/scenes/`), never a window of its own and not `tools/scene-editor`.
 
 - It works only when the project's Kubriko version equals Creator's and its Compose and Kotlin are no newer major or minor version
   (`SharedLibraries`, which gates the `androidx.compose` modules holding Compose's runtime too; another newer shared library loads with a console warning): the project's classes load into a class loader
-  whose parent is Creator's (Kubriko, Compose, and Kotlin shared; the project's jars are copied and the class files of its folders
+  whose parent is Creator's (Kubriko, Compose, and Kotlin shared, so every published Kubriko module a project could use is on Creator's classpath through `scene-runtime/build.gradle.kts`; the project's jars are copied and the class files of its folders
   read before anything loads, so a rebuild can replace them while they are in use), and `SceneView` creates the Actors in a Kubriko
   instance that never runs. Another version gets a notice instead (`SceneEditingState.Unsupported`), and a failed build or entry point a
   notice with Try again (`SceneEditingState.Failed`).
