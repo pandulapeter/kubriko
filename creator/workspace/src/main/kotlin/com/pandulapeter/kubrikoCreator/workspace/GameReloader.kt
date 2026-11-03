@@ -87,6 +87,7 @@ internal class GameReloader(
         if (this.game !== game) return
         val changedClasses = ClassShape.changesNeedingRestart(game.shapes, built)
         if (changedClasses.isNotEmpty()) {
+            if (!isStillPlaying(game)) return
             console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RESTARTING, arguments = listOf(typeNamesOf(changedClasses).joinToString())))
             restartGame()
             return
@@ -95,11 +96,17 @@ internal class GameReloader(
         if (reload(game.reloadTaskName)) {
             game.shapes += built
             console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOADED, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
-        } else if (this.game === game) {
+        } else if (isStillPlaying(game)) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOAD_FAILED, isError = true))
             restartGame()
         }
     }
+
+    /**
+     * Whether [game] still plays, after a build or a reload that the game may have been stopped during: one that was
+     * stopped is never started again, and a reload that failed because it was gone is no failure to report.
+     */
+    private suspend fun isStillPlaying(game: Game) = this.game === game && isGameRunning() && this.game === game
 
     /**
      * The top-level types [classNames] belong to, by their simple names, as the user knows them.

@@ -119,6 +119,34 @@ class GameReloaderTest {
     }
 
     @Test
+    fun aReloadThatFailedBecauseTheGameWasStoppedStartsNothingAndReportsNothing() = runTest {
+        val reloader = createReloader()
+        reloader.onGameStarting("hotReloadDesktopMain", mapOf("game/Ball" to ball))
+        reloadResult = {
+            isGameRunning = false
+            false
+        }
+        reloader.onCodeChanged()
+        assertEquals(listOf("hotReloadDesktopMain"), reloads)
+        assertEquals(0, restarts)
+        assertTrue(statuses.none { it.isError }, "$statuses")
+    }
+
+    @Test
+    fun aGameStoppedWhileItsChangesBuildIsntStartedAgainForAChangedShape() = runTest {
+        val reloader = createReloader()
+        reloader.onGameStarting("hotReloadDesktopMain", mapOf("game/Ball" to ball))
+        builtShapes = mapOf("game/Ball" to ballWithLabel)
+        buildResult = {
+            isGameRunning = false
+            folders
+        }
+        reloader.onCodeChanged()
+        assertEquals(0, restarts)
+        assertTrue(statuses.none { it.text == WorkspaceStatus.GAME_RESTARTING }, "$statuses")
+    }
+
+    @Test
     fun nothingIsBuiltForAGameStartedWithoutHotReloadOrForNoGame() = runTest {
         val reloader = createReloader()
         reloader.onCodeChanged()
