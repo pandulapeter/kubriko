@@ -37,6 +37,7 @@
     <string name="error_package_name_invalid">Use at least two parts separated by dots, like com.example.mygame, each starting with a lowercase letter.</string>
     <string name="error_project_folder_not_empty">That folder already exists and isn't empty.</string>
     <string name="error_project_not_created">Kubriko Creator couldn't create the project.</string>
+    <string name="error_project_kubriko_unavailable">Kubriko %1$s, the version of this Kubriko Creator, can't be downloaded, so a project made with it wouldn't build. A Kubriko Creator run from its repository needs ./gradlew :creator:run, which publishes the libraries to Maven Local first.</string>
     <string name="welcome_subtitle">Make games with Kubriko: build Actor types from Events and Blocks, place them in Scenes, and play.</string>
     <string name="prototype_banner">Early prototype – not ready for serious use.</string>
     <string name="opening_project">Opening %1$s…</string>
@@ -108,6 +109,7 @@
     <string name="status_generated_leftovers_removed">Deleted the generated code of types that no longer exist: %1$s</string>
     <string name="status_generated_leftover_changed_by_hand">%1$s is the generated code of a type that no longer exists, but it was changed by hand, so Kubriko Creator kept it. Delete it once nothing needs it, since it may break the build.</string>
     <string name="status_kubriko_version_changed">The project now uses Kubriko %1$s, the version of this Kubriko Creator, instead of %2$s.</string>
+    <string name="status_kubriko_version_unavailable">Kubriko %1$s, the version of this Kubriko Creator, can't be downloaded, so the project stays on Kubriko %2$s. A Kubriko Creator run from its repository needs ./gradlew :creator:run, which publishes the libraries to Maven Local first.</string>
     <string name="status_kubriko_version_newer">The project uses Kubriko %1$s, which is newer than this Kubriko Creator, so its Scenes can't be edited until Kubriko Creator is updated.</string>
     <string name="status_kubriko_libraries_added">The project now depends on %1$s, which its code uses.</string>
     <string name="status_kubriko_libraries_removed">The project no longer depends on %1$s, which nothing uses.</string>

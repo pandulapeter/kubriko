@@ -130,6 +130,7 @@ private fun ScreenContent(
         )
         is AppScreen.NewProject -> NewProjectScreen(
             error = screen.error,
+            errorArguments = screen.errorArguments,
             defaultParentDirectory = defaultParentDirectory,
             onCreate = onCreateProject,
             onCancel = onCloseProject,

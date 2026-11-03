@@ -76,6 +76,16 @@ class ProjectGeneratorTest {
     }
 
     @Test
+    fun aProjectIsntCreatedOnAKubrikoVersionThatCantBeDownloaded() {
+        val generator = ProjectGenerator(configuration, { _, _ -> wrapperInstallations += parentDirectory to "" }, loadTemplate = { template }, isKubrikoAvailable = { false })
+        val exception = assertFailsWith<ProjectCreationException> { generator.create(request) }
+        assertEquals(TemplateProblem.KUBRIKO_UNAVAILABLE, exception.reason)
+        assertEquals(listOf("1.0.0"), exception.arguments)
+        assertFalse(File(parentDirectory, "my-game").exists())
+        assertTrue(wrapperInstallations.isEmpty())
+    }
+
+    @Test
     fun anExistingEmptyFolderIsUsed() {
         File(parentDirectory, "my-game").mkdirs()
         assertTrue(File(generator().create(request), "settings.gradle.kts").isFile)

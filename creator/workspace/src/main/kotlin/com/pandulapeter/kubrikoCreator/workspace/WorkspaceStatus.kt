@@ -35,6 +35,10 @@ public enum class WorkspaceStatus(override val english: String) : DomainText {
     KUBRIKO_LIBRARIES_ADDED("The project now depends on %1\$s, which its code uses."),
     KUBRIKO_LIBRARIES_REMOVED("The project no longer depends on %1\$s, which nothing uses."),
     KUBRIKO_VERSION_CHANGED("The project now uses Kubriko %1\$s, the version of this Kubriko Creator, instead of %2\$s."),
+    KUBRIKO_VERSION_UNAVAILABLE(
+        "Kubriko %1\$s, the version of this Kubriko Creator, can't be downloaded, so the project stays on Kubriko %2\$s. A Kubriko Creator " +
+            "run from its repository needs ./gradlew :creator:run, which publishes the libraries to Maven Local first.",
+    ),
     KUBRIKO_VERSION_NEWER("The project uses Kubriko %1\$s, which is newer than this Kubriko Creator, so its Scenes can't be edited until Kubriko Creator is updated."),
     PLAY_FROM_SCENE_NEEDS_UPGRADE("This project's files are older than playing from a Scene needs, so the game may start with its first Scene instead of %1\$s. Upgrading the project fixes that."),
     SESSION_ENDED("Session ended."),

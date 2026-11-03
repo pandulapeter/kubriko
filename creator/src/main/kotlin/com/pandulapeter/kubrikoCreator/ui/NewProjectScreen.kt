@@ -58,6 +58,7 @@ import java.io.File
 @Composable
 internal fun NewProjectScreen(
     error: StringResource?,
+    errorArguments: List<String>,
     defaultParentDirectory: File,
     onCreate: (NewProjectRequest) -> Unit,
     onCancel: () -> Unit,
@@ -141,7 +142,7 @@ internal fun NewProjectScreen(
             }
             if (error != null) {
                 Text(
-                    text = stringResource(error),
+                    text = stringResource(error, *errorArguments.toTypedArray()),
                     color = MaterialTheme.colorScheme.error,
                 )
             }

@@ -119,6 +119,20 @@ class KubrikoBuildFilesTest {
     }
 
     @Test
+    fun aProjectIsNeverMovedToAVersionThatCantBeDownloaded() {
+        sync(version = "0.9.1-creator", useMavenLocal = true)
+        val settingsWithMavenLocal = settings.readText()
+        val changes = KubrikoBuildFiles(root, "0.9.1", useMavenLocal = false, isAvailable = { it != "0.9.1" }).sync()
+        assertEquals("0.9.1", changes?.unavailableVersion)
+        assertEquals("0.9.1-creator", changes?.version)
+        assertNull(changes?.previousVersion)
+        assertFalse(changes?.isNewerThanCreator == true)
+        assertContains(catalog.readText(), "kubriko = \"0.9.1-creator\"\n")
+        assertEquals(settingsWithMavenLocal, settings.readText())
+        assertNull(KubrikoBuildFiles(root, "0.9.1-creator", useMavenLocal = true, isAvailable = { false }).sync()?.unavailableVersion)
+    }
+
+    @Test
     fun aProjectWithWindowsLineBreaksKeepsThemAndIsNotRewritten() {
         val files = listOf(catalog, build, settings)
         files.forEach { it.writeText(it.readText().replace("\n", "\r\n")) }

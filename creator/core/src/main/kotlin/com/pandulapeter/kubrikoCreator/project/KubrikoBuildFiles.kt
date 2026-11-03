@@ -23,11 +23,14 @@ import java.io.File
  *
  * @param useMavenLocal Whether [kubrikoVersion] is a development build in Maven Local, which the project's settings
  *   then have to look in.
+ * @param isAvailable Whether a Kubriko version can be downloaded from where the project would look for it. A project is
+ *   never moved to one that can't, since nothing would build: it keeps its own version, and [sync] says why.
  */
 public class KubrikoBuildFiles(
     private val rootDirectory: File,
     private val kubrikoVersion: String,
     private val useMavenLocal: Boolean,
+    private val isAvailable: (String) -> Boolean = { true },
 ) {
     /**
      * Brings the build files up to date with the sources.
@@ -38,7 +41,8 @@ public class KubrikoBuildFiles(
         val catalogText = read(CATALOG_FILE) ?: return null
         val buildText = read(BUILD_FILE) ?: return null
         val projectVersion = VersionCatalog.kubrikoVersion(catalogText) ?: return null
-        val version = if (compareVersions(projectVersion, kubrikoVersion) > 0) projectVersion else kubrikoVersion
+        val unavailableVersion = kubrikoVersion.takeIf { compareVersions(projectVersion, it) <= 0 && projectVersion != it && !isAvailable(it) }
+        val version = if (compareVersions(projectVersion, kubrikoVersion) > 0 || unavailableVersion != null) projectVersion else kubrikoVersion
         val used = usedArtifacts()
         val aliases = VersionCatalog.kubrikoLibraries(catalogText)
         val accessors = KubrikoArtifact.entries.associateWith { VersionCatalog.accessorOf(aliases[it] ?: VersionCatalog.aliasOf(it)) }
@@ -61,7 +65,8 @@ public class KubrikoBuildFiles(
             removedArtifacts = removed.filter { !BuildScript.refersTo(changedBuild, accessors.getValue(it)) }.map { it.artifactId }.sorted(),
             previousVersion = projectVersion.takeIf { it != version },
             version = version,
-            isNewerThanCreator = version != kubrikoVersion,
+            isNewerThanCreator = version != kubrikoVersion && unavailableVersion == null,
+            unavailableVersion = unavailableVersion,
         )
     }
 
@@ -155,6 +160,7 @@ public class KubrikoBuildFiles(
  * @param previousVersion The Kubriko version the project used before, or null if it didn't change.
  * @param version The Kubriko version the project uses.
  * @param isNewerThanCreator Whether [version] is newer than Kubriko Creator's own, which the project keeps.
+ * @param unavailableVersion Kubriko Creator's own version, if the project stayed on [version] because it can't be downloaded.
  */
 public data class KubrikoBuildFileChanges(
     val addedArtifacts: List<String> = emptyList(),
@@ -162,4 +168,5 @@ public data class KubrikoBuildFileChanges(
     val previousVersion: String? = null,
     val version: String,
     val isNewerThanCreator: Boolean = false,
+    val unavailableVersion: String? = null,
 )

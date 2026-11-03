@@ -19,9 +19,11 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 ## Running and testing
 
 - `./gradlew :creator:run` runs against this repository's libraries however it is started: `settings.gradle.kts` turns on
-  `creator.localKubriko` for any build that runs it and puts the Maven Local publish tasks first. That publishes the libraries as
+  `creator.localKubriko` for any build that runs one of its run tasks (by path, or by name from the root or `creator/`, where
+  `../gradlew run` starts it) and puts `:publishCreatorLibraries` first. That publishes the libraries as
   `<library.version>-creator` (so they never shadow a real release) and bundles that version and `mavenLocal()` into
-  `creator.properties`, so projects use them. Packaged builds, and `-Pcreator.localKubriko=false`, bundle the released version.
+  `creator.properties`, so projects use them. Packaged builds, and `-Pcreator.localKubriko=false`, bundle `library.version`
+  as it is, which projects only move to once Maven Central has it.
 - `./gradlew :creator:allTests` runs every module's unit tests (also on Windows and Linux in `Tests`); `:creator:<module>:test
   --tests …` runs one module's. Run the whole suite before every commit,
   not only the tests you touched: tests elsewhere catch leaks and races (a server left running, an exception escaping a scope),
@@ -259,7 +261,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   exactly the Kubriko libraries its sources name (the engine and `tool-creator-api` always), its `kubriko` version is raised to
   Creator's (a newer one is kept and reported once), and the Maven Local block and the audio plugin's JitPack block come and go
   with what is needed. A catalog entry stays while anything else in the build file refers to it, libraries Creator doesn't know
-  are never touched, and a file without the template's shape is left alone entirely. Projects that aren't opted in are never changed.
+  are never touched, and a file without the template's shape is left alone entirely. Projects that aren't opted in are never changed. A project is never moved to a Kubriko version that can't be
+  downloaded from where it looks (`template/KubrikoAvailability`: Maven Local for a development build, Maven Central otherwise),
+  which a Creator started without its libraries would otherwise do to every project it opens; it keeps its version, the console
+  says why, and a new project isn't created at all.
 - **Scenes** (`scenes/SceneStore`) are written with one Actor per line, so they diff and merge. Each entry's `id` is ignored by
   Kubriko's serialization (`ignoreUnknownKeys`), so games load the files unchanged; an Actor without an ID, or with an earlier one's,
   gets one from its index, the same every time, so a Scene changes only when a command writes it. Undoing a removal brings back

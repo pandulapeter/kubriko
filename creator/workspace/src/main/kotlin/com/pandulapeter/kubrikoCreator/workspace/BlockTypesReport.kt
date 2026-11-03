@@ -26,6 +26,7 @@ internal class BlockTypesReport(
     private val onBatchSaved: (haveTypesChanged: Boolean) -> Unit,
 ) : BlockTypesListener {
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
+    private val hasReportedUnavailableKubrikoVersion = AtomicBoolean(false)
 
     override fun onSaved(haveTypesChanged: Boolean) = onBatchSaved(haveTypesChanged)
 
@@ -57,6 +58,9 @@ internal class BlockTypesReport(
         changes.previousVersion?.let { console.append(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_VERSION_CHANGED, arguments = listOf(changes.version, it))) }
         if (changes.isNewerThanCreator && !hasReportedNewerKubrikoVersion.getAndSet(true)) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_VERSION_NEWER, arguments = listOf(changes.version)))
+        }
+        changes.unavailableVersion?.takeIf { !hasReportedUnavailableKubrikoVersion.getAndSet(true) }?.let { unavailable ->
+            console.append(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_VERSION_UNAVAILABLE, isError = true, arguments = listOf(unavailable, changes.version)))
         }
         if (changes.addedArtifacts.isNotEmpty()) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_LIBRARIES_ADDED, arguments = listOf(changes.addedArtifacts.joinToString())))

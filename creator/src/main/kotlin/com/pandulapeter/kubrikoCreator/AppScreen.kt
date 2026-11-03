@@ -25,6 +25,7 @@ internal sealed interface AppScreen {
 
     data class NewProject(
         val error: StringResource? = null,
+        val errorArguments: List<String> = emptyList(),
     ) : AppScreen
 
     data class CreatingProject(

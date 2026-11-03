@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsController
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettingsStore
+import com.pandulapeter.kubrikoCreator.template.KubrikoAvailability
 import com.pandulapeter.kubrikoCreator.template.ProjectGenerator
 import com.pandulapeter.kubrikoCreator.workspace.GradleWorkspaceOpener
 import kotlinx.coroutines.CancellationException
@@ -80,10 +81,11 @@ internal class AppGraph(
          */
         fun create(): AppGraph {
             val configuration = CreatorConfiguration.load()
+            val isKubrikoAvailable = KubrikoAvailability.of(configuration)
             val controller = AppController(
                 parentScope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
-                workspaceOpener = GradleWorkspaceOpener(configuration),
-                projectCreator = ProjectGenerator(configuration),
+                workspaceOpener = GradleWorkspaceOpener(configuration, isKubrikoAvailable = isKubrikoAvailable),
+                projectCreator = ProjectGenerator(configuration, isKubrikoAvailable = isKubrikoAvailable),
             )
             val scope = controller.scope
             val creatorSettings = CreatorSettingsController(CreatorSettingsStore.default(), scope, Dispatchers.IO)

@@ -105,7 +105,7 @@ internal class AppController(
             val directory = try {
                 withContext(ioDispatcher) { projectCreator.create(request) }
             } catch (exception: ProjectCreationException) {
-                _screen.value = AppScreen.NewProject(error = exception.reason.resource)
+                _screen.value = AppScreen.NewProject(error = exception.reason.resource, errorArguments = exception.arguments)
                 return@launchOperation
             }
             ensureActive()

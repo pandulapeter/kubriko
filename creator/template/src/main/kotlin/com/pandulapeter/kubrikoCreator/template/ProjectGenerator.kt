@@ -29,17 +29,20 @@ public class ProjectGenerator(
     private val wrapperInstaller: WrapperInstaller = GradleWrapperInstaller,
     private val loadTemplate: (ProjectTemplate) -> List<TemplateFile> = TemplateFiles::load,
     private val startVersionControl: (directory: File, message: String) -> Unit = { directory, message -> JGitRepository.create(directory, message) },
+    private val isKubrikoAvailable: (String) -> Boolean = { true },
 ) : ProjectCreator {
 
     /**
      * @return The new project's folder.
-     * @throws ProjectCreationException If the folder already has files in it, or the project could not be written.
+     * @throws ProjectCreationException If the folder already has files in it, Kubriko Creator's Kubriko version can't be
+     *   downloaded, or the project could not be written.
      */
     override fun create(request: NewProjectRequest): File {
         val directory = request.directory
         if (directory.exists() && (!directory.isDirectory || !directory.list().isNullOrEmpty())) {
             throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY)
         }
+        if (!isKubrikoAvailable(configuration.kubrikoVersion)) throw ProjectCreationException(TemplateProblem.KUBRIKO_UNAVAILABLE, arguments = listOf(configuration.kubrikoVersion))
         val values = placeholderValues(request)
         val didExist = directory.exists()
         try {

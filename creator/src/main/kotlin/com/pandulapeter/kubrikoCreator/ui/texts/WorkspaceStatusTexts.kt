@@ -32,6 +32,7 @@ import kubriko.creator.generated.resources.status_kubriko_libraries_added
 import kubriko.creator.generated.resources.status_kubriko_libraries_removed
 import kubriko.creator.generated.resources.status_kubriko_version_changed
 import kubriko.creator.generated.resources.status_kubriko_version_newer
+import kubriko.creator.generated.resources.status_kubriko_version_unavailable
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
@@ -73,6 +74,7 @@ internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.KUBRIKO_LIBRARIES_REMOVED -> Res.string.status_kubriko_libraries_removed
     WorkspaceStatus.KUBRIKO_VERSION_CHANGED -> Res.string.status_kubriko_version_changed
     WorkspaceStatus.KUBRIKO_VERSION_NEWER -> Res.string.status_kubriko_version_newer
+    WorkspaceStatus.KUBRIKO_VERSION_UNAVAILABLE -> Res.string.status_kubriko_version_unavailable
     WorkspaceStatus.PLAY_FROM_SCENE_NEEDS_UPGRADE -> Res.string.status_play_from_scene_needs_upgrade
     WorkspaceStatus.SESSION_ENDED -> Res.string.status_session_ended
     WorkspaceStatus.SESSION_STARTED -> Res.string.status_session_started

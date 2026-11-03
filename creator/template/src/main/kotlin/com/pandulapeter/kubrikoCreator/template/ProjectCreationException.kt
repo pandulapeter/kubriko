@@ -10,9 +10,10 @@
 package com.pandulapeter.kubrikoCreator.template
 
 /**
- * A project that could not be created, with a reason to show the user.
+ * A project that could not be created, with a reason to show the user and the arguments of its message.
  */
 public class ProjectCreationException(
     public val reason: TemplateProblem,
     cause: Throwable? = null,
+    public val arguments: List<String> = emptyList(),
 ) : Exception(cause)

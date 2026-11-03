@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.session.SessionServer
 import com.pandulapeter.kubrikoCreator.template.GameTargets
+import com.pandulapeter.kubrikoCreator.template.KubrikoAvailability
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -47,6 +48,7 @@ import java.io.IOException
 public class GradleWorkspaceOpener(
     private val configuration: CreatorConfiguration,
     private val loadCreatorLibraries: () -> Map<String, String> = CreatorLibraries::load,
+    private val isKubrikoAvailable: (String) -> Boolean = KubrikoAvailability.of(configuration),
 ) : WorkspaceOpener {
 
     override suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController {
@@ -85,7 +87,7 @@ public class GradleWorkspaceOpener(
                     BlockTypesSetup(
                         repository = store,
                         generatedPath = store.generatedPath,
-                        syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal)::sync,
+                        syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal, isKubrikoAvailable)::sync,
                         writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
                     )
                 },
