@@ -40,6 +40,7 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
 import java.io.IOException
 
 /**
@@ -192,8 +194,22 @@ public class WorkspaceController(
     /** Whether the session process is idle, starting, or running. */
     public val sessionState: StateFlow<SessionState> = sessions.state
 
+    private val webPlayer = WebPlayer(
+        runTask = tasks::run,
+        moduleDirectory = { File(project.rootDirectory, desktopModulePath.await().removePrefix(":").replace(':', File.separatorChar)) },
+        openBrowser = processes.openBrowser,
+        console = consoleLog,
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+    )
+
     /** Where the game can be played, and where Play plays it. */
-    public val playTargets: PlayTargetChoice = PlayTargetChoice(project.rootDirectory, sources = emptyList(), scope = scope, ioDispatcher = ioDispatcher)
+    public val playTargets: PlayTargetChoice = PlayTargetChoice(
+        rootDirectory = project.rootDirectory,
+        sources = listOf { if (files.targets?.read()?.any { it.target == GameTarget.WEB && it.isOn } == true) listOf(PlayTarget.WEB) else emptyList() },
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+    )
     private val gameBuilds = GameBuilds(
         rootDirectory = project.rootDirectory,
         sessions = sessions,
@@ -241,7 +257,10 @@ public class WorkspaceController(
         onScenesChangedOnDisk = sceneEditing::onScenesChangedOnDisk,
         markSceneOutdated = sceneEditing::markOutdated,
         regenerate = { blockTypes?.regenerate() },
-        onCodeChanged = gameBuilds::onCodeChanged,
+        onCodeChanged = {
+            gameBuilds.onCodeChanged()
+            webPlayer.onCodeChanged()
+        },
         refreshGit = git::refresh,
         refreshFormatStatus = ::refreshFormatStatus,
         reloadTypes = { blockTypes?.reloadFromDisk() },
@@ -415,6 +434,7 @@ public class WorkspaceController(
         }
         when (target.kind) {
             PlayTarget.Kind.DESKTOP -> sessions.play(firstScene, gameBuilds::prepareLaunch)
+            PlayTarget.Kind.WEB -> sessions.playElsewhere(target) { onUp -> webPlayer.play(firstScene, onUp) }
         }
     }
 

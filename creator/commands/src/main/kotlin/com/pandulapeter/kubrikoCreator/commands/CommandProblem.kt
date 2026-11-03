@@ -95,6 +95,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     GAME_KEY_UNKNOWN("There's no key called %1\$s."),
     GAME_KEYS_COUNT("Press between 1 and %1\$s keys at a time."),
     GAME_NO_ANSWER("The game didn't answer."),
+    GAME_NOT_ON_DESKTOP("The game runs on %1\$s, which press_keys, take_screenshot, and wait can't reach yet. Start it on the desktop to play it with them."),
     GAME_NOT_RUNNING("The game isn't running."),
     GAME_UNSUPPORTED("This project's Kubriko version is too old for the game to be played from Kubriko Creator's tools."),
     INTERNAL("Kubriko Creator ran into an internal error, so nothing was done: %1\$s. This is a problem in Kubriko Creator, not in the request."),

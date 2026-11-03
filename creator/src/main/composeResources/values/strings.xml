@@ -17,6 +17,7 @@
     <string name="action_choose_play_target">Where to play the game</string>
     <string name="action_more_play_targets">Build for more platforms…</string>
     <string name="play_target_desktop">Desktop</string>
+    <string name="play_target_web">Browser</string>
     <string name="action_play_from_scene">Play from this Scene</string>
     <string name="action_stop">Stop</string>
     <string name="action_clear_console">Clear</string>
@@ -79,6 +80,7 @@
     <string name="workspace_hint_play">Press Play whenever you want to see your game in action.</string>
     <string name="session_starting">Building…</string>
     <string name="session_playing">Playing</string>
+    <string name="session_playing_in_browser">Playing in the browser</string>
     <string name="session_editing">Editing a Scene</string>
     <string name="console_title">Console</string>
     <string name="console_with_prefix">%1$s: %2$s</string>
@@ -87,6 +89,10 @@
     <string name="status_building_with_unwritten_generated_code">Building with the generated code as it is on disk, since Kubriko Creator couldn't write it: %1$s</string>
     <string name="status_session_started">Session started.</string>
     <string name="status_session_ended">Session ended.</string>
+    <string name="status_browser_not_opened">The browser couldn't be opened, so open %1$s in one to play.</string>
+    <string name="status_web_game_missing">The web build finished, but there's no game at %1$s to play.</string>
+    <string name="status_web_game_reloaded">Built again, so the game's page loads again.</string>
+    <string name="status_web_game_served">The game plays in the browser at %1$s. Its logs are in the browser's console, in its developer tools.</string>
     <string name="status_session_stopped">Session stopped.</string>
     <string name="status_play_from_scene_needs_upgrade">This project's files are older than playing from a Scene needs, so the game may start with its first Scene instead of %1$s. Upgrading the project fixes that.</string>
     <string name="status_game_failed">The game stopped with an error (exit code %1$s). The last lines it printed:</string>
@@ -554,6 +560,7 @@
     <string name="ai_client_failed">Couldn't connect. What it said:</string>
     <string name="ai_client_command">The command that runs %1$s</string>
     <string name="error_game_not_running">The game isn't running.</string>
+    <string name="error_game_not_on_desktop">The game runs on %1$s, which press_keys, take_screenshot, and wait can't reach yet. Start it on the desktop to play it with them.</string>
     <string name="error_game_unsupported">This project's Kubriko version is too old for the game to be played from Kubriko Creator's tools.</string>
     <string name="error_game_no_answer">The game didn't answer.</string>
     <string name="error_game_command_failed">The game couldn't do that: %1$s</string>

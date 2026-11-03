@@ -57,7 +57,7 @@ internal class WorkspaceRunner(
 
     override suspend fun startGame(firstScene: String?, target: PlayTarget) = recordConsole {
         startAndAwait(firstScene, target).also { hasStarted ->
-            if (hasStarted) {
+            if (hasStarted && target == PlayTarget.DESKTOP) {
                 sessions.request(ANSWER_TIMEOUT, create = SessionCommand::BringToFront)
                 // So that a screenshot taken right away shows the first Scene; a game that can't tell starts all the same.
                 sessions.request(ACTORS_TIMEOUT + ANSWER_TIMEOUT, SessionController.AWAIT_ACTORS_DRAWN_PROTOCOL_VERSION) { id ->
@@ -83,10 +83,11 @@ internal class WorkspaceRunner(
     }
 
     /**
-     * Brings the game to the front (Kubriko pauses games whose window isn't focused), does [action] with the answer
+     * Brings the desktop game to the front (Kubriko pauses games whose window isn't focused), does [action] with the answer
      * to that, and turns the final answer into a [GameStep] with the console lines of the time it took.
      */
     private suspend fun step(action: suspend (GameAnswer) -> GameAnswer): GameStep {
+        (sessions.state.value as? SessionState.Running)?.target?.takeIf { it != PlayTarget.DESKTOP }?.let { return GameStep.Elsewhere(it) }
         val (answer, console) = this.console.record {
             when (val focused = sessions.request(ANSWER_TIMEOUT, create = SessionCommand::BringToFront)) {
                 is GameAnswer.Answered -> if (focused.message is SessionMessage.CommandFailed) focused else action(focused)

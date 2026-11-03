@@ -135,10 +135,11 @@ jobs:
         run: ./gradlew publishToMavenLocal -Plibrary.version=0.0.0-check --no-configuration-cache
       # Generates every project template with an Actor type and Manager types using every Event and Block, and
       # compiles it for desktop and web against the libraries just published, which the generator tests' exact text
-      # can't prove. It downloads every dependency of a generated project, so it runs nightly, not on every change.
+      # can't prove, and plays the starter's web build in the runner's headless Chrome as Kubriko Creator serves it. It
+      # downloads every dependency of a generated project, so it runs nightly, not on every change.
       - name: Compile Kubriko Creator's generated projects
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.unit_tests_only
-        run: ./gradlew :creator:template:test --tests '*ProjectTemplateIntegrationTest*' --rerun --no-configuration-cache
+        run: ./gradlew :creator:template:test --tests '*ProjectTemplateIntegrationTest*' --tests '*WebGameIntegrationTest*' --rerun --no-configuration-cache
         env:
           KUBRIKO_CREATOR_INTEGRATION: 'true'
           KUBRIKO_CREATOR_VERSION: '0.0.0-check'
@@ -147,7 +148,10 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: creator-integration-test-reports
-          path: 'creator/template/build/reports/tests/'
+          path: |
+            creator/template/build/reports/tests/
+            creator/template/build/web-game/*.png
+            creator/template/build/web-game/console.txt
 
   creator-end-to-end:
     name: Kubriko Creator end to end

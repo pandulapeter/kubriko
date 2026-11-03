@@ -13,7 +13,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * A place the game can be played: a window on this computer, and later a browser or a device.
+ * A place the game can be played: a window on this computer, or the browser.
  *
  * @param id How the AI and the saved choice name it, the same each time this computer finds it.
  * @param name What the place calls itself (a device's model), or null for one that is named by its [kind] alone.
@@ -34,6 +34,12 @@ public data class PlayTarget(
          */
         @SerialName("desktop")
         DESKTOP,
+
+        /**
+         * The system's browser, on a page Kubriko Creator serves from this computer.
+         */
+        @SerialName("web")
+        WEB,
     }
 
     public companion object {
@@ -41,5 +47,10 @@ public data class PlayTarget(
          * A window of its own on this computer, where the game can always be played.
          */
         public val DESKTOP: PlayTarget = PlayTarget(id = "desktop", kind = Kind.DESKTOP)
+
+        /**
+         * The system's browser, where the game can be played once the project is built for the web.
+         */
+        public val WEB: PlayTarget = PlayTarget(id = "web", kind = Kind.WEB)
     }
 }

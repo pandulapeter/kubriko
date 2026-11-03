@@ -123,4 +123,13 @@ class GameCommandsTest {
             assertIs<CommandOutcome.Success>(executor().call("list_play_targets", JsonObject(emptyMap()))).result.toString(),
         )
     }
+
+    @Test
+    fun theToolsSayWhenTheGameRunsWhereTheyCantReach() = runTest {
+        runner.step = GameStep.Elsewhere(PlayTarget.WEB)
+        val executor = executor()
+        listOf("take_screenshot" to JsonObject(emptyMap()), "wait" to buildJsonObject { put("milliseconds", 10) }, "press_keys" to keys("A")).forEach { (name, arguments) ->
+            assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NOT_ON_DESKTOP, "web")), executor.call(name, arguments))
+        }
+    }
 }

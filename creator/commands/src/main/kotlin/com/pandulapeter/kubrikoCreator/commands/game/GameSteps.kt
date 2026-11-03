@@ -27,6 +27,7 @@ internal suspend fun GameStep.toOutcome() = when (this) {
     GameStep.NotPlaying -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NOT_RUNNING))
     GameStep.Unsupported -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_UNSUPPORTED))
     GameStep.NoAnswer -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NO_ANSWER))
+    is GameStep.Elsewhere -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NOT_ON_DESKTOP, target.id))
     is GameStep.Failed -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_COMMAND_FAILED, message))
 }
 

@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 public enum class WorkspaceStatus(override val english: String) : DomainText {
     BLOCK_TYPE_NOT_SAVED("%1\$s couldn't be saved: %2\$s"),
     BLOCK_TYPES_SAVED_AGAIN("Kubriko Creator could write its changes again."),
+    BROWSER_NOT_OPENED("The browser couldn't be opened, so open %1\$s in one to play."),
     BUILD_FAILED("The build failed."),
     BUILDING("Building the project…"),
     BUILDING_WITH_UNSAVED_TYPES("Building with %1\$s as it is on disk, since Kubriko Creator couldn't save it: %2\$s"),
@@ -54,4 +55,7 @@ public enum class WorkspaceStatus(override val english: String) : DomainText {
     TYPE_FOLDER_NOT_SAVED("The folder %1\$s couldn't be changed: %2\$s"),
     UNEXPECTED_PROBLEM("Kubriko Creator ran into a problem: %1\$s"),
     UNSUPPORTED_PROTOCOL("This version of Kubriko Creator doesn't support the project's Kubriko version."),
+    WEB_GAME_MISSING("The web build finished, but there's no game at %1\$s to play."),
+    WEB_GAME_RELOADED("Built again, so the game's page loads again."),
+    WEB_GAME_SERVED("The game plays in the browser at %1\$s. Its logs are in the browser's console, in its developer tools."),
 }

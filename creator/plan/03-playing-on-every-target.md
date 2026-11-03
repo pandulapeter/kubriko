@@ -14,23 +14,9 @@ running there. This plan lets Play run it in a browser, on an Android device or 
 same button, so that what a target turns on can be seen working. It comes before the rest of Settings, since Release, Icons, and
 Signing only matter once exporting does (`11-export-and-distribution.md`), while this is what makes Targets useful now.
 
-Worked on in this order, each item shipped and reviewed on its own: Web, Android, iOS simulator; then iOS devices, which wait for
+Worked on in this order, each item shipped and reviewed on its own: Android, iOS simulator; then iOS devices, which wait for
 Signing. Each adds its kind to `PlayTarget.Kind`, a source of places to `PlayTargetChoice`, and its start to
-`WorkspaceController.play`.
-
-## Web
-
-- **The game tools stay on the desktop:** `press_keys`, `take_screenshot`, and `wait` need the session, so on another target they
-  are refused with the reason, until the session reaches it (`10-debugger.md` → Other targets); hot reload stays there too, since
-  the other targets don't run on the JVM.
-- Builds the development executable distribution (`wasmJsBrowserDevelopmentExecutableDistribution`) rather than running webpack's
-  dev server, which would hold a Gradle daemon for as long as the game is open, and serves it from Creator on `127.0.0.1` at a free
-  port, with the media types Wasm needs (`application/wasm`), then opens the system browser on it.
-- A change rebuilds and reloads the page (an event stream the served page listens to), which is the web's stand-in for hot reload.
-- The browser's console isn't Creator's to read, so until the session reaches the web the console says where the game's logs are; a
-  build that fails shows its problems as the desktop's do.
-- Checked by an end-to-end scenario in headless Chromium on CI (served page, a drawn Scene, a reload after a change), since a served
-  page that stays blank is exactly what unit tests miss.
+`WorkspaceController.play` through `SessionController.playElsewhere`, as the web's `WebPlayer` does.
 
 ## Android
 

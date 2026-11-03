@@ -99,12 +99,14 @@ internal class CreatorProcess private constructor(
 
         /**
          * What [command]'s `@argfile` holds: [appArguments] (those of `:creator:run`), the system properties giving
-         * Kubriko Creator [settingsDirectory] and [configuration]'s Kubriko, and [classpath].
+         * Kubriko Creator [settingsDirectory] and [configuration]'s Kubriko and no browser of its own, and [classpath].
          */
         internal fun jvmArguments(appArguments: List<String>, classpath: String, settingsDirectory: File, configuration: CreatorConfiguration) = appArguments + listOf(
             "-D$SETTINGS_DIRECTORY_PROPERTY=${settingsDirectory.absolutePath}",
             "-Dkubriko.creator.kubrikoVersion=${configuration.kubrikoVersion}",
             "-Dkubriko.creator.useMavenLocal=${configuration.useMavenLocal}",
+            // The scenarios load a game played on the web in a headless browser of their own.
+            "-Dkubriko.creator.browser=none",
             "-cp",
             classpath,
         )

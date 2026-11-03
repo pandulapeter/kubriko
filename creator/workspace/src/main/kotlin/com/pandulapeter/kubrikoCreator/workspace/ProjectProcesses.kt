@@ -12,6 +12,7 @@ import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
+import java.net.URI
 
 /**
  * The outside processes the workspace builds and runs the project through, each closed or stopped with it.
@@ -20,10 +21,12 @@ import com.pandulapeter.kubrikoCreator.session.SessionChannel
  * @param sessionChannel The channel the game's session process reports to.
  * @param runGame Starts the game process Creator runs itself ([GameProcess]).
  * @param findDesktopModulePath Asks [build] for the Gradle path of the module that runs the game on desktop.
+ * @param openBrowser Opens the system's browser on an address, where the game plays on the web, returning whether it could.
  */
 public class ProjectProcesses(
     internal val build: ProjectBuild,
     internal val sessionChannel: SessionChannel,
     internal val runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit,
     internal val findDesktopModulePath: suspend () -> String = { ":" },
+    internal val openBrowser: (URI) -> Boolean = SystemBrowser::open,
 )

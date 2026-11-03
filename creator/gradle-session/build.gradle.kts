@@ -16,5 +16,7 @@ dependencies {
     api(projects.creator.core)
     api(projects.tools.creatorSession)
     implementation(libs.gradle.toolingApi)
+    implementation(libs.ktor.server.cio)
     testImplementation(testFixtures(projects.creator.foundation))
+    testImplementation(libs.ktor.client.cio)
 }

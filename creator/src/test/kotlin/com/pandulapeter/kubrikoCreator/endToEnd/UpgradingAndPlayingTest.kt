@@ -12,10 +12,13 @@ package com.pandulapeter.kubrikoCreator.endToEnd
 import com.pandulapeter.kubrikoCreator.endToEnd.ImageChecks.boundsOf
 import com.pandulapeter.kubrikoCreator.endToEnd.ImageChecks.countOf
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
+import com.pandulapeter.kubrikoCreator.testing.HeadlessChrome
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
+import org.junit.Assume.assumeTrue
 import java.awt.image.BufferedImage
 import java.io.File
+import java.net.URI
 import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.test.Test
@@ -97,6 +100,28 @@ class UpgradingAndPlayingTest {
             assertFalse(ImageChecks.matches(reloaded.getRGB(2, reloaded.height / 2), VIEWPORT_COLOR), "The bars beside the viewport took its color too.")
             assertTrue(reloaded.boundsOf(SPRITE_COLOR) != null, "The Gold Bricks are gone after the change.")
         }
+        step("start_game on the web serves the game to the browser, out of the game tools' reach, and a change reloads the page") {
+            val chromePath = HeadlessChrome.find()
+            assumeTrue("Chrome isn't installed.", chromePath != null)
+            assertContains(tools.call("list_play_targets").text, "\"id\":\"web\"")
+            val started = tools.call("start_game", mapOf("target" to "web", "scene" to BONUS_SCENE), timeout = 10.minutes)
+            assertTrue(!started.isError && started["hasStarted"]?.jsonPrimitive?.boolean == true, started.text)
+            val address = URI(assertNotNull(Regex("""http://127\.0\.0\.1:\d+/\?[^\s"\\]+""").find(started.text), "No address in: ${started.text}").value)
+            assertContains(tools.call("press_keys", mapOf("keys" to listOf("SPACE"))).text, "runs on web")
+            HeadlessChrome.start(checkNotNull(chromePath), outputDirectory, width = 1280, height = 800).use { chrome ->
+                chrome.navigate(address)
+                val page = awaitBrowser(chrome, "web-bonus-scene") { it.boundsOf(SPRITE_COLOR) != null }
+                assertTrue(page.boundsOf(SPRITE_COLOR) != null, "The page doesn't draw the bonus Scene's sprites.")
+                val game = File(project, "src/commonMain/kotlin/com/example/breakout/Game.kt")
+                val color = "Color(0xFF${"%06X".format(VIEWPORT_COLOR)})"
+                assertContains(game.readText(), color)
+                game.writeText(game.readText().replace(color, "Color(0xFF${"%06X".format(WEB_VIEWPORT_COLOR)})"))
+                fun viewportPixel(image: BufferedImage) = image.getRGB(image.width / 2, image.height - 10)
+                val reloaded = awaitBrowser(chrome, "web-reloaded", timeout = 5.minutes) { ImageChecks.matches(viewportPixel(it), WEB_VIEWPORT_COLOR) }
+                assertTrue(ImageChecks.matches(viewportPixel(reloaded), WEB_VIEWPORT_COLOR), "The page didn't reload with the color Game.kt now gives the viewport.")
+            }
+            succeed("stop_game")
+        }
         step("A frame rate broken by hand fails the build with a message naming it") {
             succeed("stop_game")
             val properties = File(project, "gradle.properties")
@@ -164,6 +189,7 @@ class UpgradingAndPlayingTest {
         const val SPRITE_SIZE = 16
         const val SPRITE_COLOR = 0x22AA22
         const val VIEWPORT_COLOR = 0xAA2244
+        const val WEB_VIEWPORT_COLOR = 0x2244AA
         const val GOLD = 0xFFC857
         const val BRICK = 0x6060AA
         const val TEXT = 0x202020

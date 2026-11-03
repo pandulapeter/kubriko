@@ -37,6 +37,11 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
     manual dispatch) in its `publish-check` job, against that job's `0.0.0-check` publish. Its `everyTargetBuilds` turns every
     target on and builds the Android app and, through `xcodebuild` for the simulator, the iOS app; it needs the Android SDK
     and a Mac with Xcode.
+  - `KUBRIKO_CREATOR_INTEGRATION=true` with Chrome or Chromium (`HeadlessChrome.find`, or `KUBRIKO_CREATOR_CHROME`) also runs
+    `WebGameIntegrationTest`, which builds the starter's web distribution, serves it as Creator does, and drives a headless
+    page through the DevTools protocol (no window, so it runs on any machine): the Scene its address names is drawn, and a
+    change once built reloads the page. The page's focus is emulated, since Kubriko starts a game only once its page is
+    focused, which a headless one never is; what it showed is left in `template/build/web-game`.
   - `KUBRIKO_CREATOR_BENCHMARK=true` times a 200-type project without Gradle (`CreatorBenchmarkTest`) and, with
     `KUBRIKO_CREATOR_VERSION`, builds it for real (`CreatorBuildBenchmarkTest`; more Gradle arguments through
     `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`).
@@ -310,6 +315,14 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   when no `target` is given, not the user's choice, so the same call always plays in the same place. The web, Android, and
   iOS entry points read Play from this Scene and the Log Blocks switch only in debug builds (`PlaySwitchesUpgrade`); the
   web has no debug build, so it reads them only on a page served from this computer (a loopback host), as Creator's is.
+- **The web** (`WebPlayer`, `WebGameServer`): playing builds the development distribution rather than running webpack's
+  dev server, which would hold a Gradle daemon while the game is open, and serves it from Creator on a loopback port, with
+  a script added to `index.html` that loads the page again when the event stream says so; a change while it plays builds it
+  again and says so, which is the web's stand-in for hot reload. The browser's console isn't Creator's, so the console says
+  where the game is and its logs are. A game played anywhere but the desktop is `SessionController.playElsewhere`, whose
+  `SessionState` names the target, and the game tools refuse it (`GameStep.Elsewhere`), since only the desktop's session
+  answers them. `-Dkubriko.creator.browser=none` keeps the browser closed (the end-to-end scenarios load the page in a
+  headless Chrome of their own).
 - **The session** (`tool-creator-session`) runs at the project's Kubriko version and reports to `SessionServer` (which takes only
   the first connection that says Hello after each launch): a session of any version runs, and a command it is too old for is
   refused (`SessionController.request` takes the version a command needs and answers `GameAnswer.Unsupported`, which the game

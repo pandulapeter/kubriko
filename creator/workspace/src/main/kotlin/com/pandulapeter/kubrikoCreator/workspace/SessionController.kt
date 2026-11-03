@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
@@ -106,11 +107,41 @@ internal class SessionController(
     }
 
     /**
-     * Plays the game again, from the Scene it was started with last time, prepared as it was then, if a session runs: a
-     * game stopped since the restart was asked for stays stopped.
+     * Plays the game on [target] through [run] rather than a session process, replacing the session that runs, if any:
+     * [run] calls its argument once the game is up, and plays until it returns whether it ended well, or is cancelled.
+     */
+    fun playElsewhere(target: PlayTarget, run: suspend (onUp: () -> Unit) -> Boolean) {
+        val previousJob = job
+        previousJob?.cancel()
+        job = scope.launch {
+            previousJob?.join()
+            _state.value = SessionState.Starting(SessionMode.PLAY, target)
+            try {
+                val isSuccessful = run {
+                    _state.value = SessionState.Running(SessionMode.PLAY, target)
+                    console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED))
+                }
+                if (isSuccessful) console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_ENDED))
+            } catch (exception: IOException) {
+                console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_NOT_STARTED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
+            } finally {
+                _state.value = SessionState.Idle
+            }
+        }
+    }
+
+    /**
+     * Plays the game again, from the Scene it was started with last time, prepared as it was then, if a desktop session
+     * runs: a game stopped since the restart was asked for stays stopped.
      */
     fun restart() {
-        if (job?.isActive == true) play(lastFirstScene, lastPrepareLaunch)
+        if (job?.isActive == true && isOnDesktop()) play(lastFirstScene, lastPrepareLaunch)
+    }
+
+    private fun isOnDesktop() = when (val state = _state.value) {
+        SessionState.Idle -> true
+        is SessionState.Starting -> state.target == PlayTarget.DESKTOP
+        is SessionState.Running -> state.target == PlayTarget.DESKTOP
     }
 
     private fun systemPropertiesOf(firstScene: String?) = mapOf(

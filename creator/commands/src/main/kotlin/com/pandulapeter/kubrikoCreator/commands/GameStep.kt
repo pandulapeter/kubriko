@@ -35,6 +35,13 @@ public sealed interface GameStep {
     public data object NoAnswer : GameStep
 
     /**
+     * The game runs on [target], which only a desktop game's tools reach.
+     */
+    public data class Elsewhere(
+        val target: PlayTarget,
+    ) : GameStep
+
+    /**
      * @param message What the game said about it, in English.
      */
     public data class Failed(

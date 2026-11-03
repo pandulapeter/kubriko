@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 
 /**
  * The state of the workspace's session process.
@@ -22,16 +23,18 @@ public sealed interface SessionState {
     public data object Idle : SessionState
 
     /**
-     * Gradle is compiling the project and starting the session process.
+     * Gradle is compiling the project and starting the session process, or the game on [target].
      */
     public data class Starting(
         public val mode: SessionMode,
+        public val target: PlayTarget = PlayTarget.DESKTOP,
     ) : SessionState
 
     /**
-     * The session process is up and connected.
+     * The session process is up and connected, or the game is up on [target], which only the desktop's session reaches.
      */
     public data class Running(
         public val mode: SessionMode,
+        public val target: PlayTarget = PlayTarget.DESKTOP,
     ) : SessionState
 }

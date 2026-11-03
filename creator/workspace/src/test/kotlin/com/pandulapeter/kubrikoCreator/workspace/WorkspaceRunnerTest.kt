@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
@@ -22,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -201,5 +203,19 @@ class WorkspaceRunnerTest {
     @Test
     fun stopGameWithoutAGameReportsFailure() = runTest {
         assertEquals(ProjectRunner.RunResult(isSuccessful = false, console = emptyList()), createRunner().stopGame())
+    }
+
+    @Test
+    fun theGameToolsDontReachAGameElsewhere() = runTest {
+        val runner = createRunner()
+        sessions.playElsewhere(PlayTarget.WEB) { up ->
+            up()
+            awaitCancellation()
+        }
+        assertEquals(GameStep.Elsewhere(PlayTarget.WEB), runner.pressKeys(listOf("A"), 100))
+        assertEquals(GameStep.Elsewhere(PlayTarget.WEB), runner.wait(100))
+        assertEquals(GameStep.Elsewhere(PlayTarget.WEB), runner.captureScreen())
+        assertTrue(channel.sent.isEmpty())
+        sessions.stop()
     }
 }

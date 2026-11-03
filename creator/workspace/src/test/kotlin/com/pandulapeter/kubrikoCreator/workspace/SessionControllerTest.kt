@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameLaunchPreparation
@@ -247,5 +248,51 @@ class SessionControllerTest {
         assertTrue(build.currentRun.isCancelled)
         assertTrue(channel.isClosed)
         assertEquals(SessionState.Idle, controller.state.value)
+    }
+
+    @Test
+    fun aGamePlayedElsewhereIsUpOnceItSaysSoAndStopsWhenCancelled() = runTest {
+        val controller = createController()
+        var onUp: (() -> Unit)? = null
+        controller.playElsewhere(PlayTarget.WEB) { up ->
+            onUp = up
+            awaitCancellation()
+        }
+        assertEquals(SessionState.Starting(SessionMode.PLAY, PlayTarget.WEB), controller.state.value)
+        checkNotNull(onUp).invoke()
+        assertEquals(SessionState.Running(SessionMode.PLAY, PlayTarget.WEB), controller.state.value)
+        controller.restart()
+        assertTrue(tasks.isEmpty())
+        controller.stop()
+        assertEquals(SessionState.Idle, controller.state.value)
+        assertEquals(listOf(WorkspaceStatus.SESSION_STARTED, WorkspaceStatus.SESSION_STOPPED), statuses)
+    }
+
+    @Test
+    fun aGameElsewhereThatCantStartSaysWhy() = runTest {
+        val controller = createController()
+        controller.playElsewhere(PlayTarget.WEB) { throw IOException("No port") }
+        assertEquals(SessionState.Idle, controller.state.value)
+        assertEquals(listOf(WorkspaceStatus.GAME_NOT_STARTED), statuses)
+        controller.playElsewhere(PlayTarget.WEB) { false }
+        assertEquals(listOf(WorkspaceStatus.GAME_NOT_STARTED), statuses)
+    }
+
+    @Test
+    fun playingOnTheDesktopReplacesAGameElsewhere() = runTest {
+        val controller = createController()
+        var isCancelled = false
+        controller.playElsewhere(PlayTarget.WEB) { up ->
+            up()
+            try {
+                awaitCancellation()
+            } finally {
+                isCancelled = true
+            }
+        }
+        controller.play()
+        assertTrue(isCancelled)
+        hello()
+        assertEquals(SessionState.Running(SessionMode.PLAY), controller.state.value)
     }
 }

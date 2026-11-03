@@ -28,11 +28,13 @@ import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import java.io.File
+import java.net.URI
 
 /**
  * Builds a workspace on a fake Gradle connection and session channel, with the controller's production defaults for
@@ -60,12 +62,14 @@ public fun workspaceController(
     initialFormatStatus: ProjectFormatStatus = ProjectFormatStatus.Writable,
     openGitRepository: () -> GitRepository? = { JGitRepository.open(project.rootDirectory) },
     createGitRepository: (message: String) -> GitRepository = { JGitRepository.create(project.rootDirectory, it) },
+    targets: GameTargets? = null,
+    openBrowser: (URI) -> Boolean = { true },
 ): WorkspaceController = WorkspaceController(
     project = project,
-    processes = ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePath),
+    processes = ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePath, openBrowser),
     parentScope = parentScope,
     ioDispatcher = ioDispatcher,
-    files = WorkspaceFiles(ownWrites, scanResources, startWatching),
+    files = WorkspaceFiles(ownWrites, scanResources, startWatching, targets),
     blockTypeSetup = blockTypeRepository?.let { BlockTypesSetup(it, generatedPath, syncBuildFiles, writeDelayInMilliseconds) },
     sceneRuntime = SceneRuntimeSetup(creatorKubrikoVersion, creatorLibraries, entryPointLoader),
     initialFormatStatus = initialFormatStatus,

@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.workspace.WorkspaceStatus
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_block_type_not_saved
 import kubriko.creator.generated.resources.status_block_types_saved_again
+import kubriko.creator.generated.resources.status_browser_not_opened
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_building_with_unsaved_types
@@ -47,6 +48,9 @@ import kubriko.creator.generated.resources.status_type_files_readable_again
 import kubriko.creator.generated.resources.status_type_folder_not_saved
 import kubriko.creator.generated.resources.status_unexpected_problem
 import kubriko.creator.generated.resources.status_unsupported_protocol
+import kubriko.creator.generated.resources.status_web_game_missing
+import kubriko.creator.generated.resources.status_web_game_reloaded
+import kubriko.creator.generated.resources.status_web_game_served
 import org.jetbrains.compose.resources.StringResource
 
 /**
@@ -55,6 +59,7 @@ import org.jetbrains.compose.resources.StringResource
 internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.BLOCK_TYPE_NOT_SAVED -> Res.string.status_block_type_not_saved
     WorkspaceStatus.BLOCK_TYPES_SAVED_AGAIN -> Res.string.status_block_types_saved_again
+    WorkspaceStatus.BROWSER_NOT_OPENED -> Res.string.status_browser_not_opened
     WorkspaceStatus.BUILD_FAILED -> Res.string.status_build_failed
     WorkspaceStatus.BUILDING -> Res.string.status_building
     WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES -> Res.string.status_building_with_unsaved_types
@@ -89,4 +94,7 @@ internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.TYPE_FOLDER_NOT_SAVED -> Res.string.status_type_folder_not_saved
     WorkspaceStatus.UNEXPECTED_PROBLEM -> Res.string.status_unexpected_problem
     WorkspaceStatus.UNSUPPORTED_PROTOCOL -> Res.string.status_unsupported_protocol
+    WorkspaceStatus.WEB_GAME_MISSING -> Res.string.status_web_game_missing
+    WorkspaceStatus.WEB_GAME_RELOADED -> Res.string.status_web_game_reloaded
+    WorkspaceStatus.WEB_GAME_SERVED -> Res.string.status_web_game_served
 }

@@ -41,6 +41,7 @@ class CreatorProcessTest {
                 "-Dkubriko.creator.settingsDirectory=${settings.absolutePath}",
                 "-Dkubriko.creator.kubrikoVersion=9.9.9-creator",
                 "-Dkubriko.creator.useMavenLocal=true",
+                "-Dkubriko.creator.browser=none",
                 "-cp",
                 "a.jar${File.pathSeparator}b.jar",
             ),
