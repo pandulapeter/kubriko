@@ -15,9 +15,9 @@ import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
-import com.pandulapeter.kubrikoCreator.ui.saveSnapshot
-import com.pandulapeter.kubrikoCreator.ui.showing
-import com.pandulapeter.kubrikoCreator.ui.uiTest
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
 import kotlin.test.assertEquals

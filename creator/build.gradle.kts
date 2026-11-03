@@ -19,6 +19,7 @@ dependencies {
     // Every published module a project could use, so that a project's classes loaded next to Creator's share them
     // (scenes/ClassLoaderEntryPointLoader.kt).
     implementation(projects.creator.foundation)
+    implementation(projects.creator.uiComponents)
     implementation(projects.plugins.audioPlayback)
     implementation(projects.plugins.collision)
     implementation(projects.plugins.gamepadInput)
@@ -44,6 +45,7 @@ dependencies {
     implementation(libs.ktor.server.cio)
     implementation(libs.mcp.server)
     testImplementation(testFixtures(projects.creator.foundation))
+    testImplementation(testFixtures(projects.creator.uiComponents))
     testImplementation(libs.kotlin.test)
     testImplementation(compose.desktop.uiTestJUnit4)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -89,6 +91,11 @@ tasks.register("allTests") {
 // The engine's overview, which get_kubriko_api hands the AI.
 tasks.processResources {
     from(rootProject.file("CLAUDE.md")) { rename { "kubriko-overview.md" } }
+}
+
+// Pinned, since each module's resources need a package of their own (:creator:ui-components has another).
+compose.resources {
+    packageOfResClass = "kubriko.creator.generated.resources"
 }
 
 compose.desktop {

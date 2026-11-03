@@ -26,9 +26,9 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.ui.saveSnapshot
-import com.pandulapeter.kubrikoCreator.ui.showing
-import com.pandulapeter.kubrikoCreator.ui.uiTest
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)

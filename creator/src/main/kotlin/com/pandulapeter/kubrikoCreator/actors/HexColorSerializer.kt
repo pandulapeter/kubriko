@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.foundation.ColorHex
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind

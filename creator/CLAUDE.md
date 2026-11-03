@@ -44,15 +44,17 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
   file code against real temporary folders, git against real temporary repositories (JGit needs no installed git), and sockets,
   the MCP server, and shell commands for real on localhost. Tests on real threads use `testing/blockingTest`, and assert that
   nothing happened only after `awaitIdle` on the dispatchers they gave the code under test, never after a fixed delay.
-  `StringResourcesTest` fails on a string or icon nothing uses, and on escaped apostrophes. Shared fixtures live in
+  Each module with resources has its own `strings.xml` and `packageOfResClass`, and its own `StringResourcesTest`, which fails on a
+  string or icon its sources don't use, and on escaped apostrophes. Shared fixtures live in
   `testing/` (`testDirectory()`, and the fakes above); a fake of an interface with a real implementation runs the same
   contract test as the real one (`BlockTypeRepositoryContract`, `GitRepositoryContract`). A collaborator of
   `WorkspaceController` is tested on its own, and `WorkspaceControllerTest` keeps only cases about the wiring between them.
 - `PackageLayeringTest` keeps each package in the layer of the Gradle module it belongs to (lowest first: foundation,
   ui-components, core, gradle-session, git, template, commands, ai, scene-runtime, workspace, the app); a new package gets a
   layer, and an import may only run downward.
-- UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`ui/UiSnapshots.kt`) renders a composable in the
-  app's theme and interface scale without a window, asserts its texts and clicks, and saves a PNG under `build/ui-snapshots`.
+- UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`testing/UiSnapshots.kt` in `:creator:ui-components`'
+  test fixtures) renders a composable in the app's theme and interface scale without a window, asserts its texts and clicks,
+  and saves a PNG under the module's `build/ui-snapshots`.
   Every new UI gets one. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
   (`screencapture -l <window id>`) before it is called done; `plan/HANDOVER.md` → Working with the live app says how.
 
@@ -60,8 +62,8 @@ model and code generators (`src/main/kotlin/com/pandulapeter/kubrikoCreator/acto
 
 Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
 gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
-module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`). Each child module applies
-`kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
+module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`) and `:creator:ui-components`
+(`ui.components`, `ui.theme`, with their own resources and the UI test fixtures). Each child module applies `kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
 and `creatorSourceRoots()` for tests that read the sources), and `PackageLayeringTest` keeps every file in its module's layer.

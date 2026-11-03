@@ -20,9 +20,9 @@ import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.IdentityProblem
-import com.pandulapeter.kubrikoCreator.ui.saveSnapshot
-import com.pandulapeter.kubrikoCreator.ui.showing
-import com.pandulapeter.kubrikoCreator.ui.uiTest
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals

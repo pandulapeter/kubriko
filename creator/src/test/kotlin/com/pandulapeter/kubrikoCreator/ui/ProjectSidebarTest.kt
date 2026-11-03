@@ -22,6 +22,9 @@ import androidx.compose.ui.test.pressKey
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -27,10 +27,10 @@ import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubrikoCreator.ui.AppContent
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorTheme
+import com.pandulapeter.kubrikoCreator.ui.theme.ProvideInterfaceScale
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
 import com.pandulapeter.kubrikoCreator.window.CreatorWindowExceptionHandler
 import com.pandulapeter.kubrikoCreator.window.ExtendedTitleBar
-import com.pandulapeter.kubrikoCreator.window.ProvideInterfaceScale
 import com.pandulapeter.kubrikoCreator.window.TitleBarAppearance
 import com.pandulapeter.kubrikoCreator.window.TitleBarInsets
 import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar

@@ -33,9 +33,9 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ConversationUsage
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
-import com.pandulapeter.kubrikoCreator.ui.saveSnapshot
-import com.pandulapeter.kubrikoCreator.ui.showing
-import com.pandulapeter.kubrikoCreator.ui.uiTest
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

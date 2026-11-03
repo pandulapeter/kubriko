@@ -17,8 +17,8 @@ import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.GitState
-import com.pandulapeter.kubrikoCreator.ui.showing
-import com.pandulapeter.kubrikoCreator.ui.uiTest
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
