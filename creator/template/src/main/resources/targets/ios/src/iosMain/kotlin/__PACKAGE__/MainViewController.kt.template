@@ -1,8 +1,20 @@
 package {{PACKAGE}}
 
 import androidx.compose.ui.window.ComposeUIViewController
+import {{PACKAGE}}.generated.KubrikoWiring
+import platform.Foundation.NSUserDefaults
 import platform.UIKit.UIViewController
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.Platform
 
-fun MainViewController(): UIViewController = ComposeUIViewController {
-    Game()
+@OptIn(ExperimentalNativeApi::class)
+fun MainViewController(): UIViewController {
+    if (Platform.isDebugBinary) {
+        val launchArguments = NSUserDefaults.standardUserDefaults
+        KubrikoWiring.isLoggingEnabled = launchArguments.boolForKey("kubriko.creator.logging")
+        KubrikoWiring.firstSceneOverride = launchArguments.stringForKey("kubriko.creator.scene")
+    }
+    return ComposeUIViewController {
+        Game()
+    }
 }

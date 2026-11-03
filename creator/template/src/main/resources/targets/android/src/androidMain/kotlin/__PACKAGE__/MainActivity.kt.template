@@ -1,16 +1,22 @@
 package {{PACKAGE}}
 
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import {{PACKAGE}}.generated.KubrikoWiring
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            KubrikoWiring.isLoggingEnabled = intent.getBooleanExtra("kubriko.creator.logging", false)
+            KubrikoWiring.firstSceneOverride = intent.getStringExtra("kubriko.creator.scene")
+        }
         setContent {
             Game(
                 modifier = Modifier.fillMaxSize(),

@@ -30,6 +30,9 @@ internal class TemplateContext(
     val entryPointPath = "$packagePath/$ENTRY_POINT_FILE"
     val sceneLoaderPath = "$packagePath/$SCENE_LOADER_FILE"
     val mainPath = "${sourceDirectory.replace("commonMain", "desktopMain")}/${packageName.replace('.', '/')}/$MAIN_FILE"
+    val webMainPath = "${sourceDirectory.replace("commonMain", "wasmJsMain")}/${packageName.replace('.', '/')}/$MAIN_FILE"
+    val androidActivityPath = "${sourceDirectory.replace("commonMain", "androidMain")}/${packageName.replace('.', '/')}/$ANDROID_ACTIVITY_FILE"
+    val iosViewControllerPath = "${sourceDirectory.replace("commonMain", "iosMain")}/${packageName.replace('.', '/')}/$IOS_VIEW_CONTROLLER_FILE"
     val pagePath = "${sourceDirectory.replace("commonMain", "wasmJsMain").removeSuffix("/kotlin")}/resources/$PAGE_FILE"
     val wiringImport = "import $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}.${ManagerTypeCodeGenerator.WIRING_NAME}"
 
@@ -51,5 +54,7 @@ internal class TemplateContext(
         const val SCENE_LOADER_FILE = "SceneLoader.kt"
         const val MAIN_FILE = "Main.kt"
         const val PAGE_FILE = "index.html"
+        const val ANDROID_ACTIVITY_FILE = "MainActivity.kt"
+        const val IOS_VIEW_CONTROLLER_FILE = "MainViewController.kt"
     }
 }

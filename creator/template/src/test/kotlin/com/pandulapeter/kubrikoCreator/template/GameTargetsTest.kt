@@ -307,6 +307,13 @@ class GameTargetsTest {
         assertFalse(buildFile.readText().replace("\r\n", "").contains('\n'))
     }
 
+    @Test
+    fun theFilesATargetAddsNeedNoUpgrade() {
+        turn(GameTarget.ANDROID, isOn = true)
+        turn(GameTarget.IOS, isOn = true)
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
+    }
+
     private fun turn(target: GameTarget, isOn: Boolean): TargetChange.Proposed {
         val change = assertIs<TargetChange.Proposed>(targets.change(target, isOn))
         assertTrue(targets.apply(change))

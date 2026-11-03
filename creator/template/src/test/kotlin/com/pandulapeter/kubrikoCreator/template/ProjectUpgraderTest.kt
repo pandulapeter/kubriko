@@ -218,6 +218,19 @@ class ProjectUpgraderTest {
     }
 
     @Test
+    fun upgradingAVersion10ProjectLetsPlaySessionsReachTheWebPage() {
+        val webMain = File(directory, "src/wasmJsMain/kotlin/com/example/mygame/Main.kt")
+        val newWebMain = webMain.readText()
+        val oldWebMain = PlaySwitchesUpgradeTest.OLD_WEB_MAIN.replace("\n", "\r\n")
+        webMain.writeText(oldWebMain)
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 10 }""")
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf("src/wasmJsMain/kotlin/com/example/mygame/Main.kt"), upgrade.changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newWebMain.replace("\n", "\r\n"), webMain.readText())
+    }
+
+    @Test
     fun upgradingAVersion5ProjectTurnsGradlesCachesOn() {
         val properties = File(directory, "gradle.properties")
         val newProperties = properties.readText()

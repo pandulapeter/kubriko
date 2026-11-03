@@ -4,10 +4,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeViewport
+import {{PACKAGE}}.generated.KubrikoWiring
 
 @OptIn(ExperimentalComposeUiApi::class)
-fun main() = ComposeViewport {
-    Game(
-        modifier = Modifier.fillMaxSize(),
-    )
+fun main() {
+    KubrikoWiring.isLoggingEnabled = creatorParameter("kubriko.creator.logging").toBoolean()
+    KubrikoWiring.firstSceneOverride = creatorParameter("kubriko.creator.scene")
+    ComposeViewport {
+        Game(
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 }
+
+/**
+ * A parameter of the page's address that Kubriko Creator sets when it plays the game, read only on the page it serves on
+ * this computer.
+ */
+private fun creatorParameter(name: String): String? = js("location.hostname === '127.0.0.1' ? new URLSearchParams(location.search).get(name) : null")
