@@ -69,12 +69,33 @@ sourceSets.main {
     resources.srcDir(generateCreatorLibraries)
 }
 
+// The JetBrains Runtime is what lets the content be laid out under a title bar that still behaves as one (ExtendedTitleBar.kt).
+val creatorJavaLauncher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(21))
+    vendor.set(JvmVendorSpec.JETBRAINS)
+}.get()
+val creatorJvmArguments = if (System.getProperty("os.name").orEmpty().lowercase().contains("mac")) listOf("--add-exports=java.desktop/com.apple.eawt=ALL-UNNAMED") else emptyList()
+
+/**
+ * The app's runtime classpath, which the end-to-end checks (src/test/.../endToEnd) start it from in a JVM of its own, as
+ * :creator:run does: in a file, since it is longer than Windows lets a command line be.
+ */
+val writeRuntimeClasspath = tasks.register("writeRuntimeClasspath") {
+    val classpath = sourceSets.main.get().runtimeClasspath
+    val output = layout.buildDirectory.file("creator-launch/classpath.txt")
+    inputs.files(classpath).withPropertyName("runtimeClasspath").withNormalizer(ClasspathNormalizer::class.java)
+    outputs.file(output)
+    doLast {
+        output.get().asFile.writeText(classpath.asPath)
+    }
+}
+
 tasks.test {
     systemProperty("kubrikoCreator.directory", projectDir.absolutePath)
-    // The end-to-end checks (src/test/.../endToEnd) start the app in a JVM of its own, from what :creator:run runs it with.
-    val runtimeClasspath = sourceSets.main.get().runtimeClasspath
-    inputs.files(runtimeClasspath).withPropertyName("creatorRuntimeClasspath").withNormalizer(ClasspathNormalizer::class.java)
-    jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-DkubrikoCreator.runtimeClasspath=${runtimeClasspath.asPath}") })
+    dependsOn(writeRuntimeClasspath)
+    systemProperty("kubrikoCreator.runtimeClasspathFile", layout.buildDirectory.file("creator-launch/classpath.txt").get().asFile.absolutePath)
+    systemProperty("kubrikoCreator.java", creatorJavaLauncher.executablePath.asFile.absolutePath)
+    systemProperty("kubrikoCreator.jvmArguments", creatorJvmArguments.joinToString("\n"))
 }
 
 // Every Creator module's unit tests: :creator:test runs only the app's.
@@ -92,14 +113,8 @@ compose.resources {
 compose.desktop {
     application {
         mainClass = "com.pandulapeter.kubrikoCreator.KubrikoCreatorAppKt"
-        // The JetBrains Runtime is what lets the content be laid out under a title bar that still behaves as one (ExtendedTitleBar.kt).
-        javaHome = javaToolchains.launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(21))
-            vendor.set(JvmVendorSpec.JETBRAINS)
-        }.get().metadata.installationPath.asFile.absolutePath
-        if (System.getProperty("os.name").orEmpty().lowercase().contains("mac")) {
-            jvmArgs += "--add-exports=java.desktop/com.apple.eawt=ALL-UNNAMED"
-        }
+        javaHome = creatorJavaLauncher.metadata.installationPath.asFile.absolutePath
+        jvmArgs += creatorJvmArguments
         nativeDistributions {
             packageName = "Kubriko Creator"
             packageVersion = "1.0.0"
