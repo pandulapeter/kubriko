@@ -72,6 +72,20 @@ public class HeadlessChrome private constructor(
         return ImageIO.read(ByteArrayInputStream(Base64.getDecoder().decode(data)))
     }
 
+    /**
+     * What the page shows once [isReady] accepts it, or the last it showed after [timeoutInMilliseconds], or null if it
+     * never had anything to capture: a page that is loading has nothing for a moment.
+     */
+    public fun awaitScreenshot(timeoutInMilliseconds: Long, isReady: (BufferedImage) -> Boolean): BufferedImage? {
+        val end = System.currentTimeMillis() + timeoutInMilliseconds
+        var image: BufferedImage? = null
+        while (true) {
+            image = runCatching { screenshot() }.getOrNull() ?: image
+            if ((image != null && isReady(image)) || System.currentTimeMillis() >= end) return image
+            Thread.sleep(POLLING_INTERVAL_IN_MILLISECONDS)
+        }
+    }
+
     private fun call(method: String, parameters: JsonObject): JsonObject {
         val id = ids.incrementAndGet()
         val answer = CompletableFuture<JsonObject>().also { answers[id] = it }
@@ -92,6 +106,8 @@ public class HeadlessChrome private constructor(
     }
 
     public companion object {
+        private const val POLLING_INTERVAL_IN_MILLISECONDS = 250L
+
         /**
          * The Chrome `KUBRIKO_CREATOR_CHROME` names, else the one in the Mac's applications folder or the first Chrome or
          * Chromium on the `PATH`, or null if there is none.

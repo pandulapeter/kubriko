@@ -84,20 +84,13 @@ class WebGameIntegrationTest {
      * Waits until the middle of the page shows [expected], saving what it showed last as `build/web-game/<name>.png`.
      */
     private fun HeadlessChrome.awaitColor(expected: Long, name: String) {
-        val end = System.currentTimeMillis() + LOAD_TIME_IN_MILLISECONDS
-        var image: BufferedImage? = null
-        do {
-            // A page that is navigating or reloading has nothing to capture for a moment.
-            image = runCatching { screenshot() }.getOrNull() ?: image
-            if (image != null && isClose(image.getRGB(image.width / 2, image.height / 2), expected)) break
-            Thread.sleep(250)
-        } while (System.currentTimeMillis() < end)
-        File(output, "console.txt").writeText(console.joinToString("\n"))
-        if (image == null) fail("$name could never be captured.")
+        val image = awaitScreenshot(LOAD_TIME_IN_MILLISECONDS) { isClose(it.centerPixel, expected) } ?: fail("$name could never be captured.")
         ImageIO.write(image, "png", File(output.apply { mkdirs() }, "$name.png"))
-        val actual = image.getRGB(image.width / 2, image.height / 2)
-        if (!isClose(actual, expected)) fail("$name shows ${Integer.toHexString(actual)}, not ${java.lang.Long.toHexString(expected)}.")
+        File(output, "console.txt").writeText(console.joinToString("\n"))
+        if (!isClose(image.centerPixel, expected)) fail("$name shows ${Integer.toHexString(image.centerPixel)}, not ${java.lang.Long.toHexString(expected)}.")
     }
+
+    private val BufferedImage.centerPixel get() = getRGB(width / 2, height / 2)
 
     private fun isClose(actual: Int, expected: Long) = listOf(16, 8, 0).all { shift -> abs((actual shr shift and 0xFF) - (expected shr shift and 0xFF).toInt()) <= 8 }
 

@@ -33,8 +33,8 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Breakout brought up to the latest template, then changed the way its upgrades make possible (its name, first Scene, aspect
  * ratio, and frame rate) along with a sprite and a Log Block, and played: what each change should do shows in the played
- * game, its console, and its build. Then a hand-written change reaches the running game, and a setting broken by hand fails
- * the build, naming it.
+ * game, its console, and its build. Then a hand-written change reaches the running game, a setting broken by hand fails
+ * the build, naming it, and the game played on the web draws in a headless browser and takes in a change too.
  */
 class UpgradingAndPlayingTest {
 
@@ -100,8 +100,23 @@ class UpgradingAndPlayingTest {
             assertFalse(ImageChecks.matches(reloaded.getRGB(2, reloaded.height / 2), VIEWPORT_COLOR), "The bars beside the viewport took its color too.")
             assertTrue(reloaded.boundsOf(SPRITE_COLOR) != null, "The Gold Bricks are gone after the change.")
         }
+        step("A frame rate broken by hand fails the build with a message naming it") {
+            succeed("stop_game")
+            val properties = File(project, "gradle.properties")
+            val text = properties.readText()
+            assertContains(text, "game.frameRate=60")
+            properties.writeText(text.replace("game.frameRate=60", "game.frameRate=fast"))
+            val started = tools.call("start_game", timeout = 5.minutes)
+            assertTrue(started.isError || started["hasStarted"]?.jsonPrimitive?.boolean == false, started.text)
+            assertContains(started.text, "game.frameRate in gradle.properties")
+        }
+        step("Choosing 60 again writes it") {
+            succeed("set_project_settings", mapOf("frameRate" to 60))
+            assertContains(File(project, "gradle.properties").readText(), "game.frameRate=60")
+        }
         step("start_game on the web serves the game to the browser, out of the game tools' reach, and a change reloads the page") {
             val chromePath = HeadlessChrome.find()
+            // Last, so that a machine without Chrome still runs every other step.
             assumeTrue("Chrome isn't installed.", chromePath != null)
             assertContains(tools.call("list_play_targets").text, "\"id\":\"web\"")
             val started = tools.call("start_game", mapOf("target" to "web", "scene" to BONUS_SCENE), timeout = 10.minutes)
@@ -121,20 +136,6 @@ class UpgradingAndPlayingTest {
                 assertTrue(ImageChecks.matches(viewportPixel(reloaded), WEB_VIEWPORT_COLOR), "The page didn't reload with the color Game.kt now gives the viewport.")
             }
             succeed("stop_game")
-        }
-        step("A frame rate broken by hand fails the build with a message naming it") {
-            succeed("stop_game")
-            val properties = File(project, "gradle.properties")
-            val text = properties.readText()
-            assertContains(text, "game.frameRate=60")
-            properties.writeText(text.replace("game.frameRate=60", "game.frameRate=fast"))
-            val started = tools.call("start_game", timeout = 5.minutes)
-            assertTrue(started.isError || started["hasStarted"]?.jsonPrimitive?.boolean == false, started.text)
-            assertContains(started.text, "game.frameRate in gradle.properties")
-        }
-        step("Choosing 60 again writes it") {
-            succeed("set_project_settings", mapOf("frameRate" to 60))
-            assertContains(File(project, "gradle.properties").readText(), "game.frameRate=60")
         }
     }
 

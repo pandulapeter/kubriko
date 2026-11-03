@@ -75,19 +75,10 @@ internal class EndToEndScenario(
     }
 
     /**
-     * What [chrome]'s page shows once [isReady] accepts it, or as it is after [timeout], saved as [imageName]. A page
-     * that is loading has nothing to capture for a moment.
+     * What [chrome]'s page shows once [isReady] accepts it, or as it is after [timeout], saved as [imageName].
      */
-    fun awaitBrowser(chrome: HeadlessChrome, imageName: String, timeout: Duration = BROWSER_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        var page: BufferedImage? = null
-        while (true) {
-            page = runCatching { chrome.screenshot() }.getOrNull() ?: page
-            if ((page != null && isReady(page)) || System.nanoTime() >= deadline) break
-            Thread.sleep(SCREEN_POLLING_INTERVAL_IN_MILLISECONDS)
-        }
-        return checkNotNull(page) { "The browser's page could never be captured." }.also { save(imageName, it) }
-    }
+    fun awaitBrowser(chrome: HeadlessChrome, imageName: String, timeout: Duration = BROWSER_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage =
+        checkNotNull(chrome.awaitScreenshot(timeout.inWholeMilliseconds, isReady)) { "The browser's page could never be captured." }.also { save(imageName, it) }
 
     private fun save(imageName: String, image: BufferedImage) {
         val file = File(outputDirectory, "%02d-%s.png".format(images.size + 1, imageName))
