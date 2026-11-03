@@ -79,7 +79,7 @@ internal object BreakoutProject {
         .map { path -> TemplateFile(path = path, content = resource("$path.template")) }
 
     private fun resource(path: String) = BreakoutProject::class.java.classLoader.getResourceAsStream("$TEMPLATE_ROOT/$path")
-        ?.use { it.readBytes().decodeToString() }
+        ?.use { it.readBytes().decodeToString().replace("\r\n", "\n") }
         ?: error("$TEMPLATE_ROOT/$path is missing from the test resources.")
 
     /**
