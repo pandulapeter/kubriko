@@ -40,7 +40,7 @@ class PackageLayeringTest {
         Layer("ai", "ai", "mcp"),
         Layer("scene-runtime", "sceneRuntime"),
         Layer("workspace", "workspace"),
-        Layer("app", "", "ui", "settings", "recent", "window", "benchmark"),
+        Layer("app", "", "ui", "settings", "recent", "window", "benchmark", "endToEnd"),
     )
     private val knownExceptions = emptyMap<String, String>()
 

@@ -1,0 +1,8 @@
+.gradle/
+.kotlin/
+.idea/
+build/
+kotlin-js-store/
+local.properties
+.kubriko/local/
+.DS_Store

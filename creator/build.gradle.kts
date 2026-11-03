@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.desktop)
     implementation(libs.kotlinx.serialization)
     testImplementation(testFixtures(projects.creator.foundation))
+    testImplementation(testFixtures(projects.creator.commands))
     testImplementation(testFixtures(projects.creator.gradleSession))
     testImplementation(testFixtures(projects.creator.ai))
     testImplementation(testFixtures(projects.creator.workspace))
@@ -40,6 +41,8 @@ dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(compose.desktop.uiTestJUnit4)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.ktor.client.cio)
+    testImplementation(libs.mcp.client)
 }
 
 /**
@@ -68,6 +71,10 @@ sourceSets.main {
 
 tasks.test {
     systemProperty("kubrikoCreator.directory", projectDir.absolutePath)
+    // The end-to-end checks (src/test/.../endToEnd) start the app in a JVM of its own, from what :creator:run runs it with.
+    val runtimeClasspath = sourceSets.main.get().runtimeClasspath
+    inputs.files(runtimeClasspath).withPropertyName("creatorRuntimeClasspath").withNormalizer(ClasspathNormalizer::class.java)
+    jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-DkubrikoCreator.runtimeClasspath=${runtimeClasspath.asPath}") })
 }
 
 // Every Creator module's unit tests: :creator:test runs only the app's.

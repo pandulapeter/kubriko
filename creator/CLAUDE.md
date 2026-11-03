@@ -35,6 +35,17 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
   - `KUBRIKO_CREATOR_BENCHMARK=true` times a 200-type project without Gradle (`CreatorBenchmarkTest`) and, with
     `KUBRIKO_CREATOR_VERSION`, builds it for real (`CreatorBuildBenchmarkTest`; more Gradle arguments through
     `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`).
+  - `KUBRIKO_CREATOR_E2E=true KUBRIKO_CREATOR_VERSION=<version>` (the end-to-end checks, `endToEnd/` in `:creator`'s tests;
+    `./gradlew :creator:test --tests "*endToEnd*" --rerun`) needs a display: on Linux, `xvfb-run -s "-screen 0 1920x1080x24"`,
+    where Skiko falls back to software rendering. Each scenario starts the real Creator in a JVM of its own (the app's runtime
+    classpath, which the test task hands over, with a settings folder of its own through `kubriko.creator.settingsDirectory`
+    and its MCP server on) on a fresh, committed copy of `BreakoutProject`, drives it through the MCP tools as an outside
+    client would, and judges what it left: files, console, Creator's window (from the screen), and the game's (through
+    `take_screenshot`), by pixels at known places rather than by eye. Every image is saved under
+    `creator/build/end-to-end/<scenario>`, and whoever runs a scenario looks at them before calling a change done. The fixture
+    stays at template version 7 with no format version, so every upgrade and migration runs on it; never upgrade its files.
+    Synthetic input to the window is only for what no tool can do. For an unreleased `library.version`, publish to Maven
+    Local first, as `:creator:run` does (`-Pcreator.localKubriko=true`).
   - `KUBRIKO_CREATOR_CLAUDE_AGENT=true` (`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks a Claude Code configuration) runs the real
     Claude Agent on an existing login: `ClaudeAgentLiveTest`, and `AssistantLiveScenariosTest`'s headless conversations on the
     Breakout fixture, which check what the project became, not the words. They cost a few requests on the user's subscription,
@@ -53,9 +64,8 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
   test fixtures) renders a composable in the app's theme and interface scale without a window, asserts its texts and clicks,
   and saves a PNG under the module's `build/ui-snapshots`.
   Every new UI gets one. What needs the real app (windows, focus, a played game) is verified there by the agent before it is
-  called done, never handed to the user as a check: through the end-to-end checks once they exist (`plan/00-end-to-end-checks.md`),
-  until then with a window-only screenshot (`plan/HANDOVER.md` → Working with the live app says how). Only what needs hardware or
-  an account no agent has goes to `plan/HANDOVER.md` → Before a release.
+  called done, never handed to the user as a check: through a scenario of the end-to-end checks, which each plan item adds to.
+  Only what needs hardware or an account no agent has goes to `plan/HANDOVER.md` → Before a release.
 
 ## Modules
 

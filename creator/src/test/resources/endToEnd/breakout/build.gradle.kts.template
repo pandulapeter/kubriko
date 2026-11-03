@@ -1,0 +1,39 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
+plugins {
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+    jvmToolchain(21)
+    jvm("desktop")
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        binaries.executable()
+    }
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.compose.resources)
+            implementation(libs.kubriko.creatorApi)
+            implementation(libs.kubriko.engine)
+            implementation(libs.kubriko.serialization)
+        }
+        getByName("desktopMain").dependencies {
+            implementation(compose.desktop.currentOs)
+        }
+    }
+}
+
+compose.desktop {
+    application {
+        mainClass = "{{PACKAGE}}.MainKt"
+    }
+}
+
+compose.resources {
+    packageOfResClass = "{{PACKAGE}}.resources"
+}

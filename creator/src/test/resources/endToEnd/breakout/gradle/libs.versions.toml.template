@@ -1,0 +1,16 @@
+[versions]
+compose-multiplatform = "{{COMPOSE_VERSION}}"
+kotlin = "{{KOTLIN_VERSION}}"
+kubriko = "{{KUBRIKO_VERSION}}"
+
+[libraries]
+compose-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose-multiplatform" }
+kubriko-creatorApi = { group = "io.github.pandulapeter.kubriko", name = "tool-creator-api", version.ref = "kubriko" }
+kubriko-engine = { group = "io.github.pandulapeter.kubriko", name = "engine", version.ref = "kubriko" }
+kubriko-serialization = { group = "io.github.pandulapeter.kubriko", name = "plugin-serialization", version.ref = "kubriko" }
+
+[plugins]
+compose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
