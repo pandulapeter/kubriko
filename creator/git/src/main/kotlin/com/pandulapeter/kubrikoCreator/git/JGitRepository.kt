@@ -41,7 +41,6 @@ public class JGitRepository private constructor(
         git.add().addFilepattern(".").call()
         git.add().setUpdate(true).addFilepattern(".").call()
         git.commit().setMessage(message).call()
-        Unit
     }
 
     override fun history(limit: Int): List<CommitSummary> = git { git ->

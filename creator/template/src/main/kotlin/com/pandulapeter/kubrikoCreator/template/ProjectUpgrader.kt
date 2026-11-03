@@ -250,8 +250,7 @@ public class ProjectUpgrader(
         /**
          * The `SceneLoader.kt` that templates before version 3 created in [packageName].
          */
-        internal fun templateSceneLoader(packageName: String) = TemplateFiles.readResource(SCENE_LOADER_TEMPLATE)
-            ?.let { TemplateRenderer.renderContent(it, mapOf("PACKAGE" to packageName)) }
+        internal fun templateSceneLoader(packageName: String) = TemplateRenderer.renderContent(TemplateFiles.readResource(SCENE_LOADER_TEMPLATE), mapOf("PACKAGE" to packageName))
 
         private val String.isSceneLoader get() = trimStart().startsWith("SceneLoader(")
 

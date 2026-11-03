@@ -28,6 +28,6 @@ internal object SceneWiringUpgrade : TemplateStep {
     object SceneLoaderDeletion : TemplateDeletion {
         override fun requiredPath(context: TemplateContext) = context.gamePath
 
-        override fun isTemplates(text: String, context: TemplateContext) = text.trimEnd() == ProjectUpgrader.templateSceneLoader(context.packageName)?.trimEnd()
+        override fun isTemplates(text: String, context: TemplateContext) = text.trimEnd() == ProjectUpgrader.templateSceneLoader(context.packageName).trimEnd()
     }
 }

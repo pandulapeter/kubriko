@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.agentclientprotocol.annotations.UnstableApi
 import com.agentclientprotocol.model.SessionConfigOptionValue
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentDownload
@@ -76,6 +77,7 @@ internal fun AssistantPanel(
     }
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 private fun AssistantPanelContent(
     model: AssistantPanelModel,

@@ -65,7 +65,7 @@ class FolderCommandsTest {
         assertEquals(Rejection(CommandProblem.FOLDER_MISSING, "rules"), context.rejection(MoveToFolder, MoveToFolder.Input("Game", "rules")))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "monsters"))) {
             context.actorFolders() to context.blockTypes!!.types.value.map { it.name to it.folder }
-        }!!
+        }
         assertEquals(setOf("monsters", "monsters/flying"), renamed.first)
         assertEquals(listOf("Bat" to "monsters/flying", "Game" to "", "Wall" to "monsters"), renamed.second)
         assertEquals(Rejection(NameProblem.FOLDER_INVALID), context.rejection(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "monsters", "a/b")))

@@ -21,7 +21,7 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.isRoot
-import androidx.compose.ui.test.runDesktopComposeUiTest
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorTheme
 import com.pandulapeter.kubrikoCreator.ui.theme.ProvideInterfaceScale
 import org.jetbrains.skia.EncodedImageFormat

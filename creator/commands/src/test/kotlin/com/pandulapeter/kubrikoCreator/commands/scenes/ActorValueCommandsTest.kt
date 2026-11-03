@@ -60,7 +60,7 @@ class ActorValueCommandsTest {
             color = 0xFF112233,
             properties = listOf(ActorValueChanges.PropertyValue("hits", number = 3f), ActorValueChanges.PropertyValue("isGolden", toggle = true)),
         )
-        val state = context.assertRoundTrip(Invocation(SetActorValues, input)) { context.state(0) }!!
+        val state = context.assertRoundTrip(Invocation(SetActorValues, input)) { context.state(0) }
         assertEquals(5f to 20f, SceneDocument.positionOf(state))
         assertEquals(0xFF112233, ActorStateEdits.colorOf(state))
         assertEquals(JsonPrimitive(3f), ActorStateEdits.propertyOf(state, "hits"))

@@ -25,3 +25,11 @@ dependencies {
     testImplementation(libs.ktor.client.cio)
     testImplementation(libs.mcp.client)
 }
+
+// The assistant is built on the parts of the ACP SDK it marks unstable (session options, closing sessions, sign-in methods,
+// usage), so they are opted in to once for the module, and checked again with every SDK upgrade.
+kotlin {
+    compilerOptions {
+        optIn.add("com.agentclientprotocol.annotations.UnstableApi")
+    }
+}

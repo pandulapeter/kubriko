@@ -51,9 +51,9 @@ class TimerCommandsTest {
         }
         RenameTimer.apply(context, RenameTimer.Input("Bat", "spawn", "spawnBat"))
         assertEquals(listOf("spawnBat", "blink"), context.blockTypes!!["Enemy"]!!.timerNames)
-        assertEquals(EventDefinition(EventType.TIMER_FINISHED, timer = "spawnBat", blocks = listOf(BlockDefinition.StopTimer("spawnBat"))), context.blockTypes!!["Bat"]!!.events.single())
-        assertEquals(listOf("spawn"), context.blockTypes!!["Wall"]!!.timerNames)
-        assertEquals(listOf("spawn"), context.blockTypes!!["Game"]!!.timerNames)
+        assertEquals(EventDefinition(EventType.TIMER_FINISHED, timer = "spawnBat", blocks = listOf(BlockDefinition.StopTimer("spawnBat"))), context.blockTypes["Bat"]!!.events.single())
+        assertEquals(listOf("spawn"), context.blockTypes["Wall"]!!.timerNames)
+        assertEquals(listOf("spawn"), context.blockTypes["Game"]!!.timerNames)
     }
 
     @Test
@@ -76,6 +76,6 @@ class TimerCommandsTest {
     fun theScopeOffersTheTimersOfTheWholeFamily() = runTest {
         val context = commandContext(enemy, bat, wall, game)
         assertEquals(listOf("blink", "spawn"), context.scopeOf(context.blockTypes!!["Bat"]!!).timerNames)
-        assertEquals(listOf("spawn"), context.scopeOf(context.blockTypes!!["Game"]!!).timerNames)
+        assertEquals(listOf("spawn"), context.scopeOf(context.blockTypes["Game"]!!).timerNames)
     }
 }

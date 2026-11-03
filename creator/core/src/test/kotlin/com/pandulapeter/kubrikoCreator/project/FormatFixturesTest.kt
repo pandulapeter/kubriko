@@ -47,6 +47,7 @@ class FormatFixturesTest {
             else -> type
         }
     }.sortedBy { it.name }
+    private val settingsJson = Json { ignoreUnknownKeys = true }
 
     @Test
     fun theCurrentFormatDecodesToTheKnownTypes() {
@@ -81,7 +82,7 @@ class FormatFixturesTest {
                 formatVersion = ProjectFormat.CURRENT_VERSION,
                 minimumCreatorVersion = "0.0.0-fixture",
             ),
-            Json { ignoreUnknownKeys = true }.decodeFromString(CreatorProjectSettings.serializer(), text),
+            settingsJson.decodeFromString(CreatorProjectSettings.serializer(), text),
         )
     }
 
@@ -123,7 +124,7 @@ class FormatFixturesTest {
             val loaded = BlockTypeStore.open(project)!!.load()
             assertEquals(emptyList(), loaded.unreadableFiles, "v$version has unreadable files.")
             assertEquals(knownTypes, loaded.types, "v$version isn't brought up to the current format.")
-            val settings = Json { ignoreUnknownKeys = true }.decodeFromString(
+            val settings = settingsJson.decodeFromString(
                 CreatorProjectSettings.serializer(),
                 File(project, BlockTypeStore.SETTINGS_FILE).readText(),
             )

@@ -94,7 +94,7 @@ class RestoringChangesTest {
         executor.assertSuccess(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input("Player", 0, null)))
         executor.assertStepped(isUndo = true)
         executor.assertStepped(isUndo = true)
-        assertEquals(player, context.blockTypes!!["Player"])
+        assertEquals(player, context.blockTypes["Player"])
     }
 
     @Test

@@ -17,7 +17,6 @@ import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -46,6 +45,6 @@ public object GetProjectUpgrade : ReadCommand<NoInput> {
                 }
                 putJsonArray("byHand") { upgrade.byHand.forEach { add(it) } }
             }
-        } as JsonObject,
+        },
     )
 }

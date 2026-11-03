@@ -51,7 +51,7 @@ internal object GameIdentityUpgrade {
     fun buildFile(text: String, packageName: String): String? {
         if (isBuildFileDone(text)) return text
         if ("compose.desktop" !in text || "wasmJs" !in text) return null
-        val block = TemplateFiles.readResource(BLOCK_TEMPLATE)?.let { TemplateRenderer.renderContent(it, mapOf("PACKAGE" to packageName)) } ?: return null
+        val block = TemplateRenderer.renderContent(TemplateFiles.readResource(BLOCK_TEMPLATE), mapOf("PACKAGE" to packageName))
         return text.trimEnd() + "\n\n" + block
     }
 

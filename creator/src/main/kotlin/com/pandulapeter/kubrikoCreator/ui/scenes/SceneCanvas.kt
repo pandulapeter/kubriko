@@ -158,7 +158,7 @@ internal fun SceneCanvas(
                         lastPosition = change.position
                         change.consume()
                     }
-                    if (actor != null && isDragging && pickedId != null) {
+                    if (actor != null && isDragging) {
                         currentOnMove(pickedId, actor.body.position.x.raw, actor.body.position.y.raw)
                     }
                 }
