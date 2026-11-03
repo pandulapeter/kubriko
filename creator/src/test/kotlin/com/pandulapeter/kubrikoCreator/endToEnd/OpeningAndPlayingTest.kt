@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.endToEnd.ImageChecks.boundsOf
 import com.pandulapeter.kubrikoCreator.endToEnd.ImageChecks.countOf
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
+import java.awt.image.BufferedImage
+import java.io.File
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -29,9 +31,12 @@ class OpeningAndPlayingTest {
     @Test
     fun breakoutOpensBuildsAndPlaysWithItsActorsWhereTheSceneHasThem() = EndToEnd.scenario("opening-and-playing") {
         step("Kubriko Creator's window shows") {
-            val screen = captureScreen("creator")
-            val drawn = screen.width * screen.height - screen.countOf(BLACK, tolerance = 0)
-            assertTrue(drawn >= WINDOW_AREA * 0.95, "Only $drawn pixels of the screen were drawn, less than Kubriko Creator's window.")
+            fun drawnPixels(screen: BufferedImage) = screen.width * screen.height - screen.countOf(BLACK, tolerance = 0)
+            val screen = awaitScreen("creator") { drawnPixels(it) >= MINIMUM_WINDOW_AREA }
+            assertTrue(drawnPixels(screen) >= MINIMUM_WINDOW_AREA, "Only ${drawnPixels(screen)} pixels of the screen were drawn, less than Kubriko Creator's smallest window.")
+        }
+        step("Kubriko Creator keeps its settings in the scenario's folder") {
+            assertTrue(File(outputDirectory, "settings/recent-projects.json").readText().contains(project.name))
         }
         step("start_game builds and starts the game") {
             val started = tools.call("start_game", timeout = 10.minutes)
@@ -44,7 +49,9 @@ class OpeningAndPlayingTest {
                 assertTrue(abs(gold.centerX - (game.width / 2 - 30)) <= 2, "The Gold Bricks are at $gold, not in their column.")
                 assertTrue(abs(gold.width - BreakoutFixture.brick.width.toInt()) <= 2, "The Gold Bricks are ${gold.width} pixels wide.")
                 assertTrue(game.countOf(BRICK) > game.countOf(GOLD) * 5, "The other Bricks weren't drawn around them.")
-                assertTrue(game.countOf(BALL) > 0, "The Ball wasn't drawn.")
+                val ball = assertNotNull(game.boundsOf(BALL), "The Ball wasn't drawn.")
+                val ballSize = BreakoutFixture.ball.width.toInt()
+                assertTrue(abs(ball.width - ballSize) <= 2 && abs(ball.height - ballSize) <= 2, "The Ball is drawn ${ball.width}×${ball.height} pixels large.")
             }
         }
         step("The Game's two texts at the top left are one under the other") {
@@ -65,6 +72,9 @@ class OpeningAndPlayingTest {
         const val BRICK = 0x6060AA
         const val BALL = 0xFFFFFF
         const val TEXT = 0x202020
-        const val WINDOW_AREA = 1280 * 820
+        /**
+         * The smallest window Kubriko Creator lets itself be (KubrikoCreatorApp.kt), at the display's scale of 1.
+         */
+        const val MINIMUM_WINDOW_AREA = 960 * 600
     }
 }

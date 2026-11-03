@@ -16,6 +16,8 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
 import javax.imageio.ImageIO
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * One end-to-end scenario: the real Kubriko Creator on a fresh copy of [project], driven through [tools] and judged by
@@ -44,9 +46,21 @@ internal class EndToEndScenario(
     /**
      * The whole screen, with Kubriko Creator's window and the game's, saved as [imageName].
      */
-    fun captureScreen(imageName: String): BufferedImage = Robot()
-        .createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize))
-        .also { save(imageName, it) }
+    fun captureScreen(imageName: String): BufferedImage = awaitScreen(imageName, timeout = Duration.ZERO) { true }
+
+    /**
+     * The whole screen once [isReady] accepts it, or as it is after [timeout], saved as [imageName]: what a window shows
+     * reaches the screen a few frames after the change that caused it.
+     */
+    fun awaitScreen(imageName: String, timeout: Duration = SCREEN_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage {
+        val robot = Robot()
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        while (true) {
+            val screen = robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize))
+            if (isReady(screen) || System.nanoTime() >= deadline) return screen.also { save(imageName, it) }
+            Thread.sleep(SCREEN_POLLING_INTERVAL_IN_MILLISECONDS)
+        }
+    }
 
     /**
      * What the running game shows, through `take_screenshot` (the game's own drawing, wherever its window is), saved as
@@ -67,5 +81,7 @@ internal class EndToEndScenario(
 
     private companion object {
         const val LAST_IMAGES = 3
+        const val SCREEN_POLLING_INTERVAL_IN_MILLISECONDS = 250L
+        val SCREEN_TIMEOUT = 15.seconds
     }
 }
