@@ -62,6 +62,9 @@ class GameSettingsUpgradeTest {
         assertNull(GameSettingsUpgrade.game("fun x() = Kubriko.newInstance(\n    *KubrikoWiring.createManagers(firstScene = scene).toTypedArray(),\n)"))
         assertNull(GameSettingsUpgrade.game("fun x() = Kubriko.newInstance(\n$wiring\n$wiring\n)"), "two instances")
         assertNull(GameSettingsUpgrade.game("fun x() = Kubriko.newInstance(\n    ViewportManager.newInstance(),\n$wiring\n)"), "a ViewportManager of its own")
+        val unnamable = "fun x() = Kubriko.newInstance(\n${wiring.replace("main", "Level 1")}\n)"
+        assertNull(GameSettingsUpgrade.game(unnamable), "a first Scene gradle.properties can't hold")
+        assertNull(GameSettingsUpgrade.firstSceneOf(unnamable))
     }
 
     @Test

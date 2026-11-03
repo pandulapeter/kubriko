@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.GameSettings
 import com.pandulapeter.kubrikoCreator.project.GradleProperties
+import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 
 /**
  * Template version 10: the first Scene, the aspect ratio, and the frame rate as keys in `gradle.properties`, which the
@@ -57,15 +58,17 @@ internal object GameSettingsUpgrade {
 
     /**
      * [text] (a `Game.kt`) starting with `GameSettings.FIRST_SCENE` and creating its `ViewportManager` from `GameSettings`,
-     * or null if it doesn't hand the generated Managers a first Scene in one line, as the template does, or creates a
-     * `ViewportManager` of its own.
+     * or null if it doesn't hand the generated Managers a first Scene in one line, as the template does, names one that
+     * `gradle.properties` can't hold, or creates a `ViewportManager` of its own.
      */
     fun game(text: String): String? {
         if (isGameDone(text)) return text
         val lines = text.lines()
         val line = lines.indices.filter { wiringLinePattern.matches(lines[it]) }.singleOrNull() ?: return null
         if ("ViewportManager.newInstance(" in text) return null
-        val indent = wiringLinePattern.find(lines[line])!!.groupValues[1]
+        val match = wiringLinePattern.find(lines[line])!!
+        if (match.groupValues[2].isNotEmpty() && !SceneNaming.isValid(match.groupValues[2])) return null
+        val indent = match.groupValues[1]
         val viewportManager = listOf(
             "${indent}ViewportManager.newInstance(",
             "$indent    aspectRatioMode = $ASPECT_RATIO_MODE,",
@@ -77,11 +80,12 @@ internal object GameSettingsUpgrade {
     }
 
     /**
-     * The Scene [text] (a `Game.kt`) starts with, as the template names it, or null if it doesn't name one.
+     * The Scene [text] (a `Game.kt`) starts with, as the template names it, or null if it doesn't name one that can be a
+     * Scene's name.
      */
     fun firstSceneOf(text: String): String? = text.lines().firstNotNullOfOrNull { line ->
         wiringLinePattern.find(line)?.groupValues?.get(2)?.takeIf { it.isNotEmpty() } ?: sceneLoaderPattern.find(line)?.groupValues?.get(1)
-    }
+    }?.takeIf(SceneNaming::isValid)
 
     private fun withViewportImport(lines: List<String>): String {
         if (VIEWPORT_IMPORT in lines) return lines.joinToString("\n")
