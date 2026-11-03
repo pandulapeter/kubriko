@@ -106,9 +106,12 @@ internal class SessionController(
     }
 
     /**
-     * Plays the game again, from the Scene it was started with last time, prepared as it was then.
+     * Plays the game again, from the Scene it was started with last time, prepared as it was then, if a session runs: a
+     * game stopped since the restart was asked for stays stopped.
      */
-    fun restart() = play(lastFirstScene, lastPrepareLaunch)
+    fun restart() {
+        if (job?.isActive == true) play(lastFirstScene, lastPrepareLaunch)
+    }
 
     private fun systemPropertiesOf(firstScene: String?) = mapOf(
         SessionProtocol.PORT_PROPERTY to channel.port.toString(),

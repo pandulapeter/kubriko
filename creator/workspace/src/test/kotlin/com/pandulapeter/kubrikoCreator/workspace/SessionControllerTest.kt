@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -161,10 +162,30 @@ class SessionControllerTest {
     fun restartPreparesTheGameAsTheLastPlayDid() = runTest {
         var preparationCount = 0
         val controller = createController()
-        controller.play(prepareLaunch = { preparationCount++; GameLaunchPreparation.Failed })
+        controller.play(
+            prepareLaunch = {
+                preparationCount++
+                if (preparationCount == 1) awaitCancellation()
+                GameLaunchPreparation.Failed
+            },
+        )
         controller.restart()
         assertEquals(2, preparationCount)
         assertEquals(emptyList(), tasks)
+    }
+
+    @Test
+    fun aGameStoppedOrEndedIsntStartedAgainByARestart() = runTest {
+        val controller = createController()
+        controller.play()
+        controller.stop()
+        controller.restart()
+        assertEquals(1, tasks.size)
+        controller.play()
+        build.currentRun.result.complete(true)
+        controller.restart()
+        assertEquals(2, tasks.size)
+        assertEquals(SessionState.Idle, controller.state.value)
     }
 
     @Test
