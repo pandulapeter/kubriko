@@ -30,9 +30,9 @@ import java.io.File
 
 /**
  * Where the game can be played, and the place the user chose for Play, kept for the project on this computer in
- * [FILE]. A chosen place that isn't there now (a device unplugged) stays chosen, and Play uses the desktop until it is back.
+ * [FILE], and looked for as soon as the project opens. A chosen place that isn't there now (a device unplugged) stays chosen, and Play uses the desktop until it is back.
  *
- * @param sources Each lists the places of one kind the game can be played on now, besides the desktop.
+ * @param sources Each lists the places of one kind the game can be played on now, besides the desktop, and may block.
  */
 public class PlayTargetChoice internal constructor(
     rootDirectory: File,
@@ -54,7 +54,8 @@ public class PlayTargetChoice internal constructor(
     init {
         scope.launch {
             val saved = withContext(ioDispatcher) { store.read().valueOrNull()?.target }
-            if (chosenId.compareAndSet(null, saved)) update(_targets.value.available)
+            chosenId.compareAndSet(null, saved)
+            refresh()
         }
         scope.launch(ioDispatcher) {
             for (id in saves) store.write(LocalPlaySettings(target = id.takeUnless { it == PlayTarget.DESKTOP.id }))
@@ -86,7 +87,7 @@ public class PlayTargetChoice internal constructor(
             sources.map { source ->
                 async {
                     try {
-                        source()
+                        withContext(ioDispatcher) { source() }
                     } catch (exception: CancellationException) {
                         throw exception
                     } catch (_: Exception) {

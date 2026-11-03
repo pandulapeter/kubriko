@@ -32,8 +32,7 @@ class PlayTargetChoiceTest {
     @Test
     fun theDesktopIsChosenUntilTheUserChoosesElsewhere() = runTest {
         val choice = choice()
-        assertEquals(PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP), choice.targets.value)
-        assertEquals(PlayTargets(listOf(PlayTarget.DESKTOP, device), PlayTarget.DESKTOP), choice.refresh())
+        assertEquals(PlayTargets(listOf(PlayTarget.DESKTOP, device), PlayTarget.DESKTOP), choice.targets.value)
         choice.choose(device)
         assertEquals(PlayTargets(listOf(PlayTarget.DESKTOP, device), device), choice.targets.value)
         assertEquals("""{"target":"device"}""", file.readText().filterNot { it.isWhitespace() })
@@ -45,9 +44,7 @@ class PlayTargetChoiceTest {
             refresh()
             choose(device)
         }
-        val next = choice()
-        assertEquals(PlayTarget.DESKTOP, next.targets.value.chosen)
-        assertEquals(device, next.refresh().chosen)
+        assertEquals(device, choice().targets.value.chosen)
     }
 
     @Test
