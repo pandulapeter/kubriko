@@ -59,7 +59,7 @@ class ProjectUpgraderTest {
      * The project as version 2 of the template made it: Manager types wired, but Scenes loaded by its own `SceneLoader`.
      */
     private fun makeItVersion2() {
-        makeItOld(game = OLD_GAME.replace(SCENE_LOADER_LINE, "            *KubrikoWiring.createManagers().toTypedArray(),\n$SCENE_LOADER_LINE").replace(KUBRIKO_IMPORT, "$KUBRIKO_IMPORT\n$WIRING_IMPORT"))
+        makeItOld(game = OLD_GAME.replace(SCENE_LOADER_LINE, "            *KubrikoWiring.createManagers().toTypedArray(),\n$SCENE_LOADER_LINE").replace("import com.pandulapeter.kubriko.Kubriko\n", "$WIRING_IMPORT\nimport com.pandulapeter.kubriko.Kubriko\n"))
         File(packageDirectory, "GameEntryPoint.kt").writeText(newEntryPoint)
         settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 2 }""")
     }
@@ -257,6 +257,7 @@ class ProjectUpgraderTest {
     fun aMainThatIsNotTheTemplatesIsLeftToTheUser() {
         assertNull(ProjectUpgrader.withLoggingTurnedOn("fun main() {\n    application { Game() }\n}\n", "import x"))
         assertNull(ProjectUpgrader.withLoggingTurnedOn("fun main() = application {\n    Game()\n}\n\nfun other() = Unit\n", "import x"))
+        assertNull(ProjectUpgrader.withLoggingTurnedOn("fun main() = application {\n    Game()\n}\n\nprivate fun other() {\n    println()\n}\n", "import x"))
     }
 
     @Test
@@ -381,9 +382,9 @@ class ProjectUpgraderTest {
             |import androidx.compose.runtime.DisposableEffect
             |import androidx.compose.runtime.remember
             |import androidx.compose.ui.Modifier
+            |import com.example.mygame.generated.KubrikoWiring
             |import com.pandulapeter.kubriko.Kubriko
             |import com.pandulapeter.kubriko.KubrikoViewport
-            |import com.example.mygame.generated.KubrikoWiring
             |
             |/**
             | * The whole game: a viewport showing the first Scene.

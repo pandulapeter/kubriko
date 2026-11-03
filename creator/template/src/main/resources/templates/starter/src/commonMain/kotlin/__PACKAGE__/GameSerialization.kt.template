@@ -1,7 +1,7 @@
 package {{PACKAGE}}
 
-import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import {{PACKAGE}}.generated.GeneratedActorTypes
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 
 /**
  * Every Actor type that can be placed in a Scene: the ones built in Kubriko Creator, plus any written by hand

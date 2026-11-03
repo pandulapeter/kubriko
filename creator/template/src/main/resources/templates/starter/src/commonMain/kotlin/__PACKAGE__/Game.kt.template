@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import {{PACKAGE}}.generated.KubrikoWiring
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.manager.ViewportManager
-import {{PACKAGE}}.generated.KubrikoWiring
 
 /**
  * The whole game: a viewport showing the first Scene.

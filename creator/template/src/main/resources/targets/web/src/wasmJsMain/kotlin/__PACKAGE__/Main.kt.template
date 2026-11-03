@@ -18,7 +18,7 @@ fun main() {
 }
 
 /**
- * A parameter of the page's address that Kubriko Creator sets when it plays the game, read only on the page it serves on
+ * A parameter of the page's address that Kubriko Creator sets when it plays the game, read only on a page served from
  * this computer.
  */
-private fun creatorParameter(name: String): String? = js("location.hostname === '127.0.0.1' ? new URLSearchParams(location.search).get(name) : null")
+private fun creatorParameter(name: String): String? = js("['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname) ? new URLSearchParams(location.search).get(name) : null")

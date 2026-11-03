@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 /**
  * Template version 11: Kubriko Creator plays the game in a browser, on Android, and on iOS too, so their entry points also
  * turn the Log Blocks on and choose the first Scene, as the desktop's `Main.kt` does: from the address of the page Kubriko
- * Creator serves on this computer, from the launching intent's extras in a debuggable Android build, and from the launch
+ * Creator serves from this computer, from the launching intent's extras in a debuggable Android build, and from the launch
  * arguments in a debug iOS framework. Since playing only starts from the first Scene and without logs without it, a file
  * that doesn't look like the template's counts as done rather than left to do by hand.
  */
@@ -49,10 +49,10 @@ internal object PlaySwitchesUpgrade {
             trailing = listOf(
                 "",
                 "/**",
-                " * A parameter of the page's address that Kubriko Creator sets when it plays the game, read only on the page it serves on",
+                " * A parameter of the page's address that Kubriko Creator sets when it plays the game, read only on a page served from",
                 " * this computer.",
                 " */",
-                "private fun creatorParameter(name: String): String? = js(\"location.hostname === '127.0.0.1' ? " +
+                "private fun creatorParameter(name: String): String? = js(\"['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname) ? " +
                     "new URLSearchParams(location.search).get(name) : null\")",
             ),
             imports = listOf(wiringImport),
@@ -79,7 +79,7 @@ internal object PlaySwitchesUpgrade {
         return withImports(lines.take(line + 1) + block + lines.drop(line + 1), listOf("import android.content.pm.ApplicationInfo", wiringImport))
     }
 
-    fun isIosDone(text: String) = FIRST_SCENE_SWITCH in text || mainLineOf(text.lines(), IOS_VIEW_CONTROLLER) == null
+    fun isIosDone(text: String) = FIRST_SCENE_SWITCH in text || mainLineOf(text.lines(), IOS_VIEW_CONTROLLER, mayBeAnnotated = false) == null
 
     /**
      * [text] (the iOS `MainViewController.kt`) reading the switches from the launch arguments in a debug framework, or
@@ -109,6 +109,7 @@ internal object PlaySwitchesUpgrade {
                 "import kotlin.experimental.ExperimentalNativeApi",
                 "import kotlin.native.Platform",
             ),
+            mayBeAnnotated = false,
         ) ?: text
     }
 
@@ -116,37 +117,32 @@ internal object PlaySwitchesUpgrade {
      * [text] with the expression body that [declaration] opens, which ends the file, made the last statement of a block
      * body that starts with [opening], followed by [trailing], or null if [text] isn't shaped so.
      */
-    private fun withBodyWrapped(text: String, declaration: String, opening: List<String>, trailing: List<String>, imports: List<String>): String? {
+    private fun withBodyWrapped(
+        text: String,
+        declaration: String,
+        opening: List<String>,
+        trailing: List<String>,
+        imports: List<String>,
+        mayBeAnnotated: Boolean = true,
+    ): String? {
         val lines = text.lines()
-        val start = mainLineOf(lines, declaration) ?: return null
+        val start = mainLineOf(lines, declaration, mayBeAnnotated) ?: return null
         val end = lines.indexOfLast { it.isNotBlank() }
         val body = lines.subList(start + 1, end + 1).map { if (it.isEmpty()) it else "    $it" }
         return withImports(lines.subList(0, start) + opening + body + "}" + trailing + lines.subList(end + 1, lines.size), imports)
     }
 
-    /**
-     * [lines] with each of [imports] they lack, in the order ktlint keeps them (`java`, `javax`, and `kotlin` last).
-     */
     private fun withImports(lines: List<String>, imports: List<String>) = imports.fold(lines) { result, import ->
-        if (import in result) {
-            result
-        } else {
-            val next = result.indexOfFirst { it.startsWith("import ") && importOrderOf(it) > importOrderOf(import) }
-            if (next >= 0) result.take(next) + import + result.drop(next) else ProjectUpgrader.withImport(result, import).lines()
-        }
+        if (import in result) result else ProjectUpgrader.withImport(result, import).lines()
     }.joinToString("\n")
 
-    private fun importOrderOf(import: String) = import.removePrefix("import ").let { name ->
-        (if (lastImportPrefixes.any { name.startsWith(it) }) "1" else "0") + name
-    }
-
-    private val lastImportPrefixes = listOf("java.", "javax.", "kotlin.")
-
     /**
-     * The line of [declaration], if it is there once and the file ends with the `}` closing it.
+     * The line of [declaration], if it is there once and its body is all that follows it, and unless [mayBeAnnotated], isn't
+     * annotated (the change annotates it itself, and an annotation such as `@OptIn` can't be repeated).
      */
-    private fun mainLineOf(lines: List<String>, declaration: String) = lines.indexOf(declaration).takeIf {
-        it >= 0 && lines.count { line -> line == declaration } == 1 && lines.lastOrNull { line -> line.isNotBlank() } == "}"
+    private fun mainLineOf(lines: List<String>, declaration: String, mayBeAnnotated: Boolean = true) = lines.indexOf(declaration).takeIf { line ->
+        line >= 0 && lines.count { it == declaration } == 1 && (mayBeAnnotated || lines.getOrNull(line - 1)?.startsWith("@") != true) &&
+            ProjectUpgrader.isBodyEndingTheFile(lines, line)
     }
 
     private fun onCreateLineOf(lines: List<String>) = lines.indices.filter { lines[it].trim() == ANDROID_ON_CREATE }.singleOrNull()

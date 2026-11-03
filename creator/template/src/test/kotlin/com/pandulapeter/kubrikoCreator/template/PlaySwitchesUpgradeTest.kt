@@ -46,14 +46,20 @@ class PlaySwitchesUpgradeTest {
         val web = OLD_WEB_MAIN.replace("fun main() = ComposeViewport {", "fun main() = ComposeViewport(title = \"x\") {")
         assertTrue(PlaySwitchesUpgrade.isWebDone(web))
         assertEquals(web, PlaySwitchesUpgrade.web(web, WIRING_IMPORT))
-        val webWithMore = "$OLD_WEB_MAIN\nfun other() = 1\n"
-        assertTrue(PlaySwitchesUpgrade.isWebDone(webWithMore))
+        listOf("$OLD_WEB_MAIN\nfun other() = 1\n", "$OLD_WEB_MAIN\nprivate fun helper() {\n    println()\n}\n").forEach { webWithMore ->
+            assertTrue(PlaySwitchesUpgrade.isWebDone(webWithMore))
+            assertEquals(webWithMore, PlaySwitchesUpgrade.web(webWithMore, WIRING_IMPORT))
+        }
         val android = OLD_ANDROID_ACTIVITY.replace("        super.onCreate(savedInstanceState)\n", "")
         assertTrue(PlaySwitchesUpgrade.isAndroidDone(android))
         assertEquals(android, PlaySwitchesUpgrade.android(android, WIRING_IMPORT))
-        val ios = OLD_IOS_VIEW_CONTROLLER.replace(": UIViewController = ", " = ")
-        assertTrue(PlaySwitchesUpgrade.isIosDone(ios))
-        assertEquals(ios, PlaySwitchesUpgrade.ios(ios, WIRING_IMPORT))
+        listOf(
+            OLD_IOS_VIEW_CONTROLLER.replace(": UIViewController = ", " = "),
+            OLD_IOS_VIEW_CONTROLLER.replace("fun MainViewController()", "@OptIn(ExperimentalForeignApi::class)\nfun MainViewController()"),
+        ).forEach { ios ->
+            assertTrue(PlaySwitchesUpgrade.isIosDone(ios))
+            assertEquals(ios, PlaySwitchesUpgrade.ios(ios, WIRING_IMPORT))
+        }
     }
 
     @Test

@@ -1,7 +1,7 @@
 package {{PACKAGE}}
 
-import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import {{PACKAGE}}.generated.KubrikoWiring
+import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 
 /**
  * Tells Kubriko Creator which Actor types the Scene editor can place. Registered as a service in

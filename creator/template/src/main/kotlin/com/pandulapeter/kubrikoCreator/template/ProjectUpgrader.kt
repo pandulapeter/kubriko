@@ -240,8 +240,8 @@ public class ProjectUpgrader(
         internal fun withLoggingTurnedOn(text: String, wiringImport: String): String? {
             val lines = text.lines()
             val main = lines.indexOf(APPLICATION_MAIN).takeIf { it >= 0 && lines.count { line -> line == APPLICATION_MAIN } == 1 } ?: return null
+            if (!isBodyEndingTheFile(lines, main)) return null
             val end = lines.indexOfLast { it.isNotBlank() }
-            if (lines[end] != "}") return null
             val body = lines.subList(main + 1, end + 1).map { if (it.isEmpty()) it else "    $it" }
             val changed = lines.subList(0, main) +
                 listOf("fun main() {", "    $LOGGING_SWITCH = System.getProperty(\"${ManagerTypeCodeGenerator.LOGGING_PROPERTY}\").toBoolean()", "    application {") +
@@ -257,18 +257,36 @@ public class ProjectUpgrader(
         private val String.isSceneLoader get() = trimStart().startsWith("SceneLoader(")
 
         /**
-         * [lines] with [import] after their last import, or after the package line if they have none.
+         * [lines] with [import] among their imports in the order ktlint keeps them (`java`, `javax`, and `kotlin` last), or
+         * after the package line if they have none.
          */
         internal fun withImport(lines: List<String>, import: String): String {
+            val nextImport = lines.indexOfFirst { it.startsWith("import ") && importOrderOf(it) > importOrderOf(import) }
             val lastImport = lines.indexOfLast { it.startsWith("import ") }
             val packageLine = lines.indexOfFirst { it.startsWith("package ") }
             val result = lines.toMutableList()
             when {
+                nextImport >= 0 -> result.add(nextImport, import)
                 lastImport >= 0 -> result.add(lastImport + 1, import)
                 packageLine >= 0 -> result.addAll(packageLine + 1, listOf("", import))
                 else -> result.addAll(0, listOf(import, ""))
             }
             return result.joinToString("\n")
+        }
+
+        private fun importOrderOf(import: String) = import.removePrefix("import ").let { name ->
+            (if (lastImportPrefixes.any { name.startsWith(it) }) "1" else "0") + name
+        }
+
+        private val lastImportPrefixes = listOf("java.", "javax.", "kotlin.")
+
+        /**
+         * Whether the declaration on [line] of [lines] ends the file: every line after it until the file's last `}` is
+         * blank or indented, so nothing else is declared after it.
+         */
+        internal fun isBodyEndingTheFile(lines: List<String>, line: Int): Boolean {
+            val end = lines.indexOfLast { it.isNotBlank() }
+            return end > line && lines[end] == "}" && (line + 1 until end).all { lines[it].isBlank() || lines[it].first().isWhitespace() }
         }
     }
 }
