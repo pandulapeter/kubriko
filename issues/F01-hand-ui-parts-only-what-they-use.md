@@ -9,6 +9,13 @@
 -->
 # Hand the workspace screen's parts only the state and callbacks they use, wire them in `ui/WorkspaceScreen.kt`, and add `PackageLayeringTest.onlyEntryFilesTakeTheControllers`
 
+**Challenged:** sound — checked at `5156af283`: the six files and their controller uses, `AssistantPanelModel` (which
+lacks `acceptsImages`, so passing it separately is right), `CommandExecutor.dispatch`'s signature against both `onCommand`
+types, `ProjectSettings`' `onCommand: (Invocation<*>) -> Unit`, `GitPanel`'s parameters, `folders`/`sceneFolders` types,
+`WorkspaceScreen` at 115 lines (its `fun` line to its closing brace, as `check_sizes.py` counts), `PackageLayeringTest`'s
+`SourceFile`/`Import`/`APP_MODULE`, and the new UI test's constructors (`PanelWidthState`, `PanelLayout`, `PanelRow`,
+`GitState.Ready`, `ChangeEntry`) and texts (from `GitPanelTest`). No other caller of the moved functions exists.
+
 **Kind:** architecture  ·  **Severity:** medium  ·  **Platforms:** all (desktop app)
 **Written against:** `9bb8df2a6`. Re-locate code by the quoted snippets, not by line numbers.
 **Files** (all in the app module, `:creator`, under `creator/src/main/kotlin/com/pandulapeter/kubrikoCreator/` unless named otherwise):

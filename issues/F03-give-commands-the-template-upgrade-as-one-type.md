@@ -9,6 +9,11 @@
 -->
 # Give `CommandContext` the template upgrade as one `ProjectUpgrades`, instead of a reading and a reporting lambda
 
+**Challenged:** sound — the two `CommandContext` constructions (the workspace and the `commandContext` fixture) are the only
+callers; `UpgradeProject` is the only reader; `ProjectChanges` refreshes the upgrade only on a sources change, never after a
+command, so the new workspace test fails with an empty `onUpgraded()` as it claims; `CommandExecutor.validate` is public;
+`TemplateUpgrade` is then unused in `CommandContext.kt` and still used in `WorkspaceController.kt`.
+
 **Kind:** architecture  ·  **Severity:** low  ·  **Platforms:** all (desktop app)
 **Written against:** `9bb8df2a6`, after F02. Re-locate code by the quoted snippets, not by line numbers.
 **Files:**

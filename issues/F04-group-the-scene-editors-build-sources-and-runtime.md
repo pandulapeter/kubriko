@@ -9,6 +9,12 @@
 -->
 # Give `SceneEditingController` its build, its sources, and Creator's runtime as three named types instead of eleven parameters
 
+**Challenged:** sound — every use of the eleven parameters in `SceneEditingController` maps onto the three types at the same
+call sites (so the same threads and order); `SceneEditingController` has only the workspace and its own test as callers;
+`CreatorTaskRunner.run`/`warmUpCompiler` and the public `IncrementalCompilationPolicy.requestCleanBuild` have the signatures
+used; `EntryPointLoader` is a `fun interface`; `resources`, `tasks`, `incrementalCompilation`, and `blockTypes` are all
+declared before `sceneEditing`; the counter drops to 8.
+
 **Kind:** architecture  ·  **Severity:** low  ·  **Platforms:** all (desktop app)
 **Written against:** `9bb8df2a6`, after F02 and F03. Re-locate code by the quoted snippets, not by line numbers.
 **Files:**

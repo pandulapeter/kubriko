@@ -9,6 +9,16 @@
 -->
 # Group `WorkspaceController`'s 23 parameters by the part each feeds, move the production defaults into `GradleWorkspaceOpener`, and give tests a `workspaceController` fixture
 
+**Challenged:** amended — the `creator/CLAUDE.md` clause goes after ai's fixtures rather than before them, keeping that
+sentence in the Modules list's lowest-first order (workspace sits above ai). Checked otherwise: the six callers and the named
+arguments each passes (all in the fixture; every one passes `parentScope` and `ioDispatcher`, none passes `currentTimeMillis`,
+`projectFormat`, `creatorLibraries`, or `createGitRepository`, and only the benchmark passes `generatedPath`, with its
+repository); every body use of the grouped parameters; `syncBuildFiles`, `writeDelayInMilliseconds`, and `generatedPath`
+being read only where the plan routes them; `kubriko-creator-module` applying `java-test-fixtures`, so the new fixture source
+set exists; `OwnWrites`, `ProjectSnapshot`, `ProjectChange`, and `ResourceScanner` being public in `:creator:core`;
+`GameProcess.Exit(exitCode, output)`; no member named `processes`, `files`, `gitRepositories`, `blockTypeSetup`, or
+`sceneRuntime` in the controller; the counter dropping to 12.
+
 **Kind:** architecture  ·  **Severity:** low  ·  **Platforms:** all (desktop app)
 **Written against:** `9bb8df2a6`, to be carried out after F02–F05, which change only the bodies of the `BlockTypesController`,
 `CommandContext`, and `SceneEditingController` calls inside `WorkspaceController` (F04 makes the last one take a
@@ -309,8 +319,9 @@ next to the other `testFixtures` lines.
 
 ### 6. Docs
 
-- `creator/CLAUDE.md` → Modules, the test fixtures sentence: after "commands' `CommandTesting.kt`, `FakeProjectRunner`, and
-  `BreakoutFixture`;" add "workspace's `WorkspaceTesting.kt`;" before "ai's `FakeAgent` and `FakeAgentLauncher`".
+- `creator/CLAUDE.md` → Modules, the test fixtures sentence, which names each module's fixtures in the module list's
+  lowest-first order: "ai's `FakeAgent` and `FakeAgentLauncher`)." becomes "ai's `FakeAgent` and `FakeAgentLauncher`;
+  workspace's `WorkspaceTesting.kt`)."
 - `creator/plan/README.md` → Structure: delete the bullet "**`WorkspaceController`'s constructor takes 23 parameters** …" (F05
   wrote it) and the lead-in "Left of the structure itself, before the classes involved grow further:" that only it was left
   under, so the paragraph ends at "…rather than in a Composable."
