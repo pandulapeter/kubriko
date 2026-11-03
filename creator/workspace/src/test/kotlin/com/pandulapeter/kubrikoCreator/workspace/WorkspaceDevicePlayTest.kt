@@ -40,7 +40,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-class WorkspaceAndroidPlayTest {
+class WorkspaceDevicePlayTest {
     private val directory = ProjectGenerator(testConfiguration(), wrapperInstaller = { _, _ -> }, startVersionControl = { _, _ -> })
         .create(NewProjectRequest(name = "My Game", packageName = "com.example.mygame", parentDirectory = testDirectory()))
     private val sdk = testDirectory().also { File(it, "platforms").mkdirs() }
@@ -49,7 +49,7 @@ class WorkspaceAndroidPlayTest {
         testAndroidVersions,
         object : TargetHost {
             override fun androidSdk(rootDirectory: File) = sdk
-            override val canBuildIos = false
+            override val canBuildIos = true
         },
     )
     private val build = FakeProjectBuild()
@@ -71,11 +71,11 @@ class WorkspaceAndroidPlayTest {
         tools = tools,
     )
 
-    private fun turnAndroidOn() = assertTrue(targets.apply(assertIs<TargetChange.Proposed>(targets.change(GameTarget.ANDROID, isOn = true))))
+    private fun turnOn(target: GameTarget) = assertTrue(targets.apply(assertIs<TargetChange.Proposed>(targets.change(target, isOn = true))))
 
     @Test
     fun aProjectBuiltForAndroidListsItsDevicesAndPlaysOnOneUntilItIsStopped() = blockingTest {
-        turnAndroidOn()
+        turnOn(GameTarget.ANDROID)
         tools.answer("devices -l", ok("List of devices attached\nR58M12345 device usb:1-1 model:Pixel_7\n"))
         val apk = File(directory, "${AndroidApp.OUTPUT_PATH}/androidApp-debug.apk").apply { parentFile.mkdirs() }.also { it.writeText("apk") }
         File(apk.parentFile, "output-metadata.json").writeText("""{ "applicationId": "com.example.mygame", "elements": [{ "outputFile": "androidApp-debug.apk" }] }""")
@@ -100,5 +100,20 @@ class WorkspaceAndroidPlayTest {
         tools.answer("devices -l", ok("List of devices attached\nR58M12345 device usb:1-1 model:Pixel_7\n"))
         assertEquals(listOf(PlayTarget.DESKTOP, PlayTarget.WEB), controller().playTargets.refresh().available)
         assertTrue(tools.commands.isEmpty())
+    }
+
+    @Test
+    fun iosSimulatorsAreListedOnlyWhileTheProjectIsBuiltForIos() = blockingTest {
+        tools.answer(
+            "simctl list devices available --json",
+            ok("""{ "devices": { "com.apple.CoreSimulator.SimRuntime.iOS-18-2": [{ "udid": "U1", "isAvailable": true, "state": "Shutdown", "name": "iPhone 16" }] } }"""),
+        )
+        val controller = controller()
+        assertEquals(listOf(PlayTarget.DESKTOP, PlayTarget.WEB), controller.playTargets.refresh().available)
+        turnOn(GameTarget.IOS)
+        assertEquals(
+            listOf(PlayTarget.DESKTOP, PlayTarget.WEB, PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)")),
+            controller.playTargets.refresh().available,
+        )
     }
 }

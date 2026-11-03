@@ -20,7 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  */
 internal class FakeToolProcesses : ToolProcesses {
     private val answers = ConcurrentHashMap<String, ArrayDeque<ToolResult>>()
-    private val streams = ConcurrentHashMap<String, Pair<List<String>, Boolean>>()
+    private val streams = ConcurrentHashMap<String, Triple<List<String>, Boolean, Int>>()
 
     /**
      * Every command run, streamed, or started, in order.
@@ -45,10 +45,11 @@ internal class FakeToolProcesses : ToolProcesses {
     fun answer(arguments: String, output: String, exitCode: Int = 0) = answer(arguments, ToolResult(exitCode, output))
 
     /**
-     * Makes [stream] of [arguments] print [lines], then run until it is cancelled, or end if [keepsRunning] is false.
+     * Makes [stream] of [arguments] print [lines], then run until it is cancelled, or end with [exitCode] if [keepsRunning]
+     * is false.
      */
-    fun stream(arguments: String, lines: List<String>, keepsRunning: Boolean = true) {
-        streams[arguments] = lines to keepsRunning
+    fun stream(arguments: String, lines: List<String>, keepsRunning: Boolean = true, exitCode: Int = 0) {
+        streams[arguments] = Triple(lines, keepsRunning, exitCode)
     }
 
     fun ran(arguments: String) = commands.any { it.drop(1).joinToString(" ") == arguments }
@@ -62,10 +63,10 @@ internal class FakeToolProcesses : ToolProcesses {
 
     override suspend fun stream(command: List<String>, onLine: (String) -> Unit): Int? {
         commands += command
-        val (lines, keepsRunning) = streams[command.drop(1).joinToString(" ")] ?: return 1
+        val (lines, keepsRunning, exitCode) = streams[command.drop(1).joinToString(" ")] ?: return 1
         lines.forEach(onLine)
         if (keepsRunning) awaitCancellation()
-        return 0
+        return exitCode
     }
 
     override fun startDetached(command: List<String>): DetachedTool {

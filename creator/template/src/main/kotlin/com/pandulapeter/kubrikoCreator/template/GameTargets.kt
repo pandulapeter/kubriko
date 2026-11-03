@@ -63,6 +63,11 @@ public class GameTargets(
     public fun androidSdk(): File? = host.androidSdk(rootDirectory)
 
     /**
+     * Whether this computer can build the game for iOS: a Mac with Xcode.
+     */
+    public val canBuildIos: Boolean get() = host.canBuildIos
+
+    /**
      * What turning [target] on (or off, as [isOn] says) takes, without changing anything.
      */
     public fun change(target: GameTarget, isOn: Boolean): TargetChange {

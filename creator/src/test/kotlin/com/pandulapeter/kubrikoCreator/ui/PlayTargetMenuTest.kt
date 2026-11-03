@@ -28,10 +28,11 @@ class PlayTargetMenuTest {
         val other = PlayTarget(id = "other", kind = PlayTarget.Kind.DESKTOP, name = "Other window")
         val phone = PlayTarget(id = "android:serial", kind = PlayTarget.Kind.ANDROID, name = "Pixel 7")
         val emulator = PlayTarget(id = "android-emulator:Medium_Phone", kind = PlayTarget.Kind.ANDROID, name = "Medium Phone")
+        val simulator = PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)")
         val events = mutableListOf<String>()
         showing {
             PlayTargetMenu(
-                targets = PlayTargets(listOf(PlayTarget.DESKTOP, other, PlayTarget.WEB, phone, emulator), chosen = PlayTarget.DESKTOP),
+                targets = PlayTargets(listOf(PlayTarget.DESKTOP, other, PlayTarget.WEB, phone, emulator, simulator), chosen = PlayTarget.DESKTOP),
                 onOpened = { events += "opened" },
                 onChosen = { events += "chose ${it.id}" },
                 onMoreTargets = { events += "more" },
@@ -42,6 +43,7 @@ class PlayTargetMenuTest {
         onNodeWithText("Build for more platforms…").assertExists()
         onNodeWithText("Pixel 7").assertExists()
         onNodeWithText("Medium Phone").assertExists()
+        onNodeWithText("iPhone 16 (iOS 18.2)").assertExists()
         saveSnapshot("play-target-menu")
         onNodeWithText("Other window").performClick()
         waitForIdle()

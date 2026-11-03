@@ -331,6 +331,12 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   the app's process prints and its errors (`logcat --pid`), never the rest of the device's log; Stop is `am force-stop`, and
   a change while it plays reaches it the next time it is played. `adb` and `emulator` run through `ToolProcesses`, which
   tests replace with `FakeToolProcesses`, replaying what the tools printed.
+- **iOS simulators** (`IosSimulatorPlayer`): listed only once the iOS target is on and the Mac has Xcode. Xcode builds the
+  app (its Gradle build phase builds the game's framework) into `build/kubriko-creator/ios-simulator` while
+  `simctl bootstatus -b` boots the simulator, which the Simulator app then shows; the switches reach the app as launch
+  arguments, which `NSUserDefaults` reads. `simctl launch --console-pty` prints what the app prints (a pty, so its output
+  isn't held back in a buffer) and names its process once it runs, sometimes after the app's first lines, so those are held
+  until then. Stop is `simctl terminate`.
 - **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so a Log Block also
   prints what it logs (on one line, as `[source] message`), and the Scene loader its failures: Creator reads them back from a
   device's output (`PrintedLogs`), and the browser shows them in its console. The print is generated into each Block rather

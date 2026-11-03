@@ -211,6 +211,8 @@ public class WorkspaceController(
             console = consoleLog,
             ioDispatcher = ioDispatcher,
         ),
+        iosSimulators = ::iosSimulators,
+        ios = IosSimulatorPlayer(project.rootDirectory, ::iosSimulators, processes.tools, consoleLog, ioDispatcher),
     )
 
     /** Where the game can be played, and where Play plays it. */
@@ -445,11 +447,13 @@ public class WorkspaceController(
         }
         when (target.kind) {
             PlayTarget.Kind.DESKTOP -> sessions.play(firstScene, gameBuilds::prepareLaunch)
-            PlayTarget.Kind.WEB, PlayTarget.Kind.ANDROID -> sessions.playElsewhere(target) { onUp -> players.play(target, firstScene, onUp) }
+            PlayTarget.Kind.WEB, PlayTarget.Kind.ANDROID, PlayTarget.Kind.IOS -> sessions.playElsewhere(target) { onUp -> players.play(target, firstScene, onUp) }
         }
     }
 
     private fun androidDevices() = files.targets?.androidSdk()?.let { AndroidDevices(it, processes.tools) }
+
+    private fun iosSimulators() = files.targets?.takeIf { it.canBuildIos }?.let { IosSimulators(processes.tools) }
 
     /** Stops the session process, if one runs. */
     public fun stopSession(): Unit = sessions.stop()

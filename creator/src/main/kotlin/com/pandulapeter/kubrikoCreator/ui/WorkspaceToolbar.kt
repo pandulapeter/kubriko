@@ -74,6 +74,7 @@ import kubriko.creator.generated.resources.session_editing
 import kubriko.creator.generated.resources.session_playing
 import kubriko.creator.generated.resources.session_playing_in_browser
 import kubriko.creator.generated.resources.session_playing_on_android
+import kubriko.creator.generated.resources.session_playing_on_ios
 import kubriko.creator.generated.resources.session_starting
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -289,6 +290,7 @@ internal fun SessionState.description() = when (this) {
             PlayTarget.Kind.DESKTOP -> Res.string.session_playing
             PlayTarget.Kind.WEB -> Res.string.session_playing_in_browser
             PlayTarget.Kind.ANDROID -> Res.string.session_playing_on_android
+            PlayTarget.Kind.IOS -> Res.string.session_playing_on_ios
         }
     }
 }

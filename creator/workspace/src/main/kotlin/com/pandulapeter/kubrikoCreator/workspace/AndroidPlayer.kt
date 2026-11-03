@@ -15,10 +15,8 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,7 +51,10 @@ internal class AndroidPlayer(
             console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_SDK_MISSING, isError = true))
             return false
         }
-        val serial = builtAndReady(devices, target) ?: return false
+        val serial = builtAlongside(
+            build = { runTask(BUILD_TASK_PATH) },
+            ready = { AndroidDeviceStart(devices, tools, console, pollIntervalInMilliseconds, bootTimeoutInMilliseconds).readySerialOf(target) },
+        ) ?: return false
         val app = withContext(ioDispatcher) { AndroidApp.builtIn(File(rootDirectory, AndroidApp.OUTPUT_PATH)) } ?: run {
             console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_APP_MISSING, isError = true, arguments = listOf(AndroidApp.OUTPUT_PATH)))
             return false
@@ -69,24 +70,6 @@ internal class AndroidPlayer(
             withContext(NonCancellable) { tools.run(shell + listOf("shell", "am", "force-stop", app.applicationId), COMMAND_TIMEOUT_IN_MILLISECONDS) }
             throw exception
         }
-    }
-
-    /**
-     * Builds the app while the device gets ready, returning the device's serial once both are done, or null, as the console
-     * says, as soon as either fails.
-     */
-    private suspend fun builtAndReady(devices: AndroidDevices, target: PlayTarget) = coroutineScope {
-        val build = async { runTask(BUILD_TASK_PATH) }
-        val serial = async {
-            AndroidDeviceStart(devices, tools, console, pollIntervalInMilliseconds, bootTimeoutInMilliseconds).readySerialOf(target).also { if (it == null) build.cancel() }
-        }
-        val isBuilt = try {
-            build.await()
-        } catch (exception: CancellationException) {
-            ensureActive()
-            false
-        }
-        if (isBuilt) serial.await() else null.also { serial.cancel() }
     }
 
     private suspend fun install(shell: List<String>, app: AndroidApp, name: String): Boolean {

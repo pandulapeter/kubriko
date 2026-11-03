@@ -14,17 +14,21 @@ import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 
 /**
- * Plays the game anywhere but the desktop, and finds where: the browser once the web target is on, and Android's devices
- * and emulators once its target is on and its SDK is found.
+ * Plays the game anywhere but the desktop, and finds where: the browser once the web target is on, Android's devices
+ * and emulators once its target is on and its SDK is found, and this Mac's iOS simulators once that target is on and Xcode
+ * is there.
  *
  * @param targets The game's targets, or null if they aren't the template's.
  * @param androidDevices The devices of the Android SDK the project builds with, or null if there is none. Blocks.
+ * @param iosSimulators This Mac's simulators, or null if it can't build for iOS. Blocks.
  */
 internal class TargetPlayers(
     private val targets: () -> GameTargets?,
     private val androidDevices: () -> AndroidDevices?,
     private val web: WebPlayer,
     private val android: AndroidPlayer,
+    private val iosSimulators: () -> IosSimulators?,
+    private val ios: IosSimulatorPlayer,
 ) {
     /**
      * Each lists the places of one kind the game can be played on now, as [PlayTargetChoice] takes them. They block.
@@ -32,6 +36,7 @@ internal class TargetPlayers(
     val sources: List<suspend () -> List<PlayTarget>> = listOf(
         { if (isOn(GameTarget.WEB)) listOf(PlayTarget.WEB) else emptyList() },
         { if (isOn(GameTarget.ANDROID)) androidDevices()?.targets().orEmpty() else emptyList() },
+        { if (isOn(GameTarget.IOS)) iosSimulators()?.targets().orEmpty() else emptyList() },
     )
 
     /**
@@ -41,6 +46,7 @@ internal class TargetPlayers(
         PlayTarget.Kind.DESKTOP -> error("The desktop is played through a session.")
         PlayTarget.Kind.WEB -> web.play(firstScene, onUp)
         PlayTarget.Kind.ANDROID -> android.play(target, firstScene, onUp)
+        PlayTarget.Kind.IOS -> ios.play(target, firstScene, onUp)
     }
 
     /**

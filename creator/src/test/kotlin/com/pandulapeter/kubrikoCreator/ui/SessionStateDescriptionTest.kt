@@ -17,6 +17,7 @@ import kubriko.creator.generated.resources.session_editing
 import kubriko.creator.generated.resources.session_playing
 import kubriko.creator.generated.resources.session_playing_in_browser
 import kubriko.creator.generated.resources.session_playing_on_android
+import kubriko.creator.generated.resources.session_playing_on_ios
 import kubriko.creator.generated.resources.session_starting
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -34,6 +35,10 @@ class SessionStateDescriptionTest {
         assertEquals(
             Res.string.session_playing_on_android,
             SessionState.Running(SessionMode.PLAY, PlayTarget(id = "android:serial", kind = PlayTarget.Kind.ANDROID, name = "Pixel 7")).description(),
+        )
+        assertEquals(
+            Res.string.session_playing_on_ios,
+            SessionState.Running(SessionMode.PLAY, PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)")).description(),
         )
     }
 }

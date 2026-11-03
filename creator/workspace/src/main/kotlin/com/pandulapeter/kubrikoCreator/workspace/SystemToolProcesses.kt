@@ -71,6 +71,7 @@ internal object SystemToolProcesses : ToolProcesses {
                 try {
                     runInterruptible { process.waitFor() }
                 } catch (exception: CancellationException) {
+                    process.descendants().forEach(ProcessHandle::destroyForcibly)
                     process.destroyForcibly()
                     throw exception
                 }
