@@ -109,9 +109,13 @@ jobs:
             status, next, the manual checks still owed, and live-app notes.
           - Creator's UI is desktop-scale: compact components from its ui/components, icons with tooltips, logical layout. Check
             new screens through the offscreen snapshot tests (UiSnapshots) and look at the images.
-          - Verify your work in the real app yourself; the user does no checks item by item. Once the end-to-end checks exist
-            (creator/plan/00-end-to-end-checks.md), run them under xvfb-run (installed with sudo apt-get if missing), add the
-            item's scenarios, and look at their screenshots before calling it done.
+          - Verify your work yourself; the user does no checks item by item. Unit tests and offscreen snapshots come first and
+            cover everything they can reach. An end-to-end scenario (creator/plan/00-end-to-end-checks.md, run under xvfb-run,
+            installed with sudo apt-get if missing) is only for what they can't reach and could really break or be built
+            wrong: real Gradle builds of an upgraded project, a played game's behaviour, processes and windows working together.
+            Never one for a label, a menu entry, a field's validation, or a layout a snapshot shows. Keep scenarios few and
+            cheap (one Creator start for several checks), since every run costs the user's credits; a backlog bullet a unit
+            test or snapshot already covers is deleted, not turned into a scenario.
           - Use the Oxford comma in every list of three or more items in all prose: docs, UI text, and commit messages.
           - The public API of the published library modules must not change without the user's consent; if the item seems to
             need such a change, find a way that doesn't, or stop and say so in HANDOVER.md.
