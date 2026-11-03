@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Node.js's release list and downloads as [NodeRuntime] reads them, served from [directory]: one LTS release for macOS on
@@ -19,7 +20,7 @@ internal class TestNodeReleases(
     private val directory: File,
 ) {
     val tools = File(directory, "tools")
-    val downloads = mutableListOf<String>()
+    val downloads = CopyOnWriteArrayList<String>()
     private val isWindows = System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")
 
     /**
