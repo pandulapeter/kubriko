@@ -23,8 +23,8 @@ what they can't reach yet is listed in `HANDOVER.md` → Not yet verified, never
 
 The files are numbered in the order they are worked on. Every item of `00` to `05` is to be done, none capped in number.
 
-0. [End-to-end checks](00-end-to-end-checks.md) - a harness that drives the real app on a fixture project, built and run unattended,
-   which turns the unverified checks into scenarios before anything else continues.
+0. [End-to-end checks](00-end-to-end-checks.md) - the unverified checks turned into scenarios of the harness that drives the real
+   app on a fixture project, before anything else continues, and the harness run nightly.
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
    flooded console, two long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.

@@ -10,29 +10,15 @@
 # End-to-end checks
 
 Creator is written by AI, so the AI verifies it in the real app, the way a person would, instead of leaving checks to the user.
-Unit tests, offscreen snapshots (`UiSnapshots`), and `ProjectTemplateIntegrationTest` each stop short of that: none opens a real
-project in the running app, changes it, builds it, plays it, and looks at the result. This plan adds what does. Nothing else
-starts until the harness and the first slice exist; the remaining slices are done before each later plan item, oldest first.
+The harness that does it exists (`endToEnd/` in `:creator`'s tests; `../CLAUDE.md` → Running and testing says how it runs). What
+is left is turning `HANDOVER.md` → Not yet verified into its scenarios, and running it nightly. Nothing else starts until the first
+slice is done; the remaining slices are done before each later plan item, oldest first.
 
-## The harness
+## Running it nightly
 
-- An opt-in suite (`KUBRIKO_CREATOR_E2E=true`, skipped with `Assume` otherwise, like the other opt-in tests in `../CLAUDE.md` →
-  Testing) that starts the real Creator on a fresh copy of a fixture project, drives it, and asserts on what it produced: the
-  project's files and git diff, the build's result, the console, Creator's window, and the played game's window.
-- It drives Creator through the same commands its UI and its MCP tools use (`StartGame`, `PressKeys`, `TakeScreenshot`,
-  `set_project_settings`, and the rest), over the MCP server where that is the realistic path. What only the window can show
-  (a dialog's layout, a red error, a focus change) is checked in a screenshot of Creator's own window, and input to the window
-  itself is synthetic only where no command exists.
-- Screenshots are judged by what can be asserted without a person: pixels at known places (the bars of a fixed aspect ratio, a
-  sprite's color where an Actor stands), sizes, and differences from the frame before. Every scenario also saves its images, so
-  the agent running it can look at them, and does, before calling a change done.
-- The fixture is a Breakout project kept in the repository (or built from the template in the test), at an old template version
-  and with no format version, so the upgrades and the migration are part of what it covers. It is never the user's
-  `~/Projects/breakout`.
-- It runs on Linux under `xvfb-run` (as `showcase-publish-desktop.yml` already does for the Showcase), so the unattended plan-agent
-  job and a nightly job in `Tests` can run it, and on macOS locally. Skiko's software rendering under Xvfb has to be confirmed
-  first; if the played game can't draw there, that is solved before anything else.
-- Scenarios are short and independent, each on its own copy, and a failure says which step and shows the last screenshots.
+- A job in `Tests` that runs the scenarios under `xvfb-run -s "-screen 0 1920x1080x24"` after its `publish-check` job's publish
+  (`KUBRIKO_CREATOR_E2E=true KUBRIKO_CREATOR_VERSION=0.0.0-check`), keeping `creator/build/end-to-end` as an artifact. It needs a
+  session whose token can change `.github/workflows`, which the unattended plan agent's can't.
 
 ## Slices
 
@@ -41,5 +27,8 @@ own commit with a test), and deletes the section's bullets. A bullet that needs 
 panel, a real Windows machine, a browser sign-in, an OS keychain prompt, a vendor's quota or terms) moves to `HANDOVER.md` → Before
 a release instead, worded as one line.
 
-1. Project settings: Game and Identity, the newest, which proves the harness on upgrades, the dialog, and a played window.
+1. Project settings: Game and Identity, the newest, which proves the harness on upgrades, the dialog, and a played window. The
+   dialog and the upgrade's review are opened from Creator's window, which no tool does, so this slice adds the harness's
+   synthetic input: clicks and keys through `java.awt.Robot` on Creator's window, found in a screenshot (under Xvfb, which has
+   no window manager, the window opens at the same place every time).
 2. The rest of `HANDOVER.md` → Not yet verified, one section per slice, in the order it lists them.

@@ -25,10 +25,12 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-`00-end-to-end-checks.md`: the harness is built (`endToEnd/` in `:creator`'s tests, with `OpeningAndPlayingTest` seen passing under
-Xvfb) and its review (`README.md`, from `c33a9042a`) is next, then the plan file's harness section is deleted. After that, its first
-slice (Project settings: Game and Identity); each later item is verified with it before it is called done, and one slice of Not yet
-verified is done before each. Then the rest of Project settings in `03-settings.md`, as follows.
+`00-end-to-end-checks.md`'s first slice (Project settings: Game and Identity), which adds the harness's synthetic input to Creator's
+window. The harness is built and reviewed (its review fixed a generated-code collision with a type called `Column`, the launch
+command's JetBrains Runtime and Windows length limit, the wait's timeouts, and weak screenshot checks), and `OpeningAndPlayingTest`
+passes under Xvfb: Breakout at template version 7 opens, builds, and plays, with its Bricks, Ball, and stacked texts where they
+belong. After the slice, each later item is verified with the checks before it is called done, and one slice of Not yet verified is
+done before each. Then the rest of Project settings in `03-settings.md`, as follows.
 
 Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the dialog behind the
 toolbar's settings menu, and `get_project_settings` / `set_project_settings`; see Not yet verified). Next is Targets, then
@@ -40,6 +42,8 @@ Release, Icons, and Signing, each extending the same dialog and tools. Then `04`
 What only the user can check, needing something no agent has (a high refresh rate panel, a real Windows machine, a browser
 sign-in, an OS keychain prompt, a vendor's quota). One line each; the user goes through it once a larger feature set is ready,
 never item by item.
+
+- The end-to-end checks on macOS (`java.awt.Robot` needs the terminal's Screen Recording permission there).
 
 ## Not yet verified
 
@@ -194,8 +198,7 @@ several conversations, the default and alias configurations, and closing the pro
   `start_game` after a restart, and with a `scene`.
 - A game that crashes (its exit code and last lines in the console), audio and sprites in a played game, a project whose `run`
   task has no Java toolchain (should fall back to Gradle), and Windows paths.
-- A game played with the configuration cache on, the version 5 and 6 upgrades' diffs in the dialog, and a Log Block's line
-  reaching the console after the version 5 upgrade.
+- The version 5 and 6 upgrades' diffs in the dialog, and a Log Block's line reaching the console after the version 5 upgrade.
 - Hearing the audio: music and sounds from Blocks, music pausing and resuming with the window's focus, a non-looping music played
   again, going between Scenes with the same and different music, and web audio with `Res.getUri` paths. The audio Blocks' file
   menus with no sounds or music in the project (empty, with no hint how to add files).
@@ -257,6 +260,11 @@ several conversations, the default and alias configurations, and closing the pro
 
 ## Working with the live app
 
+- **The end-to-end checks come first:** publish to Maven Local as `:creator:run` does (`./gradlew publishDesktopPublicationToMavenLocal
+  publishWasmJsPublicationToMavenLocal publishKotlinMultiplatformPublicationToMavenLocal -Pcreator.localKubriko=true`), then
+  `KUBRIKO_CREATOR_E2E=true KUBRIKO_CREATOR_VERSION=0.8.1-creator xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew :creator:test
+  --tests "*endToEnd*" --rerun`, and look at `creator/build/end-to-end/<scenario>`. The notes below are for a session on the
+  user's Mac, where the user works alongside.
 - **Guard every synthetic click and keystroke.** The user works alongside, and Android Studio covers the same screen area. Click only
   when the topmost window under the point belongs to Creator's PID (`CGWindowListCopyWindowInfo` in a Swift script), and press keys
   only while the target app is frontmost. Prefer editing `.kubriko/*.json` on disk, which Creator reloads.
