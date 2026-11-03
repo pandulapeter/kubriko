@@ -19,10 +19,9 @@ import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.scenes.SceneProblem
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_entry_point_missing
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -72,7 +71,7 @@ class WorkspaceCenterTest {
     }
 
     @Test
-    fun aFailedSceneShowsItsReasonAndTryAgain() = showingCenter(WorkspaceSelection.Scene("level"), SceneEditingState.Failed(scene, Res.string.error_entry_point_missing)) {
+    fun aFailedSceneShowsItsReasonAndTryAgain() = showingCenter(WorkspaceSelection.Scene("level"), SceneEditingState.Failed(scene, SceneProblem.ENTRY_POINT_MISSING)) {
         onNodeWithText("The project has no CreatorEntryPoint, so its Scenes can't be edited.").assertExists()
         onNodeWithText("Try again").performClick()
         waitForIdle()

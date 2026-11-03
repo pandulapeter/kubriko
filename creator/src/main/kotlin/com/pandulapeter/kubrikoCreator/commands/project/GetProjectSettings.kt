@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
@@ -19,8 +20,6 @@ import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_project_settings_unavailable
 
 internal object GetProjectSettings : ReadCommand<NoInput> {
     override val name = "get_project_settings"
@@ -32,7 +31,7 @@ internal object GetProjectSettings : ReadCommand<NoInput> {
 
     override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome {
         val identity = withContext(context.ioDispatcher) { GameIdentity.read(context.project.rootDirectory) }
-            ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_project_settings_unavailable))
+            ?: return CommandOutcome.Rejected(Rejection(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE))
         return CommandOutcome.Success(
             buildJsonObject {
                 put("name", identity.name)

@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -31,16 +32,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_id_repeated
-import kubriko.creator.generated.resources.error_command_actor_id_taken
-import kubriko.creator.generated.resources.error_command_actor_property_missing
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_actors_empty
-import kubriko.creator.generated.resources.error_command_index_invalid
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_scene_actor_missing
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -82,11 +73,11 @@ class BatchActorCommandsTest {
     fun placingManyIsValidated() = runTest {
         val context = context(wall)
         fun rejection(vararg placements: PlaceActors.Placement) = PlaceActors.validate(context, PlaceActors.Input("main", placements.toList()))
-        assertEquals(Rejection(Res.string.error_command_actors_empty), rejection())
-        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Ghost"), rejection(PlaceActors.Placement("Brick", 0f, 0f), PlaceActors.Placement("Ghost", 0f, 0f)))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), rejection(PlaceActors.Placement("Brick", Float.NaN, 0f)))
-        assertEquals(Rejection(Res.string.error_command_actor_id_taken, "wall"), rejection(PlaceActors.Placement("Brick", 0f, 0f, "wall")))
-        assertEquals(Rejection(Res.string.error_command_actor_id_repeated, "a"), rejection(PlaceActors.Placement("Brick", 0f, 0f, "a"), PlaceActors.Placement("Brick", 0f, 0f, "a")))
+        assertEquals(Rejection(CommandProblem.ACTORS_EMPTY), rejection())
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), rejection(PlaceActors.Placement("Brick", 0f, 0f), PlaceActors.Placement("Ghost", 0f, 0f)))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), rejection(PlaceActors.Placement("Brick", Float.NaN, 0f)))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), rejection(PlaceActors.Placement("Brick", 0f, 0f, "wall")))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_REPEATED, "a"), rejection(PlaceActors.Placement("Brick", 0f, 0f, "a"), PlaceActors.Placement("Brick", 0f, 0f, "a")))
     }
 
     @Test
@@ -95,9 +86,9 @@ class BatchActorCommandsTest {
         val context = context(bricks[0], wall, bricks[1], music, bricks[2], bricks[3], bricks[4])
         val remaining = context.assertRoundTrip(Invocation(RemoveActors, RemoveActors.Input("main", listOf("b3", "music", "b0", "b4")))) { context.main() }
         assertEquals(listOf("wall", "b1", "b2"), remaining.map { it.id })
-        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "ghost"), RemoveActors.validate(context, RemoveActors.Input("main", listOf("wall", "ghost"))))
-        assertEquals(Rejection(Res.string.error_command_actor_id_repeated, "wall"), RemoveActors.validate(context, RemoveActors.Input("main", listOf("wall", "wall"))))
-        assertEquals(Rejection(Res.string.error_command_actors_empty), RemoveActors.validate(context, RemoveActors.Input("main", emptyList())))
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), RemoveActors.validate(context, RemoveActors.Input("main", listOf("wall", "ghost"))))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_REPEATED, "wall"), RemoveActors.validate(context, RemoveActors.Input("main", listOf("wall", "wall"))))
+        assertEquals(Rejection(CommandProblem.ACTORS_EMPTY), RemoveActors.validate(context, RemoveActors.Input("main", emptyList())))
     }
 
     @Test
@@ -106,9 +97,9 @@ class BatchActorCommandsTest {
         val input = RestoreActors.Input("main", listOf(RestoreActors.Restored(0, music.typeId, music.state, "music"), RestoreActors.Restored(2, "Wall", "{}", "copy")))
         assertEquals(listOf("music", "wall", "copy"), context.assertRoundTrip(Invocation(RestoreActors, input)) { context.main() }.map { it.id })
         fun rejection(vararg restored: RestoreActors.Restored) = RestoreActors.validate(context, RestoreActors.Input("main", restored.toList()))
-        assertEquals(Rejection(Res.string.error_command_index_invalid, "5"), rejection(RestoreActors.Restored(3, "Wall", "{}"), RestoreActors.Restored(5, "Wall", "{}")))
-        assertEquals(Rejection(Res.string.error_command_scene_content_invalid), rejection(RestoreActors.Restored(0, "Wall", "[]")))
-        assertEquals(Rejection(Res.string.error_command_actor_id_taken, "wall"), rejection(RestoreActors.Restored(0, "Wall", "{}", "wall")))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "5"), rejection(RestoreActors.Restored(3, "Wall", "{}"), RestoreActors.Restored(5, "Wall", "{}")))
+        assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), rejection(RestoreActors.Restored(0, "Wall", "[]")))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), rejection(RestoreActors.Restored(0, "Wall", "{}", "wall")))
     }
 
     @Test
@@ -121,11 +112,11 @@ class BatchActorCommandsTest {
         assertEquals(List(3) { JsonPrimitive(2f) }, actors.take(3).map { ActorStateEdits.propertyOf(it.state, "hits") })
         fun rejection(vararg changes: ActorValueChanges) = SetActorsValues.validate(context, SetActorsValues.Input("main", changes.toList()))
         assertEquals(
-            Rejection(Res.string.error_command_actor_property_missing, "Brick", "lives"),
+            Rejection(CommandProblem.ACTOR_PROPERTY_MISSING, "Brick", "lives"),
             rejection(ActorValueChanges("b0", x = 1f), ActorValueChanges("b1", properties = listOf(ActorValueChanges.PropertyValue("lives", number = 1f)))),
         )
-        assertEquals(Rejection(Res.string.error_command_actor_id_repeated, "b0"), rejection(ActorValueChanges("b0", x = 1f), ActorValueChanges("b0", y = 1f)))
-        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "ghost"), rejection(ActorValueChanges("ghost", x = 1f)))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_REPEATED, "b0"), rejection(ActorValueChanges("b0", x = 1f), ActorValueChanges("b0", y = 1f)))
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), rejection(ActorValueChanges("ghost", x = 1f)))
     }
 
     @Test
@@ -134,7 +125,7 @@ class BatchActorCommandsTest {
         val input = SetActorsState.Input("main", listOf(SetActorsState.ActorState("music", """{"volume":0.5}"""), SetActorsState.ActorState("wall", "{}")))
         assertEquals(listOf("{}", """{"volume":0.5}"""), context.assertRoundTrip(Invocation(SetActorsState, input)) { context.main() }.map { it.state })
         assertEquals(
-            Rejection(Res.string.error_command_scene_content_invalid),
+            Rejection(CommandProblem.SCENE_CONTENT_INVALID),
             SetActorsState.validate(context, SetActorsState.Input("main", listOf(SetActorsState.ActorState("wall", "[]")))),
         )
     }
@@ -221,7 +212,7 @@ class BatchActorCommandsTest {
     fun restoreActorRejectsWhatRestoreActorsRejects() = runTest {
         val context = context(wall)
         listOf("[1]", "nope", "\"text\"", "").forEach { state ->
-            val rejection = Rejection(Res.string.error_command_scene_content_invalid)
+            val rejection = Rejection(CommandProblem.SCENE_CONTENT_INVALID)
             assertEquals(rejection, RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", state)), state)
             assertEquals(rejection, RestoreActors.validate(context, RestoreActors.Input("main", listOf(RestoreActors.Restored(0, "Wall", state)))), state)
         }

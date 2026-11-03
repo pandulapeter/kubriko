@@ -12,13 +12,12 @@ package com.pandulapeter.kubrikoCreator.commands.game
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_game_duration_invalid
 
 internal object Wait : ActionCommand<Wait.Input> {
     override val name = "wait"
@@ -28,7 +27,7 @@ internal object Wait : ActionCommand<Wait.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Game
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
-        if (input.milliseconds !in 1..MAXIMUM_MILLISECONDS) return CommandOutcome.Rejected(Rejection(Res.string.error_game_duration_invalid, MAXIMUM_MILLISECONDS.toString()))
+        if (input.milliseconds !in 1..MAXIMUM_MILLISECONDS) return CommandOutcome.Rejected(Rejection(CommandProblem.GAME_DURATION_INVALID, MAXIMUM_MILLISECONDS.toString()))
         return context.runner.wait(input.milliseconds.toLong()).toOutcome()
     }
 

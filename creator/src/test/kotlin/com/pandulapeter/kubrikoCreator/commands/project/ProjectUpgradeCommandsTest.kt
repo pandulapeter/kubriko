@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -24,9 +25,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_upgrade_by_hand
-import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -77,7 +75,7 @@ class ProjectUpgradeCommandsTest {
         assertContains(entryPoint.readText(), "    override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)\n")
         assertContains(File(root, ".kubriko/project.json").readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
         assertEquals(1, upgradedCount)
-        assertEquals(Rejection(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).validate(context))
+        assertEquals(Rejection(CommandProblem.UPGRADE_NOT_NEEDED), Invocation(UpgradeProject, NoInput).validate(context))
     }
 
     @Test
@@ -86,7 +84,7 @@ class ProjectUpgradeCommandsTest {
         game.writeText("package com.example.game\n")
         entryPoint.delete()
         assertEquals(
-            Rejection(Res.string.error_command_upgrade_by_hand, "src/commonMain/kotlin/com/example/game/Game.kt, src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"),
+            Rejection(CommandProblem.UPGRADE_BY_HAND, "src/commonMain/kotlin/com/example/game/Game.kt, src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"),
             Invocation(UpgradeProject, NoInput).validate(commandContext(rootDirectory = root, projectUpgrade = { ProjectUpgrader(root).check() })),
         )
     }
@@ -95,7 +93,7 @@ class ProjectUpgradeCommandsTest {
     fun validatingTrustsTheLastCheckInsteadOfReadingTheFiles() = runTest {
         oldProject()
         val context = commandContext(rootDirectory = root, projectUpgrade = { TemplateUpgrade.UpToDate })
-        assertEquals(Rejection(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).validate(context))
+        assertEquals(Rejection(CommandProblem.UPGRADE_NOT_NEEDED), Invocation(UpgradeProject, NoInput).validate(context))
     }
 
     @Test
@@ -103,7 +101,7 @@ class ProjectUpgradeCommandsTest {
         val stale = TemplateUpgrade.Needed(changes = listOf(ProposedFileChange("Game.kt", before = "", after = "")), byHand = emptyList())
         val context = commandContext(rootDirectory = root, projectUpgrade = { stale })
         assertNull(Invocation(UpgradeProject, NoInput).validate(context))
-        assertEquals(Applied.failed(Res.string.error_command_upgrade_not_needed), Invocation(UpgradeProject, NoInput).apply(context))
+        assertEquals(Applied.failed(CommandProblem.UPGRADE_NOT_NEEDED), Invocation(UpgradeProject, NoInput).apply(context))
         assertEquals(emptyList(), root.listFiles().orEmpty().toList())
     }
 }

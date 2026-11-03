@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
@@ -19,11 +20,13 @@ import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
+import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
+import com.pandulapeter.kubrikoCreator.workspace.WorkspaceStatus
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -178,7 +181,7 @@ class AppControllerTest {
         controller.scope.launch { hasRun = true }
         assertTrue(hasRun)
         assertEquals(
-            listOf(ConsoleEntry.Status(Res.string.status_unexpected_problem, isError = true, arguments = listOf("java.lang.IllegalStateException: Broken."))),
+            listOf(ConsoleEntry.Status(WorkspaceStatus.UNEXPECTED_PROBLEM, isError = true, arguments = listOf("java.lang.IllegalStateException: Broken."))),
             workspace.console.value,
         )
     }
@@ -217,7 +220,7 @@ class AppControllerTest {
 
     @Test
     fun aProjectThatCantBeUsedReturnsToWelcomeWithItsReason() = runTest {
-        val controller = createController { _, _ -> throw ProjectInspectionException(Res.string.error_no_desktop_module) }
+        val controller = createController { _, _ -> throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) }
         controller.openProject(directory)
         assertEquals(AppScreen.Welcome(error = Res.string.error_no_desktop_module), controller.screen.value)
     }
@@ -291,7 +294,7 @@ class AppControllerTest {
 
     @Test
     fun aProjectThatCantBeCreatedReturnsToTheFormWithItsReason() = runTest {
-        val controller = createController(creator = { throw ProjectCreationException(Res.string.error_project_folder_not_empty) })
+        val controller = createController(creator = { throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY) })
         controller.createProject(request)
         assertEquals(AppScreen.NewProject(error = Res.string.error_project_folder_not_empty), controller.screen.value)
         assertTrue(openedDirectories.isEmpty())

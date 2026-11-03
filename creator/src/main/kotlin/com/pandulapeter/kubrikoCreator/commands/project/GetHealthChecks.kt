@@ -15,7 +15,6 @@ import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.context.healthFindings
 import kotlinx.serialization.json.JsonPrimitive
-import kubriko.creator.generated.resources.Res
 
 internal object GetHealthChecks : ReadCommand<NoInput> {
     override val name = "get_health_checks"

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -22,11 +23,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
-import kubriko.creator.generated.resources.error_scene_folder_reserved
-import kubriko.creator.generated.resources.error_scene_name_invalid
-import kubriko.creator.generated.resources.error_scene_name_taken
 
 @OptIn(EditorMutation::class)
 internal object CreateScene : WriteCommand<CreateScene.Input> {
@@ -37,12 +33,12 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = validateRestoring(context, input)
-        ?: if (!SceneDocument.isValid(input.content)) Rejection(Res.string.error_command_scene_content_invalid) else null
+        ?: if (!SceneDocument.isValid(input.content)) Rejection(CommandProblem.SCENE_CONTENT_INVALID) else null
 
     override fun validateRestoring(context: CommandContext, input: Input): Rejection? = when {
-        !SceneNaming.isValid(input.scene) -> Rejection(Res.string.error_scene_name_invalid)
-        SceneNaming.reservedFolderOf(input.scene) != null -> Rejection(Res.string.error_scene_folder_reserved, SceneNaming.reservedFolderOf(input.scene).orEmpty())
-        context.scenes.names().any { it.equals(input.scene, ignoreCase = true) } -> Rejection(Res.string.error_scene_name_taken)
+        !SceneNaming.isValid(input.scene) -> Rejection(CommandProblem.SCENE_NAME_INVALID)
+        SceneNaming.reservedFolderOf(input.scene) != null -> Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(input.scene).orEmpty())
+        context.scenes.names().any { it.equals(input.scene, ignoreCase = true) } -> Rejection(CommandProblem.SCENE_NAME_TAKEN)
         else -> null
     }
 
@@ -53,7 +49,7 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
             context.scenes.descriptions.set(input.scene, input.description)
             true
         }
-        if (!isWritten) return Applied.failed(Rejection(Res.string.error_scene_name_taken))
+        if (!isWritten) return Applied.failed(Rejection(CommandProblem.SCENE_NAME_TAKEN))
         return Applied(inverse = Invocation(DeleteScene, DeleteScene.Input(input.scene)))
     }
 

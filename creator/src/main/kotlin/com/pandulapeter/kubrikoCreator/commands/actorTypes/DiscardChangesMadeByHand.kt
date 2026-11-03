@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -19,8 +20,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_not_changed_by_hand
 
 @OptIn(EditorMutation::class)
 internal object DiscardChangesMadeByHand : WriteCommand<DiscardChangesMadeByHand.Input> {
@@ -33,7 +32,7 @@ internal object DiscardChangesMadeByHand : WriteCommand<DiscardChangesMadeByHand
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType)
-        ?: if (input.actorType !in context.requireBlockTypes.changedByHand.value) Rejection(Res.string.error_command_not_changed_by_hand, input.actorType) else null
+        ?: if (input.actorType !in context.requireBlockTypes.changedByHand.value) Rejection(CommandProblem.NOT_CHANGED_BY_HAND, input.actorType) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.requireBlockTypes.discardChangesMadeByHand(input.actorType)

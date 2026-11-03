@@ -9,11 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * A folder that Gradle could open, but that is not a project Kubriko Creator can work with.
  */
 internal class ProjectInspectionException(
-    val reason: StringResource,
+    val reason: ProjectProblem,
 ) : Exception()

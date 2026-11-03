@@ -10,15 +10,12 @@
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateActorType
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_index_invalid
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
 
 /**
  * Why [placements] can't be placed in the Scene [scene].
@@ -29,7 +26,7 @@ internal fun CommandContext.validatePlacements(scene: String, placements: List<P
         val ids = readScene(scene).mapTo(HashSet()) { it.id }
         placements.firstNotNullOfOrNull { placement ->
             validateActorType(placement.actorType)
-                ?: (if (placement.x.isFinite() && placement.y.isFinite()) null else Rejection(Res.string.error_command_number_invalid))
+                ?: (if (placement.x.isFinite() && placement.y.isFinite()) null else Rejection(CommandProblem.NUMBER_INVALID))
                 ?: placement.actorId?.let { id -> validateNewActorId(id) { it in ids } }
         }
     }
@@ -86,7 +83,7 @@ internal suspend fun CommandContext.changeActorValues(scene: String, changes: Li
  * Why the Actors of the Scene [scene] can't get [states].
  */
 internal fun CommandContext.validateStates(scene: String, states: List<SetActorsState.ActorState>): Rejection? = validateSceneActors(scene, states.map { it.actorId })
-    ?: if (states.any { SceneDocument.stateObject(it.state) == null }) Rejection(Res.string.error_command_scene_content_invalid) else null
+    ?: if (states.any { SceneDocument.stateObject(it.state) == null }) Rejection(CommandProblem.SCENE_CONTENT_INVALID) else null
 
 /**
  * Gives the Actors of the Scene [scene] [states], which [validateStates] accepted.
@@ -137,8 +134,8 @@ internal fun CommandContext.validateRestorations(scene: String, restorations: Li
         val ids = actors.mapTo(HashSet()) { it.id }
         restorations.withIndex().firstNotNullOfOrNull { (position, restored) ->
             when {
-                restored.actorIndex !in 0..actors.size + position -> Rejection(Res.string.error_command_index_invalid, restored.actorIndex.toString())
-                SceneDocument.stateObject(restored.state) == null -> Rejection(Res.string.error_command_scene_content_invalid)
+                restored.actorIndex !in 0..actors.size + position -> Rejection(CommandProblem.INDEX_INVALID, restored.actorIndex.toString())
+                SceneDocument.stateObject(restored.state) == null -> Rejection(CommandProblem.SCENE_CONTENT_INVALID)
                 else -> restored.actorId?.let { id -> validateNewActorId(id) { it in ids } }
             }
         }

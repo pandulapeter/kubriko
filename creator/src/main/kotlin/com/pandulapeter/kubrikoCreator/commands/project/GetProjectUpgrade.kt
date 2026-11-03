@@ -21,7 +21,6 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import kubriko.creator.generated.resources.Res
 
 internal object GetProjectUpgrade : ReadCommand<NoInput> {
     override val name = "get_project_upgrade"

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -19,9 +20,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.withContext
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_upgrade_by_hand
-import kubriko.creator.generated.resources.error_command_upgrade_not_needed
 
 /**
  * Changes files that belong to the user, so it can't be undone from the history; committing first (or git) brings
@@ -53,7 +51,7 @@ internal object UpgradeProject : WriteCommand<NoInput> {
     }
 
     private fun rejectionOf(upgrade: TemplateUpgrade) = when (upgrade) {
-        TemplateUpgrade.UpToDate -> Rejection(Res.string.error_command_upgrade_not_needed)
-        is TemplateUpgrade.Needed -> if (upgrade.changes.isEmpty()) Rejection(Res.string.error_command_upgrade_by_hand, upgrade.byHand.joinToString()) else null
+        TemplateUpgrade.UpToDate -> Rejection(CommandProblem.UPGRADE_NOT_NEEDED)
+        is TemplateUpgrade.Needed -> if (upgrade.changes.isEmpty()) Rejection(CommandProblem.UPGRADE_BY_HAND, upgrade.byHand.joinToString()) else null
     }
 }

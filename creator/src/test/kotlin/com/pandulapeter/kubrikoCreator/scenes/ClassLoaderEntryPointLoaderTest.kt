@@ -9,10 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.scenes
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_entry_point_missing
-import kubriko.creator.generated.resources.error_entry_point_multiple
-import kubriko.creator.generated.resources.error_entry_point_not_loaded
 import org.junit.Assume.assumeFalse
 import java.io.File
 import java.util.jar.JarOutputStream
@@ -58,7 +54,7 @@ class ClassLoaderEntryPointLoaderTest {
     @Test
     fun aProjectWithoutAnEntryPointIsReported() {
         val exception = assertFailsWith<EntryPointLoadingException> { load(File(root, "empty").apply { mkdirs() }) }
-        assertEquals(Res.string.error_entry_point_missing, exception.reason)
+        assertEquals(SceneProblem.ENTRY_POINT_MISSING, exception.reason)
     }
 
     @Test
@@ -66,13 +62,13 @@ class ClassLoaderEntryPointLoaderTest {
         val exception = assertFailsWith<EntryPointLoadingException> {
             load(classesRegistering(TestEntryPoint::class.java.name), classesRegistering(OtherTestEntryPoint::class.java.name))
         }
-        assertEquals(Res.string.error_entry_point_multiple, exception.reason)
+        assertEquals(SceneProblem.ENTRY_POINT_MULTIPLE, exception.reason)
     }
 
     @Test
     fun anEntryPointThatCantBeLoadedIsReported() {
         val exception = assertFailsWith<EntryPointLoadingException> { load(classesRegistering("com.example.Missing")) }
-        assertEquals(Res.string.error_entry_point_not_loaded, exception.reason)
+        assertEquals(SceneProblem.ENTRY_POINT_NOT_LOADED, exception.reason)
     }
 
     @Test
@@ -82,7 +78,7 @@ class ClassLoaderEntryPointLoaderTest {
         classFile.setReadable(false)
         assumeFalse(classFile.canRead())
         val exception = assertFailsWith<EntryPointLoadingException> { load(classes) }
-        assertEquals(Res.string.error_entry_point_not_loaded, exception.reason)
+        assertEquals(SceneProblem.ENTRY_POINT_NOT_LOADED, exception.reason)
     }
 
     @Test

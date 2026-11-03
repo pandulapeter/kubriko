@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
@@ -36,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -64,20 +66,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_project_format_not_upgraded
-import kubriko.creator.generated.resources.status_block_types_saved_again
-import kubriko.creator.generated.resources.status_generated_leftover_changed_by_hand
-import kubriko.creator.generated.resources.status_generated_leftovers_removed
-import kubriko.creator.generated.resources.status_kotlin_block_scope_changed
-import kubriko.creator.generated.resources.status_kubriko_libraries_added
-import kubriko.creator.generated.resources.status_kubriko_libraries_removed
-import kubriko.creator.generated.resources.status_kubriko_version_changed
-import kubriko.creator.generated.resources.status_kubriko_version_newer
-import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
-import kubriko.creator.generated.resources.status_type_files_readable_again
-import kubriko.creator.generated.resources.status_unexpected_problem
-import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -187,12 +175,12 @@ internal class WorkspaceController(
             ioDispatcher = ioDispatcher,
             onSaved = { haveTypesChanged -> savedTypeBatches.trySend(haveTypesChanged) },
             onSaveFailed = { appendToConsole(it.toConsoleEntry()) },
-            onSavedAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_block_types_saved_again)) },
+            onSavedAgain = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPES_SAVED_AGAIN)) },
             onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
             onFirstLoaded = ::reportKotlinBlockScopeChanges,
-            onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(Res.string.status_type_files_readable_again)) },
-            onLeftoversRemoved = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftovers_removed, arguments = listOf(it.joinToString()))) },
-            onLeftoverChangedByHand = { appendToConsole(ConsoleEntry.Status(Res.string.status_generated_leftover_changed_by_hand, isError = true, arguments = listOf(it))) },
+            onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.TYPE_FILES_READABLE_AGAIN)) },
+            onLeftoversRemoved = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.GENERATED_LEFTOVERS_REMOVED, arguments = listOf(it.joinToString()))) },
+            onLeftoverChangedByHand = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.GENERATED_LEFTOVER_CHANGED_BY_HAND, isError = true, arguments = listOf(it))) },
             syncBuildFiles = syncBuildFiles,
             onBuildFilesSynced = ::reportBuildFileChanges,
             writeDelayInMilliseconds = writeDelayInMilliseconds,
@@ -332,9 +320,9 @@ internal class WorkspaceController(
      *
      * @return Why [name] can't be used, or null if the Actor type is being created.
      */
-    fun createActorType(name: String): StringResource? {
+    fun createActorType(name: String): Rejection? {
         val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
-        commands.validate(invocation)?.let { return it.reason }
+        commands.validate(invocation)?.let { return it }
         commands.dispatch(invocation) { selection.selectType(name) }
         return null
     }
@@ -344,9 +332,9 @@ internal class WorkspaceController(
      *
      * @return Why [name] can't be used, or null if the Manager type is being created.
      */
-    fun createManagerType(name: String): StringResource? {
+    fun createManagerType(name: String): Rejection? {
         val invocation = Invocation(CreateManagerType, ManagerTypeDefinition(name = name))
-        commands.validate(invocation)?.let { return it.reason }
+        commands.validate(invocation)?.let { return it }
         commands.dispatch(invocation) { selection.selectType(name) }
         return null
     }
@@ -363,8 +351,8 @@ internal class WorkspaceController(
      *
      * @return Why it was rejected, or null if it is being applied.
      */
-    fun dispatchIfValid(invocation: Invocation<*>): StringResource? {
-        commands.validate(invocation)?.let { return it.reason }
+    fun dispatchIfValid(invocation: Invocation<*>): Rejection? {
+        commands.validate(invocation)?.let { return it }
         commands.dispatch(invocation)
         return null
     }
@@ -402,7 +390,7 @@ internal class WorkspaceController(
             val status = try {
                 withContext(ioDispatcher) { projectFormat.prepare() }
             } catch (exception: IOException) {
-                appendToConsole(ConsoleEntry.Status(Res.string.error_project_format_not_upgraded, isError = true, arguments = listOf(exception.message ?: exception.toString())))
+                appendToConsole(ConsoleEntry.Status(ProjectProblem.FORMAT_NOT_UPGRADED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
                 return@launch
             }
             val previous = _formatStatus.value
@@ -435,7 +423,7 @@ internal class WorkspaceController(
      */
     fun play(firstScene: String? = null) {
         if (firstScene != null && _projectUpgrade.value is TemplateUpgrade.Needed) {
-            appendToConsole(ConsoleEntry.Status(Res.string.status_play_from_scene_needs_upgrade, arguments = listOf(firstScene)))
+            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.PLAY_FROM_SCENE_NEEDS_UPGRADE, arguments = listOf(firstScene)))
         }
         sessions.play(firstScene, gameBuilds::prepareLaunch)
     }
@@ -446,7 +434,7 @@ internal class WorkspaceController(
      * Says in the console that something failed that nothing expected to, naming the exception.
      */
     fun reportUnexpectedProblem(exception: Throwable) {
-        appendToConsole(ConsoleEntry.Status(Res.string.status_unexpected_problem, isError = true, arguments = listOf(exception.toString())))
+        appendToConsole(ConsoleEntry.Status(WorkspaceStatus.UNEXPECTED_PROBLEM, isError = true, arguments = listOf(exception.toString())))
     }
 
     fun clearConsole() = consoleLog.clear()
@@ -459,20 +447,20 @@ internal class WorkspaceController(
      */
     private fun reportKotlinBlockScopeChanges(types: List<BlockTypeDefinition>) {
         KotlinBlockScopeChecks.of(types).map { it.subject.toString() }.distinct().forEach { name ->
-            appendToConsole(ConsoleEntry.Status(Res.string.status_kotlin_block_scope_changed, isError = true, arguments = listOf(name)))
+            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED, isError = true, arguments = listOf(name)))
         }
     }
 
     private fun reportBuildFileChanges(changes: KubrikoBuildFileChanges) {
-        changes.previousVersion?.let { appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_version_changed, arguments = listOf(changes.version, it))) }
+        changes.previousVersion?.let { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_VERSION_CHANGED, arguments = listOf(changes.version, it))) }
         if (changes.isNewerThanCreator && !hasReportedNewerKubrikoVersion.getAndSet(true)) {
-            appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_version_newer, arguments = listOf(changes.version)))
+            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_VERSION_NEWER, arguments = listOf(changes.version)))
         }
         if (changes.addedArtifacts.isNotEmpty()) {
-            appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_libraries_added, arguments = listOf(changes.addedArtifacts.joinToString())))
+            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_LIBRARIES_ADDED, arguments = listOf(changes.addedArtifacts.joinToString())))
         }
         if (changes.removedArtifacts.isNotEmpty()) {
-            appendToConsole(ConsoleEntry.Status(Res.string.status_kubriko_libraries_removed, arguments = listOf(changes.removedArtifacts.joinToString())))
+            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_LIBRARIES_REMOVED, arguments = listOf(changes.removedArtifacts.joinToString())))
         }
     }
 

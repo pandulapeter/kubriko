@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.accent
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
@@ -86,14 +87,14 @@ internal data class FolderTreeGroupState(
 )
 
 /**
- * What the sidebar's groups with folders do. The ones that return a [StringResource] say why a name can't be used, or null.
+ * What the sidebar's groups with folders do. The ones that return a [Rejection] say why a name can't be used, or null.
  */
 internal class FolderTreeActions(
     val onSelected: (FolderGroup, name: String) -> Unit,
     val onSelectionCleared: () -> Unit,
-    val onCreateItem: (FolderGroup, name: String) -> StringResource?,
-    val onCreateFolder: (FolderGroup, path: String) -> StringResource?,
-    val onRenameFolder: (FolderGroup, path: String, newName: String) -> StringResource?,
+    val onCreateItem: (FolderGroup, name: String) -> Rejection?,
+    val onCreateFolder: (FolderGroup, path: String) -> Rejection?,
+    val onRenameFolder: (FolderGroup, path: String, newName: String) -> Rejection?,
     val onDeleteFolder: (FolderGroup, path: String) -> Unit,
 )
 
@@ -152,7 +153,7 @@ internal fun LazyListScope.folderTreeSection(
         item(key = "${group.name}-new") {
             NewNameField(
                 placeholder = group.newItemHint,
-                onCreate = { name -> actions.onCreateItem(group, name).also { if (it == null) onNamingChange(null) } },
+                onCreate = { name -> actions.onCreateItem(group, name).also { if (it == null) onNamingChange(null) }?.toFieldError() },
                 onCancel = { onNamingChange(null) },
             )
         }
@@ -179,7 +180,7 @@ internal fun LazyListScope.folderTreeSection(
                     initialName = row.name,
                     indent = 24.dp + SIDEBAR_INDENT * row.depth,
                     confirmLabel = Res.string.action_rename,
-                    onCreate = { name -> actions.onRenameFolder(group, row.path, name).also { if (it == null) onNamingChange(null) } },
+                    onCreate = { name -> actions.onRenameFolder(group, row.path, name).also { if (it == null) onNamingChange(null) }?.toFieldError() },
                     onCancel = { onNamingChange(null) },
                 )
             } else {
@@ -233,7 +234,7 @@ private fun NewFolderField(
 ) = NewNameField(
     placeholder = Res.string.new_folder_hint,
     indent = 24.dp + SIDEBAR_INDENT * depth,
-    onCreate = { name -> actions.onCreateFolder(group, FolderPaths.child(parent, name)).also { if (it == null) onNamingChange(null) } },
+    onCreate = { name -> actions.onCreateFolder(group, FolderPaths.child(parent, name)).also { if (it == null) onNamingChange(null) }?.toFieldError() },
     onCancel = { onNamingChange(null) },
 )
 

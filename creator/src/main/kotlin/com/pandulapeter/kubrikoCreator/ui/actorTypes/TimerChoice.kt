@@ -19,17 +19,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
+import com.pandulapeter.kubrikoCreator.ui.toFieldError
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add
 import kubriko.creator.generated.resources.action_rename
-import kubriko.creator.generated.resources.error_command_timer_invalid
-import kubriko.creator.generated.resources.error_command_timer_taken
 import kubriko.creator.generated.resources.timer_name_placeholder
 import kubriko.creator.generated.resources.timer_new
 import kubriko.creator.generated.resources.timer_rename
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -72,7 +71,7 @@ internal fun TimerChoice(
                                 name != timer -> onRename?.invoke(name)
                             }
                         }
-                    }
+                    }?.toFieldError()
                 },
             )
         }
@@ -90,9 +89,9 @@ internal fun timerOptions(timer: String, timerNames: List<String>, canRename: Bo
  * Why [name] can't be the name of a new Timer, or of [timer] renamed, among [timerNames], or null if it can. Naming a
  * new Timer like one in use only chooses that one.
  */
-internal fun timerNameError(name: String, timer: String, timerNames: List<String>, isRenaming: Boolean): StringResource? = when {
-    !TimerNaming.isValid(name) -> Res.string.error_command_timer_invalid
-    isRenaming && name != timer && name in timerNames -> Res.string.error_command_timer_taken
+internal fun timerNameError(name: String, timer: String, timerNames: List<String>, isRenaming: Boolean): CommandProblem? = when {
+    !TimerNaming.isValid(name) -> CommandProblem.TIMER_INVALID
+    isRenaming && name != timer && name in timerNames -> CommandProblem.TIMER_TAKEN
     else -> null
 }
 

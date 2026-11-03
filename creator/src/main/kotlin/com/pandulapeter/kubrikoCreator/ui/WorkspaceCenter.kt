@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -36,7 +37,6 @@ import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_preparing
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -64,7 +64,7 @@ internal fun WorkspaceCenter(
     panelLayout: PanelLayout,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentBlockType: (name: String) -> BlockTypeDefinition?,
-    onCommandIfValid: (Invocation<*>) -> StringResource?,
+    onCommandIfValid: (Invocation<*>) -> Rejection?,
     onTypeSelected: (String) -> Unit,
     onPlayScene: (sceneName: String) -> Unit,
     onReloadScene: () -> Unit,
@@ -91,13 +91,13 @@ internal fun WorkspaceCenter(
         is SceneEditingState.Unsupported -> SceneNotice(
             modifier = modifier,
             sceneName = sceneEditing.scene.name,
-            message = stringResource(sceneEditing.reason, *sceneEditing.arguments.toTypedArray()),
+            message = sceneEditing.reason.text(sceneEditing.arguments),
             onClose = onCloseScene,
         )
         is SceneEditingState.Failed -> SceneNotice(
             modifier = modifier,
             sceneName = sceneEditing.scene.name,
-            message = stringResource(sceneEditing.reason, *sceneEditing.arguments.toTypedArray()),
+            message = sceneEditing.reason.text(sceneEditing.arguments),
             onClose = onCloseScene,
             onTryAgain = onReloadScene,
         )

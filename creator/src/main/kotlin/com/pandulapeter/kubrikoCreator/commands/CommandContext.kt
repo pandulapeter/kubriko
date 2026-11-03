@@ -19,9 +19,6 @@ import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_changes_not_written
-import kubriko.creator.generated.resources.error_command_generated_code_not_written
 
 /**
  * What commands read and change: the parts of the open project.
@@ -64,8 +61,8 @@ internal class CommandContext(
     fun unsavedWrite(): Rejection {
         val unsaved = checkNotNull(blockTypes).unsavedWrites()
         return when (val subjects = unsaved.subjects) {
-            null -> Rejection(Res.string.error_command_generated_code_not_written, unsaved.reason)
-            else -> Rejection(Res.string.error_command_changes_not_written, subjects, unsaved.reason)
+            null -> Rejection(CommandProblem.GENERATED_CODE_NOT_WRITTEN, unsaved.reason)
+            else -> Rejection(CommandProblem.CHANGES_NOT_WRITTEN, subjects, unsaved.reason)
         }
     }
 

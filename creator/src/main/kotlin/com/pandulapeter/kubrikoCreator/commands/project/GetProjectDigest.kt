@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.context.DigestText
 import com.pandulapeter.kubrikoCreator.context.projectDigest
 import kotlinx.serialization.json.JsonPrimitive
-import kubriko.creator.generated.resources.Res
 
 internal object GetProjectDigest : ReadCommand<NoInput> {
     override val name = "get_project_digest"

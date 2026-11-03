@@ -17,7 +17,6 @@ import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.project.toJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
 
 internal object StopGame : ActionCommand<NoInput> {
     override val name = "stop_game"

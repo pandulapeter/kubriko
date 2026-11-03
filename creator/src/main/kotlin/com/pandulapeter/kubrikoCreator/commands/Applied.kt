@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
-import org.jetbrains.compose.resources.StringResource
 
 /**
  * The result of applying a [WriteCommand].
@@ -31,7 +31,7 @@ internal data class Applied(
 ) {
     companion object {
 
-        fun failed(reason: StringResource) = failed(Rejection(reason))
+        fun failed(reason: DomainText) = failed(Rejection(reason))
 
         fun failed(rejection: Rejection) = Applied(inverse = null, failure = rejection)
     }

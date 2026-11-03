@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
@@ -29,9 +30,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_type_name_taken
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -104,8 +102,8 @@ class RestoringChangesTest {
         val context = commandContext(ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME))))
         val executor = executor(context)
         val rejected = assertIs<CommandOutcome.Rejected>(executor.execute(Invocation(AddBlock, AddBlock.Input("Player", 0, BlockDefinition.AddActor("Bat", 0f, 0f)))))
-        assertEquals(Res.string.error_command_actor_type_missing, rejected.rejection.reason)
-        assertEquals(Res.string.error_command_actor_type_missing, executor.validate(Invocation(CreateActorType, player.copy(name = "Enemy", events = listOf(player.events.first()))))?.reason)
+        assertEquals(CommandProblem.ACTOR_TYPE_MISSING, rejected.rejection.reason)
+        assertEquals(CommandProblem.ACTOR_TYPE_MISSING, executor.validate(Invocation(CreateActorType, player.copy(name = "Enemy", events = listOf(player.events.first()))))?.reason)
     }
 
     @Test
@@ -115,7 +113,7 @@ class RestoringChangesTest {
         executor.assertSuccess(Invocation(DeleteActorType, DeleteActorType.Input("Bat")))
         val restoring = executor.history.value.undoable.last().revert
         context.blockTypes!!.put(bat)
-        assertEquals(Res.string.error_type_name_taken, restoring.validate(context)?.reason)
+        assertEquals(NameProblem.TYPE_TAKEN, restoring.validate(context)?.reason)
     }
 
     @Test

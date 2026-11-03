@@ -9,13 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_type_name_base_suffix
-import kubriko.creator.generated.resources.error_type_name_invalid
-import kubriko.creator.generated.resources.error_type_name_reserved
-import kubriko.creator.generated.resources.error_type_name_taken
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * The rules for the names of Actor types and Manager types, which are also Kotlin class names (and, for Actor types,
  * Scene type IDs).
@@ -64,11 +57,11 @@ internal object BlockTypeNaming {
      * Why [name] can't be a new Actor type's or Manager type's name, or null if it can. Names that differ only in case
      * are taken too, since they would clash on case-insensitive file systems.
      */
-    fun validate(name: String, existingNames: Collection<String>, kind: BlockTypeKind = BlockTypeKind.ACTOR): StringResource? = when {
-        !isWellFormed(name) -> Res.string.error_type_name_invalid
-        isReserved(name, kind) -> Res.string.error_type_name_reserved
-        name.endsWith(BASE_SUFFIX) -> Res.string.error_type_name_base_suffix
-        existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_type_name_taken
+    fun validate(name: String, existingNames: Collection<String>, kind: BlockTypeKind = BlockTypeKind.ACTOR): NameProblem? = when {
+        !isWellFormed(name) -> NameProblem.TYPE_INVALID
+        isReserved(name, kind) -> NameProblem.TYPE_RESERVED
+        name.endsWith(BASE_SUFFIX) -> NameProblem.TYPE_BASE_SUFFIX
+        existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.TYPE_TAKEN
         else -> null
     }
 }

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.game
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.project.toJsonArray
@@ -19,8 +20,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_scene_missing
 
 internal object StartGame : ActionCommand<StartGame.Input> {
     override val name = "start_game"
@@ -40,7 +39,7 @@ internal object StartGame : ActionCommand<StartGame.Input> {
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
         if (input.scene != null && !context.scenes.exists(input.scene)) {
-            return CommandOutcome.Rejected(Rejection(Res.string.error_command_scene_missing, input.scene))
+            return CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_MISSING, input.scene))
         }
         val result = context.runner.startGame(firstScene = input.scene)
         return CommandOutcome.Success(

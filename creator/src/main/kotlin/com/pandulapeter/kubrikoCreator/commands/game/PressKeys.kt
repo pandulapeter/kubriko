@@ -12,15 +12,12 @@ package com.pandulapeter.kubrikoCreator.commands.game
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_game_duration_invalid
-import kubriko.creator.generated.resources.error_game_key_unknown
-import kubriko.creator.generated.resources.error_game_keys_count
 
 internal object PressKeys : ActionCommand<PressKeys.Input> {
     override val name = "press_keys"
@@ -32,10 +29,10 @@ internal object PressKeys : ActionCommand<PressKeys.Input> {
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
         when {
-            input.keys.size !in 1..MAXIMUM_KEYS -> return CommandOutcome.Rejected(Rejection(Res.string.error_game_keys_count, MAXIMUM_KEYS.toString()))
-            input.milliseconds !in 1..MAXIMUM_MILLISECONDS -> return CommandOutcome.Rejected(Rejection(Res.string.error_game_duration_invalid, MAXIMUM_MILLISECONDS.toString()))
+            input.keys.size !in 1..MAXIMUM_KEYS -> return CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_COUNT, MAXIMUM_KEYS.toString()))
+            input.milliseconds !in 1..MAXIMUM_MILLISECONDS -> return CommandOutcome.Rejected(Rejection(CommandProblem.GAME_DURATION_INVALID, MAXIMUM_MILLISECONDS.toString()))
         }
-        input.keys.firstOrNull { !isKeyName(it) }?.let { return CommandOutcome.Rejected(Rejection(Res.string.error_game_key_unknown, it)) }
+        input.keys.firstOrNull { !isKeyName(it) }?.let { return CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEY_UNKNOWN, it)) }
         return context.runner.pressKeys(input.keys.map { it.uppercase() }, input.milliseconds.toLong()).toOutcome()
     }
 

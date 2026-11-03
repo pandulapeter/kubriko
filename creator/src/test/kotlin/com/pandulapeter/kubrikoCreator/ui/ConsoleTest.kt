@@ -10,8 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.console_title
+import com.pandulapeter.kubrikoCreator.workspace.WorkspaceStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,8 +24,8 @@ class ConsoleTest {
                 ConsoleEntry.Problem("Unresolved reference", location = null),
                 ConsoleEntry.Log("Score: 3", source = "Paddle", isImportant = true),
                 ConsoleEntry.SessionFailure("The game stopped"),
-                ConsoleEntry.Status(Res.string.console_title, isError = true),
-                ConsoleEntry.Status(Res.string.console_title),
+                ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true),
+                ConsoleEntry.Status(WorkspaceStatus.BUILT),
                 ConsoleEntry.BuildOutput("> Task :compileKotlinDesktop"),
             ).map { it.opensConsole },
         )

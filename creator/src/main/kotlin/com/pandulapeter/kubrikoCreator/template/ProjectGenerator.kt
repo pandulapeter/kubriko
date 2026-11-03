@@ -15,9 +15,6 @@ import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.project.GradleProperties
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_project_folder_not_empty
-import kubriko.creator.generated.resources.error_project_not_created
 import org.eclipse.jgit.api.errors.GitAPIException
 import java.io.File
 import java.io.IOException
@@ -41,7 +38,7 @@ internal class ProjectGenerator(
     override fun create(request: NewProjectRequest): File {
         val directory = request.directory
         if (directory.exists() && (!directory.isDirectory || !directory.list().isNullOrEmpty())) {
-            throw ProjectCreationException(Res.string.error_project_folder_not_empty)
+            throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY)
         }
         val values = placeholderValues(request)
         val didExist = directory.exists()
@@ -73,7 +70,7 @@ internal class ProjectGenerator(
     private fun notCreated(directory: File, didExist: Boolean, cause: Exception): ProjectCreationException {
         directory.deleteRecursively()
         if (didExist) directory.mkdirs()
-        return ProjectCreationException(Res.string.error_project_not_created, cause)
+        return ProjectCreationException(TemplateProblem.NOT_CREATED, cause)
     }
 
     internal fun placeholderValues(request: NewProjectRequest) = mapOf(

@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import org.jetbrains.compose.resources.StringResource
+import com.pandulapeter.kubrikoCreator.foundation.DomainText
 
 /**
  * Why a command wasn't applied, shown to the user and returned to the AI.
@@ -17,8 +17,8 @@ import org.jetbrains.compose.resources.StringResource
  * @param arguments The values of the [reason]'s placeholders.
  */
 internal data class Rejection(
-    val reason: StringResource,
+    val reason: DomainText,
     val arguments: List<String> = emptyList(),
 ) {
-    constructor(reason: StringResource, vararg arguments: String) : this(reason, arguments.toList())
+    constructor(reason: DomainText, vararg arguments: String) : this(reason, arguments.toList())
 }

@@ -33,34 +33,8 @@ import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.timerName
 import com.pandulapeter.kubrikoCreator.commands.BlockTypes
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_block_missing
-import kubriko.creator.generated.resources.error_command_block_not_allowed
-import kubriko.creator.generated.resources.error_command_condition_not_allowed
-import kubriko.creator.generated.resources.error_command_event_missing
-import kubriko.creator.generated.resources.error_command_event_not_allowed
-import kubriko.creator.generated.resources.error_command_key_not_allowed
-import kubriko.creator.generated.resources.error_command_manager_type_missing
-import kubriko.creator.generated.resources.error_command_music_missing
-import kubriko.creator.generated.resources.error_command_no_actor_types
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
-import kubriko.creator.generated.resources.error_command_parent_cycle
-import kubriko.creator.generated.resources.error_command_parent_property_kind
-import kubriko.creator.generated.resources.error_command_property_kind_in_descendant
-import kubriko.creator.generated.resources.error_command_property_missing
-import kubriko.creator.generated.resources.error_command_property_unknown
-import kubriko.creator.generated.resources.error_command_scene_missing
-import kubriko.creator.generated.resources.error_command_size_invalid
-import kubriko.creator.generated.resources.error_command_sound_missing
-import kubriko.creator.generated.resources.error_command_sprite_missing
-import kubriko.creator.generated.resources.error_command_text_size_invalid
-import kubriko.creator.generated.resources.error_command_timer_invalid
-import kubriko.creator.generated.resources.error_command_timer_not_allowed
-import kubriko.creator.generated.resources.error_command_type_missing
-import kubriko.creator.generated.resources.error_game_key_unknown
 
 /**
  * The block-built types of the project, which every type command has validated to exist before it is applied.
@@ -85,8 +59,8 @@ internal fun CommandContext.scopeOf(definition: BlockTypeDefinition) = BlockScop
  * Why there is no Actor type or Manager type called [name] to change.
  */
 internal fun CommandContext.validateType(name: String): Rejection? = when {
-    blockTypes == null -> Rejection(Res.string.error_command_no_actor_types)
-    blockTypes[name] == null -> Rejection(Res.string.error_command_type_missing, name)
+    blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
+    blockTypes[name] == null -> Rejection(CommandProblem.TYPE_MISSING, name)
     else -> null
 }
 
@@ -94,49 +68,49 @@ internal fun CommandContext.validateType(name: String): Rejection? = when {
  * Why a new Actor type or Manager type can't be called [name].
  */
 internal fun CommandContext.validateNewTypeName(name: String, kind: BlockTypeKind): Rejection? {
-    val types = blockTypes ?: return Rejection(Res.string.error_command_no_actor_types)
+    val types = blockTypes ?: return Rejection(CommandProblem.NO_ACTOR_TYPES)
     return BlockTypeNaming.validate(name, types.takenNames, kind)?.let(::Rejection)
 }
 
 internal fun CommandContext.validateActorType(name: String): Rejection? = when {
-    blockTypes == null -> Rejection(Res.string.error_command_no_actor_types)
-    blockTypes.actorType(name) == null -> Rejection(Res.string.error_command_actor_type_missing, name)
+    blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
+    blockTypes.actorType(name) == null -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, name)
     else -> null
 }
 
 internal fun CommandContext.validateManagerType(name: String): Rejection? = when {
-    blockTypes == null -> Rejection(Res.string.error_command_no_actor_types)
-    blockTypes.managerType(name) == null -> Rejection(Res.string.error_command_manager_type_missing, name)
+    blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
+    blockTypes.managerType(name) == null -> Rejection(CommandProblem.MANAGER_TYPE_MISSING, name)
     else -> null
 }
 
 internal fun CommandContext.validateEvent(typeName: String, eventIndex: Int): Rejection? = validateType(typeName)
-    ?: if (eventIndex !in requireType(typeName).events.indices) Rejection(Res.string.error_command_event_missing, typeName, eventIndex.toString()) else null
+    ?: if (eventIndex !in requireType(typeName).events.indices) Rejection(CommandProblem.EVENT_MISSING, typeName, eventIndex.toString()) else null
 
 internal fun CommandContext.validateBlock(typeName: String, eventIndex: Int, blockIndex: Int): Rejection? = validateEvent(typeName, eventIndex)
     ?: if (blockIndex !in requireType(typeName).events[eventIndex].blocks.indices) {
-        Rejection(Res.string.error_command_block_missing, typeName, eventIndex.toString(), blockIndex.toString())
+        Rejection(CommandProblem.BLOCK_MISSING, typeName, eventIndex.toString(), blockIndex.toString())
     } else {
         null
     }
 
 internal fun CommandContext.validateProperty(typeName: String, propertyName: String): Rejection? = validateType(typeName)
-    ?: if (requireType(typeName).properties.none { it.name == propertyName }) Rejection(Res.string.error_command_property_unknown, typeName, propertyName) else null
+    ?: if (requireType(typeName).properties.none { it.name == propertyName }) Rejection(CommandProblem.PROPERTY_UNKNOWN, typeName, propertyName) else null
 
-internal fun validateSize(width: Float, height: Float) = if (width.isFinite() && height.isFinite() && width > 0f && height > 0f) null else Rejection(Res.string.error_command_size_invalid)
+internal fun validateSize(width: Float, height: Float) = if (width.isFinite() && height.isFinite() && width > 0f && height > 0f) null else Rejection(CommandProblem.SIZE_INVALID)
 
 /**
  * Why [event] can't be part of the type [scope] is about. Its collision Event may only refer to the Actor types of the
  * scope.
  */
 internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection? = when {
-    !event.type.isAvailableIn(scope.kind) -> Rejection(Res.string.error_command_event_not_allowed, event.type.serialName)
-    event.key != null && event.type != EventType.KEY_PRESSED -> Rejection(Res.string.error_command_key_not_allowed)
-    event.key?.isKnown == false -> Rejection(Res.string.error_game_key_unknown, event.key.composeKeyName)
-    event.otherActorType != null && event.type != EventType.COLLISION -> Rejection(Res.string.error_command_other_actor_type_not_allowed)
-    event.timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
-    event.timer != null && !TimerNaming.isValid(event.timer) -> Rejection(Res.string.error_command_timer_invalid)
-    event.otherActorType != null && event.otherActorType !in scope.actorTypeNames -> Rejection(Res.string.error_command_actor_type_missing, event.otherActorType)
+    !event.type.isAvailableIn(scope.kind) -> Rejection(CommandProblem.EVENT_NOT_ALLOWED, event.type.serialName)
+    event.key != null && event.type != EventType.KEY_PRESSED -> Rejection(CommandProblem.KEY_NOT_ALLOWED)
+    event.key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, event.key.composeKeyName)
+    event.otherActorType != null && event.type != EventType.COLLISION -> Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
+    event.timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(CommandProblem.TIMER_NOT_ALLOWED)
+    event.timer != null && !TimerNaming.isValid(event.timer) -> Rejection(CommandProblem.TIMER_INVALID)
+    event.otherActorType != null && event.otherActorType !in scope.actorTypeNames -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, event.otherActorType)
     else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, scope) }
 }
 
@@ -145,19 +119,19 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
  * type unchosen, but not name one that doesn't exist.
  */
 internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: BlockScope): Rejection? = when {
-    !BlockKind.of(block).isAvailableIn(eventType, scope.kind) -> Rejection(Res.string.error_command_block_not_allowed, block.serialName, eventType.serialName)
-    block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(Res.string.error_command_condition_not_allowed)
-    !block.areNumbersFinite -> Rejection(Res.string.error_command_number_invalid)
-    ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> Rejection(Res.string.error_game_key_unknown, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
-    block.timerName?.let(TimerNaming::isValid) == false -> Rejection(Res.string.error_command_timer_invalid)
-    block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> Rejection(Res.string.error_command_actor_type_missing, block.actorTypeReference.orEmpty())
-    block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false -> Rejection(Res.string.error_command_scene_missing, block.scene)
-    block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false -> Rejection(Res.string.error_command_sound_missing, block.sound)
-    block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false -> Rejection(Res.string.error_command_music_missing, block.music)
+    !BlockKind.of(block).isAvailableIn(eventType, scope.kind) -> Rejection(CommandProblem.BLOCK_NOT_ALLOWED, block.serialName, eventType.serialName)
+    block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(CommandProblem.CONDITION_NOT_ALLOWED)
+    !block.areNumbersFinite -> Rejection(CommandProblem.NUMBER_INVALID)
+    ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
+    block.timerName?.let(TimerNaming::isValid) == false -> Rejection(CommandProblem.TIMER_INVALID)
+    block.actorTypeReference?.let { it !in scope.actorTypeNames } == true -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, block.actorTypeReference.orEmpty())
+    block is BlockDefinition.GoToScene && block.scene.isNotEmpty() && scope.sceneNames?.contains(block.scene) == false -> Rejection(CommandProblem.SCENE_MISSING, block.scene)
+    block is BlockDefinition.PlaySound && block.sound.isNotEmpty() && scope.audioFiles?.sounds?.contains(block.sound) == false -> Rejection(CommandProblem.SOUND_MISSING, block.sound)
+    block is BlockDefinition.PlayMusic && block.music.isNotEmpty() && scope.audioFiles?.music?.contains(block.music) == false -> Rejection(CommandProblem.MUSIC_MISSING, block.music)
     else -> block.propertyReference?.let { reference ->
         when {
-            reference.manager != null && scope.propertiesOf(reference.manager) == null -> Rejection(Res.string.error_command_manager_type_missing, reference.manager)
-            reference.name.isNotEmpty() && !scope.hasProperty(reference) -> Rejection(Res.string.error_command_property_missing, reference.name, reference.kind.serialName)
+            reference.manager != null && scope.propertiesOf(reference.manager) == null -> Rejection(CommandProblem.MANAGER_TYPE_MISSING, reference.manager)
+            reference.name.isNotEmpty() && !scope.hasProperty(reference) -> Rejection(CommandProblem.PROPERTY_MISSING, reference.name, reference.kind.serialName)
             else -> null
         }
     }
@@ -168,7 +142,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
  */
 internal fun validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, replacedName: String? = null): Rejection? =
     PropertyNaming.validate(property.name, properties.map { it.name }.filter { it != replacedName })?.let(::Rejection)
-        ?: if (property is PropertyDefinition.Number && !property.initialValue.isFinite()) Rejection(Res.string.error_command_number_invalid) else null
+        ?: if (property is PropertyDefinition.Number && !property.initialValue.isFinite()) Rejection(CommandProblem.NUMBER_INVALID) else null
 
 /**
  * Why the new type [definition] can't be part of the project: its Blocks are checked against the project with it, so
@@ -193,12 +167,12 @@ internal fun CommandContext.validateContents(definition: BlockTypeDefinition): R
 internal fun CommandContext.validateNewParent(actorType: String, parent: String, properties: List<PropertyDefinition>): Rejection? {
     val actorTypes = requireBlockTypes.actorTypes.value
     return validateActorType(parent) ?: when {
-        ActorTypeFamily.isAncestor(actorType, parent, actorTypes.associate { it.name to it.parent }) -> Rejection(Res.string.error_command_parent_cycle, parent, actorType)
+        ActorTypeFamily.isAncestor(actorType, parent, actorTypes.associate { it.name to it.parent }) -> Rejection(CommandProblem.PARENT_CYCLE, parent, actorType)
         else -> {
             val inherited = ActorTypeFamily(actorTypes).propertiesOf(parent).associateBy { it.name }
             properties.firstOrNull { property ->
                 inherited[property.name]?.let { PropertyKind.of(it) != PropertyKind.of(property) } == true
-            }?.let { Rejection(Res.string.error_command_parent_property_kind, it.name, parent) }
+            }?.let { Rejection(CommandProblem.PARENT_PROPERTY_KIND, it.name, parent) }
         }
     }
 }
@@ -207,12 +181,12 @@ internal fun CommandContext.validateNewParent(actorType: String, parent: String,
  * Why an Actor type can't be drawn as [sprite]: it isn't an image of the project.
  */
 internal fun CommandContext.validateSprite(sprite: String): Rejection? =
-    if (SpriteFiles.accessorOf(sprite) == null || spriteFiles()?.files?.containsKey(sprite) == false) Rejection(Res.string.error_command_sprite_missing, sprite) else null
+    if (SpriteFiles.accessorOf(sprite) == null || spriteFiles()?.files?.containsKey(sprite) == false) Rejection(CommandProblem.SPRITE_MISSING, sprite) else null
 
 /**
  * Why [text] can't be shown by a Manager type.
  */
-internal fun validateText(text: ScreenTextDefinition) = if (text.size.isFinite() && text.size > 0f) null else Rejection(Res.string.error_command_text_size_invalid)
+internal fun validateText(text: ScreenTextDefinition) = if (text.size.isFinite() && text.size > 0f) null else Rejection(CommandProblem.TEXT_SIZE_INVALID)
 
 private val BlockDefinition.areNumbersFinite
     get() = when (this) {
@@ -246,8 +220,8 @@ internal fun CommandContext.validateInheritedKind(actorType: String, property: P
     val kind = PropertyKind.of(property)
     val parent = family.parentOf(actorType)
     val inherited = parent?.let { family.propertiesOf(it).firstOrNull { inherited -> inherited.name == property.name } }
-    if (inherited != null && PropertyKind.of(inherited) != kind) return Rejection(Res.string.error_command_parent_property_kind, property.name, parent)
+    if (inherited != null && PropertyKind.of(inherited) != kind) return Rejection(CommandProblem.PARENT_PROPERTY_KIND, property.name, parent)
     return family.descendantsOf(actorType)
         .firstOrNull { descendant -> requireActorType(descendant).properties.any { it.name == property.name && PropertyKind.of(it) != kind } }
-        ?.let { Rejection(Res.string.error_command_property_kind_in_descendant, property.name, it) }
+        ?.let { Rejection(CommandProblem.PROPERTY_KIND_IN_DESCENDANT, property.name, it) }
 }

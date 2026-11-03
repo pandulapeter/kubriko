@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -25,14 +26,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_property_missing
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_property_value_invalid
-import kubriko.creator.generated.resources.error_command_scene_actor_missing
-import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
-import kubriko.creator.generated.resources.error_command_size_invalid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -83,7 +76,7 @@ class ActorValueCommandsTest {
         val context = context()
         val replaced = context.assertRoundTrip(Invocation(SetActorState, SetActorState.Input("main", "i1", """{"tint":4}"""))) { context.state(1) }
         assertEquals("""{"tint":4}""", replaced)
-        assertEquals(Rejection(Res.string.error_command_scene_content_invalid), context.rejection(SetActorState, SetActorState.Input("main", "i1", "[]")))
+        assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), context.rejection(SetActorState, SetActorState.Input("main", "i1", "[]")))
         // A hand-written Actor's body can still be changed.
         assertNull(context.rejection(SetActorValues, SetActorValues.Input("main", "i1", x = 3f)))
     }
@@ -92,20 +85,20 @@ class ActorValueCommandsTest {
     fun actorValuesAreValidated() = runTest {
         val context = context()
         fun rejection(input: SetActorValues.Input) = context.rejection(SetActorValues, input)
-        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "i2"), rejection(SetActorValues.Input("main", "i2", x = 1f)))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), rejection(SetActorValues.Input("main", "i0", rotation = Float.NaN)))
-        assertEquals(Rejection(Res.string.error_command_size_invalid), rejection(SetActorValues.Input("main", "i0", height = 0f)))
-        assertEquals(Rejection(Res.string.error_command_scene_actor_not_block_built, "Wall"), rejection(SetActorValues.Input("main", "i1", color = 0xFF000000)))
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "i2"), rejection(SetActorValues.Input("main", "i2", x = 1f)))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), rejection(SetActorValues.Input("main", "i0", rotation = Float.NaN)))
+        assertEquals(Rejection(CommandProblem.SIZE_INVALID), rejection(SetActorValues.Input("main", "i0", height = 0f)))
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT, "Wall"), rejection(SetActorValues.Input("main", "i1", color = 0xFF000000)))
         assertEquals(
-            Rejection(Res.string.error_command_actor_property_missing, "Brick", "lives"),
+            Rejection(CommandProblem.ACTOR_PROPERTY_MISSING, "Brick", "lives"),
             rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("lives", number = 1f)))),
         )
         assertEquals(
-            Rejection(Res.string.error_command_property_value_invalid, "hits"),
+            Rejection(CommandProblem.PROPERTY_VALUE_INVALID, "hits"),
             rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("hits", text = "3")))),
         )
         assertEquals(
-            Rejection(Res.string.error_command_property_value_invalid, "label"),
+            Rejection(CommandProblem.PROPERTY_VALUE_INVALID, "label"),
             rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("label", text = "a", toggle = true)))),
         )
         assertNull(rejection(SetActorValues.Input("main", "i0", properties = listOf(ActorValueChanges.PropertyValue("label", text = "gold")))))

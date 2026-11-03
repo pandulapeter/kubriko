@@ -19,7 +19,6 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
 
 internal object SetActorsValues : WriteCommand<SetActorsValues.Input> {
     override val name = "set_actors_values"

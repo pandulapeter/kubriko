@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.TimerNaming
 import com.pandulapeter.kubrikoCreator.actors.withEventTimer
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -23,9 +24,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_timer_invalid
-import kubriko.creator.generated.resources.error_command_timer_not_allowed
 
 @OptIn(EditorMutation::class)
 internal object SetEventTimer : WriteCommand<SetEventTimer.Input> {
@@ -37,8 +35,8 @@ internal object SetEventTimer : WriteCommand<SetEventTimer.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: when {
-            context.requireType(input.actorType).events[input.eventIndex].type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
-            !TimerNaming.isValid(input.timer) -> Rejection(Res.string.error_command_timer_invalid)
+            context.requireType(input.actorType).events[input.eventIndex].type != EventType.TIMER_FINISHED -> Rejection(CommandProblem.TIMER_NOT_ALLOWED)
+            !TimerNaming.isValid(input.timer) -> Rejection(CommandProblem.TIMER_INVALID)
             else -> null
         }
 

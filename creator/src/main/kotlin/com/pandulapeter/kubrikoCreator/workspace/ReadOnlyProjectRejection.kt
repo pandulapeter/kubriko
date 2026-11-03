@@ -11,12 +11,10 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_project_newer_format
-import kubriko.creator.generated.resources.error_project_newer_format_unknown_version
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 
 /**
  * Why no change may be made to a project a newer Kubriko Creator saved, which its notice says too.
  */
-internal fun ProjectFormatStatus.ReadOnly.toRejection() = creatorVersion?.let { Rejection(Res.string.error_project_newer_format, it) }
-    ?: Rejection(Res.string.error_project_newer_format_unknown_version)
+internal fun ProjectFormatStatus.ReadOnly.toRejection() = creatorVersion?.let { Rejection(ProjectProblem.NEWER_FORMAT, it) }
+    ?: Rejection(ProjectProblem.NEWER_FORMAT_UNKNOWN_VERSION)

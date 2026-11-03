@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
+import com.pandulapeter.kubrikoCreator.ui.text
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_done
 import kubriko.creator.generated.resources.action_review_upgrade
@@ -135,7 +136,7 @@ private fun IdentityTextField(
     )
     if (isChanged && change is IdentityFieldChange.Invalid) {
         Text(
-            text = stringResource(change.reason, *change.arguments.toTypedArray()),
+            text = change.reason.text(change.arguments),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )

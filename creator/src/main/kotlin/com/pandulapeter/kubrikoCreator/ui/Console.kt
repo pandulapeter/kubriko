@@ -113,7 +113,7 @@ private fun ConsoleLine(
 
 @Composable
 private fun ConsoleEntry.text() = when (this) {
-    is ConsoleEntry.Status -> stringResource(text, *arguments.toTypedArray())
+    is ConsoleEntry.Status -> text.text(arguments)
     is ConsoleEntry.Problem -> if (location == null) message else stringResource(Res.string.console_with_prefix, location, message)
     is ConsoleEntry.BuildOutput -> line
     is ConsoleEntry.Log -> if (source == null) message else stringResource(Res.string.console_with_prefix, source, message)

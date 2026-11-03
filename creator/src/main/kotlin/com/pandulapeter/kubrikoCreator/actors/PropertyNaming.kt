@@ -9,12 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_property_name_invalid
-import kubriko.creator.generated.resources.error_property_name_reserved
-import kubriko.creator.generated.resources.error_property_name_taken
-import org.jetbrains.compose.resources.StringResource
-
 internal object PropertyNaming {
 
     private val namePattern = Regex("[a-z][A-Za-z0-9]*")
@@ -41,11 +35,11 @@ internal object PropertyNaming {
      * Why [name] can't be the name of a Property among [existingNames], or null if it can. Names that differ only in
      * case are taken too, like those of Actor types.
      */
-    fun validate(name: String, existingNames: Collection<String>): StringResource? = when {
-        !namePattern.matches(name) -> Res.string.error_property_name_invalid
+    fun validate(name: String, existingNames: Collection<String>): NameProblem? = when {
+        !namePattern.matches(name) -> NameProblem.PROPERTY_INVALID
         name in reservedNames || name.startsWith("isTouching") || name.startsWith("textStyle") || TimerNaming.fieldSuffixes.any(name::endsWith) ||
-            name.endsWith(BlockScope.MANAGER_FIELD_SUFFIX) -> Res.string.error_property_name_reserved
-        existingNames.any { it.equals(name, ignoreCase = true) } -> Res.string.error_property_name_taken
+            name.endsWith(BlockScope.MANAGER_FIELD_SUFFIX) -> NameProblem.PROPERTY_RESERVED
+        existingNames.any { it.equals(name, ignoreCase = true) } -> NameProblem.PROPERTY_TAKEN
         else -> null
     }
 }

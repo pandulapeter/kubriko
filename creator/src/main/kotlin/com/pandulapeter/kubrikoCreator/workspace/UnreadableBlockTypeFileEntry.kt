@@ -12,22 +12,15 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
 import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_type_file_name_duplicate
-import kubriko.creator.generated.resources.status_type_file_name_invalid
-import kubriko.creator.generated.resources.status_type_file_name_mismatch
-import kubriko.creator.generated.resources.status_type_file_name_reserved
-import kubriko.creator.generated.resources.status_type_file_property_name_invalid
-import kubriko.creator.generated.resources.status_type_file_unreadable
 
 /**
  * The console's report of why this file was left out.
  */
 internal fun UnreadableBlockTypeFile.toConsoleEntry() = when (problem) {
-    is BlockTypeFileProblem.Unparsable -> ConsoleEntry.Status(Res.string.status_type_file_unreadable, isError = true, arguments = listOf(path, problem.message))
-    is BlockTypeFileProblem.NameMismatch -> ConsoleEntry.Status(Res.string.status_type_file_name_mismatch, isError = true, arguments = listOf(path, problem.name))
-    is BlockTypeFileProblem.InvalidName -> ConsoleEntry.Status(Res.string.status_type_file_name_invalid, isError = true, arguments = listOf(path, problem.name))
-    is BlockTypeFileProblem.ReservedName -> ConsoleEntry.Status(Res.string.status_type_file_name_reserved, isError = true, arguments = listOf(path, problem.name))
-    is BlockTypeFileProblem.InvalidPropertyName -> ConsoleEntry.Status(Res.string.status_type_file_property_name_invalid, isError = true, arguments = listOf(path, problem.name))
-    is BlockTypeFileProblem.DuplicateName -> ConsoleEntry.Status(Res.string.status_type_file_name_duplicate, isError = true, arguments = listOf(path, problem.otherPaths.joinToString()))
+    is BlockTypeFileProblem.Unparsable -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_UNREADABLE, isError = true, arguments = listOf(path, problem.message))
+    is BlockTypeFileProblem.NameMismatch -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_NAME_MISMATCH, isError = true, arguments = listOf(path, problem.name))
+    is BlockTypeFileProblem.InvalidName -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_NAME_INVALID, isError = true, arguments = listOf(path, problem.name))
+    is BlockTypeFileProblem.ReservedName -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_NAME_RESERVED, isError = true, arguments = listOf(path, problem.name))
+    is BlockTypeFileProblem.InvalidPropertyName -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_PROPERTY_NAME_INVALID, isError = true, arguments = listOf(path, problem.name))
+    is BlockTypeFileProblem.DuplicateName -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_NAME_DUPLICATE, isError = true, arguments = listOf(path, problem.otherPaths.joinToString()))
 }

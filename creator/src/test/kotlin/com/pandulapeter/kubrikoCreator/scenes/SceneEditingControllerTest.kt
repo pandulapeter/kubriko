@@ -25,15 +25,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_entry_point_missing
-import kubriko.creator.generated.resources.error_entry_point_not_loaded
-import kubriko.creator.generated.resources.error_scene_view_failed
-import kubriko.creator.generated.resources.scene_build_failed
-import kubriko.creator.generated.resources.scene_unsupported
-import kubriko.creator.generated.resources.scene_unsupported_library
-import kubriko.creator.generated.resources.status_scene_newer_libraries
-import kubriko.creator.generated.resources.status_scene_opened
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -122,7 +113,7 @@ class SceneEditingControllerTest {
         assertEquals(SessionInitScript.CLASSPATH_TASK_NAME, tasks.single().first)
         assertEquals("classpath", tasks.single().second["kubrikoCreatorMode"])
         assertEquals(listOf(File("/game/build/libs/game.jar")), loadedClasspaths.single().files)
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf("1.5"))), reports)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(SceneStatus.OPENED, arguments = listOf("1.5"))), reports)
     }
 
     @Test
@@ -173,8 +164,8 @@ class SceneEditingControllerTest {
         controller.onViewFailed(open.revision - 1, IllegalStateException("Stale."), isShowingOlderClasses = false)
         assertEquals(open, controller.state.value)
         controller.onViewFailed(open.revision, IllegalStateException("Broken."), isShowingOlderClasses = false)
-        assertEquals(SceneEditingState.Failed(scene, Res.string.error_scene_view_failed, listOf("java.lang.IllegalStateException: Broken.")), controller.state.value)
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.error_scene_view_failed, isError = true, arguments = listOf("java.lang.IllegalStateException: Broken."))), reports)
+        assertEquals(SceneEditingState.Failed(scene, SceneProblem.VIEW_FAILED, listOf("java.lang.IllegalStateException: Broken.")), controller.state.value)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(SceneProblem.VIEW_FAILED, isError = true, arguments = listOf("java.lang.IllegalStateException: Broken."))), reports)
     }
 
     @Test
@@ -258,7 +249,7 @@ class SceneEditingControllerTest {
         val controller = createController()
         controller.prepare()
         controller.open(scene)
-        assertEquals(SceneEditingState.Failed(scene, Res.string.scene_build_failed), controller.state.value)
+        assertEquals(SceneEditingState.Failed(scene, SceneProblem.BUILD_FAILED), controller.state.value)
         assertEquals(1, tasks.size)
         controller.open(otherScene)
         assertEquals(2, tasks.size)
@@ -286,7 +277,7 @@ class SceneEditingControllerTest {
         projectVersion = "0.9.0"
         val controller = createController()
         controller.open(scene)
-        assertEquals(SceneEditingState.Unsupported(scene, Res.string.scene_unsupported, listOf("1.0.0", "0.9.0")), controller.state.value)
+        assertEquals(SceneEditingState.Unsupported(scene, SceneProblem.UNSUPPORTED, listOf("1.0.0", "0.9.0")), controller.state.value)
         assertTrue(reports.isEmpty())
         assertTrue(loadedClasspaths.isEmpty())
     }
@@ -299,7 +290,7 @@ class SceneEditingControllerTest {
         assertEquals(
             SceneEditingState.Unsupported(
                 scene,
-                Res.string.scene_unsupported_library,
+                SceneProblem.UNSUPPORTED_LIBRARY,
                 listOf("org.jetbrains.compose.runtime:runtime-desktop", "9.0.0", "1.12.2"),
             ),
             controller.state.value,
@@ -314,7 +305,7 @@ class SceneEditingControllerTest {
         controller.open(scene)
         assertIs<SceneEditingState.Open>(controller.state.value)
         val warning = ConsoleEntry.Status(
-            Res.string.status_scene_newer_libraries,
+            SceneStatus.NEWER_LIBRARIES,
             arguments = listOf("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm 1.12.0 (Creator: 1.11.0)"),
         )
         assertEquals(1, reports.count { it == warning })
@@ -329,7 +320,7 @@ class SceneEditingControllerTest {
         isBuildSuccessful = false
         val controller = createController()
         controller.open(scene)
-        assertEquals(SceneEditingState.Failed(scene, Res.string.scene_build_failed), controller.state.value)
+        assertEquals(SceneEditingState.Failed(scene, SceneProblem.BUILD_FAILED), controller.state.value)
         assertTrue(loadedClasspaths.isEmpty())
         isBuildSuccessful = true
         controller.reload()
@@ -338,23 +329,23 @@ class SceneEditingControllerTest {
 
     @Test
     fun anEntryPointThatCantBeLoadedIsReported() = runTest {
-        loader = EntryPointLoader { throw EntryPointLoadingException(Res.string.error_entry_point_missing) }
+        loader = EntryPointLoader { throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_MISSING) }
         val controller = createController()
         controller.open(scene)
-        assertEquals(SceneEditingState.Failed(scene, Res.string.error_entry_point_missing), controller.state.value)
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.error_entry_point_missing, isError = true)), reports)
+        assertEquals(SceneEditingState.Failed(scene, SceneProblem.ENTRY_POINT_MISSING), controller.state.value)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(SceneProblem.ENTRY_POINT_MISSING, isError = true)), reports)
     }
 
     @Test
     fun classesThatCantBeLoadedAreCompiledAgainFromScratch() = runTest {
-        loader = EntryPointLoader { throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, NoSuchMethodError()) }
+        loader = EntryPointLoader { throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_NOT_LOADED, NoSuchMethodError()) }
         createController().open(scene)
         assertEquals(1, cleanBuildRequests)
     }
 
     @Test
     fun aMissingEntryPointDoesntCompileEverythingAgain() = runTest {
-        loader = EntryPointLoader { throw EntryPointLoadingException(Res.string.error_entry_point_missing) }
+        loader = EntryPointLoader { throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_MISSING) }
         createController().open(scene)
         assertEquals(0, cleanBuildRequests)
     }

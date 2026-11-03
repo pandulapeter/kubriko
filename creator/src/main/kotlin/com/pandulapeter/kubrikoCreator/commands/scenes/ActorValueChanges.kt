@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.fits
@@ -23,13 +24,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_property_missing
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_property_value_invalid
-import kubriko.creator.generated.resources.error_command_scene_actor_not_block_built
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
-import kubriko.creator.generated.resources.error_command_size_invalid
 
 /**
  * The values of one Actor of a Scene that [SetActorValues] and [SetActorsValues] change; those left null stay as they are.
@@ -84,14 +78,14 @@ internal fun CommandContext.validateActorValues(actor: SceneActorEntry, changes:
     val definition = blockTypes?.get(actor.typeId) as? ActorTypeDefinition
     val numbers = with(changes) { listOfNotNull(x, y, width, height, rotation, scaleHorizontal, scaleVertical) }
     return when {
-        SceneDocument.stateObject(actor.state) == null -> Rejection(Res.string.error_command_scene_content_invalid)
-        numbers.any { !it.isFinite() } || changes.properties.any { it.number?.isFinite() == false } -> Rejection(Res.string.error_command_number_invalid)
-        listOfNotNull(changes.width, changes.height).any { it <= 0f } -> Rejection(Res.string.error_command_size_invalid)
-        (changes.color != null || changes.properties.isNotEmpty()) && definition == null -> Rejection(Res.string.error_command_scene_actor_not_block_built, actor.typeId)
+        SceneDocument.stateObject(actor.state) == null -> Rejection(CommandProblem.SCENE_CONTENT_INVALID)
+        numbers.any { !it.isFinite() } || changes.properties.any { it.number?.isFinite() == false } -> Rejection(CommandProblem.NUMBER_INVALID)
+        listOfNotNull(changes.width, changes.height).any { it <= 0f } -> Rejection(CommandProblem.SIZE_INVALID)
+        (changes.color != null || changes.properties.isNotEmpty()) && definition == null -> Rejection(CommandProblem.SCENE_ACTOR_NOT_BLOCK_BUILT, actor.typeId)
         else -> changes.properties.firstNotNullOfOrNull { value ->
             val property = definition?.properties?.firstOrNull { it.name == value.name }
-                ?: return@firstNotNullOfOrNull Rejection(Res.string.error_command_actor_property_missing, actor.typeId, value.name)
-            if (value.toJson()?.fits(PropertyKind.of(property)) == true) null else Rejection(Res.string.error_command_property_value_invalid, value.name)
+                ?: return@firstNotNullOfOrNull Rejection(CommandProblem.ACTOR_PROPERTY_MISSING, actor.typeId, value.name)
+            if (value.toJson()?.fits(PropertyKind.of(property)) == true) null else Rejection(CommandProblem.PROPERTY_VALUE_INVALID, value.name)
         }
     }
 }

@@ -19,7 +19,6 @@ import com.pandulapeter.kubrikoCreator.context.ReadDetail
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
 
 internal object ReadActorType : ReadCommand<ReadActorType.Input> {
     override val name = "read_actor_type"

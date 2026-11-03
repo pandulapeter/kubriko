@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
@@ -25,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.GetKubrikoApi
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -44,15 +46,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_changed_outside
-import kubriko.creator.generated.resources.error_command_failed
-import kubriko.creator.generated.resources.error_command_input_invalid
-import kubriko.creator.generated.resources.error_command_unknown
-import kubriko.creator.generated.resources.error_mcp_internal
-import kubriko.creator.generated.resources.error_project_newer_format
-import kubriko.creator.generated.resources.error_type_name_taken
 import java.io.File
 import java.io.IOException
 import kotlin.test.Test
@@ -139,7 +132,7 @@ class CommandExecutorTest {
     fun rejectedChangesChangeNothingAndAreNotRecorded() = runTest {
         val (executor, context) = executor(ball)
         val outcome = executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball", width = 5f)))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_type_name_taken)), outcome)
+        assertEquals(CommandOutcome.Rejected(Rejection(NameProblem.TYPE_TAKEN)), outcome)
         assertEquals(listOf(ball), context.blockTypes!!.actorTypes.value)
         assertNull(executor.history.value.nextUndoCommandName)
     }
@@ -152,7 +145,7 @@ class CommandExecutorTest {
         @OptIn(EditorMutation::class)
         context.blockTypes!!.delete("Ball")
         executor.undo()
-        assertEquals(listOf(Rejection(Res.string.error_command_changed_outside, "Ball")), rejections)
+        assertEquals(listOf(Rejection(CommandProblem.CHANGED_OUTSIDE, "Ball")), rejections)
         assertEquals("create_actor_type", executor.history.value.nextUndoCommandName)
         assertNull(executor.history.value.nextRedoCommandName)
         executor.undo()
@@ -183,11 +176,11 @@ class CommandExecutorTest {
         assertEquals(
             listOf(
                 AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 1), isRunning = false),
-                AiStep(1, "read_actor_type", CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(Res.string.error_command_actor_type_missing, "Wall")),
+                AiStep(1, "read_actor_type", CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall")),
             ),
             executor.aiSteps.value.take(2),
         )
-        assertEquals(Res.string.error_command_input_invalid, executor.aiSteps.value[2].rejection?.reason)
+        assertEquals(CommandProblem.INPUT_INVALID, executor.aiSteps.value[2].rejection?.reason)
         assertEquals(listOf(AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 0), isRunning = true)), running.take(1))
     }
 
@@ -249,7 +242,7 @@ class CommandExecutorTest {
         assertFailsWith<NotImplementedError> { executor.call("fail", JsonObject(emptyMap())) }
         val step = executor.aiSteps.value.last()
         assertFalse(step.isRunning)
-        assertEquals(Res.string.error_mcp_internal, step.rejection?.reason)
+        assertEquals(CommandProblem.INTERNAL, step.rejection?.reason)
     }
 
     @Test
@@ -274,7 +267,7 @@ class CommandExecutorTest {
     @Test
     fun unknownToolsAndInvalidInputAreRejected() = runTest {
         val (executor, _) = executor(ball)
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_unknown, "fly")), executor.call("fly", JsonObject(emptyMap())))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.UNKNOWN, "fly")), executor.call("fly", JsonObject(emptyMap())))
         listOf(
             buildJsonObject { put("actorType", "Ball"); put("shape", "triangle") },
             buildJsonObject { put("actorType", "Ball"); put("speed", 3) },
@@ -282,14 +275,14 @@ class CommandExecutorTest {
             JsonObject(mapOf("actorType" to JsonPrimitive(3))),
         ).forEach { arguments ->
             val outcome = assertIs<CommandOutcome.Rejected>(executor.call("set_appearance", arguments))
-            assertEquals(Res.string.error_command_input_invalid, outcome.rejection.reason)
+            assertEquals(CommandProblem.INPUT_INVALID, outcome.rejection.reason)
         }
         assertNull(executor.history.value.nextUndoCommandName)
     }
 
     @Test
     fun changesAreRejectedWhileTheProjectMayNotBeChangedAndReadsStillWork() = runTest {
-        val readOnly = Rejection(Res.string.error_project_newer_format, "2.0.0")
+        val readOnly = Rejection(ProjectProblem.NEWER_FORMAT, "2.0.0")
         var rejection: Rejection? = null
         val context = commandContext(ball, rejectChanges = { rejection })
         val executor = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it })
@@ -321,7 +314,7 @@ class CommandExecutorTest {
     fun aThrowingCommandIsRejected() = runTest {
         val (executor, context) = executor(ball)
         val locked = command("locked") { throw IOException("Locked.") }
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")), executor.execute(Invocation(locked, NoInput)))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FAILED, "Locked.")), executor.execute(Invocation(locked, NoInput)))
         assertEquals(emptyList(), executor.history.value.undoable)
         assertIs<CommandOutcome.Success>(executor.execute(width(10f)))
         assertEquals(10f, context.blockTypes!!.actorType("Ball")!!.width)
@@ -334,7 +327,7 @@ class CommandExecutorTest {
         val revertedByThrowing = command("revertedByThrowing") { Applied(inverse = Invocation(throwing, NoInput)) }
         executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
         executor.execute(Invocation(revertedByThrowing, NoInput))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Broken.")), executor.step(isUndo = true))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FAILED, "Broken.")), executor.step(isUndo = true))
         assertEquals(1, executor.history.value.undoable.size)
         assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
         assertEquals(emptyList(), context.names())
@@ -361,7 +354,7 @@ class CommandExecutorTest {
 
     private fun editBlock(x: Float) = Invocation(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetVelocity(x, 1f)))
 
-    private fun changedOutside(name: String) = CommandOutcome.Rejected(Rejection(Res.string.error_command_changed_outside, name))
+    private fun changedOutside(name: String) = CommandOutcome.Rejected(Rejection(CommandProblem.CHANGED_OUTSIDE, name))
 
     @Test
     fun anOutsideChangeDropsTheStepsOfThatType() = runTest {

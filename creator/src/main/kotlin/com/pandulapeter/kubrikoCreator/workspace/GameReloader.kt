@@ -15,11 +15,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_game_changes_not_applied
-import kubriko.creator.generated.resources.status_game_reload_failed
-import kubriko.creator.generated.resources.status_game_reloaded
-import kubriko.creator.generated.resources.status_game_restarting
 import java.io.File
 
 /**
@@ -63,7 +58,7 @@ internal class GameReloader(
                     applyChanges()
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
-                    console.append(ConsoleEntry.Status(Res.string.status_game_changes_not_applied, isError = true, arguments = listOf(exception.message ?: exception.toString())))
+                    console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_CHANGES_NOT_APPLIED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
                 }
             }
         }
@@ -92,16 +87,16 @@ internal class GameReloader(
         if (this.game !== game) return
         val changedClasses = ClassShape.changesNeedingRestart(game.shapes, built)
         if (changedClasses.isNotEmpty()) {
-            console.append(ConsoleEntry.Status(Res.string.status_game_restarting, arguments = listOf(typeNamesOf(changedClasses).joinToString())))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RESTARTING, arguments = listOf(typeNamesOf(changedClasses).joinToString())))
             restartGame()
             return
         }
         val startTime = currentTimeMillis()
         if (reload(game.reloadTaskName)) {
             game.shapes += built
-            console.append(ConsoleEntry.Status(Res.string.status_game_reloaded, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOADED, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
         } else if (this.game === game) {
-            console.append(ConsoleEntry.Status(Res.string.status_game_reload_failed, isError = true))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOAD_FAILED, isError = true))
             restartGame()
         }
     }

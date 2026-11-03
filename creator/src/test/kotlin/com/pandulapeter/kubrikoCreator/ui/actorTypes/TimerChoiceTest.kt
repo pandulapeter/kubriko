@@ -9,9 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_timer_invalid
-import kubriko.creator.generated.resources.error_command_timer_taken
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -28,9 +26,9 @@ class TimerChoiceTest {
 
     @Test
     fun aNewNameMustBeValidAndARenameMustBeFree() {
-        assertEquals(Res.string.error_command_timer_invalid, timerNameError("Spawn", "spawn", listOf("spawn"), isRenaming = false))
+        assertEquals(CommandProblem.TIMER_INVALID, timerNameError("Spawn", "spawn", listOf("spawn"), isRenaming = false))
         assertEquals(null, timerNameError("blink", "spawn", listOf("spawn", "blink"), isRenaming = false))
-        assertEquals(Res.string.error_command_timer_taken, timerNameError("blink", "spawn", listOf("spawn", "blink"), isRenaming = true))
+        assertEquals(CommandProblem.TIMER_TAKEN, timerNameError("blink", "spawn", listOf("spawn", "blink"), isRenaming = true))
         assertEquals(null, timerNameError("spawn", "spawn", listOf("spawn", "blink"), isRenaming = true))
     }
 }

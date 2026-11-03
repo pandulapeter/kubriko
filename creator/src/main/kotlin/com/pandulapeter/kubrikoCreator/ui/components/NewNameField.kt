@@ -52,7 +52,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun NewNameField(
     placeholder: StringResource,
-    onCreate: (String) -> StringResource?,
+    onCreate: (String) -> FieldError?,
     onCancel: () -> Unit,
     initialName: String = "",
     indent: Dp = 24.dp,
@@ -61,7 +61,7 @@ internal fun NewNameField(
     modifier = Modifier.fillMaxWidth().padding(start = indent, end = 4.dp, bottom = 4.dp),
 ) {
     var name by remember { mutableStateOf(initialName) }
-    var error by remember { mutableStateOf<StringResource?>(null) }
+    var error by remember { mutableStateOf<FieldError?>(null) }
     val focusRequester = remember { FocusRequester() }
     val create = { if (name.isNotBlank()) error = onCreate(name.trim()) }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -104,7 +104,7 @@ internal fun NewNameField(
     error?.let {
         Text(
             modifier = Modifier.padding(top = 2.dp),
-            text = stringResource(it),
+            text = stringResource(it.text, *it.arguments.toTypedArray()),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )

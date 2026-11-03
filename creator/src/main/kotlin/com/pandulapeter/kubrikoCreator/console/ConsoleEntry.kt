@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.console
 
-import org.jetbrains.compose.resources.StringResource
+import com.pandulapeter.kubrikoCreator.foundation.DomainText
 
 /**
  * A line of the workspace console.
@@ -22,7 +22,7 @@ internal sealed interface ConsoleEntry {
      * @param arguments The values of the [text]'s placeholders.
      */
     data class Status(
-        val text: StringResource,
+        val text: DomainText,
         val isError: Boolean = false,
         val arguments: List<String> = emptyList(),
     ) : ConsoleEntry

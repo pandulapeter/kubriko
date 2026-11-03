@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.game
 
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -23,11 +24,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_game_duration_invalid
-import kubriko.creator.generated.resources.error_game_key_unknown
-import kubriko.creator.generated.resources.error_game_keys_count
-import kubriko.creator.generated.resources.error_game_not_running
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -46,10 +42,10 @@ class GameCommandsTest {
     @Test
     fun keyPressesAreCheckedBeforeTheyReachTheGame() = runTest {
         val executor = executor()
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_game_keys_count, "10")), executor.call("press_keys", keys()))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_game_keys_count, "10")), executor.call("press_keys", keys(*Array(11) { "A" })))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_game_key_unknown, "JUMP")), executor.call("press_keys", keys("LEFT", "JUMP")))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_game_duration_invalid, "10000")), executor.call("press_keys", keys("LEFT", milliseconds = 0)))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_COUNT, "10")), executor.call("press_keys", keys()))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEYS_COUNT, "10")), executor.call("press_keys", keys(*Array(11) { "A" })))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "JUMP")), executor.call("press_keys", keys("LEFT", "JUMP")))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_DURATION_INVALID, "10000")), executor.call("press_keys", keys("LEFT", milliseconds = 0)))
         assertTrue(runner.calls.isEmpty())
         assertIs<CommandOutcome.Success>(executor.call("press_keys", keys("left", "space")))
         assertEquals(listOf("press LEFT+SPACE 150"), runner.calls)
@@ -58,7 +54,7 @@ class GameCommandsTest {
     @Test
     fun waitingIsLimitedAndScreenshotsComeBackAsImages() = runTest {
         val executor = executor()
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_game_duration_invalid, "30000")), executor.call("wait", buildJsonObject { put("milliseconds", 30_001) }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_DURATION_INVALID, "30000")), executor.call("wait", buildJsonObject { put("milliseconds", 30_001) }))
         executor.call("wait", buildJsonObject { put("milliseconds", 2_000) })
         runner.step = GameStep.Done(console = emptyList(), png = byteArrayOf(9))
         assertEquals(listOf<Byte>(9), assertIs<CommandOutcome.Success>(executor.call("take_screenshot", JsonObject(emptyMap()))).image?.toList())
@@ -70,7 +66,7 @@ class GameCommandsTest {
         runner.step = GameStep.NotPlaying
         val executor = executor()
         listOf("take_screenshot" to JsonObject(emptyMap()), "wait" to buildJsonObject { put("milliseconds", 10) }, "press_keys" to keys("A")).forEach { (name, arguments) ->
-            assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_game_not_running)), executor.call(name, arguments))
+            assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NOT_RUNNING)), executor.call(name, arguments))
         }
     }
 

@@ -23,7 +23,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
 
 @OptIn(EditorMutation::class)
 internal object MoveToFolder : WriteCommand<MoveToFolder.Input> {

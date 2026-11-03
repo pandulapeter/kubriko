@@ -18,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
 
 internal object TakeScreenshot : ActionCommand<TakeScreenshot.Input> {
     override val name = "take_screenshot"

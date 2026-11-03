@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
 
 /**
  * Removes a Property but keeps its values in the Scenes, which loading ignores, so that undoing this brings them back.

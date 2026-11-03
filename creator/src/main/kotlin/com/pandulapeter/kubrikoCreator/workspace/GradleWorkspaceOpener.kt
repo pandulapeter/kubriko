@@ -19,15 +19,13 @@ import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.session.SessionServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_not_a_gradle_project
-import kubriko.creator.generated.resources.error_project_format_not_upgraded_on_open
 import java.io.File
 import java.io.IOException
 
@@ -43,7 +41,7 @@ import java.io.IOException
 internal class GradleWorkspaceOpener(private val configuration: CreatorConfiguration) : WorkspaceOpener {
 
     override suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController {
-        if (!withContext(Dispatchers.IO) { ProjectInspector.isGradleProject(directory) }) throw ProjectInspectionException(Res.string.error_not_a_gradle_project)
+        if (!withContext(Dispatchers.IO) { ProjectInspector.isGradleProject(directory) }) throw ProjectInspectionException(ProjectProblem.NOT_A_GRADLE_PROJECT)
         val project = withContext(Dispatchers.IO) { CreatorProject(rootDirectory = directory, name = ProjectInspector.nameOf(directory)) }
         val ownWrites = OwnWrites()
         val creatorLibraries = withContext(Dispatchers.IO) { CreatorLibraries.load() }
@@ -51,7 +49,7 @@ internal class GradleWorkspaceOpener(private val configuration: CreatorConfigura
         val formatStatus = try {
             withContext(Dispatchers.IO) { projectFormat.prepare() }
         } catch (_: IOException) {
-            throw ProjectInspectionException(Res.string.error_project_format_not_upgraded_on_open)
+            throw ProjectInspectionException(ProjectProblem.FORMAT_NOT_UPGRADED_ON_OPEN)
         }
         val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory, ownWrites) }
         return openWorkspace(scope) { opening ->

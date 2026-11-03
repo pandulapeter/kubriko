@@ -9,10 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_property_name_invalid
-import kubriko.creator.generated.resources.error_property_name_reserved
-import kubriko.creator.generated.resources.error_property_name_taken
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -23,18 +19,18 @@ class PropertyNamingTest {
     fun namesAreKotlinPropertyNames() {
         assertNull(PropertyNaming.validate("score", emptyList()))
         assertNull(PropertyNaming.validate("livesLeft2", emptyList()))
-        listOf("", "Score", "2lives", "high score", "score!", "lives_left").forEach { assertEquals(Res.string.error_property_name_invalid, PropertyNaming.validate(it, emptyList()), it) }
+        listOf("", "Score", "2lives", "high score", "score!", "lives_left").forEach { assertEquals(NameProblem.PROPERTY_INVALID, PropertyNaming.validate(it, emptyList()), it) }
     }
 
     @Test
     fun namesTheGeneratedCodeUsesAreReserved() = listOf("velocity", "body", "color", "other", "key", "when", "isTouchingLeftEdge", "timer3RemainingInMilliseconds", "spawnPeriodInMilliseconds", "stateManager", "generatedScenes", "keyboardInputManager", "bodyCenter", "isRemoved", "box", "sprite", "isInSceneEditor", "scope", "textStyle1", "scoreManager", "levelManager").forEach {
-        assertEquals(Res.string.error_property_name_reserved, PropertyNaming.validate(it, emptyList()), it)
+        assertEquals(NameProblem.PROPERTY_RESERVED, PropertyNaming.validate(it, emptyList()), it)
     }
 
     @Test
     fun namesAreUniqueRegardlessOfCase() {
-        assertEquals(Res.string.error_property_name_taken, PropertyNaming.validate("score", listOf("lives", "score")))
-        assertEquals(Res.string.error_property_name_taken, PropertyNaming.validate("highScore", listOf("highscore")))
+        assertEquals(NameProblem.PROPERTY_TAKEN, PropertyNaming.validate("score", listOf("lives", "score")))
+        assertEquals(NameProblem.PROPERTY_TAKEN, PropertyNaming.validate("highScore", listOf("highscore")))
     }
 
     @Test

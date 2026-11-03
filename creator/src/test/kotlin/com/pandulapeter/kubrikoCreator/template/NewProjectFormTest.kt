@@ -9,9 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_package_name_invalid
-import kubriko.creator.generated.resources.error_project_name_invalid
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -47,10 +44,10 @@ class NewProjectFormTest {
     @Test
     fun invalidFieldsShowTheirErrorsAndBlockTheRequest() {
         val invalidName = emptyForm.withName("2048")
-        assertEquals(Res.string.error_project_name_invalid, invalidName.nameError)
+        assertEquals(TemplateProblem.NAME_INVALID, invalidName.nameError)
         assertNull(invalidName.request)
         val invalidPackage = emptyForm.withName("Game").withPackageName("Game")
-        assertEquals(Res.string.error_package_name_invalid, invalidPackage.packageNameError)
+        assertEquals(TemplateProblem.PACKAGE_NAME_INVALID, invalidPackage.packageNameError)
         assertNull(invalidPackage.request)
     }
 

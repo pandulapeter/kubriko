@@ -10,17 +10,12 @@
 package com.pandulapeter.kubrikoCreator.commands.folders
 
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.withParents
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_no_actor_types
-import kubriko.creator.generated.resources.error_folder_exists
-import kubriko.creator.generated.resources.error_folder_missing
-import kubriko.creator.generated.resources.error_folder_name_invalid
-import kubriko.creator.generated.resources.error_scene_folder_reserved
-import kubriko.creator.generated.resources.error_scene_name_invalid
 
 /**
  * Every folder of [group], as paths (`enemies/flying`), parents included.
@@ -42,8 +37,8 @@ internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, Strin
  * Why there is no folder at [path] in [group] (the top of the group, an empty path, always exists).
  */
 internal fun CommandContext.validateFolder(group: FolderGroup, path: String): Rejection? = when {
-    group.kind != null && blockTypes == null -> Rejection(Res.string.error_command_no_actor_types)
-    path.isNotEmpty() && path !in foldersOf(group) -> Rejection(Res.string.error_folder_missing, path)
+    group.kind != null && blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
+    path.isNotEmpty() && path !in foldersOf(group) -> Rejection(CommandProblem.FOLDER_MISSING, path)
     else -> null
 }
 
@@ -51,13 +46,13 @@ internal fun CommandContext.validateFolder(group: FolderGroup, path: String): Re
  * Why there can't be a new folder at [path] in [group].
  */
 internal fun CommandContext.validateNewFolder(group: FolderGroup, path: String): Rejection? = when {
-    group.kind != null && blockTypes == null -> Rejection(Res.string.error_command_no_actor_types)
-    path.isEmpty() || !FolderPaths.isValid(path) -> Rejection(Res.string.error_folder_name_invalid)
+    group.kind != null && blockTypes == null -> Rejection(CommandProblem.NO_ACTOR_TYPES)
+    path.isEmpty() || !FolderPaths.isValid(path) -> Rejection(NameProblem.FOLDER_INVALID)
     // A Scene's folders are part of its name.
-    group == FolderGroup.SCENES && !SceneNaming.isValid(path) -> Rejection(Res.string.error_scene_name_invalid)
+    group == FolderGroup.SCENES && !SceneNaming.isValid(path) -> Rejection(CommandProblem.SCENE_NAME_INVALID)
     group == FolderGroup.SCENES && SceneNaming.reservedFolderOf(path, isFolder = true) != null ->
-        Rejection(Res.string.error_scene_folder_reserved, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
-    foldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(Res.string.error_folder_exists, path)
+        Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
+    foldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(CommandProblem.FOLDER_EXISTS, path)
     else -> validateFolder(group, FolderPaths.parentOf(path))
 }
 

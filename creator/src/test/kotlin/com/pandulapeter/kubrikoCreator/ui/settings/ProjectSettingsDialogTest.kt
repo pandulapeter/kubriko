@@ -19,11 +19,10 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import com.pandulapeter.kubrikoCreator.ui.saveSnapshot
 import com.pandulapeter.kubrikoCreator.ui.showing
 import com.pandulapeter.kubrikoCreator.ui.uiTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_identity_version_number_invalid
 import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -93,7 +92,7 @@ class ProjectSettingsDialogTest {
     @Test
     fun aVersionNumberThatIsNotANumberIsInvalid() {
         val change = IdentityField.VERSION_NUMBER.changeOf(identity, "four")
-        assertEquals(Res.string.error_identity_version_number_invalid, (change as IdentityFieldChange.Invalid).reason)
+        assertEquals(IdentityProblem.VERSION_NUMBER_INVALID, (change as IdentityFieldChange.Invalid).reason)
         assertEquals(IdentityFieldChange.Valid(SetProjectSettings.Input(versionNumber = 4)), IdentityField.VERSION_NUMBER.changeOf(identity, " 4 "))
         assertEquals("3", IdentityField.VERSION_NUMBER.valueOf(identity))
     }

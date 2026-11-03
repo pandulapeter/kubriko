@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
@@ -29,22 +30,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_id_invalid
-import kubriko.creator.generated.resources.error_command_actor_id_taken
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_index_invalid
-import kubriko.creator.generated.resources.error_command_music_missing
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_scene_actor_missing
-import kubriko.creator.generated.resources.error_command_scene_actor_without_position
-import kubriko.creator.generated.resources.error_command_scene_content_invalid
-import kubriko.creator.generated.resources.error_command_scene_invalid
-import kubriko.creator.generated.resources.error_command_scene_missing
-import kubriko.creator.generated.resources.error_command_size_invalid
-import kubriko.creator.generated.resources.error_scene_folder_reserved
-import kubriko.creator.generated.resources.error_scene_name_invalid
-import kubriko.creator.generated.resources.error_scene_name_taken
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -86,13 +71,13 @@ class SceneCommandsTest {
     @Test
     fun newScenesNeedAFreeValidNameAndValidContent() = runTest {
         val context = context()
-        assertEquals(Rejection(Res.string.error_scene_name_invalid), CreateScene.validate(context, CreateScene.Input("my level")))
-        assertEquals(Rejection(Res.string.error_scene_name_taken), CreateScene.validate(context, CreateScene.Input("MAIN")))
-        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "build"), CreateScene.validate(context, CreateScene.Input("levels/build/1")))
+        assertEquals(Rejection(CommandProblem.SCENE_NAME_INVALID), CreateScene.validate(context, CreateScene.Input("my level")))
+        assertEquals(Rejection(CommandProblem.SCENE_NAME_TAKEN), CreateScene.validate(context, CreateScene.Input("MAIN")))
+        assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "build"), CreateScene.validate(context, CreateScene.Input("levels/build/1")))
         assertEquals(null, CreateScene.validate(context, CreateScene.Input("build")))
         assertEquals(null, CreateScene.validate(context, CreateScene.Input("builds/1")))
-        assertEquals(Rejection(Res.string.error_command_scene_content_invalid), CreateScene.validate(context, CreateScene.Input("other", "{}")))
-        assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), DeleteScene.validate(context, DeleteScene.Input("other")))
+        assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), CreateScene.validate(context, CreateScene.Input("other", "{}")))
+        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "other"), DeleteScene.validate(context, DeleteScene.Input("other")))
     }
 
     @Test
@@ -102,8 +87,8 @@ class SceneCommandsTest {
         val main = context.scenes.read("main")
         val handMade = File(context.scenes.fileOf("main").parentFile, "level.json").apply { writeText("[{}]") }
         val executor = CommandExecutor(context, testScope())
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_scene_name_taken)), executor.execute(Invocation(CreateScene, CreateScene.Input("level"))))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_scene_name_taken)), executor.execute(Invocation(RenameScene, RenameScene.Input("main", "LEVEL"))))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_NAME_TAKEN)), executor.execute(Invocation(CreateScene, CreateScene.Input("level"))))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_NAME_TAKEN)), executor.execute(Invocation(RenameScene, RenameScene.Input("main", "LEVEL"))))
         assertEquals("[{}]", handMade.readText())
         assertEquals(main, context.scenes.read("main"))
     }
@@ -115,11 +100,11 @@ class SceneCommandsTest {
         assertEquals(listOf(wall, SceneActorEntry("Ball", SceneDocument.blockBuiltState(5f, 6f, 30f, 40f), "ball")), actors)
         val newId = PlaceActor.apply(context, PlaceActor.Input("main", "Ball", 0f, 0f)).result.jsonObject.getValue("actorId").jsonPrimitive.content
         assertEquals(listOf("wall", "ball", newId), context.main()!!.map { it.id })
-        assertEquals(Rejection(Res.string.error_command_actor_id_taken, "wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "wall")))
-        assertEquals(Rejection(Res.string.error_command_actor_id_invalid, "a b"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "a b")))
-        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Wall", 0f, 0f)))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", Float.NaN, 0f)))
-        assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), PlaceActor.validate(context, PlaceActor.Input("other", "Ball", 0f, 0f)))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "wall")))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_INVALID, "a b"), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", 0f, 0f, actorId = "a b")))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall"), PlaceActor.validate(context, PlaceActor.Input("main", "Wall", 0f, 0f)))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), PlaceActor.validate(context, PlaceActor.Input("main", "Ball", Float.NaN, 0f)))
+        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "other"), PlaceActor.validate(context, PlaceActor.Input("other", "Ball", 0f, 0f)))
     }
 
     @Test
@@ -136,22 +121,22 @@ class SceneCommandsTest {
         val context = context(wall, music)
         assertEquals(listOf(music, wall), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "wall", 1))) { context.main() })
         assertEquals(listOf(wall, music), context.assertRoundTrip(Invocation(MoveActorOrder, MoveActorOrder.Input("main", "music", 1))) { context.main() })
-        assertEquals(Rejection(Res.string.error_command_index_invalid, "2"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", 2)))
-        assertEquals(Rejection(Res.string.error_command_index_invalid, "-1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", -1)))
-        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "ghost"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "ghost", 0)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", 2)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "-1"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "wall", -1)))
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), MoveActorOrder.validate(context, MoveActorOrder.Input("main", "ghost", 0)))
     }
 
     @Test
     fun actorChangesAreValidated() = runTest {
         val context = context(wall, music)
-        assertEquals(Rejection(Res.string.error_command_scene_actor_missing, "main", "ghost"), RemoveActor.validate(context, RemoveActor.Input("main", "ghost")))
-        assertEquals(Rejection(Res.string.error_command_scene_actor_without_position, "music"), MoveActor.validate(context, MoveActor.Input("main", "music", 0f, 0f)))
-        assertEquals(Rejection(Res.string.error_command_actor_id_taken, "wall"), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "{}", "wall")))
-        assertEquals(Rejection(Res.string.error_command_index_invalid, "3"), RestoreActor.validate(context, RestoreActor.Input("main", 3, "Wall", "{}")))
-        assertEquals(Rejection(Res.string.error_command_scene_content_invalid), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "[]")))
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_MISSING, "main", "ghost"), RemoveActor.validate(context, RemoveActor.Input("main", "ghost")))
+        assertEquals(Rejection(CommandProblem.SCENE_ACTOR_WITHOUT_POSITION, "music"), MoveActor.validate(context, MoveActor.Input("main", "music", 0f, 0f)))
+        assertEquals(Rejection(CommandProblem.ACTOR_ID_TAKEN, "wall"), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "{}", "wall")))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3"), RestoreActor.validate(context, RestoreActor.Input("main", 3, "Wall", "{}")))
+        assertEquals(Rejection(CommandProblem.SCENE_CONTENT_INVALID), RestoreActor.validate(context, RestoreActor.Input("main", 0, "Wall", "[]")))
         @OptIn(EditorMutation::class)
         context.scenes.write("main", "broken")
-        assertEquals(Rejection(Res.string.error_command_scene_invalid, "main"), RemoveActor.validate(context, RemoveActor.Input("main", "wall")))
+        assertEquals(Rejection(CommandProblem.SCENE_INVALID, "main"), RemoveActor.validate(context, RemoveActor.Input("main", "wall")))
     }
 
     @Test
@@ -174,9 +159,9 @@ class SceneCommandsTest {
     @Test
     fun sceneSettingsAreValidated() = runTest {
         val context = context()
-        assertEquals(Rejection(Res.string.error_command_number_invalid), SetSceneSettings.validate(context, SetSceneSettings.Input("main", cameraX = Float.POSITIVE_INFINITY)))
-        assertEquals(Rejection(Res.string.error_command_size_invalid), SetSceneSettings.validate(context, SetSceneSettings.Input("main", width = 0f)))
-        assertEquals(Rejection(Res.string.error_command_scene_missing, "other"), SetSceneSettings.validate(context, SetSceneSettings.Input("other")))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), SetSceneSettings.validate(context, SetSceneSettings.Input("main", cameraX = Float.POSITIVE_INFINITY)))
+        assertEquals(Rejection(CommandProblem.SIZE_INVALID), SetSceneSettings.validate(context, SetSceneSettings.Input("main", width = 0f)))
+        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "other"), SetSceneSettings.validate(context, SetSceneSettings.Input("other")))
     }
 
     @Test
@@ -187,7 +172,7 @@ class SceneCommandsTest {
         val cleared = context.assertRoundTrip(Invocation(SetSceneSettings, SetSceneSettings.Input("main", music = ""))) { context.main() }!!
         assertEquals("", SceneSettingsState.read(cleared[1].state).music)
         assertEquals(
-            Rejection(Res.string.error_command_music_missing, "files/music/ghost.mp3"),
+            Rejection(CommandProblem.MUSIC_MISSING, "files/music/ghost.mp3"),
             SetSceneSettings.validate(context, SetSceneSettings.Input("main", music = "files/music/ghost.mp3")),
         )
     }

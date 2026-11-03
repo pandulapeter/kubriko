@@ -22,7 +22,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.putJsonArray
-import kubriko.creator.generated.resources.Res
 
 internal object PlaceActors : WriteCommand<PlaceActors.Input> {
     override val name = "place_actors"

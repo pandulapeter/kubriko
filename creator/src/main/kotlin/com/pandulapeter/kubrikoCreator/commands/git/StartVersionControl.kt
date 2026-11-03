@@ -11,15 +11,14 @@ package com.pandulapeter.kubrikoCreator.commands.git
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.GitState
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_already_under_version_control
-import kubriko.creator.generated.resources.status_git_failed
+import com.pandulapeter.kubrikoCreator.git.GitStatus
 
 @OptIn(EditorMutation::class)
 internal object StartVersionControl : WriteCommand<NoInput> {
@@ -31,11 +30,11 @@ internal object StartVersionControl : WriteCommand<NoInput> {
 
     override fun validate(context: CommandContext, input: NoInput) = when (context.git.state.value) {
         GitState.NoRepository -> null
-        GitState.Loading, is GitState.Ready -> Rejection(Res.string.error_command_already_under_version_control)
+        GitState.Loading, is GitState.Ready -> Rejection(CommandProblem.ALREADY_UNDER_VERSION_CONTROL)
     }
 
     override suspend fun apply(context: CommandContext, input: NoInput): Applied {
         if (!context.awaitWrites()) return Applied.failed(context.unsavedWrite())
-        return if (context.git.startVersionControl()) Applied(inverse = null) else Applied.failed(Res.string.status_git_failed)
+        return if (context.git.startVersionControl()) Applied(inverse = null) else Applied.failed(GitStatus.FAILED)
     }
 }

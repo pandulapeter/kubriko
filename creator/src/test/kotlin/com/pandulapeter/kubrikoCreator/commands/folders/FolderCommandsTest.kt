@@ -12,7 +12,9 @@ package com.pandulapeter.kubrikoCreator.commands.folders
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -21,12 +23,6 @@ import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_no_actor_types
-import kubriko.creator.generated.resources.error_folder_exists
-import kubriko.creator.generated.resources.error_folder_missing
-import kubriko.creator.generated.resources.error_folder_name_invalid
-import kubriko.creator.generated.resources.error_folder_not_empty
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -53,26 +49,26 @@ class FolderCommandsTest {
         val context = commandContext(bat, wall, game)
         val created = context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/walking"))) { context.actorFolders() }
         assertEquals(setOf("enemies", "enemies/flying", "enemies/walking"), created)
-        assertEquals(Rejection(Res.string.error_folder_exists, "Enemies"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "Enemies")))
-        assertEquals(Rejection(Res.string.error_folder_missing, "props"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "props/walls")))
-        assertEquals(Rejection(Res.string.error_folder_name_invalid), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "a//b")))
-        assertEquals(Rejection(Res.string.error_folder_not_empty, "enemies/flying"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/flying")))
-        assertEquals(Rejection(Res.string.error_folder_not_empty, "enemies"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies")))
+        assertEquals(Rejection(CommandProblem.FOLDER_EXISTS, "Enemies"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "Enemies")))
+        assertEquals(Rejection(CommandProblem.FOLDER_MISSING, "props"), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "props/walls")))
+        assertEquals(Rejection(NameProblem.FOLDER_INVALID), context.rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "a//b")))
+        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "enemies/flying"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/flying")))
+        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "enemies"), context.rejection(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies")))
         assertEquals(setOf("enemies", "enemies/flying"), context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.ACTOR_TYPES, "enemies/walking"))) { context.actorFolders() })
-        assertEquals(Rejection(Res.string.error_command_no_actor_types), commandContext(blockTypes = null).rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "x")))
+        assertEquals(Rejection(CommandProblem.NO_ACTOR_TYPES), commandContext(blockTypes = null).rejection(CreateFolder, CreateFolder.Input(FolderGroup.ACTOR_TYPES, "x")))
     }
 
     @Test
     fun typesMoveBetweenFoldersAndFoldersAreRenamedWithEverythingInThem() = runTest {
         val context = commandContext(bat, wall, game)
         assertEquals("enemies", context.assertRoundTrip(Invocation(MoveToFolder, MoveToFolder.Input("Wall", "enemies"))) { context.blockTypes!!["Wall"]!!.folder })
-        assertEquals(Rejection(Res.string.error_folder_missing, "rules"), context.rejection(MoveToFolder, MoveToFolder.Input("Game", "rules")))
+        assertEquals(Rejection(CommandProblem.FOLDER_MISSING, "rules"), context.rejection(MoveToFolder, MoveToFolder.Input("Game", "rules")))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "enemies", "monsters"))) {
             context.actorFolders() to context.blockTypes!!.types.value.map { it.name to it.folder }
         }!!
         assertEquals(setOf("monsters", "monsters/flying"), renamed.first)
         assertEquals(listOf("Bat" to "monsters/flying", "Game" to "", "Wall" to "monsters"), renamed.second)
-        assertEquals(Rejection(Res.string.error_folder_name_invalid), context.rejection(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "monsters", "a/b")))
+        assertEquals(Rejection(NameProblem.FOLDER_INVALID), context.rejection(RenameFolder, RenameFolder.Input(FolderGroup.ACTOR_TYPES, "monsters", "a/b")))
         assertNull(context.rejection(MoveToFolder, MoveToFolder.Input("Bat", "")))
     }
 }

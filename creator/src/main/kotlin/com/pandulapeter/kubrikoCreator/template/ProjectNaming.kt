@@ -10,11 +10,6 @@
 package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_package_name_invalid
-import kubriko.creator.generated.resources.error_project_name_empty
-import kubriko.creator.generated.resources.error_project_name_invalid
-import org.jetbrains.compose.resources.StringResource
 
 /**
  * The rules for what a new project may be called, and the identifiers derived from its name.
@@ -27,17 +22,17 @@ internal object ProjectNaming {
     /**
      * Why [name] can't be a project's name, or null if it can.
      */
-    fun validateName(name: String): StringResource? = when {
-        name.isBlank() -> Res.string.error_project_name_empty
-        !namePattern.matches(name.trim()) -> Res.string.error_project_name_invalid
+    fun validateName(name: String): TemplateProblem? = when {
+        name.isBlank() -> TemplateProblem.NAME_EMPTY
+        !namePattern.matches(name.trim()) -> TemplateProblem.NAME_INVALID
         else -> null
     }
 
     /**
      * Why [packageName] can't be a project's package, or null if it can.
      */
-    fun validatePackageName(packageName: String): StringResource? = packageName.split('.').let { segments ->
-        if (segments.size >= 2 && segments.all { packageSegmentPattern.matches(it) && it !in KotlinIdentifiers.hardKeywords }) null else Res.string.error_package_name_invalid
+    fun validatePackageName(packageName: String): TemplateProblem? = packageName.split('.').let { segments ->
+        if (segments.size >= 2 && segments.all { packageSegmentPattern.matches(it) && it !in KotlinIdentifiers.hardKeywords }) null else TemplateProblem.PACKAGE_NAME_INVALID
     }
 
     /**

@@ -9,10 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_type_name_invalid
-import kubriko.creator.generated.resources.error_type_name_reserved
-import kubriko.creator.generated.resources.error_type_name_taken
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -26,21 +22,21 @@ class BlockTypeNamingTest {
     fun namesAreKotlinClassNames() {
         listOf("Ball", "Enemy2", "PlayerShip").forEach { assertNull(BlockTypeNaming.validate(it, emptyList()), it) }
         listOf("", "ball", "2Ball", "Player Ship", "Player-Ship", "Ballé", "Player_1").forEach {
-            assertEquals(Res.string.error_type_name_invalid, BlockTypeNaming.validate(it, emptyList()), it)
+            assertEquals(NameProblem.TYPE_INVALID, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }
 
     @Test
     fun namesTheGeneratedCodeAlreadyUsesAreReserved() {
         listOf("GeneratedActorTypes", "GeneratedScenes", "SceneSettings", "StateManager", "State", "Color").forEach {
-            assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it)
+            assertEquals(NameProblem.TYPE_RESERVED, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }
 
     @Test
     fun managerTypesCantBeNamedAfterALookupTheGeneratedCodeHasAlready() {
         listOf("Viewport", "KeyboardInput", "Sprite").forEach { name ->
-            assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(name, emptyList(), BlockTypeKind.MANAGER), name)
+            assertEquals(NameProblem.TYPE_RESERVED, BlockTypeNaming.validate(name, emptyList(), BlockTypeKind.MANAGER), name)
             assertNull(BlockTypeNaming.validate(name, emptyList(), BlockTypeKind.ACTOR), name)
         }
     }
@@ -53,7 +49,7 @@ class BlockTypeNamingTest {
             "KeyboardInputManager",
         )
         (imported + listOf("Float", "String", "Unit", "CollisionManager")).forEach {
-            assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it)
+            assertEquals(NameProblem.TYPE_RESERVED, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }
 
@@ -75,7 +71,7 @@ class BlockTypeNamingTest {
                 .map { it.substringAfterLast('.') }
                 .filter { it.first().isUpperCase() }
                 .toSortedSet()
-            imported.forEach { assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it) }
+            imported.forEach { assertEquals(NameProblem.TYPE_RESERVED, BlockTypeNaming.validate(it, emptyList()), it) }
         } finally {
             root.deleteRecursively()
         }
@@ -83,8 +79,8 @@ class BlockTypeNamingTest {
 
     @Test
     fun namesMustBeUniqueIgnoringCase() {
-        assertEquals(Res.string.error_type_name_taken, BlockTypeNaming.validate("Ball", listOf("Ball")))
-        assertEquals(Res.string.error_type_name_taken, BlockTypeNaming.validate("BALL", listOf("Ball")))
+        assertEquals(NameProblem.TYPE_TAKEN, BlockTypeNaming.validate("Ball", listOf("Ball")))
+        assertEquals(NameProblem.TYPE_TAKEN, BlockTypeNaming.validate("BALL", listOf("Ball")))
         assertNull(BlockTypeNaming.validate("Balls", listOf("Ball")))
     }
 }

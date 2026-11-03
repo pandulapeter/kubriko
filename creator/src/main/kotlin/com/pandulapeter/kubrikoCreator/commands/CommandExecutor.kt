@@ -24,13 +24,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.assistant_turn_cancelled
-import kubriko.creator.generated.resources.error_command_changed_outside
-import kubriko.creator.generated.resources.error_command_failed
-import kubriko.creator.generated.resources.error_command_input_invalid
-import kubriko.creator.generated.resources.error_command_unknown
-import kubriko.creator.generated.resources.error_mcp_internal
 
 /**
  * Runs commands against the open project and keeps the history of the changes they made, which undo and redo walk.
@@ -116,7 +109,7 @@ internal class CommandExecutor(
      * @param origin Which of the assistant's conversations made the call, if one did.
      */
     suspend fun call(name: String, arguments: JsonObject, origin: AiStepOrigin? = null, clientName: String? = null): CommandOutcome {
-        val command = registry[name] ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_unknown, name))
+        val command = registry[name] ?: return CommandOutcome.Rejected(Rejection(CommandProblem.UNKNOWN, name))
         return call(name, command, arguments, origin, clientName)
     }
 
@@ -150,7 +143,7 @@ internal class CommandExecutor(
         context.rejectChanges()?.let { return CommandOutcome.Rejected(it) }
         changedOutside(entry)?.let { name ->
             _history.value = remaining
-            return CommandOutcome.Rejected(Rejection(Res.string.error_command_changed_outside, name))
+            return CommandOutcome.Rejected(Rejection(CommandProblem.CHANGED_OUTSIDE, name))
         }
         val rejection = invocation.validate(context)
         if (rejection != null) {
@@ -214,10 +207,10 @@ internal class CommandExecutor(
             rejection = (outcome as? CommandOutcome.Rejected)?.rejection
             return outcome
         } catch (exception: CancellationException) {
-            rejection = Rejection(Res.string.assistant_turn_cancelled)
+            rejection = Rejection(CommandProblem.TURN_CANCELLED)
             throw exception
         } catch (throwable: Throwable) {
-            rejection = Rejection(Res.string.error_mcp_internal, throwable.toString())
+            rejection = Rejection(CommandProblem.INTERNAL, throwable.toString())
             throw throwable
         } finally {
             publish(step.copy(target = runCatching { command.target(context, input) }.getOrNull() ?: step.target, isRunning = false, rejection = rejection))
@@ -230,7 +223,7 @@ internal class CommandExecutor(
      */
     private fun failureOf(exception: Exception): Rejection {
         if (exception is CancellationException) throw exception
-        return Rejection(Res.string.error_command_failed, exception.message ?: exception.toString())
+        return Rejection(CommandProblem.FAILED, exception.message ?: exception.toString())
     }
 
     private suspend fun HistoryEntry.withContentHashes(): HistoryEntry {
@@ -258,7 +251,7 @@ internal class CommandExecutor(
     }
 
     private fun rejectInput(name: String, command: EditorCommand<*>, exception: Exception, origin: AiStepOrigin?, clientName: String?): CommandOutcome {
-        val rejection = Rejection(Res.string.error_command_input_invalid, InputProblem.describe(exception.message))
+        val rejection = Rejection(CommandProblem.INPUT_INVALID, InputProblem.describe(exception.message))
         publish(AiStep(id = nextAiStepId++, toolName = name, target = null, isRunning = false, rejection = rejection, origin = origin, clientName = clientName))
         return CommandOutcome.Rejected(rejection)
     }
