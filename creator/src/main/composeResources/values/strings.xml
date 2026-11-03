@@ -118,7 +118,7 @@
     <string name="status_ios_simulator_booting">Starting the simulator %1$s, which can take a minute…</string>
     <string name="status_ios_simulator_missing">The simulator %1$s isn't on this Mac anymore. Choose another place in Play's menu.</string>
     <string name="status_ios_simulator_not_booted">The simulator %1$s couldn't be started: %2$s</string>
-    <string name="status_ios_simulator_not_shown">The game plays on %1$s, but the Simulator app that shows it couldn't be opened: %2$s. Xcode opens it from Open Developer Tool, once it is installed.</string>
+    <string name="status_ios_simulator_not_shown">The game plays on %1$s, but neither the Simulator app nor DeviceHub, which show it, could be opened: %2$s. Xcode opens them from Open Developer Tool.</string>
     <string name="status_ios_simulator_shut_down">The simulator %1$s shut down, so the game ended.</string>
     <string name="status_ios_simulator_timed_out">The simulator %1$s wasn't ready within %2$s minutes, so the game wasn't played on it.</string>
     <string name="status_ios_simulators_unreadable">Xcode couldn't list this Mac's simulators, so the game wasn't played. Opening Xcode once may finish setting it up.</string>

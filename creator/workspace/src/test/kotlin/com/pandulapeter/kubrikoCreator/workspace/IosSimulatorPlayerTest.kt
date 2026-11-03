@@ -205,11 +205,16 @@ class IosSimulatorPlayerTest {
     }
 
     @Test
-    fun aSimulatorAppThatCantBeOpenedSaysSoAndTheGamePlaysUnseen() = blockingTest {
+    fun deviceHubShowsTheGameWithoutTheSimulatorAppAndTheConsoleSaysWhenNeitherOpens() = blockingTest {
         tools.answer("simctl list devices available --json", simulator("Booted"))
         builds()
         tools.answer("-a Simulator --args -CurrentDeviceUDID U1", failed("Unable to find application named 'Simulator'\n"))
+        tools.answer("-b com.apple.dt.Devices", ok(""))
         tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false)
+        assertTrue(player().play(target, firstScene = null) {})
+        assertTrue(tools.ran("-b com.apple.dt.Devices"))
+        assertTrue(console.entries.value.none { it is ConsoleEntry.Status && it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN })
+        tools.answer("-b com.apple.dt.Devices", failed("Unable to find application named 'Simulator'\n"))
         assertTrue(player().play(target, firstScene = null) {})
         val notShown = console.entries.value.filterIsInstance<ConsoleEntry.Status>().single { it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN }
         assertEquals(listOf("iPhone 16 (iOS 18.2)", "Unable to find application named 'Simulator'"), notShown.arguments)

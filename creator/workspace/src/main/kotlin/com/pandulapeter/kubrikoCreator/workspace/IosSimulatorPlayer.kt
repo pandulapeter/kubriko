@@ -91,8 +91,9 @@ internal class IosSimulatorPlayer(
     }
 
     /**
-     * Boots the simulator if it is shut down and shows it, returning true once it is ready, or null, as the console says. A
-     * Simulator app that can't be opened (an Xcode without it) leaves the game playing unseen, as the console says too.
+     * Boots the simulator if it is shut down and shows it in the Simulator app, or in DeviceHub, which takes its place in
+     * Xcode 27, returning true once it is ready, or null, as the console says. When neither can be opened, the game plays
+     * unseen, as the console says too.
      */
     private suspend fun booted(simulators: IosSimulators, udid: String, name: String): Boolean? {
         val available = simulators.available() ?: run {
@@ -118,6 +119,8 @@ internal class IosSimulatorPlayer(
             }
         }
         val shown = tools.run(listOf("open", "-a", "Simulator", "--args", "-CurrentDeviceUDID", udid), COMMAND_TIMEOUT_IN_MILLISECONDS)
+            .takeIf { it.isSuccessful }
+            ?: tools.run(listOf("open", "-b", DEVICE_HUB_BUNDLE_ID), COMMAND_TIMEOUT_IN_MILLISECONDS)
         if (!shown.isSuccessful) {
             console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN, isError = true, arguments = listOf(name, failureReasonOf(shown.output, shown.exitCode))))
         }
@@ -190,6 +193,7 @@ internal class IosSimulatorPlayer(
         private const val COMMAND_TIMEOUT_IN_MILLISECONDS = 10_000L
         private const val INSTALL_TIMEOUT_IN_MILLISECONDS = 2 * 60_000L
         private const val KOTLIN_ERROR_PREFIX = "e: "
+        private const val DEVICE_HUB_BUNDLE_ID = "com.apple.dt.Devices"
 
         /**
          * Runs a command in a terminal of its own, since `simctl` holds back what it prints into a pipe, the line naming
