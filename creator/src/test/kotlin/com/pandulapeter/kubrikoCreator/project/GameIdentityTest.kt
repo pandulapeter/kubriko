@@ -12,12 +12,6 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_identity_application_id_invalid
-import kubriko.creator.generated.resources.error_identity_name_invalid
-import kubriko.creator.generated.resources.error_identity_text_invalid
-import kubriko.creator.generated.resources.error_identity_version_name_invalid
-import kubriko.creator.generated.resources.error_identity_version_number_invalid
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -38,17 +32,17 @@ class GameIdentityTest {
     fun whatInstallersAndStoresRefuseIsRejected() {
         assertNull(identity.validate())
         assertNull(identity.copy(versionName = "2", versionNumber = 2_100_000_000, applicationId = "io.github.Me_2.game").validate())
-        assertEquals(Res.string.error_identity_name_invalid, identity.copy(name = " ").validate()?.first)
-        assertEquals(Res.string.error_identity_name_invalid, identity.copy(name = "a\nb").validate()?.first)
+        assertEquals(IdentityProblem.NAME_INVALID, identity.copy(name = " ").validate()?.first)
+        assertEquals(IdentityProblem.NAME_INVALID, identity.copy(name = "a\nb").validate()?.first)
         listOf("0.1", "1.2.3.4", "1.", "v1", "").forEach { versionName ->
-            assertEquals(Res.string.error_identity_version_name_invalid to listOf(versionName), identity.copy(versionName = versionName).validate(), versionName)
+            assertEquals(IdentityProblem.VERSION_NAME_INVALID to listOf(versionName), identity.copy(versionName = versionName).validate(), versionName)
         }
-        assertEquals(Res.string.error_identity_version_number_invalid, identity.copy(versionNumber = 0).validate()?.first)
+        assertEquals(IdentityProblem.VERSION_NUMBER_INVALID, identity.copy(versionNumber = 0).validate()?.first)
         listOf("game", "com.1game", "com..game", "com.my-game").forEach { applicationId ->
-            assertEquals(Res.string.error_identity_application_id_invalid, identity.copy(applicationId = applicationId).validate()?.first, applicationId)
+            assertEquals(IdentityProblem.APPLICATION_ID_INVALID, identity.copy(applicationId = applicationId).validate()?.first, applicationId)
         }
-        assertEquals(Res.string.error_identity_text_invalid, identity.copy(vendor = "x".repeat(201)).validate()?.first)
-        assertEquals(Res.string.error_identity_text_invalid, identity.copy(description = "a\rb").validate()?.first)
+        assertEquals(IdentityProblem.TEXT_INVALID, identity.copy(vendor = "x".repeat(201)).validate()?.first)
+        assertEquals(IdentityProblem.TEXT_INVALID, identity.copy(description = "a\rb").validate()?.first)
     }
 
     @Test

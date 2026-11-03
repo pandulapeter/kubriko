@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_no_desktop_module
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -44,7 +42,7 @@ class ProjectInspectorTest {
         val exception = assertFailsWith<ProjectInspectionException> {
             ProjectInspector.findDesktopModulePath(ModuleNode(":", setOf("build"), listOf(ModuleNode(":android", setOf("assemble")))))
         }
-        assertEquals(Res.string.error_no_desktop_module, exception.reason)
+        assertEquals(ProjectProblem.NO_DESKTOP_MODULE, exception.reason)
     }
 
     @Test

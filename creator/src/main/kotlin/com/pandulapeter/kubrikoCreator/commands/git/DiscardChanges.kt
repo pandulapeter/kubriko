@@ -11,18 +11,16 @@ package com.pandulapeter.kubrikoCreator.commands.git
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.GitState
+import com.pandulapeter.kubrikoCreator.git.GitStatus
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_change_missing
-import kubriko.creator.generated.resources.error_command_no_repository
-import kubriko.creator.generated.resources.status_git_failed
 
 @OptIn(EditorMutation::class)
 internal object DiscardChanges : WriteCommand<DiscardChanges.Input> {
@@ -34,16 +32,16 @@ internal object DiscardChanges : WriteCommand<DiscardChanges.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.VersionControl
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when (val state = context.git.state.value) {
-        GitState.Loading, GitState.NoRepository -> Rejection(Res.string.error_command_no_repository)
+        GitState.Loading, GitState.NoRepository -> Rejection(CommandProblem.NO_REPOSITORY)
         is GitState.Ready -> {
             val changedPaths = state.changes.flatMap { it.paths }.toSet()
-            input.paths.firstOrNull { it !in changedPaths }?.let { Rejection(Res.string.error_command_change_missing, it) }
+            input.paths.firstOrNull { it !in changedPaths }?.let { Rejection(CommandProblem.CHANGE_MISSING, it) }
         }
     }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         if (!context.awaitWrites()) return Applied.failed(context.unsavedWrite())
-        if (!context.git.discard(input.paths)) return Applied.failed(Res.string.status_git_failed)
+        if (!context.git.discard(input.paths)) return Applied.failed(GitStatus.FAILED)
         context.reloadTypes()
         return Applied(inverse = null, isRewritingFiles = true)
     }

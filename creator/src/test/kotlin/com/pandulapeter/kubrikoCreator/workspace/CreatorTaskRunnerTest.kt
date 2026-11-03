@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy
 import com.pandulapeter.kubrikoCreator.project.ExpectDeclarations
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
@@ -27,14 +28,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_no_desktop_module
-import kubriko.creator.generated.resources.error_not_a_gradle_project
-import kubriko.creator.generated.resources.status_build_failed
-import kubriko.creator.generated.resources.status_building
-import kubriko.creator.generated.resources.status_building_with_unsaved_types
-import kubriko.creator.generated.resources.status_building_with_unwritten_generated_code
-import kubriko.creator.generated.resources.status_built
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -96,10 +89,10 @@ class CreatorTaskRunnerTest {
 
     @Test
     fun aProjectWithoutADesktopModuleSaysWhyItCantBuild() = runTest {
-        val result = start(createRunner(findDesktopModulePath = { throw ProjectInspectionException(Res.string.error_no_desktop_module) }))
+        val result = start(createRunner(findDesktopModulePath = { throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) }))
         assertFalse(result.await())
         assertEquals(
-            listOf(ConsoleEntry.Status(Res.string.status_building), ConsoleEntry.Status(Res.string.error_no_desktop_module, isError = true)),
+            listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(ProjectProblem.NO_DESKTOP_MODULE, isError = true)),
             console.entries.value,
         )
         assertTrue(build.runs.isEmpty())
@@ -110,7 +103,7 @@ class CreatorTaskRunnerTest {
         val result = start(createRunner(findDesktopModulePath = { throw IllegalStateException("Broken.") }))
         assertFalse(result.await())
         assertEquals(
-            listOf(ConsoleEntry.Status(Res.string.status_building), ConsoleEntry.Status(Res.string.error_not_a_gradle_project, isError = true)),
+            listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(ProjectProblem.NOT_A_GRADLE_PROJECT, isError = true)),
             console.entries.value,
         )
         assertTrue(build.runs.isEmpty())
@@ -122,7 +115,7 @@ class CreatorTaskRunnerTest {
         val result = start(createRunner(findDesktopModulePath = { lookup.await() }))
         result.cancel()
         assertTrue(result.isCancelled)
-        assertEquals(listOf(ConsoleEntry.Status(Res.string.status_building)), console.entries.value)
+        assertEquals(listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING)), console.entries.value)
         assertTrue(build.runs.isEmpty())
     }
 
@@ -147,14 +140,14 @@ class CreatorTaskRunnerTest {
         start(createRunner(awaitWrites = { UnsavedWrites(subjects = "Ball, Wall", reason = "Locked.") }))
         assertEquals(1, build.runs.size)
         assertEquals(
-            ConsoleEntry.Status(Res.string.status_building_with_unsaved_types, isError = true, arguments = listOf("Ball, Wall", "Locked.")),
+            ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES, isError = true, arguments = listOf("Ball, Wall", "Locked.")),
             console.entries.value.filterIsInstance<ConsoleEntry.Status>()[1],
         )
         build.currentRun.finish(isSuccessful = true)
         start(createRunner(awaitWrites = { UnsavedWrites(subjects = null, reason = "Broken.") }))
         assertContains(
             console.entries.value,
-            ConsoleEntry.Status(Res.string.status_building_with_unwritten_generated_code, isError = true, arguments = listOf("Broken.")),
+            ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNWRITTEN_GENERATED_CODE, isError = true, arguments = listOf("Broken.")),
         )
     }
 
@@ -198,7 +191,7 @@ class CreatorTaskRunnerTest {
         repeat(40) { build.currentRun.onEvent(GradleBuildEvent.Output("line $it", isError = it % 2 == 0)) }
         build.currentRun.finish(isSuccessful = false)
         assertFalse(result.await())
-        assertEquals(Res.string.status_build_failed, statuses.last())
+        assertEquals(WorkspaceStatus.BUILD_FAILED, statuses.last())
         assertEquals((10 until 40).map { "line $it" }, console.entries.value.filterIsInstance<ConsoleEntry.BuildOutput>().map { it.line })
     }
 
@@ -208,7 +201,7 @@ class CreatorTaskRunnerTest {
         (1..35).forEach { build.currentRun.onEvent(GradleBuildEvent.Output("line $it", isError = false)) }
         build.currentRun.finish(isSuccessful = false)
         assertEquals(
-            listOf(ConsoleEntry.Status(Res.string.status_building), ConsoleEntry.Status(Res.string.status_build_failed, isError = true)) +
+            listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(WorkspaceStatus.BUILD_FAILED, isError = true)) +
                 (6..35).map { ConsoleEntry.BuildOutput("line $it") },
             console.entries.value,
         )
@@ -230,7 +223,7 @@ class CreatorTaskRunnerTest {
         build.currentRun.finish(isSuccessful = true)
         assertTrue(result.await())
         assertEquals(
-            listOf(ConsoleEntry.Status(Res.string.status_building), ConsoleEntry.Status(Res.string.status_built, arguments = listOf("1.5"))),
+            listOf(ConsoleEntry.Status(WorkspaceStatus.BUILDING), ConsoleEntry.Status(WorkspaceStatus.BUILT, arguments = listOf("1.5"))),
             console.entries.value,
         )
     }
@@ -243,7 +236,7 @@ class CreatorTaskRunnerTest {
 
     @Test
     fun warmingUpWithoutADesktopModuleDoesNothing() = runTest {
-        val runner = createRunner(findDesktopModulePath = { throw ProjectInspectionException(Res.string.error_no_desktop_module) })
+        val runner = createRunner(findDesktopModulePath = { throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) })
         runner.warmUpCompiler()
         assertTrue(build.runs.isEmpty())
         assertTrue(console.entries.value.isEmpty())

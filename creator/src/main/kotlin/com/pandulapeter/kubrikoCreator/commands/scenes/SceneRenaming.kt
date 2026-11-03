@@ -11,14 +11,12 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.withSceneRenamed
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.ProjectTree
 import kotlinx.coroutines.withContext
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_scene_not_moved
-import kubriko.creator.generated.resources.warning_scene_named_in_code
 import java.io.File
 
 /**
@@ -37,7 +35,7 @@ internal suspend fun CommandContext.renameScene(oldName: String, newName: String
         }
     }
     withContext(ioDispatcher) { handWrittenFilesNaming(project.rootDirectory, oldName) }.forEach { path ->
-        report(ConsoleEntry.Status(Res.string.warning_scene_named_in_code, isError = true, arguments = listOf(path, oldName, newName)))
+        report(ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf(path, oldName, newName)))
     }
     return true
 }
@@ -45,7 +43,7 @@ internal suspend fun CommandContext.renameScene(oldName: String, newName: String
 /**
  * Why the Scene [name] couldn't be moved.
  */
-internal fun sceneNotMoved(name: String) = Rejection(Res.string.error_scene_not_moved, name)
+internal fun sceneNotMoved(name: String) = Rejection(CommandProblem.SCENE_NOT_MOVED, name)
 
 /**
  * The Kotlin files outside generated code that name the Scene [name] in a string, like `Game.kt` names the first one.

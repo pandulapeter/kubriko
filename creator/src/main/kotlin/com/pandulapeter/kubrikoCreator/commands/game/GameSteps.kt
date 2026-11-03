@@ -10,16 +10,12 @@
 package com.pandulapeter.kubrikoCreator.commands.game
 
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.project.toJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_game_command_failed
-import kubriko.creator.generated.resources.error_game_no_answer
-import kubriko.creator.generated.resources.error_game_not_running
-import kubriko.creator.generated.resources.error_game_unsupported
 import java.awt.event.KeyEvent
 
 /**
@@ -28,10 +24,10 @@ import java.awt.event.KeyEvent
  */
 internal suspend fun GameStep.toOutcome() = when (this) {
     is GameStep.Done -> CommandOutcome.Success(result = buildJsonObject { put("console", console.toJsonArray()) }, image = png)
-    GameStep.NotPlaying -> CommandOutcome.Rejected(Rejection(Res.string.error_game_not_running))
-    GameStep.Unsupported -> CommandOutcome.Rejected(Rejection(Res.string.error_game_unsupported))
-    GameStep.NoAnswer -> CommandOutcome.Rejected(Rejection(Res.string.error_game_no_answer))
-    is GameStep.Failed -> CommandOutcome.Rejected(Rejection(Res.string.error_game_command_failed, message))
+    GameStep.NotPlaying -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NOT_RUNNING))
+    GameStep.Unsupported -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_UNSUPPORTED))
+    GameStep.NoAnswer -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NO_ANSWER))
+    is GameStep.Failed -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_COMMAND_FAILED, message))
 }
 
 /**

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
@@ -27,9 +28,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_page_invalid
 
 internal object ReadScene : ReadCommand<ReadScene.Input> {
     override val name = "read_scene"
@@ -42,8 +40,8 @@ internal object ReadScene : ReadCommand<ReadScene.Input> {
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome = withContext(context.ioDispatcher) {
         val rejection = context.validateScene(input.scene) ?: when {
-            input.offset < 0 || input.count < 1 -> Rejection(Res.string.error_command_page_invalid)
-            listOfNotNull(input.left, input.top, input.right, input.bottom).any { !it.isFinite() } -> Rejection(Res.string.error_command_number_invalid)
+            input.offset < 0 || input.count < 1 -> Rejection(CommandProblem.PAGE_INVALID)
+            listOfNotNull(input.left, input.top, input.right, input.bottom).any { !it.isFinite() } -> Rejection(CommandProblem.NUMBER_INVALID)
             else -> null
         }
         rejection?.let { return@withContext CommandOutcome.Rejected(it) }

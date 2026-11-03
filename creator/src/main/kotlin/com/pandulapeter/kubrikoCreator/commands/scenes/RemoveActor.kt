@@ -19,7 +19,6 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
 
 internal object RemoveActor : WriteCommand<RemoveActor.Input> {
     override val name = "remove_actor"

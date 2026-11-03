@@ -11,13 +11,6 @@ package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_identity_application_id_invalid
-import kubriko.creator.generated.resources.error_identity_name_invalid
-import kubriko.creator.generated.resources.error_identity_text_invalid
-import kubriko.creator.generated.resources.error_identity_version_name_invalid
-import kubriko.creator.generated.resources.error_identity_version_number_invalid
-import org.jetbrains.compose.resources.StringResource
 import java.io.File
 
 /**
@@ -40,12 +33,12 @@ internal data class GameIdentity(
     /**
      * Why this can't be the game's identity, with the arguments of the message, or null if it can.
      */
-    fun validate(): Pair<StringResource, List<String>>? = when {
-        name.isBlank() || name.length > MAXIMUM_NAME_LENGTH || name.hasLineBreak() -> Res.string.error_identity_name_invalid to listOf(MAXIMUM_NAME_LENGTH.toString())
-        !versionNamePattern.matches(versionName) -> Res.string.error_identity_version_name_invalid to listOf(versionName)
-        versionNumber !in 1..MAXIMUM_VERSION_NUMBER -> Res.string.error_identity_version_number_invalid to listOf(MAXIMUM_VERSION_NUMBER.toString())
-        !isValidApplicationId(applicationId) -> Res.string.error_identity_application_id_invalid to listOf(applicationId)
-        listOf(vendor, description).any { it.length > MAXIMUM_TEXT_LENGTH || it.hasLineBreak() } -> Res.string.error_identity_text_invalid to listOf(MAXIMUM_TEXT_LENGTH.toString())
+    fun validate(): Pair<IdentityProblem, List<String>>? = when {
+        name.isBlank() || name.length > MAXIMUM_NAME_LENGTH || name.hasLineBreak() -> IdentityProblem.NAME_INVALID to listOf(MAXIMUM_NAME_LENGTH.toString())
+        !versionNamePattern.matches(versionName) -> IdentityProblem.VERSION_NAME_INVALID to listOf(versionName)
+        versionNumber !in 1..MAXIMUM_VERSION_NUMBER -> IdentityProblem.VERSION_NUMBER_INVALID to listOf(MAXIMUM_VERSION_NUMBER.toString())
+        !isValidApplicationId(applicationId) -> IdentityProblem.APPLICATION_ID_INVALID to listOf(applicationId)
+        listOf(vendor, description).any { it.length > MAXIMUM_TEXT_LENGTH || it.hasLineBreak() } -> IdentityProblem.TEXT_INVALID to listOf(MAXIMUM_TEXT_LENGTH.toString())
         else -> null
     }
 

@@ -17,6 +17,8 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
@@ -24,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -54,23 +57,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_changed_outside
-import kubriko.creator.generated.resources.error_no_desktop_module
-import kubriko.creator.generated.resources.error_project_newer_format
-import kubriko.creator.generated.resources.error_project_newer_format_unknown_version
-import kubriko.creator.generated.resources.error_scene_name_invalid
-import kubriko.creator.generated.resources.error_type_name_invalid
-import kubriko.creator.generated.resources.status_block_type_not_saved
-import kubriko.creator.generated.resources.status_building
-import kubriko.creator.generated.resources.status_building_with_unsaved_types
-import kubriko.creator.generated.resources.status_built
-import kubriko.creator.generated.resources.status_game_failed
-import kubriko.creator.generated.resources.status_game_not_started
-import kubriko.creator.generated.resources.status_game_reloaded
-import kubriko.creator.generated.resources.status_kotlin_block_scope_changed
-import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
-import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -155,7 +141,7 @@ class WorkspaceControllerTest {
         val controller = createController(scanResources = { _, _ -> if (isFailing) throw IllegalStateException("Broken.") else mapOf(ResourceGroup.SCENES to listOf(scene)) })
         isFailing = true
         controller.refreshResources()
-        assertContains(controller.statuses, Res.string.status_unexpected_problem)
+        assertContains(controller.statuses, WorkspaceStatus.UNEXPECTED_PROBLEM)
         isFailing = false
         controller.refreshResources()
         assertEquals(mapOf(ResourceGroup.SCENES to listOf(scene)), controller.resources.value)
@@ -168,7 +154,7 @@ class WorkspaceControllerTest {
             findDesktopModulePath = { ":desktop" },
             gitRepository = FakeGitRepository(),
         )
-        assertEquals(emptyList(), controller.console.value.filterIsInstance<ConsoleEntry.Status>().filter { it.text == Res.string.status_unexpected_problem })
+        assertEquals(emptyList(), controller.console.value.filterIsInstance<ConsoleEntry.Status>().filter { it.text == WorkspaceStatus.UNEXPECTED_PROBLEM })
         assertEquals(listOf("Ball"), controller.blockTypes?.types?.value?.map { it.name })
     }
 
@@ -211,7 +197,7 @@ class WorkspaceControllerTest {
         assertContains(arguments, "-PkubrikoCreatorPort=${channel.port}")
         assertContains(arguments, "-PkubrikoCreatorMode=play")
         assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
-        assertEquals(listOf(Res.string.status_building, Res.string.status_built, Res.string.status_building), controller.statuses)
+        assertEquals(listOf(WorkspaceStatus.BUILDING, WorkspaceStatus.BUILT, WorkspaceStatus.BUILDING), controller.statuses)
     }
 
     @Test
@@ -229,7 +215,7 @@ class WorkspaceControllerTest {
         val controller = createController(
             findDesktopModulePath = {
                 lookups++
-                if (lookups == 1) throw ProjectInspectionException(Res.string.error_no_desktop_module) else ":"
+                if (lookups == 1) throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) else ":"
             },
         )
         controller.play()
@@ -324,7 +310,7 @@ class WorkspaceControllerTest {
         repository.failingNames += "Player"
         assertNull(controller.createActorType("Player"))
         controller.play()
-        assertContains(controller.console.value, ConsoleEntry.Status(Res.string.status_building_with_unsaved_types, isError = true, arguments = listOf("Player", "Locked.")))
+        assertContains(controller.console.value, ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES, isError = true, arguments = listOf("Player", "Locked.")))
         assertEquals(1, build.runs.size)
     }
 
@@ -345,7 +331,7 @@ class WorkspaceControllerTest {
         build.currentRun.finish(isSuccessful = false)
         assertEquals(":${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
         assertFalse("--rerun-tasks" in build.currentRun.arguments, "a failed warm-up doesn't make the next build a clean one")
-        assertEquals(console + ConsoleEntry.Status(Res.string.status_building), controller.console.value)
+        assertEquals(console + ConsoleEntry.Status(WorkspaceStatus.BUILDING), controller.console.value)
     }
 
     @Test
@@ -363,7 +349,7 @@ class WorkspaceControllerTest {
             assertEquals(GameLaunch(File("/jdk/bin/java"), "game.MainKt", File("/game"), emptyList(), listOf(File("/game/classes"))), launch)
             assertEquals(mapOf("kubriko.creator.port" to channel.port.toString(), "kubriko.creator.logging" to "true", "kubriko.creator.scene" to "levels/1-1"), properties)
             exit.complete(GameProcess.Exit(1, listOf("Exception in thread \"main\"")))
-            assertEquals(Res.string.status_game_failed, controller.statuses.last())
+            assertEquals(WorkspaceStatus.GAME_FAILED, controller.statuses.last())
             assertEquals(ConsoleEntry.BuildOutput("Exception in thread \"main\""), controller.console.value.last())
             assertEquals(SessionState.Idle, controller.sessionState.value)
         } finally {
@@ -440,7 +426,7 @@ class WorkspaceControllerTest {
             controller.play()
             playClasspathFile.writeText("kubrikoVersion=1.0.0\nlaunch.java=/java\nlaunch.mainClass=M\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
             build.currentRun.finish(isSuccessful = true)
-            assertEquals(Res.string.status_game_not_started, controller.statuses.last())
+            assertEquals(WorkspaceStatus.GAME_NOT_STARTED, controller.statuses.last())
             assertEquals(SessionState.Idle, controller.sessionState.value)
         } finally {
             playClasspathFile.delete()
@@ -502,7 +488,7 @@ class WorkspaceControllerTest {
             build.currentRun.finish(isSuccessful = true)
             assertEquals(":hotReloadDesktopMain", build.currentRun.taskPath)
             build.currentRun.finish(isSuccessful = true)
-            assertContains(controller.statuses, Res.string.status_game_reloaded)
+            assertContains(controller.statuses, WorkspaceStatus.GAME_RELOADED)
             assertEquals(1, launches.size)
         } finally {
             playClasspathFile.delete()
@@ -530,9 +516,9 @@ class WorkspaceControllerTest {
             File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("fun main() {\n    KubrikoWiring.isLoggingEnabled = true\n}\n")
             val controller = createController(rootDirectory = root)
             controller.play()
-            assertTrue(Res.string.status_play_from_scene_needs_upgrade !in controller.statuses)
+            assertTrue(WorkspaceStatus.PLAY_FROM_SCENE_NEEDS_UPGRADE !in controller.statuses)
             controller.play(firstScene = "main")
-            assertContains(controller.statuses, Res.string.status_play_from_scene_needs_upgrade)
+            assertContains(controller.statuses, WorkspaceStatus.PLAY_FROM_SCENE_NEEDS_UPGRADE)
         } finally {
             root.deleteRecursively()
         }
@@ -600,7 +586,7 @@ class WorkspaceControllerTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository().apply { isFailing = true })
         controller.clearConsole()
         controller.createActorType("Player")
-        assertEquals(listOf(ConsoleEntry.Status(Res.string.status_block_type_not_saved, isError = true, arguments = listOf("Player", "Disk full."))), controller.console.value)
+        assertEquals(listOf(ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPE_NOT_SAVED, isError = true, arguments = listOf("Player", "Disk full."))), controller.console.value)
     }
 
     @Test
@@ -615,15 +601,15 @@ class WorkspaceControllerTest {
         val controller = createController(blockTypeRepository = repository)
         runCurrent()
         assertEquals(
-            listOf(ConsoleEntry.Status(Res.string.status_kotlin_block_scope_changed, isError = true, arguments = listOf("Ball"))),
-            controller.console.value.filter { it is ConsoleEntry.Status && it.text == Res.string.status_kotlin_block_scope_changed },
+            listOf(ConsoleEntry.Status(WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED, isError = true, arguments = listOf("Ball"))),
+            controller.console.value.filter { it is ConsoleEntry.Status && it.text == WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED },
         )
     }
 
     @Test
     fun anActorTypeNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository())
-        assertEquals(Res.string.error_type_name_invalid, controller.createActorType("ball game"))
+        assertEquals(NameProblem.TYPE_INVALID, controller.createActorType("ball game")?.reason)
         assertTrue(controller.blockTypes!!.actorTypes.value.isEmpty())
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
@@ -631,7 +617,7 @@ class WorkspaceControllerTest {
     @Test
     fun aSceneNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController()
-        assertEquals(Res.string.error_scene_name_invalid, controller.createScene("my level"))
+        assertEquals(CommandProblem.SCENE_NAME_INVALID, controller.createScene("my level")?.reason)
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
 
@@ -644,7 +630,7 @@ class WorkspaceControllerTest {
         controller.onProjectChanged(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS))
         controller.clearConsole()
         controller.commands.undo()
-        assertEquals(listOf(ConsoleEntry.Status(Res.string.error_command_changed_outside, isError = true, arguments = listOf("Player"))), controller.console.value)
+        assertEquals(listOf(ConsoleEntry.Status(CommandProblem.CHANGED_OUTSIDE, isError = true, arguments = listOf("Player"))), controller.console.value)
     }
 
     @Test
@@ -728,7 +714,7 @@ class WorkspaceControllerTest {
             controller.onProjectChanged(setOf(ProjectChange.SCENES))
             assertEquals(emptyList(), repository.writes)
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
-            assertEquals(Res.string.error_project_newer_format, controller.createActorType("Ball"))
+            assertEquals(ProjectProblem.NEWER_FORMAT, controller.createActorType("Ball")?.reason)
             settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": ${ProjectFormat.CURRENT_VERSION} }""")
             controller.onProjectChanged(setOf(ProjectChange.SETTINGS))
             assertEquals(ProjectFormatStatus.Writable, controller.formatStatus.value)
@@ -750,7 +736,7 @@ class WorkspaceControllerTest {
             settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": 99 }""")
             controller.onProjectChanged(setOf(ProjectChange.SETTINGS))
             assertEquals(ProjectFormatStatus.ReadOnly(99, null), controller.formatStatus.value)
-            assertEquals(Res.string.error_project_newer_format_unknown_version, controller.createScene("level"))
+            assertEquals(ProjectProblem.NEWER_FORMAT_UNKNOWN_VERSION, controller.createScene("level")?.reason)
         } finally {
             root.deleteRecursively()
         }

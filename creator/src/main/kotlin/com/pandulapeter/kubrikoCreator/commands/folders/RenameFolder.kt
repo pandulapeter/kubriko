@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.folders
 
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -21,8 +22,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_folder_name_invalid
 
 @OptIn(EditorMutation::class)
 internal object RenameFolder : WriteCommand<RenameFolder.Input> {
@@ -34,7 +33,7 @@ internal object RenameFolder : WriteCommand<RenameFolder.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateFolder(input.group, input.path) ?: when {
-        input.path.isEmpty() || FolderPaths.validateName(input.newName) != null -> Rejection(Res.string.error_folder_name_invalid)
+        input.path.isEmpty() || FolderPaths.validateName(input.newName) != null -> Rejection(NameProblem.FOLDER_INVALID)
         else -> context.validateNewFolder(input.group, renamed(input))
     }
 

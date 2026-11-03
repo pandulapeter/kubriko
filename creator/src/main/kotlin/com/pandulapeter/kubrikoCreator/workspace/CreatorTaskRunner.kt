@@ -15,17 +15,11 @@ import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.IncrementalCompilationPolicy
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_not_a_gradle_project
-import kubriko.creator.generated.resources.status_build_failed
-import kubriko.creator.generated.resources.status_building
-import kubriko.creator.generated.resources.status_building_with_unsaved_types
-import kubriko.creator.generated.resources.status_building_with_unwritten_generated_code
-import kubriko.creator.generated.resources.status_built
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -57,12 +51,12 @@ internal class CreatorTaskRunner(
      * @return Whether the build succeeded.
      */
     suspend fun run(taskName: String, properties: Map<String, String>): Boolean {
-        console.append(ConsoleEntry.Status(Res.string.status_building))
+        console.append(ConsoleEntry.Status(WorkspaceStatus.BUILDING))
         awaitWrites()?.let { unsaved ->
             console.append(
                 when (val subjects = unsaved.subjects) {
-                    null -> ConsoleEntry.Status(Res.string.status_building_with_unwritten_generated_code, isError = true, arguments = listOf(unsaved.reason))
-                    else -> ConsoleEntry.Status(Res.string.status_building_with_unsaved_types, isError = true, arguments = listOf(subjects, unsaved.reason))
+                    null -> ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNWRITTEN_GENERATED_CODE, isError = true, arguments = listOf(unsaved.reason))
+                    else -> ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES, isError = true, arguments = listOf(subjects, unsaved.reason))
                 },
             )
         }
@@ -74,7 +68,7 @@ internal class CreatorTaskRunner(
         } catch (exception: CancellationException) {
             throw exception
         } catch (_: Exception) {
-            console.append(ConsoleEntry.Status(Res.string.error_not_a_gradle_project, isError = true))
+            console.append(ConsoleEntry.Status(ProjectProblem.NOT_A_GRADLE_PROJECT, isError = true))
             return false
         }
         var startTime = 0L
@@ -107,11 +101,11 @@ internal class CreatorTaskRunner(
             runBuild()
         }
         if (!isSuccessful) {
-            console.append(ConsoleEntry.Status(Res.string.status_build_failed, isError = true))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.BUILD_FAILED, isError = true))
             if (!hasReportedProblems.get()) synchronized(outputTail) { outputTail.toList() }.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
         }
         if (isSuccessful && taskName == SessionInitScript.CLASSPATH_TASK_NAME) {
-            console.append(ConsoleEntry.Status(Res.string.status_built, arguments = listOf(secondsSince(startTime))))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.BUILT, arguments = listOf(secondsSince(startTime))))
         }
         return isSuccessful
     }

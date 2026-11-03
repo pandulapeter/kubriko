@@ -17,12 +17,14 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -38,30 +40,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_block_missing
-import kubriko.creator.generated.resources.error_command_block_not_allowed
-import kubriko.creator.generated.resources.error_command_event_missing
-import kubriko.creator.generated.resources.error_command_failed
-import kubriko.creator.generated.resources.error_command_index_invalid
-import kubriko.creator.generated.resources.error_command_key_not_allowed
-import kubriko.creator.generated.resources.error_command_music_missing
-import kubriko.creator.generated.resources.error_command_no_actor_types
-import kubriko.creator.generated.resources.error_command_not_changed_by_hand
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
-import kubriko.creator.generated.resources.error_command_property_missing
-import kubriko.creator.generated.resources.error_command_scene_missing
-import kubriko.creator.generated.resources.error_command_size_invalid
-import kubriko.creator.generated.resources.error_command_sound_missing
-import kubriko.creator.generated.resources.error_command_sprite_missing
-import kubriko.creator.generated.resources.error_command_timer_invalid
-import kubriko.creator.generated.resources.error_command_timer_not_allowed
-import kubriko.creator.generated.resources.error_game_key_unknown
-import kubriko.creator.generated.resources.error_property_name_taken
-import kubriko.creator.generated.resources.error_type_name_invalid
-import kubriko.creator.generated.resources.error_type_name_taken
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
@@ -112,29 +90,29 @@ class ActorTypeCommandsTest {
     @Test
     fun namesAndContentsOfNewActorTypesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(Res.string.error_type_name_invalid), context.rejection(CreateActorType, ActorTypeDefinition("ball game")))
-        assertEquals(Rejection(Res.string.error_type_name_taken), context.rejection(CreateActorType, ActorTypeDefinition("WALL")))
-        assertEquals(Rejection(Res.string.error_command_size_invalid), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", width = 0f)))
-        assertEquals(Rejection(Res.string.error_command_key_not_allowed), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, key = KeyChoice.A)))))
+        assertEquals(Rejection(NameProblem.TYPE_INVALID), context.rejection(CreateActorType, ActorTypeDefinition("ball game")))
+        assertEquals(Rejection(NameProblem.TYPE_TAKEN), context.rejection(CreateActorType, ActorTypeDefinition("WALL")))
+        assertEquals(Rejection(CommandProblem.SIZE_INVALID), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", width = 0f)))
+        assertEquals(Rejection(CommandProblem.KEY_NOT_ALLOWED), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, key = KeyChoice.A)))))
         assertEquals(
-            Rejection(Res.string.error_command_other_actor_type_not_allowed),
+            Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, otherActorType = "Ball")))),
         )
         assertEquals(
-            Rejection(Res.string.error_command_actor_type_missing, "Ghost"),
+            Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Ghost")))),
         )
         assertNull(context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Paddle")))))
         assertEquals(
-            Rejection(Res.string.error_command_block_not_allowed, "bounceOffEdge", "everyFrame"),
+            Rejection(CommandProblem.BLOCK_NOT_ALLOWED, "bounceOffEdge", "everyFrame"),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.BounceOffEdge))))),
         )
         assertEquals(
-            Rejection(Res.string.error_command_number_invalid),
+            Rejection(CommandProblem.NUMBER_INVALID),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(Float.NaN, 0f)))))),
         )
-        assertEquals(Rejection(Res.string.error_type_name_taken), context.rejection(RenameActorType, RenameActorType.Input("Ball", "Wall")))
-        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Ghost"), context.rejection(DeleteActorType, DeleteActorType.Input("Ghost")))
+        assertEquals(Rejection(NameProblem.TYPE_TAKEN), context.rejection(RenameActorType, RenameActorType.Input("Ball", "Wall")))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(DeleteActorType, DeleteActorType.Input("Ghost")))
     }
 
     @Test
@@ -142,19 +120,19 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("hp"))), wall, spriteFiles = SpriteFiles())
         val setsHp = EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetNumber("hp", 1f)))
         assertNull(context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Ball", events = listOf(setsHp))))
-        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Nope"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Nope")))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Nope"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", parent = "Nope")))
         assertEquals(
-            Rejection(Res.string.error_command_scene_missing, "nowhere"),
+            Rejection(CommandProblem.SCENE_MISSING, "nowhere"),
             context.rejection(CreateActorType, ActorTypeDefinition("Bat", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.GoToScene("nowhere")))))),
         )
-        assertEquals(Rejection(Res.string.error_command_sprite_missing, "drawable/bat.png"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", sprite = "drawable/bat.png")))
+        assertEquals(Rejection(CommandProblem.SPRITE_MISSING, "drawable/bat.png"), context.rejection(CreateActorType, ActorTypeDefinition("Bat", sprite = "drawable/bat.png")))
     }
 
     @Test
     fun projectsWithoutBlockBuiltActorTypesRejectActorTypeCommands() = runTest {
         val context = commandContext(blockTypes = null)
-        assertEquals(Rejection(Res.string.error_command_no_actor_types), context.rejection(CreateActorType, ball))
-        assertEquals(Rejection(Res.string.error_command_no_actor_types), context.rejection(SetAppearance, SetAppearance.Input("Ball", width = 1f)))
+        assertEquals(Rejection(CommandProblem.NO_ACTOR_TYPES), context.rejection(CreateActorType, ball))
+        assertEquals(Rejection(CommandProblem.NO_ACTOR_TYPES), context.rejection(SetAppearance, SetAppearance.Input("Ball", width = 1f)))
     }
 
     @Test
@@ -162,7 +140,7 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball)
         val changed = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", color = 0xFF112233, height = 12f))) { context.ball() }
         assertEquals(ball.copy(color = 0xFF112233, height = 12f), changed)
-        assertEquals(Rejection(Res.string.error_command_size_invalid), context.rejection(SetAppearance, SetAppearance.Input("Ball", width = -1f)))
+        assertEquals(Rejection(CommandProblem.SIZE_INVALID), context.rejection(SetAppearance, SetAppearance.Input("Ball", width = -1f)))
         assertEquals(SetAppearance.mergeKey(SetAppearance.Input("Ball", width = 1f)), SetAppearance.mergeKey(SetAppearance.Input("Ball", width = 2f)))
         assertEquals(false, SetAppearance.mergeKey(SetAppearance.Input("Ball", width = 1f)) == SetAppearance.mergeKey(SetAppearance.Input("Ball", height = 1f)))
     }
@@ -177,8 +155,8 @@ class ActorTypeCommandsTest {
         val resized = context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ball.png", width = 50f))) { context.ball() }
         assertEquals(ball.copy(sprite = "drawable/ball.png", width = 50f, height = 16f), resized)
         assertEquals(ball.copy(width = 50f, height = 16f), context.assertRoundTrip(Invocation(SetAppearance, SetAppearance.Input("Ball", sprite = ""))) { context.ball() })
-        assertEquals(Rejection(Res.string.error_command_sprite_missing, "drawable/ghost.png"), context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ghost.png")))
-        assertEquals(Rejection(Res.string.error_command_sprite_missing, "files/ball.png"), commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "files/ball.png")))
+        assertEquals(Rejection(CommandProblem.SPRITE_MISSING, "drawable/ghost.png"), context.rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/ghost.png")))
+        assertEquals(Rejection(CommandProblem.SPRITE_MISSING, "files/ball.png"), commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "files/ball.png")))
         assertNull(commandContext(ball).rejection(SetAppearance, SetAppearance.Input("Ball", sprite = "drawable/unknown.png")))
         root.deleteRecursively()
     }
@@ -205,15 +183,15 @@ class ActorTypeCommandsTest {
     @Test
     fun eventChangesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(Res.string.error_command_event_missing, "Ball", "3"), context.rejection(RemoveEvent, RemoveEvent.Input("Ball", 3)))
-        assertEquals(Rejection(Res.string.error_command_index_invalid, "3"), context.rejection(MoveEvent, MoveEvent.Input("Ball", 0, 3)))
-        assertEquals(Rejection(Res.string.error_command_key_not_allowed), context.rejection(SetEventKey, SetEventKey.Input("Ball", 0, KeyChoice.A)))
-        assertEquals(Rejection(Res.string.error_command_other_actor_type_not_allowed), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 0, "Wall")))
-        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Ghost"), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 2, "Ghost")))
-        assertEquals(Rejection(Res.string.error_command_key_not_allowed), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, key = KeyChoice.A)))
-        assertEquals(Rejection(Res.string.error_game_key_unknown, "Hyper"), context.rejection(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("Hyper"))))
-        assertEquals(Rejection(Res.string.error_game_key_unknown, "Hyper"), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.KEY_PRESSED, key = KeyChoice("Hyper"))))
-        assertEquals(Rejection(Res.string.error_game_key_unknown, "Hyper"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("Hyper"))))))
+        assertEquals(Rejection(CommandProblem.EVENT_MISSING, "Ball", "3"), context.rejection(RemoveEvent, RemoveEvent.Input("Ball", 3)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "3"), context.rejection(MoveEvent, MoveEvent.Input("Ball", 0, 3)))
+        assertEquals(Rejection(CommandProblem.KEY_NOT_ALLOWED), context.rejection(SetEventKey, SetEventKey.Input("Ball", 0, KeyChoice.A)))
+        assertEquals(Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 0, "Wall")))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), context.rejection(SetEventOtherActorType, SetEventOtherActorType.Input("Ball", 2, "Ghost")))
+        assertEquals(Rejection(CommandProblem.KEY_NOT_ALLOWED), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, key = KeyChoice.A)))
+        assertEquals(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("Hyper"))))
+        assertEquals(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.KEY_PRESSED, key = KeyChoice("Hyper"))))
+        assertEquals(Rejection(CommandProblem.GAME_KEY_UNKNOWN, "Hyper"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice("Hyper"))))))
         assertEquals(KeyChoice("F5"), context.assertRoundTrip(Invocation(SetEventKey, SetEventKey.Input("Ball", 1, KeyChoice("F5")))) { context.ball() }!!.events[1].key)
     }
 
@@ -234,8 +212,8 @@ class ActorTypeCommandsTest {
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/hit.wav"))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlayMusic("files/music/theme.mp3", isLooping = false))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopMusic)))
-        assertEquals(Rejection(Res.string.error_command_sound_missing, "files/music/theme.mp3"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/music/theme.mp3"))))
-        assertEquals(Rejection(Res.string.error_command_music_missing, "files/sounds/hit.wav"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.PlayMusic("files/sounds/hit.wav"))))
+        assertEquals(Rejection(CommandProblem.SOUND_MISSING, "files/music/theme.mp3"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/music/theme.mp3"))))
+        assertEquals(Rejection(CommandProblem.MUSIC_MISSING, "files/sounds/hit.wav"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.PlayMusic("files/sounds/hit.wav"))))
         assertNull(commandContext(ball).rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PlaySound("files/sounds/unknown.wav"))))
     }
 
@@ -246,8 +224,8 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall, rootDirectory = root)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene())))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("level-2"))))
-        assertEquals(Rejection(Res.string.error_command_scene_missing, "ghost"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("ghost"))))
-        assertEquals(Rejection(Res.string.error_command_scene_missing, "ghost"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.GoToScene("ghost"))))
+        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.GoToScene("ghost"))))
+        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.GoToScene("ghost"))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RestartScene)))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.PauseGame(PauseAction.RESUME))))
         root.deleteRecursively()
@@ -258,11 +236,11 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Toggle("isFast"))), wall)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.ChangeNumber())))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.ChangeNumber("score"))))
-        assertEquals(Rejection(Res.string.error_command_property_missing, "lives", "number"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("lives"))))
-        assertEquals(Rejection(Res.string.error_command_property_missing, "isFast", "text"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetText("isFast"))))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("score", Float.NaN))))
+        assertEquals(Rejection(CommandProblem.PROPERTY_MISSING, "lives", "number"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("lives"))))
+        assertEquals(Rejection(CommandProblem.PROPERTY_MISSING, "isFast", "text"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.SetText("isFast"))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.SetNumber("score", Float.NaN))))
         assertEquals(
-            Rejection(Res.string.error_property_name_taken),
+            Rejection(NameProblem.PROPERTY_TAKEN),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", properties = listOf(PropertyDefinition.Number("speed"), PropertyDefinition.Text("Speed".lowercase())))),
         )
     }
@@ -273,12 +251,12 @@ class ActorTypeCommandsTest {
         val added = context.assertRoundTrip(Invocation(AddEvent, AddEvent.Input("Ball", EventType.TIMER_FINISHED))) { context.ball() }!!.events.last()
         assertEquals(EventDefinition(EventType.TIMER_FINISHED, timer = "timer"), added)
         assertEquals("spawnEnemy", context.assertRoundTrip(Invocation(SetEventTimer, SetEventTimer.Input("Ball", 3, "spawnEnemy"))) { context.ball() }!!.events[3].timer)
-        assertEquals(Rejection(Res.string.error_command_timer_not_allowed), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 0, "timer2")))
-        assertEquals(Rejection(Res.string.error_command_timer_invalid), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "Spawn")))
-        assertEquals(Rejection(Res.string.error_command_timer_invalid), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "while")))
-        assertEquals(Rejection(Res.string.error_command_timer_not_allowed), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, timer = "timer2")))
-        assertEquals(Rejection(Res.string.error_command_timer_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopTimer(timer = ""))))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(seconds = -1f))))
+        assertEquals(Rejection(CommandProblem.TIMER_NOT_ALLOWED), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 0, "timer2")))
+        assertEquals(Rejection(CommandProblem.TIMER_INVALID), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "Spawn")))
+        assertEquals(Rejection(CommandProblem.TIMER_INVALID), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, "while")))
+        assertEquals(Rejection(CommandProblem.TIMER_NOT_ALLOWED), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, timer = "timer2")))
+        assertEquals(Rejection(CommandProblem.TIMER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopTimer(timer = ""))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(seconds = -1f))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(timer = "timer9", seconds = 0f, isRepeating = true))))
     }
 
@@ -287,8 +265,8 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor())))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.MoveTowardsNearest("Wall"))))
-        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Brick"))))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", x = Float.NaN))))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Brick"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Brick"))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", x = Float.NaN))))
         Invocation(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.AddActor("Wall", 1f, 2f))).apply(context)
         Invocation(RenameActorType, RenameActorType.Input("Wall", "Brick")).apply(context)
         assertEquals(BlockDefinition.AddActor("Brick", 1f, 2f), context.ball()!!.events[0].blocks.last())
@@ -299,19 +277,19 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("score"))), wall)
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("score", value = 3f)))))
         assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = 0))))
-        assertEquals(Rejection(Res.string.error_command_property_missing, "lives", "number"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("lives")))))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Chance(101f)))))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Velocity(value = Float.POSITIVE_INFINITY)))))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = -1))))
+        assertEquals(Rejection(CommandProblem.PROPERTY_MISSING, "lives", "number"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("lives")))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Chance(101f)))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Velocity(value = Float.POSITIVE_INFINITY)))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = -1))))
     }
 
     @Test
     fun blockChangesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(Res.string.error_command_block_not_allowed, "removeOther", "addedToScene"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RemoveOther)))
-        assertEquals(Rejection(Res.string.error_command_block_not_allowed, "bounceOffEdge", "addedToScene"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.BounceOffEdge)))
-        assertEquals(Rejection(Res.string.error_command_block_missing, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
-        assertEquals(Rejection(Res.string.error_command_index_invalid, "2"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
+        assertEquals(Rejection(CommandProblem.BLOCK_NOT_ALLOWED, "removeOther", "addedToScene"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RemoveOther)))
+        assertEquals(Rejection(CommandProblem.BLOCK_NOT_ALLOWED, "bounceOffEdge", "addedToScene"), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.BounceOffEdge)))
+        assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
+        assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
         assertEquals(EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, jump)), EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, stop)))
     }
 
@@ -337,7 +315,7 @@ class ActorTypeCommandsTest {
         assertNull(context.rejection(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input("Ball")))
         assertNull(DiscardChangesMadeByHand.apply(context, DiscardChangesMadeByHand.Input("Ball")).inverse)
         assertEquals("regenerate overwriting Ball", repository.writes.last())
-        assertEquals(Rejection(Res.string.error_command_not_changed_by_hand, "Ball"), context.rejection(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input("Ball")))
+        assertEquals(Rejection(CommandProblem.NOT_CHANGED_BY_HAND, "Ball"), context.rejection(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input("Ball")))
     }
 
     @Test
@@ -364,7 +342,7 @@ class ActorTypeCommandsTest {
         isLocked = true
         val executor = CommandExecutor(context, testScope())
         assertEquals(
-            CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")),
+            CommandOutcome.Rejected(Rejection(CommandProblem.FAILED, "Locked.")),
             executor.execute(Invocation(RenameActorType, RenameActorType.Input("Ball", "Puck"))),
         )
         assertEquals(ball, context.ball())

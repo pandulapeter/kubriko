@@ -21,7 +21,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
-import kubriko.creator.generated.resources.Res
 import java.io.File
 
 internal object GetKubrikoApi : ReadCommand<GetKubrikoApi.Input> {

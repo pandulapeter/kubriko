@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -20,9 +21,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_scene_actor_without_position
 
 internal object MoveActor : WriteCommand<MoveActor.Input> {
     override val name = "move_actor"
@@ -32,8 +30,8 @@ internal object MoveActor : WriteCommand<MoveActor.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorId) ?: when {
-        !input.x.isFinite() || !input.y.isFinite() -> Rejection(Res.string.error_command_number_invalid)
-        SceneDocument.positionOf(context.readScene(input.scene).requireActor(input.actorId).state) == null -> Rejection(Res.string.error_command_scene_actor_without_position, input.actorId)
+        !input.x.isFinite() || !input.y.isFinite() -> Rejection(CommandProblem.NUMBER_INVALID)
+        SceneDocument.positionOf(context.readScene(input.scene).requireActor(input.actorId).state) == null -> Rejection(CommandProblem.SCENE_ACTOR_WITHOUT_POSITION, input.actorId)
         else -> null
     }
 

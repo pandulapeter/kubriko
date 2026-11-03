@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -23,10 +24,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_description_invalid
-import kubriko.creator.generated.resources.error_command_relations_subject
-import kubriko.creator.generated.resources.error_command_scene_missing
 
 @OptIn(EditorMutation::class)
 internal object SetDescription : WriteCommand<SetDescription.Input> {
@@ -39,10 +36,10 @@ internal object SetDescription : WriteCommand<SetDescription.Input> {
     override fun target(context: CommandContext, input: Input) = input.type?.let { CommandTarget.BlockType(it) } ?: input.scene?.let { CommandTarget.Scene(it) }
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
-        (input.type == null) == (input.scene == null) -> Rejection(Res.string.error_command_relations_subject)
-        input.description.length > MAXIMUM_LENGTH || '\n' in input.description -> Rejection(Res.string.error_command_description_invalid, MAXIMUM_LENGTH.toString())
+        (input.type == null) == (input.scene == null) -> Rejection(CommandProblem.RELATIONS_SUBJECT)
+        input.description.length > MAXIMUM_LENGTH || '\n' in input.description -> Rejection(CommandProblem.DESCRIPTION_INVALID, MAXIMUM_LENGTH.toString())
         input.type != null -> context.validateType(input.type)
-        !context.scenes.exists(input.scene!!) -> Rejection(Res.string.error_command_scene_missing, input.scene)
+        !context.scenes.exists(input.scene!!) -> Rejection(CommandProblem.SCENE_MISSING, input.scene)
         else -> null
     }
 

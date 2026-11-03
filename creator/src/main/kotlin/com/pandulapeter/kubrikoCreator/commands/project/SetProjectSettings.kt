@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -21,9 +22,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_project_settings_empty
-import kubriko.creator.generated.resources.error_command_project_settings_unavailable
 
 /**
  * Changes the game's identity, which lives in `gradle.properties` where the build reads it (see [GameIdentity]). The
@@ -39,11 +37,11 @@ internal object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
 
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = if (input == Input()) Rejection(Res.string.error_command_project_settings_empty) else null
+    override fun validate(context: CommandContext, input: Input): Rejection? = if (input == Input()) Rejection(CommandProblem.PROJECT_SETTINGS_EMPTY) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val root = context.project.rootDirectory
-        val previous = GameIdentity.read(root) ?: return@withContext Applied.failed(Res.string.error_command_project_settings_unavailable)
+        val previous = GameIdentity.read(root) ?: return@withContext Applied.failed(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE)
         val changed = input.appliedTo(previous)
         changed.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
         GameIdentity.write(root, changed)

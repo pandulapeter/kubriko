@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
+import com.pandulapeter.kubrikoCreator.foundation.englishWith
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCallPipeline
@@ -50,11 +51,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_mcp_internal
-import kubriko.creator.generated.resources.error_mcp_no_project
-import kubriko.creator.generated.resources.mcp_tool_done
-import org.jetbrains.compose.resources.getString
 import java.io.IOException
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -238,16 +234,16 @@ internal class McpToolServer(
             throw exception
         } catch (throwable: Throwable) {
             // Left to the SDK, the client would only see the message, which for a missing class is just its name.
-            return result(toolName, arguments, getString(Res.string.error_mcp_internal, throwable.toString()), isError = true)
+            return result(toolName, arguments, INTERNAL_ERROR.format(throwable.toString()), isError = true)
         }
         val (result, isError) = when (outcome) {
-            null -> getString(Res.string.error_mcp_no_project) to true
+            null -> NO_PROJECT to true
             is CommandOutcome.Success -> when (val result = remembered(outcome, toolName, arguments, origin, isFull)) {
-                JsonNull -> getString(Res.string.mcp_tool_done)
+                JsonNull -> DONE
                 is JsonPrimitive if result.isString -> result.content
                 else -> result.toString()
             } to false
-            is CommandOutcome.Rejected -> getString(outcome.rejection.reason, *outcome.rejection.arguments.toTypedArray()) to true
+            is CommandOutcome.Rejected -> outcome.rejection.reason.englishWith(outcome.rejection.arguments) to true
         }
         return result(toolName, arguments, result, isError, image = (outcome as? CommandOutcome.Success)?.image)
     }
@@ -295,6 +291,9 @@ internal class McpToolServer(
          */
         const val MCP_REMOTE = "mcp-remote@0.15.2"
         private const val LOG_SIZE = 200
+        private const val INTERNAL_ERROR = "Kubriko Creator ran into an internal error, so nothing was done: %1\$s. This is a problem in Kubriko Creator, not in the request."
+        private const val NO_PROJECT = "No project is open in Kubriko Creator."
+        private const val DONE = "Done."
         val INSTRUCTIONS = """
             Kubriko Creator edits games made with Kubriko, a 2D game engine for Kotlin. Actor types are built from Events
             (when something happens) and Blocks (what happens then), and Kubriko Creator generates Kotlin from them.

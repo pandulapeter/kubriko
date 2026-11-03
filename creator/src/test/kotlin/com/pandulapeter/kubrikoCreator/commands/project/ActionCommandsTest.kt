@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
@@ -22,8 +23,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_play_duration_invalid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -54,7 +53,7 @@ class ActionCommandsTest {
         assertEquals(listOf("play 5000", "play 60000"), runner.calls)
         listOf(0, 61).forEach { seconds ->
             assertEquals(
-                CommandOutcome.Rejected(Rejection(Res.string.error_command_play_duration_invalid, "60")),
+                CommandOutcome.Rejected(Rejection(CommandProblem.PLAY_DURATION_INVALID, "60")),
                 executor.call("play", buildJsonObject { put("seconds", seconds) }),
             )
         }

@@ -11,7 +11,6 @@ package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
-import org.jetbrains.compose.resources.StringResource
 
 /**
  * The Scene shown in Kubriko Creator's own window, if any.
@@ -36,7 +35,7 @@ internal sealed interface SceneEditingState {
      */
     data class Failed(
         val scene: ProjectResource,
-        val reason: StringResource,
+        val reason: SceneProblem,
         val arguments: List<String> = emptyList(),
     ) : SceneEditingState
 
@@ -46,7 +45,7 @@ internal sealed interface SceneEditingState {
      */
     data class Unsupported(
         val scene: ProjectResource,
-        val reason: StringResource,
+        val reason: SceneProblem,
         val arguments: List<String>,
     ) : SceneEditingState
 

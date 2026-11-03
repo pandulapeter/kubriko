@@ -16,7 +16,6 @@ import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.project.GameNotes
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
-import kubriko.creator.generated.resources.Res
 
 internal object ReadGameNotes : ReadCommand<NoInput> {
     override val name = "read_game_notes"

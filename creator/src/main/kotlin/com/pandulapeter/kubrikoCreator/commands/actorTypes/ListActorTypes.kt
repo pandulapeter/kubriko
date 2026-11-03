@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -22,10 +23,6 @@ import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_no_actor_types
-import kubriko.creator.generated.resources.error_command_page_invalid
-import kubriko.creator.generated.resources.error_folder_missing
 
 internal object ListActorTypes : ReadCommand<ListActorTypes.Input> {
     override val name = "list_actor_types"
@@ -35,12 +32,12 @@ internal object ListActorTypes : ReadCommand<ListActorTypes.Input> {
     override val inputSerializer = Input.serializer()
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
-        val actorTypes = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types))
+        val actorTypes = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES))
         val folders = actorTypes.folders.value[BlockTypeKind.ACTOR].orEmpty()
         val folder = input.folder?.trim('/')?.takeIf { it.isNotEmpty() }
         when {
-            input.offset < 0 || input.count < 1 -> return CommandOutcome.Rejected(Rejection(Res.string.error_command_page_invalid))
-            folder != null && folder !in folders -> return CommandOutcome.Rejected(Rejection(Res.string.error_folder_missing, folder))
+            input.offset < 0 || input.count < 1 -> return CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID))
+            folder != null && folder !in folders -> return CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, folder))
         }
         fun isIn(path: String) = folder == null || path == folder || path.startsWith("$folder/")
         val matching = actorTypes.actorTypes.value.filter { isIn(it.folder) }

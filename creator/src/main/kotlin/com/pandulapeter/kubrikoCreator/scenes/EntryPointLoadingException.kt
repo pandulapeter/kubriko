@@ -9,12 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.scenes
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * A project whose entry point couldn't be loaded, with a reason to show the user.
  */
 internal class EntryPointLoadingException(
-    val reason: StringResource,
+    val reason: SceneProblem,
     cause: Throwable? = null,
 ) : Exception(cause)

@@ -10,8 +10,6 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_no_desktop_module
 import org.gradle.tooling.model.GradleProject
 import java.io.File
 
@@ -40,5 +38,5 @@ internal object ProjectInspector {
     suspend fun desktopModulePathOf(connection: GradleProjectConnection) = findDesktopModulePath(ModuleNode.from(connection.model(GradleProject::class.java)))
 
     internal fun findDesktopModulePath(root: ModuleNode) = root.withDescendants().firstOrNull { "run" in it.taskNames }?.path
-        ?: throw ProjectInspectionException(Res.string.error_no_desktop_module)
+        ?: throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE)
 }

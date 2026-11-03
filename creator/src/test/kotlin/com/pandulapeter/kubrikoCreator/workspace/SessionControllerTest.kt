@@ -27,12 +27,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_game_not_started
-import kubriko.creator.generated.resources.status_session_ended
-import kubriko.creator.generated.resources.status_session_started
-import kubriko.creator.generated.resources.status_session_stopped
-import kubriko.creator.generated.resources.status_unsupported_protocol
 import java.io.File
 import java.io.IOException
 import kotlin.test.Test
@@ -75,7 +69,7 @@ class SessionControllerTest {
         controller.play()
         hello()
         assertEquals(SessionState.Running(SessionMode.PLAY), controller.state.value)
-        assertEquals(Res.string.status_session_started, statuses.last())
+        assertEquals(WorkspaceStatus.SESSION_STARTED, statuses.last())
     }
 
     @Test
@@ -93,7 +87,7 @@ class SessionControllerTest {
         hello(protocolVersion = 0)
         assertTrue(build.currentRun.isCancelled)
         assertEquals(SessionState.Idle, controller.state.value)
-        assertContains(console.entries.value, ConsoleEntry.Status(Res.string.status_unsupported_protocol, isError = true))
+        assertContains(console.entries.value, ConsoleEntry.Status(WorkspaceStatus.UNSUPPORTED_PROTOCOL, isError = true))
     }
 
     @Test
@@ -122,7 +116,7 @@ class SessionControllerTest {
         val controller = createController()
         controller.play()
         build.currentRun.finish(isSuccessful = true)
-        assertEquals(listOf(Res.string.status_session_ended), statuses)
+        assertEquals(listOf(WorkspaceStatus.SESSION_ENDED), statuses)
         assertEquals(SessionState.Idle, controller.state.value)
     }
 
@@ -132,7 +126,7 @@ class SessionControllerTest {
         controller.play()
         controller.stop()
         assertTrue(build.currentRun.isCancelled)
-        assertEquals(Res.string.status_session_stopped, statuses.last())
+        assertEquals(WorkspaceStatus.SESSION_STOPPED, statuses.last())
         assertEquals(SessionState.Idle, controller.state.value)
     }
 
@@ -178,7 +172,7 @@ class SessionControllerTest {
         val launch = GameLaunch(File("/java"), "M", File("/game"), emptyList(), listOf(File("/game/classes")))
         val controller = createController(runGame = { _, _ -> throw IOException("x") })
         controller.play(prepareLaunch = { GameLaunchPreparation.Ready(launch) })
-        assertEquals(ConsoleEntry.Status(Res.string.status_game_not_started, isError = true, arguments = listOf("x")), console.entries.value.last())
+        assertEquals(ConsoleEntry.Status(WorkspaceStatus.GAME_NOT_STARTED, isError = true, arguments = listOf("x")), console.entries.value.last())
         assertEquals(SessionState.Idle, controller.state.value)
     }
 

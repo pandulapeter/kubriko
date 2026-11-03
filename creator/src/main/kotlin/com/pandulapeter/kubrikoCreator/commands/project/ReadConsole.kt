@@ -15,7 +15,6 @@ import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
 
 internal object ReadConsole : ReadCommand<ReadConsole.Input> {
     override val name = "read_console"

@@ -52,7 +52,7 @@ internal fun ReadOnlyProjectNotice(
         )
         Text(
             modifier = Modifier.weight(1f),
-            text = stringResource(reason.reason, *reason.arguments.toTypedArray()),
+            text = reason.reason.text(reason.arguments),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onErrorContainer,
         )

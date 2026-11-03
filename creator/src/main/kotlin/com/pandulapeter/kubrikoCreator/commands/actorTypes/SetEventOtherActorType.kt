@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.withEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -22,9 +23,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
 
 @OptIn(EditorMutation::class)
 internal object SetEventOtherActorType : WriteCommand<SetEventOtherActorType.Input> {
@@ -35,13 +33,13 @@ internal object SetEventOtherActorType : WriteCommand<SetEventOtherActorType.Inp
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex) ?: when {
-        context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION -> Rejection(Res.string.error_command_other_actor_type_not_allowed)
-        input.otherActorType != null && context.requireBlockTypes.actorType(input.otherActorType) == null -> Rejection(Res.string.error_command_actor_type_missing, input.otherActorType)
+        context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION -> Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
+        input.otherActorType != null && context.requireBlockTypes.actorType(input.otherActorType) == null -> Rejection(CommandProblem.ACTOR_TYPE_MISSING, input.otherActorType)
         else -> null
     }
 
     override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
-        ?: if (context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION) Rejection(Res.string.error_command_other_actor_type_not_allowed) else null
+        ?: if (context.requireType(input.actorType).events[input.eventIndex].type != EventType.COLLISION) Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.actorType)

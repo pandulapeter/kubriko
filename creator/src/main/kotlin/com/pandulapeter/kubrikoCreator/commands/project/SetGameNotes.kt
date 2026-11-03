@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -21,8 +22,6 @@ import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_game_notes_too_long
 
 @OptIn(EditorMutation::class)
 internal object SetGameNotes : WriteCommand<SetGameNotes.Input> {
@@ -35,7 +34,7 @@ internal object SetGameNotes : WriteCommand<SetGameNotes.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project
 
     override fun validate(context: CommandContext, input: Input): Rejection? =
-        if ((input.text?.length ?: 0) > MAXIMUM_LENGTH) Rejection(Res.string.error_command_game_notes_too_long, MAXIMUM_LENGTH.toString()) else null
+        if ((input.text?.length ?: 0) > MAXIMUM_LENGTH) Rejection(CommandProblem.GAME_NOTES_TOO_LONG, MAXIMUM_LENGTH.toString()) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val root = context.project.rootDirectory

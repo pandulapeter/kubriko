@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.withEventKey
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -23,9 +24,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_key_not_allowed
-import kubriko.creator.generated.resources.error_game_key_unknown
 
 @OptIn(EditorMutation::class)
 internal object SetEventKey : WriteCommand<SetEventKey.Input> {
@@ -37,8 +35,8 @@ internal object SetEventKey : WriteCommand<SetEventKey.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: when {
-            context.requireType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED -> Rejection(Res.string.error_command_key_not_allowed)
-            !input.key.isKnown -> Rejection(Res.string.error_game_key_unknown, input.key.composeKeyName)
+            context.requireType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED -> Rejection(CommandProblem.KEY_NOT_ALLOWED)
+            !input.key.isKnown -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, input.key.composeKeyName)
             else -> null
         }
 

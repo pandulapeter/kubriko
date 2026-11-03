@@ -16,10 +16,12 @@ import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -32,13 +34,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_failed
-import kubriko.creator.generated.resources.error_command_number_invalid
-import kubriko.creator.generated.resources.error_command_property_kind_changed
-import kubriko.creator.generated.resources.error_command_property_unknown
-import kubriko.creator.generated.resources.error_property_name_invalid
-import kubriko.creator.generated.resources.error_property_name_taken
 import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -113,12 +108,12 @@ class PropertyCommandsTest {
     @Test
     fun propertyChangesAreValidated() = runTest {
         val context = context()
-        assertEquals(Rejection(Res.string.error_property_name_taken), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("tiTLE"))))
-        assertEquals(Rejection(Res.string.error_property_name_invalid), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("is shielded"))))
-        assertEquals(Rejection(Res.string.error_command_number_invalid), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Number("lives", Float.NaN))))
-        assertEquals(Rejection(Res.string.error_command_property_unknown, "Player", "lives"), RemoveProperty.validate(context, RemoveProperty.Input("Player", "lives")))
-        assertEquals(Rejection(Res.string.error_command_property_kind_changed), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Text("score"))))
-        assertEquals(Rejection(Res.string.error_property_name_taken), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Number("title"))))
+        assertEquals(Rejection(NameProblem.PROPERTY_TAKEN), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("tiTLE"))))
+        assertEquals(Rejection(NameProblem.PROPERTY_INVALID), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Toggle("is shielded"))))
+        assertEquals(Rejection(CommandProblem.NUMBER_INVALID), AddProperty.validate(context, AddProperty.Input("Player", PropertyDefinition.Number("lives", Float.NaN))))
+        assertEquals(Rejection(CommandProblem.PROPERTY_UNKNOWN, "Player", "lives"), RemoveProperty.validate(context, RemoveProperty.Input("Player", "lives")))
+        assertEquals(Rejection(CommandProblem.PROPERTY_KIND_CHANGED), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Text("score"))))
+        assertEquals(Rejection(NameProblem.PROPERTY_TAKEN), EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Number("title"))))
         assertNull(EditProperty.validate(context, EditProperty.Input("Player", "score", PropertyDefinition.Number("score", 1f))))
     }
 
@@ -172,7 +167,7 @@ class PropertyCommandsTest {
         val scene = context.scenes.read("main")
         val executor = CommandExecutor(context, testScope())
         assertEquals(
-            CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")),
+            CommandOutcome.Rejected(Rejection(CommandProblem.FAILED, "Locked.")),
             executor.execute(Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Number("lives")))),
         )
         assertEquals(player, context.player())
@@ -190,7 +185,7 @@ class PropertyCommandsTest {
         val context = lockableContext(brick, game, actors = listOf(SceneActorEntry("Game", """{"score":1.0}""")))
         val executor = CommandExecutor(context, testScope())
         assertEquals(
-            CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")),
+            CommandOutcome.Rejected(Rejection(CommandProblem.FAILED, "Locked.")),
             executor.execute(Invocation(EditProperty, EditProperty.Input("Game", "score", PropertyDefinition.Number("points")))),
         )
         assertEquals(game, context.blockTypes!!["Game"])

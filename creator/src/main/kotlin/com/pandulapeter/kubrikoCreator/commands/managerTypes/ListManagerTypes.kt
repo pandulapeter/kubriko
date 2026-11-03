@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.managerTypes
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -21,8 +22,6 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_no_actor_types
 
 internal object ListManagerTypes : ReadCommand<NoInput> {
     override val name = "list_manager_types"
@@ -30,7 +29,7 @@ internal object ListManagerTypes : ReadCommand<NoInput> {
     override val inputSerializer = NoInput.serializer()
 
     override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome {
-        val types = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types))
+        val types = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES))
         return CommandOutcome.Success(
             JsonArray(
                 types.managerTypes.value.map { definition ->

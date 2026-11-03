@@ -21,6 +21,7 @@ import com.pandulapeter.kubrikoCreator.actors.withPropertyReplaced
 import com.pandulapeter.kubrikoCreator.actors.withPropertyUsesRenamed
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -30,9 +31,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_property_inherited
-import kubriko.creator.generated.resources.error_command_property_kind_changed
 
 /**
  * Renames a Property or changes its initial value. Its kind stays, since the Scenes keep values of that kind.
@@ -50,7 +48,7 @@ internal object EditProperty : WriteCommand<EditProperty.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateProperty(input.actorType, input.property)
         ?: context.requireType(input.actorType).let { definition ->
             if (PropertyKind.of(definition.properties.first { it.name == input.property }) != PropertyKind.of(input.newProperty)) {
-                Rejection(Res.string.error_command_property_kind_changed)
+                Rejection(CommandProblem.PROPERTY_KIND_CHANGED)
             } else {
                 validateProperty(input.newProperty, definition.properties, replacedName = input.property)
                     ?: if (definition is ActorTypeDefinition && input.newProperty.name != input.property) context.validateFamilyRename(definition.name, input.property, input.newProperty.name) else null
@@ -64,7 +62,7 @@ internal object EditProperty : WriteCommand<EditProperty.Input> {
     private fun CommandContext.validateFamilyRename(actorType: String, oldName: String, newName: String): Rejection? {
         val family = ActorTypeFamily(requireBlockTypes.actorTypes.value)
         val declarer = family.declarerOf(actorType, oldName)
-        if (declarer != null && declarer != actorType) return Rejection(Res.string.error_command_property_inherited, oldName, declarer)
+        if (declarer != null && declarer != actorType) return Rejection(CommandProblem.PROPERTY_INHERITED, oldName, declarer)
         return family.familyOf(actorType).firstNotNullOfOrNull { member ->
             val names = (family.propertiesOf(member) + requireActorType(member).properties).map { it.name }.filter { it != oldName }
             PropertyNaming.validate(newName, names)?.let(::Rejection)

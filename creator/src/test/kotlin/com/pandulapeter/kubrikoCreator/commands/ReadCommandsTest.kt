@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.FileChange
+import com.pandulapeter.kubrikoCreator.git.GitStatus
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -40,14 +41,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_no_actor_types
-import kubriko.creator.generated.resources.error_command_page_invalid
-import kubriko.creator.generated.resources.error_command_scene_actor_missing
-import kubriko.creator.generated.resources.error_command_scene_missing
-import kubriko.creator.generated.resources.error_folder_missing
-import kubriko.creator.generated.resources.status_scene_opened
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -146,10 +139,10 @@ class ReadCommandsTest {
         )
         assertIs<CommandOutcome.Rejected>(executor.call("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("eventIndex", 1) }))
         assertEquals(
-            CommandOutcome.Rejected(Rejection(Res.string.error_command_actor_type_missing, "Wall")),
+            CommandOutcome.Rejected(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall")),
             executor.call("read_actor_type", buildJsonObject { put("actorType", "Wall") }),
         )
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types)), executor(commandContext(blockTypes = null)).call("list_actor_types", JsonObject(emptyMap())))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.NO_ACTOR_TYPES)), executor(commandContext(blockTypes = null)).call("list_actor_types", JsonObject(emptyMap())))
     }
 
     @Test
@@ -168,7 +161,7 @@ class ReadCommandsTest {
         )
         assertEquals(setOf("total", "actors"), read.keys)
         assertEquals(2, read.getValue("total").jsonPrimitive.int)
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_scene_missing, "other")), executor.call("read_scene", buildJsonObject { put("scene", "other") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_MISSING, "other")), executor.call("read_scene", buildJsonObject { put("scene", "other") }))
     }
 
     @Test
@@ -202,8 +195,8 @@ class ReadCommandsTest {
             read { put("summary", true) },
         )
         assertEquals(Json.parseToJsonElement("""{"total":1,"actorTypes":[{"typeId":"Music","count":1}]}"""), read { put("summary", true); put("actorType", "Music") })
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_page_invalid)), executor.call("read_scene", buildJsonObject { put("scene", "main"); put("count", 0) }))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_page_invalid)), executor.call("read_scene", buildJsonObject { put("scene", "main"); put("offset", -1) }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("read_scene", buildJsonObject { put("scene", "main"); put("count", 0) }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("read_scene", buildJsonObject { put("scene", "main"); put("offset", -1) }))
     }
 
     @Test
@@ -228,15 +221,15 @@ class ReadCommandsTest {
         val enemies = list { put("folder", "enemies"); put("count", 200) }
         assertEquals(150 + 1, enemies.names().size)
         assertEquals(listOf("enemies/flying"), enemies.getValue("folders").jsonArray.map { it.jsonPrimitive.content })
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_folder_missing, "ghosts")), executor.call("list_actor_types", buildJsonObject { put("folder", "ghosts") }))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_page_invalid)), executor.call("list_actor_types", buildJsonObject { put("count", 0) }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FOLDER_MISSING, "ghosts")), executor.call("list_actor_types", buildJsonObject { put("folder", "ghosts") }))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_INVALID)), executor.call("list_actor_types", buildJsonObject { put("count", 0) }))
     }
 
     @Test
     fun theConsoleIsReadAsTextNewestLast() = runTest {
         val console = listOf(
-            ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf("1.5")),
-            ConsoleEntry.Status(Res.string.error_command_scene_actor_missing, isError = true, arguments = listOf("main", "3")),
+            ConsoleEntry.Status(GitStatus.COMMITTED),
+            ConsoleEntry.Status(CommandProblem.SCENE_ACTOR_MISSING, isError = true, arguments = listOf("main", "3")),
             ConsoleEntry.Problem("Unresolved reference: speed", "src/Ball.kt:3:5"),
             ConsoleEntry.Log("Hello", source = "Game", isImportant = false),
         )
@@ -247,7 +240,7 @@ class ReadCommandsTest {
             ),
             executor.read("read_console", buildJsonObject { put("limit", 3) }),
         )
-        assertEquals("The Scene is open, in 1.5 seconds.", executor.read("read_console").jsonArray[0].jsonObject.getValue("text").jsonPrimitive.content)
+        assertEquals("The changes are committed.", executor.read("read_console").jsonArray[0].jsonObject.getValue("text").jsonPrimitive.content)
     }
 
     @Test

@@ -13,9 +13,6 @@ import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_project_folder_not_empty
-import kubriko.creator.generated.resources.error_project_not_created
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createTempDirectory
@@ -87,7 +84,7 @@ class ProjectGeneratorTest {
     fun aFolderWithFilesIsNeverOverwritten() {
         val existing = File(parentDirectory, "my-game/notes.txt").apply { parentFile.mkdirs(); writeText("Mine") }
         val exception = assertFailsWith<ProjectCreationException> { generator().create(request) }
-        assertEquals(Res.string.error_project_folder_not_empty, exception.reason)
+        assertEquals(TemplateProblem.FOLDER_NOT_EMPTY, exception.reason)
         assertEquals("Mine", existing.readText())
         assertFalse(File(parentDirectory, "my-game/settings.gradle.kts").exists())
         assertTrue(wrapperInstallations.isEmpty())
@@ -104,7 +101,7 @@ class ProjectGeneratorTest {
         val exception = assertFailsWith<ProjectCreationException> {
             generator(wrapperInstaller = { _, _ -> throw IOException("Offline.") }).create(request)
         }
-        assertEquals(Res.string.error_project_not_created, exception.reason)
+        assertEquals(TemplateProblem.NOT_CREATED, exception.reason)
         assertFalse(File(parentDirectory, "my-game").exists(), "what was written is removed, so trying again works")
     }
 

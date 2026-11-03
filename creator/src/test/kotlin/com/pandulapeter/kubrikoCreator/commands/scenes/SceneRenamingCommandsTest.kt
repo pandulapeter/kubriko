@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -29,14 +30,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_scene_missing
-import kubriko.creator.generated.resources.error_folder_not_empty
-import kubriko.creator.generated.resources.error_scene_folder_reserved
-import kubriko.creator.generated.resources.error_scene_name_invalid
-import kubriko.creator.generated.resources.error_scene_name_taken
-import kubriko.creator.generated.resources.error_scene_not_moved
-import kubriko.creator.generated.resources.warning_scene_named_in_code
 import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.test.Test
@@ -68,23 +61,23 @@ class SceneRenamingCommandsTest {
         assertEquals(listOf("level-2", "levels/1-1") to "levels/1-1", moved)
         assertEquals(listOf("main" to "levels/1-1", "levels/1-1" to "main", "main" to "levels/1-1"), context.renames())
         assertEquals(
-            ConsoleEntry.Status(Res.string.warning_scene_named_in_code, isError = true, arguments = listOf("src/commonMain/kotlin/Game.kt", "main", "levels/1-1")),
+            ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf("src/commonMain/kotlin/Game.kt", "main", "levels/1-1")),
             reports.first(),
         )
-        assertEquals(Rejection(Res.string.error_scene_name_taken), RenameScene.validate(context, RenameScene.Input("level-2", "Levels/1-1")))
-        assertEquals(Rejection(Res.string.error_scene_name_invalid), RenameScene.validate(context, RenameScene.Input("level-2", "levels//2")))
-        assertEquals(Rejection(Res.string.error_command_scene_missing, "ghost"), RenameScene.validate(context, RenameScene.Input("ghost", "x")))
-        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "node_modules"), RenameScene.validate(context, RenameScene.Input("level-2", "node_modules/2")))
+        assertEquals(Rejection(CommandProblem.SCENE_NAME_TAKEN), RenameScene.validate(context, RenameScene.Input("level-2", "Levels/1-1")))
+        assertEquals(Rejection(CommandProblem.SCENE_NAME_INVALID), RenameScene.validate(context, RenameScene.Input("level-2", "levels//2")))
+        assertEquals(Rejection(CommandProblem.SCENE_MISSING, "ghost"), RenameScene.validate(context, RenameScene.Input("ghost", "x")))
+        assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "node_modules"), RenameScene.validate(context, RenameScene.Input("level-2", "node_modules/2")))
     }
 
     @Test
     fun sceneFoldersAreCreatedRenamedWithTheirScenesAndDeletedWhenEmpty() = runTest {
         val context = context()
         context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.SCENES, "levels"))) { context.foldersOf(FolderGroup.SCENES) }
-        assertEquals(Rejection(Res.string.error_scene_name_invalid), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "two words")))
-        assertEquals(Rejection(Res.string.error_scene_folder_reserved, "build"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "levels/build")))
+        assertEquals(Rejection(CommandProblem.SCENE_NAME_INVALID), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "two words")))
+        assertEquals(Rejection(CommandProblem.SCENE_FOLDER_RESERVED, "build"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.SCENES, "levels/build")))
         RenameScene.apply(context, RenameScene.Input("level-2", "levels/2"))
-        assertEquals(Rejection(Res.string.error_folder_not_empty, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")))
+        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "levels"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.SCENES, "levels")))
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))) { context.scenes.names() }
         assertEquals(listOf("main", "world/2"), renamed)
     }
@@ -97,7 +90,7 @@ class SceneRenamingCommandsTest {
         try {
             assumeFalse(folder.canWrite())
             val applied = RenameScene.apply(context, RenameScene.Input("main", "start"))
-            assertEquals(Rejection(Res.string.error_scene_not_moved, "main"), applied.failure)
+            assertEquals(Rejection(CommandProblem.SCENE_NOT_MOVED, "main"), applied.failure)
             assertEquals(listOf("level-2", "main"), context.scenes.names())
             assertEquals("main", context.goToScene())
             assertEquals(emptyList(), context.renames())
@@ -116,7 +109,7 @@ class SceneRenamingCommandsTest {
         try {
             assumeFalse(deep.canWrite())
             val applied = RenameFolder.apply(context, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))
-            assertEquals(Rejection(Res.string.error_scene_not_moved, "levels/deep/2"), applied.failure)
+            assertEquals(Rejection(CommandProblem.SCENE_NOT_MOVED, "levels/deep/2"), applied.failure)
             assertEquals(listOf("levels/1", "levels/deep/2"), context.scenes.names())
             assertEquals("levels/1", context.goToScene())
             assertEquals(listOf("levels", "levels/deep"), context.foldersOf(FolderGroup.SCENES).sorted())

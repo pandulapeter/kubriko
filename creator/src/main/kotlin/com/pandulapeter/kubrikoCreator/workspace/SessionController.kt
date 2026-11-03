@@ -30,13 +30,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_game_failed
-import kubriko.creator.generated.resources.status_game_not_started
-import kubriko.creator.generated.resources.status_session_ended
-import kubriko.creator.generated.resources.status_session_started
-import kubriko.creator.generated.resources.status_session_stopped
-import kubriko.creator.generated.resources.status_unsupported_protocol
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -103,9 +96,9 @@ internal class SessionController(
                     )
                     GameLaunchPreparation.Failed -> false
                 }
-                if (isSuccessful) console.append(ConsoleEntry.Status(Res.string.status_session_ended))
+                if (isSuccessful) console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_ENDED))
             } catch (exception: IOException) {
-                console.append(ConsoleEntry.Status(Res.string.status_game_not_started, isError = true, arguments = listOf(exception.message ?: exception.toString())))
+                console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_NOT_STARTED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
             } finally {
                 _state.value = SessionState.Idle
             }
@@ -124,14 +117,14 @@ internal class SessionController(
 
     private fun reportFailure(exit: GameProcess.Exit) {
         if (exit.isSuccessful) return
-        console.append(ConsoleEntry.Status(Res.string.status_game_failed, arguments = listOf(exit.exitCode.toString()), isError = true))
+        console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_FAILED, arguments = listOf(exit.exitCode.toString()), isError = true))
         exit.output.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
     }
 
     fun stop() {
         if (job?.isActive == true) {
             job?.cancel()
-            console.append(ConsoleEntry.Status(Res.string.status_session_stopped))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STOPPED))
         }
     }
 
@@ -139,9 +132,9 @@ internal class SessionController(
         is SessionMessage.Hello -> if (message.protocolVersion >= MINIMUM_PROTOCOL_VERSION) {
             protocolVersion = minOf(message.protocolVersion, SessionProtocol.VERSION)
             _state.value = SessionState.Running(message.mode)
-            console.append(ConsoleEntry.Status(Res.string.status_session_started))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED))
         } else {
-            console.append(ConsoleEntry.Status(Res.string.status_unsupported_protocol, isError = true))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.UNSUPPORTED_PROTOCOL, isError = true))
             stop()
         }
         is SessionMessage.Log -> console.append(

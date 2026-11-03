@@ -19,10 +19,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_git_committed
-import kubriko.creator.generated.resources.status_git_failed
-import kubriko.creator.generated.resources.status_git_repository_created
 import org.eclipse.jgit.api.errors.JGitInternalException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -94,7 +90,7 @@ class GitControllerTest {
         val state = assertIs<GitState.Ready>(controller.state.value)
         assertTrue(state.changes.isEmpty())
         assertEquals(listOf("Make the Ball faster"), state.history.map { it.message })
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_git_committed)), reports)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(GitStatus.COMMITTED)), reports)
     }
 
     @Test
@@ -115,7 +111,7 @@ class GitControllerTest {
         controller.startVersionControl()
         assertEquals(1, created.commits.size)
         assertIs<GitState.Ready>(controller.state.value)
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_git_repository_created)), reports)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(GitStatus.REPOSITORY_CREATED)), reports)
     }
 
     @Test
@@ -165,6 +161,6 @@ class GitControllerTest {
         repository.isFailing = true
         repository.status = repository.status.copy(branch = "other")
         controller.refresh()
-        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(Res.string.status_git_failed, isError = true)), reports)
+        assertEquals(listOf<ConsoleEntry>(ConsoleEntry.Status(GitStatus.FAILED, isError = true)), reports)
     }
 }

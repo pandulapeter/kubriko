@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
 import com.pandulapeter.kubrikoCreator.commands.InputProblem
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
@@ -23,10 +24,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_input_invalid
-import kubriko.creator.generated.resources.error_command_not_a_change
-import kubriko.creator.generated.resources.error_command_unknown
 
 internal object CheckChange : ReadCommand<CheckChange.Input> {
     override val name = "check_change"
@@ -36,8 +33,8 @@ internal object CheckChange : ReadCommand<CheckChange.Input> {
     private val json = Json { ignoreUnknownKeys = false }
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
-        val command = CommandRegistry.editor[input.tool] ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_unknown, input.tool))
-        if (command !is WriteCommand<*>) return CommandOutcome.Rejected(Rejection(Res.string.error_command_not_a_change, input.tool))
+        val command = CommandRegistry.editor[input.tool] ?: return CommandOutcome.Rejected(Rejection(CommandProblem.UNKNOWN, input.tool))
+        if (command !is WriteCommand<*>) return CommandOutcome.Rejected(Rejection(CommandProblem.NOT_A_CHANGE, input.tool))
         context.rejectChanges()?.let { return CommandOutcome.Rejected(it) }
         return check(context, command, input.arguments)
     }
@@ -46,9 +43,9 @@ internal object CheckChange : ReadCommand<CheckChange.Input> {
         val decoded = try {
             json.decodeFromJsonElement(command.inputSerializer, arguments)
         } catch (exception: SerializationException) {
-            return CommandOutcome.Rejected(Rejection(Res.string.error_command_input_invalid, InputProblem.describe(exception.message)))
+            return CommandOutcome.Rejected(Rejection(CommandProblem.INPUT_INVALID, InputProblem.describe(exception.message)))
         } catch (exception: IllegalArgumentException) {
-            return CommandOutcome.Rejected(Rejection(Res.string.error_command_input_invalid, InputProblem.describe(exception.message)))
+            return CommandOutcome.Rejected(Rejection(CommandProblem.INPUT_INVALID, InputProblem.describe(exception.message)))
         }
         return command.validate(context, decoded)?.let(CommandOutcome::Rejected) ?: CommandOutcome.Success(JsonPrimitive(ACCEPTED))
     }

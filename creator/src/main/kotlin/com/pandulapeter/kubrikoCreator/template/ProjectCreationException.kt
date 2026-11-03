@@ -9,12 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * A project that could not be created, with a reason to show the user.
  */
 internal class ProjectCreationException(
-    val reason: StringResource,
+    val reason: TemplateProblem,
     cause: Throwable? = null,
 ) : Exception(cause)

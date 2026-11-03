@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -20,8 +21,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_has_children
 
 @OptIn(EditorMutation::class)
 internal object DeleteActorType : WriteCommand<DeleteActorType.Input> {
@@ -33,7 +32,7 @@ internal object DeleteActorType : WriteCommand<DeleteActorType.Input> {
 
     override fun validate(context: CommandContext, input: Input) = context.validateActorType(input.actorType)
         ?: ActorTypeFamily(context.requireBlockTypes.actorTypes.value).childrenOf(input.actorType).firstOrNull()?.let { child ->
-            Rejection(Res.string.error_command_actor_type_has_children, input.actorType, child)
+            Rejection(CommandProblem.ACTOR_TYPE_HAS_CHILDREN, input.actorType, child)
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {

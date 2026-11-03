@@ -309,7 +309,9 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
   a subagent (Claude Agent's game explorer) reads through the same address and compaction drops old results. Before each prompt
   the conversation hears what anyone else changed since its last one (`ChangesSummary`). What the AI reads is never a UI string:
   changes are named by their tool names (`ChangesSummary`, `writeSummary`), and the UI maps names and model enums to its strings
-  (`ui/CommandTitles.kt`, `ui/actorTypes/KindTitles.kt`).
+  (`ui/CommandTitles.kt`, `ui/actorTypes/KindTitles.kt`). The AI reads `DomainText.english`, never a UI string; a new error
+  or status is an entry of its owner's enum with its English, and a string in `strings.xml` mapped in `ui/texts` (which
+  `ui/DomainTexts.kt` dispatches to).
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
   without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
   cost.
@@ -326,7 +328,9 @@ Creator's own Scene editor (`scenes/`, `ui/scenes/`), never a window of its own 
 ## UI
 
 - Desktop-sized from the start, at Campfire's 0.85 interface scale, with the JetBrains Runtime title bar the content extends under;
-  icons are vector drawables, and every string is in `strings.xml` with plain apostrophes.
+  icons are vector drawables, and every string is in `strings.xml` with plain apostrophes. Only the UI reads `Res`: the model,
+  commands, and workspace hand it `DomainText`s, worded by `DomainText.text`, and shared components such as `NewNameField` take
+  a `FieldError` instead, since they sit below the commands.
 - **Friendly, and told as a film:** Actor types are the cast, Manager types the crew, and Scenes the scenes being shot, never
   scenery. Each kind of thing keeps one `Accent` everywhere it shows (the cast, the crew, the Scenes, Events, and every Block
   category), and Play is green.

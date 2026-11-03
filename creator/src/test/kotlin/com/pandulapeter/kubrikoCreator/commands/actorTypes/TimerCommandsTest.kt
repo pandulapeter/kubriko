@@ -15,15 +15,12 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.timerNames
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_timer_invalid
-import kubriko.creator.generated.resources.error_command_timer_taken
-import kubriko.creator.generated.resources.error_command_timer_unknown
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -62,9 +59,9 @@ class TimerCommandsTest {
     @Test
     fun aTimerIsRenamedOnlyIfItIsUsedAndToAFreeValidName() = runTest {
         val context = commandContext(enemy, bat, game)
-        assertEquals(Rejection(Res.string.error_command_timer_unknown, "Bat", "fly"), RenameTimer.validate(context, RenameTimer.Input("Bat", "fly", "flap")))
-        assertEquals(Rejection(Res.string.error_command_timer_taken), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "blink")))
-        assertEquals(Rejection(Res.string.error_command_timer_invalid), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "Spawn")))
+        assertEquals(Rejection(CommandProblem.TIMER_UNKNOWN, "Bat", "fly"), RenameTimer.validate(context, RenameTimer.Input("Bat", "fly", "flap")))
+        assertEquals(Rejection(CommandProblem.TIMER_TAKEN), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "blink")))
+        assertEquals(Rejection(CommandProblem.TIMER_INVALID), RenameTimer.validate(context, RenameTimer.Input("Bat", "spawn", "Spawn")))
         assertEquals(null, RenameTimer.validate(context, RenameTimer.Input("Game", "spawn", "blink")))
     }
 

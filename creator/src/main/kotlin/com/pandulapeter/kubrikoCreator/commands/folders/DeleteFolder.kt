@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.folders
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -19,8 +20,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_folder_not_empty
 
 @OptIn(EditorMutation::class)
 internal object DeleteFolder : WriteCommand<DeleteFolder.Input> {
@@ -31,8 +30,8 @@ internal object DeleteFolder : WriteCommand<DeleteFolder.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Project
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateFolder(input.group, input.path) ?: when {
-        input.path.isEmpty() -> Rejection(Res.string.error_folder_not_empty, input.path)
-        !context.isFolderEmpty(input.group, input.path) -> Rejection(Res.string.error_folder_not_empty, input.path)
+        input.path.isEmpty() -> Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path)
+        !context.isFolderEmpty(input.group, input.path) -> Rejection(CommandProblem.FOLDER_NOT_EMPTY, input.path)
         else -> null
     }
 

@@ -11,10 +11,6 @@ package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubrikoCreator.project.ProjectOutput
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_entry_point_missing
-import kubriko.creator.generated.resources.error_entry_point_multiple
-import kubriko.creator.generated.resources.error_entry_point_not_loaded
 import java.io.File
 import java.io.IOException
 import java.util.ServiceConfigurationError
@@ -42,14 +38,14 @@ internal class ClassLoaderEntryPointLoader(
             classLoaderOf(classpath.files, copies, parent)
         } catch (exception: IOException) {
             copies.deleteRecursively()
-            throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, exception)
+            throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_NOT_LOADED, exception)
         }
         try {
             val entryPoints = ServiceLoader.load(CreatorEntryPoint::class.java, classLoader).toList()
             val entryPoint = when (entryPoints.size) {
-                0 -> throw EntryPointLoadingException(Res.string.error_entry_point_missing)
+                0 -> throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_MISSING)
                 1 -> entryPoints.single()
-                else -> throw EntryPointLoadingException(Res.string.error_entry_point_multiple)
+                else -> throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_MULTIPLE)
             }
             return LoadedEntryPoint(
                 entryPoint = entryPoint,
@@ -65,11 +61,11 @@ internal class ClassLoaderEntryPointLoader(
         } catch (error: ServiceConfigurationError) {
             classLoader.close()
             copies.deleteRecursively()
-            throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, error)
+            throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_NOT_LOADED, error)
         } catch (error: LinkageError) {
             classLoader.close()
             copies.deleteRecursively()
-            throw EntryPointLoadingException(Res.string.error_entry_point_not_loaded, error)
+            throw EntryPointLoadingException(SceneProblem.ENTRY_POINT_NOT_LOADED, error)
         }
     }
 

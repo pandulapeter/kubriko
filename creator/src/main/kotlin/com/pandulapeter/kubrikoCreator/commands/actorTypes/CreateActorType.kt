@@ -18,7 +18,6 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import kubriko.creator.generated.resources.Res
 
 @OptIn(EditorMutation::class)
 internal object CreateActorType : WriteCommand<ActorTypeDefinition> {

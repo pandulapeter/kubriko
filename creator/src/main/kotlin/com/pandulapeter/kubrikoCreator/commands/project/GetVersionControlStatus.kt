@@ -20,7 +20,6 @@ import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import kubriko.creator.generated.resources.Res
 
 internal object GetVersionControlStatus : ReadCommand<NoInput> {
     override val name = "get_version_control_status"

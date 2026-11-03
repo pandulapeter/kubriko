@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateContents
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateNewTypeName
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import kubriko.creator.generated.resources.Res
 
 @OptIn(EditorMutation::class)
 internal object CreateManagerType : WriteCommand<ManagerTypeDefinition> {

@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.timerNames
 import com.pandulapeter.kubrikoCreator.actors.withTimerRenamed
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -25,10 +26,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_timer_invalid
-import kubriko.creator.generated.resources.error_command_timer_taken
-import kubriko.creator.generated.resources.error_command_timer_unknown
 
 @OptIn(EditorMutation::class)
 internal object RenameTimer : WriteCommand<RenameTimer.Input> {
@@ -42,9 +39,9 @@ internal object RenameTimer : WriteCommand<RenameTimer.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType) ?: run {
         val timerNames = context.familyOf(input.actorType).flatMap { context.requireType(it).timerNames }
         when {
-            input.oldName !in timerNames -> Rejection(Res.string.error_command_timer_unknown, input.actorType, input.oldName)
-            !TimerNaming.isValid(input.newName) -> Rejection(Res.string.error_command_timer_invalid)
-            input.newName in timerNames -> Rejection(Res.string.error_command_timer_taken)
+            input.oldName !in timerNames -> Rejection(CommandProblem.TIMER_UNKNOWN, input.actorType, input.oldName)
+            !TimerNaming.isValid(input.newName) -> Rejection(CommandProblem.TIMER_INVALID)
+            input.newName in timerNames -> Rejection(CommandProblem.TIMER_TAKEN)
             else -> null
         }
     }

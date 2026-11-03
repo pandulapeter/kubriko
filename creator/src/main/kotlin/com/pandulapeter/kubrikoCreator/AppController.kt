@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
+import com.pandulapeter.kubrikoCreator.ui.resource
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
@@ -104,7 +105,7 @@ internal class AppController(
             val directory = try {
                 withContext(ioDispatcher) { projectCreator.create(request) }
             } catch (exception: ProjectCreationException) {
-                _screen.value = AppScreen.NewProject(error = exception.reason)
+                _screen.value = AppScreen.NewProject(error = exception.reason.resource)
                 return@launchOperation
             }
             ensureActive()
@@ -129,7 +130,7 @@ internal class AppController(
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: ProjectInspectionException) {
-                AppScreen.Welcome(error = exception.reason)
+                AppScreen.Welcome(error = exception.reason.resource)
             } catch (exception: Exception) {
                 exception.printStackTrace()
                 AppScreen.Welcome(error = Res.string.error_project_not_opened, errorArguments = listOf(exception.message ?: exception.toString()))

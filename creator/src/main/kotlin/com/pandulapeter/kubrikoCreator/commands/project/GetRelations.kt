@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -25,9 +26,6 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_relations_property_missing
-import kubriko.creator.generated.resources.error_command_relations_subject
 
 internal object GetRelations : ReadCommand<GetRelations.Input> {
     override val name = "get_relations"
@@ -41,7 +39,7 @@ internal object GetRelations : ReadCommand<GetRelations.Input> {
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         val rejection = when {
-            (input.type == null) == (input.scene == null) || (input.property != null && input.type == null) -> Rejection(Res.string.error_command_relations_subject)
+            (input.type == null) == (input.scene == null) || (input.property != null && input.type == null) -> Rejection(CommandProblem.RELATIONS_SUBJECT)
             input.type != null -> context.validateType(input.type)
             else -> context.validateScene(input.scene!!)
         }
@@ -53,7 +51,7 @@ internal object GetRelations : ReadCommand<GetRelations.Input> {
             else -> RelationSubject.Scene(input.scene!!)
         }
         if (subject is RelationSubject.Property && context.blockTypes?.get(subject.owner)?.properties?.none { it.name == subject.name } != false) {
-            return CommandOutcome.Rejected(Rejection(Res.string.error_command_relations_property_missing, input.property!!, input.type!!))
+            return CommandOutcome.Rejected(Rejection(CommandProblem.RELATIONS_PROPERTY_MISSING, input.property!!, input.type!!))
         }
         return CommandOutcome.Success(
             buildJsonObject {

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.withEventMoved
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -21,8 +22,6 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_index_invalid
 
 @OptIn(EditorMutation::class)
 internal object MoveEvent : WriteCommand<MoveEvent.Input> {
@@ -33,7 +32,7 @@ internal object MoveEvent : WriteCommand<MoveEvent.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.targetIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
-        ?: if (input.targetIndex !in context.requireType(input.actorType).events.indices) Rejection(Res.string.error_command_index_invalid, input.targetIndex.toString()) else null
+        ?: if (input.targetIndex !in context.requireType(input.actorType).events.indices) Rejection(CommandProblem.INDEX_INVALID, input.targetIndex.toString()) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         context.requireBlockTypes.put(context.requireType(input.actorType).withEventMoved(input.eventIndex, input.targetIndex))

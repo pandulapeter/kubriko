@@ -11,8 +11,8 @@ package com.pandulapeter.kubrikoCreator.ui.settings
 
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_identity_version_number_invalid
 import kubriko.creator.generated.resources.project_settings_application_id
 import kubriko.creator.generated.resources.project_settings_description
 import kubriko.creator.generated.resources.project_settings_name
@@ -61,7 +61,7 @@ internal enum class IdentityField(
     }
 
     private companion object {
-        val invalidVersionNumber = IdentityFieldChange.Invalid(Res.string.error_identity_version_number_invalid, listOf(GameIdentity.MAXIMUM_VERSION_NUMBER.toString()))
+        val invalidVersionNumber = IdentityFieldChange.Invalid(IdentityProblem.VERSION_NUMBER_INVALID, listOf(GameIdentity.MAXIMUM_VERSION_NUMBER.toString()))
     }
 }
 
@@ -72,7 +72,7 @@ internal sealed interface IdentityFieldChange {
     ) : IdentityFieldChange
 
     data class Invalid(
-        val reason: StringResource,
+        val reason: IdentityProblem,
         val arguments: List<String>,
     ) : IdentityFieldChange
 }

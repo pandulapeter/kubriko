@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectTemplate
+import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_browse
 import kubriko.creator.generated.resources.action_cancel
@@ -180,7 +181,7 @@ private fun TemplateDescription(
 private fun ValidatedTextField(
     label: StringResource,
     value: String,
-    error: StringResource?,
+    error: TemplateProblem?,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
 ) = OutlinedTextField(
@@ -189,6 +190,6 @@ private fun ValidatedTextField(
     onValueChange = onValueChange,
     label = { Text(stringResource(label)) },
     isError = error != null,
-    supportingText = error?.let { { Text(stringResource(it)) } },
+    supportingText = error?.let { { Text(it.text()) } },
     singleLine = true,
 )

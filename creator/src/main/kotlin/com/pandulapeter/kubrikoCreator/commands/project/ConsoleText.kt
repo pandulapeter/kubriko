@@ -10,21 +10,21 @@
 package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.foundation.englishWith
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.jetbrains.compose.resources.getString
 
-internal suspend fun List<ConsoleEntry>.toJsonArray() = JsonArray(map { it.toJson() })
+internal fun List<ConsoleEntry>.toJsonArray() = JsonArray(map { it.toJson() })
 
 /**
  * A console entry as the AI reads it: what kind of line it is, and its text.
  */
-internal suspend fun ConsoleEntry.toJson() = buildJsonObject {
+internal fun ConsoleEntry.toJson() = buildJsonObject {
     when (this@toJson) {
         is ConsoleEntry.Status -> {
             put("kind", if (isError) "error" else "status")
-            put("text", getString(text, *arguments.toTypedArray()))
+            put("text", text.englishWith(arguments))
         }
         is ConsoleEntry.Problem -> {
             put("kind", "problem")

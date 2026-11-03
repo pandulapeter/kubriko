@@ -25,14 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_scene_view_failed
-import kubriko.creator.generated.resources.scene_build_failed
-import kubriko.creator.generated.resources.scene_unsupported
-import kubriko.creator.generated.resources.scene_unsupported_library
-import kubriko.creator.generated.resources.status_scene_newer_libraries
-import kubriko.creator.generated.resources.status_scene_opened
-import org.jetbrains.compose.resources.StringResource
 import java.io.File
 import java.io.IOException
 
@@ -137,7 +129,7 @@ internal class SceneEditingController(
                     previews = currentPreviews(),
                     problem = read.await().second,
                 ).also {
-                    report(ConsoleEntry.Status(Res.string.status_scene_opened, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
+                    report(ConsoleEntry.Status(SceneStatus.OPENED, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
                 }
                 is LoadResult.Failed -> SceneEditingState.Failed(scene, result.reason).also { forget(loading) }
                 is LoadResult.Unsupported -> SceneEditingState.Unsupported(scene, result.reason, result.arguments).also { forget(loading) }
@@ -202,8 +194,8 @@ internal class SceneEditingController(
         val open = _state.value as? SceneEditingState.Open ?: return
         if (open.revision != revision) return
         val problem = exception.toString()
-        report(ConsoleEntry.Status(Res.string.error_scene_view_failed, isError = true, arguments = listOf(problem)))
-        _state.value = if (isShowingOlderClasses) open.copy(isOutdated = true) else SceneEditingState.Failed(open.scene, Res.string.error_scene_view_failed, listOf(problem))
+        report(ConsoleEntry.Status(SceneProblem.VIEW_FAILED, isError = true, arguments = listOf(problem)))
+        _state.value = if (isShowingOlderClasses) open.copy(isOutdated = true) else SceneEditingState.Failed(open.scene, SceneProblem.VIEW_FAILED, listOf(problem))
     }
 
     private fun currentPreviews() = ActorTypeLook.previewsOf(actorTypeLooks(), shownLooks)
@@ -232,11 +224,11 @@ internal class SceneEditingController(
         )
         val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
         return when {
-            classpath == null -> LoadResult.Failed(Res.string.scene_build_failed)
-            classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(Res.string.scene_unsupported, listOf(creatorKubrikoVersion, classpath.kubrikoVersion))
+            classpath == null -> LoadResult.Failed(SceneProblem.BUILD_FAILED)
+            classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(SceneProblem.UNSUPPORTED, listOf(creatorKubrikoVersion, classpath.kubrikoVersion))
             else -> when (val verdict = SharedLibraries.check(classpath.libraries, creatorLibraries)) {
                 is SharedLibraries.Verdict.Refused -> LoadResult.Unsupported(
-                    Res.string.scene_unsupported_library,
+                    SceneProblem.UNSUPPORTED_LIBRARY,
                     verdict.library.let { listOf(it.module, it.projectVersion, it.creatorVersion) },
                 )
                 else -> {
@@ -264,7 +256,7 @@ internal class SceneEditingController(
         lastReportedNewer = newer
         if (newer.isNotEmpty()) {
             val list = newer.joinToString(", ") { "${it.module} ${it.projectVersion} (Creator: ${it.creatorVersion})" }
-            report(ConsoleEntry.Status(Res.string.status_scene_newer_libraries, arguments = listOf(list)))
+            report(ConsoleEntry.Status(SceneStatus.NEWER_LIBRARIES, arguments = listOf(list)))
         }
     }
 
@@ -390,7 +382,7 @@ private sealed interface LoadResult {
         val looks: Map<String, ActorTypeLook>,
     ) : LoadResult
 
-    data class Failed(val reason: StringResource) : LoadResult
+    data class Failed(val reason: SceneProblem) : LoadResult
 
-    data class Unsupported(val reason: StringResource, val arguments: List<String>) : LoadResult
+    data class Unsupported(val reason: SceneProblem, val arguments: List<String>) : LoadResult
 }

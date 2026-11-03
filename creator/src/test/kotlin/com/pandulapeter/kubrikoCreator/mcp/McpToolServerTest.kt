@@ -178,6 +178,14 @@ class McpToolServerTest {
     }
 
     @Test
+    fun rejectionsReadAsTheirEnglishWithTheirArguments() = runTest {
+        val started = start(CommandExecutor(commandContext(ActorTypeDefinition("Ball")), testScope()))
+        val result = connected(started) { callTool("read_actor_type", mapOf("actorType" to "Rock")) }
+        assertEquals(true, result.isError)
+        assertEquals("There's no Actor type called Rock.", (result.content.single() as TextContent).text)
+    }
+
+    @Test
     fun internalErrorsSayWhatWentWrongAndAreLogged() = runTest {
         val port = start { throw NoClassDefFoundError("com/example/Missing") }
         val result = connected(port) { callTool("list_scenes", emptyMap()) }

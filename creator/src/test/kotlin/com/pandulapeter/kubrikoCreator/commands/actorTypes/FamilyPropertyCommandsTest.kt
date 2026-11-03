@@ -14,10 +14,12 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
@@ -29,11 +31,6 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_failed
-import kubriko.creator.generated.resources.error_command_property_inherited
-import kubriko.creator.generated.resources.error_command_property_kind_in_descendant
-import kubriko.creator.generated.resources.error_property_name_taken
 import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -91,7 +88,7 @@ class FamilyPropertyCommandsTest {
         val scene = context.scenes.fileOf("main").readText()
         isSceneLocked = true
         val executor = CommandExecutor(context, testScope())
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_failed, "Locked.")), executor.execute(rename("Parent", "hp")))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.FAILED, "Locked.")), executor.execute(rename("Parent", "hp")))
         assertEquals(listOf(parent, child, grandChild), listOf(context.type("Parent"), context.type("Child"), context.type("GrandChild")))
         assertEquals(scene, context.scenes.fileOf("main").readText())
     }
@@ -99,21 +96,21 @@ class FamilyPropertyCommandsTest {
     @Test
     fun renamingAnInheritedPropertyIsRefused() = runTest {
         val context = context()
-        assertEquals(Rejection(Res.string.error_command_property_inherited, "health", "Parent"), EditProperty.validate(context, rename("GrandChild", "hp").input))
+        assertEquals(Rejection(CommandProblem.PROPERTY_INHERITED, "health", "Parent"), EditProperty.validate(context, rename("GrandChild", "hp").input))
         assertNull(EditProperty.validate(context, rename("GrandChild", "health", initialValue = 8f).input))
     }
 
     @Test
     fun aNewNameTakenInTheFamilyIsRefused() = runTest {
         val context = context(parent, child.copy(properties = listOf(PropertyDefinition.Text("score"))), grandChild)
-        assertEquals(Rejection(Res.string.error_property_name_taken), EditProperty.validate(context, rename("Parent", "score").input))
+        assertEquals(Rejection(NameProblem.PROPERTY_TAKEN), EditProperty.validate(context, rename("Parent", "score").input))
     }
 
     @Test
     fun addingAPropertyADescendantHasOfAnotherKindIsRefused() = runTest {
         val context = context(parent, child.copy(properties = listOf(PropertyDefinition.Number("name"))), grandChild)
         assertEquals(
-            Rejection(Res.string.error_command_property_kind_in_descendant, "name", "Child"),
+            Rejection(CommandProblem.PROPERTY_KIND_IN_DESCENDANT, "name", "Child"),
             AddProperty.validate(context, AddProperty.Input("Parent", PropertyDefinition.Text("name"))),
         )
     }

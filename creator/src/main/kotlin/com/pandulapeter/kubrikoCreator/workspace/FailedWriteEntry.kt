@@ -10,16 +10,12 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_block_type_not_saved
-import kubriko.creator.generated.resources.status_generated_code_not_written
-import kubriko.creator.generated.resources.status_type_folder_not_saved
 
 /**
  * The console's report of what couldn't be written, and why.
  */
 internal fun FailedWrite.toConsoleEntry() = when (subject) {
-    is FailedWrite.Subject.Type -> ConsoleEntry.Status(Res.string.status_block_type_not_saved, isError = true, arguments = listOf(subject.name, reason))
-    is FailedWrite.Subject.Folder -> ConsoleEntry.Status(Res.string.status_type_folder_not_saved, isError = true, arguments = listOf(subject.path, reason))
-    FailedWrite.Subject.GeneratedCode -> ConsoleEntry.Status(Res.string.status_generated_code_not_written, isError = true, arguments = listOf(reason))
+    is FailedWrite.Subject.Type -> ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPE_NOT_SAVED, isError = true, arguments = listOf(subject.name, reason))
+    is FailedWrite.Subject.Folder -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FOLDER_NOT_SAVED, isError = true, arguments = listOf(subject.path, reason))
+    FailedWrite.Subject.GeneratedCode -> ConsoleEntry.Status(WorkspaceStatus.GENERATED_CODE_NOT_WRITTEN, isError = true, arguments = listOf(reason))
 }

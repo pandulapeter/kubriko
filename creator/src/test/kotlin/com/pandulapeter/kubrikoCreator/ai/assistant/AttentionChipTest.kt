@@ -11,8 +11,7 @@ package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.ContentBlock
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.console_title
+import com.pandulapeter.kubrikoCreator.git.GitStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -28,10 +27,10 @@ class AttentionChipTest {
 
     @Test
     fun theLatestProblemIsOfferedUntilSomethingGoesWellAfterIt() {
-        val failed = listOf(ConsoleEntry.Status(Res.string.console_title), problem, ConsoleEntry.BuildOutput("FAILURE"))
+        val failed = listOf(ConsoleEntry.Status(GitStatus.COMMITTED), problem, ConsoleEntry.BuildOutput("FAILURE"))
         assertEquals(listOf<AttentionChip>(AttentionChip.Problem(problem.message, problem.location)), AttentionChip.of(null, null, false, failed))
-        assertEquals(emptyList(), AttentionChip.of(null, null, false, failed + ConsoleEntry.Status(Res.string.console_title)))
-        assertEquals(listOf<AttentionChip>(AttentionChip.Problem(problem.message, problem.location)), AttentionChip.of(null, null, false, failed + ConsoleEntry.Status(Res.string.console_title, isError = true)))
+        assertEquals(emptyList(), AttentionChip.of(null, null, false, failed + ConsoleEntry.Status(GitStatus.COMMITTED)))
+        assertEquals(listOf<AttentionChip>(AttentionChip.Problem(problem.message, problem.location)), AttentionChip.of(null, null, false, failed + ConsoleEntry.Status(GitStatus.COMMITTED, isError = true)))
     }
 
     @Test

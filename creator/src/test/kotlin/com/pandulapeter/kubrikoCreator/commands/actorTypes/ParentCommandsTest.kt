@@ -11,18 +11,14 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
+import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_actor_type_has_children
-import kubriko.creator.generated.resources.error_command_actor_type_missing
-import kubriko.creator.generated.resources.error_command_parent_cycle
-import kubriko.creator.generated.resources.error_command_parent_property_kind
-import kubriko.creator.generated.resources.error_type_name_base_suffix
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -34,17 +30,17 @@ class ParentCommandsTest {
     @Test
     fun aParentIsSetAndUnsetButNeverMakesACycle() = runTest {
         val context = commandContext(enemy, bat, slime)
-        assertEquals(Rejection(Res.string.error_command_parent_cycle, "Bat", "Enemy"), SetParent.validate(context, SetParent.Input("Enemy", "Bat")))
-        assertEquals(Rejection(Res.string.error_command_parent_cycle, "Enemy", "Enemy"), SetParent.validate(context, SetParent.Input("Enemy", "Enemy")))
-        assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Ghost"), SetParent.validate(context, SetParent.Input("Bat", "Ghost")))
-        assertEquals(Rejection(Res.string.error_command_parent_property_kind, "hp", "Enemy"), SetParent.validate(context, SetParent.Input("Slime", "Enemy")))
+        assertEquals(Rejection(CommandProblem.PARENT_CYCLE, "Bat", "Enemy"), SetParent.validate(context, SetParent.Input("Enemy", "Bat")))
+        assertEquals(Rejection(CommandProblem.PARENT_CYCLE, "Enemy", "Enemy"), SetParent.validate(context, SetParent.Input("Enemy", "Enemy")))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Ghost"), SetParent.validate(context, SetParent.Input("Bat", "Ghost")))
+        assertEquals(Rejection(CommandProblem.PARENT_PROPERTY_KIND, "hp", "Enemy"), SetParent.validate(context, SetParent.Input("Slime", "Enemy")))
         assertEquals(null, context.assertRoundTrip(Invocation(SetParent, SetParent.Input("Bat", null))) { context.blockTypes!!.actorType("Bat")!!.parent })
     }
 
     @Test
     fun aParentWithChildrenIsNotDeletedAndRenamingItTakesItsChildrenAlong() = runTest {
         val context = commandContext(enemy, bat)
-        assertEquals(Rejection(Res.string.error_command_actor_type_has_children, "Enemy", "Bat"), DeleteActorType.validate(context, DeleteActorType.Input("Enemy")))
+        assertEquals(Rejection(CommandProblem.ACTOR_TYPE_HAS_CHILDREN, "Enemy", "Bat"), DeleteActorType.validate(context, DeleteActorType.Input("Enemy")))
         context.assertRoundTrip(Invocation(RenameActorType, RenameActorType.Input("Enemy", "Monster"))) { context.blockTypes!!.actorType("Bat")!!.parent }
         assertEquals("Monster", context.blockTypes!!.actorType("Bat")!!.parent)
     }
@@ -53,7 +49,7 @@ class ParentCommandsTest {
     fun aChildOnlyGivesAnInheritedPropertyAnotherInitialValue() = runTest {
         val context = commandContext(enemy, bat)
         assertEquals(null, AddProperty.validate(context, AddProperty.Input("Bat", PropertyDefinition.Number("hp", initialValue = 5f))))
-        assertEquals(Rejection(Res.string.error_command_parent_property_kind, "hp", "Enemy"), AddProperty.validate(context, AddProperty.Input("Bat", PropertyDefinition.Text("hp"))))
+        assertEquals(Rejection(CommandProblem.PARENT_PROPERTY_KIND, "hp", "Enemy"), AddProperty.validate(context, AddProperty.Input("Bat", PropertyDefinition.Text("hp"))))
     }
 
     @Test
@@ -62,12 +58,12 @@ class ParentCommandsTest {
         val child2 = ActorTypeDefinition(name = "Child2")
         val grandChild = ActorTypeDefinition(name = "GrandChild", parent = "Child2", properties = listOf(PropertyDefinition.Text("health")))
         val context = commandContext(other, child2, grandChild)
-        assertEquals(Rejection(Res.string.error_command_parent_property_kind, "health", "Other"), SetParent.validate(context, SetParent.Input("Child2", "Other")))
+        assertEquals(Rejection(CommandProblem.PARENT_PROPERTY_KIND, "health", "Other"), SetParent.validate(context, SetParent.Input("Child2", "Other")))
     }
 
     @Test
     fun namesEndingLikeABaseClassAreReserved() {
-        assertEquals(Res.string.error_type_name_base_suffix, BlockTypeNaming.validate("EnemyBase", emptyList()))
+        assertEquals(NameProblem.TYPE_BASE_SUFFIX, BlockTypeNaming.validate("EnemyBase", emptyList()))
         assertEquals(null, BlockTypeNaming.validate("Baseball", emptyList()))
     }
 }

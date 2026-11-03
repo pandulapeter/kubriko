@@ -9,10 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_package_name_invalid
-import kubriko.creator.generated.resources.error_project_name_empty
-import kubriko.creator.generated.resources.error_project_name_invalid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -22,15 +18,15 @@ class ProjectNamingTest {
     @Test
     fun namesStartWithALetterAndUseOnlySafeCharacters() {
         listOf("Game", "My Game 2", "space_shooter", "Kubriko-Demo", "  Padded  ").forEach { assertNull(ProjectNaming.validateName(it), it) }
-        assertEquals(Res.string.error_project_name_empty, ProjectNaming.validateName("   "))
-        listOf("2048", "My \"Game\"", "Café", "a/b", "-dash").forEach { assertEquals(Res.string.error_project_name_invalid, ProjectNaming.validateName(it), it) }
+        assertEquals(TemplateProblem.NAME_EMPTY, ProjectNaming.validateName("   "))
+        listOf("2048", "My \"Game\"", "Café", "a/b", "-dash").forEach { assertEquals(TemplateProblem.NAME_INVALID, ProjectNaming.validateName(it), it) }
     }
 
     @Test
     fun packagesNeedTwoLowercaseSegmentsThatArentKeywords() {
         listOf("com.example.game", "io.github.me.game_2").forEach { assertNull(ProjectNaming.validatePackageName(it), it) }
         listOf("game", "com.Example", "com..game", "com.example.", "com.2game", "com.example.fun", "com.example.my-game").forEach {
-            assertEquals(Res.string.error_package_name_invalid, ProjectNaming.validatePackageName(it), it)
+            assertEquals(TemplateProblem.PACKAGE_NAME_INVALID, ProjectNaming.validatePackageName(it), it)
         }
     }
 

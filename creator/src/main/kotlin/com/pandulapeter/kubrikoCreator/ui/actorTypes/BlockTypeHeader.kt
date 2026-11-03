@@ -34,12 +34,14 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
+import com.pandulapeter.kubrikoCreator.ui.toFieldError
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_manager_type
@@ -52,7 +54,6 @@ import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_manager_type_hint
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -67,7 +68,7 @@ internal fun BlockTypeHeader(
     definition: BlockTypeDefinition,
     inheritance: Inheritance,
     flashKey: Any?,
-    onRename: (String) -> StringResource?,
+    onRename: (String) -> Rejection?,
     onParentChange: (String?) -> Unit,
     onTypeSelected: (String) -> Unit,
     onDelete: () -> Unit,
@@ -95,7 +96,7 @@ internal fun BlockTypeHeader(
                 initialName = definition.name,
                 indent = 0.dp,
                 confirmLabel = Res.string.action_rename,
-                onCreate = { name -> if (name == definition.name) null.also { isRenaming = false } else onRename(name).also { if (it == null) isRenaming = false } },
+                onCreate = { name -> if (name == definition.name) null.also { isRenaming = false } else onRename(name).also { if (it == null) isRenaming = false }?.toFieldError() },
                 onCancel = { isRenaming = false },
             )
         }

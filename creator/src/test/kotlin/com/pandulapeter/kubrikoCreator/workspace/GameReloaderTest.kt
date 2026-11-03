@@ -17,11 +17,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_game_changes_not_applied
-import kubriko.creator.generated.resources.status_game_reload_failed
-import kubriko.creator.generated.resources.status_game_reloaded
-import kubriko.creator.generated.resources.status_game_restarting
 import java.io.File
 import java.io.IOException
 import kotlin.test.Test
@@ -73,7 +68,7 @@ class GameReloaderTest {
         reloader.onCodeChanged()
         assertEquals(listOf("hotReloadDesktopMain"), reloads)
         assertEquals(0, restarts)
-        assertEquals(ConsoleEntry.Status(Res.string.status_game_reloaded, arguments = listOf("0.0")), statuses.last())
+        assertEquals(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOADED, arguments = listOf("0.0")), statuses.last())
     }
 
     @Test
@@ -82,7 +77,7 @@ class GameReloaderTest {
         reloader.onGameStarting("hotReloadDesktopMain", mapOf("game/Ball" to ball))
         shapesFailure = IOException("Ball.class")
         reloader.onCodeChanged()
-        assertEquals(Res.string.status_game_changes_not_applied, statuses.last().text)
+        assertEquals(WorkspaceStatus.GAME_CHANGES_NOT_APPLIED, statuses.last().text)
         shapesFailure = null
         reloader.onCodeChanged()
         assertEquals(listOf("hotReloadDesktopMain"), reloads)
@@ -94,7 +89,7 @@ class GameReloaderTest {
         reloader.onGameStarting("hotReloadDesktopMain", mapOf("game/Ball" to ball))
         shapesFailure = ArrayIndexOutOfBoundsException()
         reloader.onCodeChanged()
-        assertEquals(Res.string.status_game_changes_not_applied, statuses.last().text)
+        assertEquals(WorkspaceStatus.GAME_CHANGES_NOT_APPLIED, statuses.last().text)
         shapesFailure = null
         reloader.onCodeChanged()
         assertEquals(listOf("hotReloadDesktopMain"), reloads)
@@ -108,7 +103,7 @@ class GameReloaderTest {
         reloader.onCodeChanged()
         assertTrue(reloads.isEmpty())
         assertEquals(1, restarts)
-        assertEquals(ConsoleEntry.Status(Res.string.status_game_restarting, arguments = listOf("Ball")), statuses.last())
+        assertEquals(ConsoleEntry.Status(WorkspaceStatus.GAME_RESTARTING, arguments = listOf("Ball")), statuses.last())
     }
 
     @Test
@@ -153,7 +148,7 @@ class GameReloaderTest {
         reloadResult = { false }
         reloader.onCodeChanged()
         assertEquals(1, restarts)
-        assertEquals(ConsoleEntry.Status(Res.string.status_game_reload_failed, isError = true), statuses.last())
+        assertEquals(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOAD_FAILED, isError = true), statuses.last())
     }
 
     @Test

@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -24,21 +25,13 @@ import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.GitState
+import com.pandulapeter.kubrikoCreator.git.GitStatus
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
 import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_already_under_version_control
-import kubriko.creator.generated.resources.error_command_change_missing
-import kubriko.creator.generated.resources.error_command_changes_not_written
-import kubriko.creator.generated.resources.error_command_commit_conflicts
-import kubriko.creator.generated.resources.error_command_commit_message_empty
-import kubriko.creator.generated.resources.error_command_no_repository
-import kubriko.creator.generated.resources.error_command_nothing_to_commit
-import kubriko.creator.generated.resources.status_git_failed
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -56,17 +49,17 @@ class GitCommandsTest {
         assertNull(StartVersionControl.apply(context, NoInput).inverse)
         assertIs<GitState.Ready>(context.git.state.value)
         val underVersionControl = commandContext(git = gitController(changed()))
-        assertEquals(Rejection(Res.string.error_command_already_under_version_control), StartVersionControl.validate(underVersionControl, NoInput))
+        assertEquals(Rejection(CommandProblem.ALREADY_UNDER_VERSION_CONTROL), StartVersionControl.validate(underVersionControl, NoInput))
     }
 
     @Test
     fun committingNeedsARepositoryAMessageAndChanges() = runTest {
-        assertEquals(Rejection(Res.string.error_command_no_repository), Commit.validate(commandContext(), Commit.Input("Hello.")))
+        assertEquals(Rejection(CommandProblem.NO_REPOSITORY), Commit.validate(commandContext(), Commit.Input("Hello.")))
         val clean = commandContext(git = gitController(changed()))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_nothing_to_commit)), CommandExecutor(clean, testScope()).execute(Invocation(Commit, Commit.Input("Hello."))))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.NOTHING_TO_COMMIT)), CommandExecutor(clean, testScope()).execute(Invocation(Commit, Commit.Input("Hello."))))
         val repository = changed("README.md")
         val context = commandContext(git = gitController(repository))
-        assertEquals(Rejection(Res.string.error_command_commit_message_empty), Commit.validate(context, Commit.Input("  ")))
+        assertEquals(Rejection(CommandProblem.COMMIT_MESSAGE_EMPTY), Commit.validate(context, Commit.Input("  ")))
         assertNull(Commit.validate(context, Commit.Input("Write the README.")))
         assertNull(Commit.apply(context, Commit.Input("Write the README.")).inverse)
         assertEquals(listOf("Write the README."), repository.commits)
@@ -76,7 +69,7 @@ class GitCommandsTest {
     fun committingIsRejectedWhileAMergeLeftConflicts() = runTest {
         val repository = FakeGitRepository(RepositoryStatus("main", listOf(FileChange("README.md", ChangeKind.CONFLICTING))))
         val context = commandContext(git = gitController(repository))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_commit_conflicts)), CommandExecutor(context, testScope()).execute(Invocation(Commit, Commit.Input("Merge."))))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.COMMIT_CONFLICTS)), CommandExecutor(context, testScope()).execute(Invocation(Commit, Commit.Input("Merge."))))
         assertEquals(emptyList(), repository.commits)
     }
 
@@ -96,7 +89,7 @@ class GitCommandsTest {
         val context = commandContext(git = gitController(repository))
         repository.status = RepositoryStatus("main", emptyList())
         assertTrue(assertIs<GitState.Ready>(context.git.state.value).changes.isNotEmpty())
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_nothing_to_commit)), CommandExecutor(context, testScope()).execute(Invocation(Commit, Commit.Input("x"))))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.NOTHING_TO_COMMIT)), CommandExecutor(context, testScope()).execute(Invocation(Commit, Commit.Input("x"))))
         assertEquals(emptyList(), repository.commits)
     }
 
@@ -108,7 +101,7 @@ class GitCommandsTest {
         val executor = CommandExecutor(context, testScope(), onRejected = { rejections += it })
         repository.isFailing = true
         executor.dispatch(Invocation(Commit, Commit.Input("Write the README.")))
-        assertEquals(listOf(Rejection(Res.string.status_git_failed)), rejections)
+        assertEquals(listOf(Rejection(GitStatus.FAILED)), rejections)
         assertNull(executor.history.value.nextUndoCommandName)
     }
 
@@ -116,7 +109,7 @@ class GitCommandsTest {
     fun onlyChangedFilesCanBeDiscarded() = runTest {
         val repository = changed("README.md", "build.gradle.kts")
         val context = commandContext(git = gitController(repository))
-        assertEquals(Rejection(Res.string.error_command_change_missing, "Game.kt"), DiscardChanges.validate(context, DiscardChanges.Input(listOf("README.md", "Game.kt"))))
+        assertEquals(Rejection(CommandProblem.CHANGE_MISSING, "Game.kt"), DiscardChanges.validate(context, DiscardChanges.Input(listOf("README.md", "Game.kt"))))
         val outcome = CommandExecutor(context, testScope()).execute(Invocation(DiscardChanges, DiscardChanges.Input(listOf("README.md"))))
         assertIs<CommandOutcome.Success>(outcome)
         assertEquals(listOf<Collection<String>>(listOf("README.md")), repository.discarded)
@@ -143,7 +136,7 @@ class GitCommandsTest {
         val context = commandContext(git = gitController(repository), blockTypes = blockTypesController(repository = types))
         val executor = CommandExecutor(context, testScope())
         executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
-        val notWritten = CommandOutcome.Rejected(Rejection(Res.string.error_command_changes_not_written, "Ball", "Locked."))
+        val notWritten = CommandOutcome.Rejected(Rejection(CommandProblem.CHANGES_NOT_WRITTEN, "Ball", "Locked."))
         assertEquals(notWritten, executor.execute(Invocation(Commit, Commit.Input("Add the Ball."))))
         assertEquals(notWritten, executor.execute(Invocation(DiscardChanges, DiscardChanges.Input(listOf("README.md")))))
         assertEquals(emptyList(), repository.commits)
@@ -161,7 +154,7 @@ class GitCommandsTest {
         val executor = CommandExecutor(context, testScope())
         executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball")))
         val outcome = executor.execute(Invocation(StartVersionControl, NoInput))
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_changes_not_written, "Ball", "Locked.")), outcome)
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.CHANGES_NOT_WRITTEN, "Ball", "Locked.")), outcome)
         assertEquals(GitState.NoRepository, context.git.state.value)
     }
 }

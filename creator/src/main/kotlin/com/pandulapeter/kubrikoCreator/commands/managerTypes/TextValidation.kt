@@ -10,11 +10,10 @@
 package com.pandulapeter.kubrikoCreator.commands.managerTypes
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireManagerType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateManagerType
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_text_missing
 
 internal fun CommandContext.validateTextIndex(managerType: String, index: Int): Rejection? = validateManagerType(managerType)
-    ?: if (index !in requireManagerType(managerType).texts.indices) Rejection(Res.string.error_command_text_missing, managerType, index.toString()) else null
+    ?: if (index !in requireManagerType(managerType).texts.indices) Rejection(CommandProblem.TEXT_MISSING, managerType, index.toString()) else null

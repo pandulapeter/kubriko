@@ -9,10 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_folder_name_invalid
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * The rules for folders in the sidebar, which are paths of folder names separated by `/` (`enemies/flying`), empty for
  * none (the top of a group).
@@ -24,7 +20,7 @@ internal object FolderPaths {
     /**
      * Why [name] can't be a folder's name, or null if it can.
      */
-    fun validateName(name: String): StringResource? = if (namePattern.matches(name) && name == name.trim()) null else Res.string.error_folder_name_invalid
+    fun validateName(name: String): NameProblem? = if (namePattern.matches(name) && name == name.trim()) null else NameProblem.FOLDER_INVALID
 
     fun isValid(path: String) = path.isEmpty() || path.split('/').all { validateName(it) == null }
 

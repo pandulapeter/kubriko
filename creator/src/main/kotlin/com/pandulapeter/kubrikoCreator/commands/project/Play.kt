@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.project
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.schema.Description
@@ -19,8 +20,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_command_play_duration_invalid
 
 internal object Play : ActionCommand<Play.Input> {
     override val name = "play"
@@ -31,7 +30,7 @@ internal object Play : ActionCommand<Play.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.Game
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
-        if (input.seconds !in 1..MAXIMUM_SECONDS) return CommandOutcome.Rejected(Rejection(Res.string.error_command_play_duration_invalid, MAXIMUM_SECONDS.toString()))
+        if (input.seconds !in 1..MAXIMUM_SECONDS) return CommandOutcome.Rejected(Rejection(CommandProblem.PLAY_DURATION_INVALID, MAXIMUM_SECONDS.toString()))
         val result = context.runner.play(durationInMilliseconds = input.seconds * 1000L)
         return CommandOutcome.Success(
             buildJsonObject {

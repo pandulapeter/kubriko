@@ -27,9 +27,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.status_session_started
-import kubriko.creator.generated.resources.status_session_stopped
 import java.io.File
 import java.util.Base64
 import kotlin.test.Test
@@ -109,9 +106,9 @@ class WorkspaceRunnerTest {
             ProjectRunner.RunResult(
                 isSuccessful = true,
                 console = listOf(
-                    ConsoleEntry.Status(Res.string.status_session_started),
+                    ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED),
                     ConsoleEntry.Log(message = "Ball bounced", source = null, isImportant = false),
-                    ConsoleEntry.Status(Res.string.status_session_stopped),
+                    ConsoleEntry.Status(WorkspaceStatus.SESSION_STOPPED),
                 ),
             ),
             result.await(),

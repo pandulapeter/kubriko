@@ -38,12 +38,12 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_properties_empty
 import kubriko.creator.generated.resources.manager_type_properties_empty
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -66,7 +66,7 @@ internal fun BlockTypeEditor(
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentDefinition: () -> BlockTypeDefinition?,
-    onRename: (String) -> StringResource?,
+    onRename: (String) -> Rejection?,
     onTypeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
@@ -194,7 +194,7 @@ private fun TypeDetails(
     inheritance: Inheritance,
     isChangedByHand: Boolean,
     flashKey: Any?,
-    onRename: (String) -> StringResource?,
+    onRename: (String) -> Rejection?,
     onTypeSelected: (String) -> Unit,
     actions: BlockTypeEditorActions,
 ) {
