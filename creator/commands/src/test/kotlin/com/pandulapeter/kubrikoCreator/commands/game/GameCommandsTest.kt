@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.GameStep
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
@@ -76,5 +77,17 @@ class GameCommandsTest {
         assertEquals("""{"hasStarted":true,"console":[]}""", assertIs<CommandOutcome.Success>(executor.call("start_game", JsonObject(emptyMap()))).result.toString())
         assertEquals("""{"wasRunning":true,"console":[]}""", assertIs<CommandOutcome.Success>(executor.call("stop_game", JsonObject(emptyMap()))).result.toString())
         assertEquals(listOf("start", "stop"), runner.calls)
+    }
+
+    @OptIn(EditorMutation::class)
+    @Test
+    fun aGameStartsInTheSceneItIsGivenWhenThereIsOne() = runTest {
+        val context = commandContext(runner = runner)
+        context.scenes.write("levels/bonus", "[]")
+        val executor = CommandExecutor(context, testScope())
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_MISSING, "levels/other")), executor.call("start_game", buildJsonObject { put("scene", "levels/other") }))
+        assertTrue(runner.calls.isEmpty())
+        assertIs<CommandOutcome.Success>(executor.call("start_game", buildJsonObject { put("scene", "levels/bonus") }))
+        assertEquals(listOf("start levels/bonus"), runner.calls)
     }
 }
