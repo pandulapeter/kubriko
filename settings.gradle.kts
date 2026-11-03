@@ -55,6 +55,7 @@ include(
     ":app:web",
     ":creator",
     ":creator:foundation",
+    ":creator:ui-components",
     ":engine",
     ":examples:demo-content-shaders",
     ":examples:demo-isometric-graphics",

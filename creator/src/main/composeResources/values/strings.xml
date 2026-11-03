@@ -116,8 +116,6 @@
     <string name="error_type_name_reserved">That name is used by Kubriko itself. Pick another one.</string>
     <string name="error_type_name_base_suffix">Names ending in "Base" are kept for the classes Kubriko Creator generates for parent types. Pick another one.</string>
     <string name="error_type_name_taken">There's already an Actor type or Manager type with that name.</string>
-    <string name="description_label">For</string>
-    <string name="description_hint">What it is for in the game, in one line, for you and the AI</string>
     <string name="block_set_velocity">Set velocity</string>
     <string name="block_add_to_velocity">Add to velocity</string>
     <string name="block_run_parent_event">Run the parent's Event</string>
@@ -265,13 +263,6 @@
     <string name="actor_type_events_empty">This doesn't do anything yet. Add an Event, then give it Blocks to run.</string>
     <string name="actor_type_shape_circle">Circle</string>
     <string name="actor_type_shape_rectangle">Rectangle</string>
-    <string name="actor_type_color">Color</string>
-    <string name="color_picker_title">Choose a color</string>
-    <string name="color_picker_hex">Hex code</string>
-    <string name="color_picker_hue">Hue</string>
-    <string name="color_picker_saturation">Saturation</string>
-    <string name="color_picker_brightness">Brightness</string>
-    <string name="color_picker_opacity">Opacity</string>
     <string name="actor_type_width">Width</string>
     <string name="actor_type_sprite">Sprite</string>
     <string name="actor_type_parent">Based on</string>
@@ -312,10 +303,8 @@
     <string name="key_press">Choose a key by pressing it</string>
     <string name="key_listening">Press the key…</string>
     <string name="key_none_found">No key matches.</string>
-    <string name="choice_search">Search</string>
     <string name="choice_none_found">Nothing matches.</string>
     <string name="sidebar_filter">Filter types, Scenes, and files</string>
-    <string name="panel_resize">Drag to resize, double-click for the default width</string>
     <string name="action_new_actor_type">New Actor type</string>
     <string name="action_new_folder">New folder</string>
     <string name="action_rename_folder">Rename</string>
@@ -721,7 +710,6 @@
     <string name="settings_section_editor">Editor</string>
     <string name="settings_default_project_folder">New projects go in</string>
     <string name="action_use_home_folder">Use the home folder</string>
-    <string name="description_hint_without_ai">What it is for in the game, in one line</string>
     <string name="action_open_project_settings">Project settings</string>
     <string name="action_open_creator_settings">Kubriko Creator settings</string>
     <string name="command_set_project_settings">Change the project settings</string>

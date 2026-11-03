@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.settings
 
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
+import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent

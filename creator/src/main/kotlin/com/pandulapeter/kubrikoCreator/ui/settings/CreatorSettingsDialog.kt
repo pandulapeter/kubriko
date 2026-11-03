@@ -25,10 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
-import com.pandulapeter.kubrikoCreator.settings.ThemeChoice
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.pickFolder
+import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_browse
 import kubriko.creator.generated.resources.action_done

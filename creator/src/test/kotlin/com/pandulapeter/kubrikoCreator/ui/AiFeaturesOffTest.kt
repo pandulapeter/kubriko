@@ -26,11 +26,14 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
-import com.pandulapeter.kubrikoCreator.settings.ThemeChoice
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
+import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kubriko.creator.generated.resources.Res

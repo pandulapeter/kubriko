@@ -22,8 +22,8 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.requestFocus
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.ui.showing
-import com.pandulapeter.kubrikoCreator.ui.uiTest
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_properties_empty
 import kotlin.test.Test

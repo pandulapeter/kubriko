@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+-->
+<resources>
+    <string name="action_cancel">Cancel</string>
+    <string name="description_label">For</string>
+    <string name="description_hint">What it is for in the game, in one line, for you and the AI</string>
+    <string name="action_done">Done</string>
+    <string name="action_add">Add</string>
+    <string name="actor_type_color">Color</string>
+    <string name="color_picker_title">Choose a color</string>
+    <string name="color_picker_hex">Hex code</string>
+    <string name="color_picker_hue">Hue</string>
+    <string name="color_picker_saturation">Saturation</string>
+    <string name="color_picker_brightness">Brightness</string>
+    <string name="color_picker_opacity">Opacity</string>
+    <string name="choice_search">Search</string>
+    <string name="choice_none_found">Nothing matches.</string>
+    <string name="panel_resize">Drag to resize, double-click for the default width</string>
+    <string name="description_hint_without_ai">What it is for in the game, in one line</string>
+</resources>

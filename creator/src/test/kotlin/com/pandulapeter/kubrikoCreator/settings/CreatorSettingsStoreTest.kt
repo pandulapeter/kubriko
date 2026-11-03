@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.settings
 
+import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
@@ -44,6 +45,13 @@ class CreatorSettingsStoreTest {
             file.writeText(content)
             assertEquals(CreatorSettings(), store.load())
         }
+    }
+
+    @Test
+    fun aFileWithoutAnInterfaceScaleHasCampfiresScale() {
+        file.parentFile.mkdirs()
+        file.writeText("""{"theme":"DARK"}""")
+        assertEquals(0.85f, store.load().interfaceScale)
     }
 
     @Test

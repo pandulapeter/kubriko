@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.settings
 
+import com.pandulapeter.kubrikoCreator.ui.theme.DEFAULT_INTERFACE_SCALE
+import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -32,8 +34,6 @@ internal data class CreatorSettings(
     @SerialName("panelWidths") val panelWidths: Map<String, Float> = emptyMap(),
 ) {
     companion object {
-        const val DEFAULT_INTERFACE_SCALE = 0.85f
-
         /**
          * The interface scales offered, the default among them.
          */
