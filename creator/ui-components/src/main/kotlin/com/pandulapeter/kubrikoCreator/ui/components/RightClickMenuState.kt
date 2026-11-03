@@ -45,6 +45,13 @@ public class RightClickMenuState {
     }
 
     /**
+     * Opens the menu beside the element [coordinates] belongs to, at its top, as a submenu opens beside its entry.
+     */
+    public fun openBeside(coordinates: LayoutCoordinates) {
+        if (coordinates.isAttached) positionInWindow = coordinates.localToWindow(Offset(coordinates.size.width.toFloat(), 0f))
+    }
+
+    /**
      * Closes the menu.
      */
     public fun close() {
