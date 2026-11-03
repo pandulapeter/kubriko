@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.benchmark
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor

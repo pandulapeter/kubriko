@@ -15,7 +15,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
-import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 
 /**

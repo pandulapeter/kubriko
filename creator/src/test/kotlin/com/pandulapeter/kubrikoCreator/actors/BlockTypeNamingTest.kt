@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.actors
 
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -28,7 +29,7 @@ class BlockTypeNamingTest {
 
     @Test
     fun namesTheGeneratedCodeAlreadyUsesAreReserved() {
-        listOf("GeneratedActorTypes", "GeneratedScenes", "SceneSettings", "StateManager", "State", "Color").forEach {
+        listOf("GeneratedActorTypes", "KubrikoWiring", "GeneratedScenes", "SceneSettings", "GeneratedAudio", "StateManager", "State", "Color").forEach {
             assertEquals(NameProblem.TYPE_RESERVED, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }

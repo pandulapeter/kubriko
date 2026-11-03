@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
-import com.pandulapeter.kubrikoCreator.actors.KotlinBlockImportsMigration
-import com.pandulapeter.kubrikoCreator.actors.ManagerFieldMigration
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
+import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject

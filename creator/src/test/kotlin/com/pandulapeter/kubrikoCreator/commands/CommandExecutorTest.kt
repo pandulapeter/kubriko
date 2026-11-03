@@ -11,11 +11,11 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType

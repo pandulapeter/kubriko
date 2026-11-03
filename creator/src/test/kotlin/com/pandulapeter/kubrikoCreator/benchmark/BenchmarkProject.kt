@@ -12,15 +12,16 @@ package com.pandulapeter.kubrikoCreator.benchmark
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.Comparison
 import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
+import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
@@ -68,12 +69,12 @@ internal object BenchmarkProject {
      */
     fun create(parentDirectory: File, generator: ProjectGenerator = offlineGenerator): File {
         val directory = generator.create(NewProjectRequest(name = "Benchmark", packageName = PACKAGE_NAME, parentDirectory = parentDirectory, isUnderVersionControl = false))
-        val actors = File(directory, "${BlockTypeStore.CREATOR_DIRECTORY}/actors").apply { deleteRecursively() }
+        val actors = File(directory, "${DefinitionPaths.CREATOR_DIRECTORY}/actors").apply { deleteRecursively() }
         repeat(ACTOR_TYPE_COUNT) { index ->
             val folder = File(actors, "family${index / 10}").apply { mkdirs() }
             File(folder, "${actorTypeName(index)}.json").writeText(json.encodeToString(ActorTypeDefinition.serializer(), actorType(index)) + "\n")
         }
-        val managers = File(directory, "${BlockTypeStore.CREATOR_DIRECTORY}/managers").apply { mkdirs() }
+        val managers = File(directory, "${DefinitionPaths.CREATOR_DIRECTORY}/managers").apply { mkdirs() }
         repeat(MANAGER_TYPE_COUNT) { index ->
             File(managers, "${managerTypeName(index)}.json").writeText(json.encodeToString(ManagerTypeDefinition.serializer(), managerType(index)) + "\n")
         }

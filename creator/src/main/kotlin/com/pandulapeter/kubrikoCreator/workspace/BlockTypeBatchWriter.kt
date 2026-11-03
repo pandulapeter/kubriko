@@ -10,8 +10,8 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
-import com.pandulapeter.kubrikoCreator.actors.RegeneratedCode
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.store.RegeneratedCode
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
 import kotlinx.coroutines.CancellationException
 

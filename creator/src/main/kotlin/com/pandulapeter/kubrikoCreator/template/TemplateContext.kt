@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 
 /**
  * What the [TemplateStep]s of one upgrade check share: where the template's files are in the project, and how to read them.

@@ -11,10 +11,10 @@ package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.ConditionKind
 import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection

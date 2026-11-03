@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
 import com.pandulapeter.kubrikoCreator.actors.MUSIC_DESCRIPTION
-import com.pandulapeter.kubrikoCreator.actors.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem

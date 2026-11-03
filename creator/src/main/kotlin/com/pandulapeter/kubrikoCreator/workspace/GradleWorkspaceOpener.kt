@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.foundation.CreatorLibraries
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection

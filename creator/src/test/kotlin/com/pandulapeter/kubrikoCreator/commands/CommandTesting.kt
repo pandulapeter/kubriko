@@ -13,8 +13,8 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController

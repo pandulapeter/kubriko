@@ -13,7 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
+import com.pandulapeter.kubrikoCreator.actors.store.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import kotlinx.coroutines.flow.StateFlow
 

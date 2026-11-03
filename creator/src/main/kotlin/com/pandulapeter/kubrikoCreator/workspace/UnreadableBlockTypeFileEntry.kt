@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeFileProblem
-import com.pandulapeter.kubrikoCreator.actors.UnreadableBlockTypeFile
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeFileProblem
+import com.pandulapeter.kubrikoCreator.actors.store.UnreadableBlockTypeFile
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 
 /**
