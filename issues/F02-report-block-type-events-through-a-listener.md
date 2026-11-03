@@ -9,6 +9,13 @@
 -->
 # Give `BlockTypesController` one `BlockTypesListener` for what it reports, and move the workspace's console reporting of it into `BlockTypesReport`
 
+**Challenged:** amended — `BlockTypesReport`'s constructor callback is `onBatchSaved`, so the class no longer has a property
+and a function both named `onSaved`; the KDoc step says the controller has seven `@param on…` lines, not nine; the
+`BlockTypesControllerTest` step names the eight overrides and calls the two same-named `createController` parameters through
+`.invoke`, so no override reads as calling itself. Checked otherwise: the three constructor callers, every callback use in
+`BlockTypesController`, `ConsoleLog.append` returning `Unit` (so the expression-bodied overrides compile), and the
+`KubrikoBuildFileChanges` fields the new test sets.
+
 **Kind:** architecture  ·  **Severity:** low  ·  **Platforms:** all (desktop app)
 **Written against:** `9bb8df2a6`. Re-locate code by the quoted snippets, not by line numbers.
 **Files:**
@@ -127,8 +134,9 @@ Replace each use, keeping the calls where and when they are:
 - `onSaved(haveTypesChanged)` → `listener.onSaved(haveTypesChanged)`
 - `if (failure != previous) onSaveFailed(failure)` → `listener.onSaveFailed(failure)`
 
-In the class KDoc, replace the nine `@param on…` lines with one: "`@param listener` Told what the controller did; see
-[BlockTypesListener]." Keep the rest of the KDoc.
+In the class KDoc, replace the seven `@param on…` lines it has today (`onSaved` to `onLeftoverChangedByHand`; `onFirstLoaded` and
+`onBuildFilesSynced` have none) with one: "`@param listener` Told what the controller did; see [BlockTypesListener]." Keep the
+rest of the KDoc, including the sentence about [syncBuildFiles].
 
 ### 3. `workspace/BlockTypesReport.kt` (new, `:creator:workspace`)
 
@@ -138,15 +146,15 @@ moved verbatim:
 
 ```kotlin
 /**
- * Says in the [console] what the project's type store did, and hands each saved batch to [onSaved].
+ * Says in the [console] what the project's type store did, and hands each saved batch to [onBatchSaved].
  */
 internal class BlockTypesReport(
     private val console: ConsoleLog,
-    private val onSaved: (haveTypesChanged: Boolean) -> Unit,
+    private val onBatchSaved: (haveTypesChanged: Boolean) -> Unit,
 ) : BlockTypesListener {
     private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
 
-    override fun onSaved(haveTypesChanged: Boolean) = onSaved.invoke(haveTypesChanged)
+    override fun onSaved(haveTypesChanged: Boolean) = onBatchSaved(haveTypesChanged)
     override fun onSaveFailed(failure: FailedWrite) = console.append(failure.toConsoleEntry())
     override fun onSavedAgain() = console.append(ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPES_SAVED_AGAIN))
     override fun onFileUnreadable(file: UnreadableBlockTypeFile) = console.append(file.toConsoleEntry())
@@ -247,9 +255,12 @@ together into a named collaborator, or take a responsibility out (`issues/`)."
 ## Tests
 
 - `BlockTypesControllerTest.createController` builds the listener from its counters instead of the lambdas, in an
-  `object : BlockTypesListener { … }` that overrides the eight callbacks it records today (`onSaved` keeps calling its own
-  `onSaved()` parameter, and `onBuildFilesSynced` calls the `onBuildFilesSynced` parameter of `createController`). No test case
-  changes otherwise.
+  `object : BlockTypesListener { … }` that overrides the eight callbacks it records today (`onSaved`, `onSaveFailed`,
+  `onSavedAgain`, `onFileUnreadable`, `onFilesReadableAgain`, `onLeftoversRemoved`, `onLeftoverChangedByHand`,
+  `onBuildFilesSynced`). Two of `createController`'s parameters share a name with the override that calls them, so call them
+  as `onSaved.invoke()` and `onBuildFilesSynced.invoke(changes)`: a bare `onBuildFilesSynced(changes)` inside
+  `override fun onBuildFilesSynced` reads as the override calling itself, and `.invoke` on the name can only mean the
+  parameter. No test case changes otherwise.
 - New `BlockTypesReportTest` (`:creator:workspace`), since a collaborator of `WorkspaceController` is tested on its own
   (`creator/CLAUDE.md` → Running and testing). Plain JUnit, no coroutines: build `BlockTypesReport(ConsoleLog()) { saved += it }`
   and assert on `console.entries.value`:

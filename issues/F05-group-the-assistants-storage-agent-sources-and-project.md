@@ -9,6 +9,13 @@
 -->
 # Give `AssistantController` its storage, its agent sources, and the open project as three named types, with their production wiring moved out of `AppGraph`
 
+**Challenged:** amended — step 4 now says exactly which argument changes in each body call. `AssistantStorage.settings` and
+the controller's own `private val settings` (an `AssistantSettingsState`) share a name, so a bare `settings` keeps meaning the
+state; only `store` becomes `storage.settings`. Checked otherwise: every type the groups hold and every `default()` they call
+is in `:creator:ai`; `createAssistant`'s lambda doesn't use the installer moved into `AgentSources.default()`; only `AppGraph`
+and `AssistantControllerTest` build the controller; `CommandExecutor.context`/`changeLog`/`undoTurn` and the suspend
+`ConversationStart.of` have the signatures used; the counter drops to 11.
+
 **Kind:** architecture  ·  **Severity:** low  ·  **Platforms:** all (desktop app)
 **Written against:** `9bb8df2a6`, after F02–F04 (none of which touch these files). Re-locate code by the quoted snippets.
 **Files:**
@@ -215,9 +222,13 @@ public class AssistantController(
 
 with `override val errorLogFile: File? = storage.errorLogFile` as a body property (next to the other `override val`s; it is
 read only by the panel, after construction). Replace each use, keeping the initialization order of the body as it is:
-- `AssistantSettingsState(scope, store, ioDispatcher)` → `storage.settings`;
-- `AgentSelection(scope, settings, registry, …)` → `sources.registry`;
-- `ClaudeAccount(scope, ioDispatcher, runner, secrets, home, …)` and `AssistantSignIn(… secrets = secrets, …)` → `storage.secrets`;
+- `private val settings = AssistantSettingsState(scope, store, ioDispatcher)` →
+  `private val settings = AssistantSettingsState(scope, storage.settings, ioDispatcher)`. The body's `settings` stays the
+  `AssistantSettingsState` everywhere else (`AgentSelection(scope, settings, …)`, `AssistantSignIn(settings = settings, …)`,
+  `settings.update { … }`); never write `storage.settings` anywhere but here;
+- `AgentSelection(scope, settings, registry, …)`: only `registry` → `sources.registry`;
+- `ClaudeAccount(scope, ioDispatcher, runner, secrets, home, …)` and `AssistantSignIn(… secrets = secrets, …)`: `secrets` →
+  `storage.secrets`;
 - `AssistantChats(scope, ioDispatcher, conversations)`, `conversations?.of(…)` in `lastConversationOf`, and
   `conversations?.save(…)` in `openChat` → `storage.conversations`;
 - `AgentCommands(runner, installer, home, ioDispatcher, node)` → `AgentCommands(runner, sources.installer, home, ioDispatcher, sources.node)`;

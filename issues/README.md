@@ -34,8 +34,8 @@ it), and F01 and F06 each add a clause to `creator/CLAUDE.md` → Modules.
 - **The leaf constructors before `WorkspaceController` (F02–F05, then F06):** `WorkspaceController` builds
   `BlockTypesController`, `CommandContext`, and `SceneEditingController`, so changing them first means F06 wires collaborators
   whose signatures are final, instead of every leaf plan editing F06's new code. It also keeps `WorkspaceController.kt` (495 of
-  its 500 lines today) within the limit: F02 moves about 30 lines of console reporting out of it before F03 and F04 add to the
-  calls they change, and F06 depends on F04's `SceneRuntimeSetup`.
+  its 500 lines today) within the limit: F02 moves about 30 lines of console reporting out of it before F03 adds two lines to
+  the call it changes (F04 and F06 shorten the file further), and F06 depends on F04's `SceneRuntimeSetup`.
 - **F02 before F03:** both edit `CommandTesting.kt`'s fixtures in `:creator:commands`; F02 the `blockTypesController` one, F03
   `commandContext`.
 - **F05 anywhere after F01:** it touches only `:creator:ai` and `AppGraph`; it sits before F06 so the plans that change a
@@ -54,5 +54,10 @@ it), and F01 and F06 each add a clause to `creator/CLAUDE.md` → Modules.
 - **Only the three controllers M01 named** (`AppController`, `WorkspaceController`, `AssistantController`) are held back from
   parts. `McpController` and `AiClientsController` are passed through unchanged, and `ui/WorkspaceScreen.kt` holds the wiring
   as private functions rather than a new entry file, so nothing else can call it.
+- **Challenged** at `5156af283` (each plan's verdict is under its header): F01, F03, and F04 sound; F02, F05, and F06 amended.
+  F02 renames `BlockTypesReport`'s callback to `onBatchSaved` and calls same-named test parameters through `.invoke`. F05 spells
+  out that only `store` becomes `storage.settings`, the controller's own `settings` staying the state. F06 puts the
+  `CLAUDE.md` fixture clause after ai's. None was dropped: every goal can be met safely, and every grouping takes its
+  constructor to 12 or fewer as `check_sizes.py` counts it.
 - **Test convenience** stays through the fixtures: `commandContext` and `blockTypesController` keep their flat parameters, and
   F06 adds `workspaceController` to `:creator:workspace`'s test fixtures for the five tests that build a workspace.
