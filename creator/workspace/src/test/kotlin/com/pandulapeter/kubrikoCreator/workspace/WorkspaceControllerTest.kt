@@ -19,6 +19,9 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.NameProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
@@ -698,6 +701,33 @@ class WorkspaceControllerTest {
             controller.onProjectChanged(setOf(ProjectChange.SOURCES))
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
             assertTrue("\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}" in File(root, ".kubriko/project.json").readText())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun upgradingTheProjectChecksTheTemplateFilesAgain() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            File(root, ".kubriko").mkdirs()
+            File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
+            File(root, "gradle.properties").writeText(
+                "org.gradle.caching=true\norg.gradle.configuration-cache=true\n" +
+                    "game.name=Game\ngame.versionName=1.0.0\ngame.versionNumber=1\ngame.applicationId=com.example.game\ngame.vendor=\ngame.description=\n",
+            )
+            File(root, "build.gradle.kts").writeText("// Reads game.name.\n")
+            val game = File(root, "src/commonMain/kotlin/com/example/game/Game.kt").apply { parentFile.mkdirs() }
+            game.writeText("package com.example.game\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(scenePath = \"files/scenes/main.json\"),\n)\n")
+            File(root, "src/desktopMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("// Sets KubrikoWiring.isLoggingEnabled and KubrikoWiring.firstSceneOverride.\n")
+            val controller = createController(rootDirectory = root)
+            val upgrade = assertIs<TemplateUpgrade.Needed>(controller.projectUpgrade.value)
+            assertContains(upgrade.changes.map { it.path }, "src/commonMain/kotlin/com/example/game/Game.kt")
+            assertNull(controller.commands.validate(Invocation(UpgradeProject, NoInput)))
+            controller.commands.dispatch(Invocation(UpgradeProject, NoInput))
+            runCurrent()
+            val changedPaths = (controller.projectUpgrade.value as? TemplateUpgrade.Needed)?.changes.orEmpty().map { it.path }
+            assertFalse("src/commonMain/kotlin/com/example/game/Game.kt" in changedPaths)
         } finally {
             root.deleteRecursively()
         }

@@ -36,7 +36,7 @@ public object UpgradeProject : WriteCommand<NoInput> {
 
     override fun target(context: CommandContext, input: NoInput): CommandTarget? = CommandTarget.Project
 
-    override fun validate(context: CommandContext, input: NoInput): Rejection? = rejectionOf(context.projectUpgrade())
+    override fun validate(context: CommandContext, input: NoInput): Rejection? = rejectionOf(context.projectUpgrades.current())
 
     override suspend fun apply(context: CommandContext, input: NoInput): Applied {
         val rejection = withContext(context.ioDispatcher) {
@@ -47,7 +47,7 @@ public object UpgradeProject : WriteCommand<NoInput> {
             }
         }
         if (rejection != null) return Applied.failed(rejection)
-        context.onProjectUpgraded()
+        context.projectUpgrades.onUpgraded()
         return Applied(inverse = null, isRewritingFiles = true)
     }
 
