@@ -199,7 +199,6 @@ public class WorkspaceController(
         moduleDirectory = { File(project.rootDirectory, desktopModulePath.await().removePrefix(":").replace(':', File.separatorChar)) },
         openBrowser = processes.openBrowser,
         console = consoleLog,
-        scope = scope,
         ioDispatcher = ioDispatcher,
     )
 
@@ -370,10 +369,11 @@ public class WorkspaceController(
     internal fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) = this.changes.onProjectChanged(changes, snapshot)
 
     /**
-     * Checks the template files again, recording the new template version if they were upgraded by hand. A project that
-     * may not be changed is offered no upgrade.
+     * Checks the template files again, recording the new template version if they were upgraded by hand, and where the
+     * game can be played, which they decide. A project that may not be changed is offered no upgrade.
      */
     internal fun refreshProjectUpgrade() {
+        playTargets.startRefresh()
         scope.launch {
             _projectUpgrade.value = withContext(ioDispatcher) {
                 if (_formatStatus.value is ProjectFormatStatus.ReadOnly) {

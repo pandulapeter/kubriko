@@ -14,10 +14,8 @@ import com.pandulapeter.kubrikoCreator.session.WebGameServer
 import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -29,7 +27,6 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -46,12 +43,6 @@ class WebPlayerTest {
     private val opened = mutableListOf<URI>()
     private var canOpenBrowser = true
     private val http = HttpClient.newHttpClient()
-    private val playerScope = CoroutineScope(Dispatchers.IO + Job())
-
-    @AfterTest
-    fun tearDown() {
-        playerScope.cancel()
-    }
 
     private val statuses get() = console.entries.value.filterIsInstance<ConsoleEntry.Status>().map { it.text }
 
@@ -67,7 +58,6 @@ class WebPlayerTest {
             canOpenBrowser
         },
         console = console,
-        scope = playerScope,
         ioDispatcher = Dispatchers.IO,
     )
 
@@ -101,6 +91,51 @@ class WebPlayerTest {
         withTimeout(10_000) { builds.receive() }
         withTimeout(10_000) { while (WorkspaceStatus.WEB_GAME_RELOADED !in statuses) delay(10) }
         playing.cancelAndJoin()
+    }
+
+    @Test
+    fun aChangeDuringTheFirstBuildIsBuiltOnceTheGameIsUp() = blockingTest {
+        File(distribution, "index.html").apply { parentFile.mkdirs() }.writeText("<body></body>")
+        val player = player()
+        val playing = launch { player.play(firstScene = null) {} }
+        builds.receive()
+        player.onCodeChanged()
+        withTimeout(10_000) { builds.receive() }
+        withTimeout(10_000) { while (WorkspaceStatus.WEB_GAME_RELOADED !in statuses) delay(10) }
+        playing.cancelAndJoin()
+    }
+
+    @Test
+    fun stoppingTheGameStopsTheBuildThatRuns() = blockingTest {
+        File(distribution, "index.html").apply { parentFile.mkdirs() }.writeText("<body></body>")
+        val rebuildStarted = CompletableDeferred<Unit>()
+        val rebuildCancelled = CompletableDeferred<Unit>()
+        var buildCount = 0
+        val player = WebPlayer(
+            runTask = { _, _ ->
+                if (++buildCount == 1) {
+                    true
+                } else {
+                    rebuildStarted.complete(Unit)
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        rebuildCancelled.complete(Unit)
+                    }
+                }
+            },
+            moduleDirectory = { moduleDirectory },
+            openBrowser = { true },
+            console = console,
+            ioDispatcher = Dispatchers.IO,
+        )
+        val isUp = CompletableDeferred<Unit>()
+        val playing = launch { player.play(firstScene = null) { isUp.complete(Unit) } }
+        withTimeout(10_000) { isUp.await() }
+        player.onCodeChanged()
+        withTimeout(10_000) { rebuildStarted.await() }
+        playing.cancelAndJoin()
+        withTimeout(10_000) { rebuildCancelled.await() }
     }
 
     @Test
