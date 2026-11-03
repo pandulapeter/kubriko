@@ -97,6 +97,21 @@ class ClassLoaderEntryPointLoaderTest {
     }
 
     @Test
+    fun theCopiedJarsAreDeletedWhenTheClassesAreClosed() {
+        val jarName = "game-${System.nanoTime()}.jar"
+        File(root, "build/libs/$jarName").apply {
+            parentFile.mkdirs()
+            JarOutputStream(outputStream()).close()
+        }
+        fun copiesOfTheJar() = File(System.getProperty("java.io.tmpdir")).listFiles().orEmpty()
+            .filter { it.name.startsWith("kubriko-creator-classes") && File(it, "0-$jarName").isFile }
+        val loaded = load(File(root, "build/libs/$jarName"), classesRegistering(TestEntryPoint::class.java.name))
+        val copies = copiesOfTheJar().single()
+        loaded.close()
+        assertFalse(copies.exists(), "$copies is left after closing")
+    }
+
+    @Test
     fun aRebuiltFolderDoesntChangeTheClassesLoadedFromItButItsResourcesStayReadable() {
         val classes = File(root, "game/build/classes").apply { mkdirs() }
         val probePath = SnapshotProbe::class.java.name.replace('.', '/') + ".class"
