@@ -346,12 +346,17 @@ public class AcpAgent(
     private suspend fun onExit(connection: Connection, exitCode: Int) = lifecycle.withLock { handleExit(connection, exitCode) }
 
     /**
-     * Handles the exit of the process whose output has ended already, if it exits soon, rather than handing out its
-     * conversations' sessions, which a prompt sent right after a crash would otherwise reach before [onExit] runs.
+     * Handles the exit of the process whose output has ended already rather than handing out its conversations'
+     * sessions, which a prompt sent right after a crash would otherwise reach before [onExit] runs. A process that keeps
+     * running without its output can't answer anything, so it is stopped.
      */
     private suspend fun endIfExiting() {
         val ending = connection?.takeIf { it.outputEnded.isCompleted } ?: return
-        val exitCode = withTimeoutOrNull(EXIT_WAIT) { withContext(ioDispatcher) { ending.channel.awaitExit() } } ?: return
+        val exitCode = withTimeoutOrNull(EXIT_WAIT) { withContext(ioDispatcher) { ending.channel.awaitExit() } }
+            ?: withContext(ioDispatcher + NonCancellable) {
+                ending.channel.stop()
+                ending.channel.awaitExit()
+            }
         handleExit(ending, exitCode)
     }
 

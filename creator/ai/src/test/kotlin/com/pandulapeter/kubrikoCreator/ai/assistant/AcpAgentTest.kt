@@ -50,6 +50,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
@@ -214,6 +215,19 @@ class AcpAgentTest {
         conversation.prompt(text("hello"))
         assertReceived(listOf("Hi", " there"), messages)
         assertEquals(2, launcher.agents.size)
+    }
+
+    @Test
+    fun anAgentThatKeepsRunningWithoutItsOutputIsStoppedAndStartedAgain() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
+        val launcher = launcher { FakeAgent(crashExitDelay = 1.hours) }
+        val agent = agent(launcher)
+        val conversation = agent.newConversation(workingDirectory)
+        val messages = messagesOf(conversation)
+        assertFailsWith<Exception> { conversation.prompt(text("crash")) }
+        conversation.prompt(text("hello"))
+        assertReceived(listOf("Hi", " there"), messages)
+        assertEquals(2, launcher.agents.size)
+        assertTrue(launcher.channels.first().isStopped)
     }
 
     @Test
