@@ -25,25 +25,34 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `03-playing-on-every-target.md` with the web, then Android and the iOS simulator, each shipped and reviewed on its own;
-each adds its kind to `PlayTarget.Kind`, a source to `PlayTargetChoice`, and its start to `WorkspaceController.play`. Then
-`04-settings.md`'s Release, Icons, and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS
-devices can follow Signing. Then `05` to `08` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI
-elements, git) or for the benchmarks.
+Continue `03-playing-on-every-target.md` with Android, then the iOS simulator, each shipped and reviewed on its own; each adds
+its kind to `PlayTarget.Kind`, a source to `PlayTargetChoice`, and its start to `WorkspaceController.play` through
+`SessionController.playElsewhere`, as `WebPlayer` does. Then `04-settings.md`'s Release, Icons, and Signing, each extending the
+Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. Then `05` to `08` in order. What is
+left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+
+Owed: the end-to-end scenario's new last step (`UpgradingAndPlayingTest`, Breakout played on the web in headless Chrome
+through `start_game`) has never run, since it needs Linux; dispatch `Tests` once the commits are pushed (ask first) and look
+at `creator-end-to-end`'s images.
 
 What the last session did, all reviewed:
 
-- **Choosing where to play** (`e905b00ce..3719127b0`): Play's menu (`PlayTargetMenu`) lists where the game can run, with a way to
-  Project settings for more, the choice kept in `.kubriko/local/play.json` (`PlayTargetChoice`, looked for as the project
-  opens), `target` on `play` and `start_game` (the desktop when left out), and `list_play_targets`. Only the desktop is listed
-  until the web lands. Template version 11 (`PlaySwitchesUpgrade`) has the web, Android, and iOS entry points read Play from
-  this Scene and Log Blocks (in debug builds; on the web, only on a loopback host), and the integration test builds all three
-  with it. The review fixed the upgrade wrapping a declaration that followed `main` (the desktop step had the same bug), a
-  repeated `@OptIn` on iOS, the kept choice not reaching Play after a restart, sources looked for on the main thread, and two
-  import helpers ordering differently (the starter templates' imports are now in ktlint's order). Declined: caching the
-  places between `play` calls (a cached device may be gone, and looking costs little next to a build). The game tools'
-  refusal on other targets moved into the Web item, since no other target runs yet. Nothing has run the web entry point's
-  `js()` in a browser yet; the Web item's headless Chromium scenario will.
+- **Choosing where to play** (`e905b00ce..3719127b0`): Play's menu (`PlayTargetMenu`), the choice kept in
+  `.kubriko/local/play.json` (`PlayTargetChoice`), `target` on `play` and `start_game` (the desktop when left out), and
+  `list_play_targets`. Template version 11 (`PlaySwitchesUpgrade`) has the web, Android, and iOS entry points read Play from
+  this Scene and Log Blocks (in debug builds; on the web, only on a loopback host); the integration test builds all three.
+  The review fixed the upgrade wrapping a declaration that followed `main` (the desktop step too), a repeated `@OptIn` on
+  iOS, the kept choice not reaching Play after a restart, sources looked for on the main thread, and two import helpers
+  ordering differently. Declined: caching the places between `play` calls.
+- **The web** (`213713475..2bc99275f`): Play in the browser builds the development distribution, serves it from Creator
+  (`WebGameServer`, loopback only, refusing other hosts), opens the system browser, and rebuilds and reloads the page after
+  each change; the game tools refuse a game elsewhere. `WebGameIntegrationTest` (opt-in, headless Chrome through the
+  DevTools protocol, no window) checks the drawn Scene, the address's Scene switch, and the reload on this Mac, and runs
+  nightly in `publish-check`. It found that Kubriko starts a game only once its page is focused, which a headless page
+  never is, so it emulates focus. The review fixed changes during the first build being dropped, a rebuild outliving Stop
+  and holding the build lock, a target turned off staying chosen, a cancelled start reported as a failure, `restart()`
+  reading a state that lags the job, the AI panel offering the screen of a game in the browser, and a mid-scenario `Assume`
+  hiding the steps after it.
 
 ## Before a release
 
@@ -55,7 +64,7 @@ never item by item.
 - The macOS title bar's controls following Creator's light and dark theme.
 - The packaged game and its installers on macOS and Windows: the version, vendor, and a name with an accent reaching them.
 - The web build in a browser (`wasmJsBrowserDevelopmentRun`): the page's title from `game.name`, a fixed aspect ratio, and web
-  audio.
+  audio; and Play in the browser opening the system's browser on macOS, Windows, and Linux (`xdg-open`).
 - Hearing a played game: music and sounds from Blocks, music pausing and resuming with the window's focus, a non-looping music
   played again, and going between Scenes with the same and different music.
 - A game with Android and iOS turned on running on a phone or tablet of each (the integration test builds both apps but never
