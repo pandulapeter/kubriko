@@ -11,14 +11,18 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
@@ -50,9 +54,11 @@ class ProjectSidebarTest {
         onCreateFolder = { _, _ -> null },
         onRenameFolder = { _, _, _ -> null },
         onDeleteFolder = { _, _ -> },
+        onRenameItem = { group, name, newName -> null.also { renamedItems += Triple(group, name, newName) } },
         onDeleteItem = { group, name -> deletedItems += group to name },
     )
     private val deletedItems = mutableListOf<Pair<FolderGroup, String>>()
+    private val renamedItems = mutableListOf<Triple<FolderGroup, String, String>>()
 
     @Test
     fun theFilterNarrowsEverythingToMatchingNamesOpeningTheirFoldersAndEscapeBringsBackWhatWasCollapsed() = uiTest(width = 300, height = 600) {
@@ -80,6 +86,38 @@ class ProjectSidebarTest {
     }
 
     @Test
+    fun draggingAnItemOntoAFolderMovesItInAndOntoAnythingOutsideEveryFolderMovesItOut() = uiTest(width = 300, height = 600) {
+        val moves = mutableListOf<Pair<String, String>>()
+        val dragState = SidebarDragState().apply { onMoveToFolder = { _, name, folder -> moves += name to folder } }
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = folderGroups,
+                folderActions = folderActions,
+                dragState = dragState,
+            )
+        }
+        dragOnto("Ball", "enemies")
+        dragOnto("Bat", "Actor types")
+        dragOnto("Bat", "Ball")
+        assertEquals(listOf("Ball" to "enemies", "Bat" to "", "Bat" to ""), moves)
+    }
+
+    private fun ComposeUiTest.dragOnto(item: String, target: String) {
+        val from = onNodeWithText(item).fetchSemanticsNode().boundsInRoot
+        val to = onNodeWithText(target).fetchSemanticsNode().boundsInRoot.center
+        onNodeWithText(item).performMouseInput {
+            moveTo(center)
+            press()
+            moveBy(Offset(0f, 30f))
+            moveTo(to - from.topLeft)
+            release()
+        }
+        waitForIdle()
+    }
+
+    @Test
     fun aRightClickOffersWhatCanBeDoneToARowAndAHeader() = uiTest(width = 300, height = 600) {
         showing {
             ProjectSidebar(
@@ -98,6 +136,16 @@ class ProjectSidebarTest {
         onNodeWithText("Scenes").performMouseInput { rightClick() }
         onNodeWithText("New Scene").performClick()
         onNodeWithText("New Scene name", useUnmergedTree = true).assertExists()
+        onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Escape) }
+        onNodeWithText("Intro").performMouseInput { rightClick() }
+        onNodeWithText("Rename").performClick()
+        onNode(hasSetTextAction() and isFocused()).performTextReplacement("Opening")
+        onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Enter) }
+        assertEquals(listOf(Triple(FolderGroup.SCENES, "Intro", "Opening")), renamedItems)
+        onNodeWithText("enemies").performMouseInput { rightClick() }
+        onNodeWithText("New folder").performClick()
+        onNodeWithText("Folder name", useUnmergedTree = true).assertExists()
+        saveSnapshot("sidebar-new-subfolder")
     }
 
     @Test

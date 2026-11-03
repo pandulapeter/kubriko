@@ -26,10 +26,24 @@ class SidebarDragStateTest {
     private val game = SidebarDragState.Dragged("Game", FolderGroup.MANAGER_TYPES, folder = "rules")
     private val state = SidebarDragState(clock = { now }).apply {
         sceneTarget = SidebarDragState.SceneTarget(Rect(300f, 0f, 700f, 400f)) { name, at -> placed += name to at }
-        folderTargets[SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "")] = Rect(0f, 0f, 260f, 30f)
-        folderTargets[SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "toys")] = Rect(0f, 30f, 260f, 60f)
-        folderTargets[SidebarDragState.FolderKey(FolderGroup.MANAGER_TYPES, "")] = Rect(0f, 100f, 260f, 130f)
+        target(SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, ""), Rect(0f, 0f, 260f, 30f))
+        target(SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, "toys"), Rect(0f, 30f, 260f, 60f))
+        target(SidebarDragState.FolderKey(FolderGroup.MANAGER_TYPES, ""), Rect(0f, 100f, 260f, 130f))
         onMoveToFolder = { _, name, folder -> moved += name to folder }
+    }
+
+    private fun SidebarDragState.target(folder: SidebarDragState.FolderKey, bounds: Rect, id: Any = folder) {
+        dropTargets[id] = SidebarDragState.DropTarget(folder, bounds)
+    }
+
+    @Test
+    fun aTypeDroppedOnAnItemOfAnotherFolderMovesNextToIt() {
+        state.target(SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, ""), Rect(0f, 200f, 260f, 230f), id = "Paddle")
+        state.start(SidebarDragState.Dragged("Bat", FolderGroup.ACTOR_TYPES, folder = "toys"), Offset(10f, 40f))
+        state.moveTo(Offset(10f, 210f))
+        assertEquals(SidebarDragState.FolderKey(FolderGroup.ACTOR_TYPES, ""), state.hoveredFolder)
+        state.end()
+        assertEquals(listOf("Bat" to ""), moved)
     }
 
     @Test

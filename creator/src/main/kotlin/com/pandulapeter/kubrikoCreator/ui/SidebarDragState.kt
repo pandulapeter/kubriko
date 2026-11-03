@@ -60,9 +60,16 @@ internal class SidebarDragState(
     var sceneTarget: SceneTarget? = null
 
     /**
-     * Where the sidebar's folder rows and group headers are, kept up to date by the rows themselves.
+     * Where something dragged would move to a folder if dropped: a folder row or group header (moving into that folder, or
+     * out of every folder), or an item's row (moving next to it, into its folder). Kept up to date by the rows themselves,
+     * by an ID of their own.
      */
-    val folderTargets = HashMap<FolderKey, Rect>()
+    class DropTarget(
+        val folder: FolderKey,
+        val bounds: Rect,
+    )
+
+    val dropTargets = HashMap<Any, DropTarget>()
 
     /**
      * Moves the type or Scene called [name] of [group] to [folder].
@@ -77,7 +84,7 @@ internal class SidebarDragState(
     val hoveredFolder: FolderKey?
         get() {
             val dragged = dragged ?: return null
-            return folderTargets.entries.firstOrNull { (key, bounds) -> key.group == dragged.group && bounds.contains(pointer) }?.key
+            return dropTargets.values.firstOrNull { it.folder.group == dragged.group && it.bounds.contains(pointer) }?.folder
         }
 
     fun start(dragged: Dragged, at: Offset) {

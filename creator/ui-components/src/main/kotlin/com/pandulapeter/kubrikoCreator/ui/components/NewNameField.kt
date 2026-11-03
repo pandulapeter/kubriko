@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -38,7 +42,9 @@ import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.action_a
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.action_cancel
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.ic_check
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.ic_close
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -47,6 +53,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param initialName The name it starts with, for renaming.
  * @param confirmLabel What its confirming button is called.
+ * @param icon The icon of what it names, so it looks like the row it becomes, in [iconTint] (the muted content color by default).
  * @param indent How far it is from the start, to line up with the rows around it.
  */
 @Composable
@@ -57,6 +64,8 @@ public fun NewNameField(
     initialName: String = "",
     indent: Dp = 24.dp,
     confirmLabel: StringResource = Res.string.action_add,
+    icon: DrawableResource? = null,
+    iconTint: Color = Color.Unspecified,
 ): Unit = Column(
     modifier = Modifier.fillMaxWidth().padding(start = indent, end = 4.dp, bottom = 4.dp),
 ) {
@@ -69,6 +78,14 @@ public fun NewNameField(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (icon != null) {
+            Icon(
+                modifier = Modifier.padding(end = 6.dp).size(16.dp),
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = iconTint.takeOrElse { MaterialTheme.colorScheme.onSurfaceVariant },
+            )
+        }
         CompactTextField(
             modifier = Modifier
                 .weight(1f)

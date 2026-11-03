@@ -9,8 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
+import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.ic_check
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.roundToInt
 
@@ -47,25 +53,24 @@ public fun RightClickMenu(
 ) {
     val position = state.positionInWindow ?: return
     if (actions.isEmpty()) return
+    val hasIcons = actions.any { it.icon != null || it.isChecked != null }
     Popup(
         popupPositionProvider = remember(position) { AtPointer(position) },
         onDismissRequest = state::close,
         properties = PopupProperties(focusable = true),
     ) {
         Surface(
-            modifier = Modifier.width(IntrinsicSize.Max).widthIn(min = 160.dp, max = 320.dp).dialogEntrance(),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            shadowElevation = 8.dp,
+            modifier = Modifier.width(IntrinsicSize.Max).widthIn(min = 160.dp, max = 300.dp).dialogEntrance(),
+            shape = MenuStyle.shape,
+            color = MenuStyle.color,
+            border = MenuStyle.border,
+            shadowElevation = MenuStyle.elevation,
         ) {
             Column(Modifier.padding(vertical = 4.dp)) {
                 actions.forEach { action ->
-                    val color = if (action.isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                    DropdownMenuItem(
-                        text = { Text(text = action.label, color = color) },
-                        leadingIcon = action.icon?.let { icon ->
-                            { Icon(modifier = Modifier.size(16.dp), painter = painterResource(icon), contentDescription = null, tint = color) }
-                        },
+                    MenuEntry(
+                        action = action,
+                        hasIcons = hasIcons,
                         onClick = {
                             state.close()
                             action.onClick()
@@ -75,6 +80,42 @@ public fun RightClickMenu(
             }
         }
     }
+}
+
+@Composable
+private fun MenuEntry(
+    action: ContextAction,
+    hasIcons: Boolean,
+    onClick: () -> Unit,
+) {
+    val color = if (action.isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+    val icon = when (action.isChecked) {
+        true -> Res.drawable.ic_check
+        false -> null
+        null -> action.icon
+    }
+    DropdownMenuItem(
+        modifier = Modifier.fillMaxWidth(),
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(text = action.label, color = color)
+                action.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        leadingIcon = if (hasIcons) {
+            { Box(Modifier.size(16.dp)) { icon?.let { Icon(modifier = Modifier.size(16.dp), painter = painterResource(it), contentDescription = null, tint = color) } } }
+        } else {
+            null
+        },
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = if (action.description == null) 0.dp else 8.dp),
+        onClick = onClick,
+    )
 }
 
 /**

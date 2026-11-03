@@ -439,8 +439,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   of a new project) under More options.
 - **Calm and desktop-like:** soft, low-contrast colors (`CreatorColors`, never pure white or black text), small corners, and
   dialogs of several groups as a list of pages beside the chosen one rather than one long scroll. A row shows its main action;
-  the rest (remove, folder options) fade in while it is pointed at or focused, and its right-click menu offers them too, never
-  only there. A clickable row's background and press feedback span its whole panel (a padded settings page's rows reach
+  the rest (remove, or a ⋮ `RowActionsButton` opening the same `RightClickMenu` as a right-click) fade in while it is pointed
+  at or focused, never only in the right-click menu. Every menu and popup looks like one (`MenuStyle`: brighter than any panel,
+  with an edge and a shadow), so it never reads as part of the panel it opened from. A clickable row's background and press feedback span its whole panel (a padded settings page's rows reach
   past the padding with `fullBleed`); only what is drawn as a card (a Block, a chip) keeps its own shape.
 - **Nothing pops in:** panels, pages, notices, list rows, and dialogs move or fade with `CreatorMotion`'s durations. What
   replaces a live Scene preview fades in (`fadeInOnChange`) rather than crossfading, which would keep two previews running.
@@ -448,6 +449,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (`BlockTypeEditorColumns`) before the Blocks lose their room, Block parameters wrap, and labels end in an ellipsis rather
   than wrapping a header.
 - The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.
+- The sidebar's groups, folders, and items all work alike: the same ⋮ and right-click menu (new item, new folder, rename,
+  delete, as each allows), names typed in place as a field looking like the row it becomes, and an item dropped on any row
+  moves into that row's folder (onto the header or an item outside every folder, out of them all).
 - A field above the sidebar's groups filters everything in it by name, showing the folders that hold matches opened; the folders
   the user collapsed are left as they were and come back once the filter is cleared.
 - What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, or nothing), changed only

@@ -45,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.actors.composeKeyNameOf
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButtonFace
+import com.pandulapeter.kubrikoCreator.ui.components.MenuStyle
 import com.pandulapeter.kubrikoCreator.ui.components.matchingOptions
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_keyboard
@@ -88,9 +89,10 @@ private fun KeyChoicePanel(
     onSelected: (KeyChoice) -> Unit,
 ) = Surface(
     modifier = Modifier.width(260.dp),
-    shape = MaterialTheme.shapes.small,
-    color = MaterialTheme.colorScheme.surfaceContainer,
-    shadowElevation = 4.dp,
+    shape = MenuStyle.shape,
+    color = MenuStyle.color,
+    border = MenuStyle.border,
+    shadowElevation = MenuStyle.elevation,
 ) {
     var query by remember { mutableStateOf("") }
     var isListening by remember { mutableStateOf(false) }

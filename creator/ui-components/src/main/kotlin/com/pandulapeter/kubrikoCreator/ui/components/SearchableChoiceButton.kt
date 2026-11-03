@@ -92,9 +92,10 @@ private fun ChoicePanel(
     onDismissed: () -> Unit,
 ) = Surface(
     modifier = Modifier.width(260.dp),
-    shape = MaterialTheme.shapes.small,
-    color = MaterialTheme.colorScheme.surfaceContainer,
-    shadowElevation = 4.dp,
+    shape = MenuStyle.shape,
+    color = MenuStyle.color,
+    border = MenuStyle.border,
+    shadowElevation = MenuStyle.elevation,
 ) {
     var query by remember { mutableStateOf("") }
     val matches = remember(query, titles) { matchingOptions(query, titles.indices.toList(), titleOf = { titles[it] }) }

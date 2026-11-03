@@ -35,12 +35,14 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
 import com.pandulapeter.kubrikoCreator.mcp.McpController
@@ -258,6 +260,15 @@ private fun rememberFolderTreeActions(controller: WorkspaceController) = remembe
         onCreateFolder = { group, path -> controller.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
         onRenameFolder = { group, path, newName -> controller.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
         onDeleteFolder = { group, path -> controller.commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(group, path))) },
+        onRenameItem = { group, name, newName ->
+            controller.dispatchIfValid(
+                when (group) {
+                    FolderGroup.ACTOR_TYPES -> Invocation(RenameActorType, RenameActorType.Input(name, newName))
+                    FolderGroup.MANAGER_TYPES -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))
+                    FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
+                },
+            )
+        },
         onDeleteItem = { group, name ->
             controller.commands.dispatch(
                 when (group) {

@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,15 +31,22 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
+import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
+import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
 import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_more_options
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 /**
  * One row of the sidebar: an icon and a name, indented by its [depth] in the folders it is in. The icon, and the row
- * while it is selected, take the [accent] of what the row is.
+ * while it is selected, take the [accent] of what the row is. Its [actions] are offered by a ⋮ button that shows while
+ * it is pointed at, and by its right-click menu.
  */
 @Composable
 internal fun SidebarItem(
@@ -50,10 +58,11 @@ internal fun SidebarItem(
     flashKey: Any? = null,
     depth: Int = 0,
     accent: Accent? = null,
-    contextActions: List<ContextAction> = emptyList(),
+    actions: List<ContextAction> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val menu = rememberRightClickMenuState()
+    val hover = rememberHoverRevealState()
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -62,8 +71,9 @@ internal fun SidebarItem(
             .flashBackground(flashKey)
             .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
             .rightClickMenu(menu)
+            .hoverReveal(hover)
             .semantics { selected = isSelected }
-            .padding(start = 28.dp + SIDEBAR_INDENT * depth, end = 12.dp),
+            .padding(start = SIDEBAR_ROW_START + SIDEBAR_INDENT * depth, end = if (actions.isEmpty()) 12.dp else 2.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -75,6 +85,7 @@ internal fun SidebarItem(
             tint = accent?.color ?: color.copy(alpha = 0.7f),
         )
         Text(
+            modifier = Modifier.weight(1f, fill = false),
             text = text,
             style = MaterialTheme.typography.bodyMedium,
             color = color,
@@ -89,7 +100,15 @@ internal fun SidebarItem(
                 maxLines = 1,
             )
         }
-        RightClickMenu(menu, contextActions)
+        if (actions.isNotEmpty()) {
+            Spacer(Modifier.weight(1f))
+            RowActionsButton(
+                modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
+                menu = menu,
+                label = Res.string.action_more_options,
+            )
+            RightClickMenu(menu, actions)
+        }
     }
 }
 
@@ -97,3 +116,8 @@ internal fun SidebarItem(
  * How much further a row is indented for every folder it is in.
  */
 internal val SIDEBAR_INDENT = 14.dp
+
+/**
+ * Where a row's icon starts outside every folder.
+ */
+internal val SIDEBAR_ROW_START = 28.dp

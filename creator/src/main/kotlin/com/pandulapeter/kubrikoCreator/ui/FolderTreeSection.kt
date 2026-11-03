@@ -9,31 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
@@ -41,38 +23,19 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.accent
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
-import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
-import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
-import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
-import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
-import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
-import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
-import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
-import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
-import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
-import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_collapse_group
+import kubriko.creator.generated.resources.action_add
 import kubriko.creator.generated.resources.action_delete_actor_type
-import kubriko.creator.generated.resources.action_delete_folder
 import kubriko.creator.generated.resources.action_delete_manager_type
 import kubriko.creator.generated.resources.action_delete_scene
-import kubriko.creator.generated.resources.action_expand_group
-import kubriko.creator.generated.resources.action_folder_options
 import kubriko.creator.generated.resources.action_new_actor_type
-import kubriko.creator.generated.resources.action_new_folder
 import kubriko.creator.generated.resources.action_new_manager_type
 import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.action_rename
-import kubriko.creator.generated.resources.action_rename_folder
-import kubriko.creator.generated.resources.ic_add
-import kubriko.creator.generated.resources.ic_chevron
-import kubriko.creator.generated.resources.ic_create_new_folder
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_folder_open
-import kubriko.creator.generated.resources.ic_more
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_folder_hint
@@ -81,11 +44,7 @@ import kubriko.creator.generated.resources.new_scene_hint
 import kubriko.creator.generated.resources.resource_group_actor_types
 import kubriko.creator.generated.resources.resource_group_manager_types
 import kubriko.creator.generated.resources.resource_group_scenes
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-
 /**
  * What a sidebar group with folders shows.
  *
@@ -109,11 +68,13 @@ internal class FolderTreeActions(
     val onCreateFolder: (FolderGroup, path: String) -> Rejection?,
     val onRenameFolder: (FolderGroup, path: String, newName: String) -> Rejection?,
     val onDeleteFolder: (FolderGroup, path: String) -> Unit,
+    val onRenameItem: (FolderGroup, name: String, newName: String) -> Rejection?,
     val onDeleteItem: (FolderGroup, name: String) -> Unit,
 )
 
 /**
- * A name being typed in a group of the sidebar: a new item, a new folder (in [parent], empty for none), or a folder's new name.
+ * A name being typed in a group of the sidebar: a new item, a new folder (in [parent], empty for none), or a new name for a
+ * folder or an item.
  */
 internal sealed interface SidebarNaming {
     val group: FolderGroup
@@ -123,11 +84,15 @@ internal sealed interface SidebarNaming {
     data class NewFolder(override val group: FolderGroup, val parent: String) : SidebarNaming
 
     data class RenamedFolder(override val group: FolderGroup, val path: String) : SidebarNaming
+
+    data class RenamedItem(override val group: FolderGroup, val name: String) : SidebarNaming
 }
 
 /**
- * The header of a group and its tree of folders and items. An item is dragged into a folder (or onto the header, out of
- * every folder) to move it, and an Actor type into the open Scene to place it.
+ * The header of a group and its tree of folders and items. Every row offers what can be done to it the same two ways: a ⋮
+ * button that shows while it is pointed at, and its right-click menu. What is being named appears where it will be, as a
+ * field that looks like its row. An item dragged onto a folder, or onto any row, moves into that row's folder (onto the
+ * header or an item outside every folder, out of them all), and an Actor type dragged into the open Scene is placed there.
  *
  * @param collapsed The folders whose contents are hidden.
  * @param naming What is being named in the sidebar, if anything.
@@ -145,48 +110,33 @@ internal fun LazyListScope.folderTreeSection(
     flashKey: Any?,
 ) {
     item(key = "${group.name}-header") {
-        val hover = rememberHoverRevealState()
-        val menu = rememberRightClickMenuState()
-        val onNewFolder = { onNamingChange(SidebarNaming.NewFolder(group, "")) }
-        val onNewItem = { onNamingChange(SidebarNaming.NewItem(group)) }
-        PanelHeader(
-            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, "")).hoverReveal(hover).rightClickMenu(menu),
-            icon = group.icon,
-            title = stringResource(group.title),
-            accent = group.accent,
-        ) {
-            IconActionButton(
-                modifier = Modifier.revealedWhen(hover.isActive),
-                icon = Res.drawable.ic_create_new_folder,
-                label = Res.string.action_new_folder,
-                onClick = onNewFolder,
-            )
-            IconActionButton(
-                icon = Res.drawable.ic_add,
-                label = group.newItemLabel,
-                onClick = onNewItem,
-            )
-            RightClickMenu(
-                menu,
-                listOf(
-                    ContextAction(stringResource(group.newItemLabel), Res.drawable.ic_add, onClick = onNewItem),
-                    ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder, onClick = onNewFolder),
-                ),
-            )
-        }
+        SidebarGroupHeader(
+            group = group,
+            dragState = dragState,
+            onNewItem = { onNamingChange(SidebarNaming.NewItem(group)) },
+            onNewFolder = { onNamingChange(SidebarNaming.NewFolder(group, "")) },
+        )
     }
     if (naming == SidebarNaming.NewItem(group)) {
         item(key = "${group.name}-new") {
-            NewNameField(
-                placeholder = group.newItemHint,
-                onCreate = { name -> actions.onCreateItem(group, name).also { if (it == null) onNamingChange(null) }?.toFieldError() },
-                onCancel = { onNamingChange(null) },
+            SidebarNameField(
+                group = group,
+                isFolder = false,
+                depth = 0,
+                onName = { name -> actions.onCreateItem(group, name) },
+                onNamingChange = onNamingChange,
             )
         }
     }
     if (naming == SidebarNaming.NewFolder(group, "")) {
         item(key = "${group.name}-new-folder") {
-            NewFolderField(group, parent = "", depth = 0, actions, onNamingChange)
+            SidebarNameField(
+                group = group,
+                isFolder = true,
+                depth = 0,
+                onName = { name -> actions.onCreateFolder(group, name) },
+                onNamingChange = onNamingChange,
+            )
         }
     }
     val folderOfItem = state.items.toMap()
@@ -200,18 +150,18 @@ internal fun LazyListScope.folderTreeSection(
         },
     ) { row ->
         when (row) {
-            is FolderTreeRow.Folder -> if (naming == SidebarNaming.RenamedFolder(group, row.path)) {
-                NewNameField(
-                    placeholder = Res.string.new_folder_hint,
-                    initialName = row.name,
-                    indent = 24.dp + SIDEBAR_INDENT * row.depth,
-                    confirmLabel = Res.string.action_rename,
-                    onCreate = { name -> actions.onRenameFolder(group, row.path, name).also { if (it == null) onNamingChange(null) }?.toFieldError() },
-                    onCancel = { onNamingChange(null) },
-                )
-            } else {
-                Column(Modifier.animateItem()) {
-                    FolderRow(
+            is FolderTreeRow.Folder -> Column(Modifier.animateItem()) {
+                if (naming == SidebarNaming.RenamedFolder(group, row.path)) {
+                    SidebarNameField(
+                        group = group,
+                        isFolder = true,
+                        depth = row.depth,
+                        initialName = row.name,
+                        onName = { name -> actions.onRenameFolder(group, row.path, name) },
+                        onNamingChange = onNamingChange,
+                    )
+                } else {
+                    SidebarFolderRow(
                         modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path)),
                         row = row,
                         onToggle = { onCollapsedChange(if (row.isExpanded) collapsed + row.path else collapsed - row.path) },
@@ -222,130 +172,107 @@ internal fun LazyListScope.folderTreeSection(
                         onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
                         onDelete = { actions.onDeleteFolder(group, row.path) },
                     )
-                    if (naming == SidebarNaming.NewFolder(group, row.path)) {
-                        NewFolderField(group, row.path, row.depth + 1, actions, onNamingChange)
-                    }
+                }
+                if (naming == SidebarNaming.NewFolder(group, row.path)) {
+                    SidebarNameField(
+                        group = group,
+                        isFolder = true,
+                        depth = row.depth + 1,
+                        onName = { name -> actions.onCreateFolder(group, FolderPaths.child(row.path, name)) },
+                        onNamingChange = onNamingChange,
+                    )
                 }
             }
-            is FolderTreeRow.Item -> SidebarItem(
-                modifier = Modifier.animateItem().sidebarDragSource(
-                    dragState,
-                    SidebarDragState.Dragged(row.name, group, folderOfItem[row.name].orEmpty()),
-                ),
-                icon = group.icon,
-                accent = group.accent,
-                text = FolderPaths.nameOf(row.name),
-                depth = row.depth,
+            is FolderTreeRow.Item -> FolderTreeItem(
+                modifier = Modifier.animateItem(),
+                group = group,
+                row = row,
+                folder = folderOfItem[row.name].orEmpty(),
                 isSelected = row.name == state.selectedName,
-                onClick = {
-                    when {
-                        dragState.isClickAfterDrag -> Unit
-                        row.name == state.selectedName -> actions.onSelectionCleared()
-                        else -> actions.onSelected(group, row.name)
-                    }
-                },
+                isRenaming = naming == SidebarNaming.RenamedItem(group, row.name),
+                actions = actions,
+                dragState = dragState,
+                onNamingChange = onNamingChange,
                 flashKey = flashKey?.takeIf { row.name == flashedName },
-                contextActions = listOf(
-                    ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
-                ),
             )
         }
     }
 }
 
+/**
+ * An item of [group]'s tree in [folder], or the field renaming it while [isRenaming].
+ */
 @Composable
-private fun NewFolderField(
+private fun FolderTreeItem(
     group: FolderGroup,
-    parent: String,
-    depth: Int,
+    row: FolderTreeRow.Item,
+    folder: String,
+    isSelected: Boolean,
+    isRenaming: Boolean,
     actions: FolderTreeActions,
+    dragState: SidebarDragState,
     onNamingChange: (SidebarNaming?) -> Unit,
-) = NewNameField(
-    placeholder = Res.string.new_folder_hint,
-    indent = 24.dp + SIDEBAR_INDENT * depth,
-    onCreate = { name -> actions.onCreateFolder(group, FolderPaths.child(parent, name)).also { if (it == null) onNamingChange(null) }?.toFieldError() },
-    onCancel = { onNamingChange(null) },
-)
-
-@Composable
-private fun FolderRow(
-    row: FolderTreeRow.Folder,
-    onToggle: () -> Unit,
-    onNewFolder: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
+    flashKey: Any?,
     modifier: Modifier = Modifier,
-) {
-    val hover = rememberHoverRevealState()
-    val menu = rememberRightClickMenuState()
-    Row(
+) = if (isRenaming) {
+    SidebarNameField(
+        modifier = modifier,
+        group = group,
+        isFolder = false,
+        depth = row.depth,
+        initialName = FolderPaths.nameOf(row.name),
+        onName = { name -> actions.onRenameItem(group, row.name, name) },
+        onNamingChange = onNamingChange,
+    )
+} else {
+    SidebarItem(
         modifier = modifier
-            .fillMaxWidth()
-            .height(32.dp)
-            .clickable(onClick = onToggle)
-            .hoverReveal(hover)
-            .rightClickMenu(menu)
-            .padding(start = 12.dp + SIDEBAR_INDENT * row.depth, end = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        val chevronRotation by animateFloatAsState(if (row.isExpanded) 0f else -90f, CreatorMotion.medium())
-        Icon(
-            modifier = Modifier.size(14.dp).rotate(chevronRotation),
-            painter = painterResource(Res.drawable.ic_chevron),
-            contentDescription = stringResource(if (row.isExpanded) Res.string.action_collapse_group else Res.string.action_expand_group),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Icon(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(Res.drawable.ic_folder_open),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            modifier = Modifier.padding(start = 4.dp).weight(1f),
-            text = row.name,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        val options = listOfNotNull(FolderOption.NEW_FOLDER, FolderOption.RENAME, FolderOption.DELETE.takeIf { row.isEmpty })
-        val onSelected = { option: FolderOption ->
-            when (option) {
-                FolderOption.NEW_FOLDER -> onNewFolder()
-                FolderOption.RENAME -> onRename()
-                FolderOption.DELETE -> onDelete()
+            .itemDropTarget(dragState, SidebarDragState.FolderKey(group, folder), id = group to row.name)
+            .sidebarDragSource(dragState, SidebarDragState.Dragged(row.name, group, folder)),
+        icon = group.icon,
+        accent = group.accent,
+        text = FolderPaths.nameOf(row.name),
+        depth = row.depth,
+        isSelected = isSelected,
+        onClick = {
+            when {
+                dragState.isClickAfterDrag -> Unit
+                isSelected -> actions.onSelectionCleared()
+                else -> actions.onSelected(group, row.name)
             }
-        }
-        MenuIconButton(
-            modifier = Modifier.revealedWhen(hover.isActive),
-            icon = Res.drawable.ic_more,
-            label = Res.string.action_folder_options,
-            options = options,
-            optionText = { stringResource(it.title) },
-            optionIcon = { it.icon },
-            onSelected = onSelected,
-        )
-        RightClickMenu(menu, options.map { option -> ContextAction(stringResource(option.title), option.icon, isDestructive = option == FolderOption.DELETE) { onSelected(option) } })
-    }
-}
-
-private enum class FolderOption(val title: StringResource, val icon: DrawableResource) {
-    NEW_FOLDER(Res.string.action_new_folder, Res.drawable.ic_create_new_folder),
-    RENAME(Res.string.action_rename_folder, Res.drawable.ic_edit),
-    DELETE(Res.string.action_delete_folder, Res.drawable.ic_delete),
+        },
+        flashKey = flashKey,
+        actions = listOf(
+            ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
+            ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
+        ),
+    )
 }
 
 /**
- * Makes the element where something dragged of [key]'s group moves to [key]'s folder, highlighted while it is over it.
+ * A name being typed in [group]'s tree, at [depth], looking like the row it names: a folder's when [isFolder], an item's
+ * otherwise. [onName] says why a name can't be used, or null once it is used, which ends the naming.
  */
 @Composable
-private fun Modifier.folderDropTarget(dragState: SidebarDragState, key: SidebarDragState.FolderKey): Modifier {
-    DisposableEffect(dragState, key) {
-        onDispose { dragState.folderTargets.remove(key) }
-    }
-    return onGloballyPositioned { dragState.folderTargets[key] = it.boundsInRoot() }
-        .then(if (dragState.hoveredFolder == key) Modifier.background(MaterialTheme.colorScheme.primaryContainer) else Modifier)
+private fun SidebarNameField(
+    group: FolderGroup,
+    isFolder: Boolean,
+    depth: Int,
+    onName: (String) -> Rejection?,
+    onNamingChange: (SidebarNaming?) -> Unit,
+    modifier: Modifier = Modifier,
+    initialName: String = "",
+) = Box(modifier) {
+    NewNameField(
+        placeholder = if (isFolder) Res.string.new_folder_hint else group.newItemHint,
+        initialName = initialName,
+        indent = SIDEBAR_ROW_START + SIDEBAR_INDENT * depth,
+        confirmLabel = if (initialName.isEmpty()) Res.string.action_add else Res.string.action_rename,
+        icon = if (isFolder) Res.drawable.ic_folder_open else group.icon,
+        iconTint = if (isFolder) Color.Unspecified else group.accent.color,
+        onCreate = { name -> onName(name).also { if (it == null) onNamingChange(null) }?.toFieldError() },
+        onCancel = { onNamingChange(null) },
+    )
 }
 
 internal val FolderGroup.icon
@@ -360,28 +287,28 @@ internal val FolderGroup.accent
         FolderGroup.SCENES -> Accent.SCENE
     }
 
-private val FolderGroup.title
+internal val FolderGroup.title
     get() = when (this) {
         FolderGroup.ACTOR_TYPES -> Res.string.resource_group_actor_types
         FolderGroup.MANAGER_TYPES -> Res.string.resource_group_manager_types
         FolderGroup.SCENES -> Res.string.resource_group_scenes
     }
 
-private val FolderGroup.newItemLabel
+internal val FolderGroup.newItemLabel
     get() = when (this) {
         FolderGroup.ACTOR_TYPES -> Res.string.action_new_actor_type
         FolderGroup.MANAGER_TYPES -> Res.string.action_new_manager_type
         FolderGroup.SCENES -> Res.string.action_new_scene
     }
 
-private val FolderGroup.deleteItemLabel
+internal val FolderGroup.deleteItemLabel
     get() = when (this) {
         FolderGroup.ACTOR_TYPES -> Res.string.action_delete_actor_type
         FolderGroup.MANAGER_TYPES -> Res.string.action_delete_manager_type
         FolderGroup.SCENES -> Res.string.action_delete_scene
     }
 
-private val FolderGroup.newItemHint
+internal val FolderGroup.newItemHint
     get() = when (this) {
         FolderGroup.ACTOR_TYPES -> Res.string.new_actor_type_hint
         FolderGroup.MANAGER_TYPES -> Res.string.new_manager_type_hint

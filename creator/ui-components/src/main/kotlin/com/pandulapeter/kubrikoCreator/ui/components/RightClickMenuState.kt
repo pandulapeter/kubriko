@@ -24,7 +24,8 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 
 /**
- * Where in the window a [RightClickMenu] was opened, or null while it is closed.
+ * Where in the window a [RightClickMenu] was opened (by a right-click, or by a button through [openBelow]), or null while
+ * it is closed.
  */
 @Stable
 public class RightClickMenuState {
@@ -35,6 +36,13 @@ public class RightClickMenuState {
      * Whether the menu is open.
      */
     public val isOpen: Boolean get() = positionInWindow != null
+
+    /**
+     * Opens the menu under the element [coordinates] belongs to, at its start, as a button's menu opens.
+     */
+    public fun openBelow(coordinates: LayoutCoordinates) {
+        if (coordinates.isAttached) positionInWindow = coordinates.localToWindow(Offset(0f, coordinates.size.height.toFloat()))
+    }
 
     internal fun close() {
         positionInWindow = null

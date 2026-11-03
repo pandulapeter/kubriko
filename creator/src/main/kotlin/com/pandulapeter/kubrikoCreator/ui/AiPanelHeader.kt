@@ -14,31 +14,25 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_ai_panel_more
@@ -52,10 +46,7 @@ import kubriko.creator.generated.resources.game_map_title
 import kubriko.creator.generated.resources.ic_ai
 import kubriko.creator.generated.resources.ic_arrow_back
 import kubriko.creator.generated.resources.ic_map
-import kubriko.creator.generated.resources.ic_more
 import kubriko.creator.generated.resources.ic_open_in_new
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -119,60 +110,27 @@ private fun RowScope.HeaderTitle(
 @Composable
 private fun MoreAiOptions(
     onViewSelected: (AiPanelView) -> Unit,
-) = Box {
-    var isExpanded by remember { mutableStateOf(false) }
-    IconActionButton(
-        icon = Res.drawable.ic_more,
+) {
+    val menu = rememberRightClickMenuState()
+    RowActionsButton(
+        menu = menu,
         label = Res.string.action_ai_panel_more,
-        onClick = { isExpanded = true },
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    DropdownMenu(
-        modifier = Modifier.width(MENU_WIDTH),
-        expanded = isExpanded,
-        onDismissRequest = { isExpanded = false },
-    ) {
-        MoreAiOption(
-            icon = Res.drawable.ic_map,
-            title = Res.string.game_map_title,
-            description = Res.string.game_map_description,
-            onClick = {
-                isExpanded = false
-                onViewSelected(AiPanelView.GAME_MAP)
-            },
-        )
-        MoreAiOption(
-            icon = Res.drawable.ic_open_in_new,
-            title = Res.string.action_use_own_ai_tool,
-            description = Res.string.action_use_own_ai_tool_description,
-            onClick = {
-                isExpanded = false
-                onViewSelected(AiPanelView.OWN_TOOL)
-            },
-        )
-    }
+    RightClickMenu(
+        state = menu,
+        actions = listOf(
+            ContextAction(
+                label = stringResource(Res.string.game_map_title),
+                description = stringResource(Res.string.game_map_description),
+                icon = Res.drawable.ic_map,
+                onClick = { onViewSelected(AiPanelView.GAME_MAP) },
+            ),
+            ContextAction(
+                label = stringResource(Res.string.action_use_own_ai_tool),
+                description = stringResource(Res.string.action_use_own_ai_tool_description),
+                icon = Res.drawable.ic_open_in_new,
+                onClick = { onViewSelected(AiPanelView.OWN_TOOL) },
+            ),
+        ),
+    )
 }
-
-@Composable
-private fun MoreAiOption(
-    icon: DrawableResource,
-    title: StringResource,
-    description: StringResource,
-    onClick: () -> Unit,
-) = DropdownMenuItem(
-    leadingIcon = { Icon(modifier = Modifier.size(16.dp), painter = painterResource(icon), contentDescription = null) },
-    text = {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(title))
-            Text(
-                text = stringResource(description),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    },
-    onClick = onClick,
-    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-)
-
-private val MENU_WIDTH = 320.dp

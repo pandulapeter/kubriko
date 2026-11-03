@@ -320,12 +320,11 @@
     <string name="sidebar_filter">Filter types, Scenes, and files</string>
     <string name="action_new_actor_type">New Actor type</string>
     <string name="action_new_folder">New folder</string>
-    <string name="action_rename_folder">Rename</string>
     <string name="action_rename_actor_type">Rename Actor type</string>
     <string name="action_rename_manager_type">Rename Manager type</string>
     <string name="action_rename">Rename</string>
     <string name="action_delete_folder">Delete folder</string>
-    <string name="action_folder_options">Folder options</string>
+    <string name="action_more_options">More options</string>
     <string name="new_folder_hint">Folder name</string>
     <string name="action_new_manager_type">New Manager type</string>
     <string name="action_refresh">Refresh</string>
@@ -666,7 +665,9 @@
     <string name="assistant_chip_manager_type">Manager type %1$s</string>
     <string name="assistant_chip_game_screen">Game screenshot</string>
     <string name="assistant_chip_problem">The latest problem</string>
-    <string name="assistant_chip_hint">Sent with your next message, so the assistant knows what you mean. Click to leave it out.</string>
+    <string name="assistant_chip_hint">Sent with your next message, so the assistant knows what you mean. Click to leave something out.</string>
+    <string name="assistant_context_with">With your message: %1$s</string>
+    <string name="assistant_context_none">Nothing else goes with your message</string>
     <string name="assistant_conversation_earlier">%1$s (earlier)</string>
     <string name="assistant_changes_title">What changed</string>
     <string name="assistant_changes_more">and %1$d more</string>

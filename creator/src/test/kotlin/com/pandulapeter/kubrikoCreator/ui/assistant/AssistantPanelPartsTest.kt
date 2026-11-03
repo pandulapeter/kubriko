@@ -17,8 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertIsNotSelected
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -47,19 +45,21 @@ class AssistantPanelPartsTest {
     private val antigravity = AgentChoice.Registry(RegistryAgent("antigravity-acp", "Google Antigravity", "1.4.5", RegistryAgent.claude.distribution))
 
     @Test
-    fun chipsAreOnUntilTurnedOff() = uiTest {
+    fun whatGoesWithTheMessageIsOneLineAndEachPartIsOnUntilLeftOut() = uiTest {
         showing {
             var leftOut by remember { mutableStateOf(emptySet<String>()) }
-            AttentionChips(
+            AttentionLine(
                 chips = listOf(AttentionChip.Scene("level-1"), AttentionChip.Problem("Unresolved reference", "Ball.kt:3"), AttentionChip.GameScreen),
                 leftOut = leftOut,
                 onToggle = { chip -> leftOut = if (chip.key in leftOut) leftOut - chip.key else leftOut + chip.key },
             )
         }
-        onNodeWithText("Scene level-1").assertIsSelected()
-        onNodeWithText("The latest problem").performClick().assertIsNotSelected()
-        onNodeWithText("Game screenshot").assertExists()
-        saveSnapshot("chips")
+        onNodeWithText("With your message: Scene level-1 · The latest problem · Game screenshot").assertExists()
+        saveSnapshot("attention-line")
+        onNodeWithText("With your message", substring = true).performClick()
+        saveSnapshot("attention-line-menu")
+        onNodeWithText("The latest problem").performClick()
+        onNodeWithText("With your message: Scene level-1 · Game screenshot").assertExists()
     }
 
     @Test

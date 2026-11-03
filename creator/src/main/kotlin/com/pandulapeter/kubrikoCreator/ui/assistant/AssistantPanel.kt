@@ -246,7 +246,7 @@ private fun ChatContent(
         )
     }
     var leftOut by remember(chat) { mutableStateOf(emptySet<String>()) }
-    AttentionChips(
+    AttentionLine(
         chips = attention,
         leftOut = leftOut,
         onToggle = { chip -> leftOut = if (chip.key in leftOut) leftOut - chip.key else leftOut + chip.key },

@@ -13,12 +13,16 @@ import androidx.compose.runtime.Immutable
 import org.jetbrains.compose.resources.DrawableResource
 
 /**
- * One entry of a [RightClickMenu]: its [label] and [icon], drawn in the error color when [isDestructive].
+ * One entry of a [RightClickMenu]: its [label], with an optional [description] under it, and its [icon], drawn in the
+ * error color when [isDestructive]. One that [isChecked] (true or false) is a choice that stays on or off, shown by a
+ * check mark in place of the icon.
  */
 @Immutable
 public class ContextAction(
     public val label: String,
     public val icon: DrawableResource? = null,
     public val isDestructive: Boolean = false,
+    public val description: String? = null,
+    public val isChecked: Boolean? = null,
     public val onClick: () -> Unit,
 )

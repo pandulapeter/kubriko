@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTargets
+import com.pandulapeter.kubrikoCreator.ui.components.MenuStyle
 import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_choose_play_target
@@ -72,6 +73,10 @@ internal fun PlayTargetMenu(
     DropdownMenu(
         expanded = isExpanded,
         onDismissRequest = { isExpanded = false },
+        shape = MenuStyle.shape,
+        containerColor = MenuStyle.color,
+        border = MenuStyle.border,
+        shadowElevation = MenuStyle.elevation,
     ) {
         targets.available.forEach { target ->
             DropdownMenuItem(

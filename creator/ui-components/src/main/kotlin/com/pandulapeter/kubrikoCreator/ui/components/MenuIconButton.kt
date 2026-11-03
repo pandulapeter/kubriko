@@ -48,6 +48,10 @@ public fun <T> MenuIconButton(
     DropdownMenu(
         expanded = isExpanded,
         onDismissRequest = { isExpanded = false },
+        shape = MenuStyle.shape,
+        containerColor = MenuStyle.color,
+        border = MenuStyle.border,
+        shadowElevation = MenuStyle.elevation,
     ) {
         options.forEach { option ->
             DropdownMenuItem(
