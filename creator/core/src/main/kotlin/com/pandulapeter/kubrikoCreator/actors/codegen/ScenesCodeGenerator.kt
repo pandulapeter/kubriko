@@ -30,6 +30,7 @@ public object ScenesCodeGenerator {
         listOf(
             "com.pandulapeter.kubriko.Kubriko",
             "com.pandulapeter.kubriko.actor.Actor",
+            "com.pandulapeter.kubriko.logger.Logger",
             "com.pandulapeter.kubriko.manager.ActorManager",
             "com.pandulapeter.kubriko.manager.Manager",
             "com.pandulapeter.kubriko.sceneEditor.Editable",
@@ -101,7 +102,8 @@ public object ScenesCodeGenerator {
             |            } catch (exception: CancellationException) {
             |                throw exception
             |            } catch (exception: Exception) {
-            |                ${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOG_FUNCTION}(message = "The Scene ${'$'}scene couldn't be loaded.", details = exception.message, source = "$SCENES_NAME")
+            |                Logger.log(message = "The Scene ${'$'}scene couldn't be loaded.", details = exception.message, source = "$SCENES_NAME")
+            |                println("[$SCENES_NAME] The Scene ${'$'}scene couldn't be loaded. ${'$'}{exception.message}")
             |                return@launch
             |            }
             |            // The first Scene keeps what the Managers added when the game started.

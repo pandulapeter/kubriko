@@ -48,6 +48,7 @@ public object BlockCodeGenerator {
     private const val ABSOLUTE_VALUE = "absoluteValue"
     private const val SCENE_UNIT_EXTENSION_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.sceneUnit"
     private const val NORMALIZED_IMPORT = "com.pandulapeter.kubriko.helpers.extensions.normalized"
+    private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
     private const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
     private const val RANDOM_IMPORT = "kotlin.random.Random"
 
@@ -204,16 +205,21 @@ public object BlockCodeGenerator {
     }
 
     /**
-     * Logging allocates on every call, so a released game, which leaves it off, doesn't pay for it.
+     * Logging allocates on every call, so a released game, which leaves it off, doesn't pay for it. While Kubriko Creator
+     * plays the game it also prints, on one line, since only the desktop's session reports what Kubriko's Logger holds,
+     * and Creator reads what a game in the browser or on a phone prints instead.
      */
     private fun logCode(block: BlockDefinition.Log, scope: BlockScope): BlockCode {
         val message = templateLiteral(block.message, scope)
         return BlockCode(
             lines = listOf(
-                "if (${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}) " +
-                    "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOG_FUNCTION}(message = ${message.code}, source = ${stringLiteral(scope.typeName)})",
+                "if (${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}) ${message.code}.let { logged ->",
+                "    Logger.log(message = logged, source = ${stringLiteral(scope.typeName)})",
+                "    println(${stringLiteral("[${scope.typeName}] ")} + logged.replace('\\n', ' '))",
+                "}",
             ),
             needs = if (message.usesNumberText) setOf(BlockNeed.NUMBER_TEXT) else emptySet(),
+            imports = setOf(LOGGER_IMPORT),
             managers = message.managers,
         )
     }

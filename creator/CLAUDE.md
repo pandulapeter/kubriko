@@ -331,9 +331,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   the app's process prints and its errors (`logcat --pid`), never the rest of the device's log; Stop is `am force-stop`, and
   a change while it plays reaches it the next time it is played. `adb` and `emulator` run through `ToolProcesses`, which
   tests replace with `FakeToolProcesses`, replaying what the tools printed.
-- **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so the generated
-  `KubrikoWiring.log` (what Log Blocks and the Scene loader call) also prints each one while logging is on, as
-  `[source] message`: Creator reads it back from a device's output (`PrintedLogs`), and the browser shows it in its console.
+- **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so a Log Block also
+  prints what it logs (on one line, as `[source] message`), and the Scene loader its failures: Creator reads them back from a
+  device's output (`PrintedLogs`), and the browser shows them in its console. The print is generated into each Block rather
+  than a function of `KubrikoWiring`, which a project that changed it by hand would lack.
 - **The session** (`tool-creator-session`) runs at the project's Kubriko version and reports to `SessionServer` (which takes only
   the first connection that says Hello after each launch): a session of any version runs, and a command it is too old for is
   refused (`SessionController.request` takes the version a command needs and answers `GameAnswer.Unsupported`, which the game

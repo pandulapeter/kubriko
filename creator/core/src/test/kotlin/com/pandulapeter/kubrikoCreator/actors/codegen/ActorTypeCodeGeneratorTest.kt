@@ -248,12 +248,18 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
-    fun logBlocksLogThroughTheWiringWithTheActorTypeAsTheirSource() {
+    fun logBlocksWriteToKubrikosLoggerWithTheActorTypeAsTheirSource() {
         assertEquals(
-            listOf("if (KubrikoWiring.isLoggingEnabled) KubrikoWiring.log(message = \"Say \\\"\\\$hi\\\" \\\\ to\\neveryone\", source = \"Ball\")"),
+            listOf(
+                "if (KubrikoWiring.isLoggingEnabled) \"Say \\\"\\\$hi\\\" \\\\ to\\neveryone\".let { logged ->",
+                "    Logger.log(message = logged, source = \"Ball\")",
+                "    println(\"[Ball] \" + logged.replace('\\n', ' '))",
+                "}",
+            ),
             BlockCodeGenerator.blockCode(BlockDefinition.Log("Say \"\$hi\" \\ to\neveryone"), EventType.EVERY_FRAME, BlockScope("Ball")).lines,
         )
-        assertFalse("Logger" in generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("Hello")))))
+        assertContains(generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("Hello")))), "import com.pandulapeter.kubriko.logger.Logger")
+        assertFalse("Logger" in generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop))))
     }
 
     @Test
@@ -451,7 +457,12 @@ class ActorTypeCodeGeneratorTest {
         assertEquals("\"Score: \${score.asText()} ({title}) \\$5 {unknown} {}\"", BlockCodeGenerator.templateLiteral("Score: {score} ({title}) \$5 {unknown} {}", BlockScope("Player", properties = properties.take(1))).code)
         assertEquals("\"\${title}: \${score.asText()}\"", BlockCodeGenerator.templateLiteral("{title}: {score}", BlockScope("Player", properties = properties)).code)
         assertEquals(
-            listOf("if (KubrikoWiring.isLoggingEnabled) KubrikoWiring.log(message = \"Score: \${score.asText()}\", source = \"Player\")"),
+            listOf(
+                "if (KubrikoWiring.isLoggingEnabled) \"Score: \${score.asText()}\".let { logged ->",
+                "    Logger.log(message = logged, source = \"Player\")",
+                "    println(\"[Player] \" + logged.replace('\\n', ' '))",
+                "}",
+            ),
             BlockCodeGenerator.blockCode(BlockDefinition.Log("Score: {score}"), EventType.EVERY_FRAME, BlockScope("Player", properties = properties)).lines,
         )
     }
@@ -618,7 +629,7 @@ class ActorTypeCodeGeneratorTest {
         val code = ActorTypeCodeGenerator.generateActorType(brick, "com.example.game", listOf("Brick"), listOf(game))
         assertContains(code, "    private lateinit var gameManager: Game\n")
         assertContains(code, "        gameManager = kubriko.get()\n")
-        assertContains(code, "        if (gameManager.isOver) {\n            gameManager.score += 10f\n            if (KubrikoWiring.isLoggingEnabled) KubrikoWiring.log(message = \"Score: \${gameManager.score.asText()}\", source = \"Brick\")\n            // Choose a Property for this Block.\n        }\n")
+        assertContains(code, "        if (gameManager.isOver) {\n            gameManager.score += 10f\n            if (KubrikoWiring.isLoggingEnabled) \"Score: \${gameManager.score.asText()}\".let { logged ->\n                Logger.log(message = logged, source = \"Brick\")\n                println(\"[Brick] \" + logged.replace('\\n', ' '))\n            }\n            // Choose a Property for this Block.\n        }\n")
         assertFalse("Missing" in code.substringAfter("\n"))
     }
 
