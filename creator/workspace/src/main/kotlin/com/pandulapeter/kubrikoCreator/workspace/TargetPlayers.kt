@@ -31,12 +31,12 @@ internal class TargetPlayers(
     private val ios: IosSimulatorPlayer,
 ) {
     /**
-     * Each lists the places of one kind the game can be played on now, as [PlayTargetChoice] takes them. They block.
+     * Each finds the places of one kind the game can be played on now, as [PlayTargetChoice] takes them. They block.
      */
-    val sources: List<suspend () -> List<PlayTarget>> = listOf(
-        { if (isOn(GameTarget.WEB)) listOf(PlayTarget.WEB) else emptyList() },
-        { if (isOn(GameTarget.ANDROID)) androidDevices()?.targets().orEmpty() else emptyList() },
-        { if (isOn(GameTarget.IOS)) iosSimulators()?.targets().orEmpty() else emptyList() },
+    val sources: List<suspend () -> FoundPlaces> = listOf(
+        { if (isOn(GameTarget.WEB)) FoundPlaces(PlayTarget.Kind.WEB, listOf(PlayTarget.WEB)) else FoundPlaces.NONE },
+        { androidDevices().takeIf { isOn(GameTarget.ANDROID) }?.let { FoundPlaces(PlayTarget.Kind.ANDROID, it.targets()) } ?: FoundPlaces.NONE },
+        { iosSimulators().takeIf { isOn(GameTarget.IOS) }?.let { FoundPlaces(PlayTarget.Kind.IOS, it.targets()) } ?: FoundPlaces.NONE },
     )
 
     /**

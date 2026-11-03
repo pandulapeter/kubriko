@@ -14,8 +14,11 @@ package com.pandulapeter.kubrikoCreator.commands
  *
  * @param available The desktop first, then every other place the project is built for and this computer can run it on.
  * @param chosen The one of [available] the user chose last, or the desktop when that one isn't there now.
+ * @param configured The kinds the project is built for that this computer can play, whether or not a place of them is
+ *   there now (an Android target with the SDK but no device), so that the way to set one up can be offered.
  */
 public data class PlayTargets(
     val available: List<PlayTarget>,
     val chosen: PlayTarget,
+    val configured: Set<PlayTarget.Kind> = setOf(PlayTarget.Kind.DESKTOP),
 )

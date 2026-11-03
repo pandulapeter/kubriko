@@ -70,8 +70,18 @@ class PlayTargetChoiceTest {
 
     @Test
     fun aSourceThatFailsIsLeftOutAndTheOthersAreListed() = runTest {
-        val choice = choice(sources = listOf({ error("No adb") }, { devices }))
+        val choice = choice(sources = listOf({ error("No adb") }, { FoundPlaces(PlayTarget.Kind.DESKTOP, devices) }))
         assertEquals(listOf(PlayTarget.DESKTOP, device), choice.refresh().available)
+    }
+
+    @Test
+    fun aKindIsConfiguredWhileItsSourceSaysSoEvenWithNoPlaceThere() = runTest {
+        var android = FoundPlaces(PlayTarget.Kind.ANDROID, emptyList())
+        val choice = choice(sources = listOf({ android }, { FoundPlaces.NONE }))
+        assertEquals(PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP, setOf(PlayTarget.Kind.DESKTOP, PlayTarget.Kind.ANDROID)), choice.refresh())
+        android = FoundPlaces.NONE
+        assertEquals(setOf(PlayTarget.Kind.DESKTOP), choice.refresh().configured)
+        assertEquals(setOf(PlayTarget.Kind.DESKTOP), choice.targets.value.configured)
     }
 
     @Test
@@ -81,7 +91,7 @@ class PlayTargetChoiceTest {
         assertEquals(PlayTarget.DESKTOP, choice().refresh().chosen)
     }
 
-    private fun TestScope.choice(sources: List<suspend () -> List<PlayTarget>> = listOf({ devices })): PlayTargetChoice {
+    private fun TestScope.choice(sources: List<suspend () -> FoundPlaces> = listOf({ FoundPlaces(PlayTarget.Kind.DESKTOP, devices) })): PlayTargetChoice {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return PlayTargetChoice(directory, sources, CoroutineScope(backgroundScope.coroutineContext + Job() + dispatcher), dispatcher)
     }

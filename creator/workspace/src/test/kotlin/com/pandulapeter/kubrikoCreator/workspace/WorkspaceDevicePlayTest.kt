@@ -110,7 +110,9 @@ class WorkspaceDevicePlayTest {
         )
         val controller = controller()
         assertEquals(listOf(PlayTarget.DESKTOP, PlayTarget.WEB), controller.playTargets.refresh().available)
+        assertEquals(setOf(PlayTarget.Kind.DESKTOP, PlayTarget.Kind.WEB), controller.playTargets.refresh().configured)
         turnOn(GameTarget.IOS)
+        assertEquals(setOf(PlayTarget.Kind.DESKTOP, PlayTarget.Kind.WEB, PlayTarget.Kind.IOS), controller.playTargets.refresh().configured)
         assertEquals(
             listOf(PlayTarget.DESKTOP, PlayTarget.WEB, PlayTarget(id = "ios-simulator:U1", kind = PlayTarget.Kind.IOS, name = "iPhone 16 (iOS 18.2)", isVirtual = true)),
             controller.playTargets.refresh().available,

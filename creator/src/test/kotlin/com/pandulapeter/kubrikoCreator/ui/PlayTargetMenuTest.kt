@@ -80,6 +80,29 @@ class PlayTargetMenuTest {
     }
 
     @Test
+    fun aConfiguredGroupWithNothingFoundOffersOnlyTheWayToSetOneUp() = uiTest(width = 640, height = 480) {
+        val events = mutableListOf<String>()
+        showing {
+            PlayTargetMenu(
+                targets = PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP, setOf(PlayTarget.Kind.DESKTOP, PlayTarget.Kind.ANDROID)),
+                onOpened = {},
+                onChosen = {},
+                onMoreTargets = {},
+                onSetUpMore = { events += "set up $it" },
+            )
+        }
+        onNodeWithText("Desktop").performClick()
+        waitForIdle()
+        onNodeWithText("iOS").assertDoesNotExist()
+        onNodeWithText("Android").performClick()
+        waitForIdle()
+        saveSnapshot("play-target-menu-android-empty")
+        onNodeWithText("Set up more emulators…").performClick()
+        waitForIdle()
+        assertEquals(listOf("set up ANDROID"), events)
+    }
+
+    @Test
     fun moreTargetsLeadToProjectSettings() = uiTest {
         val events = mutableListOf<String>()
         showing {

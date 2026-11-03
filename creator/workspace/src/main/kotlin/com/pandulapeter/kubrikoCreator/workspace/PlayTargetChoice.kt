@@ -32,16 +32,19 @@ import java.io.File
  * Where the game can be played, and the place the user chose for Play, kept for the project on this computer in
  * [FILE], and looked for as soon as the project opens. A chosen place that isn't there now (a device unplugged) stays chosen, and Play uses the desktop until it is back.
  *
- * @param sources Each lists the places of one kind the game can be played on now, besides the desktop, and may block.
+ * @param sources Each finds the places of one kind the game can be played on now, besides the desktop, and may block.
  */
 public class PlayTargetChoice internal constructor(
     rootDirectory: File,
-    private val sources: List<suspend () -> List<PlayTarget>>,
+    private val sources: List<suspend () -> FoundPlaces>,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
     private val store = JsonFileStore(File(rootDirectory, FILE), LocalPlaySettings.serializer())
     private val chosenId = MutableStateFlow<String?>(null)
+
+    @Volatile
+    private var configured = setOf(PlayTarget.Kind.DESKTOP)
     private val saves = Channel<String>(Channel.CONFLATED)
     private val refreshes = LatestRequests()
     private val _targets = MutableStateFlow(PlayTargets(available = listOf(PlayTarget.DESKTOP), chosen = PlayTarget.DESKTOP))
@@ -79,7 +82,7 @@ public class PlayTargetChoice internal constructor(
     }
 
     /**
-     * Looks again for where the game can be played, which a source that fails leaves out.
+     * Looks again for where the game can be played, which a source that fails leaves out, kind and all.
      */
     public suspend fun refresh(): PlayTargets {
         val request = refreshes.start()
@@ -91,16 +94,22 @@ public class PlayTargetChoice internal constructor(
                     } catch (exception: CancellationException) {
                         throw exception
                     } catch (_: Exception) {
-                        emptyList()
+                        FoundPlaces.NONE
                     }
                 }
-            }.awaitAll().flatten()
+            }.awaitAll()
         }
-        val available = listOf(PlayTarget.DESKTOP) + found.filter { it != PlayTarget.DESKTOP }
-        return if (refreshes.isLatest(request)) update(available) else PlayTargets(available, chosenAmong(available))
+        val available = listOf(PlayTarget.DESKTOP) + found.flatMap { it.targets }.filter { it != PlayTarget.DESKTOP }
+        val foundConfigured = setOf(PlayTarget.Kind.DESKTOP) + found.mapNotNull { it.kind }
+        return if (refreshes.isLatest(request)) {
+            configured = foundConfigured
+            update(available)
+        } else {
+            PlayTargets(available, chosenAmong(available), foundConfigured)
+        }
     }
 
-    private fun update(available: List<PlayTarget>) = PlayTargets(available, chosenAmong(available)).also { _targets.value = it }
+    private fun update(available: List<PlayTarget>) = PlayTargets(available, chosenAmong(available), configured).also { _targets.value = it }
 
     private fun chosenAmong(available: List<PlayTarget>) = available.firstOrNull { it.id == chosenId.value } ?: PlayTarget.DESKTOP
 

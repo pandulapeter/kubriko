@@ -76,7 +76,7 @@ internal fun PlayTargetMenu(
     }
     RightClickMenu(
         state = menu,
-        actions = PlayTargetMenuEntry.of(targets.available).map { entry ->
+        actions = PlayTargetMenuEntry.of(targets).map { entry ->
             when (entry) {
                 is PlayTargetMenuEntry.Place -> ContextAction(
                     label = playTargetText(entry.target),
@@ -89,7 +89,7 @@ internal fun PlayTargetMenu(
                     isCurrent = targets.chosen in entry.targets,
                     children = entry.targets.map { target ->
                         ContextAction(label = playTargetText(target), isCurrent = target == targets.chosen) { onChosen(target) }
-                    } + ContextAction(label = setUpText(entry.kind), isSeparated = true) { onSetUpMore(entry.kind) },
+                    } + ContextAction(label = setUpText(entry.kind), isSeparated = entry.targets.isNotEmpty()) { onSetUpMore(entry.kind) },
                 )
             }
         } + ContextAction(label = stringResource(Res.string.action_more_play_targets), icon = Res.drawable.ic_settings, isSeparated = true, onClick = onMoreTargets),

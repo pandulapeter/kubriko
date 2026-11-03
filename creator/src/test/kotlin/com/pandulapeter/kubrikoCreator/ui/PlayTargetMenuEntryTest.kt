@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
+import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -30,12 +31,15 @@ class PlayTargetMenuEntryTest {
                 PlayTargetMenuEntry.Group(PlayTarget.Kind.ANDROID, listOf(phone, tablet, emulator)),
                 PlayTargetMenuEntry.Group(PlayTarget.Kind.IOS, listOf(simulator)),
             ),
-            PlayTargetMenuEntry.of(listOf(PlayTarget.DESKTOP, simulator, emulator, phone, PlayTarget.WEB, other, tablet)),
+            PlayTargetMenuEntry.of(PlayTargets(listOf(PlayTarget.DESKTOP, simulator, emulator, phone, PlayTarget.WEB, other, tablet), PlayTarget.DESKTOP)),
         )
     }
 
     @Test
-    fun aKindWithNoPlacesIsLeftOut() {
-        assertEquals(listOf(PlayTargetMenuEntry.Place(PlayTarget.DESKTOP)), PlayTargetMenuEntry.of(listOf(PlayTarget.DESKTOP)))
+    fun aConfiguredKindIsAGroupEvenWithNoPlacesWhileOneThatIsntIsLeftOut() {
+        assertEquals(
+            listOf(PlayTargetMenuEntry.Place(PlayTarget.DESKTOP), PlayTargetMenuEntry.Group(PlayTarget.Kind.IOS, emptyList())),
+            PlayTargetMenuEntry.of(PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP, setOf(PlayTarget.Kind.DESKTOP, PlayTarget.Kind.IOS))),
+        )
     }
 }
