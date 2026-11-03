@@ -191,6 +191,23 @@ class ProjectSettingsDialogTest {
     }
 
     @Test
+    fun choosingTheDefaultThatAnUnreadableFrameRateShowsWritesIt() = uiTest(width = 640, height = 900) {
+        val changes = mutableListOf<SetProjectSettings.Input>()
+        showing {
+            ProjectSettingsDialog(
+                settings = ProjectSettingsSnapshot(identity, GameSettingsReading(GameSettings(), listOf(GameSettings.FRAME_RATE)), emptyList(), scenes = listOf("main")),
+                onChange = { changes += it },
+                onReviewUpgrade = null,
+                onDismiss = {},
+            )
+        }
+        onNodeWithText("60 updates per second").performScrollTo().performClick()
+        onAllNodesWithText("60 updates per second").onLast().performClick()
+        waitForIdle()
+        assertEquals(listOf(SetProjectSettings.Input(frameRate = 60)), changes)
+    }
+
+    @Test
     fun theFrameRateMenuOffersTheCommonRatesAndTheCurrentOne() {
         assertEquals(listOf(30, 60, 120, GameSettings.EVERY_DISPLAY_FRAME), frameRateOptions(60))
         assertEquals(listOf(30, 60, 75, 120, GameSettings.EVERY_DISPLAY_FRAME), frameRateOptions(75))
