@@ -10,9 +10,6 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value="publishDesktopPublicationToMavenLocal" />
-            <option value="publishWasmJsPublicationToMavenLocal" />
-            <option value="publishKotlinMultiplatformPublicationToMavenLocal" />
             <option value=":creator:run" />
           </list>
         </option>

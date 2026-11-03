@@ -25,12 +25,13 @@ plugins {
     id("kubriko-style")
 }
 
-// What settings.gradle.kts publishes before Kubriko Creator's development run: the libraries for the targets it plays and
-// edits on, from whichever folder Gradle was started in.
+// What settings.gradle.kts publishes before Kubriko Creator's development run, from whichever folder Gradle was started in:
+// the libraries of every target a game can be built for, iOS only on a Mac, which is the only host that can build it.
 tasks.register("publishCreatorLibraries") {
     group = "publishing"
-    description = "Publishes the desktop and web libraries to Maven Local as Kubriko Creator's development run uses them."
-    val publishTasks = setOf("publishDesktopPublicationToMavenLocal", "publishWasmJsPublicationToMavenLocal", "publishKotlinMultiplatformPublicationToMavenLocal")
+    description = "Publishes the libraries to Maven Local as Kubriko Creator's development run uses them."
+    val iosPublications = if (System.getProperty("os.name").startsWith("Mac")) listOf("IosArm64", "IosSimulatorArm64") else emptyList()
+    val publishTasks = (listOf("Desktop", "WasmJs", "Android", "KotlinMultiplatform") + iosPublications).mapTo(HashSet()) { "publish${it}PublicationToMavenLocal" }
     // By name, since asking for the tasks themselves would create every task of every project.
     dependsOn(provider { subprojects.flatMap { subproject -> subproject.tasks.names.filter { it in publishTasks }.map { "${subproject.path}:$it" } } })
 }

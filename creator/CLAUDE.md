@@ -399,9 +399,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   plugin's application plugin can't share a module with Kotlin Multiplatform; turning it on needs the Android SDK and writes
   `sdk.dir` into `local.properties` when nothing else names it. iOS is a framework that the Xcode project in `iosApp/` builds
   through Gradle; the game's name and version reach the app through a plist Gradle writes and the last build phase copies in,
-  but the bundle ID is a build setting Xcode reads before any phase runs, so Creator keeps the `.xcconfig` line. A project on
-  `creator.localKubriko` has only the desktop and web publications, so building it for Android or iOS needs a full
-  `publishToMavenLocal -Pcreator.localKubriko=true`.
+  but the bundle ID is a build setting Xcode reads before any phase runs, so Creator keeps the `.xcconfig` line.
+  `:publishCreatorLibraries` publishes the Android libraries everywhere and the iOS ones only on a Mac, the one host that
+  builds them.
 - The libraries in use (`LibraryInUse`) are those the sources name, as the build sync decides them, each with what needs it
   (`PluginUse`, from which the generated Managers' plugins come too).
 

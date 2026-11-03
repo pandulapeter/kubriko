@@ -29,7 +29,7 @@ Project settings → Targets is done (`a03a3f435..74182f7f9`): web, Android, and
 `get_target_change` / `set_target`, each as a diff confirmed by its `changeId`; Android adds a library target and an `androidApp`
 module, iOS a framework and an Xcode project in `iosApp/`, both taking the game's identity. `ProjectTemplateIntegrationTest.everyTargetBuilds`
 builds the Android APK and, through `xcodebuild`, the iOS app for the simulator, and passes locally (it needs the Android SDK and Xcode,
-and a full `publishToMavenLocal -Pcreator.localKubriko=true`, since `:creator:run` publishes only the desktop and web). Its review ran
+and the libraries `:creator:run` publishes, which include Android everywhere and iOS on a Mac). Its review ran
 and fixed: an Apply that could write a diff other than the one shown, catalog entries other entries still used being removed, an
 undo that dropped what the user added inside a target's blocks (undo now exists only where turning back is exact), a stale `sdk.dir`,
 a half-written change when a write fails, brackets in strings or comments ending a build block, Xcode selected outside
