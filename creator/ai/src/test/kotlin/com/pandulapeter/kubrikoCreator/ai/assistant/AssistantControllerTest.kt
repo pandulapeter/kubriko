@@ -83,8 +83,11 @@ class AssistantControllerTest {
     ) = AssistantController(
         scope = scope,
         runner = runner,
-        store = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
-        secrets = secretStore,
+        storage = AssistantStorage(
+            settings = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
+            secrets = secretStore,
+            conversations = SavedConversationStore(File(settingsDirectory, "conversations.json")),
+        ),
         signInLauncher = terminals,
         ioDispatcher = ioDispatcher,
         createAssistant = { command, _, profile ->
@@ -98,10 +101,8 @@ class AssistantControllerTest {
                 agentFolders = File(settingsDirectory, "agents"),
             )
         },
+        sources = AgentSources(registry = registry, installer = installer),
         home = "/Users/me",
-        registry = registry,
-        installer = installer,
-        conversations = SavedConversationStore(File(settingsDirectory, "conversations.json")),
         clock = { 1_000 },
         isAiEnabled = isAiEnabled,
     ).also { controllers += it }

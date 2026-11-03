@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ai.assistant
 
 import com.agentclientprotocol.model.SessionUpdate
-import com.pandulapeter.kubrikoCreator.commands.ChangeLog
 import com.pandulapeter.kubrikoCreator.mcp.clients.ProcessRunner
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -38,18 +37,12 @@ import java.io.IOException
  * which end when the project closes, since their tools work on whatever project is open.
  *
  * @param scope Where conversations run: the main thread, which the panel's state is read on.
- * @param secrets Where the API key is kept.
+ * @param storage What the assistant keeps on this computer.
  * @param signInLauncher Runs the sign-in commands of an agent's terminal sign-in methods.
  * @param createAssistant Creates the assistant running [AgentCommand] with [AgentProfile], given the user's `npx` where
  *   there is one.
- * @param projectDigest The digest of the open project, which a new conversation starts with.
- * @param changeLog The open project's changes, which a prompt sums up for the agent when the user made some since its last turn.
- * @param undoTurn Reverts what a conversation changed after a revision ([AssistantChat]'s Undo).
- * @param registry Where the registry's agents come from, or null for Claude Agent alone.
- * @param installer Downloads the agents the registry distributes as archives.
- * @param errorLogFile Where agents' standard error is kept ([AgentErrorLog]), for the user to open.
- * @param conversations Where the conversations are kept per project, to be continued later.
- * @param node Downloads a Node.js of Creator's own for a user without one.
+ * @param openProject What conversations read and undo in the open project.
+ * @param sources Where agents come from, all null for Claude Agent alone.
  * @param isAiEnabled Whether AI features are on: while they are off, no agent starts, no conversation opens, the registry
  *   isn't fetched, and turning them off ends what runs.
  */
@@ -57,24 +50,19 @@ import java.io.IOException
 public class AssistantController(
     private val scope: CoroutineScope,
     private val runner: ProcessRunner,
-    private val store: AssistantSettingsStore,
-    private val secrets: SecretStore,
+    private val storage: AssistantStorage,
     private val signInLauncher: AgentLauncher,
     private val ioDispatcher: CoroutineDispatcher,
     private val createAssistant: (AgentCommand, npx: File?, AgentProfile) -> Assistant,
-    private val projectDigest: suspend () -> String? = { null },
-    private val changeLog: () -> ChangeLog? = { null },
-    private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
+    private val openProject: OpenProjectAccess = OpenProjectAccess.None,
+    private val sources: AgentSources = AgentSources(),
     private val home: String = System.getProperty("user.home"),
-    private val registry: AgentRegistryStore? = null,
-    private val installer: BinaryAgentInstaller? = null,
-    override val errorLogFile: File? = null,
-    private val conversations: SavedConversationStore? = null,
     private val clock: () -> Long = System::currentTimeMillis,
-    node: NodeRuntime? = null,
     private val isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
 ) : AssistantPanelModel, AutoCloseable {
-    private val settings = AssistantSettingsState(scope, store, ioDispatcher)
+    private val settings = AssistantSettingsState(scope, storage.settings, ioDispatcher)
+
+    override val errorLogFile: File? = storage.errorLogFile
 
     /**
      * Built before [selection], whose registry loading starts on [scope]'s thread while this constructor still runs and
@@ -87,32 +75,32 @@ public class AssistantController(
         val environment = if (choice.isClaude) claude.environment() else signIns.environmentOf(choice)
         createAssistant(commands.of(choice, npx, environment), npx, choice.profile)
     }
-    private val selection: AgentSelection = AgentSelection(scope, settings, registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })
+    private val selection: AgentSelection = AgentSelection(scope, settings, sources.registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })
 
     override val agents: StateFlow<List<RegistryAgent>> = selection.agents
 
     override val agent: StateFlow<AgentChoice> = selection.agent
 
     override val customAgentCommand: String? get() = selection.customAgentCommand
-    private val claude = ClaudeAccount(scope, ioDispatcher, runner, secrets, home, settings.value.value.claudeConfigurationAlias)
+    private val claude = ClaudeAccount(scope, ioDispatcher, runner, storage.secrets, home, settings.value.value.claudeConfigurationAlias)
 
     override val configurations: StateFlow<List<ClaudeConfiguration>> = combine(claude.configurations, agent) { configurations, choice -> configurations.takeIf { choice.profile.usesClaudeAccount }.orEmpty() }
         .stateIn(scope, SharingStarted.Eagerly, claude.configurations.value.takeIf { agent.value.profile.usesClaudeAccount }.orEmpty())
 
     override val configuration: StateFlow<ClaudeConfiguration> = claude.configuration
-    private val chatList = AssistantChats(scope, ioDispatcher, conversations)
+    private val chatList = AssistantChats(scope, ioDispatcher, storage.conversations)
 
     override val chats: StateFlow<List<AssistantChat>> = chatList.open
 
     override val savedConversations: StateFlow<List<SavedConversation>> = chatList.saved
 
     override val currentChat: StateFlow<AssistantChat?> = chatList.current
-    private val commands = AgentCommands(runner, installer, home, ioDispatcher, node)
+    private val commands = AgentCommands(runner, sources.installer, home, ioDispatcher, sources.node)
     private val signIns: AssistantSignIn = AssistantSignIn(
         scope = scope,
         ioDispatcher = ioDispatcher,
         signInLauncher = signInLauncher,
-        secrets = secrets,
+        secrets = storage.secrets,
         settings = settings,
         host = host,
         resendRefused = { chats.value.forEach { it.resendAfterSignIn() } },
@@ -165,10 +153,10 @@ public class AssistantController(
 
     override fun newChat() {
         if (!host.isOn) return
-        openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(projectDigest(), lastConversationOf(directory))) }
+        openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(openProject.digest(), lastConversationOf(directory))) }
     }
 
-    private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { conversations?.of(directory, selection.agent.value.id)?.firstOrNull() }
+    private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { storage.conversations?.of(directory, selection.agent.value.id)?.firstOrNull() }
 
     override fun resume(conversation: SavedConversation) {
         if (!host.isOn) return
@@ -186,10 +174,10 @@ public class AssistantController(
             end = { conversation -> owner?.closeConversation(conversation) },
             toolsIdOf = { conversation -> owner?.toolsIdOf(conversation) },
             forgetReads = { conversation -> owner?.forgetReads(conversation) },
-            changeLog = changeLog,
-            undoTurn = undoTurn,
+            changeLog = { openProject.changeLog() },
+            undoTurn = { toolsId, sinceRevision -> openProject.undoTurn(toolsId, sinceRevision) },
             onTurnEnded = { id, title, lastAnswer ->
-                withContext(ioDispatcher) { conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH))) }
+                withContext(ioDispatcher) { storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH))) }
             },
         )
         chatList.add(chat)
