@@ -37,8 +37,9 @@ health checks.
   the game's own names to the project's ("the hero" is `Player`), which the AI then speaks in.
 - **Mentions** are relative Markdown links to the thing's own file (an Actor type's `.kubriko/actors/…json`, a Scene's JSON, a
   sprite, a sound, a Kotlin file, or another page), so they still work on GitHub and in IntelliJ. Creator shows them as chips in
-  the thing's `Accent`, opens the thing on a click, and offers them while typing `@`. Renaming or moving a thing updates every
-  mention through the same reference edits as Blocks; deleting it leaves the mention, marked as missing.
+  the thing's `Accent`, opens the thing on a click, and offers them while typing `@`. Renaming or moving a thing, a page
+  included, updates every mention and image that points at it, in the same undo step as the rename; deleting one is in
+  Deleting what is referred to, below.
 - **The sidebar** gets a Screenplay group above the cast, with folders, the filter, drag and drop, and right-click menus as the
   other groups have (`ResourceGroup`, `ResourceGroupTitles`).
 - **The page editor** in the center (a `WorkspaceSelection` of its own): a simple Markdown editor, not a word processor. The
@@ -63,6 +64,37 @@ health checks.
   `add_page_image` puts an image on a page from a game screenshot (`take_screenshot`'s) or a sprite reference, so the agent can
   show what it built. `read_pages` lists a page's images without sending them; the agent asks for one when it needs to see it.
 - **AI features off** changes nothing here: pages, mentions, and their checks are the editor's, not the AI's.
+
+## Deleting what is referred to
+
+Renames already follow everywhere (`../CLAUDE.md` → Commands), but deletes don't: `delete_actor_type` refuses only a type with
+children, so a Block naming a deleted Actor type, Scene, sound, or Timer keeps the name and quietly generates a comment while its
+card looks as before (`ActorTypeChoice`, `SceneChoice`, `AudioFileChoice`), the type's Actors stay in Scenes that can no longer
+create them, and pages would keep links to nothing. Pages make this worse, since they mention everything, so it comes first in
+this plan, for every kind of thing at once.
+
+- **One usage finder** (`ProjectReferences`, in `:creator:core`, beside `ProjectRelations`) lists everything that refers to a thing:
+  Blocks, conditions, collision Events, parents, Actors placed in Scenes, the first Scene, Kotlin Blocks and hand-written Kotlin
+  (by `KotlinIdentifiers`), and pages' mentions and images. Renames, deletes, the health checks, and find usages
+  (`06-resource-organization.md`) all read it, so none can miss what another sees.
+- **Deleting cleans up what Creator owns,** as one undo step (`CompositeCommand`, with Scenes through `SceneStore.writeAll`), for an
+  Actor type, Manager type, Scene, sprite, sound, music, Property, Timer, folder, or page:
+  - Blocks and conditions that only mean something with the thing (spawning it, going to it, playing it) are removed, and an
+    Event left empty stays; a collision Event with a deleted type is removed with its Blocks.
+  - The type's Actors are removed from every Scene, and their saved values with them.
+  - A page's mention becomes its plain text, so the sentence still reads; an image of a deleted sprite is copied next to the
+    page first, so the page keeps what it showed; a link to a deleted page becomes plain text too.
+  - Hand-written Kotlin and Kotlin Blocks are never rewritten (`../CLAUDE.md` → Principles 2): they are listed, with a warning that
+    the build will fail until they change.
+  - What is still refused stays refused: a type with children, and the first Scene.
+- **Shown before it happens:** the delete confirmation lists every usage by where it is and what will happen to it, each
+  clickable, and says when there are none. The AI sees the same through `check_change`, and the delete's result lists what it
+  removed and changed, including the pages, so the agent can rewrite their sentences in the same turn.
+- **Undo brings all of it back,** the Scenes' Actors with their IDs, the Blocks in their places, the mentions as links, and the
+  copied images gone.
+- **What still dangles** after a change outside Creator (a file deleted in a terminal, a git checkout) is shown where it is: a
+  Block card with a warning ("Brick no longer exists"), a mention chip marked missing, the console after the change, and the
+  health checks.
 
 ## Pages and the AI
 
@@ -130,8 +162,8 @@ and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite ed
 
 ## Order
 
-Pages and their editor first, then the AI's side of them, then keeping them up to date, then the writers' room (`ask_user` and
-the Blank template first). Search (`06-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
+Deleting what is referred to first, since it fixes the Blocks and Scenes today; then pages and their editor, then the AI's side
+of them, then keeping them up to date, then the writers' room (`ask_user` and the Blank template first). Search (`06-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
 and `search_project` include their mentions and text.
 
 ## Testing
@@ -144,6 +176,9 @@ and `search_project` include their mentions and text.
   Blank template in `ProjectTemplateIntegrationTest`.
 - A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape above, and
   passes `ScreenplayStyle`.
+- Unit tests for deleting each kind of thing: every usage `ProjectReferences` finds, the cleanup of each, a delete and its undo
+  restoring the project byte for byte (Scenes included), hand-written Kotlin left untouched and listed, and a usage the finder
+  misses caught by a test that deletes each thing from `EveryBlockTypes` and checks nothing names it afterwards.
 - Unit tests for images: copying a pasted or dropped one (name clashes, scaling, a file that can't be read), moving and deleting
   them with their page and undoing it, sprite references after a sprite rename, and links resolved to a resource, a page, or the web.
 - Offscreen snapshots (`WorkspaceScreenTest`) of the page editor (rendered, a paragraph being edited, and images of both
