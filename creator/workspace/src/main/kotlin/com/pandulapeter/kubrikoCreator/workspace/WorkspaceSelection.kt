@@ -15,16 +15,25 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 /**
  * What the workspace's center shows: one type, one Scene (being prepared, open, or failed), or nothing.
  */
-internal sealed interface WorkspaceSelection {
+public sealed interface WorkspaceSelection {
 
-    data object None : WorkspaceSelection
+    /**
+     * Nothing is shown.
+     */
+    public data object None : WorkspaceSelection
 
-    data class BlockType(
-        val name: String,
+    /**
+     * The block type [name] is shown.
+     */
+    public data class BlockType(
+        public val name: String,
     ) : WorkspaceSelection
 
-    data class Scene(
-        val name: String,
+    /**
+     * The Scene [name] is shown, whether it is being prepared, open, or failed.
+     */
+    public data class Scene(
+        public val name: String,
     ) : WorkspaceSelection
 }
 

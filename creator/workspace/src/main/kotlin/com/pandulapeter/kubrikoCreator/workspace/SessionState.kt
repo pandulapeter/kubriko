@@ -14,21 +14,24 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 /**
  * The state of the workspace's session process.
  */
-internal sealed interface SessionState {
+public sealed interface SessionState {
 
-    data object Idle : SessionState
+    /**
+     * No session process runs.
+     */
+    public data object Idle : SessionState
 
     /**
      * Gradle is compiling the project and starting the session process.
      */
-    data class Starting(
-        val mode: SessionMode,
+    public data class Starting(
+        public val mode: SessionMode,
     ) : SessionState
 
     /**
      * The session process is up and connected.
      */
-    data class Running(
-        val mode: SessionMode,
+    public data class Running(
+        public val mode: SessionMode,
     ) : SessionState
 }

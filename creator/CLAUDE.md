@@ -49,9 +49,6 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
   `testing/` (`testDirectory()`, and the fakes above); a fake of an interface with a real implementation runs the same
   contract test as the real one (`BlockTypeRepositoryContract`, `GitRepositoryContract`). A collaborator of
   `WorkspaceController` is tested on its own, and `WorkspaceControllerTest` keeps only cases about the wiring between them.
-- `PackageLayeringTest` keeps each package in the layer of the Gradle module it belongs to (lowest first: foundation,
-  ui-components, core, gradle-session, git, template, commands, ai, scene-runtime, workspace, the app); a new package gets a
-  layer, and an import may only run downward.
 - UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`testing/UiSnapshots.kt` in `:creator:ui-components`'
   test fixtures) renders a composable in the app's theme and interface scale without a window, asserts its texts and clicks,
   and saves a PNG under the module's `build/ui-snapshots`.
@@ -60,13 +57,35 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 
 ## Modules
 
-Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
-gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
-module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), `:creator:template` (project templates and upgrades, with the template files as its resources), `:creator:commands` (`commands` and `context`, the AI context the commands read, with the engine overview `get_kubriko_api` hands the AI as its resource), `:creator:ai` (the MCP server and the in-app assistant: `mcp`, `ai`, with the ACP SDK in its API, since the assistant's state carries its model types), `:creator:scene-runtime` (`sceneRuntime`, the Scene editor's runtime: the project class loading, the live preview, and sprites, with the engine, `tools:creator-api`, and every published plugin, the only Creator module that runs the engine), and `:creator:ui-components`
-(`ui.components`, `ui.theme`, with their own resources and the UI test fixtures). Each child module applies `kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
+Creator is split into Gradle modules, lowest first:
+
+- `:creator:foundation` (`foundation`, `console`): files, the settings folder, typed texts, and console entries.
+- `:creator:ui-components` (`ui.components`, `ui.theme`): the shared components and theme, with their own resources and the
+  offscreen UI test helpers.
+- `:creator:core` (`actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`): the
+  Block model, code generation, the type store, project files, and Scene files, with no Tooling API, JGit, Ktor, MCP, ACP, or
+  engine dependency.
+- `:creator:gradle-session` (`gradle`, `session`): Gradle and game sessions, with the session init script as its resource and
+  the session protocol in its API.
+- `:creator:git` (`git`): version control through JGit, which stays out of its API.
+- `:creator:template` (`template`): project templates and upgrades, with the template files as its resources.
+- `:creator:commands` (`commands`, `context`): the commands and the AI's context, with the engine overview `get_kubriko_api`
+  hands the AI as its resource.
+- `:creator:ai` (`ai`, `mcp`): the MCP server and the in-app assistant, with the ACP SDK in its API, since the assistant's
+  state carries its model types.
+- `:creator:scene-runtime` (`sceneRuntime`): the Scene editor's live preview (project class loading and sprites), with the
+  engine, `tools:creator-api`, and every published plugin; the only Creator module that runs the engine.
+- `:creator:workspace` (`workspace`): the open project, `WorkspaceController` and its collaborators.
+- `:creator`, the app (the root package, `ui`, `settings`, `recent`, `window`): the UI, settings, and window.
+
+A module depends only on lower ones (Gradle refuses the rest, and `PackageLayeringTest` keeps each file in its module's
+layer, gives every new package a layer, and catches an upward import inside one module), and what another module uses is
+`public` under the explicit API mode of `kubriko-creator-module`, the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
-and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`; gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`; commands' `CommandTesting.kt`, `FakeProjectRunner`, and `BreakoutFixture`; ai's `FakeAgent` and `FakeAgentLauncher`), and `PackageLayeringTest` keeps every file in its module's layer.
+and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`;
+gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`; commands'
+`CommandTesting.kt`, `FakeProjectRunner`, and `BreakoutFixture`; ai's `FakeAgent` and `FakeAgentLauncher`).
 
 ## Definition of done
 

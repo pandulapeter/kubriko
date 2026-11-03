@@ -14,4 +14,4 @@ import com.pandulapeter.kubrikoCreator.commands.GameStep
 /**
  * A screenshot of the running game, or null when none is running or taking it failed.
  */
-internal suspend fun WorkspaceController.captureGameScreen(): ByteArray? = (commands.context.runner.captureScreen() as? GameStep.Done)?.png
+public suspend fun WorkspaceController.captureGameScreen(): ByteArray? = (commands.context.runner.captureScreen() as? GameStep.Done)?.png

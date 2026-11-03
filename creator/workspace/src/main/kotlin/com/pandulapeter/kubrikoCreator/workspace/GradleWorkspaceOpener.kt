@@ -37,14 +37,18 @@ import java.io.IOException
  * and an opening that fails closes everything it started.
  *
  * @param configuration The Kubriko version and repositories Creator bundles.
+ * @param loadCreatorLibraries The libraries Creator runs with, which the app bundles into its resources.
  */
-internal class GradleWorkspaceOpener(private val configuration: CreatorConfiguration) : WorkspaceOpener {
+public class GradleWorkspaceOpener(
+    private val configuration: CreatorConfiguration,
+    private val loadCreatorLibraries: () -> Map<String, String> = CreatorLibraries::load,
+) : WorkspaceOpener {
 
     override suspend fun open(directory: File, scope: CoroutineScope): WorkspaceController {
         if (!withContext(Dispatchers.IO) { ProjectInspector.isGradleProject(directory) }) throw ProjectInspectionException(ProjectProblem.NOT_A_GRADLE_PROJECT)
         val project = withContext(Dispatchers.IO) { CreatorProject(rootDirectory = directory, name = ProjectInspector.nameOf(directory)) }
         val ownWrites = OwnWrites()
-        val creatorLibraries = withContext(Dispatchers.IO) { CreatorLibraries.load() }
+        val creatorLibraries = withContext(Dispatchers.IO) { loadCreatorLibraries() }
         val projectFormat = ProjectFormat(directory, configuration.kubrikoVersion)
         val formatStatus = try {
             withContext(Dispatchers.IO) { projectFormat.prepare() }

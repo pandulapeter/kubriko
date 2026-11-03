@@ -38,9 +38,9 @@ import kotlinx.coroutines.withContext
 /**
  * What the AI panel's Game map shows.
  */
-internal data class GameMap(
-    val digest: ProjectDigest,
-    val findings: List<HealthFinding>,
+public data class GameMap(
+    public val digest: ProjectDigest,
+    public val findings: List<HealthFinding>,
 )
 
 /**
@@ -51,7 +51,7 @@ internal data class GameMap(
  * @param compute Builds the map; it runs on [computeDispatcher], so it reads only what is safe off the main thread.
  * @param report Says that a computation failed; the previous map stays, and the next change computes again.
  */
-internal class GameMapState(
+public class GameMapState internal constructor(
     changes: Flow<Any?>,
     private val compute: suspend () -> GameMap,
     scope: CoroutineScope,
@@ -59,7 +59,7 @@ internal class GameMapState(
     private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
-    val gameMap: StateFlow<GameMap?> = flow {
+    public val gameMap: StateFlow<GameMap?> = flow {
         var isFirst = true
         // A newer change cancels the delayed or running computation, which is the debounce; the first one isn't delayed, so
         // opening the Game map shows it at once.
@@ -81,7 +81,7 @@ internal class GameMapState(
         null
     }
 
-    companion object {
+    internal companion object {
         const val DEBOUNCE_IN_MILLISECONDS = 250L
 
         /**

@@ -62,6 +62,7 @@ include(
     ":creator:commands",
     ":creator:ai",
     ":creator:scene-runtime",
+    ":creator:workspace",
     ":creator:ui-components",
     ":engine",
     ":examples:demo-content-shaders",

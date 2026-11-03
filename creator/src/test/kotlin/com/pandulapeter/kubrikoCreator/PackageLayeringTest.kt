@@ -18,11 +18,14 @@ import kotlin.test.assertTrue
 
 /**
  * Holds Kubriko Creator's packages to the layers of the Gradle modules they are split into, lowest first: an import may only
- * run to the same or a lower layer.
+ * run to the same or a lower layer, and each file sits in the module of its layer. Gradle already refuses an import of a
+ * module a module doesn't depend on; this catches an upward import inside one module and a file in the wrong module.
  *
- * [knownExceptions] is the work list of the upward imports that were there when this test was written, each with the plan
- * that removes it. It only shrinks: a new upward import is fixed where it is written (by moving the declaration down or by
- * passing it in), never added here.
+ * [layers] mirrors the `:creator:*` modules of `settings.gradle.kts`, the app (`:creator`) last.
+ *
+ * [knownExceptions] is empty, kept as the place for an upward import that has to stay for a while, with the plan that removes
+ * it. A new upward import is fixed where it is written (by moving the declaration down or by passing it in), never added
+ * here without such a plan.
  */
 class PackageLayeringTest {
     private val layers = listOf(

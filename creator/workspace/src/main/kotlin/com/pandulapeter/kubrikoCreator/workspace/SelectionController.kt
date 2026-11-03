@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.stateIn
  *
  * @param sceneOf The Scene file of the given name, or null if there is none.
  */
-internal class SelectionController(
+public class SelectionController internal constructor(
     private val blockTypes: BlockTypesController?,
     private val sceneEditing: SceneEditingController,
     private val sceneOf: (name: String) -> ProjectResource?,
@@ -34,7 +34,7 @@ internal class SelectionController(
     /**
      * One value for the center, the sidebar highlight, and the AI panel. A shown Scene wins over a type name left behind.
      */
-    val current: StateFlow<WorkspaceSelection> = combine(blockTypes?.selectedName ?: flowOf(null), sceneEditing.state, ::selectionOf)
+    public val current: StateFlow<WorkspaceSelection> = combine(blockTypes?.selectedName ?: flowOf(null), sceneEditing.state, ::selectionOf)
         .stateIn(scope, SharingStarted.Eagerly, selectionOf(blockTypes?.selectedName?.value, sceneEditing.state.value))
 
     /**
@@ -42,7 +42,7 @@ internal class SelectionController(
      *
      * @return False, changing nothing, when there is no such type.
      */
-    fun selectType(name: String): Boolean {
+    public fun selectType(name: String): Boolean {
         if (blockTypes?.get(name) == null) return false
         sceneEditing.close()
         blockTypes.select(name)
@@ -54,7 +54,7 @@ internal class SelectionController(
      *
      * @return False, changing nothing, when there is no such Scene file.
      */
-    fun openScene(name: String): Boolean {
+    public fun openScene(name: String): Boolean {
         val scene = sceneOf(name) ?: return false
         if (sceneEditing.state.value.sceneName == name) return true
         blockTypes?.select(null)
@@ -65,7 +65,7 @@ internal class SelectionController(
     /**
      * Shows nothing: closes the Scene and deselects the type.
      */
-    fun clear() {
+    public fun clear() {
         sceneEditing.close()
         blockTypes?.select(null)
     }
