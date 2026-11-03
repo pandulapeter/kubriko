@@ -60,6 +60,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param targets The platforms the game is built for, or null if they can't be changed here.
  * @param onToggleTarget Asks to turn a target on or off, which is shown before it is made.
  * @param onReviewUpgrade Opens the template upgrade that makes the build read the settings, if there is one.
+ * @param initialPage The page it opens on, or null for the first one.
  */
 @Composable
 internal fun ProjectSettingsDialog(
@@ -70,13 +71,15 @@ internal fun ProjectSettingsDialog(
     onToggleTarget: (GameTarget, Boolean) -> Unit = { _, _ -> },
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
+    initialPage: ProjectSettingsPage? = null,
 ) = MasterDetailDialog(
     title = stringResource(Res.string.project_settings_title),
     onDismiss = onDismiss,
+    initialPageKey = initialPage?.key,
     pages = when {
         failure != null -> listOf(
             DialogPage(
-                key = "identity",
+                key = ProjectSettingsPage.IDENTITY.key,
                 icon = Res.drawable.ic_edit,
                 title = stringResource(Res.string.project_settings_section_identity),
             ) {
@@ -101,7 +104,7 @@ private fun projectSettingsPages(
     onReviewUpgrade: (() -> Unit)?,
 ) = listOfNotNull(
     DialogPage(
-        key = "identity",
+        key = ProjectSettingsPage.IDENTITY.key,
         icon = Res.drawable.ic_edit,
         title = stringResource(Res.string.project_settings_section_identity),
         description = stringResource(Res.string.project_settings_identity_description),
@@ -112,7 +115,7 @@ private fun projectSettingsPages(
         }
     },
     DialogPage(
-        key = "game",
+        key = ProjectSettingsPage.GAME.key,
         icon = Res.drawable.ic_play,
         title = stringResource(Res.string.project_settings_section_game),
         description = stringResource(Res.string.project_settings_game_description),
@@ -127,7 +130,7 @@ private fun projectSettingsPages(
     },
     targets?.let {
         DialogPage(
-            key = "targets",
+            key = ProjectSettingsPage.TARGETS.key,
             icon = Res.drawable.ic_desktop,
             title = stringResource(Res.string.project_settings_section_targets),
             description = stringResource(Res.string.project_settings_targets_description),
@@ -136,7 +139,7 @@ private fun projectSettingsPages(
         }
     },
     DialogPage(
-        key = "libraries",
+        key = ProjectSettingsPage.LIBRARIES.key,
         icon = Res.drawable.ic_code,
         title = stringResource(Res.string.project_settings_section_libraries),
         description = stringResource(Res.string.project_settings_libraries_description),

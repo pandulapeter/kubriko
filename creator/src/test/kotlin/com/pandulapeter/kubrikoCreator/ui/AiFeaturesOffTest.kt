@@ -68,6 +68,7 @@ class AiFeaturesOffTest {
             onStop = {},
             onRefresh = {},
             onOpenProjectSettings = {},
+            onOpenTargets = {},
             onOpenSettings = {},
             onCloseProject = {},
         )

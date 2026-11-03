@@ -44,6 +44,7 @@ import java.io.IOException
  * @param blockTypes The project's Block-built types, which say why it uses its libraries.
  * @param scenes The project's Scenes, which the game can start with.
  * @param targets The platforms the game is built for, or null if they can't be changed here.
+ * @param initialPage The page it opens on, or null for the first one.
  */
 @Composable
 internal fun ProjectSettings(
@@ -55,6 +56,7 @@ internal fun ProjectSettings(
     onCommand: (Invocation<*>) -> Unit,
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
+    initialPage: ProjectSettingsPage? = null,
 ) {
     val currentHistory by history.collectAsState()
     val settings by produceState<Result<ProjectSettingsSnapshot>?>(null, rootDirectory, currentHistory) {
@@ -84,6 +86,7 @@ internal fun ProjectSettings(
         },
         onReviewUpgrade = onReviewUpgrade,
         onDismiss = onDismiss,
+        initialPage = initialPage,
     )
     pendingTarget?.let { change ->
         TargetChangeDialog(

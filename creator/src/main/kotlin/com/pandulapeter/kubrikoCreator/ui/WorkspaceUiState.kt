@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 
 /**
  * What the workspace screen shows besides the project: its side panels, its dialogs, and whether it follows the AI.
@@ -31,6 +32,12 @@ internal class WorkspaceUiState {
     var isReviewingUpgrade by mutableStateOf(false)
         private set
     var isShowingProjectSettings by mutableStateOf(false)
+        private set
+
+    /**
+     * The page Project settings opens on, or null for its first one.
+     */
+    var projectSettingsPage: ProjectSettingsPage? by mutableStateOf(null)
         private set
 
     /**
@@ -81,7 +88,11 @@ internal class WorkspaceUiState {
         isReviewingUpgrade = false
     }
 
-    fun showProjectSettings() {
+    /**
+     * Opens Project settings on [page], or on its first page.
+     */
+    fun showProjectSettings(page: ProjectSettingsPage? = null) {
+        projectSettingsPage = page
         isShowingProjectSettings = true
     }
 

@@ -61,6 +61,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
@@ -214,7 +215,8 @@ private fun WorkspaceToolbarOf(
     onPlay = controller::play,
     onStop = controller::stopSession,
     onRefresh = controller::refreshResources,
-    onOpenProjectSettings = uiState::showProjectSettings,
+    onOpenProjectSettings = { uiState.showProjectSettings() },
+    onOpenTargets = { uiState.showProjectSettings(ProjectSettingsPage.TARGETS) },
     onOpenSettings = onOpenSettings,
     onCloseProject = onCloseProject,
 )

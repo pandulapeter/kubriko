@@ -62,6 +62,7 @@ internal fun WorkspaceDialogs(
             onCommand = onCommand,
             onReviewUpgrade = projectUpgrade?.let { uiState::reviewUpgrade },
             onDismiss = uiState::hideProjectSettings,
+            initialPage = uiState.projectSettingsPage,
         )
     }
     val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)

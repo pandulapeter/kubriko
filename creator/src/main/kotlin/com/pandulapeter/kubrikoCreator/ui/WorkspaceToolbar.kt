@@ -98,6 +98,7 @@ internal fun WorkspaceToolbar(
     onStop: () -> Unit,
     onRefresh: () -> Unit,
     onOpenProjectSettings: () -> Unit,
+    onOpenTargets: () -> Unit,
     onOpenSettings: () -> Unit,
     onCloseProject: () -> Unit,
 ) = Row(
@@ -118,7 +119,7 @@ internal fun WorkspaceToolbar(
             targets = playTargets,
             onOpened = onPlayTargetsOpened,
             onChosen = onPlayTargetChosen,
-            onMoreTargets = onOpenProjectSettings,
+            onMoreTargets = onOpenTargets,
         )
     } else {
         FilledTonalButton(

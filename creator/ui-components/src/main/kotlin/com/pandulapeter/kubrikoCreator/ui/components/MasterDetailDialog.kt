@@ -60,6 +60,9 @@ import org.jetbrains.compose.resources.stringResource
  * A dialog of several [pages], listed on its left under its [title] with the chosen one shown on its right, as a desktop
  * app's settings are: everything one click away rather than down one long scroll. As large as [maxWidth] and [maxHeight]
  * allow within the window, and smaller with it. Changes made on a page apply at once, so Done only closes it.
+ *
+ * @param initialPageKey The key of the page it opens on, or null for the first one; until that page is there (its content
+ *   still being read), the first one shows.
  */
 @Composable
 public fun MasterDetailDialog(
@@ -68,11 +71,12 @@ public fun MasterDetailDialog(
     onDismiss: () -> Unit,
     maxWidth: Dp = 820.dp,
     maxHeight: Dp = 580.dp,
+    initialPageKey: String? = null,
 ): Unit = Dialog(
     onDismissRequest = onDismiss,
     properties = DialogProperties(usePlatformDefaultWidth = false),
 ) {
-    var selectedKey by rememberSaveable { mutableStateOf(pages.firstOrNull()?.key) }
+    var selectedKey by rememberSaveable { mutableStateOf(initialPageKey ?: pages.firstOrNull()?.key) }
     val selected = pages.firstOrNull { it.key == selectedKey } ?: pages.firstOrNull()
     Surface(
         modifier = Modifier

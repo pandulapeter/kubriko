@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -53,6 +54,16 @@ class WorkspaceUiStateTest {
         assertEquals(SidePanel.AI, uiState.openPanel)
         uiState.showAiPanel()
         assertEquals(SidePanel.AI, uiState.openPanel)
+    }
+
+    @Test
+    fun projectSettingsOpenOnThePageAskedForOrTheFirst() {
+        uiState.showProjectSettings(ProjectSettingsPage.TARGETS)
+        assertTrue(uiState.isShowingProjectSettings)
+        assertEquals(ProjectSettingsPage.TARGETS, uiState.projectSettingsPage)
+        uiState.hideProjectSettings()
+        uiState.showProjectSettings()
+        assertNull(uiState.projectSettingsPage)
     }
 
     @Test

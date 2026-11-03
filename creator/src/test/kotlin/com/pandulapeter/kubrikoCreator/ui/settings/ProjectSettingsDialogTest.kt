@@ -31,6 +31,8 @@ import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 import com.pandulapeter.kubrikoCreator.project.LibraryInUse
 import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
+import com.pandulapeter.kubrikoCreator.template.GameTarget
+import com.pandulapeter.kubrikoCreator.template.TargetState
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -148,6 +150,22 @@ class ProjectSettingsDialogTest {
         onNodeWithText("Game").performClick()
         waitForIdle()
         onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertDoesNotExist()
+    }
+
+    @Test
+    fun itOpensOnThePageAskedFor() = uiTest(width = 960, height = 640) {
+        showing {
+            ProjectSettingsDialog(
+                settings = ProjectSettingsSnapshot(identity, GameSettingsReading(GameSettings()), emptyList(), scenes = listOf("main")),
+                targets = GameTarget.entries.map { TargetState(target = it, isOn = it == GameTarget.DESKTOP, problem = null) },
+                onChange = {},
+                onReviewUpgrade = null,
+                onDismiss = {},
+                initialPage = ProjectSettingsPage.TARGETS,
+            )
+        }
+        onNodeWithText("The platforms the game is built for", substring = true).assertExists()
+        saveSnapshot("project-settings-opened-on-targets")
     }
 
     @Test
