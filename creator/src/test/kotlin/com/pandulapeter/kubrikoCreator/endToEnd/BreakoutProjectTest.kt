@@ -10,7 +10,10 @@
 package com.pandulapeter.kubrikoCreator.endToEnd
 
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
+import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import java.io.File
 import javax.sound.sampled.AudioFileFormat
@@ -19,6 +22,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -60,6 +64,21 @@ class BreakoutProjectTest {
         assertContains(File(directory, "gradle/libs.versions.toml").readText(), "kotlin = \"2.4.21\"")
         assertContains(File(directory, "settings.gradle.kts").readText(), "mavenLocal {")
         assertContains(File(directory, "build.gradle.kts").readText(), "implementation(libs.kubriko.collision)")
+    }
+
+    @OptIn(EditorMutation::class)
+    @Test
+    fun everyTemplateUpgradeAppliesToItInOneGo() {
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(emptyList(), upgrade.byHand)
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertContains(File(directory, ".kubriko/project.json").readText(), "\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}")
+        val properties = File(directory, "gradle.properties").readText()
+        listOf("game.name=Breakout", "game.firstScene=main", "game.frameRate=60").forEach { assertContains(properties, it) }
+        val game = File(directory, "src/commonMain/kotlin/com/example/breakout/Game.kt").readText()
+        assertContains(game, "GameSettings.FIRST_SCENE")
+        assertContains(game, "KubrikoWiring.runningInstances")
+        assertContains(File(directory, "src/desktopMain/kotlin/com/example/breakout/Main.kt").readText(), "GameInfo.NAME")
     }
 
     @Test
