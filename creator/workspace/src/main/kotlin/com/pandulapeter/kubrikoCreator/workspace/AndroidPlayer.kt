@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -118,7 +119,8 @@ internal class AndroidPlayer(
      */
     private suspend fun watch(devices: AndroidDevices, shell: List<String>, serial: String, applicationId: String, pid: String, name: String) = coroutineScope {
         val hasCrashed = AtomicBoolean(false)
-        val logs = launch {
+        // Started before the first check, so that what the app logs before it ends is read even when it ends at once.
+        val logs = launch(start = CoroutineStart.UNDISPATCHED) {
             tools.stream(shell + listOf("logcat", "-v", "tag", "--pid=$pid")) { line ->
                 if (LogcatLines.isCrash(line)) hasCrashed.set(true)
                 LogcatLines.entryOf(line)?.let(console::append)
