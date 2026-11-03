@@ -14,7 +14,7 @@ built from Events and Blocks and generated into plain Kotlin, Actors are placed 
 This file holds the rules a change to Creator keeps and the why behind its less obvious designs; the code and its KDoc say what
 each part does. What is planned lives in `plan/` (start with `plan/README.md`). Two packages have guides of their own: the Block
 model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator/actors/CLAUDE.md`) and the in-app assistant
-(`src/main/kotlin/com/pandulapeter/kubrikoCreator/ai/assistant/CLAUDE.md`).
+(`ai/src/main/kotlin/com/pandulapeter/kubrikoCreator/ai/assistant/CLAUDE.md`).
 
 ## Running and testing
 
@@ -38,7 +38,7 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
   - `KUBRIKO_CREATOR_CLAUDE_AGENT=true` (`KUBRIKO_CREATOR_CLAUDE_CONFIG_DIR` picks a Claude Code configuration) runs the real
     Claude Agent on an existing login: `ClaudeAgentLiveTest`, and `AssistantLiveScenariosTest`'s headless conversations on the
     Breakout fixture, which check what the project became, not the words. They cost a few requests on the user's subscription,
-    so run them (`--tests "*AssistantLiveScenariosTest*" --rerun`) when the assistant's behaviour changed; `EvalSetTest`
+    so run them (`./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest*" --rerun`) when the assistant's behaviour changed; `EvalSetTest`
     replays recorded tool calls for free.
 - Controllers are tested against fakes in `testing/` (`FakeProjectBuild`, `FakeSessionChannel`, `FakeBlockTypeRepository`, `FakeGitRepository`),
   file code against real temporary folders, git against real temporary repositories (JGit needs no installed git), and sockets,
@@ -62,11 +62,11 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 
 Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
 gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
-module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), `:creator:template` (project templates and upgrades, with the template files as its resources), `:creator:commands` (`commands` and `context`, the AI context the commands read, with the engine overview `get_kubriko_api` hands the AI as its resource), and `:creator:ui-components`
+module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), `:creator:template` (project templates and upgrades, with the template files as its resources), `:creator:commands` (`commands` and `context`, the AI context the commands read, with the engine overview `get_kubriko_api` hands the AI as its resource), `:creator:ai` (the MCP server and the in-app assistant: `mcp`, `ai`, with the ACP SDK in its API, since the assistant's state carries its model types), and `:creator:ui-components`
 (`ui.components`, `ui.theme`, with their own resources and the UI test fixtures). Each child module applies `kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
-and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`; gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`; commands' `CommandTesting.kt`, `FakeProjectRunner`, and `BreakoutFixture`), and `PackageLayeringTest` keeps every file in its module's layer.
+and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`; gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`; commands' `CommandTesting.kt`, `FakeProjectRunner`, and `BreakoutFixture`; ai's `FakeAgent` and `FakeAgentLauncher`), and `PackageLayeringTest` keeps every file in its module's layer.
 
 ## Definition of done
 

@@ -60,6 +60,7 @@ include(
     ":creator:git",
     ":creator:template",
     ":creator:commands",
+    ":creator:ai",
     ":creator:ui-components",
     ":engine",
     ":examples:demo-content-shaders",
