@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 public object GetTargetChange : ReadCommand<GetTargetChange.Input> {
     override val name: String = "get_target_change"
     override val description: String = "Shows what turning one of the game's targets on or off changes in its build files (which belong to the user), and " +
-        "which files it creates, without changing anything. Show it to the user before set_target."
+        "which files it creates, without changing anything. Show it to the user, then pass its changeId to set_target."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project

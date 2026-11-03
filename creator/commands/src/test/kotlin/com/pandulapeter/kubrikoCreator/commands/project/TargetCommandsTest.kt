@@ -81,24 +81,47 @@ class TargetCommandsTest {
     @Test
     fun turningATargetOnIsUndoneByTurningItOff() = runTest {
         val context = commandContext(rootDirectory = root, targets = targets)
-        context.assertRoundTrip(Invocation(SetTarget, android(isOn = true))) {
+        context.assertRoundTrip(Invocation(SetTarget, SetTarget.Input(GameTarget.ANDROID, isOn = true))) {
             listOf("build.gradle.kts", "settings.gradle.kts", "gradle/libs.versions.toml").map { File(root, it).readText() }
         }
         assertContains(File(root, "androidApp/build.gradle.kts").readText(), "alias(libs.plugins.android.application)")
     }
 
     @Test
+    fun onlyTheChangeThatWasShownIsMade() = runTest {
+        val context = commandContext(rootDirectory = root, targets = targets)
+        val shown = assertIs<CommandOutcome.Success>(GetTargetChange.read(context, android(isOn = true))).result.jsonObject.getValue("changeId").jsonPrimitive.content
+        File(root, "settings.gradle.kts").appendText("// Changed by the AI.\n")
+        assertEquals(Rejection(TargetProblem.CHANGED_SINCE_SHOWN, "android"), SetTarget.apply(context, SetTarget.Input(GameTarget.ANDROID, isOn = true, changeId = shown)).failure)
+        assertEquals(newBuild(), File(root, "build.gradle.kts").readText())
+        val again = assertIs<CommandOutcome.Success>(GetTargetChange.read(context, android(isOn = true))).result.jsonObject.getValue("changeId").jsonPrimitive.content
+        assertNull(SetTarget.apply(context, SetTarget.Input(GameTarget.ANDROID, isOn = true, changeId = again)).failure)
+    }
+
+    @Test
+    fun aChangeThatTurningBackWouldntRevertCantBeUndone() = runTest {
+        val context = commandContext(rootDirectory = root, targets = targets)
+        SetTarget.apply(context, SetTarget.Input(GameTarget.ANDROID, isOn = true))
+        val build = File(root, "build.gradle.kts")
+        build.writeText(build.readText().replace("        androidResources.enable = true\n", "        androidResources.enable = true\n        lint { abortOnError = false }\n"))
+        val off = SetTarget.apply(context, SetTarget.Input(GameTarget.ANDROID, isOn = false))
+        assertNull(off.failure)
+        assertNull(off.inverse)
+        assertEquals(true, off.isRewritingFiles)
+    }
+
+    @Test
     fun whatCantBeChangedIsRejected() = runTest {
         assertEquals(Rejection(TargetProblem.DESKTOP_ALWAYS_ON), SetTarget.validate(commandContext(rootDirectory = root, targets = targets), desktopOff))
-        assertEquals(Rejection(TargetProblem.CHANGED_BY_HAND, "android"), SetTarget.validate(commandContext(rootDirectory = root), android(isOn = true)))
-        val applied = SetTarget.apply(commandContext(rootDirectory = root, targets = targets), GetTargetChange.Input(GameTarget.WEB, isOn = true))
+        assertEquals(Rejection(TargetProblem.CHANGED_BY_HAND, "android"), SetTarget.validate(commandContext(rootDirectory = root), SetTarget.Input(GameTarget.ANDROID, isOn = true)))
+        val applied = SetTarget.apply(commandContext(rootDirectory = root, targets = targets), SetTarget.Input(GameTarget.WEB, isOn = true))
         assertEquals(Rejection(TargetProblem.ALREADY_ON, "web"), applied.failure)
     }
 
     @Test
     fun theXcodeProjectFollowsTheApplicationId() = runTest {
         val context = commandContext(rootDirectory = root, targets = targets)
-        SetTarget.apply(context, GetTargetChange.Input(GameTarget.IOS, isOn = true))
+        SetTarget.apply(context, SetTarget.Input(GameTarget.IOS, isOn = true))
         val refused = SetProjectSettings.apply(context, SetProjectSettings.Input(applicationId = "com.example.my_game"))
         assertEquals(Rejection(TargetProblem.APPLICATION_ID_NOT_FOR_IOS, "com.example.my_game"), refused.failure)
         assertNull(SetProjectSettings.apply(context, SetProjectSettings.Input(applicationId = "com.example.other")).failure)
@@ -111,5 +134,5 @@ class TargetCommandsTest {
 
     private fun android(isOn: Boolean) = GetTargetChange.Input(GameTarget.ANDROID, isOn)
 
-    private val desktopOff = GetTargetChange.Input(GameTarget.DESKTOP, isOn = false)
+    private val desktopOff = SetTarget.Input(GameTarget.DESKTOP, isOn = false)
 }

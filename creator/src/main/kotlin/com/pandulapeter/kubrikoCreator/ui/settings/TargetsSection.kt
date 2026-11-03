@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.GameTarget
-import com.pandulapeter.kubrikoCreator.template.TargetProblem
 import com.pandulapeter.kubrikoCreator.template.TargetState
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.text
@@ -63,9 +62,9 @@ private fun TargetRow(
     )
     state.problem?.let { problem ->
         Text(
-            text = problem.text(),
+            text = problem.text(state.arguments),
             style = MaterialTheme.typography.bodySmall,
-            color = if (problem == TargetProblem.ANDROID_SDK_MISSING_WHILE_ON) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (state.isOn && state.target != GameTarget.DESKTOP) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

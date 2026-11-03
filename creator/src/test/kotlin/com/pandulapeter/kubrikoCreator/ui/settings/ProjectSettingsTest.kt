@@ -21,7 +21,6 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.HistoryEntry
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.project.GetTargetChange
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
@@ -31,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectGenerator
+import com.pandulapeter.kubrikoCreator.template.TargetChange
 import com.pandulapeter.kubrikoCreator.template.TargetHost
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -44,6 +44,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 
 @OptIn(ExperimentalTestApi::class)
 class ProjectSettingsTest {
@@ -142,7 +143,8 @@ class ProjectSettingsTest {
         saveSnapshot("project-settings-target-change")
         onNodeWithText("Apply changes").performClick()
         waitForIdle()
-        assertEquals(listOf<Invocation<*>>(Invocation(SetTarget, GetTargetChange.Input(GameTarget.ANDROID, isOn = true))), commands)
+        val shown = assertIs<TargetChange.Proposed>(targets.change(GameTarget.ANDROID, isOn = true))
+        assertEquals(listOf<Invocation<*>>(Invocation(SetTarget, SetTarget.Input(GameTarget.ANDROID, isOn = true, changeId = shown.id))), commands)
         onNodeWithText("Build the game for Android").assertDoesNotExist()
         assertFalse(File(project, "androidApp").exists())
     }

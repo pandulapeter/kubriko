@@ -795,7 +795,10 @@
     <string name="target_ios">iOS</string>
     <string name="target_change_title_on">Build the game for %1$s</string>
     <string name="target_change_title_off">Stop building the game for %1$s</string>
-    <string name="target_change_message">These changes go into the project's build files. Turning it back undoes them; the files it creates stay.</string>
+    <string name="target_change_message">These changes go into the project's build files. Undo turns it back; the files it creates stay.</string>
+    <string name="target_change_message_irreversible">These changes go into the project's build files, and turning it back wouldn't bring back what you changed in them, so this can't be undone. Commit first to be able to go back with version control.</string>
+    <string name="error_target_android_sdk_directory_invalid">local.properties names %1$s as the Android SDK, which it isn't, so the project can't build. Fix sdk.dir there, or remove it.</string>
+    <string name="error_target_changed_since_shown">The build files changed since this change to %1$s was shown, so nothing was changed. Look at it again.</string>
     <string name="target_change_created">New files: %1$s</string>
     <string name="error_target_already_off">The game isn't built for %1$s.</string>
     <string name="error_target_already_on">The game is built for %1$s already.</string>

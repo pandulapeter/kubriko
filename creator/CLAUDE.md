@@ -385,9 +385,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (the viewport's width and height only for the aspect ratios that use them), and the two change together. A value the build
   can't read shows its default and is written again when chosen. Renaming a Scene, or its folder, follows the first Scene;
   deleting the first Scene is refused, but undoing its creation isn't.
-- **Targets** (`template/GameTargets`) are turned on and off as a confirmed diff of the build files (`set_target`, whose
-  inverse turns them back): only the template's shape is edited, a file that lost it is left to the user, and turning one off
-  removes it from the build and leaves its files. The desktop is always on, since playing and the Scene editor run through it.
+- **Targets** (`template/GameTargets`) are turned on and off as a confirmed diff of the build files: `set_target` makes only the
+  change whose `changeId` was shown, and its undo turns the target back only when that restores every file exactly
+  (`isReversible`), since turning off drops whole blocks with what the user added to them; otherwise it clears the history.
+  Only the template's shape is edited, a file that lost it is left to the user, turning one off removes it from the build
+  and leaves its files, and a catalog entry goes only if it is still as turning Android on added it and nothing uses it. The desktop is always on, since playing and the Scene editor run through it.
   Android is a library target of the game's module plus an `androidApp` module that packages it, since the Android Gradle
   plugin's application plugin can't share a module with Kotlin Multiplatform; turning it on needs the Android SDK and writes
   `sdk.dir` into `local.properties` when nothing else names it. iOS is a framework that the Xcode project in `iosApp/` builds

@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
+import com.pandulapeter.kubrikoCreator.foundation.englishWith
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.GameSettingsReading
 import com.pandulapeter.kubrikoCreator.project.LibraryInUse
@@ -82,7 +83,7 @@ public object GetProjectSettings : ReadCommand<NoInput> {
                 buildJsonObject {
                     put("target", state.target.key)
                     put("isOn", state.isOn)
-                    state.problem?.let { put("note", it.english) }
+                    state.problem?.let { put("note", it.englishWith(state.arguments)) }
                 },
             )
         }

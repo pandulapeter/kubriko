@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.project.GetTargetChange
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
 import com.pandulapeter.kubrikoCreator.project.LibraryInUse
@@ -28,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.GameTargets
+import com.pandulapeter.kubrikoCreator.template.TargetChange
 import com.pandulapeter.kubrikoCreator.template.TargetState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -89,7 +89,7 @@ internal fun ProjectSettings(
         TargetChangeDialog(
             change = change,
             onApply = {
-                onCommand(Invocation(SetTarget, GetTargetChange.Input(change.target, change.isOn)))
+                onCommand(Invocation(SetTarget, SetTarget.Input(change.target, change.isOn, changeId = (change.result as? TargetChange.Proposed)?.id)))
                 pendingTarget = null
             },
             onDismiss = { pendingTarget = null },

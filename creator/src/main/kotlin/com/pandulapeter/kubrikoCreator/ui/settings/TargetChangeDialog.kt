@@ -31,6 +31,7 @@ import kubriko.creator.generated.resources.action_cancel
 import kubriko.creator.generated.resources.action_close
 import kubriko.creator.generated.resources.target_change_created
 import kubriko.creator.generated.resources.target_change_message
+import kubriko.creator.generated.resources.target_change_message_irreversible
 import kubriko.creator.generated.resources.target_change_title_off
 import kubriko.creator.generated.resources.target_change_title_on
 import org.jetbrains.compose.resources.stringResource
@@ -78,7 +79,7 @@ internal fun TargetChangeDialog(
 
 @Composable
 private fun ProposedChange(change: TargetChange.Proposed) {
-    Text(stringResource(Res.string.target_change_message))
+    Text(stringResource(if (change.isReversible) Res.string.target_change_message else Res.string.target_change_message_irreversible))
     change.changes.filterNot { it.isNew }.forEach { FileDiff(it) }
     change.changes.filter { it.isNew }.takeIf { it.isNotEmpty() }?.let { created ->
         Text(
