@@ -37,8 +37,8 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
     `KUBRIKO_CREATOR_VERSION`, builds it for real (`CreatorBuildBenchmarkTest`; more Gradle arguments through
     `KUBRIKO_CREATOR_BENCHMARK_ARGUMENTS`).
   - `KUBRIKO_CREATOR_E2E=true KUBRIKO_CREATOR_VERSION=<version>` (the end-to-end checks, `endToEnd/` in `:creator`'s tests;
-    `./gradlew :creator:test --tests "*endToEnd*" --rerun`) needs a display: on Linux, `xvfb-run -s "-screen 0 1920x1080x24"`,
-    where Skiko falls back to software rendering. Each scenario starts the real Creator in a JVM of its own (the app's runtime
+    `./gradlew :creator:test --tests "*endToEnd*" --rerun`) needs a display nobody is using (never the user's own, whose screen
+    and focus the game tools take): on Linux, `xvfb-run -s "-screen 0 1920x1080x24"`, where Skiko falls back to software rendering. Each scenario starts the real Creator in a JVM of its own (the app's runtime
     classpath, which the test task hands over, with a settings folder of its own through `kubriko.creator.settingsDirectory`
     and its MCP server on) on a fresh, committed copy of `BreakoutProject`, drives it through the MCP tools as an outside
     client would, and judges what it left: files, console, Creator's window (from the screen), and the game's (through

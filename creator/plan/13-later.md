@@ -14,3 +14,7 @@
 - **Asset editor extension point:** a project or plugin registers an editor for its own resource type, running with the project's classes
   (Tesselar's model and region editors would be the first; both are already desktop modules in Tesselar, see `11-project-upkeep.md`).
   A library change, so it waits for a release.
+- **Resources changed while playing:** decide what a Scene, sprite, or sound changed during a play session does (Hot Reload's copy
+  holds the resources too, so a reload may not bring them), then make it do that.
+- **Undoing an Actor's removal selects it again** in the Scene editor, as placing one does; today the selection is cleared.
+- **The audio Blocks' file menus with no sounds or music in the project** say how to add some, instead of showing an empty menu.

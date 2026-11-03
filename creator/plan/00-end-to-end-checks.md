@@ -10,23 +10,14 @@
 # End-to-end checks
 
 Creator is written by AI, so the AI verifies it in the real app, the way a person would, instead of leaving checks to the user.
-The harness that does it exists (`endToEnd/` in `:creator`'s tests; `../CLAUDE.md` → Running and testing says how it runs). What
-is left is settling `HANDOVER.md` → Not yet verified, mostly by deleting it. Unit tests are
-preferred to scenarios (`../CLAUDE.md` → Running and testing says which deserve one), so the scenarios stay few.
+The harness that does it exists (`endToEnd/` in `:creator`'s tests; `../CLAUDE.md` → Running and testing says how it runs), and
+`HANDOVER.md` → Not yet verified is settled: what unit tests and snapshots cover was deleted, the gaps got unit tests, what needs
+hardware or an account went to Before a release, and what needs a played game went into one scenario.
 
-## Settling Not yet verified
+## Left
 
-One pass over the whole list, before the next plan item. Each bullet is, in this order of preference:
-
-1. **Deleted**, when a unit test or snapshot already covers it, or it is a label, a menu entry, a field's validation, a layout,
-   or another detail that can't really break unnoticed. Most bullets end here.
-2. **Covered by a unit test** added now, when one can reach it and none does.
-3. **Moved to `HANDOVER.md` → Before a release** as one line, when it needs something no agent has (a high refresh rate panel, a
-   real Windows machine, a browser sign-in, an OS keychain prompt, a vendor's quota or terms).
-4. **Checked by a scenario**, only for what is left: real builds, played games, and processes working together. Those are
-   grouped into a handful of scenarios driven through the MCP tools (`set_project_settings`, `start_game`, `take_screenshot`, and
-   the rest); no synthetic input on Creator's window is added for them. The likely ones: the template upgrades from version 7
-   applied to the fixture and the game still building and playing, a chosen first Scene and a fixed aspect ratio showing in the
-   played game, and a hand-broken `game.frameRate` failing the build with a message that names it.
-
-Every bug found is fixed in its own commit with a test, and the section is gone at the end.
+- Run `UpgradingAndPlayingTest` headless (never on the user's display) and look at its images. It upgrades the fixture from template
+  version 7 and plays it: a Scene of sprite-drawn Gold Bricks chosen as the first Scene, a fixed aspect ratio, a Log Block's line in
+  the console, the build naming the game from `gradle.properties`, a hand-written change to `Game.kt` reaching the running game, and
+  a hand-broken `game.frameRate` failing the build with a message naming it. Fix what it finds, each in its own commit with a test,
+  then delete this file.
