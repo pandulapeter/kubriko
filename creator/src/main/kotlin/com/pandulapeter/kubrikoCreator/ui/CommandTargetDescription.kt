@@ -25,10 +25,14 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun CommandTarget.description(): String = when (this) {
-    is CommandTarget.BlockType -> when {
-        eventIndex == null -> name
-        blockIndex == null -> stringResource(Res.string.ai_target_event, name, (eventIndex + 1).toString())
-        else -> stringResource(Res.string.ai_target_block, name, (eventIndex + 1).toString(), (blockIndex + 1).toString())
+    is CommandTarget.BlockType -> {
+        val eventIndex = eventIndex
+        val blockIndex = blockIndex
+        when {
+            eventIndex == null -> name
+            blockIndex == null -> stringResource(Res.string.ai_target_event, name, (eventIndex + 1).toString())
+            else -> stringResource(Res.string.ai_target_block, name, (eventIndex + 1).toString(), (blockIndex + 1).toString())
+        }
     }
     is CommandTarget.Scene -> stringResource(Res.string.ai_target_scene, name)
     CommandTarget.VersionControl -> stringResource(Res.string.ai_target_version_control)
