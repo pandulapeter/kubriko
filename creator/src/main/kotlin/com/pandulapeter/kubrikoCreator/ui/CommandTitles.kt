@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
+import com.pandulapeter.kubrikoCreator.commands.game.ListPlayTargets
 import com.pandulapeter.kubrikoCreator.commands.game.PressKeys
 import com.pandulapeter.kubrikoCreator.commands.game.StartGame
 import com.pandulapeter.kubrikoCreator.commands.game.StopGame
@@ -124,6 +125,7 @@ import kubriko.creator.generated.resources.command_get_target_change
 import kubriko.creator.generated.resources.command_get_version_control_status
 import kubriko.creator.generated.resources.command_list_actor_types
 import kubriko.creator.generated.resources.command_list_manager_types
+import kubriko.creator.generated.resources.command_list_play_targets
 import kubriko.creator.generated.resources.command_list_scenes
 import kubriko.creator.generated.resources.command_move_actor
 import kubriko.creator.generated.resources.command_move_actor_order
@@ -221,6 +223,7 @@ private val commandTitles = mapOf(
     MoveToFolder.name to Res.string.command_move_to_folder,
     RenameFolder.name to Res.string.command_rename_folder,
     PressKeys.name to Res.string.command_press_keys,
+    ListPlayTargets.name to Res.string.command_list_play_targets,
     StartGame.name to Res.string.command_start_game,
     StopGame.name to Res.string.command_stop_game,
     TakeScreenshot.name to Res.string.command_take_screenshot,

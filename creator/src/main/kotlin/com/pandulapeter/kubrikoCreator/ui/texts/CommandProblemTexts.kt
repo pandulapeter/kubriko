@@ -52,6 +52,7 @@ import kubriko.creator.generated.resources.error_command_page_invalid
 import kubriko.creator.generated.resources.error_command_parent_cycle
 import kubriko.creator.generated.resources.error_command_parent_property_kind
 import kubriko.creator.generated.resources.error_command_play_duration_invalid
+import kubriko.creator.generated.resources.error_command_play_target_missing
 import kubriko.creator.generated.resources.error_command_project_settings_empty
 import kubriko.creator.generated.resources.error_command_project_settings_unavailable
 import kubriko.creator.generated.resources.error_command_property_inherited
@@ -143,6 +144,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PARENT_CYCLE -> Res.string.error_command_parent_cycle
     CommandProblem.PARENT_PROPERTY_KIND -> Res.string.error_command_parent_property_kind
     CommandProblem.PLAY_DURATION_INVALID -> Res.string.error_command_play_duration_invalid
+    CommandProblem.PLAY_TARGET_MISSING -> Res.string.error_command_play_target_missing
     CommandProblem.FIRST_SCENE_NOT_FOLLOWED -> Res.string.error_command_first_scene_not_followed
     CommandProblem.GAME_SETTINGS_UNAVAILABLE -> Res.string.error_command_game_settings_unavailable
     CommandProblem.PROJECT_SETTINGS_EMPTY -> Res.string.error_command_project_settings_empty

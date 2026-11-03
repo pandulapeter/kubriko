@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
+import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.delay
@@ -28,7 +30,8 @@ import java.util.Base64
  */
 internal class WorkspaceRunner(
     private val sessions: SessionController,
-    private val startSession: (firstScene: String?) -> Unit = sessions::play,
+    private val startSession: (firstScene: String?, target: PlayTarget) -> Unit = { firstScene, _ -> sessions.play(firstScene) },
+    private val playTargets: suspend () -> PlayTargets = { PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP) },
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
     private val console: ConsoleLog,
     private val classpathFile: File,
@@ -41,8 +44,10 @@ internal class WorkspaceRunner(
         )
     }
 
-    override suspend fun play(durationInMilliseconds: Long) = recordConsole {
-        val hasStarted = startAndAwait()
+    override suspend fun playTargets() = playTargets.invoke()
+
+    override suspend fun play(durationInMilliseconds: Long, target: PlayTarget) = recordConsole {
+        val hasStarted = startAndAwait(target = target)
         if (hasStarted) {
             delay(durationInMilliseconds)
             stopAndAwait()
@@ -50,8 +55,8 @@ internal class WorkspaceRunner(
         hasStarted
     }
 
-    override suspend fun startGame(firstScene: String?) = recordConsole {
-        startAndAwait(firstScene).also { hasStarted ->
+    override suspend fun startGame(firstScene: String?, target: PlayTarget) = recordConsole {
+        startAndAwait(firstScene, target).also { hasStarted ->
             if (hasStarted) {
                 sessions.request(ANSWER_TIMEOUT, create = SessionCommand::BringToFront)
                 // So that a screenshot taken right away shows the first Scene; a game that can't tell starts all the same.
@@ -101,13 +106,13 @@ internal class WorkspaceRunner(
     }
 
     /**
-     * Starts the game, replacing a session that was running, and waits until it is up or has ended.
+     * Starts the game on [target], replacing a session that was running, and waits until it is up or has ended.
      *
      * @return Whether it is up.
      */
-    private suspend fun startAndAwait(firstScene: String? = null): Boolean {
+    private suspend fun startAndAwait(firstScene: String? = null, target: PlayTarget): Boolean {
         stopAndAwait()
-        startSession(firstScene)
+        startSession(firstScene, target)
         val session = checkNotNull(sessions.job)
         return merge(
             sessions.state.filterIsInstance<SessionState.Running>().map { true },

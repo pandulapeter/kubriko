@@ -54,6 +54,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     PARENT_CYCLE("%1\$s already inherits from %2\$s, so it can't be its parent."),
     PARENT_PROPERTY_KIND("The Property %1\$s is of another kind in %2\$s. Rename or remove one of them first."),
     PLAY_DURATION_INVALID("Play for between 1 and %1\$s seconds."),
+    PLAY_TARGET_MISSING("The game can't be played on %1\$s here. It can be played on: %2\$s."),
     FIRST_SCENE_NOT_FOLLOWED("The game still starts with %1\$s, since gradle.properties couldn't be changed: %2\$s"),
     GAME_SETTINGS_UNAVAILABLE("This project's build doesn't read its first Scene, aspect ratio, and frame rate from gradle.properties yet. Upgrade its template files first."),
     PROJECT_SETTINGS_EMPTY("Name at least one setting to change."),

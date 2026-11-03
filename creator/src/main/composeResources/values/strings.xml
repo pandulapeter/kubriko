@@ -14,6 +14,9 @@
     <string name="action_open_project">Open project…</string>
     <string name="action_close_project">Close project</string>
     <string name="action_play">Play</string>
+    <string name="action_choose_play_target">Where to play the game</string>
+    <string name="action_more_play_targets">Build for more platforms…</string>
+    <string name="play_target_desktop">Desktop</string>
     <string name="action_play_from_scene">Play from this Scene</string>
     <string name="action_stop">Stop</string>
     <string name="action_clear_console">Clear</string>
@@ -519,6 +522,7 @@
     <string name="action_new_scene">New Scene</string>
     <string name="new_scene_hint">New Scene name</string>
     <string name="error_command_play_duration_invalid">Play for between 1 and %1$s seconds.</string>
+    <string name="error_command_play_target_missing">The game can't be played on %1$s here. It can be played on: %2$s.</string>
     <string name="error_mcp_internal">Kubriko Creator ran into an internal error, so nothing was done: %1$s. This is a problem in Kubriko Creator, not in the request.</string>
     <string name="action_copy">Copy</string>
     <string name="action_regenerate_token">Make a new token (clients using the old one stop working)</string>
@@ -578,6 +582,7 @@
     <string name="command_get_version_control_status">Check version control</string>
     <string name="command_build">Build the project</string>
     <string name="command_play">Play the game</string>
+    <string name="command_list_play_targets">List where to play</string>
     <string name="command_start_game">Start the game</string>
     <string name="command_press_keys">Press keys</string>
     <string name="command_wait">Wait</string>

@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.ProjectBuildFiles
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
@@ -190,6 +191,9 @@ public class WorkspaceController(
 
     /** Whether the session process is idle, starting, or running. */
     public val sessionState: StateFlow<SessionState> = sessions.state
+
+    /** Where the game can be played, and where Play plays it. */
+    public val playTargets: PlayTargetChoice = PlayTargetChoice(project.rootDirectory, sources = emptyList(), scope = scope, ioDispatcher = ioDispatcher)
     private val gameBuilds = GameBuilds(
         rootDirectory = project.rootDirectory,
         sessions = sessions,
@@ -257,6 +261,7 @@ public class WorkspaceController(
             runner = WorkspaceRunner(
                 sessions = sessions,
                 startSession = ::play,
+                playTargets = playTargets::refresh,
                 runTask = tasks::run,
                 console = consoleLog,
                 classpathFile = SessionInitScript.buildClasspathFileOf(project.rootDirectory),
@@ -401,14 +406,16 @@ public class WorkspaceController(
     }
 
     /**
-     * Plays the game, from its first Scene or [firstScene], which a project whose template files are older than that
-     * ([projectUpgrade]) may not honor, as the console says then.
+     * Plays the game on [target], from its first Scene or [firstScene], which a project whose template files are older than
+     * that ([projectUpgrade]) may not honor, as the console says then.
      */
-    public fun play(firstScene: String? = null) {
+    public fun play(firstScene: String? = null, target: PlayTarget = playTargets.targets.value.chosen) {
         if (firstScene != null && _projectUpgrade.value is TemplateUpgrade.Needed) {
             appendToConsole(ConsoleEntry.Status(WorkspaceStatus.PLAY_FROM_SCENE_NEEDS_UPGRADE, arguments = listOf(firstScene)))
         }
-        sessions.play(firstScene, gameBuilds::prepareLaunch)
+        when (target.kind) {
+            PlayTarget.Kind.DESKTOP -> sessions.play(firstScene, gameBuilds::prepareLaunch)
+        }
     }
 
     /** Stops the session process, if one runs. */

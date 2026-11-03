@@ -14,25 +14,15 @@ running there. This plan lets Play run it in a browser, on an Android device or 
 same button, so that what a target turns on can be seen working. It comes before the rest of Settings, since Release, Icons, and
 Signing only matter once exporting does (`11-export-and-distribution.md`), while this is what makes Targets useful now.
 
-Worked on in this order, each item shipped and reviewed on its own: Choosing where to play, Web, Android, iOS simulator; then iOS
-devices, which wait for Signing.
-
-## Choosing where to play
-
-- **Play's menu** lists where the game can run: the desktop (the default), the browser, every Android device and emulator, and every
-  iOS simulator and device, each only while the project is built for that target and this computer has what runs it. The last choice
-  is kept per project and per machine in `.kubriko/local/`, since devices are this computer's.
-- **One command:** `play` and `start_game` take a `target` (`desktop` when left out), and a `list_play_targets` read names what is
-  there, so the AI plays where the user does (`../CLAUDE.md` → Principle 5). Stop ends a game wherever it runs.
-- **What stays on the desktop:** hot reload (the other targets don't run on the JVM), and the game tools (`press_keys`,
-  `take_screenshot`, `wait`), which need the session; on another target they are refused with the reason, until the session reaches
-  it (`10-debugger.md` → Other targets).
-- **Play from this Scene and Log Blocks** reach the game as the desktop's system properties do now: a URL query on the web, intent
-  extras on Android, and launch arguments on iOS, which the entry points read in debug builds only. A template version, so existing
-  projects get it as an upgrade.
+Worked on in this order, each item shipped and reviewed on its own: Web, Android, iOS simulator; then iOS devices, which wait for
+Signing. Each adds its kind to `PlayTarget.Kind`, a source of places to `PlayTargetChoice`, and its start to
+`WorkspaceController.play`.
 
 ## Web
 
+- **The game tools stay on the desktop:** `press_keys`, `take_screenshot`, and `wait` need the session, so on another target they
+  are refused with the reason, until the session reaches it (`10-debugger.md` → Other targets); hot reload stays there too, since
+  the other targets don't run on the JVM.
 - Builds the development executable distribution (`wasmJsBrowserDevelopmentExecutableDistribution`) rather than running webpack's
   dev server, which would hold a Gradle daemon for as long as the game is open, and serves it from Creator on `127.0.0.1` at a free
   port, with the media types Wasm needs (`application/wasm`), then opens the system browser on it.

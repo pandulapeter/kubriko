@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.game.PlayTargetLookup
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -24,7 +25,7 @@ import kotlinx.serialization.json.put
 
 public object Play : ActionCommand<Play.Input> {
     override val name: String = "play"
-    override val description: String = "Builds the project and plays the game in a window of its own for a few seconds, then stops it. " +
+    override val description: String = "Builds the project and plays the game in a window of its own (or on a target) for a few seconds, then stops it. " +
         "Returns whether it started, with what the console showed meanwhile: compiler problems, the game's logs, and errors."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -32,7 +33,11 @@ public object Play : ActionCommand<Play.Input> {
 
     override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
         if (input.seconds !in 1..MAXIMUM_SECONDS) return CommandOutcome.Rejected(Rejection(CommandProblem.PLAY_DURATION_INVALID, MAXIMUM_SECONDS.toString()))
-        val result = context.runner.play(durationInMilliseconds = input.seconds * 1000L)
+        val target = when (val lookup = PlayTargetLookup.of(context, input.target)) {
+            is PlayTargetLookup.Found -> lookup.target
+            is PlayTargetLookup.Missing -> return lookup.outcome
+        }
+        val result = context.runner.play(durationInMilliseconds = input.seconds * 1000L, target = target)
         return CommandOutcome.Success(
             buildJsonObject {
                 put("hasStarted", result.isSuccessful)
@@ -47,5 +52,7 @@ public object Play : ActionCommand<Play.Input> {
     public data class Input(
         @Description("How many seconds to play the game for, from when it is up, between 1 and 60.")
         @SerialName("seconds") val seconds: Int = 5,
+        @Description("Where to play it, from list_play_targets, or none for the desktop.")
+        @SerialName("target") val target: String? = null,
     )
 }

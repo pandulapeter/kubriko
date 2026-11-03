@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
+import com.pandulapeter.kubrikoCreator.commands.game.ListPlayTargets
 import com.pandulapeter.kubrikoCreator.commands.game.PressKeys
 import com.pandulapeter.kubrikoCreator.commands.game.StartGame
 import com.pandulapeter.kubrikoCreator.commands.game.StopGame
@@ -142,6 +143,7 @@ public class CommandRegistry(
                 GetTargetChange,
                 Build,
                 Play,
+                ListPlayTargets,
                 StartGame,
                 PressKeys,
                 Wait,

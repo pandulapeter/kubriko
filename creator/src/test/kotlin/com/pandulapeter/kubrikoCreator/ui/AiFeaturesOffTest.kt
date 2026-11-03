@@ -24,6 +24,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
+import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
@@ -59,6 +61,9 @@ class AiFeaturesOffTest {
             isAiConnected = true,
             openPanel = SidePanel.AI,
             onPanelToggled = {},
+            playTargets = PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP),
+            onPlayTargetsOpened = {},
+            onPlayTargetChosen = {},
             onPlay = {},
             onStop = {},
             onRefresh = {},

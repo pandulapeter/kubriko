@@ -305,6 +305,11 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   code changes reload; a changed superclass, interface, instance field, or a class with static state (which a reload would leave
   null or reset) restarts the game from the same Scene. A game waits for the one before it to end, since Hot Reload's pid file is
   shared.
+- **Where to play** (`PlayTargetChoice`) is this computer's: the choice is kept in `.kubriko/local/play.json`, and one that
+  isn't there now (a device unplugged) stays chosen while Play uses the desktop. `play` and `start_game` take the desktop
+  when no `target` is given, not the user's choice, so the same call always plays in the same place. The web, Android, and
+  iOS entry points read Play from this Scene and the Log Blocks switch only in debug builds (`PlaySwitchesUpgrade`); the
+  web has no debug build, so it reads them only on a page served from `127.0.0.1`, as Creator serves it.
 - **The session** (`tool-creator-session`) runs at the project's Kubriko version and reports to `SessionServer` (which takes only
   the first connection that says Hello after each launch): a session of any version runs, and a command it is too old for is
   refused (`SessionController.request` takes the version a command needs and answers `GameAnswer.Unsupported`, which the game

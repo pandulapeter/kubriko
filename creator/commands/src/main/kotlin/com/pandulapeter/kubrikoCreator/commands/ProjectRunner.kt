@@ -22,20 +22,25 @@ public interface ProjectRunner {
     public suspend fun build(): RunResult
 
     /**
-     * Starts the game, lets it run for [durationInMilliseconds] once it is up, and stops it.
+     * Looks for where the game can be played now.
+     */
+    public suspend fun playTargets(): PlayTargets
+
+    /**
+     * Starts the game on [target], lets it run for [durationInMilliseconds] once it is up, and stops it.
      *
      * @return Whether the game started, and what the console showed meanwhile.
      */
-    public suspend fun play(durationInMilliseconds: Long): RunResult
+    public suspend fun play(durationInMilliseconds: Long, target: PlayTarget = PlayTarget.DESKTOP): RunResult
 
     /**
-     * Builds and starts the game, waits until it is up, and leaves it running for [pressKeys], [wait], and
+     * Builds and starts the game on [target], waits until it is up, and leaves it running for [pressKeys], [wait], and
      * [captureScreen], until [stopGame].
      *
      * @param firstScene The Scene the game starts in instead of its first one.
      * @return Whether the game started, and what the console showed meanwhile.
      */
-    public suspend fun startGame(firstScene: String? = null): RunResult
+    public suspend fun startGame(firstScene: String? = null, target: PlayTarget = PlayTarget.DESKTOP): RunResult
 
     /**
      * @return Whether a game was running, and what the console showed while it stopped.

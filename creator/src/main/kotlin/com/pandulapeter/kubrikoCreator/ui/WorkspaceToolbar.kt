@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
+import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -85,6 +87,9 @@ internal fun WorkspaceToolbar(
     isAiConnected: Boolean,
     openPanel: SidePanel?,
     onPanelToggled: (SidePanel) -> Unit,
+    playTargets: PlayTargets,
+    onPlayTargetsOpened: () -> Unit,
+    onPlayTargetChosen: (PlayTarget) -> Unit,
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onRefresh: () -> Unit,
@@ -105,6 +110,12 @@ internal fun WorkspaceToolbar(
         ) {
             ButtonContent(Res.drawable.ic_play, Res.string.action_play)
         }
+        PlayTargetMenu(
+            targets = playTargets,
+            onOpened = onPlayTargetsOpened,
+            onChosen = onPlayTargetChosen,
+            onMoreTargets = onOpenProjectSettings,
+        )
     } else {
         FilledTonalButton(
             modifier = ToolbarButtonModifier,

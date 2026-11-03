@@ -14,6 +14,8 @@ import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
+import com.pandulapeter.kubrikoCreator.commands.PlayTargets
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
@@ -89,5 +91,36 @@ class GameCommandsTest {
         assertTrue(runner.calls.isEmpty())
         assertIs<CommandOutcome.Success>(executor.call("start_game", buildJsonObject { put("scene", "levels/bonus") }))
         assertEquals(listOf("start levels/bonus"), runner.calls)
+    }
+
+    @Test
+    fun theGameIsPlayedWhereTheTargetSaysAndOnlyWhereItCanBe() = runTest {
+        val other = PlayTarget(id = "elsewhere", kind = PlayTarget.Kind.DESKTOP, name = "Elsewhere")
+        runner.targets = PlayTargets(available = listOf(PlayTarget.DESKTOP, other), chosen = other)
+        val executor = executor()
+        assertEquals(
+            CommandOutcome.Rejected(Rejection(CommandProblem.PLAY_TARGET_MISSING, "nowhere", "desktop, elsewhere")),
+            executor.call("start_game", buildJsonObject { put("target", "nowhere") }),
+        )
+        assertEquals(
+            CommandOutcome.Rejected(Rejection(CommandProblem.PLAY_TARGET_MISSING, "nowhere", "desktop, elsewhere")),
+            executor.call("play", buildJsonObject { put("target", "nowhere") }),
+        )
+        assertEquals(listOf("targets", "targets"), runner.calls)
+        runner.calls.clear()
+        assertIs<CommandOutcome.Success>(executor.call("start_game", buildJsonObject { put("target", "elsewhere") }))
+        assertIs<CommandOutcome.Success>(executor.call("start_game", buildJsonObject { put("target", "desktop") }))
+        assertIs<CommandOutcome.Success>(executor.call("play", buildJsonObject { put("target", "elsewhere") }))
+        assertEquals(listOf("targets", "start on elsewhere", "start", "targets", "play 5000 on elsewhere"), runner.calls)
+    }
+
+    @Test
+    fun whereTheGameCanBePlayedIsListedWithTheUsersChoice() = runTest {
+        val other = PlayTarget(id = "elsewhere", kind = PlayTarget.Kind.DESKTOP, name = "Elsewhere")
+        runner.targets = PlayTargets(available = listOf(PlayTarget.DESKTOP, other), chosen = other)
+        assertEquals(
+            """{"targets":[{"id":"desktop","kind":"desktop"},{"id":"elsewhere","kind":"desktop","name":"Elsewhere"}],"chosenByUser":"elsewhere"}""",
+            assertIs<CommandOutcome.Success>(executor().call("list_play_targets", JsonObject(emptyMap()))).result.toString(),
+        )
     }
 }

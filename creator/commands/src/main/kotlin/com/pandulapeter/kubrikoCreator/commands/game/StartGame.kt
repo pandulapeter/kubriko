@@ -34,6 +34,8 @@ public object StartGame : ActionCommand<StartGame.Input> {
     public data class Input(
         @Description("The Scene to start the game in, by its name (levels/1-1), or none for the game's first Scene.")
         val scene: String? = null,
+        @Description("Where to start it, from list_play_targets, or none for the desktop.")
+        val target: String? = null,
     )
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Game
@@ -42,7 +44,11 @@ public object StartGame : ActionCommand<StartGame.Input> {
         if (input.scene != null && !context.scenes.exists(input.scene)) {
             return CommandOutcome.Rejected(Rejection(CommandProblem.SCENE_MISSING, input.scene))
         }
-        val result = context.runner.startGame(firstScene = input.scene)
+        val target = when (val lookup = PlayTargetLookup.of(context, input.target)) {
+            is PlayTargetLookup.Found -> lookup.target
+            is PlayTargetLookup.Missing -> return lookup.outcome
+        }
+        val result = context.runner.startGame(firstScene = input.scene, target = target)
         return CommandOutcome.Success(
             buildJsonObject {
                 put("hasStarted", result.isSuccessful)
