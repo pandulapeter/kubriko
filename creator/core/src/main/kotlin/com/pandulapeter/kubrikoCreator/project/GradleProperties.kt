@@ -19,11 +19,12 @@ import java.util.Properties
 public object GradleProperties {
 
     /**
-     * The value of [key] in [text], or null if it isn't set. A value continued on the next line is read whole.
+     * The value of [key] in [text], or null if it isn't set. A value continued on the next line is read whole, and a key
+     * set more than once has its last value, as Gradle reads it.
      */
     public fun valueOf(text: String, key: String): String? {
         val lines = text.lines()
-        val index = lines.indexOfFirst { keyOf(it) == key }.takeIf { it >= 0 } ?: return null
+        val index = lineOf(lines, key) ?: return null
         val entry = buildString {
             var line = index
             while (line < lines.size) {
@@ -36,12 +37,13 @@ public object GradleProperties {
     }
 
     /**
-     * [text] with [key] set to [value]: its line replaced where it is set (with any continuation lines), or added at the end.
+     * [text] with [key] set to [value]: its line replaced where Gradle reads it (with any continuation lines), or added at
+     * the end.
      */
     public fun withValue(text: String, key: String, value: String): String {
         val lines = text.lines().toMutableList()
         val line = "$key=${escape(value)}"
-        val index = lines.indexOfFirst { keyOf(it) == key }
+        val index = lineOf(lines, key) ?: -1
         if (index < 0) {
             val content = lines.dropLastWhile { it.isBlank() }
             return (content + line).joinToString("\n", postfix = "\n")
@@ -51,6 +53,19 @@ public object GradleProperties {
         repeat(end - index) { lines.removeAt(index + 1) }
         lines[index] = line
         return lines.joinToString("\n")
+    }
+
+    /**
+     * The index of the last line that sets [key], skipping the lines that continue a value, or null if none does.
+     */
+    private fun lineOf(lines: List<String>, key: String): Int? {
+        var found: Int? = null
+        var isContinuation = false
+        lines.forEachIndexed { index, line ->
+            if (!isContinuation && keyOf(line) == key) found = index
+            isContinuation = (isContinuation || keyOf(line) != null) && line.continuesOnNextLine()
+        }
+        return found
     }
 
     private fun keyOf(line: String): String? {

@@ -34,6 +34,22 @@ class GradlePropertiesTest {
     }
 
     @Test
+    fun aKeySetTwiceIsReadAndWrittenWhereGradleReadsIt() {
+        val text = "game.name=First\nb=2\ngame.name=Last\n"
+        assertEquals("Last", GradleProperties.valueOf(text, "game.name"))
+        assertEquals("game.name=First\nb=2\ngame.name=New\n", GradleProperties.withValue(text, "game.name", "New"))
+        assertEquals("New", GradleProperties.valueOf(GradleProperties.withValue(text, "game.name", "New"), "game.name"))
+    }
+
+    @Test
+    fun aContinuationLineIsntAKey() {
+        val text = "game.description=one \\\ngame.name=Inside\n"
+        assertEquals("one game.name=Inside", GradleProperties.valueOf(text, "game.description"))
+        assertNull(GradleProperties.valueOf(text, "game.name"))
+        assertEquals(text + "game.name=Game\n", GradleProperties.withValue(text, "game.name", "Game"))
+    }
+
+    @Test
     fun aMissingKeyIsAddedAtTheEnd() {
         assertEquals("a=1\ngame.name=Game\n", GradleProperties.withValue("a=1\n\n\n", "game.name", "Game"))
         assertEquals("game.name=Game\n", GradleProperties.withValue("", "game.name", "Game"))
