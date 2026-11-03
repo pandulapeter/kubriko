@@ -46,9 +46,11 @@ class OpeningAndPlayingTest {
         // take_screenshot scales the game down to at most 1280 pixels wide, so how many pixels a unit is depends on the display.
         val scale = step("The game draws the Gold Bricks in their column") {
             val gold = assertNotNull(first.boundsOf(GOLD), "No Gold Brick was drawn.")
-            // The column is cut off at the top of a short window, but always drawn as wide as a Brick.
-            val scale = gold.width / BreakoutFixture.brick.width
-            assertTrue(scale in 0.25f..4f, "The Gold Bricks are ${gold.width} pixels wide, which no display scale explains.")
+            // The level's rows are 30 units apart, which the last two rows show even when a short window cuts the first off.
+            val rowTops = rowTopsAt(first, gold.centerX.toInt())
+            assertTrue(rowTops.size >= 3, "Only ${rowTops.size} rows of Gold Bricks were drawn in their column.")
+            val scale = (rowTops.last() - rowTops[rowTops.lastIndex - 1]) / ROW_SPACING
+            assertTrue(abs(gold.width - BreakoutFixture.brick.width * scale) <= 2, "The Gold Bricks are ${gold.width} pixels wide (at $scale pixels a unit).")
             // The level puts its Gold Bricks in the fifth column, whose middle is 30 units left of the screen's.
             assertTrue(abs(gold.centerX - (first.width / 2 - 30 * scale)) <= 2, "The Gold Bricks are at $gold, not in their column (at $scale pixels a unit).")
             assertTrue(first.countOf(BRICK) > first.countOf(GOLD) * 5, "The other Bricks weren't drawn around them.")
@@ -69,7 +71,15 @@ class OpeningAndPlayingTest {
         }
     }
 
+    /**
+     * Where each run of Gold Brick pixels starts, from the top, in the column of pixels at [x].
+     */
+    private fun rowTopsAt(image: BufferedImage, x: Int) = (0 until image.height).filter { y ->
+        ImageChecks.matches(image.getRGB(x, y), GOLD) && (y == 0 || !ImageChecks.matches(image.getRGB(x, y - 1), GOLD))
+    }
+
     private companion object {
+        const val ROW_SPACING = 30f
         const val BLACK = 0x000000
         const val GOLD = 0xFFC857
         const val BRICK = 0x6060AA
