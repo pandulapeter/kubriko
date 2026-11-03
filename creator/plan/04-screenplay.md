@@ -41,13 +41,27 @@ health checks.
   mention through the same reference edits as Blocks; deleting it leaves the mention, marked as missing.
 - **The sidebar** gets a Screenplay group above the cast, with folders, the filter, drag and drop, and right-click menus as the
   other groups have (`ResourceGroup`, `ResourceGroupTitles`).
-- **The page editor** in the center (a `WorkspaceSelection` of its own): the rendered page by default and Markdown on a click into
-  it, one at a time like a document, with the assistant's Markdown parser and renderer moved to `:creator:ui-components` and
-  shared. Edits are commands with undo (merged per pause in typing, as a Block's text is); the AI's edits show as a diff before Keep.
+- **The page editor** in the center (a `WorkspaceSelection` of its own): a simple Markdown editor, not a word processor. The
+  page shows rendered, and clicking into a paragraph edits that paragraph's Markdown in place, so the source is never far but
+  never in the way. A small toolbar and the usual shortcuts (Cmd/Ctrl+B, I, K) cover headings, bold, italic, lists, links,
+  mentions, and images, each writing plain Markdown. The assistant's Markdown parser and renderer move to
+  `:creator:ui-components` and are shared, gaining what pages need beyond chat (images, links, and nested lists). Edits are
+  commands with undo (merged per pause in typing, as a Block's text is); the AI's edits show as a diff before Keep.
+- **Images** are ordinary Markdown images, so they show on GitHub and in IntelliJ too:
+  - An image pasted or dropped onto a page is copied next to the page (into the page's own folder, named after the page and
+    numbered), never referenced where it was. Moving a page moves its images with it, deleting one offers to delete the images
+    no other page uses, and undo brings both back.
+  - An image can also point at a project resource instead of a copy (a sprite in `drawable`), so the page shows the game's
+    current art. Such an image, like every link to a project resource, opens that resource in Creator on a click; a link
+    outside the project opens in the browser, after the address is shown.
+  - Large pasted images are scaled down to a width limit before they are written, since pages live in git.
+  - A health check names images no page uses, and images whose file is gone.
 - **Mentioned in:** an open Actor type, Manager type, or Scene shows the pages that mention it, so the design is one click away
   from the Events.
 - **Commands and tools:** `create_page`, `edit_page` (one section by its heading, or the whole page), `move_page` (renames and
   folders), `delete_page`, `list_pages`, and `read_pages`, which answers again with what changed (`ResultDelta`), like the other reads.
+  `add_page_image` puts an image on a page from a game screenshot (`take_screenshot`'s) or a sprite reference, so the agent can
+  show what it built. `read_pages` lists a page's images without sending them; the agent asks for one when it needs to see it.
 - **AI features off** changes nothing here: pages, mentions, and their checks are the editor's, not the AI's.
 
 ## Pages and the AI
@@ -130,7 +144,10 @@ and `search_project` include their mentions and text.
   Blank template in `ProjectTemplateIntegrationTest`.
 - A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape above, and
   passes `ScreenplayStyle`.
-- Offscreen snapshots (`WorkspaceScreenTest`) of the page editor, the mention chips, and the `ask_user` buttons.
+- Unit tests for images: copying a pasted or dropped one (name clashes, scaling, a file that can't be read), moving and deleting
+  them with their page and undoing it, sprite references after a sprite rename, and links resolved to a resource, a page, or the web.
+- Offscreen snapshots (`WorkspaceScreenTest`) of the page editor (rendered, a paragraph being edited, and images of both
+  kinds), the mention chips, and the `ask_user` buttons.
 
 ## Open questions
 
