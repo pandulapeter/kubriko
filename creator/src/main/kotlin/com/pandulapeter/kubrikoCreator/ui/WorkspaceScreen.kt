@@ -24,8 +24,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
+import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -37,12 +46,14 @@ import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
 import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
+import com.pandulapeter.kubrikoCreator.workspace.captureGameScreen
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
 
 /**
@@ -79,7 +90,7 @@ internal fun WorkspaceScreen(
     val sidebarDragState = rememberSidebarDragState(controller)
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
-    WorkspaceDialogs(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
+    WorkspaceDialogsOf(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
     FollowingAiSteps(controller = controller, uiState = uiState, latestAiStep = latestAiStep, selection = selection)
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -111,7 +122,7 @@ internal fun WorkspaceScreen(
                     ProjectSidebar(
                         modifier = Modifier.sidePanel(sidebarWidth.widthIn(row)),
                         resources = resources,
-                        folderGroups = rememberFolderTreeGroups(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName),
+                        folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName),
                         folderActions = rememberFolderTreeActions(controller),
                         dragState = sidebarDragState,
                         flashedName = shownAiStep?.step?.sidebarName(),
@@ -140,7 +151,7 @@ internal fun WorkspaceScreen(
                         onSceneViewFailed = controller.sceneEditing::onViewFailed,
                     )
                     if (isAiPanelShown) {
-                        WorkspaceAiSidePanel(
+                        WorkspaceAiSidePanelOf(
                             controller = controller,
                             uiState = uiState,
                             mcp = mcp,
@@ -154,7 +165,7 @@ internal fun WorkspaceScreen(
                             row = row,
                         )
                     }
-                    if (isGitPanelShown) WorkspaceGitSidePanel(controller, rememberPanelWidth(Panel.VERSION_CONTROL, panelLayout), row)
+                    if (isGitPanelShown) WorkspaceGitSidePanelOf(controller, rememberPanelWidth(Panel.VERSION_CONTROL, panelLayout), row)
                 }
             }
             HorizontalDivider()
@@ -190,6 +201,137 @@ private fun WorkspaceToolbarOf(
     onOpenProjectSettings = uiState::showProjectSettings,
     onOpenSettings = onOpenSettings,
     onCloseProject = onCloseProject,
+)
+
+/**
+ * The workspace screen's own state for [controller]'s project, which a project opened next starts afresh.
+ */
+@Composable
+private fun rememberWorkspaceUiState(controller: WorkspaceController, mcp: McpController) = remember(controller) {
+    WorkspaceUiState(if (mcp.settings.value.isEnabled) AiPanelView.OWN_TOOL else AiPanelView.ASSISTANT)
+}
+
+/**
+ * Where the sidebar's types and Scenes are dragged: a dropped one moves to its folder through a command.
+ */
+@Composable
+private fun rememberSidebarDragState(controller: WorkspaceController) = remember(controller) {
+    SidebarDragState().apply {
+        onMoveToFolder = { group, name, folder ->
+            controller.commands.dispatch(
+                when (group) {
+                    FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name))))
+                    else -> Invocation(MoveToFolder, MoveToFolder.Input(name, folder))
+                },
+            )
+        }
+    }
+}
+
+/**
+ * What the sidebar's groups with folders do, each through the command for it.
+ */
+@Composable
+private fun rememberFolderTreeActions(controller: WorkspaceController) = remember(controller) {
+    FolderTreeActions(
+        onSelected = { group, name -> if (group == FolderGroup.SCENES) controller.selection.openScene(name) else controller.selection.selectType(name) },
+        onSelectionCleared = controller.selection::clear,
+        onCreateItem = { group, name ->
+            when (group) {
+                FolderGroup.ACTOR_TYPES -> controller.createActorType(name)
+                FolderGroup.MANAGER_TYPES -> controller.createManagerType(name)
+                FolderGroup.SCENES -> controller.createScene(name)
+            }
+        },
+        onCreateFolder = { group, path -> controller.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
+        onRenameFolder = { group, path, newName -> controller.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
+        onDeleteFolder = { group, path -> controller.commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(group, path))) },
+    )
+}
+
+/**
+ * What the sidebar's groups with folders show for [controller]'s project, from its folders.
+ */
+@Composable
+private fun rememberFolderTreeGroupsOf(
+    controller: WorkspaceController,
+    types: List<BlockTypeDefinition>,
+    selectedTypeName: String?,
+    sceneNames: List<String>,
+    openSceneName: String?,
+): Map<FolderGroup, FolderTreeGroupState> {
+    val blockTypesController = controller.blockTypes
+    val typeFolders = blockTypesController?.folders?.collectAsState()?.value.orEmpty()
+    val sceneFolders by controller.sceneFolders.collectAsState()
+    return rememberFolderTreeGroups(types.takeIf { blockTypesController != null }, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName)
+}
+
+/**
+ * Hands the workspace's dialogs what they show and do from [controller].
+ */
+@Composable
+private fun WorkspaceDialogsOf(
+    controller: WorkspaceController,
+    uiState: WorkspaceUiState,
+    projectUpgrade: TemplateUpgrade.Needed?,
+) = WorkspaceDialogs(
+    uiState = uiState,
+    projectUpgrade = projectUpgrade,
+    rootDirectory = controller.project.rootDirectory,
+    history = controller.commands.history,
+    gitState = controller.git.state,
+    onCommand = controller.commands::dispatch,
+)
+
+/**
+ * Hands the Version control panel what it shows and does from [controller].
+ */
+@Composable
+private fun WorkspaceGitSidePanelOf(
+    controller: WorkspaceController,
+    width: PanelWidthState,
+    row: PanelRow,
+) = WorkspaceGitSidePanel(
+    gitState = controller.git.state,
+    onRefresh = controller.git::refresh,
+    onCommand = controller.commands::dispatch,
+    width = width,
+    row = row,
+)
+
+/**
+ * Hands the AI panel what it shows and does from [controller] and [assistant].
+ */
+@Composable
+private fun WorkspaceAiSidePanelOf(
+    controller: WorkspaceController,
+    uiState: WorkspaceUiState,
+    mcp: McpController,
+    aiClients: AiClientsController,
+    assistant: AssistantController,
+    aiSteps: List<AiStep>,
+    openSceneName: String?,
+    selectedBlockType: BlockTypeDefinition?,
+    sessionState: SessionState,
+    width: PanelWidthState,
+    row: PanelRow,
+) = WorkspaceAiSidePanel(
+    uiState = uiState,
+    mcp = mcp,
+    aiClients = aiClients,
+    assistant = assistant,
+    acceptsImages = assistant.acceptsImages,
+    gameMap = controller.gameMap.gameMap,
+    console = controller.console,
+    aiSteps = aiSteps,
+    openSceneName = openSceneName,
+    selectedBlockType = selectedBlockType,
+    sessionState = sessionState,
+    onTypeSelected = { controller.selection.selectType(it) },
+    onSceneSelected = { controller.selection.openScene(it) },
+    captureScreen = controller::captureGameScreen,
+    width = width,
+    row = row,
 )
 
 /**

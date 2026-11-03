@@ -10,78 +10,29 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
-import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
-import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
-import com.pandulapeter.kubrikoCreator.commands.folders.MoveToFolder
-import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
-import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
-import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 
 /**
- * Where the sidebar's types and Scenes are dragged: a dropped one moves to its folder through a command.
- */
-@Composable
-internal fun rememberSidebarDragState(controller: WorkspaceController) = remember(controller) {
-    SidebarDragState().apply {
-        onMoveToFolder = { group, name, folder ->
-            controller.commands.dispatch(
-                when (group) {
-                    FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name))))
-                    else -> Invocation(MoveToFolder, MoveToFolder.Input(name, folder))
-                },
-            )
-        }
-    }
-}
-
-/**
- * What the sidebar's groups with folders do, each through the command for it.
- */
-@Composable
-internal fun rememberFolderTreeActions(controller: WorkspaceController) = remember(controller) {
-    FolderTreeActions(
-        onSelected = { group, name -> if (group == FolderGroup.SCENES) controller.selection.openScene(name) else controller.selection.selectType(name) },
-        onSelectionCleared = controller.selection::clear,
-        onCreateItem = { group, name ->
-            when (group) {
-                FolderGroup.ACTOR_TYPES -> controller.createActorType(name)
-                FolderGroup.MANAGER_TYPES -> controller.createManagerType(name)
-                FolderGroup.SCENES -> controller.createScene(name)
-            }
-        },
-        onCreateFolder = { group, path -> controller.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
-        onRenameFolder = { group, path, newName -> controller.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
-        onDeleteFolder = { group, path -> controller.commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(group, path))) },
-    )
-}
-
-/**
- * What the sidebar's groups with folders show for [controller]'s project ([folderTreeGroups]).
+ * What the sidebar's groups with folders show ([folderTreeGroups]), computed again only when one of these changes.
+ *
+ * @param types The project's block-built types, or null if it hasn't opted in to them.
  */
 @Composable
 internal fun rememberFolderTreeGroups(
-    controller: WorkspaceController,
-    types: List<BlockTypeDefinition>,
+    types: List<BlockTypeDefinition>?,
+    typeFolders: Map<BlockTypeKind, Set<String>>,
     selectedTypeName: String?,
     sceneNames: List<String>,
+    sceneFolders: Set<String>,
     openSceneName: String?,
-): Map<FolderGroup, FolderTreeGroupState> {
-    val blockTypesController = controller.blockTypes
-    val typeFolders = blockTypesController?.folders?.collectAsState()?.value.orEmpty()
-    val sceneFolders by controller.sceneFolders.collectAsState()
-    return remember(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, blockTypesController) {
-        folderTreeGroups(types.takeIf { blockTypesController != null }, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName)
-    }
+): Map<FolderGroup, FolderTreeGroupState> = remember(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName) {
+    folderTreeGroups(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName)
 }
 
 /**

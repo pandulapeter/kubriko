@@ -15,7 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
@@ -40,7 +40,7 @@ import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
 internal fun AiPanel(
     view: AiPanelView,
     onViewSelected: (AiPanelView) -> Unit,
-    assistant: AssistantController,
+    assistant: AssistantPanelModel,
     mcp: McpController,
     aiClients: AiClientsController,
     aiSteps: List<AiStep>,

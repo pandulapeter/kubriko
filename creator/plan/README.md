@@ -50,9 +50,6 @@ generation, and project files in `:creator:core`, a command in `:creator:command
 `:creator:workspace` (with every change routed through `ProjectChanges`), and screen state in a tested holder such as
 `WorkspaceUiState` rather than in a Composable. Left of the structure itself, before the classes involved grow further:
 
-- **Six `ui` parts still take a controller** (`AiPanel`, `WorkspaceAiSidePanel`, `WorkspaceGitSidePanel`, `WorkspaceDialogs`,
-  `rememberWorkspaceUiState`, and `SidebarState`'s `remember` functions). Direction: hand them what they use, then a
-  `PackageLayeringTest` case allowing controllers only in `ui/AppContent.kt` and `ui/WorkspaceScreen.kt`.
 - **Five constructors take more than 12 parameters** (`WorkspaceController` 23, `AssistantController` 18,
   `SceneEditingController` 17, `BlockTypesController` 15, and `CommandContext` 13), which the size check lets shrink but not
   grow. Direction: take a responsibility out of each (for `WorkspaceController`, a factory that builds its collaborators).

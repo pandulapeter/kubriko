@@ -79,7 +79,8 @@ Creator is split into Gradle modules, lowest first:
 - `:creator`, the app (the root package, `ui`, `settings`, `recent`, `window`): the UI, settings, and window.
 
 A module depends only on lower ones (Gradle refuses the rest, and `PackageLayeringTest` keeps each file in its module's
-layer, gives every new package a layer, and catches an upward import inside one module), and what another module uses is
+layer, gives every new package a layer, catches an upward import inside one module, and lets only the screens' entry files
+(`ui/AppContent.kt` and `ui/WorkspaceScreen.kt`) take the app, workspace, or assistant controller), and what another module uses is
 `public` under the explicit API mode of `kubriko-creator-module`, the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`

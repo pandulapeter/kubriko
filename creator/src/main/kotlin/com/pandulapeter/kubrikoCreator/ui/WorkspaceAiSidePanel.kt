@@ -18,52 +18,62 @@ import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
-import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
 import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.workspace.GameMap
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
-import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
-import com.pandulapeter.kubrikoCreator.workspace.captureGameScreen
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The workspace's AI panel, after the splitter that resizes it, with the Game map computed only while it is shown.
  *
+ * @param acceptsImages Whether the assistant's agent takes images, so the game screen can be offered.
+ * @param gameMap The Game map, collected only while that view is shown.
+ * @param console The workspace's console, which the assistant offers problems from.
  * @param openSceneName The Scene shown in the center, if any.
  * @param selectedBlockType The type shown in the center, if any.
+ * @param captureScreen Takes a screenshot of the running game.
  */
 @Composable
 internal fun WorkspaceAiSidePanel(
-    controller: WorkspaceController,
     uiState: WorkspaceUiState,
     mcp: McpController,
     aiClients: AiClientsController,
-    assistant: AssistantController,
+    assistant: AssistantPanelModel,
+    acceptsImages: StateFlow<Boolean>,
+    gameMap: StateFlow<GameMap?>,
+    console: StateFlow<List<ConsoleEntry>>,
     aiSteps: List<AiStep>,
     openSceneName: String?,
     selectedBlockType: BlockTypeDefinition?,
     sessionState: SessionState,
+    onTypeSelected: (String) -> Unit,
+    onSceneSelected: (String) -> Unit,
+    captureScreen: suspend () -> ByteArray?,
     width: PanelWidthState,
     row: PanelRow,
 ) {
     PanelSplitter(width, row)
-    val gameMap = if (uiState.aiPanelView == AiPanelView.GAME_MAP) controller.gameMap.gameMap.collectAsState().value else null
-    val console = controller.console.collectAsState()
-    val acceptsImages = assistant.acceptsImages.collectAsState()
+    val shownGameMap = if (uiState.aiPanelView == AiPanelView.GAME_MAP) gameMap.collectAsState().value else null
+    val consoleEntries = console.collectAsState()
+    val isAcceptingImages = acceptsImages.collectAsState()
     val attention by remember(openSceneName, selectedBlockType?.name, selectedBlockType is ManagerTypeDefinition, sessionState) {
         derivedStateOf(structuralEqualityPolicy()) {
             AttentionChip.of(
                 openScene = openSceneName,
                 selectedType = selectedBlockType?.name,
                 isSelectedTypeManager = selectedBlockType is ManagerTypeDefinition,
-                console = console.value,
-                canSendGameScreen = sessionState is SessionState.Running && acceptsImages.value,
+                console = consoleEntries.value,
+                canSendGameScreen = sessionState is SessionState.Running && isAcceptingImages.value,
             )
         }
     }
@@ -78,16 +88,16 @@ internal fun WorkspaceAiSidePanel(
         onShowStep = { step ->
             uiState.revisit(step, latestStepId = aiSteps.lastOrNull()?.id)
             when (val target = step.target) {
-                is CommandTarget.BlockType -> controller.selection.selectType(target.name)
-                is CommandTarget.Scene -> controller.selection.openScene(target.name)
+                is CommandTarget.BlockType -> onTypeSelected(target.name)
+                is CommandTarget.Scene -> onSceneSelected(target.name)
                 else -> Unit
             }
         },
-        digest = gameMap?.digest,
-        findings = gameMap?.findings.orEmpty(),
-        onTypeSelected = { controller.selection.selectType(it) },
-        onSceneSelected = { controller.selection.openScene(it) },
+        digest = shownGameMap?.digest,
+        findings = shownGameMap?.findings.orEmpty(),
+        onTypeSelected = onTypeSelected,
+        onSceneSelected = onSceneSelected,
         attention = attention,
-        captureScreen = controller::captureGameScreen,
+        captureScreen = captureScreen,
     )
 }
