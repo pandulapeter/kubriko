@@ -15,7 +15,6 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
-import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -27,9 +26,8 @@ import kotlinx.coroutines.withContext
  * @param audioFiles The sounds and music of the project, or null if they aren't known, so they aren't checked.
  * @param spriteFiles The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
  * @param report Adds an entry to the console, for what the user should know after a command.
- * @param onProjectUpgraded Tells the rest of the editor that the project's template files were brought up to date.
- * @param projectUpgrade What the project's template files need, as last checked in the background, so that validating
- *   reads no files.
+ * @param projectUpgrades The template upgrade the project needs, as last checked in the background, so that validating
+ *   reads no files, and who to tell once a command applied it.
  * @param rejectChanges Why no change may be made to the project at all right now (it was saved by a newer Kubriko
  *   Creator), or null if changes may be made.
  */
@@ -44,8 +42,7 @@ public class CommandContext(
     public val audioFiles: () -> AudioFiles? = { null },
     public val spriteFiles: () -> SpriteFiles? = { null },
     public val report: (ConsoleEntry) -> Unit = {},
-    public val onProjectUpgraded: () -> Unit = {},
-    public val projectUpgrade: () -> TemplateUpgrade = { TemplateUpgrade.UpToDate },
+    public val projectUpgrades: ProjectUpgrades = ProjectUpgrades.UpToDate,
     public val rejectChanges: () -> Rejection? = { null },
 ) {
 

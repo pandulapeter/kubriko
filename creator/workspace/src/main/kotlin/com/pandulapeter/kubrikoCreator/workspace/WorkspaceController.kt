@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.ProjectUpgrades
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
@@ -284,8 +285,11 @@ public class WorkspaceController(
             audioFiles = { AudioFiles.of(_resources.value) },
             spriteFiles = { SpriteFiles.of(_resources.value) },
             report = ::appendToConsole,
-            onProjectUpgraded = ::refreshProjectUpgrade,
-            projectUpgrade = { _projectUpgrade.value },
+            projectUpgrades = object : ProjectUpgrades {
+                override fun current() = _projectUpgrade.value
+
+                override fun onUpgraded() = refreshProjectUpgrade()
+            },
             rejectChanges = { (_formatStatus.value as? ProjectFormatStatus.ReadOnly)?.toRejection() },
         ),
         scope = scope,

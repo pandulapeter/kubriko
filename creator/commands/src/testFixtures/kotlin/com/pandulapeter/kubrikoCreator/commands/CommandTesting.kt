@@ -88,8 +88,11 @@ public fun TestScope.commandContext(
     audioFiles = { audioFiles },
     spriteFiles = { spriteFiles },
     report = report,
-    onProjectUpgraded = onProjectUpgraded,
-    projectUpgrade = projectUpgrade,
+    projectUpgrades = object : ProjectUpgrades {
+        override fun current() = projectUpgrade()
+
+        override fun onUpgraded() = onProjectUpgraded()
+    },
     rejectChanges = rejectChanges,
 )
 
