@@ -25,11 +25,11 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Project settings in `03-settings.md`: Identity is built (template version 9, the dialog behind the toolbar's settings menu,
-and `get_project_settings` / `set_project_settings`; see To check by hand). Next are Game (first Scene, aspect ratio, frame
-rate, why each plugin is there), then Targets, Release, Icons, and Signing, each extending the same dialog and tools.
-Then `04` to `07` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for
-the benchmarks.
+Project settings in `03-settings.md`: Game is built (template version 10, the dialog's Game and Libraries in use sections, and
+`get_project_settings` / `set_project_settings` reading and changing them), but its review (`README.md`, `/code-review` on the
+commits since `877f01e31`) hasn't run yet; finishing that is the next session's item. Then Targets, Release, Icons, and Signing,
+each extending the same dialog and tools. Then `04` to `07` in order. What is left in `01-large-projects.md` waits for other plans
+(Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
 
