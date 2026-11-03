@@ -66,7 +66,7 @@ jobs:
       # --continue reports the failures of every module rather than only the first, and a ktlint violation
       # (spotlessCheck) together with them.
       - name: Run unit tests
-        run: ./gradlew spotlessCheck desktopTest :creator:test :tools:creator-api:checkKotlinAbi --continue --no-configuration-cache
+        run: ./gradlew spotlessCheck desktopTest :creator:allTests :tools:creator-api:checkKotlinAbi --continue --no-configuration-cache
       - name: Check the web triangle bridge
         run: node engine/src/webMain/checkTriangleBridge.mjs
       - name: Upload test reports
@@ -89,13 +89,13 @@ jobs:
         uses: ./.github/actions/setup-jdk
       - name: Run Kubriko Creator's unit tests
         shell: bash
-        run: ./gradlew :creator:test --continue --no-configuration-cache
+        run: ./gradlew :creator:allTests --continue --no-configuration-cache
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: creator-windows-test-reports
-          path: 'creator/build/reports/tests/'
+          path: 'creator/**/build/reports/tests/'
 
   stress-tests:
     name: Stress tests
