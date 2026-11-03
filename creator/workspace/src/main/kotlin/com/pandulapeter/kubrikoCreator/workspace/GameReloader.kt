@@ -26,6 +26,7 @@ import java.io.File
  *
  * @param buildClasses Builds the project, returning the folders of its own classes, or null if the build failed.
  * @param isGameRunning Waits until the game that plays has started, returning whether one plays.
+ * @param isGamePlaying Whether a game plays right now, without waiting for one that starts.
  * @param reload Runs the reload task with the given name, returning whether it succeeded.
  * @param restartGame Starts the game again, as it was started last time.
  */
@@ -34,6 +35,7 @@ internal class GameReloader(
     private val buildClasses: suspend () -> List<File>?,
     private val readShapes: suspend (List<File>) -> Map<String, ClassShape>,
     private val isGameRunning: suspend () -> Boolean,
+    private val isGamePlaying: () -> Boolean,
     private val reload: suspend (taskName: String) -> Boolean,
     private val restartGame: () -> Unit,
     private val console: ConsoleLog,
@@ -84,29 +86,30 @@ internal class GameReloader(
         if (!isGameRunning()) return
         val folders = buildClasses() ?: return
         val built = readShapes(folders)
-        if (this.game !== game) return
+        if (!isStillPlaying(game)) return
         val changedClasses = ClassShape.changesNeedingRestart(game.shapes, built)
         if (changedClasses.isNotEmpty()) {
-            if (!isStillPlaying(game)) return
             console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RESTARTING, arguments = listOf(typeNamesOf(changedClasses).joinToString())))
             restartGame()
             return
         }
         val startTime = currentTimeMillis()
-        if (reload(game.reloadTaskName)) {
+        val isReloaded = reload(game.reloadTaskName)
+        if (!isStillPlaying(game)) return
+        if (isReloaded) {
             game.shapes += built
             console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOADED, arguments = listOf(((currentTimeMillis() - startTime) / 100 / 10f).toString())))
-        } else if (isStillPlaying(game)) {
+        } else {
             console.append(ConsoleEntry.Status(WorkspaceStatus.GAME_RELOAD_FAILED, isError = true))
             restartGame()
         }
     }
 
     /**
-     * Whether [game] still plays, after a build or a reload that the game may have been stopped during: one that was
-     * stopped is never started again, and a reload that failed because it was gone is no failure to report.
+     * Whether [game] still plays, after a build or a reload that it may have been stopped or replaced during: what was
+     * done for a game that is gone is neither reported nor followed by a restart.
      */
-    private suspend fun isStillPlaying(game: Game) = this.game === game && isGameRunning() && this.game === game
+    private fun isStillPlaying(game: Game) = this.game === game && isGamePlaying()
 
     /**
      * The top-level types [classNames] belong to, by their simple names, as the user knows them.

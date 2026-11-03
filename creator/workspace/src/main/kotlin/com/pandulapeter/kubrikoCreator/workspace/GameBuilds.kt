@@ -41,6 +41,7 @@ internal class GameBuilds(
         buildClasses = ::buildProjectClasses,
         readShapes = { withContext(ioDispatcher) { ClassShape.read(it) } },
         isGameRunning = { sessions.state.first { it !is SessionState.Starting } == SessionState.Running(SessionMode.PLAY) },
+        isGamePlaying = { sessions.state.value == SessionState.Running(SessionMode.PLAY) },
         reload = { runTask(it, mapOf(MODE_PROPERTY to "reload")) },
         restartGame = sessions::restart,
         console = console,

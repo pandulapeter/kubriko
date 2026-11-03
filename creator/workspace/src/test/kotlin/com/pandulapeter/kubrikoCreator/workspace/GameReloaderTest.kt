@@ -50,6 +50,7 @@ class GameReloaderTest {
             builtShapes
         },
         isGameRunning = { isGameRunning },
+        isGamePlaying = { isGameRunning },
         reload = {
             reloads += it
             reloadResult()
