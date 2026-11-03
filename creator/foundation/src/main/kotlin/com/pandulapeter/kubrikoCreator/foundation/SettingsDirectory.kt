@@ -14,12 +14,12 @@ import java.io.File
 /**
  * Kubriko Creator's settings folder, where each platform keeps application settings.
  */
-internal fun settingsDirectory(
+public fun settingsDirectory(
     operatingSystem: String = System.getProperty("os.name").orEmpty().lowercase(),
     home: String = System.getProperty("user.home"),
     appData: String? = System.getenv("APPDATA"),
     xdgConfigHome: String? = System.getenv("XDG_CONFIG_HOME"),
-) = when {
+): File = when {
     "mac" in operatingSystem -> File(home, "Library/Application Support/Kubriko Creator")
     "windows" in operatingSystem -> File(appData ?: "$home/AppData/Roaming", "Kubriko Creator")
     else -> File(xdgConfigHome ?: "$home/.config", "kubriko-creator")

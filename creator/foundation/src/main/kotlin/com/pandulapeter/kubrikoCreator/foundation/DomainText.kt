@@ -16,11 +16,14 @@ import java.util.Locale
  * words it from its strings (`ui/DomainTexts.kt`), and the AI reads [english], which translating the user interface never
  * changes. [english] uses the placeholders of the matching string (`%1$s`, …).
  */
-internal interface DomainText {
-    val english: String
+public interface DomainText {
+    /**
+     * The text in English, with the placeholders of the matching string.
+     */
+    public val english: String
 }
 
 /**
  * [DomainText.english] with [arguments] put into its placeholders.
  */
-internal fun DomainText.englishWith(arguments: List<String>): String = String.format(Locale.ROOT, english, *arguments.toTypedArray())
+public fun DomainText.englishWith(arguments: List<String>): String = String.format(Locale.ROOT, english, *arguments.toTypedArray())

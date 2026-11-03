@@ -21,8 +21,8 @@ import kotlin.time.Duration.Companion.seconds
  * Runs [block] in [context], failing once [timeout] passes, for tests whose code runs on real threads and real pipes.
  * Tests on virtual time use `runTest`.
  */
-internal fun blockingTest(
+public fun blockingTest(
     timeout: Duration = 10.seconds,
     context: CoroutineContext = Dispatchers.IO,
     block: suspend CoroutineScope.() -> Unit,
-) = runBlocking(context) { withTimeout(timeout) { block() } }
+): Unit = runBlocking(context) { withTimeout(timeout) { block() } }

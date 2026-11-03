@@ -44,6 +44,10 @@ gradlePlugin {
             id = "kubriko-style"
             implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.StylePlugin"
         }
+        register("creator-module") {
+            id = "kubriko-creator-module"
+            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.CreatorModulePlugin"
+        }
         register("public-artifact") {
             id = "kubriko-public-artifact"
             implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.PublicArtifactPlugin"

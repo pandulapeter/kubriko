@@ -14,14 +14,14 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 /**
  * A line of the workspace console.
  */
-internal sealed interface ConsoleEntry {
+public sealed interface ConsoleEntry {
 
     /**
      * Something Kubriko Creator itself reports, such as a session starting or ending.
      *
      * @param arguments The values of the [text]'s placeholders.
      */
-    data class Status(
+    public data class Status(
         val text: DomainText,
         val isError: Boolean = false,
         val arguments: List<String> = emptyList(),
@@ -30,7 +30,7 @@ internal sealed interface ConsoleEntry {
     /**
      * A compiler or build error, with its location when Gradle reported one.
      */
-    data class Problem(
+    public data class Problem(
         val message: String,
         val location: String?,
     ) : ConsoleEntry
@@ -38,14 +38,14 @@ internal sealed interface ConsoleEntry {
     /**
      * A raw line of build output, shown only when a build fails without reporting a [Problem].
      */
-    data class BuildOutput(
+    public data class BuildOutput(
         val line: String,
     ) : ConsoleEntry
 
     /**
      * A log entry of the running game or Scene editor.
      */
-    data class Log(
+    public data class Log(
         val message: String,
         val source: String?,
         val isImportant: Boolean,
@@ -54,7 +54,7 @@ internal sealed interface ConsoleEntry {
     /**
      * The session process could not start what it was asked to, in its own words.
      */
-    data class SessionFailure(
+    public data class SessionFailure(
         val message: String,
     ) : ConsoleEntry
 }

@@ -13,7 +13,7 @@ package com.pandulapeter.kubrikoCreator.foundation
  * The versions of the libraries Kubriko Creator runs with (`group:module` to version), bundled at build time from its
  * runtime classpath. A project's classes loaded next to Creator's share them ([com.pandulapeter.kubrikoCreator.scenes.SharedLibraries]).
  */
-internal object CreatorLibraries {
+public object CreatorLibraries {
     private const val RESOURCE_NAME = "creator-libraries.txt"
 
     private val bundled by lazy {
@@ -23,14 +23,20 @@ internal object CreatorLibraries {
         )
     }
 
-    fun load(): Map<String, String> = bundled
+    /**
+     * The bundled libraries, read once.
+     */
+    public fun load(): Map<String, String> = bundled
 
-    fun parse(text: String) = parseLines(text.lines())
+    /**
+     * The `group:module=version` lines of [text] as a map, skipping those without a version.
+     */
+    public fun parse(text: String): Map<String, String> = parseLines(text.lines())
 
     /**
      * `group:module=version` [lines] as a map, skipping those without a version.
      */
-    fun parseLines(lines: List<String>) = lines
+    public fun parseLines(lines: List<String>): Map<String, String> = lines
         .filter { '=' in it }
         .associate { it.substringBeforeLast('=').trim() to it.substringAfterLast('=').trim() }
 }

@@ -21,7 +21,7 @@ import java.time.Duration
 /**
  * Downloads over HTTP through one client shared by every caller, following redirects. Every call blocks.
  */
-internal object HttpDownloads {
+public object HttpDownloads {
     private val CONNECT_TIMEOUT: Duration = Duration.ofSeconds(30)
 
     private val client by lazy {
@@ -33,7 +33,7 @@ internal object HttpDownloads {
      * request fails, the thread is interrupted (which stays interrupted), or the status isn't 200; then a body that is a
      * stream is closed and one that is a file deleted.
      */
-    fun <T> get(url: String, bodyHandler: HttpResponse.BodyHandler<T>, timeout: Duration? = null): HttpResponse<T> {
+    public fun <T> get(url: String, bodyHandler: HttpResponse.BodyHandler<T>, timeout: Duration? = null): HttpResponse<T> {
         val request = HttpRequest.newBuilder(URI.create(url)).GET().apply { if (timeout != null) timeout(timeout) }.build()
         val response = try {
             client.send(request, bodyHandler)
@@ -54,7 +54,7 @@ internal object HttpDownloads {
     /**
      * What is at [url] as text, or null when it can't be downloaded within [timeout].
      */
-    fun text(url: String, timeout: Duration): String? = try {
+    public fun text(url: String, timeout: Duration): String? = try {
         get(url, HttpResponse.BodyHandlers.ofString(), timeout).body()
     } catch (_: IOException) {
         null

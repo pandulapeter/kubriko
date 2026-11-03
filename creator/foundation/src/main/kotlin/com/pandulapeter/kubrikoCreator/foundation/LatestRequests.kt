@@ -15,13 +15,16 @@ import java.util.concurrent.atomic.AtomicLong
  * Numbers requests whose results may land out of order (reads in the background that overlap), so that a result is
  * only used while no newer request was made, and an older one can't bring back what a newer one no longer has.
  */
-internal class LatestRequests {
+public class LatestRequests {
     private val latest = AtomicLong()
 
     /**
      * Starts a request, returning its number.
      */
-    fun start() = latest.incrementAndGet()
+    public fun start(): Long = latest.incrementAndGet()
 
-    fun isLatest(request: Long) = latest.get() == request
+    /**
+     * Whether no request was started after [request].
+     */
+    public fun isLatest(request: Long): Boolean = latest.get() == request
 }

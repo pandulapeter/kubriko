@@ -23,7 +23,7 @@ import java.util.UUID
 /**
  * What the temporary files of [writeTextAtomically] end with, which nothing watching the project counts as a change.
  */
-internal const val ATOMIC_WRITE_SUFFIX = ".creator-write.tmp"
+public const val ATOMIC_WRITE_SUFFIX: String = ".creator-write.tmp"
 
 /**
  * Replaces this file's content with [text] in one step, so a crash, a kill, or a full disk mid-write leaves either the old
@@ -32,7 +32,7 @@ internal const val ATOMIC_WRITE_SUFFIX = ".creator-write.tmp"
  * can't move atomically, the file is replaced plainly. A move Windows refuses because another program has the file open is
  * tried again a few times first.
  */
-internal fun File.writeTextAtomically(text: String, isPrivate: Boolean = false) {
+public fun File.writeTextAtomically(text: String, isPrivate: Boolean = false) {
     val target = canonicalFile
     target.parentFile?.mkdirs()
     val temporary = File(target.parentFile, ".${target.name}.${UUID.randomUUID().toString().take(8)}$ATOMIC_WRITE_SUFFIX")
@@ -94,7 +94,7 @@ private const val MOVE_ATTEMPTS = 5
 /**
  * Makes this file readable and writable by its owner only, where the file system has POSIX permissions.
  */
-internal fun File.restrictToOwner() {
+public fun File.restrictToOwner() {
     val path = toPath()
     if (path.fileSystem.supportedFileAttributeViews().contains("posix")) Files.setPosixFilePermissions(path, OWNER_ONLY)
 }

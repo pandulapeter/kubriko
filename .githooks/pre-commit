@@ -23,5 +23,5 @@ if git diff --cached --name-only --diff-filter=ACMRD | grep -qvE '\.md$'; then
     # Git exports these to hooks (in a linked worktree, GIT_DIR names its folder under .git/worktrees), and JGit's init
     # honours them, so Kubriko Creator's git tests would create their repositories there instead of in temporary folders.
     unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE
-    ./gradlew spotlessCheck desktopTest :creator:test --quiet
+    ./gradlew spotlessCheck desktopTest :creator:allTests --quiet
 fi

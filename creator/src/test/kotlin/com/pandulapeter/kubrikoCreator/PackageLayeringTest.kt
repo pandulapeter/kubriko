@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator
 
+import com.pandulapeter.kubrikoCreator.testing.creatorDirectory
+import com.pandulapeter.kubrikoCreator.testing.creatorSourceRoots
+import com.pandulapeter.kubrikoCreator.testing.creatorTestRoots
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -75,7 +78,7 @@ class PackageLayeringTest {
         "session/HotReloadLaunchTest.kt -> scenes.ProjectClasspath" to "M06",
         "template/ProjectTemplateIntegrationTest.kt -> scenes.ProjectClasspath" to "M06",
     )
-    private val sources by lazy { listOf("src/main/kotlin", "src/test/kotlin").flatMap(::sourceFilesIn) }
+    private val sources by lazy { (creatorSourceRoots() + creatorTestRoots()).flatMap(::sourceFilesIn) }
 
     @Test
     fun noImportRunsToAHigherLayer() {
@@ -111,14 +114,22 @@ class PackageLayeringTest {
         assertTrue(unused.isEmpty(), "Layer entries that match no source file:\n${unused.joinToString("\n")}")
     }
 
-    private fun sourceFilesIn(rootPath: String): List<SourceFile> {
-        val root = File(rootPath)
-        assertTrue(root.isDirectory, "Run from the creator folder: ${root.absolutePath}")
+    @Test
+    fun everyModuleHoldsOnlyItsLayer() {
+        val misplaced = sources.filter { it.module != APP_MODULE && layerOf(it)?.module != it.module }
+            .map { "${it.module}: ${it.path} (${layerOf(it)?.module})" }
+        assertTrue(misplaced.isEmpty(), "Files in the module of another layer:\n${misplaced.joinToString("\n")}")
+    }
+
+    private fun sourceFilesIn(root: File): List<SourceFile> {
         val base = File(root, "com/pandulapeter/kubrikoCreator")
+        val moduleDirectory = root.resolve("../../..").canonicalFile
+        val module = if (moduleDirectory == creatorDirectory().canonicalFile) APP_MODULE else moduleDirectory.name
         return root.walkTopDown().filter { it.extension == "kt" }.mapNotNull { file ->
             val text = file.readText()
             val unit = packagePattern.find(text)?.let { it.groupValues[1] } ?: return@mapNotNull null
             SourceFile(
+                module = module,
                 path = file.relativeTo(base).invariantSeparatorsPath,
                 unit = unit,
                 imports = importPattern.findAll(text).map { importOf(it.groupValues[1], isStar = it.groupValues[2].isNotEmpty()) }.toList(),
@@ -164,11 +175,12 @@ class PackageLayeringTest {
         val entries = entries.toList()
     }
 
-    private class SourceFile(val path: String, val unit: String, val imports: List<Import>)
+    private class SourceFile(val module: String, val path: String, val unit: String, val imports: List<Import>)
 
     private class Import(val name: String, val unit: String, val className: String?)
 
     private companion object {
+        const val APP_MODULE = "app"
         val packagePattern = Regex("""^package com\.pandulapeter\.kubrikoCreator(?:\.([\w.]+))?\s*$""", RegexOption.MULTILINE)
         val importPattern = Regex("""^import com\.pandulapeter\.kubrikoCreator\.([\w.]+?)(\.\*)?(?:\s+as\s+\w+)?\s*$""", RegexOption.MULTILINE)
     }

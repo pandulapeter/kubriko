@@ -19,4 +19,4 @@ package com.pandulapeter.kubrikoCreator.foundation
 )
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.FUNCTION)
-internal annotation class EditorMutation
+public annotation class EditorMutation

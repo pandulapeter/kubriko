@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.scenes.SceneProblem
 import com.pandulapeter.kubrikoCreator.scenes.SceneStatus
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
+import com.pandulapeter.kubrikoCreator.testing.creatorSourceRoots
 import com.pandulapeter.kubrikoCreator.ui.components.FieldError
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceStatus
 import kubriko.creator.generated.resources.Res
@@ -50,9 +51,8 @@ class DomainTextsTest {
 
     @Test
     fun everyDomainTextEnumIsListed() {
-        val sources = File("src/main/kotlin")
-        assertTrue(sources.isDirectory)
-        val declared = sources.walkTopDown()
+        val declared = creatorSourceRoots().asSequence()
+            .flatMap { it.walkTopDown() }
             .filter { it.isFile && it.extension == "kt" }
             .flatMap { file -> Regex("""enum class (\w+)\([^)]*\)\s*:\s*DomainText\b""").findAll(file.readText()).map { it.groupValues[1] } }
             .toSet()

@@ -17,17 +17,20 @@ import java.util.Properties
  * They are bundled at build time (a development build bundles the version it just published to Maven Local, along with
  * `useMavenLocal`); the `kubriko.creator.kubrikoVersion` and `kubriko.creator.useMavenLocal` system properties override them.
  */
-internal data class CreatorConfiguration(
+public data class CreatorConfiguration(
     val kubrikoVersion: String,
     val kotlinVersion: String,
     val composeVersion: String,
     val gradleVersion: String,
     val useMavenLocal: Boolean,
 ) {
-    companion object {
+    public companion object {
         private const val RESOURCE_NAME = "creator.properties"
 
-        fun load() = from(
+        /**
+         * The bundled versions, with the system properties' overrides.
+         */
+        public fun load(): CreatorConfiguration = from(
             bundled = Properties().apply {
                 CreatorConfiguration::class.java.classLoader.getResourceAsStream(RESOURCE_NAME)?.use(::load)
                     ?: error("$RESOURCE_NAME is missing from the app's resources.")

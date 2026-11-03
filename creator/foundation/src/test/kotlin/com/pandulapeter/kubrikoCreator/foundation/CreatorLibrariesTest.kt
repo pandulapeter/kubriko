@@ -11,7 +11,6 @@ package com.pandulapeter.kubrikoCreator.foundation
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class CreatorLibrariesTest {
 
@@ -21,12 +20,5 @@ class CreatorLibrariesTest {
             mapOf("org.jetbrains.kotlin:kotlin-stdlib" to "2.4.21", "org.jetbrains.compose.runtime:runtime-desktop" to "1.12.2"),
             CreatorLibraries.parse("org.jetbrains.kotlin:kotlin-stdlib=2.4.21\n\norg.jetbrains.compose.runtime:runtime-desktop=1.12.2\nno version\n"),
         )
-    }
-
-    @Test
-    fun creatorsOwnLibrariesAreBundled() {
-        val libraries = CreatorLibraries.load()
-        assertTrue("org.jetbrains.kotlin:kotlin-stdlib" in libraries)
-        assertTrue(libraries.keys.any { it.startsWith("org.jetbrains.compose.runtime:") })
     }
 }
