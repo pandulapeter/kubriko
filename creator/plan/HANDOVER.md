@@ -25,34 +25,31 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `03-playing-on-every-target.md` with Android, then the iOS simulator, each shipped and reviewed on its own; each adds
-its kind to `PlayTarget.Kind`, a source to `PlayTargetChoice`, and its start to `WorkspaceController.play` through
-`SessionController.playElsewhere`, as `WebPlayer` does. Then `04-screenplay.md`, an important feature that shouldn't wait longer, then `05-settings.md`'s Release, Icons, and Signing, each extending the
-Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. Then `06` to `09` in order. What is
-left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+Continue `03-playing-on-every-target.md` with the iOS simulator, shipped and reviewed on its own: it adds its kind to
+`PlayTarget.Kind`, a source and its start to `TargetPlayers`, and runs `simctl` and `xcodebuild` through `ToolProcesses`, as
+`AndroidPlayer` does `adb` and `emulator`. Then `04-screenplay.md`, an important feature that shouldn't wait longer, then
+`05-settings.md`'s Release, Icons, and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS
+devices can follow Signing. Then `06` to `09` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI
+elements, git) or for the benchmarks.
 
-Owed: the end-to-end scenario's new last step (`UpgradingAndPlayingTest`, Breakout played on the web in headless Chrome
-through `start_game`) has never run, since it needs Linux; dispatch `Tests` once the commits are pushed (ask first) and look
-at `creator-end-to-end`'s images.
+Owed: the end-to-end scenario's last step (`UpgradingAndPlayingTest`, Breakout played on the web in headless Chrome through
+`start_game`) has never run, since it needs Linux; dispatch `Tests` once the commits are pushed (ask first) and look at
+`creator-end-to-end`'s images.
 
 What the last session did, all reviewed:
 
-- **Choosing where to play** (`e905b00ce..3719127b0`): Play's menu (`PlayTargetMenu`), the choice kept in
-  `.kubriko/local/play.json` (`PlayTargetChoice`), `target` on `play` and `start_game` (the desktop when left out), and
-  `list_play_targets`. Template version 11 (`PlaySwitchesUpgrade`) has the web, Android, and iOS entry points read Play from
-  this Scene and Log Blocks (in debug builds; on the web, only on a loopback host); the integration test builds all three.
-  The review fixed the upgrade wrapping a declaration that followed `main` (the desktop step too), a repeated `@OptIn` on
-  iOS, the kept choice not reaching Play after a restart, sources looked for on the main thread, and two import helpers
-  ordering differently. Declined: caching the places between `play` calls.
-- **The web** (`213713475..2bc99275f`): Play in the browser builds the development distribution, serves it from Creator
-  (`WebGameServer`, loopback only, refusing other hosts), opens the system browser, and rebuilds and reloads the page after
-  each change; the game tools refuse a game elsewhere. `WebGameIntegrationTest` (opt-in, headless Chrome through the
-  DevTools protocol, no window) checks the drawn Scene, the address's Scene switch, and the reload on this Mac, and runs
-  nightly in `publish-check`. It found that Kubriko starts a game only once its page is focused, which a headless page
-  never is, so it emulates focus. The review fixed changes during the first build being dropped, a rebuild outliving Stop
-  and holding the build lock, a target turned off staying chosen, a cancelled start reported as a failure, `restart()`
-  reading a state that lags the job, the AI panel offering the screen of a game in the browser, and a mid-scenario `Assume`
-  hiding the steps after it.
+- **Log Blocks printing** (`49e4f73ba`, `cec5dce4f`): Kubriko's `Logger` only keeps entries, so nothing a Log Block logged
+  reached the browser's console (which the web's console line claimed) or a device's output. Each Log Block now also prints
+  on one line while logging is on, and the Scene loader prints its failures. The review moved the print from a new
+  `KubrikoWiring` function into each Block, since a project with a hand-changed wiring would stop building.
+- **Android** (`a9a817dd2`, `de4a44029..dddcea6ce`): Play's menu lists connected devices and emulators (by virtual device)
+  once the Android target is on; playing builds `:androidApp:assembleDebug` while an emulator that isn't running starts, then
+  installs, starts with the switches as intent extras, and streams the app's printed lines and errors from `logcat`; Stop
+  force-stops it. Every launch state and failure is unit tested against `FakeToolProcesses`, and this Mac's real `adb` and
+  `emulator` output matched the parsers. The review fixed a single failed `pidof` ending the game, Stop during installing or
+  starting leaving the app running, the build going on after the device couldn't be used, a tool's child holding a run past
+  its timeout, `System.err` lines being dropped, a game that ends at once being reported with a meaningless reason, and an
+  emulator ending as it times out being reported with nothing.
 
 ## Before a release
 
@@ -68,7 +65,8 @@ never item by item.
 - Hearing a played game: music and sounds from Blocks, music pausing and resuming with the window's focus, a non-looping music
   played again, and going between Scenes with the same and different music.
 - A game with Android and iOS turned on running on a phone or tablet of each (the integration test builds both apps but never
-  launches them).
+  launches them), and Play on a real Android phone and emulator: an emulator started from the menu, the console's logs, Stop,
+  unplugging the phone mid-game, and a phone that hasn't allowed debugging yet.
 - The Scene editor's middle-button pan and scroll pan with a real mouse wheel.
 - A real Claude sign-in through the browser (with a scratch `CLAUDE_CONFIG_DIR`) and a real API key in the macOS keychain.
 - The Linux (`secret-tool`) and Windows (Credential Locker) secret stores.
