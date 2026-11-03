@@ -12,18 +12,23 @@ package com.pandulapeter.kubrikoCreator.template
 /**
  * What it takes to bring a project's template files up to what this version of Kubriko Creator needs.
  */
-internal sealed interface TemplateUpgrade {
-
-    data object UpToDate : TemplateUpgrade
+public sealed interface TemplateUpgrade {
 
     /**
+     * The project needs nothing.
+     */
+    public data object UpToDate : TemplateUpgrade
+
+    /**
+     * The project needs changes.
+     *
      * @param changes The exact changes Kubriko Creator can make, to files that still look like the template made them.
      * @param byHand The files (relative to the project root) that were changed too much, or are missing, which the user
      *   has to change by hand.
      */
-    data class Needed(
-        val changes: List<ProposedFileChange>,
-        val byHand: List<String>,
+    public data class Needed(
+        public val changes: List<ProposedFileChange>,
+        public val byHand: List<String>,
     ) : TemplateUpgrade
 }
 
@@ -32,8 +37,8 @@ internal sealed interface TemplateUpgrade {
  *
  * @param after The new content of the file, or null if it is deleted.
  */
-internal data class ProposedFileChange(
-    val path: String,
-    val before: String,
-    val after: String?,
+public data class ProposedFileChange(
+    public val path: String,
+    public val before: String,
+    public val after: String?,
 )

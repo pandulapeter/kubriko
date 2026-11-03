@@ -238,6 +238,6 @@ several conversations, the default and alias configurations, and closing the pro
 - A Gradle daemon started from a sandboxed shell can't run `uname`, so Creator's project model fails with "couldn't open this
   folder as a Gradle project". Run `./gradlew --stop` in the scratch copy and start Creator outside the sandbox.
 - Never recompile `:creator` while `:creator:run` is up, and restart it with the publish tasks after `tools/creator-session` changes.
-- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.1-creator ./gradlew :creator:test --tests
+- The integration test: `KUBRIKO_CREATOR_INTEGRATION=true KUBRIKO_CREATOR_VERSION=0.8.1-creator ./gradlew :creator:template:test --tests
   "*ProjectTemplateIntegrationTest*" --rerun` (after a `:creator:run` or `publishToMavenLocal` with `-Pcreator.localKubriko=true`,
   since 0.8.1 isn't released).

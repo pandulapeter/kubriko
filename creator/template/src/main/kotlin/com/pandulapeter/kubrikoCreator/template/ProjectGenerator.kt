@@ -24,7 +24,7 @@ import java.io.IOException
  * block-built Actor types (and makes its build depend on the Kubriko libraries that code uses), adds the Gradle wrapper,
  * and commits it all into a new git repository.
  */
-internal class ProjectGenerator(
+public class ProjectGenerator(
     private val configuration: CreatorConfiguration,
     private val wrapperInstaller: WrapperInstaller = GradleWrapperInstaller,
     private val loadTemplate: (ProjectTemplate) -> List<TemplateFile> = TemplateFiles::load,

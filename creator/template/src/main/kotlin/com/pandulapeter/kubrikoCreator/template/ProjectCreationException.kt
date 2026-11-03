@@ -10,11 +10,9 @@
 package com.pandulapeter.kubrikoCreator.template
 
 /**
- * One file of a [ProjectTemplate], before rendering.
- *
- * @param path The file's path in the template, with `__PACKAGE__` standing for the package's folders.
+ * A project that could not be created, with a reason to show the user.
  */
-internal class TemplateFile(
-    val path: String,
-    val content: String,
-)
+public class ProjectCreationException(
+    public val reason: TemplateProblem,
+    cause: Throwable? = null,
+) : Exception(cause)

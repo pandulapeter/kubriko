@@ -14,24 +14,30 @@ import kotlin.math.abs
 /**
  * The lines of a file before and after a change, as a diff shows them.
  */
-internal object LineDiff {
+public object LineDiff {
 
-    enum class Kind {
+    /**
+     * Whether a line was kept, removed, or added.
+     */
+    public enum class Kind {
         SAME,
         REMOVED,
         ADDED,
     }
 
-    data class Line(
-        val kind: Kind,
-        val text: String,
+    /**
+     * One line of a diff.
+     */
+    public data class Line(
+        public val kind: Kind,
+        public val text: String,
     )
 
     /**
      * Every line of [before] and [after], each one marked as kept, removed, or added (a longest common subsequence, which
      * is plenty for the small template files it shows).
      */
-    fun of(before: String, after: String): List<Line> {
+    public fun of(before: String, after: String): List<Line> {
         val old = before.lines()
         val new = after.lines()
         val common = Array(old.size + 1) { IntArray(new.size + 1) }
@@ -56,7 +62,7 @@ internal object LineDiff {
     /**
      * [lines] without the unchanged ones farther than [context] lines from a change: each run of those becomes one null.
      */
-    fun withContext(lines: List<Line>, context: Int = 2): List<Line?> {
+    public fun withContext(lines: List<Line>, context: Int = 2): List<Line?> {
         val changed = lines.indices.filter { lines[it].kind != Kind.SAME }
         val result = mutableListOf<Line?>()
         var isSkipping = false

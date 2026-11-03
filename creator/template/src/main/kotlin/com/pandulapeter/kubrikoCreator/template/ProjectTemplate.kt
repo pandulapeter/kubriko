@@ -10,10 +10,10 @@
 package com.pandulapeter.kubrikoCreator.template
 
 /**
- * The projects Kubriko Creator can create. Each one's files live in the app's resources under `templates/<id>`.
+ * The projects Kubriko Creator can create. Each one's files live in this module's resources under `templates/<id>`.
  */
-internal enum class ProjectTemplate(
-    val id: String,
+public enum class ProjectTemplate(
+    public val id: String,
 ) {
     STARTER(
         id = "starter",

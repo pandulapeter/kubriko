@@ -19,13 +19,17 @@ import java.io.File
  * @param parentDirectory The folder the project's own folder is created in.
  * @param isUnderVersionControl Whether the project starts as a git repository with everything committed.
  */
-internal data class NewProjectRequest(
-    val name: String,
-    val packageName: String,
-    val parentDirectory: File,
-    val template: ProjectTemplate = ProjectTemplate.STARTER,
-    val isUnderVersionControl: Boolean = true,
+public data class NewProjectRequest(
+    public val name: String,
+    public val packageName: String,
+    public val parentDirectory: File,
+    public val template: ProjectTemplate = ProjectTemplate.STARTER,
+    public val isUnderVersionControl: Boolean = true,
 ) {
-    val projectId get() = ProjectNaming.projectId(name)
-    val directory get() = File(parentDirectory, projectId)
+    internal val projectId get() = ProjectNaming.projectId(name)
+
+    /**
+     * The folder the project is created in.
+     */
+    public val directory: File get() = File(parentDirectory, projectId)
 }

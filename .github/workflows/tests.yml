@@ -138,7 +138,7 @@ jobs:
       # can't prove. It downloads every dependency of a generated project, so it runs nightly, not on every change.
       - name: Compile Kubriko Creator's generated projects
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.unit_tests_only
-        run: ./gradlew :creator:test --tests '*ProjectTemplateIntegrationTest*' --rerun --no-configuration-cache
+        run: ./gradlew :creator:template:test --tests '*ProjectTemplateIntegrationTest*' --rerun --no-configuration-cache
         env:
           KUBRIKO_CREATOR_INTEGRATION: 'true'
           KUBRIKO_CREATOR_VERSION: '0.0.0-check'
@@ -147,4 +147,4 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: creator-integration-test-reports
-          path: 'creator/build/reports/tests/'
+          path: 'creator/template/build/reports/tests/'
