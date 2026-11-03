@@ -14,6 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -56,5 +57,34 @@ class RightClickMenuTest {
         onNodeWithText("Plain").assertDoesNotExist()
         onNodeWithText("Second").assertDoesNotExist()
         assertEquals(listOf("second"), events)
+    }
+
+    @Test
+    fun pointingAtAnotherEntryWhileASubmenuIsOpenSwitchesToItsSubmenuOrClosesIt() = uiTest(width = 480, height = 320) {
+        showing {
+            val menu = rememberRightClickMenuState()
+            val anchor = rememberMenuAnchor(menu)
+            TextButton(modifier = anchor.modifier, onClick = anchor::open) { Text("Open") }
+            RightClickMenu(
+                state = menu,
+                actions = listOf(
+                    ContextAction(label = "First group", children = listOf(ContextAction(label = "In the first") {})),
+                    ContextAction(label = "Second group", children = listOf(ContextAction(label = "In the second") {})),
+                    ContextAction(label = "Plain") {},
+                ),
+            )
+        }
+        onNodeWithText("Open").performClick()
+        waitForIdle()
+        onNodeWithText("First group").performMouseInput { moveTo(center) }
+        waitForIdle()
+        onNodeWithText("In the first").assertExists()
+        onNodeWithText("Second group").performMouseInput { moveTo(center) }
+        waitForIdle()
+        onNodeWithText("In the second").assertExists()
+        onNodeWithText("In the first").assertDoesNotExist()
+        onNodeWithText("Plain").performMouseInput { moveTo(center) }
+        waitForIdle()
+        onNodeWithText("In the second").assertDoesNotExist()
     }
 }

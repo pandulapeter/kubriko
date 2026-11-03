@@ -61,17 +61,19 @@ import org.jetbrains.compose.resources.painterResource
 public fun RightClickMenu(
     state: RightClickMenuState,
     actions: List<ContextAction>,
-): Unit = MenuLevel(state = state, actions = actions, onChosen = state::close)
+): Unit = MenuLevel(state = state, actions = actions, onChosen = state::close, isSubmenu = false)
 
 /**
  * One menu of [actions] open while [state] is, with the submenu of the entry that has one open beside it; [onChosen]
- * closes every menu above it too.
+ * closes every menu above it too. A submenu doesn't take the focus, since a popup that has it takes every pointer event,
+ * and the menu under it has to see the pointer move to another of its entries.
  */
 @Composable
 private fun MenuLevel(
     state: RightClickMenuState,
     actions: List<ContextAction>,
     onChosen: () -> Unit,
+    isSubmenu: Boolean,
 ) {
     if (actions.isEmpty()) return
     val hasIcons = actions.any { it.icon != null || it.isChecked != null }
@@ -92,6 +94,7 @@ private fun MenuLevel(
     }
     Popover(
         state = state,
+        isFocusable = !isSubmenu,
         modifier = Modifier.width(IntrinsicSize.Max).widthIn(min = MENU_MINIMUM_WIDTH, max = MENU_MAXIMUM_WIDTH),
     ) {
         Column(
@@ -127,6 +130,7 @@ private fun MenuLevel(
                 submenu.close()
                 onChosen()
             },
+            isSubmenu = true,
         )
     }
 }

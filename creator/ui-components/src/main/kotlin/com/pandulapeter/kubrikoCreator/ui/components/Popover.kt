@@ -29,18 +29,22 @@ import kotlin.math.roundToInt
  * A small floating surface (in [MenuStyle]) holding [content], open while [state] is: where its element was right-clicked,
  * or under the button that opened it. It is composed only while open and placed in the window, not by the layout it is
  * declared in, so it takes no room there.
+ *
+ * @param isFocusable Whether it takes the focus, and with it every pointer event and key until it closes; a submenu,
+ *   whose menu has to keep seeing the pointer, doesn't.
  */
 @Composable
 public fun Popover(
     state: RightClickMenuState,
     modifier: Modifier = Modifier,
+    isFocusable: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val position = state.positionInWindow ?: return
     Popup(
         popupPositionProvider = remember(position) { AtPosition(position) },
         onDismissRequest = state::close,
-        properties = PopupProperties(focusable = true),
+        properties = PopupProperties(focusable = isFocusable),
     ) {
         Surface(
             modifier = modifier.dialogEntrance(),
