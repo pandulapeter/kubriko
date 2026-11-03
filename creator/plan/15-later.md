@@ -12,7 +12,7 @@
 - **Code editor (minor, like GameMaker's code action):** Kotlin syntax highlighting, search, tabs, compiler errors inline at their line, and
   "Open in IntelliJ". A language server (`kotlin-lsp`) only if there's demand.
 - **Asset editor extension point:** a project or plugin registers an editor for its own resource type, running with the project's classes
-  (Tesselar's model and region editors would be the first; both are already desktop modules in Tesselar, see `12-project-upkeep.md`).
+  (Tesselar's model and region editors would be the first; both are already desktop modules in Tesselar, see `13-project-upkeep.md`).
   A library change, so it waits for a release.
 - **Resources changed while playing:** decide what a Scene, sprite, or sound changed during a play session does (Hot Reload's copy
   holds the resources too, so a reload may not bring them), then make it do that.

@@ -9,10 +9,10 @@
 -->
 # Playing on every target
 
-Play runs the game on the desktop only. Targets (`04-settings.md`) builds it for the web, Android, and iOS too, but nothing shows it
+Play runs the game on the desktop only. Targets (`05-settings.md`) builds it for the web, Android, and iOS too, but nothing shows it
 running there. This plan lets Play run it in a browser, on an Android device or emulator, and on an iOS simulator or device, from the
 same button, so that what a target turns on can be seen working. It comes before the rest of Settings, since Release, Icons, and
-Signing only matter once exporting does (`11-export-and-distribution.md`), while this is what makes Targets useful now.
+Signing only matter once exporting does (`12-export-and-distribution.md`), while this is what makes Targets useful now.
 
 Worked on in this order, each item shipped and reviewed on its own: Android, iOS simulator; then iOS devices, which wait for
 Signing. Each adds its kind to `PlayTarget.Kind`, a source of places to `PlayTargetChoice`, and its start to
@@ -20,8 +20,8 @@ Signing. Each adds its kind to `PlayTarget.Kind`, a source of places to `PlayTar
 
 ## Android
 
-- Devices from `adb devices -l` and emulators from `emulator -list-avds`, through the SDK `04-settings.md` → Targets finds. An emulator
-  that isn't running is started and waited for (`sys.boot_completed`); none is created here (`13-onboarding.md` downloads the SDK, and
+- Devices from `adb devices -l` and emulators from `emulator -list-avds`, through the SDK `05-settings.md` → Targets finds. An emulator
+  that isn't running is started and waited for (`sys.boot_completed`); none is created here (`14-onboarding.md` downloads the SDK, and
   creating an emulator joins it).
 - Builds `:androidApp:assembleDebug`, installs it with `adb install -r`, starts it with `am start`, and streams `adb logcat` for its
   process into the console; Stop is `am force-stop`. A device that leaves mid-game ends the game, with the reason.
@@ -32,11 +32,11 @@ Signing. Each adds its kind to `PlayTarget.Kind`, a source of places to `PlayTar
 - Simulators from `xcrun simctl list devices available --json`; one that is shut down is booted. Builds with `xcodebuild` for the
   simulator (`-destination id=…`), installs with `simctl install`, and starts with `simctl launch --console-pty`, whose output is the
   console; Stop is `simctl terminate`.
-- Only on a Mac with Xcode, as building is (`04-settings.md` → Targets).
+- Only on a Mac with Xcode, as building is (`05-settings.md` → Targets).
 
 ## iOS devices
 
-- After Signing (`04-settings.md`): builds for the device with the signing profile's team, installs and starts it with `xcrun devicectl`,
+- After Signing (`05-settings.md`): builds for the device with the signing profile's team, installs and starts it with `xcrun devicectl`,
   and streams its output. A device without a profile that allows it says what is missing rather than failing in Xcode's words.
 
 ## Testing

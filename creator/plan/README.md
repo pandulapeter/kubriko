@@ -21,30 +21,33 @@ started), fix what it finds in commits of their own, verify it with unit tests f
 
 ## Roadmap, in order
 
-The files are numbered in the order they are worked on. Every item of `01` to `06` is to be done, none capped in number.
+The files are numbered in the order they are worked on. Every item of `01` to `07` is to be done, none capped in number.
 
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
    flooded console, two long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.
 2. [AI assistant](02-ai-assistant.md) - what is left of the in-app assistant (ACP protocol 2, the registry's icons, other agents'
-   fallbacks, Codex's profile), more context for large games, and more for the MCP server, alongside `05` to `08`.
+   fallbacks, Codex's profile), more context for large games, and more for the MCP server, alongside `06` to `09`.
 3. [Playing on every target](03-playing-on-every-target.md) - Play in the browser, on Android devices and emulators, and on iOS
    simulators and devices, from the same button and the same `play` command.
-4. [Settings](04-settings.md) - the rest of Project settings (Release, Icons, and Signing) and of Creator settings.
-5. [Folders and search](05-resource-organization.md) - the rest of the sidebar filter, quick open, find usages, and the search AI tools.
-6. [Reuse, Traits, and bigger games](06-reuse-and-traits.md) - functions, Traits, and what bigger games need.
-7. [Blocks, Actor types, and Manager types](07-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
+4. [Screenplay and the writers' room](04-screenplay.md) - the game's design documents as Markdown pages in the project, kept up
+   to date by the user and the AI, and a guided start that asks what the game is, writes its first pages, and builds its first
+   playable version with the user.
+5. [Settings](05-settings.md) - the rest of Project settings (Release, Icons, and Signing) and of Creator settings.
+6. [Folders and search](06-resource-organization.md) - the rest of the sidebar filter, quick open, find usages, and the search AI tools.
+7. [Reuse, Traits, and bigger games](07-reuse-and-traits.md) - functions, Traits, and what bigger games need.
+8. [Blocks, Actor types, and Manager types](08-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
    sheets and animation, UI elements, the Paddle game template, Convert to code, and more drag and drop.
-8. [Sprite editor](08-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
-   GameMaker 6.1's; it follows sprite sheets in `07-blocks.md`.
-9. [Version control](09-git.md) - sidebar change markers, restoring old versions, branches, remotes.
-10. [Debugger](10-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
-11. [Export and distribution](11-export-and-distribution.md) - debug and release builds, signed Android builds, desktop installers,
+9. [Sprite editor](09-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
+   GameMaker 6.1's; it follows sprite sheets in `08-blocks.md`.
+10. [Version control](10-git.md) - sidebar change markers, restoring old versions, branches, remotes.
+11. [Debugger](11-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
+12. [Export and distribution](12-export-and-distribution.md) - debug and release builds, signed Android builds, desktop installers,
     web export, iOS, and Creator's own installers.
-12. [Project upkeep](12-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
-13. [Onboarding](13-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
+13. [Project upkeep](13-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
+14. [Onboarding](14-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
-14. [Later](14-later.md) - code editor, language server, asset editor extension point.
+15. [Later](15-later.md) - code editor, language server, asset editor extension point.
 
 ## Structure
 
@@ -63,7 +66,7 @@ Gradle project that builds in IntelliJ exactly as if written by hand.
 compatibility or a copy of its look, icons, or action set; running Creator itself on mobile or the web.
 
 **Two reference projects keep the design honest:** a beginner game built only from Blocks (the Getting started paddle game, and the
-Breakout in `~/Projects/breakout`), and Tesselar (see `12-project-upkeep.md`). The principles every plan keeps, and who owns which
+Breakout in `~/Projects/breakout`), and Tesselar (see `13-project-upkeep.md`). The principles every plan keeps, and who owns which
 project file, are in `../CLAUDE.md`.
 
 ## Terminology
@@ -78,6 +81,7 @@ project file, are in `../CLAUDE.md`.
 | Manager type | A class extending `Manager`: game-wide state and logic | Global variables, or a controller object |
 | Property | An `@Exposed` property (or a Manager's `var`) | Variable |
 | Scene | A serialized JSON scene file | Room |
+| Screenplay | The game's design documents: Markdown pages in `screenplay/` | (none; a design document) |
 | Timer | Two `Long` fields counting down | Alarm |
 
 Our own names, icons, and wording throughout; "inspired by GameMaker" is a factual credit, not branding.

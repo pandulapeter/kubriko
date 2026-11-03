@@ -16,7 +16,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 ## More for the MCP server
 
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
-  (`10-debugger.md`) exists.
+  (`11-debugger.md`) exists.
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), and numbering steps per project
   rather than per run of Creator.
 
@@ -36,7 +36,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
 6. **The panel** (`ui/assistant`): a screenshot of the open Scene as a chip too (the game's exists).
 
-**Order:** alongside `05` to `08`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
+**Order:** alongside `06` to `09`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
 
 ### What the terms allow
 
@@ -99,8 +99,6 @@ its way to understanding and the model pays for it. These serve the panel and ou
 understand the game is shown to the user too.
 
 - **Following the user's attention:** the selected Event as a chip too (its index lives in `BlockTypeEditor`'s own state today).
-- **The game's notes in the editor:** a way for the user to open and edit `AGENTS.md` from Creator (the AI's changes already
-  go through Keep and Undo), and a diff of what a change to them would be before it is kept.
 - **"Last time" summaries:** the agent writing a real summary at the end of a conversation, in place of the start of its last
   answer that a new conversation hears now.
 - **A smaller tool list** (its size is what `TokenBudgetTest` measures): since the Block schema went to
@@ -110,7 +108,7 @@ understand the game is shown to the user too.
 - **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do, and
   `check_change` tries a change without making it).
 - **Cheaper screenshots:** cropped to an Actor (the region crop exists), and replaced by Actors' states from the debug agent
-  (`10-debugger.md`) where those say enough.
+  (`11-debugger.md`) where those say enough.
 - **Planning first:** approving a plan from its checklist (an Approve button that answers the agent), rather than in a reply,
   and model hints (a smaller model for small edits) that the user decides on, since they pay.
 

@@ -10,16 +10,16 @@
 # Large projects
 
 Creator has to hold up for games the size GameMaker made: hundreds of Actor types, Scenes with thousands of Actors, many people on one
-project. Nothing a user builds is capped in number. Reuse is `06-reuse-and-traits.md`, and finding things is `05-resource-organization.md`.
+project. Nothing a user builds is capped in number. Reuse is `07-reuse-and-traits.md`, and finding things is `06-resource-organization.md`.
 
 **Order:** Known costs need nothing else and can go first; screen texts wait for UI elements, and the rest of Scene Actors for the
 plans named there.
 
 ## Scene Actors
 
-- A user-facing name per Actor once Identifiable is a Trait (`06-reuse-and-traits.md`; the ID stays internal and stable when the name
+- A user-facing name per Actor once Identifiable is a Trait (`07-reuse-and-traits.md`; the ID stays internal and stable when the name
   changes).
-- Showing a git merge conflict in a Scene by Actor (`09-git.md` → Conflicts).
+- Showing a git merge conflict in a Scene by Actor (`10-git.md` → Conflicts).
 
 ## AI tools at scale
 
@@ -31,7 +31,7 @@ plans named there.
 
 Every user-made thing is unlimited, and the editor stays usable with many of them (virtualized lists, search, folders):
 
-- **Screen texts:** nine places (`ScreenPosition`) until UI elements (`07-blocks.md` → Game UI) allow any layout.
+- **Screen texts:** nine places (`ScreenPosition`) until UI elements (`08-blocks.md` → Game UI) allow any layout.
 
 ## Known costs
 
