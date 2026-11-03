@@ -78,30 +78,44 @@ class SceneEditingControllerTest {
         scope: CoroutineScope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         creatorLibraries: Map<String, String> = emptyMap(),
     ) = SceneEditingController(
-        creatorKubrikoVersion = "1.0.0",
-        creatorLibraries = creatorLibraries,
-        runTask = { taskName, properties ->
-            tasks += taskName to properties
-            buildGate?.await()
-            File(properties.getValue("kubrikoCreatorClasspathFile")).writeText("kubrikoVersion=$projectVersion\n/game/build/libs/game.jar$projectLibraries")
-            isBuildSuccessful
+        runtime = SceneRuntimeSetup("1.0.0", creatorLibraries, entryPointLoader = { loader.load(it) }),
+        classes = object : SceneClassesBuild {
+            override val classpathFile = File(root, "classpath.txt")
+
+            override suspend fun runTask(taskName: String, properties: Map<String, String>): Boolean {
+                tasks += taskName to properties
+                buildGate?.await()
+                File(properties.getValue("kubrikoCreatorClasspathFile")).writeText("kubrikoVersion=$projectVersion\n/game/build/libs/game.jar$projectLibraries")
+                return isBuildSuccessful
+            }
+
+            override fun requestCleanBuild() {
+                cleanBuildRequests++
+            }
+
+            override suspend fun warmUpCompiler() {
+                warmUpCount++
+            }
+
+            override suspend fun awaitWrites() {
+                writesGate?.await()
+            }
         },
-        entryPointLoader = { loader.load(it) },
+        sources = object : SceneSources {
+            override fun readScene(scene: ProjectResource): List<SceneActorEntry> {
+                sceneReads += scene
+                return if (scene.file.isFile) SceneDocument.parse(scene.file.readText()) else emptyList()
+            }
+
+            override fun readSceneProblem(scene: ProjectResource) = sceneProblem
+
+            override fun actorTypeLooks() = actorTypeLooks
+        },
         scope = scope,
         releaseScope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         report = { reports += it },
-        readScene = { resource ->
-            sceneReads += resource
-            if (resource.file.isFile) SceneDocument.parse(resource.file.readText()) else emptyList()
-        },
-        readSceneProblem = { sceneProblem },
-        classpathFile = File(root, "classpath.txt"),
         currentTimeMillis = { 1_500L * tasks.size },
-        requestCleanBuild = { cleanBuildRequests++ },
-        warmUpCompiler = { warmUpCount++ },
-        actorTypeLooks = { actorTypeLooks },
-        awaitWrites = { writesGate?.await() },
     )
 
     @Test

@@ -41,10 +41,10 @@ import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
-import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorTypeLook
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.sceneRuntime.EntryPointLoader
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.GameLaunch
 import com.pandulapeter.kubrikoCreator.session.GameProcess
@@ -215,22 +215,13 @@ public class WorkspaceController(
      * The Scene shown in Kubriko Creator's own window.
      */
     public val sceneEditing: SceneEditingController = SceneEditingController(
-        creatorKubrikoVersion = creatorKubrikoVersion,
-        creatorLibraries = creatorLibraries,
-        runTask = tasks::run,
-        entryPointLoader = entryPointLoader,
-        classpathFile = SessionInitScript.classpathFileOf(project.rootDirectory),
+        runtime = SceneRuntimeSetup(creatorKubrikoVersion, creatorLibraries, entryPointLoader),
+        classes = WorkspaceSceneClasses(tasks, incrementalCompilation, SessionInitScript.classpathFileOf(project.rootDirectory), blockTypes),
+        sources = WorkspaceSceneSources(scenes, resources, blockTypes),
         scope = scope,
         releaseScope = parentScope,
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
-        readScene = { scenes.actors(SceneStore.nameOf(it.file)).orEmpty() },
-        readSceneProblem = { scenes.problemOf(SceneStore.nameOf(it.file)) },
-        spriteFiles = { SpriteFiles.of(_resources.value).filesByAccessor },
-        requestCleanBuild = incrementalCompilation::requestCleanBuild,
-        warmUpCompiler = tasks::warmUpCompiler,
-        actorTypeLooks = { ActorTypeLook.of(blockTypes?.actorTypes?.value.orEmpty(), SpriteFiles.of(_resources.value).files) },
-        awaitWrites = blockTypes?.let { types -> { types.awaitWrites() } } ?: {},
     )
 
     /**

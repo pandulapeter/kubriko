@@ -11,8 +11,6 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.LatestRequests
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
-import com.pandulapeter.kubrikoCreator.scenes.SceneActorEntry
-import com.pandulapeter.kubrikoCreator.scenes.SceneFileProblem
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
@@ -37,43 +35,21 @@ import java.io.IOException
  * the project's entry point and the Scene's Actors to the Scene editor. A project on another Kubriko version, or on a newer
  * Compose or Kotlin, can't share Creator's classes, so its Scenes can't be edited ([SceneEditingState.Unsupported]).
  *
- * @param creatorLibraries The versions of the libraries Kubriko Creator itself runs with, which the project's classes
- *   share ([SharedLibraries]).
- * @param runTask Runs one of the init script's tasks with the given properties, reporting problems in the console.
- * @param readSceneProblem Why a Scene file can't be read, or null if it can, called right after [readScene].
- * @param readScene The Actors of a Scene file, empty if it can't be read. Called off the main thread, while the project
- *   builds, so that the [SceneStore] it reads from has the Scene parsed for the first command on it.
- * @param spriteFiles The project's sprite files by the name of their resource accessor, which the Scene editor reads
- *   itself ([SpriteLoadingEntryPoint]).
- * @param classpathFile Where the classpath task writes the project's classpath, the same file for every build
- *   ([SessionInitScript.classpathFileOf]).
- * @param requestCleanBuild Makes the next build compile everything from scratch, for when the classes may not match the
- *   sources: on Reload, and when they couldn't be loaded.
- * @param warmUpCompiler Gets the compiler ready for the first change, once [prepare] has loaded the classes.
- * @param actorTypeLooks The looks of the block-built Actor types as they are now, whose changes the open Scene shows
- *   before they are compiled ([SceneEditingState.Open.previews], kept current by [onActorTypesChanged]).
+ * @param runtime What the project's classes are loaded next to: Creator's Kubriko and library versions, and the loader
+ *   ([SceneRuntimeSetup]).
+ * @param classes How the project's classes are built for the editor ([SceneClassesBuild]).
+ * @param sources What the open Scene is made of, read from the project as it is now ([SceneSources]).
  * @param releaseScope Where released classes are closed, a few seconds later: one that outlives [scope], which closing the
  *   workspace cancels first, so that they are closed even then.
- * @param awaitWrites Returns once the Actor types are loaded and their changes written, so that a build knows which
- *   looks it compiles.
  */
 public class SceneEditingController(
-    private val creatorKubrikoVersion: String,
-    private val creatorLibraries: Map<String, String> = emptyMap(),
-    private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
-    private val entryPointLoader: EntryPointLoader,
+    private val runtime: SceneRuntimeSetup,
+    private val classes: SceneClassesBuild,
+    private val sources: SceneSources,
     private val scope: CoroutineScope,
     private val releaseScope: CoroutineScope = scope,
     private val ioDispatcher: CoroutineDispatcher,
     private val report: (ConsoleEntry) -> Unit,
-    private val readScene: (ProjectResource) -> List<SceneActorEntry>,
-    private val readSceneProblem: (ProjectResource) -> SceneFileProblem? = { null },
-    private val classpathFile: File,
-    private val spriteFiles: () -> Map<String, File> = { emptyMap() },
-    private val requestCleanBuild: () -> Unit = {},
-    private val warmUpCompiler: suspend () -> Unit = {},
-    private val actorTypeLooks: () -> Map<String, ActorTypeLook> = { emptyMap() },
-    private val awaitWrites: suspend () -> Unit = {},
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) {
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
@@ -111,7 +87,7 @@ public class SceneEditingController(
     public fun prepare() {
         if (loading != null) return
         val prepared = startLoading()
-        scope.launch { if (prepared.await() is LoadResult.Loaded) warmUpCompiler() }
+        scope.launch { if (prepared.await() is LoadResult.Loaded) classes.warmUpCompiler() }
     }
 
     /**
@@ -126,7 +102,7 @@ public class SceneEditingController(
         _state.value = SceneEditingState.Preparing(scene)
         val loading = loading?.takeUnless { isRebuilding || isLoadingOutdated } ?: startLoading()
         job = scope.launch {
-            val read = async(ioDispatcher) { readScene(scene) to readSceneProblem(scene) }
+            val read = async(ioDispatcher) { sources.readScene(scene) to sources.readSceneProblem(scene) }
             _state.value = when (val result = loading.await()) {
                 is LoadResult.Loaded -> SceneEditingState.Open(
                     scene = scene,
@@ -161,7 +137,7 @@ public class SceneEditingController(
         shown?.takeIf { it !== deferred && it !== loading }?.let(::release)
         shown = deferred
         shownLooks = loaded.looks
-        return SpriteLoadingEntryPoint(loaded.loaded.entryPoint, ProjectSpriteLoader(spriteFiles()))
+        return SpriteLoadingEntryPoint(loaded.loaded.entryPoint, ProjectSpriteLoader(sources.spriteFiles()))
     }
 
     /**
@@ -205,7 +181,7 @@ public class SceneEditingController(
         _state.value = if (isShowingOlderClasses) open.copy(isOutdated = true) else SceneEditingState.Failed(open.scene, SceneProblem.VIEW_FAILED, listOf(problem))
     }
 
-    private fun currentPreviews() = ActorTypeLook.previewsOf(actorTypeLooks(), shownLooks)
+    private fun currentPreviews() = ActorTypeLook.previewsOf(sources.actorTypeLooks(), shownLooks)
 
     /**
      * Notes that the Actor types changed in memory, which the open Scene previews right away, before they are written.
@@ -223,17 +199,17 @@ public class SceneEditingController(
      * Builds the project and loads its classes, or says why it couldn't.
      */
     private suspend fun buildAndLoad(): LoadResult {
-        awaitWrites()
-        val looks = actorTypeLooks()
-        val isBuilt = runTask(
+        classes.awaitWrites()
+        val looks = sources.actorTypeLooks()
+        val isBuilt = classes.runTask(
             SessionInitScript.CLASSPATH_TASK_NAME,
-            mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
+            mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classes.classpathFile.absolutePath),
         )
-        val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classpathFile) } else null
+        val classpath = if (isBuilt) withContext(ioDispatcher) { readClasspath(classes.classpathFile) } else null
         return when {
             classpath == null -> LoadResult.Failed(SceneProblem.BUILD_FAILED)
-            classpath.kubrikoVersion != creatorKubrikoVersion -> LoadResult.Unsupported(SceneProblem.UNSUPPORTED, listOf(creatorKubrikoVersion, classpath.kubrikoVersion))
-            else -> when (val verdict = SharedLibraries.check(classpath.libraries, creatorLibraries)) {
+            classpath.kubrikoVersion != runtime.creatorKubrikoVersion -> LoadResult.Unsupported(SceneProblem.UNSUPPORTED, listOf(runtime.creatorKubrikoVersion, classpath.kubrikoVersion))
+            else -> when (val verdict = SharedLibraries.check(classpath.libraries, runtime.creatorLibraries)) {
                 is SharedLibraries.Verdict.Refused -> LoadResult.Unsupported(
                     SceneProblem.UNSUPPORTED_LIBRARY,
                     verdict.library.let { listOf(it.module, it.projectVersion, it.creatorVersion) },
@@ -247,9 +223,9 @@ public class SceneEditingController(
     }
 
     private suspend fun load(classpath: ProjectClasspath, looks: Map<String, ActorTypeLook>) = try {
-        LoadResult.Loaded(createDisposingIfCancelled(ioDispatcher, create = { entryPointLoader.load(classpath) }, dispose = { it.close() }), looks)
+        LoadResult.Loaded(createDisposingIfCancelled(ioDispatcher, create = { runtime.entryPointLoader.load(classpath) }, dispose = { it.close() }), looks)
     } catch (exception: EntryPointLoadingException) {
-        if (exception.cause != null) requestCleanBuild()
+        if (exception.cause != null) classes.requestCleanBuild()
         report(ConsoleEntry.Status(exception.reason, isError = true))
         LoadResult.Failed(exception.reason)
     }
@@ -271,7 +247,7 @@ public class SceneEditingController(
      * Opens the current Scene again, with the project's classes compiled from scratch and loaded anew.
      */
     public fun reload() {
-        if (_state.value != SceneEditingState.Closed) requestCleanBuild()
+        if (_state.value != SceneEditingState.Closed) classes.requestCleanBuild()
         when (val current = _state.value) {
             is SceneEditingState.Open -> open(current.scene, isRebuilding = true)
             is SceneEditingState.Preparing -> open(current.scene, isRebuilding = true)
@@ -301,7 +277,7 @@ public class SceneEditingController(
             open.scene.file.isFile -> {
                 val request = sceneReads.start()
                 scope.launch {
-                    val (actors, problem) = withContext(ioDispatcher) { readScene(open.scene) to readSceneProblem(open.scene) }
+                    val (actors, problem) = withContext(ioDispatcher) { sources.readScene(open.scene) to sources.readSceneProblem(open.scene) }
                     if (sceneReads.isLatest(request)) {
                         _state.update { if (it is SceneEditingState.Open && it.scene == open.scene) it.copy(actors = actors, problem = problem) else it }
                     }
