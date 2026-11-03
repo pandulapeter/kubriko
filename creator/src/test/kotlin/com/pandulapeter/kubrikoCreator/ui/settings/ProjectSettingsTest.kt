@@ -17,6 +17,9 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
+import com.pandulapeter.kubrikoCreator.commands.HistoryEntry
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
 import com.pandulapeter.kubrikoCreator.project.GameSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
@@ -61,4 +64,30 @@ class ProjectSettingsTest {
         types.value = listOf(ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Ball"))))
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Ball collides with Ball")).fetchSemanticsNodes().isNotEmpty() }
     }
+
+    @Test
+    fun anUndoWhileItIsOpenShowsTheSettingsItBroughtBack() = uiTest(width = 640, height = 1600) {
+        File(root, "build.gradle.kts").writeText("// Reads game.name.\n")
+        val properties = File(root, "gradle.properties").apply { writeText(identityNamed("Breakout")) }
+        val renaming = HistoryEntry(revert = Invocation(SetProjectSettings, SetProjectSettings.Input(name = "Pong")), reapply = Invocation(SetProjectSettings, SetProjectSettings.Input(name = "Breakout")))
+        val history = MutableStateFlow(CommandHistory(undoable = listOf(renaming)))
+        showing {
+            ProjectSettings(
+                rootDirectory = root,
+                blockTypes = null,
+                scenes = SceneStore(root) { emptyList() },
+                history = history,
+                onCommand = {},
+                onReviewUpgrade = null,
+                onDismiss = {},
+            )
+        }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Breakout")).fetchSemanticsNodes().isNotEmpty() }
+        properties.writeText(identityNamed("Pong"))
+        history.value = CommandHistory(redoable = listOf(renaming))
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Pong")).fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Breakout").assertDoesNotExist()
+    }
+
+    private fun identityNamed(name: String) = GameIdentity(name, "1.0.0", 1, "com.example.game", "", "").writtenTo("")
 }
