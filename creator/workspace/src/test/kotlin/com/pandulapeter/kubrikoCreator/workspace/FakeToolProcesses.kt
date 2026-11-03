@@ -33,6 +33,11 @@ internal class FakeToolProcesses : ToolProcesses {
     var detached = FakeDetachedTool()
     var onDetached: (List<String>) -> Unit = {}
 
+    /**
+     * What each command [run] runs does before it answers, such as never answering.
+     */
+    var onRun: suspend (List<String>) -> Unit = {}
+
     fun answer(arguments: String, vararg results: ToolResult) {
         answers[arguments] = ArrayDeque(results.toList())
     }
@@ -50,6 +55,7 @@ internal class FakeToolProcesses : ToolProcesses {
 
     override suspend fun run(command: List<String>, timeoutInMilliseconds: Long): ToolResult {
         commands += command
+        onRun(command)
         val queue = answers[command.drop(1).joinToString(" ")] ?: return ToolResult(1, "unknown command")
         return synchronized(queue) { if (queue.size > 1) queue.removeFirst() else queue.first() }
     }

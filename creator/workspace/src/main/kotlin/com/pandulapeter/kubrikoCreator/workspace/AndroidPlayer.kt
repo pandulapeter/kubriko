@@ -18,6 +18,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -52,21 +53,15 @@ internal class AndroidPlayer(
             console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_SDK_MISSING, isError = true))
             return false
         }
-        val (isBuilt, serial) = coroutineScope {
-            val serial = async { AndroidDeviceStart(devices, tools, console, pollIntervalInMilliseconds, bootTimeoutInMilliseconds).readySerialOf(target) }
-            val isBuilt = runTask(BUILD_TASK_PATH)
-            if (!isBuilt) serial.cancel()
-            isBuilt to if (isBuilt) serial.await() else null
-        }
-        if (!isBuilt || serial == null) return false
+        val serial = builtAndReady(devices, target) ?: return false
         val app = withContext(ioDispatcher) { AndroidApp.builtIn(File(rootDirectory, AndroidApp.OUTPUT_PATH)) } ?: run {
             console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_APP_MISSING, isError = true, arguments = listOf(AndroidApp.OUTPUT_PATH)))
             return false
         }
         val shell = listOf(devices.adb, "-s", serial)
-        if (!install(shell, app, name)) return false
-        val pid = launch(shell, app.applicationId, firstScene, name) ?: return false
         try {
+            if (!install(shell, app, name)) return false
+            val pid = launch(shell, app.applicationId, firstScene, name) ?: return false
             onUp()
             console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_GAME_STARTED, arguments = listOf(name)))
             return watch(devices, shell, serial, app.applicationId, pid, name)
@@ -74,6 +69,24 @@ internal class AndroidPlayer(
             withContext(NonCancellable) { tools.run(shell + listOf("shell", "am", "force-stop", app.applicationId), COMMAND_TIMEOUT_IN_MILLISECONDS) }
             throw exception
         }
+    }
+
+    /**
+     * Builds the app while the device gets ready, returning the device's serial once both are done, or null, as the console
+     * says, as soon as either fails.
+     */
+    private suspend fun builtAndReady(devices: AndroidDevices, target: PlayTarget) = coroutineScope {
+        val build = async { runTask(BUILD_TASK_PATH) }
+        val serial = async {
+            AndroidDeviceStart(devices, tools, console, pollIntervalInMilliseconds, bootTimeoutInMilliseconds).readySerialOf(target).also { if (it == null) build.cancel() }
+        }
+        val isBuilt = try {
+            build.await()
+        } catch (exception: CancellationException) {
+            ensureActive()
+            false
+        }
+        if (isBuilt) serial.await() else null.also { serial.cancel() }
     }
 
     private suspend fun install(shell: List<String>, app: AndroidApp, name: String): Boolean {
@@ -108,10 +121,11 @@ internal class AndroidPlayer(
         val started = tools.run(shell + listOf("shell", "am", "start", "-W", "-n", activity) + switches, START_TIMEOUT_IN_MILLISECONDS)
         if (!started.isSuccessful || started.output.lines().any { it.startsWith("Error") }) return failed(started)
         repeat(PID_ATTEMPTS) {
-            pidOf(shell, applicationId)?.let { return it }
+            (pidOf(shell, applicationId) as? ProcessCheck.Running)?.let { return it.pid }
             delay(pollIntervalInMilliseconds)
         }
-        return failed(started)
+        console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_GAME_ENDED_AT_ONCE, isError = true, arguments = listOf(name)))
+        return null
     }
 
     /**
@@ -127,11 +141,19 @@ internal class AndroidPlayer(
                 LogcatLines.entryOf(line)?.let(console::append)
             }
         }
-        while (pidOf(shell, applicationId) == pid) delay(pollIntervalInMilliseconds)
-        if (devices.stateOf(serial) != AndroidDevices.READY) {
-            logs.cancel()
-            console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_DEVICE_LEFT, isError = true, arguments = listOf(name)))
-            return@coroutineScope false
+        while (true) {
+            val check = pidOf(shell, applicationId)
+            if (check == ProcessCheck.Running(pid)) {
+                delay(pollIntervalInMilliseconds)
+                continue
+            }
+            if (devices.stateOf(serial) != AndroidDevices.READY) {
+                logs.cancel()
+                console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_DEVICE_LEFT, isError = true, arguments = listOf(name)))
+                return@coroutineScope false
+            }
+            if (check != ProcessCheck.Unknown) break
+            delay(pollIntervalInMilliseconds)
         }
         // What the process logged last reaches the stream a moment after it ended.
         delay(pollIntervalInMilliseconds)
@@ -140,8 +162,27 @@ internal class AndroidPlayer(
         !hasCrashed.get()
     }
 
-    private suspend fun pidOf(shell: List<String>, applicationId: String) =
-        tools.run(shell + listOf("shell", "pidof", applicationId), COMMAND_TIMEOUT_IN_MILLISECONDS).takeIf { it.isSuccessful }?.output?.trim()?.takeIf { it.isNotEmpty() }
+    /**
+     * Whether the app runs, by its process ID: `pidof` prints nothing and fails when there is none, and anything else it
+     * fails with (a timeout, a connection `adb` lost for a moment) says nothing about the app.
+     */
+    private suspend fun pidOf(shell: List<String>, applicationId: String): ProcessCheck {
+        val result = tools.run(shell + listOf("shell", "pidof", applicationId), COMMAND_TIMEOUT_IN_MILLISECONDS)
+        val output = result.output.trim()
+        return when {
+            result.isSuccessful && output.isNotEmpty() -> ProcessCheck.Running(output)
+            result.exitCode == 1 && output.isEmpty() -> ProcessCheck.Gone
+            else -> ProcessCheck.Unknown
+        }
+    }
+
+    private sealed interface ProcessCheck {
+        data class Running(val pid: String) : ProcessCheck
+
+        data object Gone : ProcessCheck
+
+        data object Unknown : ProcessCheck
+    }
 
     private fun reasonOf(result: ToolResult) = result.output.lines().map(String::trim).let { lines ->
         lines.firstOrNull { "Failure" in it || it.startsWith("Error") } ?: lines.lastOrNull { it.isNotEmpty() }

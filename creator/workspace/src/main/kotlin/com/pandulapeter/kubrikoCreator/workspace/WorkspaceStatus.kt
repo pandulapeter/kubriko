@@ -24,6 +24,7 @@ public enum class WorkspaceStatus(override val english: String) : DomainText {
     ANDROID_EMULATOR_STARTING("Starting the emulator %1\$s, which can take a minute…"),
     ANDROID_EMULATOR_TIMED_OUT("The emulator %1\$s wasn't ready within %2\$s minutes, so the game wasn't played on it."),
     ANDROID_GAME_CRASHED("The game stopped with an error on %1\$s."),
+    ANDROID_GAME_ENDED_AT_ONCE("The game started on %1\$s, but it ended right away."),
     ANDROID_GAME_STARTED("The game plays on %1\$s. Its logs and errors show here."),
     ANDROID_INSTALL_FAILED("The game couldn't be installed on %1\$s: %2\$s"),
     ANDROID_INSTALL_INCOMPATIBLE("The game couldn't be installed on %1\$s, since a build of it signed on another computer is there. Uninstall that one from the device, then play again."),

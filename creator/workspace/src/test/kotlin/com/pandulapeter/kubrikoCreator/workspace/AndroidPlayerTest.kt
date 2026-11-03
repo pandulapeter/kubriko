@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.workspace.FakeToolProcesses.Companion.ok
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -101,6 +102,73 @@ class AndroidPlayerTest {
         playing.cancelAndJoin()
         assertEquals(stopsBefore + 1, tools.commands.count { it.drop(1).joinToString(" ") == "-s R58M12345 shell am force-stop com.example.mygame" })
         assertFalse(tools.commands.any { "--es" in it })
+    }
+
+    @Test
+    fun aCheckThatFailsForAMomentLeavesTheGamePlaying() = blockingTest {
+        built()
+        connected("R58M12345 device usb:1-1 model:Pixel_7")
+        startsOn("R58M12345")
+        tools.answer(
+            "-s R58M12345 shell pidof com.example.mygame",
+            ok("4321\n"),
+            ok("4321\n"),
+            ToolResult(exitCode = null, output = ""),
+            failed("error: closed"),
+            ok("4321\n"),
+            failed(""),
+        )
+        assertTrue(player().play(phone, firstScene = null) {})
+        assertEquals(6, tools.commands.count { it.drop(1).joinToString(" ") == "-s R58M12345 shell pidof com.example.mygame" })
+        assertEquals(listOf(WorkspaceStatus.ANDROID_INSTALLING, WorkspaceStatus.ANDROID_GAME_STARTED), statuses)
+    }
+
+    @Test
+    fun stoppingTheGameWhileItStartsStopsTheApp() = blockingTest {
+        built()
+        connected("R58M12345 device usb:1-1 model:Pixel_7")
+        startsOn("R58M12345")
+        val isStarting = CompletableDeferred<Unit>()
+        tools.onRun = { command ->
+            if ("start" in command) {
+                isStarting.complete(Unit)
+                awaitCancellation()
+            }
+        }
+        val playing = launch { player().play(phone, firstScene = null) {} }
+        withTimeout(5_000) { isStarting.await() }
+        playing.cancelAndJoin()
+        assertEquals("force-stop", tools.commands.last()[tools.commands.last().size - 2])
+    }
+
+    @Test
+    fun anAppThatEndsBeforeItsProcessIsFoundSaysSo() = blockingTest {
+        built()
+        connected("R58M12345 device usb:1-1 model:Pixel_7")
+        startsOn("R58M12345")
+        tools.answer("-s R58M12345 shell pidof com.example.mygame", failed(""))
+        assertFalse(player().play(phone, firstScene = null) {})
+        assertEquals(WorkspaceStatus.ANDROID_GAME_ENDED_AT_ONCE, statuses.last())
+    }
+
+    @Test
+    fun aDeviceThatIsntThereStopsTheBuild() = blockingTest {
+        connected()
+        val buildCancelled = CompletableDeferred<Unit>()
+        val result = withTimeout(5_000) {
+            player(
+                runTask = {
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        buildCancelled.complete(Unit)
+                    }
+                },
+            ).play(phone, firstScene = null) {}
+        }
+        assertFalse(result)
+        assertTrue(buildCancelled.isCompleted)
+        assertEquals(listOf(WorkspaceStatus.ANDROID_DEVICE_NOT_CONNECTED), statuses)
     }
 
     @Test

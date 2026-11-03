@@ -56,9 +56,14 @@ internal class AndroidDeviceStart(
         } else {
             null
         }
-        val serial = withTimeoutOrNull(bootTimeoutInMilliseconds) { awaitBooted(avd, emulator, name) }
-        if (serial == null && emulator?.exitCode == null) {
-            console.append(
+        val serial = withTimeoutOrNull(bootTimeoutInMilliseconds) { awaitBooted(avd, emulator) }
+        when {
+            serial != null -> Unit
+            emulator?.exitCode != null -> {
+                console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_EMULATOR_FAILED, isError = true, arguments = listOf(name)))
+                emulator.output.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
+            }
+            else -> console.append(
                 ConsoleEntry.Status(
                     WorkspaceStatus.ANDROID_EMULATOR_TIMED_OUT,
                     isError = true,
@@ -70,19 +75,15 @@ internal class AndroidDeviceStart(
     }
 
     /**
-     * The serial of the emulator of [avd] once it has booted, or null, as the console says, if [emulator] ended first.
+     * The serial of the emulator of [avd] once it has booted, or null if [emulator] ended first.
      */
-    private suspend fun awaitBooted(avd: String, emulator: DetachedTool?, name: String): String? {
-        while (true) {
-            if (emulator?.exitCode != null) {
-                console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_EMULATOR_FAILED, isError = true, arguments = listOf(name)))
-                emulator.output.forEach { console.append(ConsoleEntry.BuildOutput(it)) }
-                return null
-            }
+    private suspend fun awaitBooted(avd: String, emulator: DetachedTool?): String? {
+        while (emulator?.exitCode == null) {
             val device = devices.connected().firstOrNull { it.avd == avd }
             if (device?.isReady == true && hasBooted(device.serial)) return device.serial
             delay(pollIntervalInMilliseconds)
         }
+        return null
     }
 
     private suspend fun hasBooted(serial: String) =

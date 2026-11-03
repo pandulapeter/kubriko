@@ -20,6 +20,7 @@ import kubriko.creator.generated.resources.status_android_emulator_failed
 import kubriko.creator.generated.resources.status_android_emulator_starting
 import kubriko.creator.generated.resources.status_android_emulator_timed_out
 import kubriko.creator.generated.resources.status_android_game_crashed
+import kubriko.creator.generated.resources.status_android_game_ended_at_once
 import kubriko.creator.generated.resources.status_android_game_started
 import kubriko.creator.generated.resources.status_android_install_failed
 import kubriko.creator.generated.resources.status_android_install_incompatible
@@ -81,6 +82,7 @@ internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.ANDROID_EMULATOR_STARTING -> Res.string.status_android_emulator_starting
     WorkspaceStatus.ANDROID_EMULATOR_TIMED_OUT -> Res.string.status_android_emulator_timed_out
     WorkspaceStatus.ANDROID_GAME_CRASHED -> Res.string.status_android_game_crashed
+    WorkspaceStatus.ANDROID_GAME_ENDED_AT_ONCE -> Res.string.status_android_game_ended_at_once
     WorkspaceStatus.ANDROID_GAME_STARTED -> Res.string.status_android_game_started
     WorkspaceStatus.ANDROID_INSTALL_FAILED -> Res.string.status_android_install_failed
     WorkspaceStatus.ANDROID_INSTALL_INCOMPATIBLE -> Res.string.status_android_install_incompatible
