@@ -16,6 +16,8 @@ import com.pandulapeter.kubrikoCreator.testing.IdleTrackingDispatcher
 import com.pandulapeter.kubrikoCreator.testing.awaitIdle
 import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -76,13 +78,15 @@ class AssistantControllerTest {
         installer: BinaryAgentInstaller? = null,
         isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
         secretStore: SecretStore = secrets,
+        scope: CoroutineScope = this.scope,
+        ioDispatcher: CoroutineDispatcher = io,
     ) = AssistantController(
         scope = scope,
         runner = runner,
         store = AssistantSettingsStore(File(settingsDirectory, "assistant.json")),
         secrets = secretStore,
         signInLauncher = terminals,
-        ioDispatcher = io,
+        ioDispatcher = ioDispatcher,
         createAssistant = { command, _, profile ->
             profiles += profile
             commands += command
@@ -128,6 +132,21 @@ class AssistantControllerTest {
         val controller = controller()
         onMain { controller.newChat() }
         assertNull(controller.currentChat.value)
+    }
+
+    @Test
+    fun theRegistryLoadsWhenItsLoadingRunsBeforeTheControllerIsBuilt() = blockingTest {
+        val registry = registry(CODEX)
+        registry.refresh()
+        val failures = CopyOnWriteArrayList<Throwable>()
+        val immediateScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined + CoroutineExceptionHandler { _, failure -> failures += failure })
+        try {
+            val controller = controller(registry, scope = immediateScope, ioDispatcher = Dispatchers.Unconfined)
+            assertEquals(emptyList(), failures)
+            assertEquals(listOf("Claude Agent", "Codex"), controller.agents.value.map { it.name })
+        } finally {
+            immediateScope.cancel()
+        }
     }
 
     @Test

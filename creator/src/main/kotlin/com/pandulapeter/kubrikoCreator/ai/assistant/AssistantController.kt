@@ -75,6 +75,18 @@ internal class AssistantController(
     private val isAiEnabled: StateFlow<Boolean> = MutableStateFlow(true),
 ) : AssistantPanelModel, AutoCloseable {
     private val settings = AssistantSettingsState(scope, store, ioDispatcher)
+
+    /**
+     * Built before [selection], whose registry loading starts on [scope]'s thread while this constructor still runs and
+     * asks whether an agent runs.
+     */
+    private val host: AssistantHost<Assistant> = AssistantHost(scope, ioDispatcher, isAiEnabled) {
+        selection.awaitLoaded()
+        val choice = selection.agent.value
+        val npx = commands.npx()
+        val environment = if (choice.isClaude) claude.environment() else signIns.environmentOf(choice)
+        createAssistant(commands.of(choice, npx, environment), npx, choice.profile)
+    }
     private val selection: AgentSelection = AgentSelection(scope, settings, registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })
 
     override val agents = selection.agents
@@ -96,13 +108,6 @@ internal class AssistantController(
 
     override val currentChat = chatList.current
     private val commands = AgentCommands(runner, installer, home, ioDispatcher, node)
-    private val host: AssistantHost<Assistant> = AssistantHost(scope, ioDispatcher, isAiEnabled) {
-        selection.awaitLoaded()
-        val choice = selection.agent.value
-        val npx = commands.npx()
-        val environment = if (choice.isClaude) claude.environment() else signIns.environmentOf(choice)
-        createAssistant(commands.of(choice, npx, environment), npx, choice.profile)
-    }
     private val signIns: AssistantSignIn = AssistantSignIn(
         scope = scope,
         ioDispatcher = ioDispatcher,
