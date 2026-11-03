@@ -26,7 +26,6 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyPlaceholders
 import com.pandulapeter.kubrikoCreator.actors.PropertyReference
 import com.pandulapeter.kubrikoCreator.actors.TimerNaming
-import com.pandulapeter.kubrikoCreator.actors.audioFile
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import kotlin.math.absoluteValue
 import kotlin.math.roundToLong
@@ -52,12 +51,6 @@ public object BlockCodeGenerator {
     private const val LOGGER_IMPORT = "com.pandulapeter.kubriko.logger.Logger"
     private const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
     private const val RANDOM_IMPORT = "kotlin.random.Random"
-
-    /**
-     * Whether any of [blocks] plays a sound or music, or stops the music, through the generated
-     * [AudioCodeGenerator.AUDIO_NAME] Manager.
-     */
-    internal fun usesAudio(blocks: List<BlockDefinition>) = blocks.any { it.audioFile != null || it == BlockDefinition.StopMusic }
 
     /**
      * The statements of an Event of [eventType] that runs [blocks]: their sections become Kotlin blocks, closed at the end

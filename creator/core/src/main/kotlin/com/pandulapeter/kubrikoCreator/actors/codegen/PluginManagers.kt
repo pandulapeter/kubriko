@@ -13,14 +13,13 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
-import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.audioFile
+import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 
 /**
- * What the generated code needs from Kubriko's plugins, decided from every type of the project at once, so that a game
- * only depends on the plugins it uses.
+ * What the generated code needs from Kubriko's plugins, decided from every type of the project at once ([PluginUse]), so
+ * that a game only depends on the plugins it uses.
  *
  * @param collidableActorTypeNames The Actor types that take part in a collision Event, on either side of it: only these
  *   get a collision mask.
@@ -54,20 +53,15 @@ internal data class PluginManagers(
                     .filter { it.type == EventType.COLLISION && it.otherActorType in actorTypeNames }
                     .flatMap { listOf(definition.name) + family.familyOf(it.otherActorType!!) }
             }
-            val usesKeyboard = definitions.any { definition ->
-                definition.events.any { event ->
-                    (event.type == EventType.KEY_PRESSED && event.key?.isKnown == true) ||
-                        event.blocks.any { (it as? BlockDefinition.If)?.condition is ConditionDefinition.KeyHeld }
-                }
-            }
+            val pluginsInUse = PluginUse.of(definitions).mapTo(HashSet()) { it.artifact }
             val blocks = definitions.flatMap { definition -> definition.events.flatMap { it.blocks } }
             return PluginManagers(
                 collidableActorTypeNames = collidableActorTypeNames,
-                usesKeyboard = usesKeyboard,
-                usesAudio = sceneMusic.isNotEmpty() || BlockCodeGenerator.usesAudio(blocks),
+                usesKeyboard = KubrikoArtifact.KEYBOARD_INPUT in pluginsInUse,
+                usesAudio = sceneMusic.isNotEmpty() || KubrikoArtifact.AUDIO_PLAYBACK in pluginsInUse,
                 sounds = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlaySound)?.audioFile },
                 music = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlayMusic)?.audioFile } + sceneMusic,
-                usesSprites = actorTypes.any { definition -> definition.sprite?.let(SpriteFiles::accessorOf) != null },
+                usesSprites = KubrikoArtifact.SPRITES in pluginsInUse,
             )
         }
     }
