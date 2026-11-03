@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 import java.io.File
 
@@ -115,18 +114,15 @@ public data class GameSettings(
          */
         public fun read(rootDirectory: File): GameSettingsReading? {
             if (!isReadByBuild(rootDirectory)) return null
-            return of(File(rootDirectory, GameIdentity.GRADLE_PROPERTIES_FILE).takeIf { it.isFile }?.readText().orEmpty())
+            return of(GradlePropertiesFile.read(rootDirectory).orEmpty())
         }
 
         /**
          * Writes the settings of [keys] as [settings] has them.
          */
         @EditorMutation
-        public fun write(rootDirectory: File, settings: GameSettings, keys: Collection<String> = ALL_KEYS) {
-            val file = File(rootDirectory, GameIdentity.GRADLE_PROPERTIES_FILE)
-            val raw = if (file.isFile) file.readText() else ""
-            file.writeTextAtomically(settings.writtenTo(raw.withUnixLineBreaks(), keys).withLineBreaksOf(raw))
-        }
+        public fun write(rootDirectory: File, settings: GameSettings, keys: Collection<String> = ALL_KEYS): Unit =
+            GradlePropertiesFile.update(rootDirectory) { settings.writtenTo(it, keys) }
 
         internal fun isReadByBuild(rootDirectory: File) = File(rootDirectory, GameIdentity.BUILD_FILE).takeIf { it.isFile }?.readText()?.let { FIRST_SCENE in it } == true
     }

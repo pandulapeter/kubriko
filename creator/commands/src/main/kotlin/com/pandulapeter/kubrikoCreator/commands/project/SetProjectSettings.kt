@@ -13,11 +13,15 @@ import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.AspectRatio
 import com.pandulapeter.kubrikoCreator.project.GameIdentity
+import com.pandulapeter.kubrikoCreator.project.GameSettings
+import com.pandulapeter.kubrikoCreator.project.GradlePropertiesFile
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -25,9 +29,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Changes the game's identity, which lives in `gradle.properties` where the build reads it (see [GameIdentity]). The
- * files are read only when applying, off the main thread, so validating checks the input alone: `check_change` accepts
- * a value that applying then refuses (an invalid application ID, or a project without its settings).
+ * Changes the game's identity and settings, which live in `gradle.properties` where the build reads them (see
+ * [GameIdentity] and [GameSettings]), in one write. The file is read only when applying, off the main thread, so
+ * validating checks the input and the Scenes alone: `check_change` accepts a value that applying then refuses (an
+ * invalid application ID, or a project whose template is too old for a setting).
  */
 @OptIn(EditorMutation::class)
 public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
@@ -38,15 +43,32 @@ public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = if (input == Input()) Rejection(CommandProblem.PROJECT_SETTINGS_EMPTY) else null
+    override fun validate(context: CommandContext, input: Input): Rejection? = when {
+        input == Input() -> Rejection(CommandProblem.PROJECT_SETTINGS_EMPTY)
+        input.firstScene != null && !context.scenes.exists(input.firstScene) -> Rejection(CommandProblem.SCENE_MISSING, input.firstScene)
+        else -> null
+    }
+
+    /**
+     * The first Scene undo brings back may have been deleted since, which the game survives (it logs that it can't load
+     * it), so restoring it is allowed.
+     */
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? =
+        if (input == Input()) Rejection(CommandProblem.PROJECT_SETTINGS_EMPTY) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val root = context.project.rootDirectory
-        val previous = GameIdentity.read(root) ?: return@withContext Applied.failed(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE)
-        val changed = input.appliedTo(previous)
-        changed.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
-        GameIdentity.write(root, changed)
-        Applied(inverse = Invocation(SetProjectSettings, input.revertedTo(previous)))
+        val identity = if (input.namesIdentity()) GameIdentity.read(root) ?: return@withContext Applied.failed(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE) else null
+        val game = if (input.namesGame()) GameSettings.read(root)?.settings ?: return@withContext Applied.failed(CommandProblem.GAME_SETTINGS_UNAVAILABLE) else null
+        val changedIdentity = identity?.let(input::appliedTo)
+        val changedGame = game?.let(input::appliedTo)
+        changedIdentity?.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
+        changedGame?.validate()?.let { (reason, arguments) -> return@withContext Applied.failed(Rejection(reason, arguments)) }
+        GradlePropertiesFile.update(root) { text ->
+            val withIdentity = changedIdentity?.writtenTo(text) ?: text
+            changedGame?.writtenTo(withIdentity, input.gameKeys()) ?: withIdentity
+        }
+        Applied(inverse = Invocation(SetProjectSettings, input.revertedTo(identity, game)))
     }
 
     override fun mergeKey(input: Input): Any? = "project-settings:" + input.namedSettings().joinToString()
@@ -65,6 +87,20 @@ public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
         @SerialName("vendor") val vendor: String? = null,
         @Description("One line about the game, empty for none.")
         @SerialName("description") val description: String? = null,
+        @Description("The Scene the game starts with. " + Descriptions.SCENE_NAME)
+        @SerialName("firstScene") val firstScene: String? = null,
+        @Description(
+            "How the viewport fits the window: dynamic shows as many scene units as the window has pixels; fitHorizontal always " +
+                "shows viewportWidth across; fitVertical viewportHeight down; fixed exactly viewportWidth by viewportHeight with bars " +
+                "around it; stretched the same, stretched to the window.",
+        )
+        @SerialName("aspectRatio") val aspectRatio: AspectRatio? = null,
+        @Description("The viewport's width in scene units, from 1, for fitHorizontal, fixed, and stretched.")
+        @SerialName("viewportWidth") val viewportWidth: Float? = null,
+        @Description("The viewport's height in scene units, from 1, for fitVertical, fixed, and stretched.")
+        @SerialName("viewportHeight") val viewportHeight: Float? = null,
+        @Description("The updates per second the game is limited to, from 1, or 0 for every frame the display shows.")
+        @SerialName("frameRate") val frameRate: Int? = null,
     ) {
         public fun appliedTo(identity: GameIdentity): GameIdentity = identity.copy(
             name = name ?: identity.name,
@@ -75,16 +111,44 @@ public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
             description = description ?: identity.description,
         )
 
+        public fun appliedTo(settings: GameSettings): GameSettings = settings.copy(
+            firstScene = firstScene ?: settings.firstScene,
+            aspectRatio = aspectRatio ?: settings.aspectRatio,
+            viewportWidth = viewportWidth ?: settings.viewportWidth,
+            viewportHeight = viewportHeight ?: settings.viewportHeight,
+            frameRate = frameRate ?: settings.frameRate,
+        )
+
         /**
-         * What sets the settings this changes back to their values in [identity].
+         * What sets the settings this changes back to their values in [identity] and [settings].
          */
-        internal fun revertedTo(identity: GameIdentity) = Input(
-            name = name?.let { identity.name },
-            versionName = versionName?.let { identity.versionName },
-            versionNumber = versionNumber?.let { identity.versionNumber },
-            applicationId = applicationId?.let { identity.applicationId },
-            vendor = vendor?.let { identity.vendor },
-            description = description?.let { identity.description },
+        internal fun revertedTo(identity: GameIdentity?, settings: GameSettings?) = Input(
+            name = name?.let { identity?.name },
+            versionName = versionName?.let { identity?.versionName },
+            versionNumber = versionNumber?.let { identity?.versionNumber },
+            applicationId = applicationId?.let { identity?.applicationId },
+            vendor = vendor?.let { identity?.vendor },
+            description = description?.let { identity?.description },
+            firstScene = firstScene?.let { settings?.firstScene },
+            aspectRatio = aspectRatio?.let { settings?.aspectRatio },
+            viewportWidth = viewportWidth?.let { settings?.viewportWidth },
+            viewportHeight = viewportHeight?.let { settings?.viewportHeight },
+            frameRate = frameRate?.let { settings?.frameRate },
+        )
+
+        internal fun namesIdentity() = listOf(name, versionName, versionNumber, applicationId, vendor, description).any { it != null }
+
+        internal fun namesGame() = gameKeys().isNotEmpty()
+
+        /**
+         * The `gradle.properties` keys of the game's settings this changes.
+         */
+        internal fun gameKeys() = listOfNotNull(
+            firstScene?.let { GameSettings.FIRST_SCENE },
+            aspectRatio?.let { GameSettings.ASPECT_RATIO },
+            viewportWidth?.let { GameSettings.VIEWPORT_WIDTH },
+            viewportHeight?.let { GameSettings.VIEWPORT_HEIGHT },
+            frameRate?.let { GameSettings.FRAME_RATE },
         )
 
         internal fun namedSettings() = listOfNotNull(
@@ -94,6 +158,6 @@ public object SetProjectSettings : WriteCommand<SetProjectSettings.Input> {
             applicationId?.let { "applicationId" },
             vendor?.let { "vendor" },
             description?.let { "description" },
-        )
+        ) + gameKeys()
     }
 }

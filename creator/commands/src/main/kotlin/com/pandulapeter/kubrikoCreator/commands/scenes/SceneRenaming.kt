@@ -15,13 +15,15 @@ import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.GameSettings
 import com.pandulapeter.kubrikoCreator.project.ProjectTree
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 
 /**
- * Moves the Scene [oldName] to [newName], with every goToScene Block, and says in the console which hand-written Kotlin
- * files still name it.
+ * Moves the Scene [oldName] to [newName], with every goToScene Block and the game's first Scene, and says in the console
+ * which hand-written Kotlin files still name it.
  *
  * @return Whether the file was moved; if it wasn't, nothing changed.
  */
@@ -34,11 +36,27 @@ internal suspend fun CommandContext.renameScene(oldName: String, newName: String
             if (renamed != definition) blockTypes.put(renamed)
         }
     }
+    try {
+        withContext(ioDispatcher) { followFirstScene(project.rootDirectory, oldName, newName) }
+    } catch (exception: IOException) {
+        report(ConsoleEntry.Status(CommandProblem.FIRST_SCENE_NOT_FOLLOWED, isError = true, arguments = listOf(oldName, exception.message ?: exception.toString())))
+    }
     withContext(ioDispatcher) { handWrittenFilesNaming(project.rootDirectory, oldName) }.forEach { path ->
         report(ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf(path, oldName, newName)))
     }
     return true
 }
+
+@EditorMutation
+private fun followFirstScene(rootDirectory: File, oldName: String, newName: String) {
+    val settings = firstSceneSettings(rootDirectory)?.takeIf { it.firstScene == oldName } ?: return
+    GameSettings.write(rootDirectory, settings.copy(firstScene = newName), listOf(GameSettings.FIRST_SCENE))
+}
+
+/**
+ * The game's settings, if its build reads them and its first Scene is one it can read.
+ */
+internal fun firstSceneSettings(rootDirectory: File) = GameSettings.read(rootDirectory)?.takeIf { GameSettings.FIRST_SCENE !in it.invalidKeys }?.settings
 
 /**
  * Why the Scene [name] couldn't be moved.

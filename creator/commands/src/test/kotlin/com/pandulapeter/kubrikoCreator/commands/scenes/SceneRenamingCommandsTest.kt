@@ -117,4 +117,66 @@ class SceneRenamingCommandsTest {
             deep.setWritable(true)
         }
     }
+
+    private fun CommandContext.startingWith(firstScene: String?): File {
+        File(project.rootDirectory, "build.gradle.kts").writeText("val gameFirstScene = providers.gradleProperty(\"game.firstScene\")\n")
+        return File(project.rootDirectory, "gradle.properties").apply { writeText("game.name=Game\n" + firstScene?.let { "game.firstScene=$it\n" }.orEmpty()) }
+    }
+
+    @Test
+    fun theFirstSceneFollowsItsRenamesAndThoseOfItsFolder() = runTest {
+        val context = context()
+        val properties = context.startingWith("main")
+        assertEquals("game.name=Game\ngame.firstScene=levels/1-1\n", context.assertRoundTrip(Invocation(RenameScene, RenameScene.Input("main", "levels/1-1"))) { properties.readText() })
+        RenameScene.apply(context, RenameScene.Input("main", "levels/1-1"))
+        RenameScene.apply(context, RenameScene.Input("level-2", "levels/2"))
+        assertEquals("game.name=Game\ngame.firstScene=levels/1-1\n", properties.readText(), "another Scene's rename")
+        RenameFolder.apply(context, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))
+        assertEquals("game.name=Game\ngame.firstScene=world/1-1\n", properties.readText())
+    }
+
+    @Test
+    fun aFirstSceneLeftToItsDefaultFollowsToo() = runTest {
+        val context = context()
+        val properties = context.startingWith(firstScene = null)
+        RenameScene.apply(context, RenameScene.Input("main", "start"))
+        assertEquals("game.name=Game\ngame.firstScene=start\n", properties.readText())
+    }
+
+    @Test
+    fun theFirstSceneIsNotFollowedWhereTheBuildDoesntReadIt() = runTest {
+        val context = context()
+        val properties = File(context.project.rootDirectory, "gradle.properties").apply { writeText("game.firstScene=main\n") }
+        RenameScene.apply(context, RenameScene.Input("main", "start"))
+        assertEquals("game.firstScene=main\n", properties.readText())
+    }
+
+    @Test
+    fun aFirstSceneThatCantBeFollowedIsReportedAndTheRenameStays() = runTest {
+        val context = context()
+        context.startingWith("main")
+        val root = context.project.rootDirectory
+        root.setWritable(false)
+        try {
+            assumeFalse(root.canWrite())
+            assertEquals(null, RenameScene.apply(context, RenameScene.Input("main", "start")).failure)
+            assertEquals(listOf("level-2", "start"), context.scenes.names())
+            val report = reports.filterIsInstance<ConsoleEntry.Status>().single { it.text == CommandProblem.FIRST_SCENE_NOT_FOLLOWED }
+            assertEquals("main", report.arguments.first())
+        } finally {
+            root.setWritable(true)
+        }
+    }
+
+    @Test
+    fun theFirstSceneCantBeDeleted() = runTest {
+        val context = context()
+        context.startingWith("level-2")
+        assertEquals(Rejection(CommandProblem.SCENE_IS_FIRST, "level-2"), DeleteScene.apply(context, DeleteScene.Input("level-2")).failure)
+        assertEquals(listOf("level-2", "main"), context.scenes.names())
+        assertEquals(null, DeleteScene.apply(context, DeleteScene.Input("main")).failure)
+        context.startingWith(firstScene = null)
+        RenameScene.apply(context, RenameScene.Input("level-2", "main"))
+        assertEquals(Rejection(CommandProblem.SCENE_IS_FIRST, "main"), DeleteScene.apply(context, DeleteScene.Input("main")).failure, "the default first Scene")
+    }
 }

@@ -32,7 +32,9 @@ import kubriko.creator.generated.resources.error_command_description_invalid
 import kubriko.creator.generated.resources.error_command_event_missing
 import kubriko.creator.generated.resources.error_command_event_not_allowed
 import kubriko.creator.generated.resources.error_command_failed
+import kubriko.creator.generated.resources.error_command_first_scene_not_followed
 import kubriko.creator.generated.resources.error_command_game_notes_too_long
+import kubriko.creator.generated.resources.error_command_game_settings_unavailable
 import kubriko.creator.generated.resources.error_command_generated_code_not_written
 import kubriko.creator.generated.resources.error_command_index_invalid
 import kubriko.creator.generated.resources.error_command_input_invalid
@@ -65,6 +67,7 @@ import kubriko.creator.generated.resources.error_command_scene_actor_not_block_b
 import kubriko.creator.generated.resources.error_command_scene_actor_without_position
 import kubriko.creator.generated.resources.error_command_scene_content_invalid
 import kubriko.creator.generated.resources.error_command_scene_invalid
+import kubriko.creator.generated.resources.error_command_scene_is_first
 import kubriko.creator.generated.resources.error_command_scene_missing
 import kubriko.creator.generated.resources.error_command_size_invalid
 import kubriko.creator.generated.resources.error_command_sound_missing
@@ -140,6 +143,8 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PARENT_CYCLE -> Res.string.error_command_parent_cycle
     CommandProblem.PARENT_PROPERTY_KIND -> Res.string.error_command_parent_property_kind
     CommandProblem.PLAY_DURATION_INVALID -> Res.string.error_command_play_duration_invalid
+    CommandProblem.FIRST_SCENE_NOT_FOLLOWED -> Res.string.error_command_first_scene_not_followed
+    CommandProblem.GAME_SETTINGS_UNAVAILABLE -> Res.string.error_command_game_settings_unavailable
     CommandProblem.PROJECT_SETTINGS_EMPTY -> Res.string.error_command_project_settings_empty
     CommandProblem.PROJECT_SETTINGS_UNAVAILABLE -> Res.string.error_command_project_settings_unavailable
     CommandProblem.PROPERTY_INHERITED -> Res.string.error_command_property_inherited
@@ -155,6 +160,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.SCENE_ACTOR_WITHOUT_POSITION -> Res.string.error_command_scene_actor_without_position
     CommandProblem.SCENE_CONTENT_INVALID -> Res.string.error_command_scene_content_invalid
     CommandProblem.SCENE_INVALID -> Res.string.error_command_scene_invalid
+    CommandProblem.SCENE_IS_FIRST -> Res.string.error_command_scene_is_first
     CommandProblem.SCENE_MISSING -> Res.string.error_command_scene_missing
     CommandProblem.SIZE_INVALID -> Res.string.error_command_size_invalid
     CommandProblem.SOUND_MISSING -> Res.string.error_command_sound_missing

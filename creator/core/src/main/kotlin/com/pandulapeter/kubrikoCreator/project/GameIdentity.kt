@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import java.io.File
 
 /**
@@ -65,7 +64,7 @@ public data class GameIdentity(
         public const val APPLICATION_ID: String = "game.applicationId"
         public const val VENDOR: String = "game.vendor"
         public const val DESCRIPTION: String = "game.description"
-        public const val GRADLE_PROPERTIES_FILE: String = "gradle.properties"
+        public const val GRADLE_PROPERTIES_FILE: String = GradlePropertiesFile.NAME
         public const val BUILD_FILE: String = "build.gradle.kts"
         public const val DEFAULT_VERSION_NAME: String = "1.0.0"
         internal const val MAXIMUM_NAME_LENGTH = 100
@@ -97,15 +96,11 @@ public data class GameIdentity(
          */
         public fun read(rootDirectory: File): GameIdentity? {
             if (!isReadByBuild(rootDirectory)) return null
-            return File(rootDirectory, GRADLE_PROPERTIES_FILE).takeIf { it.isFile }?.let { of(it.readText()) }
+            return GradlePropertiesFile.read(rootDirectory)?.let(::of)
         }
 
         @EditorMutation
-        public fun write(rootDirectory: File, identity: GameIdentity) {
-            val file = File(rootDirectory, GRADLE_PROPERTIES_FILE)
-            val raw = if (file.isFile) file.readText() else ""
-            file.writeTextAtomically(identity.writtenTo(raw.withUnixLineBreaks()).withLineBreaksOf(raw))
-        }
+        public fun write(rootDirectory: File, identity: GameIdentity): Unit = GradlePropertiesFile.update(rootDirectory, identity::writtenTo)
 
         internal fun isReadByBuild(rootDirectory: File) = File(rootDirectory, BUILD_FILE).takeIf { it.isFile }?.readText()?.let { NAME in it } == true
     }
