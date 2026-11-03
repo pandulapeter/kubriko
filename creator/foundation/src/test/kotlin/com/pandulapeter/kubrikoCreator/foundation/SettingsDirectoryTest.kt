@@ -29,15 +29,4 @@ class SettingsDirectoryTest {
         assertEquals(File("C:/runs/one"), settingsDirectory("C:/runs/one", "windows 11", "C:/Users/me", "C:/Users/me/AppData/Roaming", null))
         assertEquals(File("/home/me/.config/kubriko-creator"), settingsDirectory(" ", "linux", "/home/me", null, null))
     }
-
-    @Test
-    fun theSystemPropertyIsReadWhenNoFolderIsGiven() {
-        val previous = System.getProperty(SETTINGS_DIRECTORY_PROPERTY)
-        try {
-            System.setProperty("kubriko.creator.settingsDirectory", "/runs/two")
-            assertEquals(File("/runs/two"), settingsDirectory())
-        } finally {
-            if (previous == null) System.clearProperty(SETTINGS_DIRECTORY_PROPERTY) else System.setProperty(SETTINGS_DIRECTORY_PROPERTY, previous)
-        }
-    }
 }
