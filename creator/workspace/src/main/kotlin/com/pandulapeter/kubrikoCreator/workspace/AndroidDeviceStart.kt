@@ -67,7 +67,7 @@ internal class AndroidDeviceStart(
                 ConsoleEntry.Status(
                     WorkspaceStatus.ANDROID_EMULATOR_TIMED_OUT,
                     isError = true,
-                    arguments = listOf(name, (bootTimeoutInMilliseconds / 60_000).toString()),
+                    arguments = listOf(name, minutesOf(bootTimeoutInMilliseconds)),
                 ),
             )
         }

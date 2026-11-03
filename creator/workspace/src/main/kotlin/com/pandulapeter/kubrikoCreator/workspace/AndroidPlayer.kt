@@ -80,7 +80,7 @@ internal class AndroidPlayer(
             if (INCOMPATIBLE_UPDATE in result.output) {
                 ConsoleEntry.Status(WorkspaceStatus.ANDROID_INSTALL_INCOMPATIBLE, isError = true, arguments = listOf(name))
             } else {
-                ConsoleEntry.Status(WorkspaceStatus.ANDROID_INSTALL_FAILED, isError = true, arguments = listOf(name, reasonOf(result)))
+                ConsoleEntry.Status(WorkspaceStatus.ANDROID_INSTALL_FAILED, isError = true, arguments = listOf(name, failureReasonOf(result.output, result.exitCode)))
             },
         )
         return false
@@ -92,7 +92,7 @@ internal class AndroidPlayer(
      */
     private suspend fun launch(shell: List<String>, applicationId: String, firstScene: String?, name: String): String? {
         fun failed(result: ToolResult): String? {
-            console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_NOT_STARTED, isError = true, arguments = listOf(name, reasonOf(result))))
+            console.append(ConsoleEntry.Status(WorkspaceStatus.ANDROID_NOT_STARTED, isError = true, arguments = listOf(name, failureReasonOf(result.output, result.exitCode))))
             return null
         }
         tools.run(shell + listOf("shell", "am", "force-stop", applicationId), COMMAND_TIMEOUT_IN_MILLISECONDS)
@@ -166,10 +166,6 @@ internal class AndroidPlayer(
 
         data object Unknown : ProcessCheck
     }
-
-    private fun reasonOf(result: ToolResult) = result.output.lines().map(String::trim).let { lines ->
-        lines.firstOrNull { "Failure" in it || it.startsWith("Error") } ?: lines.lastOrNull { it.isNotEmpty() }
-    } ?: "exit code ${result.exitCode}"
 
     internal companion object {
         const val BUILD_TASK_PATH = ":androidApp:assembleDebug"

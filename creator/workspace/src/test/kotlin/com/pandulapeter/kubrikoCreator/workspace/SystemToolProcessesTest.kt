@@ -53,8 +53,12 @@ class SystemToolProcessesTest {
 
     @Test
     fun aCommandThatRunsTooLongOrCantStartHasNoExitCode() = blockingTest {
-        assertNull(SystemToolProcesses.run(game(mode = "sleep"), 200).exitCode)
-        assertNull(SystemToolProcesses.run(listOf(missing), 1_000).exitCode)
+        val timedOut = SystemToolProcesses.run(game(mode = "sleep"), 200)
+        assertNull(timedOut.exitCode)
+        assertTrue(timedOut.hasTimedOut)
+        val notStarted = SystemToolProcesses.run(listOf(missing), 1_000)
+        assertNull(notStarted.exitCode)
+        assertFalse(notStarted.hasTimedOut)
         assertNull(SystemToolProcesses.stream(listOf(missing)) {})
     }
 

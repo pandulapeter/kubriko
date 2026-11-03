@@ -37,11 +37,13 @@ public interface ToolProcesses {
  * How a command [ToolProcesses.run] ran ended.
  *
  * @param exitCode Null if it couldn't be started, or ran out of time.
- * @param output What it printed, its errors included.
+ * @param output What it printed, its errors included, or why it couldn't be started.
+ * @param hasTimedOut Whether it was stopped for running out of time.
  */
 public data class ToolResult(
     public val exitCode: Int?,
     public val output: String,
+    public val hasTimedOut: Boolean = false,
 ) {
     /**
      * Whether it ended with exit code 0.

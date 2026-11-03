@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
  * [ToolProcesses] as processes of this computer, each killed when Kubriko Creator exits but those started detached.
  */
 internal object SystemToolProcesses : ToolProcesses {
-    private const val OUTPUT_TAIL_SIZE = 30
+    private const val STOP_WAIT_IN_MILLISECONDS = 5_000L
 
     /**
      * Its output goes to a file rather than a pipe, since a process it starts that keeps running (the server the first
@@ -47,7 +47,7 @@ internal object SystemToolProcesses : ToolProcesses {
             } finally {
                 LiveGameProcesses.remove(process)
             }
-            ToolResult(exitCode = if (hasEnded) process.exitValue() else null, output = log.readText())
+            ToolResult(exitCode = if (hasEnded) process.exitValue() else null, output = log.readText(), hasTimedOut = !hasEnded)
         } finally {
             log.delete()
         }
@@ -71,8 +71,7 @@ internal object SystemToolProcesses : ToolProcesses {
                 try {
                     runInterruptible { process.waitFor() }
                 } catch (exception: CancellationException) {
-                    process.descendants().forEach(ProcessHandle::destroyForcibly)
-                    process.destroyForcibly()
+                    stop(process)
                     throw exception
                 }
                 reading.join()
@@ -81,6 +80,15 @@ internal object SystemToolProcesses : ToolProcesses {
         } finally {
             LiveGameProcesses.remove(process)
         }
+    }
+
+    /**
+     * Asks [process] to end, so that it can end what it started (`xcodebuild` its Gradle build) without the daemons
+     * those leave running for the next build being killed, and kills it if it doesn't within [STOP_WAIT_IN_MILLISECONDS].
+     */
+    private fun stop(process: Process) {
+        process.destroy()
+        if (!process.waitFor(STOP_WAIT_IN_MILLISECONDS, TimeUnit.MILLISECONDS)) process.destroyForcibly()
     }
 
     /**
@@ -99,7 +107,7 @@ internal object SystemToolProcesses : ToolProcesses {
         }
         return object : DetachedTool {
             override val exitCode get() = if (process.isAlive) null else process.exitValue()
-            override val output get() = runCatching { log.readLines().takeLast(OUTPUT_TAIL_SIZE) }.getOrDefault(emptyList())
+            override val output get() = runCatching { log.readLines().takeLast(OutputTail.DEFAULT_SIZE) }.getOrDefault(emptyList())
         }
     }
 }
