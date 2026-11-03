@@ -44,10 +44,10 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when
   the size changes.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
-  editor (`07-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
-  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`05-reuse-and-traits.md`).
+  editor (`08-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
+  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`06-reuse-and-traits.md`).
 - **More Events:** removed from the Scene, key released and held, left the
-  Scene bounds (as opposed to touching the edge). Pointer and gamepad Events come with their Traits (`05-reuse-and-traits.md`).
+  Scene bounds (as opposed to touching the edge). Pointer and gamepad Events come with their Traits (`06-reuse-and-traits.md`).
 - **More drag and drop:** dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
@@ -56,7 +56,7 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 A Block naming an Actor type, Scene, sound, or Timer that no longer exists keeps the name and generates a comment, so the game
 quietly stops doing it, while the Block card looks exactly as before (`ActorTypeChoice`, `SceneChoice`, `AudioFileChoice`). Show
 such a Block with a warning ("Brick no longer exists") from `BlockScope.actorTypeNames`, `sceneNames`, and `audioFiles`, list them
-in the console after a delete, and offer them to find usages (`04-resource-organization.md`).
+in the console after a delete, and offer them to find usages (`05-resource-organization.md`).
 
 ## Convert to code
 

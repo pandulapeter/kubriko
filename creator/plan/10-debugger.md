@@ -14,7 +14,8 @@
   instances from `CreatorEntryPoint` (`02-ai-assistant.md` → projects reporting them), and reaches projects with a later
   release, offered only to sessions that report the capability.
 - **Panels in Creator:** Actors, Inspector, Logs, and a frame-time graph, next to Play.
-- **Other targets:** Android through `adb reverse`, web through a WebSocket variant of the protocol.
+- **Other targets:** Android through `adb reverse`, web through a WebSocket variant of the protocol, for the games
+  `03-playing-on-every-target.md` starts there, which then get the game tools and the console the desktop has.
 - **IntelliJ users** can add the agent to a debug build and attach Creator to a game they started themselves.
 
 ## Retiring the debug menu

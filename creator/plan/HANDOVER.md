@@ -20,7 +20,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
   its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
 - Creator is AI-centric. `02-ai-assistant.md` is built except what needs a real session or someone else's work:
   Codex's profile (Codex is out of quota until Nov 21, 2026), ACP protocol 2 and its `systemPrompt` field (not final, not in the
-  Kotlin SDK), Actors' states for the AI (needs `09-debugger.md`), the registry's icons (each vendor's trademark rules), and the
+  Kotlin SDK), Actors' states for the AI (needs `10-debugger.md`), the registry's icons (each vendor's trademark rules), and the
   smaller follow-ups the file lists.
 
 ## Next
@@ -36,7 +36,9 @@ a half-written change when a write fails, brackets in strings or comments ending
 `/Applications`, the bundle ID when iOS is turned on again, and two duplicated helpers. No end-to-end scenario was added: the integration
 test covers the real builds and playing's classpath after the toggles.
 
-Next in `03-settings.md` is Release, then Icons and Signing, each extending the same dialog and tools. Then `04` to `07` in order.
+Next is `03-playing-on-every-target.md`, in its order: choosing where to play, then the web, Android, and the iOS simulator. Then
+`04-settings.md`'s Release, Icons, and Signing, each extending the same dialog and tools, after which `03`'s iOS devices can follow
+Signing. Then `05` to `08` in order.
 What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## Before a release

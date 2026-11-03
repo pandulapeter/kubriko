@@ -13,7 +13,7 @@
 
 Two variants, named the same on every platform:
 
-- **Debug** is what Play already runs: the play session, logging, Play from this Scene, hot reload, and the debugger (`09-debugger.md`).
+- **Debug** is what Play already runs: the play session, logging, Play from this Scene, hot reload, and the debugger (`10-debugger.md`).
   Exporting it is offered only where someone else runs it: an Android debug APK for testers, and an unminified web build with source maps.
   Desktop has no debug export, since Play is that.
 - **Release** is what Export makes, and the only variant a player gets: shrunk, optimized, obfuscated where the platform can be, and with
@@ -37,7 +37,7 @@ Two variants, named the same on every platform:
 
 | Platform | Release build |
 |---|---|
-| Desktop | Compose's release packaging with ProGuard: shrinking, optimization, and obfuscation, with the rules from `app/desktop/proguard-rules.pro` written into the project (desktop ProGuard reads no consumer rules) and the user's own from Project settings. Needs a JDK with `jmods`, so the JDK Creator downloads (`12-onboarding.md`) must be a full one. |
+| Desktop | Compose's release packaging with ProGuard: shrinking, optimization, and obfuscation, with the rules from `app/desktop/proguard-rules.pro` written into the project (desktop ProGuard reads no consumer rules) and the user's own from Project settings. Needs a JDK with `jmods`, so the JDK Creator downloads (`13-onboarding.md`) must be a full one. |
 | Web | The Kotlin/Wasm production distribution: dead code elimination, Binaryen's optimizer, and webpack's minified JavaScript. Names are stripped rather than obfuscated, which is what Wasm offers. Exported as static files, zipped. |
 | Android | R8 in full mode with `isMinifyEnabled` and `isShrinkResources`; the engine's consumer rules ship with its artifact. |
 | iOS | The Kotlin/Native release framework (optimized, no debug info) in Xcode's Release configuration; Kotlin/Native has no obfuscation step. |
@@ -51,19 +51,19 @@ smoke-tests it by starting it and waiting a few seconds for a crash.
 | Target | How | Signing |
 |---|---|---|
 | Web | The Wasm distribution task, zipped as static files | None |
-| Android | Android SDK command-line tools downloaded by Creator after the user accepts the licenses; APK and AAB. Adding the SDK also lets templates gain an Android target (a project with one can't even be configured without the SDK). | Keystore created with `keytool` into a signing profile (`03-settings.md` → Signing), stored outside the project with a prominent backup reminder, passwords in the OS keychain |
+| Android | Android SDK command-line tools downloaded by Creator after the user accepts the licenses; APK and AAB. Adding the SDK also lets templates gain an Android target (a project with one can't even be configured without the SDK). | Keystore created with `keytool` into a signing profile (`04-settings.md` → Signing), stored outside the project with a prominent backup reminder, passwords in the OS keychain |
 | Windows | `packageExe` / `packageMsi`, on Windows only | Authenticode through `signtool`, the user's certificate |
 | macOS | `packageDmg`, on macOS only | Signing and notarization with the user's Apple Developer account |
 | Linux | `packageDeb` / `packageRpm`, on Linux only | None standard |
 | iOS | `xcodebuild`, on macOS with Xcode only | The user's Apple Developer account |
 
 Desktop installers build only for the host OS; an optional generated GitHub Actions workflow builds all three (as this repository does for the
-Showcase). Every export is the release variant (above), named and versioned from Project settings (`03-settings.md`), and signed with the
+Showcase). Every export is the release variant (above), named and versioned from Project settings (`04-settings.md`), and signed with the
 signing profile the project names there; keystores and certificates stay outside the project.
 
 ## Distributing Creator
 
 - One installer per OS with `jpackage`. Its bundled runtime can't start Gradle (jpackage strips `bin/`), so Creator downloads a full JDK 21 into
-  its data folder on first launch, alongside Gradle, and points the Tooling API at it (the setup screen in `12-onboarding.md`).
+  its data folder on first launch, alongside Gradle, and points the Tooling API at it (the setup screen in `13-onboarding.md`).
 - Update checks that offer, never install silently; its own release workflow and test job.
 - A Creator release follows each Kubriko release, since opted-in projects use Creator's own Kubriko version (`../CLAUDE.md` → Library side).
