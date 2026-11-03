@@ -25,13 +25,12 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-`00-end-to-end-checks.md` → Settling Not yet verified is done except for one run: `UpgradingAndPlayingTest`, the new
-scenario that covers what the deleted list still needed a played game for, is written but has never run. Run it headless (the `Tests`
-workflow's `creator-end-to-end` job through a manual dispatch, after a push the user approves, or under Xvfb in a Linux
-container), look at its images, fix what it finds, and then delete `00-end-to-end-checks.md`. Never run a scenario on the user's Mac,
-where the game tools bring windows to the front.
+The end-to-end checks' pass is done: Not yet verified is settled, and both scenarios (`OpeningAndPlayingTest` and
+`UpgradingAndPlayingTest`) pass headless in `Tests`' `creator-end-to-end` job. `UpgradingAndPlayingTest` found that stopping a game
+while a hot reload ran could start it again (fixed in `GameReloader`). Never run a scenario on the user's Mac, where the game tools
+bring windows to the front.
 
-After that, Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the
+Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the
 dialog behind the toolbar's settings menu, and `get_project_settings` / `set_project_settings`). Next is Targets, then Release,
 Icons, and Signing, each extending the same dialog and tools. Then `04` to `07` in order. What is left in
 `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
