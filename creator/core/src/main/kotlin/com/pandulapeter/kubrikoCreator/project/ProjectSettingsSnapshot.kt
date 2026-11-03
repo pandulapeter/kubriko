@@ -32,10 +32,16 @@ public data class ProjectSettingsSnapshot(
          * The settings of the project in [rootDirectory], whose Block-built types are [definitions]. Reads its files, so
          * it is called off the main thread.
          */
-        public fun read(rootDirectory: File, definitions: List<BlockTypeDefinition>, scenes: SceneStore): ProjectSettingsSnapshot = ProjectSettingsSnapshot(
+        public fun read(rootDirectory: File, definitions: List<BlockTypeDefinition>, scenes: SceneStore): ProjectSettingsSnapshot =
+            readSettings(rootDirectory, scenes).copy(libraries = LibraryInUse.read(rootDirectory, definitions, scenes))
+
+        /**
+         * The settings of the project in [rootDirectory] without its [libraries], which take reading every source.
+         */
+        public fun readSettings(rootDirectory: File, scenes: SceneStore): ProjectSettingsSnapshot = ProjectSettingsSnapshot(
             identity = GameIdentity.read(rootDirectory),
             game = GameSettings.read(rootDirectory),
-            libraries = LibraryInUse.read(rootDirectory, definitions, scenes),
+            libraries = emptyList(),
             scenes = scenes.names(),
         )
     }
