@@ -100,7 +100,7 @@ Besides its tests passing, a change:
   choice of the project's contents (types, Scenes, sprites, audio files, Properties), which grow without bound (it filters once
   there are more than eight; `KeyChoiceButton` ranks keys by the same `matchingOptions`), and `PanelWidths` with `sidePanel` and
   `PanelSplitter` for every side panel; in command tests
-  `CommandTesting.kt` in `:creator:commands' test fixtures (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
+  `CommandTesting.kt` in `:creator:commands`' test fixtures (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
   and their contracts).
 - Has its unhappy paths designed: what happens when it throws, when it is cancelled, when it is called again while the first call
   runs, when a file has Windows line breaks, and when its file changes outside Creator.
