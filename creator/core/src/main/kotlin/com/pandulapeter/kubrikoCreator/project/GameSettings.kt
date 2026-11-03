@@ -88,7 +88,8 @@ public data class GameSettings(
 
         /**
          * The settings [text] (a `gradle.properties`) holds, reading a missing key as its default, and the keys whose
-         * values the build can't read, as the build file's block parses them.
+         * values the build can't read, as the build file's block parses them: the viewport's width and height only when
+         * the aspect ratio uses them.
          */
         public fun of(text: String): GameSettingsReading {
             val invalidKeys = mutableListOf<String>()
@@ -96,16 +97,19 @@ public data class GameSettings(
                 val raw = GradleProperties.valueOf(text, key) ?: return default
                 return parse(raw.trim()) ?: default.also { invalidKeys += key }
             }
+            val aspectRatio = value(ASPECT_RATIO, AspectRatio.DYNAMIC, AspectRatio::ofKey)
             val settings = GameSettings(
                 firstScene = value(FIRST_SCENE, DEFAULT_FIRST_SCENE) { it.takeIf(SceneNaming::isValid) },
-                aspectRatio = value(ASPECT_RATIO, AspectRatio.DYNAMIC, AspectRatio::ofKey),
+                aspectRatio = aspectRatio,
                 viewportWidth = value(VIEWPORT_WIDTH, DEFAULT_VIEWPORT_WIDTH) { it.toFloatOrNull()?.takeIf(::isValidViewportSize) },
                 viewportHeight = value(VIEWPORT_HEIGHT, DEFAULT_VIEWPORT_HEIGHT) { it.toFloatOrNull()?.takeIf(::isValidViewportSize) },
                 frameRate = value(FRAME_RATE, DEFAULT_FRAME_RATE) { raw ->
                     if (raw == DISPLAY_FRAME_RATE_VALUE) EVERY_DISPLAY_FRAME else raw.toIntOrNull()?.takeIf { it in 1..MAXIMUM_FRAME_RATE }
                 },
             )
-            return GameSettingsReading(settings, invalidKeys)
+            if (!aspectRatio.usesWidth) invalidKeys -= VIEWPORT_WIDTH
+            if (!aspectRatio.usesHeight) invalidKeys -= VIEWPORT_HEIGHT
+            return GameSettingsReading(settings, invalidKeys.sortedBy(ALL_KEYS::indexOf))
         }
 
         /**

@@ -65,11 +65,17 @@ class GameSettingsTest {
         assertEquals(GameSettingsReading(GameSettings()), GameSettings.of(""))
         assertEquals(GameSettingsReading(GameSettings(frameRate = 144, viewportWidth = 800f)), GameSettings.of("game.frameRate= 144 \ngame.viewportWidth=8e2\n"))
         assertEquals(
-            GameSettingsReading(
-                GameSettings(),
-                listOf(GameSettings.FIRST_SCENE, GameSettings.ASPECT_RATIO, GameSettings.VIEWPORT_WIDTH, GameSettings.VIEWPORT_HEIGHT, GameSettings.FRAME_RATE),
-            ),
+            GameSettingsReading(GameSettings(), listOf(GameSettings.FIRST_SCENE, GameSettings.ASPECT_RATIO, GameSettings.FRAME_RATE)),
             GameSettings.of("game.firstScene=my scene\ngame.aspectRatio=Dynamic\ngame.viewportWidth=NaN\ngame.viewportHeight=0\ngame.frameRate=60.0\n"),
+        )
+        assertEquals(
+            GameSettingsReading(GameSettings(aspectRatio = AspectRatio.FIXED), listOf(GameSettings.VIEWPORT_WIDTH, GameSettings.VIEWPORT_HEIGHT)),
+            GameSettings.of("game.aspectRatio=fixed\ngame.viewportWidth=NaN\ngame.viewportHeight=0\n"),
+        )
+        assertEquals(
+            GameSettingsReading(GameSettings(aspectRatio = AspectRatio.FIT_VERTICAL)),
+            GameSettings.of("game.aspectRatio=fitVertical\ngame.viewportWidth=wide\n"),
+            "the width a mode doesn't use, which the build doesn't read either",
         )
     }
 

@@ -19,16 +19,14 @@ val generateGameSettings by tasks.registering {
         fun value(key: String) = values.getValue(key).get().trim()
         fun size(key: String) = value(key).toFloatOrNull()?.takeIf { it in 1f..100000f }
             ?: throw GradleException("$key in gradle.properties is a number from 1 to 100000, not \"${value(key)}\".")
-        val viewportWidth = size("game.viewportWidth")
-        val viewportHeight = size("game.viewportHeight")
-        val width = "${viewportWidth}f.sceneUnit"
-        val height = "${viewportHeight}f.sceneUnit"
+        fun width() = "${size("game.viewportWidth")}f.sceneUnit"
+        fun height() = "${size("game.viewportHeight")}f.sceneUnit"
         val aspectRatioMode = when (val mode = value("game.aspectRatio")) {
             "dynamic" -> "ViewportManager.AspectRatioMode.Dynamic"
-            "fitHorizontal" -> "ViewportManager.AspectRatioMode.FitHorizontal($width)"
-            "fitVertical" -> "ViewportManager.AspectRatioMode.FitVertical($height)"
-            "fixed" -> "ViewportManager.AspectRatioMode.Fixed(ratio = ${viewportWidth / viewportHeight}f, width = $width)"
-            "stretched" -> "ViewportManager.AspectRatioMode.Stretched(SceneSize($width, $height))"
+            "fitHorizontal" -> "ViewportManager.AspectRatioMode.FitHorizontal(${width()})"
+            "fitVertical" -> "ViewportManager.AspectRatioMode.FitVertical(${height()})"
+            "fixed" -> "ViewportManager.AspectRatioMode.Fixed(ratio = ${size("game.viewportWidth") / size("game.viewportHeight")}f, width = ${width()})"
+            "stretched" -> "ViewportManager.AspectRatioMode.Stretched(SceneSize(${width()}, ${height()}))"
             else -> throw GradleException("game.aspectRatio in gradle.properties is dynamic, fitHorizontal, fitVertical, fixed, or stretched, not \"$mode\".")
         }
         val frameRate = when (val rate = value("game.frameRate")) {
