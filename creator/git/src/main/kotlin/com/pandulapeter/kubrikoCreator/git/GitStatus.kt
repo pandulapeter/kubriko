@@ -9,15 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.git
 
+import com.pandulapeter.kubrikoCreator.foundation.DomainText
+
 /**
- * A change as Kubriko Creator shows it: one file, or an Actor type or Manager type (its definition and its generated code
- * together).
- *
- * @param title The type's name, or the file's path.
+ * What version control reports in the console, and why its operations fail.
  */
-internal data class ChangeEntry(
-    val title: String,
-    val kind: ChangeKind,
-    val paths: List<String>,
-    val isBlockType: Boolean,
-)
+public enum class GitStatus(override val english: String) : DomainText {
+    COMMITTED("The changes are committed."),
+    FAILED("The version control operation failed."),
+    REPOSITORY_CREATED("The project is now under version control."),
+}

@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -36,7 +37,7 @@ import java.io.IOException
  * @param createRepository Makes the project a repository, committing everything with the given message.
  * @param generatedPath Where the project's generated code lives, for grouping it with its Actor types.
  */
-internal class GitController(
+public class GitController(
     private val openRepository: () -> GitRepository?,
     private val createRepository: (message: String) -> GitRepository,
     private val generatedPath: String?,
@@ -46,7 +47,10 @@ internal class GitController(
     private val firstCommitMessage: String = "Start version control with Kubriko Creator.",
 ) {
     private val _state = MutableStateFlow<GitState>(GitState.Loading)
-    val state = _state.asStateFlow()
+    /**
+     * What the version control panel shows, updated after every operation.
+     */
+    public val state: StateFlow<GitState> = _state.asStateFlow()
     private val operations = Mutex()
     private val refreshes = Channel<Unit>(Channel.CONFLATED)
 
@@ -66,7 +70,10 @@ internal class GitController(
         refresh()
     }
 
-    fun refresh() {
+    /**
+     * Reads the repository again, in the background.
+     */
+    public fun refresh() {
         refreshes.trySend(Unit)
     }
 
@@ -77,7 +84,7 @@ internal class GitController(
      * @return What happened. Only a commit is reported; the caller reports the rest.
      */
     @EditorMutation
-    suspend fun commit(message: String): CommitResult {
+    public suspend fun commit(message: String): CommitResult {
         val result = perform { repository ->
             if (repository == null) return@perform GitState.NoRepository to CommitResult.Failed
             val status = repository.status()
@@ -100,7 +107,7 @@ internal class GitController(
      * @return Whether the changes were discarded.
      */
     @EditorMutation
-    suspend fun discard(paths: Collection<String>) = perform { repository ->
+    public suspend fun discard(paths: Collection<String>): Boolean = perform { repository ->
         repository?.discard(paths)
         (repository?.let { readState(it) } ?: GitState.NoRepository) to Unit
     } != null
@@ -109,7 +116,7 @@ internal class GitController(
      * @return Whether the repository was created.
      */
     @EditorMutation
-    suspend fun startVersionControl(): Boolean {
+    public suspend fun startVersionControl(): Boolean {
         val isCreated = perform { readState(createRepository(firstCommitMessage)) to Unit } != null
         if (isCreated) report(ConsoleEntry.Status(GitStatus.REPOSITORY_CREATED))
         return isCreated

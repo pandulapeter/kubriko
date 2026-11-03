@@ -10,11 +10,14 @@
 package com.pandulapeter.kubrikoCreator.git
 
 /**
- * What a repository looks like right now.
+ * One commit of the history.
  *
- * @param branch The checked-out branch, or null when no branch is checked out.
+ * @param id The commit's abbreviated hash.
+ * @param time When it was committed, in milliseconds since the epoch.
  */
-internal data class RepositoryStatus(
-    val branch: String?,
-    val changes: List<FileChange>,
+public data class CommitSummary(
+    public val id: String,
+    public val message: String,
+    public val author: String,
+    public val time: Long,
 )

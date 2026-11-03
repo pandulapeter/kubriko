@@ -10,15 +10,14 @@
 package com.pandulapeter.kubrikoCreator.git
 
 /**
- * How a file differs from the last commit.
+ * A change as Kubriko Creator shows it: one file, or an Actor type or Manager type (its definition and its generated code
+ * together).
+ *
+ * @param title The type's name, or the file's path.
  */
-internal enum class ChangeKind {
-    ADDED,
-    MODIFIED,
-    DELETED,
-
-    /**
-     * Left in conflict by a merge that git couldn't finish on its own.
-     */
-    CONFLICTING,
-}
+public data class ChangeEntry(
+    public val title: String,
+    public val kind: ChangeKind,
+    public val paths: List<String>,
+    public val isBlockType: Boolean,
+)

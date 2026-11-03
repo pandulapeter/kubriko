@@ -12,22 +12,25 @@ package com.pandulapeter.kubrikoCreator.git
 /**
  * The git operations Kubriko Creator offers. Every call blocks, so callers run them off the main thread.
  */
-internal interface GitRepository {
+public interface GitRepository {
 
-    fun status(): RepositoryStatus
+    /**
+     * The checked-out branch and every file that differs from the last commit.
+     */
+    public fun status(): RepositoryStatus
 
     /**
      * Records every change (new, changed, and deleted files alike) in a new commit.
      */
-    fun commitAll(message: String)
+    public fun commitAll(message: String)
 
     /**
      * The most recent commits, newest first; nothing for a repository without commits.
      */
-    fun history(limit: Int): List<CommitSummary>
+    public fun history(limit: Int): List<CommitSummary>
 
     /**
      * Restores [paths] to how the last commit has them, deleting the ones it doesn't have.
      */
-    fun discard(paths: Collection<String>)
+    public fun discard(paths: Collection<String>)
 }

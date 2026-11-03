@@ -62,11 +62,11 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 
 Creator is being split into Gradle modules, in `PackageLayeringTest`'s layer order: foundation, ui-components, core,
 gradle-session, git, template, commands, ai, scene-runtime, workspace, and the app (`:creator`, which keeps the rest until its
-module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), and `:creator:ui-components`
+module is extracted). Extracted so far: `:creator:foundation` (`foundation`, `console`), `:creator:core` (the model: `actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`, with no Tooling API, JGit, Ktor, MCP, ACP, or engine dependency), `:creator:gradle-session` (Gradle and game sessions: `gradle`, `session`, and the session init script, with the session protocol in its API), `:creator:git` (version control through JGit, which stays out of its API), and `:creator:ui-components`
 (`ui.components`, `ui.theme`, with their own resources and the UI test fixtures). Each child module applies `kubriko-creator-module`, whose explicit API mode makes what another module uses `public` and leaves the rest `internal`.
 Test helpers other modules share live in a module's `src/testFixtures` (reached through
 `testImplementation(testFixtures(projects.creator.<module>))`; foundation's hold the Creator-independent ones of `testing/`
-and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`; gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`), and `PackageLayeringTest` keeps every file in its module's layer.
+and `creatorSourceRoots()` for tests that read the sources; core's hold `FakeBlockTypeRepository` and `EveryBlockTypes`; gradle-session's `FakeProjectBuild`, `FakeSessionChannel`, and `GameProcessTestGame`; git's `FakeGitRepository`), and `PackageLayeringTest` keeps every file in its module's layer.
 
 ## Definition of done
 

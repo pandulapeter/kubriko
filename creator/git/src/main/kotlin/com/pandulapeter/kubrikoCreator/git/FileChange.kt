@@ -10,14 +10,11 @@
 package com.pandulapeter.kubrikoCreator.git
 
 /**
- * One commit of the history.
+ * A file that differs from the last commit.
  *
- * @param id The commit's abbreviated hash.
- * @param time When it was committed, in milliseconds since the epoch.
+ * @param path The file's path relative to the repository root, with forward slashes.
  */
-internal data class CommitSummary(
-    val id: String,
-    val message: String,
-    val author: String,
-    val time: Long,
+public data class FileChange(
+    public val path: String,
+    public val kind: ChangeKind,
 )
