@@ -11,7 +11,11 @@ package com.pandulapeter.kubrikoCreator.endToEnd
 
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.mcp.McpSettings
+import com.pandulapeter.kubrikoCreator.testing.TestPorts
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -25,6 +29,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class CreatorToolsTest {
 
@@ -56,6 +61,23 @@ class CreatorToolsTest {
                 }
             }
             assertEquals("Kubriko Creator quit before a project was open. No project is open in Kubriko Creator.", failure.message)
+        }
+    }
+
+    @Test
+    fun theWaitEndsAtItsTimeoutWithTheLastProblem() = runTest {
+        withServedTools {
+            val failure = assertFailsWith<IllegalStateException> { tools.awaitOpenProject(timeout = 2.seconds) { true } }
+            assertEquals("Kubriko Creator didn't open the project within 2s. No project is open in Kubriko Creator.", failure.message)
+        }
+    }
+
+    @Test
+    fun aServerThatIsntThereIsProbedAgainUntilTheTimeout() = runTest {
+        val tools = CreatorTools(McpSettings(isEnabled = true, port = TestPorts.shared.next(), token = "nobody"))
+        tools.use {
+            val failure = withContext(Dispatchers.IO) { assertFailsWith<IllegalStateException> { tools.awaitOpenProject(timeout = 2.seconds) { true } } }
+            assertContains(failure.message.orEmpty(), "Kubriko Creator didn't open the project within 2s. The MCP server didn't answer: ")
         }
     }
 
