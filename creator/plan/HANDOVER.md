@@ -25,12 +25,9 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `03-playing-on-every-target.md` with the iOS simulator, shipped and reviewed on its own: it adds its kind to
-`PlayTarget.Kind`, a source and its start to `TargetPlayers`, and runs `simctl` and `xcodebuild` through `ToolProcesses`, as
-`AndroidPlayer` does `adb` and `emulator`. Then `04-screenplay.md`, an important feature that shouldn't wait longer, then
-`05-settings.md`'s Release, Icons, and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS
-devices can follow Signing. Then `06` to `09` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI
-elements, git) or for the benchmarks.
+Start `04-screenplay.md`, an important feature that shouldn't wait longer, then `05-settings.md`'s Release, Icons, and Signing,
+each extending the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. Then `06` to `09` in
+order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 Owed: the end-to-end scenario's last step (`UpgradingAndPlayingTest`, Breakout played on the web in headless Chrome through
 `start_game`) has never run, since it needs Linux; dispatch `Tests` once the commits are pushed (ask first) and look at
@@ -39,17 +36,21 @@ Owed: the end-to-end scenario's last step (`UpgradingAndPlayingTest`, Breakout p
 What the last session did, all reviewed:
 
 - **Log Blocks printing** (`49e4f73ba`, `cec5dce4f`): Kubriko's `Logger` only keeps entries, so nothing a Log Block logged
-  reached the browser's console (which the web's console line claimed) or a device's output. Each Log Block now also prints
-  on one line while logging is on, and the Scene loader prints its failures. The review moved the print from a new
-  `KubrikoWiring` function into each Block, since a project with a hand-changed wiring would stop building.
-- **Android** (`a9a817dd2`, `de4a44029..dddcea6ce`): Play's menu lists connected devices and emulators (by virtual device)
-  once the Android target is on; playing builds `:androidApp:assembleDebug` while an emulator that isn't running starts, then
-  installs, starts with the switches as intent extras, and streams the app's printed lines and errors from `logcat`; Stop
-  force-stops it. Every launch state and failure is unit tested against `FakeToolProcesses`, and this Mac's real `adb` and
-  `emulator` output matched the parsers. The review fixed a single failed `pidof` ending the game, Stop during installing or
-  starting leaving the app running, the build going on after the device couldn't be used, a tool's child holding a run past
-  its timeout, `System.err` lines being dropped, a game that ends at once being reported with a meaningless reason, and an
-  emulator ending as it times out being reported with nothing.
+  reached the browser's console or a device's output. Each Log Block now also prints on one line while logging is on, and the
+  Scene loader prints its failures; the print is generated into each Block, since a hand-changed `KubrikoWiring` would lack
+  a function of its own.
+- **Android** (`a9a817dd2`, `de4a44029..dddcea6ce`): devices and emulators in Play's menu; an emulator starts while
+  `:androidApp:assembleDebug` builds; the app is installed, started with the switches, logged from `logcat`, and
+  force-stopped by Stop. This Mac's real `adb` and `emulator` output matched the parsers. The review fixed a failed `pidof`
+  ending the game, Stop while starting, the build outliving an unusable device, a tool's child holding a run past its
+  timeout, `System.err` lines, and two misleading failure messages.
+- **iOS simulator** (`f20f4cf56`, `a1ce20e40`, `0a2367c2c`): simulators in Play's menu once the target is on and Xcode is
+  there; one booted while Xcode builds the app, then installed and started with `simctl launch --console-pty`, whose output
+  is the console; Stop terminates it. A real headless launch on this Mac showed `simctl` names the app's process sometimes
+  after its first lines, which the code now allows for. The review fixed Xcode's build skipping the pending writes and the
+  build lock, a Scene name `NSUserDefaults` would read as an array, a stopped build killing Gradle's daemons, a stale app
+  installed, and an exit code, an unreadable simulator list, and a boot that couldn't start being reported as something else.
+  Once, the full suite failed early without showing what (run quietly); three full runs since passed.
 
 ## Before a release
 
@@ -66,7 +67,8 @@ never item by item.
   played again, and going between Scenes with the same and different music.
 - A game with Android and iOS turned on running on a phone or tablet of each (the integration test builds both apps but never
   launches them), and Play on a real Android phone and emulator: an emulator started from the menu, the console's logs, Stop,
-  unplugging the phone mid-game, and a phone that hasn't allowed debugging yet.
+  unplugging the phone mid-game, and a phone that hasn't allowed debugging yet; and Play on an iOS simulator with a real game:
+  the Simulator app showing it, Log Blocks in the console, starting from a Scene, and Stop.
 - The Scene editor's middle-button pan and scroll pan with a real mouse wheel.
 - A real Claude sign-in through the browser (with a scratch `CLAUDE_CONFIG_DIR`) and a real API key in the macOS keychain.
 - The Linux (`secret-tool`) and Windows (Credential Locker) secret stores.
