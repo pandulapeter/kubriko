@@ -26,7 +26,7 @@ Requires **JDK 21** (the Kotlin Multiplatform toolchain pins language version 21
 ./gradlew :app:web:wasmJsBrowserDevelopmentRun   # Run the Showcase app in a browser
 ./gradlew :app:android:installDebug   # Install the Showcase app on a connected Android device/emulator
 ./gradlew desktopTest                 # Run the unit tests of every module on the desktop JVM
-./gradlew :creator:run                # Run Kubriko Creator against this repository's libraries, published to Maven Local first (settings.gradle.kts adds that to any :creator:run)
+./gradlew :creator:run                # Run Kubriko Creator against this repository's libraries, published to Maven Local first (settings.gradle.kts adds that to any run of it, from the root or creator/)
 ./gradlew :creator:allTests           # Run every Kubriko Creator module's unit tests (plain JVM modules, so not part of desktopTest); :creator:<module>:test runs one
                                       # KUBRIKO_CREATOR_INTEGRATION=true also builds every project template for real (see creator/CLAUDE.md)
 node engine/src/webMain/checkTriangleBridge.mjs  # Check the bridge's embedded JS

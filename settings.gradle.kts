@@ -13,15 +13,18 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 // Kubriko Creator run from this repository always uses this repository's libraries, published to Maven Local first, so
 // that the projects it opens never point at a Kubriko version that isn't released yet (creator/CLAUDE.md). An explicit
 // -Pcreator.localKubriko=false runs it against the released libraries instead.
+// Every way of starting it counts: its run tasks by path, or by name from the root or creator/ (where `run` alone runs it).
 gradle.startParameter.let { startParameter ->
-    val creatorRunTasks = setOf(":creator:run", "creator:run")
-    if (startParameter.taskNames.none { it in creatorRunTasks } || startParameter.projectProperties["creator.localKubriko"] == "false") return@let
-    val publishTasks = listOf(
-        "publishDesktopPublicationToMavenLocal",
-        "publishWasmJsPublicationToMavenLocal",
-        "publishKotlinMultiplatformPublicationToMavenLocal",
-    )
-    startParameter.setTaskNames(publishTasks + startParameter.taskNames.filter { it !in publishTasks })
+    val creatorRunTasks = setOf("run", "runDistributable", "runRelease", "runReleaseDistributable")
+    val isInCreatorOrRoot = startParameter.currentDir.canonicalFile.let { it == settingsDir.canonicalFile || it == settingsDir.resolve("creator").canonicalFile }
+    fun startsCreator(task: String) = when {
+        task.startsWith(":creator:") -> task.removePrefix(":creator:") in creatorRunTasks
+        task.startsWith("creator:") -> task.removePrefix("creator:") in creatorRunTasks
+        else -> ':' !in task && task in creatorRunTasks && isInCreatorOrRoot
+    }
+    if (startParameter.taskNames.none(::startsCreator) || startParameter.projectProperties["creator.localKubriko"] == "false") return@let
+    // An absolute path, so that it publishes every library even when Gradle was started in creator/.
+    startParameter.setTaskNames(listOf(":publishCreatorLibraries") + startParameter.taskNames)
     startParameter.projectProperties = startParameter.projectProperties + ("creator.localKubriko" to "true")
 }
 pluginManagement {

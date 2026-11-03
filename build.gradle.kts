@@ -24,3 +24,13 @@ plugins {
     alias(libs.plugins.vanniktech.publish) apply false
     id("kubriko-style")
 }
+
+// What settings.gradle.kts publishes before Kubriko Creator's development run: the libraries for the targets it plays and
+// edits on, from whichever folder Gradle was started in.
+tasks.register("publishCreatorLibraries") {
+    group = "publishing"
+    description = "Publishes the desktop and web libraries to Maven Local as Kubriko Creator's development run uses them."
+    val publishTasks = setOf("publishDesktopPublicationToMavenLocal", "publishWasmJsPublicationToMavenLocal", "publishKotlinMultiplatformPublicationToMavenLocal")
+    // By name, since asking for the tasks themselves would create every task of every project.
+    dependsOn(provider { subprojects.flatMap { subproject -> subproject.tasks.names.filter { it in publishTasks }.map { "${subproject.path}:$it" } } })
+}
