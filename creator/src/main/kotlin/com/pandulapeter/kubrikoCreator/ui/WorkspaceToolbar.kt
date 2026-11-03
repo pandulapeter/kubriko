@@ -134,23 +134,7 @@ internal fun WorkspaceToolbar(
             ButtonContent(Res.drawable.ic_stop, Res.string.action_stop)
         }
     }
-    sessionState.description()?.let { description ->
-        if (sessionState is SessionState.Starting) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
-                strokeWidth = 2.dp,
-            )
-        }
-        Text(
-            modifier = Modifier.weight(1f, fill = false),
-            text = stringResource(description),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-    Spacer(Modifier.weight(1f))
+    SessionStatus(sessionState)
     HistoryButtons(
         history = history,
         onUndo = onUndo,
@@ -200,6 +184,34 @@ internal fun WorkspaceToolbar(
         label = Res.string.action_close_project,
         onClick = onCloseProject,
     )
+}
+
+/**
+ * What the game is doing, taking the toolbar's free space so the buttons after it stay at its end however long it is.
+ */
+@Composable
+private fun RowScope.SessionStatus(
+    sessionState: SessionState,
+) {
+    val description = sessionState.description()
+    if (sessionState is SessionState.Starting) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(16.dp),
+            strokeWidth = 2.dp,
+        )
+    }
+    if (description == null) {
+        Spacer(Modifier.weight(1f))
+    } else {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = stringResource(description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }
 
 @Composable
