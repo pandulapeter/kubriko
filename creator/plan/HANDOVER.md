@@ -27,8 +27,11 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 The end-to-end checks' pass is done: Not yet verified is settled, and both scenarios (`OpeningAndPlayingTest` and
 `UpgradingAndPlayingTest`) pass headless in `Tests`' `creator-end-to-end` job. `UpgradingAndPlayingTest` found that stopping a game
-while a hot reload ran could start it again (fixed in `GameReloader`). Never run a scenario on the user's Mac, where the game tools
-bring windows to the front.
+while a hot reload ran could start it again (fixed in `GameReloader`, and `SessionController.restart` now restarts only a session
+that runs). Its review ran: it fixed the restart race, a reload reported for a stopped game, the card colors built on every
+recomposition, and the scenarios' measurements. One finding was left as is: `AssistantCard` gives its whole content the stronger
+outline color, which suits whatever else a card may hold too. Never run a scenario on the user's Mac, where the game tools bring
+windows to the front.
 
 Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the
 dialog behind the toolbar's settings menu, and `get_project_settings` / `set_project_settings`). Next is Targets, then Release,
