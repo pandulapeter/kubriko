@@ -25,6 +25,14 @@ class BlockTypeEditorColumnsTest {
     fun aNarrowerEditorNarrowsTheColumnsEvenlyDownToTheirNarrowest() {
         assertEquals(BlockTypeEditorColumns(235.dp, 250.dp, 200.dp), BlockTypeEditorColumns.of(1_005.dp))
         assertEquals(BlockTypeEditorColumns(220.dp, 220.dp, 180.dp), BlockTypeEditorColumns.of(940.dp))
-        assertEquals(BlockTypeEditorColumns(220.dp, 220.dp, 180.dp), BlockTypeEditorColumns.of(700.dp))
+    }
+
+    @Test
+    fun anEditorTooNarrowEvenForThatFoldsTheDetailsAndThenThePaletteIntoTabsBesideTheEvents() {
+        assertEquals(BlockTypeEditorColumns(240.dp, 240.dp, 180.dp, BlockTypeEditorColumns.Folded.DETAILS), BlockTypeEditorColumns.of(939.dp))
+        assertEquals(BlockTypeEditorColumns(240.dp, 240.dp, 180.dp, BlockTypeEditorColumns.Folded.DETAILS), BlockTypeEditorColumns.of(740.dp))
+        assertEquals(BlockTypeEditorColumns(240.dp, 240.dp, 180.dp, BlockTypeEditorColumns.Folded.DETAILS_AND_PALETTE), BlockTypeEditorColumns.of(739.dp))
+        assertEquals(BlockTypeEditorColumns(200.dp, 200.dp, 180.dp, BlockTypeEditorColumns.Folded.DETAILS_AND_PALETTE), BlockTypeEditorColumns.of(500.dp))
+        assertEquals(BlockTypeEditorColumns(180.dp, 180.dp, 180.dp, BlockTypeEditorColumns.Folded.DETAILS_AND_PALETTE), BlockTypeEditorColumns.of(400.dp))
     }
 }

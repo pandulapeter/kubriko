@@ -13,13 +13,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * The widths of the side panels beside the workspace's editors.
+ * The sizes of the panels around the workspace's editors: the side panels' widths and the console's height.
  */
 public object PanelWidths {
 
     /**
-     * A side panel the user can resize, with its [default] width, the [side] of its splitter it is on, and the [id] its
-     * width is kept under in Creator's settings, which must never change.
+     * A panel the user can resize, with its [default] width (its height for a [PanelSide.BOTTOM] one), the [side] of its
+     * splitter it is on, and the [id] its size is kept under in Creator's settings, which must never change.
      */
     public enum class Panel(
         public val default: Dp,
@@ -31,5 +31,6 @@ public object PanelWidths {
         VERSION_CONTROL(300.dp, "versionControl", PanelSide.END),
         SCENE_ACTORS(220.dp, "sceneActors", PanelSide.START),
         SCENE_INSPECTOR(260.dp, "sceneInspector", PanelSide.END),
+        CONSOLE(200.dp, "console", PanelSide.BOTTOM),
     }
 }

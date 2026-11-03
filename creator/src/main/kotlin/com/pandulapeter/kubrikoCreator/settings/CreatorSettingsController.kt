@@ -54,12 +54,12 @@ internal class CreatorSettingsController(
      */
     fun setDefaultProjectFolder(folder: File?) = update { it.copy(defaultProjectFolder = folder?.absolutePath) }
 
-    fun setPanelWidth(panel: Panel, width: Dp) = update { it.copy(panelWidths = it.panelWidths + (panel.id to width.value)) }
+    fun setPanelSize(panel: Panel, size: Dp) = update { it.copy(panelWidths = it.panelWidths + (panel.id to size.value)) }
 
     /**
-     * Gives [panel] its default width again.
+     * Gives [panel] its default size again.
      */
-    fun resetPanelWidth(panel: Panel) = update { it.copy(panelWidths = it.panelWidths - panel.id) }
+    fun resetPanelSize(panel: Panel) = update { it.copy(panelWidths = it.panelWidths - panel.id) }
 
     /**
      * Waits until the last change is saved, which quitting does so that a setting changed just before it is kept. Saves

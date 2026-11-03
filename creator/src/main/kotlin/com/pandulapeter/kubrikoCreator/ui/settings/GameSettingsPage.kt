@@ -10,8 +10,9 @@
 package com.pandulapeter.kubrikoCreator.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,12 +41,9 @@ import kubriko.creator.generated.resources.project_settings_first_scene
 import kubriko.creator.generated.resources.project_settings_frame_rate
 import kubriko.creator.generated.resources.project_settings_frame_rate_display
 import kubriko.creator.generated.resources.project_settings_frame_rate_limit
-import kubriko.creator.generated.resources.project_settings_game_description
-import kubriko.creator.generated.resources.project_settings_section_game
 import kubriko.creator.generated.resources.project_settings_unreadable_keys
 import kubriko.creator.generated.resources.project_settings_viewport_height
 import kubriko.creator.generated.resources.project_settings_viewport_width
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -54,13 +52,12 @@ import org.jetbrains.compose.resources.stringResource
  * @param scenes The project's Scenes, which the game can start with.
  */
 @Composable
-internal fun GameSettingsSection(
+internal fun GameSettingsPage(
     reading: GameSettingsReading,
     scenes: List<String>,
     onChange: (SetProjectSettings.Input) -> Unit,
-) = SettingsSection(
-    title = Res.string.project_settings_section_game,
-    description = Res.string.project_settings_game_description,
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     val settings = reading.settings
     // A key the build can't read shows its default, which choosing has to write all the same.
@@ -68,7 +65,7 @@ internal fun GameSettingsSection(
     if (reading.invalidKeys.isNotEmpty()) {
         ProblemText(stringResource(Res.string.project_settings_unreadable_keys, reading.invalidKeys.joinToString()))
     }
-    SettingRow(Res.string.project_settings_first_scene) {
+    SettingsRow(label = stringResource(Res.string.project_settings_first_scene)) {
         SearchableChoiceButton(
             label = settings.firstScene,
             options = scenes,
@@ -79,7 +76,10 @@ internal fun GameSettingsSection(
     if (settings.firstScene !in scenes) {
         ProblemText(CommandProblem.SCENE_MISSING.text(listOf(settings.firstScene)))
     }
-    SettingRow(Res.string.project_settings_aspect_ratio) {
+    SettingsRow(
+        label = stringResource(Res.string.project_settings_aspect_ratio),
+        description = stringResource(settings.aspectRatio.description),
+    ) {
         MenuButton(
             label = stringResource(settings.aspectRatio.label),
             options = AspectRatio.entries,
@@ -87,12 +87,6 @@ internal fun GameSettingsSection(
             onSelected = { if (isChange(it == settings.aspectRatio, GameSettings.ASPECT_RATIO)) onChange(SetProjectSettings.Input(aspectRatio = it)) },
         )
     }
-    Text(
-        modifier = Modifier.padding(start = LABEL_WIDTH),
-        text = stringResource(settings.aspectRatio.description),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
     if (settings.aspectRatio.usesWidth || settings.aspectRatio.usesHeight) {
         ViewportSizeFields(
             settings = settings,
@@ -100,7 +94,7 @@ internal fun GameSettingsSection(
             onChange = onChange,
         )
     }
-    SettingRow(Res.string.project_settings_frame_rate) {
+    SettingsRow(label = stringResource(Res.string.project_settings_frame_rate)) {
         MenuButton(
             label = frameRateText(settings.frameRate),
             options = frameRateOptions(settings.frameRate),
@@ -126,8 +120,8 @@ private fun ViewportSizeFields(
         if (problem == null) onChange(input)
     }
     Row(
-        modifier = Modifier.padding(start = LABEL_WIDTH).onFocusChanged { if (!it.hasFocus) problem = null },
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().onFocusChanged { if (!it.hasFocus) problem = null },
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
     ) {
         if (settings.aspectRatio.usesWidth) {
             NumberField(
@@ -157,24 +151,8 @@ private fun frameRateText(frameRate: Int) = if (frameRate == GameSettings.EVERY_
 }
 
 /**
- * A setting's [label] beside its [control].
+ * A problem with the settings, in the error color.
  */
-@Composable
-private fun SettingRow(
-    label: StringResource,
-    control: @Composable () -> Unit,
-) = Row(
-    verticalAlignment = Alignment.CenterVertically,
-) {
-    Text(
-        modifier = Modifier.width(LABEL_WIDTH),
-        text = stringResource(label),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    control()
-}
-
 @Composable
 private fun ProblemText(
     text: String,
@@ -185,4 +163,3 @@ private fun ProblemText(
 )
 
 private val SIZE_FIELD_WIDTH = 120.dp
-private val LABEL_WIDTH = 120.dp

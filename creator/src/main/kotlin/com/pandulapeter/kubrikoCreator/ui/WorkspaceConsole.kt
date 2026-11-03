@@ -16,27 +16,41 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.Dp
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
+import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
+import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
+import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelHeight
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * The workspace's [Console], collecting its entries itself, so that a line the game logs recomposes only the console.
- * It opens on its own for entries that need attention.
+ * The workspace's console under a splitter that resizes it (opening it when it is closed), in a column [availableHeight]
+ * tall. It opens by itself for entries worth seeing.
  */
 @Composable
 internal fun WorkspaceConsole(
     entries: StateFlow<List<ConsoleEntry>>,
     onClear: () -> Unit,
+    panelLayout: PanelLayout,
+    availableHeight: Dp,
 ) {
     val console by entries.collectAsState()
     var isExpanded by remember { mutableStateOf(false) }
     LaunchedEffect(console.lastOrNull()) {
         if (console.lastOrNull()?.opensConsole == true) isExpanded = true
     }
+    val height = rememberPanelHeight(Panel.CONSOLE, panelLayout)
+    PanelSplitter(
+        state = height,
+        availableHeight = availableHeight,
+        onDrag = { isExpanded = true },
+    )
     Console(
         entries = console,
         isExpanded = isExpanded,
         onExpandedChange = { isExpanded = it },
         onClear = onClear,
+        listHeight = height.heightIn(availableHeight),
     )
 }

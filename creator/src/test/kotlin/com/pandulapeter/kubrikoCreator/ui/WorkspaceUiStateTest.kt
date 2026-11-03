@@ -20,7 +20,7 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class WorkspaceUiStateTest {
-    private val uiState = WorkspaceUiState(AiPanelView.ASSISTANT)
+    private val uiState = WorkspaceUiState()
 
     private fun step(id: Int) = AiStep(id = id, toolName = "add_block", target = CommandTarget.BlockType("Ball"), isRunning = false)
 
@@ -86,8 +86,7 @@ class WorkspaceUiStateTest {
     }
 
     @Test
-    fun theInitialAiViewComesFromTheMcpSetting() {
-        assertEquals(AiPanelView.OWN_TOOL, WorkspaceUiState(AiPanelView.OWN_TOOL).aiPanelView)
+    fun theAiPanelOpensOnTheAssistant() {
         assertEquals(AiPanelView.ASSISTANT, uiState.aiPanelView)
         uiState.selectAiPanelView(AiPanelView.GAME_MAP)
         assertEquals(AiPanelView.GAME_MAP, uiState.aiPanelView)

@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Switch
@@ -33,18 +35,20 @@ import org.jetbrains.compose.resources.stringResource
  * The parameters of a Block that changes a Property: which of the Properties in [scope] (of the kind the Block needs)
  * it changes, and the value.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun PropertyBlockParameters(
     block: BlockDefinition,
     scope: BlockScope,
     onBlockChange: (BlockDefinition) -> Unit,
-) = Row(
+) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+    itemVerticalAlignment = Alignment.CenterVertically,
 ) {
-    val reference = block.propertyReference ?: return@Row
+    val reference = block.propertyReference ?: return@FlowRow
     PropertyChoice(reference, scope) { onBlockChange(block.withPropertyReference(it.manager, it.name)) }
-    if (propertyChoices(scope, reference.kind).isEmpty()) return@Row
+    if (propertyChoices(scope, reference.kind).isEmpty()) return@FlowRow
     when (block) {
         is BlockDefinition.SetNumber -> NumberField(
             modifier = Modifier.width(96.dp),

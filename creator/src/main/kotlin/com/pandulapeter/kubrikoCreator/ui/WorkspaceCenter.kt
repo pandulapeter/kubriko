@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.Inheritance
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
+import com.pandulapeter.kubrikoCreator.ui.components.fadeInOnChange
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
@@ -71,11 +72,12 @@ internal fun WorkspaceCenter(
     onCloseScene: () -> Unit,
     onSceneViewFailed: (revision: Int, exception: Throwable, isShowingOlderClasses: Boolean) -> Unit,
 ) {
+    val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
     val family = remember(actorTypes) { ActorTypeFamily(actorTypes) }
     when (sceneEditing) {
         is SceneEditingState.Open -> SceneEditorPane(
-            modifier = modifier,
+            modifier = contentModifier,
             state = sceneEditing,
             onCommand = { onCommand(it) {} },
             actorTypeDragState = actorTypeDragState,
@@ -89,19 +91,19 @@ internal fun WorkspaceCenter(
             onViewFailed = { exception, isShowingOlderClasses -> onSceneViewFailed(sceneEditing.revision, exception, isShowingOlderClasses) },
         )
         is SceneEditingState.Unsupported -> SceneNotice(
-            modifier = modifier,
+            modifier = contentModifier,
             sceneName = sceneEditing.scene.name,
             message = sceneEditing.reason.text(sceneEditing.arguments),
             onClose = onCloseScene,
         )
         is SceneEditingState.Failed -> SceneNotice(
-            modifier = modifier,
+            modifier = contentModifier,
             sceneName = sceneEditing.scene.name,
             message = sceneEditing.reason.text(sceneEditing.arguments),
             onClose = onCloseScene,
             onTryAgain = onReloadScene,
         )
-        is SceneEditingState.Preparing -> Box(modifier) {
+        is SceneEditingState.Preparing -> Box(contentModifier) {
             ProgressScreen(stringResource(Res.string.scene_preparing, sceneEditing.scene.name))
         }
         SceneEditingState.Closed -> Unit
@@ -111,7 +113,7 @@ internal fun WorkspaceCenter(
     if (sceneEditing == SceneEditingState.Closed && selectedBlockType != null) {
         key(selectedBlockType.name) {
             BlockTypeEditor(
-                modifier = modifier,
+                modifier = contentModifier,
                 definition = selectedBlockType,
                 scope = remember(selectedBlockType, blockTypes, resources, family) {
                     BlockScope.of(
@@ -141,7 +143,19 @@ internal fun WorkspaceCenter(
         }
     } else if (selection == WorkspaceSelection.None) {
         WorkspaceHint(
-            modifier = modifier,
+            modifier = contentModifier,
         )
     }
+}
+
+/**
+ * What the center shows, as far as a change of it should fade the new content in: a Scene by its name whatever its state
+ * (so its preview fades in after its progress), a type by its name, or the hint.
+ */
+internal fun shownContentKey(selection: WorkspaceSelection, sceneEditing: SceneEditingState): Any = when (sceneEditing) {
+    is SceneEditingState.Open -> sceneEditing.sceneName
+    is SceneEditingState.Unsupported -> sceneEditing.scene.name
+    is SceneEditingState.Failed -> sceneEditing.scene.name
+    is SceneEditingState.Preparing -> sceneEditing.scene.name
+    SceneEditingState.Closed -> selection
 }

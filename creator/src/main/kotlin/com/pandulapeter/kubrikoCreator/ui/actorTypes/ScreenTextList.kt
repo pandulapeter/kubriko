@@ -28,10 +28,17 @@ import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
+import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_text
 import kubriko.creator.generated.resources.action_remove
@@ -99,41 +106,47 @@ private fun ScreenTextRow(
     text: ScreenTextDefinition,
     onChange: (ScreenTextDefinition) -> Unit,
     onRemove: () -> Unit,
-) = Column(
-    verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val hover = rememberHoverRevealState()
+    val menu = rememberRightClickMenuState()
+    Column(
+        modifier = Modifier.hoverReveal(hover).rightClickMenu(menu),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        BufferedTextField(
-            modifier = Modifier.weight(1f),
-            value = text.text,
-            onValueChange = { onChange(text.copy(text = it)) },
-            label = stringResource(Res.string.manager_type_text),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            BufferedTextField(
+                modifier = Modifier.weight(1f),
+                value = text.text,
+                onValueChange = { onChange(text.copy(text = it)) },
+                label = stringResource(Res.string.manager_type_text),
+            )
+            IconActionButton(modifier = Modifier.revealedWhen(hover.isActive), icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
+            RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MenuButton(
+                label = stringResource(text.position.title),
+                options = ScreenPosition.entries,
+                optionText = { stringResource(it.title) },
+                onSelected = { onChange(text.copy(position = it)) },
+            )
+            NumberField(
+                modifier = Modifier.width(72.dp),
+                label = Res.string.manager_type_text_size,
+                value = text.size,
+                onValueChange = { if (it > 0f) onChange(text.copy(size = it)) },
+            )
+        }
+        ColorField(
+            modifier = Modifier.fillMaxWidth(),
+            color = text.color,
+            onColorChange = { onChange(text.copy(color = it)) },
         )
-        IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
     }
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        MenuButton(
-            label = stringResource(text.position.title),
-            options = ScreenPosition.entries,
-            optionText = { stringResource(it.title) },
-            onSelected = { onChange(text.copy(position = it)) },
-        )
-        NumberField(
-            modifier = Modifier.width(72.dp),
-            label = Res.string.manager_type_text_size,
-            value = text.size,
-            onValueChange = { if (it > 0f) onChange(text.copy(size = it)) },
-        )
-    }
-    ColorField(
-        modifier = Modifier.fillMaxWidth(),
-        color = text.color,
-        onColorChange = { onChange(text.copy(color = it)) },
-    )
 }

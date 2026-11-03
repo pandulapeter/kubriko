@@ -52,7 +52,7 @@ class WorkspaceCenterTest {
                     changedByHand = emptySet(),
                     shownAiStep = null,
                     actorTypeDragState = SidebarDragState(),
-                    panelLayout = PanelLayout(emptyMap(), onWidthChange = { _, _ -> }, onWidthReset = {}),
+                    panelLayout = PanelLayout(emptyMap(), onSizeChange = { _, _ -> }, onSizeReset = {}),
                     onCommand = { _, _ -> },
                     currentBlockType = { null },
                     onCommandIfValid = { null },

@@ -170,7 +170,7 @@ private fun Thought(
 ) = Column {
     var isExpanded by remember { mutableStateOf(false) }
     Row(
-        modifier = Modifier.clickable { isExpanded = !isExpanded }.padding(vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded }.padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(

@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -41,14 +40,29 @@ import kotlin.test.assertEquals
 class AiPanelPartsTest {
 
     @Test
-    fun theHeaderSwitchesBetweenTheAssistantAndTheUsersOwnToolWithTheMapBehindAButton() = uiTest {
+    fun theHeaderNamesTheAssistantAndKeepsTheUsersOwnToolAndTheMapInItsMenu() = uiTest {
         val selected = mutableListOf<AiPanelView>()
         showing { AiPanelHeader(view = AiPanelView.ASSISTANT, onViewSelected = { selected += it }) }
-        onNodeWithText("Assistant").assertIsSelected()
-        onNodeWithText("Your own AI tool").performClick()
-        onNodeWithContentDescription("What the AI knows about your game", substring = true).performClick()
-        assertEquals(listOf(AiPanelView.OWN_TOOL, AiPanelView.GAME_MAP), selected)
+        onNodeWithText("Assistant").assertExists()
+        onNodeWithText("Your own AI tool").assertDoesNotExist()
         saveSnapshot("ai-panel-header")
+        onNodeWithText("What the AI knows about your game").assertDoesNotExist()
+        onNodeWithContentDescription("More AI options").performClick()
+        saveSnapshot("ai-panel-menu")
+        onNodeWithText("Use your own AI tool instead").performClick()
+        onNodeWithContentDescription("More AI options").performClick()
+        onNodeWithText("What the AI knows about your game").performClick()
+        assertEquals(listOf(AiPanelView.OWN_TOOL, AiPanelView.GAME_MAP), selected)
+    }
+
+    @Test
+    fun theUsersOwnToolLeadsBackToTheAssistant() = uiTest {
+        val selected = mutableListOf<AiPanelView>()
+        showing { AiPanelHeader(view = AiPanelView.OWN_TOOL, onViewSelected = { selected += it }) }
+        onNodeWithText("Your own AI tool").assertExists()
+        onNodeWithContentDescription("Back to the Assistant").performClick()
+        assertEquals(listOf(AiPanelView.ASSISTANT), selected)
+        saveSnapshot("ai-panel-header-own-tool")
     }
 
     @Test

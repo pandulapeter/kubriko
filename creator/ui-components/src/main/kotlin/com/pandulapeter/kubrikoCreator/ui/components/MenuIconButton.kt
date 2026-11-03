@@ -37,7 +37,8 @@ public fun <T> MenuIconButton(
     optionText: @Composable (T) -> String,
     optionIcon: (T) -> DrawableResource?,
     onSelected: (T) -> Unit,
-): Unit = Box {
+    modifier: Modifier = Modifier,
+): Unit = Box(modifier) {
     var isExpanded by remember { mutableStateOf(false) }
     IconActionButton(
         icon = icon,

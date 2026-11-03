@@ -36,11 +36,18 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
+import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_property
 import kubriko.creator.generated.resources.action_remove
@@ -138,51 +145,56 @@ private fun PropertyRow(
     onChange: (PropertyDefinition) -> Unit,
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
-) = Column(
-    modifier = modifier,
-    verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val hover = rememberHoverRevealState()
+    val menu = rememberRightClickMenuState()
+    Column(
+        modifier = modifier.hoverReveal(hover).rightClickMenu(menu),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Icon(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(PropertyKind.of(property).icon),
-            contentDescription = stringResource(PropertyKind.of(property).title),
-            tint = MaterialTheme.colorScheme.tertiary,
-        )
-        PropertyNameField(
-            modifier = Modifier.weight(1f),
-            name = property.name,
-            otherNames = otherNames,
-            onRename = { onChange(property.withName(it)) },
-        )
-        IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
-    }
-    Row(
-        modifier = Modifier.padding(start = 22.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        when (property) {
-            is PropertyDefinition.Number -> NumberField(
-                modifier = Modifier.fillMaxWidth(),
-                label = Res.string.property_initial_value,
-                value = property.initialValue,
-                onValueChange = { onChange(property.copy(initialValue = it)) },
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(PropertyKind.of(property).icon),
+                contentDescription = stringResource(PropertyKind.of(property).title),
+                tint = MaterialTheme.colorScheme.tertiary,
             )
-            is PropertyDefinition.Text -> BufferedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = property.initialValue,
-                onValueChange = { onChange(property.copy(initialValue = it)) },
-                label = stringResource(Res.string.property_initial_value),
+            PropertyNameField(
+                modifier = Modifier.weight(1f),
+                name = property.name,
+                otherNames = otherNames,
+                onRename = { onChange(property.withName(it)) },
             )
-            is PropertyDefinition.Toggle -> LabeledSwitch(
-                modifier = Modifier.fillMaxWidth(),
-                label = stringResource(Res.string.property_toggle_initially_on),
-                checked = property.initialValue,
-                onCheckedChange = { onChange(property.copy(initialValue = it)) },
-            )
+            IconActionButton(modifier = Modifier.revealedWhen(hover.isActive), icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
+            RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
+        }
+        Row(
+            modifier = Modifier.padding(start = 22.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            when (property) {
+                is PropertyDefinition.Number -> NumberField(
+                    modifier = Modifier.fillMaxWidth(),
+                    label = Res.string.property_initial_value,
+                    value = property.initialValue,
+                    onValueChange = { onChange(property.copy(initialValue = it)) },
+                )
+                is PropertyDefinition.Text -> BufferedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = property.initialValue,
+                    onValueChange = { onChange(property.copy(initialValue = it)) },
+                    label = stringResource(Res.string.property_initial_value),
+                )
+                is PropertyDefinition.Toggle -> LabeledSwitch(
+                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(Res.string.property_toggle_initially_on),
+                    checked = property.initialValue,
+                    onCheckedChange = { onChange(property.copy(initialValue = it)) },
+                )
+            }
         }
     }
 }

@@ -17,9 +17,12 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
@@ -47,7 +50,9 @@ class ProjectSidebarTest {
         onCreateFolder = { _, _ -> null },
         onRenameFolder = { _, _, _ -> null },
         onDeleteFolder = { _, _ -> },
+        onDeleteItem = { group, name -> deletedItems += group to name },
     )
+    private val deletedItems = mutableListOf<Pair<FolderGroup, String>>()
 
     @Test
     fun theFilterNarrowsEverythingToMatchingNamesOpeningTheirFoldersAndEscapeBringsBackWhatWasCollapsed() = uiTest(width = 300, height = 600) {
@@ -72,6 +77,27 @@ class ProjectSidebarTest {
         onNode(hasSetTextAction()).performTextInput("zzz")
         onNodeWithText("Nothing matches.").assertExists()
         saveSnapshot("sidebar-filter-none")
+    }
+
+    @Test
+    fun aRightClickOffersWhatCanBeDoneToARowAndAHeader() = uiTest(width = 300, height = 600) {
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = folderGroups,
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+            )
+        }
+        onNodeWithText("Level").performMouseInput { rightClick() }
+        saveSnapshot("sidebar-context-menu")
+        onNodeWithText("Delete Scene").performClick()
+        assertEquals(listOf(FolderGroup.SCENES to "Level"), deletedItems)
+        onNodeWithText("Delete Scene").assertDoesNotExist()
+        onNodeWithText("Scenes").performMouseInput { rightClick() }
+        onNodeWithText("New Scene").performClick()
+        onNodeWithText("New Scene name", useUnmergedTree = true).assertExists()
     }
 
     @Test

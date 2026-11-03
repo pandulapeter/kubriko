@@ -24,3 +24,14 @@ internal fun clampedPanelWidth(width: Dp, availableWidth: Dp, panelsInRow: Int):
 
 private val MINIMUM_PANEL_WIDTH = 160.dp
 private val MAXIMUM_PANEL_WIDTH = 640.dp
+
+/**
+ * Keeps a bottom panel at least tall enough for a few lines, and never taller than most of the column it is in, so the
+ * editor above it always keeps some room.
+ */
+internal fun clampedPanelHeight(height: Dp, availableHeight: Dp): Dp = height.coerceIn(
+    MINIMUM_PANEL_HEIGHT,
+    maxOf(MINIMUM_PANEL_HEIGHT, availableHeight * 0.6f),
+)
+
+private val MINIMUM_PANEL_HEIGHT = 80.dp

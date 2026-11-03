@@ -9,10 +9,20 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
+import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 
 /**
  * The bars under the workspace's toolbar: the AI's activity, why the project can't be changed, and its template upgrade.
@@ -33,11 +43,27 @@ internal fun WorkspaceNotices(
         onFollowingChange = uiState::followAi,
         onClick = uiState::showAiPanel,
     )
-    readOnlyReason?.let { ReadOnlyProjectNotice(reason = it) }
-    if (isUpgradeNeeded && !uiState.isUpgradeNoticeDismissed) {
+    var shownReadOnlyReason by remember { mutableStateOf(readOnlyReason) }
+    if (readOnlyReason != null) shownReadOnlyReason = readOnlyReason
+    AnimatedVisibility(
+        visible = readOnlyReason != null,
+        enter = NoticeEnter,
+        exit = NoticeExit,
+    ) {
+        shownReadOnlyReason?.let { ReadOnlyProjectNotice(reason = it) }
+    }
+    AnimatedVisibility(
+        visible = isUpgradeNeeded && !uiState.isUpgradeNoticeDismissed,
+        enter = NoticeEnter,
+        exit = NoticeExit,
+    ) {
         ProjectUpgradeNotice(
             onReview = uiState::reviewUpgrade,
             onDismiss = uiState::dismissUpgradeNotice,
         )
     }
 }
+
+private val NoticeEnter = expandVertically(CreatorMotion.medium()) + fadeIn(CreatorMotion.medium())
+
+private val NoticeExit = shrinkVertically(CreatorMotion.medium()) + fadeOut(CreatorMotion.short())

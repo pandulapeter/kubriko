@@ -27,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import kubriko.creator.generated.resources.Res
@@ -93,7 +94,7 @@ private fun WelcomeContent(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Image(
-            modifier = Modifier.size(96.dp),
+            modifier = Modifier.size(96.dp).clip(MaterialTheme.shapes.extraLarge),
             painter = painterResource(Res.drawable.ic_icon),
             contentDescription = null,
         )

@@ -12,13 +12,9 @@ package com.pandulapeter.kubrikoCreator.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,13 +31,23 @@ import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
 import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.TargetState
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
-import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
+import com.pandulapeter.kubrikoCreator.ui.components.DialogPage
+import com.pandulapeter.kubrikoCreator.ui.components.MasterDetailDialog
 import com.pandulapeter.kubrikoCreator.ui.text
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_done
 import kubriko.creator.generated.resources.action_review_upgrade
+import kubriko.creator.generated.resources.ic_code
+import kubriko.creator.generated.resources.ic_desktop
+import kubriko.creator.generated.resources.ic_edit
+import kubriko.creator.generated.resources.ic_play
+import kubriko.creator.generated.resources.project_settings_game_description
 import kubriko.creator.generated.resources.project_settings_identity_description
+import kubriko.creator.generated.resources.project_settings_libraries_description
+import kubriko.creator.generated.resources.project_settings_section_game
 import kubriko.creator.generated.resources.project_settings_section_identity
+import kubriko.creator.generated.resources.project_settings_section_libraries
+import kubriko.creator.generated.resources.project_settings_section_targets
+import kubriko.creator.generated.resources.project_settings_targets_description
 import kubriko.creator.generated.resources.project_settings_title
 import kubriko.creator.generated.resources.project_settings_unreadable
 import org.jetbrains.compose.resources.stringResource
@@ -64,46 +70,87 @@ internal fun ProjectSettingsDialog(
     onToggleTarget: (GameTarget, Boolean) -> Unit = { _, _ -> },
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
-) = CreatorDialog(
+) = MasterDetailDialog(
     title = stringResource(Res.string.project_settings_title),
-    maxWidth = 560.dp,
     onDismiss = onDismiss,
-    text = {
-        Column(
-            modifier = Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            when {
-                failure != null -> Text(
+    pages = when {
+        failure != null -> listOf(
+            DialogPage(
+                key = "identity",
+                icon = Res.drawable.ic_edit,
+                title = stringResource(Res.string.project_settings_section_identity),
+            ) {
+                Text(
                     text = stringResource(Res.string.project_settings_unreadable, failure.message ?: failure.toString()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                 )
-                settings != null -> {
-                    settings.identity?.let { IdentitySection(identity = it, onChange = onChange) }
-                    settings.game?.let { GameSettingsSection(reading = it, scenes = settings.scenes, onChange = onChange) }
-                    when {
-                        settings.identity == null -> UnavailableNotice(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE, onReviewUpgrade)
-                        settings.game == null -> UnavailableNotice(CommandProblem.GAME_SETTINGS_UNAVAILABLE, onReviewUpgrade)
-                    }
-                    targets?.let { TargetsSection(targets = it, onToggle = onToggleTarget) }
-                    LibrariesSection(libraries = settings.libraries)
-                }
-            }
-        }
-    },
-    confirmButton = {
-        TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_done)) }
+            },
+        )
+        settings != null -> projectSettingsPages(settings, targets, onChange, onToggleTarget, onReviewUpgrade)
+        else -> emptyList()
     },
 )
 
 @Composable
-private fun IdentitySection(
+private fun projectSettingsPages(
+    settings: ProjectSettingsSnapshot,
+    targets: List<TargetState>?,
+    onChange: (SetProjectSettings.Input) -> Unit,
+    onToggleTarget: (GameTarget, Boolean) -> Unit,
+    onReviewUpgrade: (() -> Unit)?,
+) = listOfNotNull(
+    DialogPage(
+        key = "identity",
+        icon = Res.drawable.ic_edit,
+        title = stringResource(Res.string.project_settings_section_identity),
+        description = stringResource(Res.string.project_settings_identity_description),
+    ) {
+        when (val identity = settings.identity) {
+            null -> UnavailableNotice(CommandProblem.PROJECT_SETTINGS_UNAVAILABLE, onReviewUpgrade)
+            else -> IdentityFields(identity = identity, onChange = onChange)
+        }
+    },
+    DialogPage(
+        key = "game",
+        icon = Res.drawable.ic_play,
+        title = stringResource(Res.string.project_settings_section_game),
+        description = stringResource(Res.string.project_settings_game_description),
+    ) {
+        when (val game = settings.game) {
+            null -> UnavailableNotice(
+                problem = if (settings.identity == null) CommandProblem.PROJECT_SETTINGS_UNAVAILABLE else CommandProblem.GAME_SETTINGS_UNAVAILABLE,
+                onReviewUpgrade = onReviewUpgrade,
+            )
+            else -> GameSettingsPage(reading = game, scenes = settings.scenes, onChange = onChange)
+        }
+    },
+    targets?.let {
+        DialogPage(
+            key = "targets",
+            icon = Res.drawable.ic_desktop,
+            title = stringResource(Res.string.project_settings_section_targets),
+            description = stringResource(Res.string.project_settings_targets_description),
+        ) {
+            TargetsPage(targets = it, onToggle = onToggleTarget)
+        }
+    },
+    DialogPage(
+        key = "libraries",
+        icon = Res.drawable.ic_code,
+        title = stringResource(Res.string.project_settings_section_libraries),
+        description = stringResource(Res.string.project_settings_libraries_description),
+    ) {
+        LibrariesPage(libraries = settings.libraries)
+    },
+)
+
+@Composable
+private fun IdentityFields(
     identity: GameIdentity,
     onChange: (SetProjectSettings.Input) -> Unit,
-) = SettingsSection(
-    title = Res.string.project_settings_section_identity,
-    description = Res.string.project_settings_identity_description,
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(12.dp),
 ) {
     IdentityField.entries.forEach { field ->
         IdentityTextField(
@@ -114,10 +161,6 @@ private fun IdentitySection(
     }
 }
 
-/**
- * What is typed shows at once and is applied while it is valid; a value changed elsewhere (by undo, the AI, or by
- * hand in the file) shows as soon as the field isn't being typed into.
- */
 @Composable
 private fun IdentityTextField(
     field: IdentityField,

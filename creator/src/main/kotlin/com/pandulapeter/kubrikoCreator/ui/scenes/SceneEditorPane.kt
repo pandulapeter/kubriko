@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
@@ -54,6 +55,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
+import kubriko.creator.generated.resources.action_delete_scene
 import kubriko.creator.generated.resources.action_hide_scene_actors
 import kubriko.creator.generated.resources.action_play_from_scene
 import kubriko.creator.generated.resources.action_reload_scene
@@ -63,6 +65,7 @@ import kubriko.creator.generated.resources.action_zoom_out
 import kubriko.creator.generated.resources.action_zoom_to_fit
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_close
+import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_fit_screen
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_refresh
@@ -76,7 +79,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * A Scene, edited inside Kubriko Creator's window: a header naming it, with the camera's zoom, saying when its classes
- * are being built again after a change or couldn't be, offering to play the game from it, to reload it, and to close it, above the Scene itself and the inspector of what is selected in it.
+ * are being built again after a change or couldn't be, offering to play the game from it, to reload it, to delete it, and to close it, above the Scene itself and the inspector of what is selected in it.
  * Every change is a command.
  *
  * @param actorTypes The project's block-built Actor types.
@@ -115,6 +118,7 @@ internal fun SceneEditorPane(
         onActorListToggled = { isActorListShown = !isActorListShown },
         onPlay = onPlay,
         onReload = onReload,
+        onDelete = { onCommand(Invocation(DeleteScene, DeleteScene.Input(state.sceneName))) },
         onClose = onClose,
     )
     HorizontalDivider()
@@ -193,6 +197,7 @@ private fun SceneHeader(
     onActorListToggled: () -> Unit,
     onPlay: () -> Unit,
     onReload: () -> Unit,
+    onDelete: () -> Unit,
     onClose: () -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().height(40.dp).padding(start = 12.dp, end = 4.dp),
@@ -238,6 +243,7 @@ private fun SceneHeader(
     IconActionButton(icon = Res.drawable.ic_zoom_in, label = Res.string.action_zoom_in, onClick = onZoomIn)
     IconActionButton(icon = Res.drawable.ic_fit_screen, label = Res.string.action_zoom_to_fit, onClick = onZoomToFit)
     IconActionButton(icon = Res.drawable.ic_refresh, label = Res.string.action_reload_scene, onClick = onReload)
+    IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_delete_scene, onClick = onDelete)
     IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_close_scene, onClick = onClose)
 }
 

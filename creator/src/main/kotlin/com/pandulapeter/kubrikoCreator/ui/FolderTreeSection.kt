@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -38,13 +40,24 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.accent
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.icon
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
+import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_collapse_group
+import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_folder
+import kubriko.creator.generated.resources.action_delete_manager_type
+import kubriko.creator.generated.resources.action_delete_scene
 import kubriko.creator.generated.resources.action_expand_group
 import kubriko.creator.generated.resources.action_folder_options
 import kubriko.creator.generated.resources.action_new_actor_type
@@ -96,6 +109,7 @@ internal class FolderTreeActions(
     val onCreateFolder: (FolderGroup, path: String) -> Rejection?,
     val onRenameFolder: (FolderGroup, path: String, newName: String) -> Rejection?,
     val onDeleteFolder: (FolderGroup, path: String) -> Unit,
+    val onDeleteItem: (FolderGroup, name: String) -> Unit,
 )
 
 /**
@@ -131,21 +145,33 @@ internal fun LazyListScope.folderTreeSection(
     flashKey: Any?,
 ) {
     item(key = "${group.name}-header") {
+        val hover = rememberHoverRevealState()
+        val menu = rememberRightClickMenuState()
+        val onNewFolder = { onNamingChange(SidebarNaming.NewFolder(group, "")) }
+        val onNewItem = { onNamingChange(SidebarNaming.NewItem(group)) }
         PanelHeader(
-            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, "")),
+            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, "")).hoverReveal(hover).rightClickMenu(menu),
             icon = group.icon,
             title = stringResource(group.title),
             accent = group.accent,
         ) {
             IconActionButton(
+                modifier = Modifier.revealedWhen(hover.isActive),
                 icon = Res.drawable.ic_create_new_folder,
                 label = Res.string.action_new_folder,
-                onClick = { onNamingChange(SidebarNaming.NewFolder(group, "")) },
+                onClick = onNewFolder,
             )
             IconActionButton(
                 icon = Res.drawable.ic_add,
                 label = group.newItemLabel,
-                onClick = { onNamingChange(SidebarNaming.NewItem(group)) },
+                onClick = onNewItem,
+            )
+            RightClickMenu(
+                menu,
+                listOf(
+                    ContextAction(stringResource(group.newItemLabel), Res.drawable.ic_add, onClick = onNewItem),
+                    ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder, onClick = onNewFolder),
+                ),
             )
         }
     }
@@ -184,7 +210,7 @@ internal fun LazyListScope.folderTreeSection(
                     onCancel = { onNamingChange(null) },
                 )
             } else {
-                Column {
+                Column(Modifier.animateItem()) {
                     FolderRow(
                         modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path)),
                         row = row,
@@ -202,7 +228,7 @@ internal fun LazyListScope.folderTreeSection(
                 }
             }
             is FolderTreeRow.Item -> SidebarItem(
-                modifier = Modifier.sidebarDragSource(
+                modifier = Modifier.animateItem().sidebarDragSource(
                     dragState,
                     SidebarDragState.Dragged(row.name, group, folderOfItem[row.name].orEmpty()),
                 ),
@@ -219,6 +245,9 @@ internal fun LazyListScope.folderTreeSection(
                     }
                 },
                 flashKey = flashKey?.takeIf { row.name == flashedName },
+                contextActions = listOf(
+                    ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
+                ),
             )
         }
     }
@@ -246,48 +275,59 @@ private fun FolderRow(
     onRename: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
-) = Row(
-    modifier = modifier
-        .fillMaxWidth()
-        .height(32.dp)
-        .clickable(onClick = onToggle)
-        .padding(start = 12.dp + SIDEBAR_INDENT * row.depth, end = 4.dp),
-    horizontalArrangement = Arrangement.spacedBy(4.dp),
-    verticalAlignment = Alignment.CenterVertically,
 ) {
-    Icon(
-        modifier = Modifier.size(14.dp).rotate(if (row.isExpanded) 0f else -90f),
-        painter = painterResource(Res.drawable.ic_chevron),
-        contentDescription = stringResource(if (row.isExpanded) Res.string.action_collapse_group else Res.string.action_expand_group),
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Icon(
-        modifier = Modifier.size(16.dp),
-        painter = painterResource(Res.drawable.ic_folder_open),
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Text(
-        modifier = Modifier.padding(start = 4.dp).weight(1f),
-        text = row.name,
-        style = MaterialTheme.typography.bodyMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
-    MenuIconButton(
-        icon = Res.drawable.ic_more,
-        label = Res.string.action_folder_options,
-        options = listOfNotNull(FolderOption.NEW_FOLDER, FolderOption.RENAME, FolderOption.DELETE.takeIf { row.isEmpty }),
-        optionText = { stringResource(it.title) },
-        optionIcon = { it.icon },
-        onSelected = { option ->
+    val hover = rememberHoverRevealState()
+    val menu = rememberRightClickMenuState()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .clickable(onClick = onToggle)
+            .hoverReveal(hover)
+            .rightClickMenu(menu)
+            .padding(start = 12.dp + SIDEBAR_INDENT * row.depth, end = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val chevronRotation by animateFloatAsState(if (row.isExpanded) 0f else -90f, CreatorMotion.medium())
+        Icon(
+            modifier = Modifier.size(14.dp).rotate(chevronRotation),
+            painter = painterResource(Res.drawable.ic_chevron),
+            contentDescription = stringResource(if (row.isExpanded) Res.string.action_collapse_group else Res.string.action_expand_group),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(Res.drawable.ic_folder_open),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            modifier = Modifier.padding(start = 4.dp).weight(1f),
+            text = row.name,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        val options = listOfNotNull(FolderOption.NEW_FOLDER, FolderOption.RENAME, FolderOption.DELETE.takeIf { row.isEmpty })
+        val onSelected = { option: FolderOption ->
             when (option) {
                 FolderOption.NEW_FOLDER -> onNewFolder()
                 FolderOption.RENAME -> onRename()
                 FolderOption.DELETE -> onDelete()
             }
-        },
-    )
+        }
+        MenuIconButton(
+            modifier = Modifier.revealedWhen(hover.isActive),
+            icon = Res.drawable.ic_more,
+            label = Res.string.action_folder_options,
+            options = options,
+            optionText = { stringResource(it.title) },
+            optionIcon = { it.icon },
+            onSelected = onSelected,
+        )
+        RightClickMenu(menu, options.map { option -> ContextAction(stringResource(option.title), option.icon, isDestructive = option == FolderOption.DELETE) { onSelected(option) } })
+    }
 }
 
 private enum class FolderOption(val title: StringResource, val icon: DrawableResource) {
@@ -332,6 +372,13 @@ private val FolderGroup.newItemLabel
         FolderGroup.ACTOR_TYPES -> Res.string.action_new_actor_type
         FolderGroup.MANAGER_TYPES -> Res.string.action_new_manager_type
         FolderGroup.SCENES -> Res.string.action_new_scene
+    }
+
+private val FolderGroup.deleteItemLabel
+    get() = when (this) {
+        FolderGroup.ACTOR_TYPES -> Res.string.action_delete_actor_type
+        FolderGroup.MANAGER_TYPES -> Res.string.action_delete_manager_type
+        FolderGroup.SCENES -> Res.string.action_delete_scene
     }
 
 private val FolderGroup.newItemHint

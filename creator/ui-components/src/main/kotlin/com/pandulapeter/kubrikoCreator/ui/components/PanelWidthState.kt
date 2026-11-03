@@ -41,7 +41,7 @@ public class PanelWidthState(
     /**
      * The width to draw the panel at in [row], within the limits of [clampedPanelWidth].
      */
-    public fun widthIn(row: PanelRow): Dp = clampedPanelWidth(draggedWidth ?: layout.widthOf(panel), row.availableWidth, row.panelsInRow)
+    public fun widthIn(row: PanelRow): Dp = clampedPanelWidth(draggedWidth ?: layout.sizeOf(panel), row.availableWidth, row.panelsInRow)
 
     /**
      * Follows a drag of the splitter that grows the panel by [growthInDp] in [row].
@@ -54,7 +54,7 @@ public class PanelWidthState(
      * Keeps the dragged width in the [layout] once the drag ends.
      */
     public fun onDragStopped() {
-        draggedWidth?.let { layout.onWidthChange(panel, it) }
+        draggedWidth?.let { layout.onSizeChange(panel, it) }
     }
 
     /**
@@ -62,7 +62,7 @@ public class PanelWidthState(
      */
     public fun onReset() {
         draggedWidth = null
-        layout.onWidthReset(panel)
+        layout.onSizeReset(panel)
     }
 }
 
@@ -70,4 +70,4 @@ public class PanelWidthState(
  * The [PanelWidthState] of [panel], started again whenever the [layout] keeps another width for it.
  */
 @Composable
-public fun rememberPanelWidth(panel: Panel, layout: PanelLayout): PanelWidthState = remember(panel, layout.widthOf(panel)) { PanelWidthState(panel, layout) }
+public fun rememberPanelWidth(panel: Panel, layout: PanelLayout): PanelWidthState = remember(panel, layout.sizeOf(panel)) { PanelWidthState(panel, layout) }

@@ -22,8 +22,8 @@ import kotlinx.serialization.Serializable
  *   agent, and sends nothing anywhere.
  * @param interfaceScale How much smaller or larger than Material's own sizes everything is drawn.
  * @param defaultProjectFolder Where New project creates projects unless told otherwise, the home folder when null.
- * @param panelWidths The widths in dp the user dragged the side panels to, by their `PanelWidths.Panel.id`; the others have
- *   their default width.
+ * @param panelWidths The sizes in dp the user dragged the panels to (the side panels' widths, the console's height), by
+ *   their `PanelWidths.Panel.id`; the others have their default size. Its key predates the console's height.
  */
 @Serializable
 internal data class CreatorSettings(

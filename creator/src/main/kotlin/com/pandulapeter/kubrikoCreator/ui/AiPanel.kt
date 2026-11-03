@@ -9,11 +9,20 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
@@ -26,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantPanel
 import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
+import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 
 /**
  * Everything about working with AI in one panel, since the two ways of doing it solve the same problem: the in-app
@@ -60,7 +70,50 @@ internal fun AiPanel(
         onViewSelected = onViewSelected,
     )
     HorizontalDivider()
-    val content = Modifier.fillMaxWidth().weight(1f)
+    var shownDigest by remember { mutableStateOf(digest) }
+    var shownFindings by remember { mutableStateOf(findings) }
+    if (view == AiPanelView.GAME_MAP) {
+        shownDigest = digest
+        shownFindings = findings
+    }
+    AnimatedContent(
+        modifier = Modifier.fillMaxWidth().weight(1f),
+        targetState = view,
+        transitionSpec = { fadeIn(CreatorMotion.medium()) togetherWith fadeOut(CreatorMotion.short()) },
+    ) { shownView ->
+        AiPanelContent(
+            view = shownView,
+            assistant = assistant,
+            mcp = mcp,
+            aiClients = aiClients,
+            aiSteps = aiSteps,
+            onShowStep = onShowStep,
+            digest = shownDigest,
+            findings = shownFindings,
+            onTypeSelected = onTypeSelected,
+            onSceneSelected = onSceneSelected,
+            attention = attention,
+            captureScreen = captureScreen,
+        )
+    }
+}
+
+@Composable
+private fun AiPanelContent(
+    view: AiPanelView,
+    assistant: AssistantPanelModel,
+    mcp: McpController,
+    aiClients: AiClientsController,
+    aiSteps: List<AiStep>,
+    onShowStep: (AiStep) -> Unit,
+    digest: ProjectDigest?,
+    findings: List<HealthFinding>,
+    onTypeSelected: (String) -> Unit,
+    onSceneSelected: (String) -> Unit,
+    attention: List<AttentionChip>,
+    captureScreen: suspend () -> ByteArray?,
+) {
+    val content = Modifier.fillMaxSize()
     when (view) {
         AiPanelView.ASSISTANT -> AssistantPanel(
             modifier = content,

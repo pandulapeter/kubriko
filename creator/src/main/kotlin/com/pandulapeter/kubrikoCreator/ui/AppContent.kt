@@ -61,7 +61,7 @@ internal fun AppContent(
     var isShowingSettings by remember { mutableStateOf(false) }
     val settings by creatorSettings.settings.collectAsState()
     val panelLayout = remember(settings.panelWidths, creatorSettings) {
-        PanelLayout(settings.panelWidths, creatorSettings::setPanelWidth, creatorSettings::resetPanelWidth)
+        PanelLayout(settings.panelWidths, creatorSettings::setPanelSize, creatorSettings::resetPanelSize)
     }
     if (isShowingSettings) {
         CreatorSettingsDialog(

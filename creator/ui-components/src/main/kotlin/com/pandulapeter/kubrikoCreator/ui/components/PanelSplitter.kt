@@ -15,7 +15,10 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,9 +29,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.panel_resize
+import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.panel_resize_height
 import org.jetbrains.compose.resources.stringResource
 import java.awt.Cursor
 
@@ -46,25 +51,25 @@ public fun PanelSplitter(
     side: PanelSide,
 ) {
     val density = LocalDensity.current.density
-    val description = stringResource(Res.string.panel_resize)
+    val isVertical = side == PanelSide.BOTTOM
+    val description = stringResource(if (isVertical) Res.string.panel_resize_height else Res.string.panel_resize)
     Box(
         modifier = Modifier
-            .width(8.dp)
-            .fillMaxHeight()
-            .pointerHoverIcon(PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
+            .then(if (isVertical) Modifier.height(8.dp).fillMaxWidth() else Modifier.width(8.dp).fillMaxHeight())
+            .pointerHoverIcon(PointerIcon(Cursor(if (isVertical) Cursor.N_RESIZE_CURSOR else Cursor.E_RESIZE_CURSOR)))
             .draggable(
                 state = rememberDraggableState { deltaInPixels ->
                     val deltaInDp = deltaInPixels / density
                     onDrag(if (side == PanelSide.START) deltaInDp else -deltaInDp)
                 },
-                orientation = Orientation.Horizontal,
+                orientation = if (isVertical) Orientation.Vertical else Orientation.Horizontal,
                 onDragStopped = { onDragStopped() },
             )
             .pointerInput(onReset) { detectTapGestures(onDoubleTap = { onReset() }) }
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        VerticalDivider()
+        if (isVertical) HorizontalDivider() else VerticalDivider()
     }
 }
 
@@ -77,6 +82,25 @@ public fun PanelSplitter(
     row: PanelRow,
 ): Unit = PanelSplitter(
     onDrag = { state.onDrag(it, row) },
+    onDragStopped = state::onDragStopped,
+    onReset = state::onReset,
+    side = state.panel.side,
+)
+
+/**
+ * The [PanelSplitter] above the panel whose height [state] holds, in a column [availableHeight] tall. [onDrag] hears every
+ * drag before the panel follows it (a closed panel opens on it).
+ */
+@Composable
+public fun PanelSplitter(
+    state: PanelHeightState,
+    availableHeight: Dp,
+    onDrag: () -> Unit = {},
+): Unit = PanelSplitter(
+    onDrag = { growth ->
+        onDrag()
+        state.onDrag(growth, availableHeight)
+    },
     onDragStopped = state::onDragStopped,
     onReset = state::onReset,
     side = state.panel.side,

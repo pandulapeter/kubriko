@@ -149,7 +149,7 @@ private fun PaletteEntry(
         .fillMaxWidth()
         .padding(horizontal = 8.dp, vertical = 2.dp)
         .clip(MaterialTheme.shapes.small)
-        .background(kind.category.accent.container)
+        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
         .accentEdge(kind.category.accent.color)
         .heightIn(min = 32.dp)
         .listDragSource(dragState) { DraggedBlock.New(kind) }

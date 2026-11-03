@@ -11,7 +11,10 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -35,12 +38,19 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.accentEdge
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
+import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
+import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_drag_block
 import kubriko.creator.generated.resources.action_remove
@@ -78,79 +88,93 @@ internal fun BlockRow(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
     flashKey: Any? = null,
-) = Column(
-    modifier = modifier
-        .fillMaxWidth()
-        .padding(start = (nesting.depth * NESTING_INDENT).dp)
-        .alpha(if ((dragState.dragged as? DraggedBlock.Existing)?.index == index) 0.4f else 1f)
-        .clip(MaterialTheme.shapes.small)
-        .background(if (nesting.role == BlockNesting.Role.PLAIN) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
-        .accentEdge(BlockKind.of(block).category.accent.color)
-        .flashBackground(flashKey, BlockKind.of(block).category.accent.color)
-        .padding(start = 8.dp, top = 2.dp, bottom = 6.dp),
-    verticalArrangement = Arrangement.spacedBy(2.dp),
 ) {
-    val kind = BlockKind.of(block)
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val hover = rememberHoverRevealState()
+    val menu = rememberRightClickMenuState()
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = (nesting.depth * NESTING_INDENT).dp)
+            .alpha(if ((dragState.dragged as? DraggedBlock.Existing)?.index == index) 0.4f else 1f)
+            .clip(MaterialTheme.shapes.small)
+            .background(if (nesting.role == BlockNesting.Role.PLAIN) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
+            .accentEdge(BlockKind.of(block).category.accent.color)
+            .flashBackground(flashKey, BlockKind.of(block).category.accent.color)
+            .hoverReveal(hover)
+            .rightClickMenu(menu)
+            .padding(start = 8.dp, top = 2.dp, bottom = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Icon(
-            modifier = Modifier.size(18.dp).listDragSource(dragState) { DraggedBlock.Existing(index, block) },
-            painter = painterResource(Res.drawable.ic_drag_handle),
-            contentDescription = stringResource(Res.string.action_drag_block),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Icon(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(kind.icon),
-            contentDescription = null,
-            tint = kind.category.accent.color,
-        )
-        Text(
-            modifier = Modifier.weight(1f),
-            text = stringResource(kind.title),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
-    }
-    if (kind.hasInlineParameters) {
+        val kind = BlockKind.of(block)
         Row(
-            modifier = Modifier.padding(start = 46.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            InlineParameters(block, scope, onBlockChange)
+            Icon(
+                modifier = Modifier.size(18.dp).listDragSource(dragState) { DraggedBlock.Existing(index, block) },
+                painter = painterResource(Res.drawable.ic_drag_handle),
+                contentDescription = stringResource(Res.string.action_drag_block),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(kind.icon),
+                contentDescription = null,
+                tint = kind.category.accent.color,
+            )
+            Text(
+                modifier = Modifier.weight(1f),
+                text = stringResource(kind.title),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            IconActionButton(
+                modifier = Modifier.revealedWhen(hover.isActive),
+                icon = Res.drawable.ic_close,
+                label = Res.string.action_remove,
+                onClick = onRemove,
+            )
+            RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
         }
-    }
-    if (nesting.role == BlockNesting.Role.STRAY) {
-        Text(
-            modifier = Modifier.padding(start = 46.dp, bottom = 4.dp),
-            text = stringResource(if (block == BlockDefinition.Else) Res.string.block_else_stray else Res.string.block_end_stray),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error,
-        )
-    }
-    if (block is BlockDefinition.Kotlin) {
-        BufferedTextField(
-            modifier = Modifier.fillMaxWidth().padding(start = 46.dp, end = 8.dp, bottom = 4.dp).heightIn(min = 72.dp),
-            value = block.code,
-            onValueChange = { onBlockChange(block.copy(code = it)) },
-            placeholder = stringResource(Res.string.block_parameter_code),
-            isSingleLine = false,
-            isWrapping = false,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-        )
+        if (kind.hasInlineParameters) {
+            Box(
+                modifier = Modifier.padding(start = 46.dp, end = 8.dp),
+            ) {
+                InlineParameters(block, scope, onBlockChange)
+            }
+        }
+        if (nesting.role == BlockNesting.Role.STRAY) {
+            Text(
+                modifier = Modifier.padding(start = 46.dp, bottom = 4.dp),
+                text = stringResource(if (block == BlockDefinition.Else) Res.string.block_else_stray else Res.string.block_end_stray),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+        if (block is BlockDefinition.Kotlin) {
+            BufferedTextField(
+                modifier = Modifier.fillMaxWidth().padding(start = 46.dp, end = 8.dp, bottom = 4.dp).heightIn(min = 72.dp),
+                value = block.code,
+                onValueChange = { onBlockChange(block.copy(code = it)) },
+                placeholder = stringResource(Res.string.block_parameter_code),
+                isSingleLine = false,
+                isWrapping = false,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun InlineParameters(
     block: BlockDefinition,
     scope: BlockScope,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = when (block) {
-    is BlockDefinition.AddActor -> Row(
+    is BlockDefinition.AddActor -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
         OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
@@ -162,9 +186,10 @@ private fun InlineParameters(
             )
         }
     }
-    is BlockDefinition.MoveTowardsNearest -> Row(
+    is BlockDefinition.MoveTowardsNearest -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         ActorTypeChoice(block.actorType, scope.actorTypeNames) { onBlockChange(block.copy(actorType = it)) }
         NumberField(
@@ -180,9 +205,10 @@ private fun InlineParameters(
         )
     }
     is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, scope, onBlockChange)
-    is BlockDefinition.StartTimer -> Row(
+    is BlockDefinition.StartTimer -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
         NumberField(
@@ -200,9 +226,10 @@ private fun InlineParameters(
     is BlockDefinition.StopTimer -> TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
     is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames.orEmpty()) { onBlockChange(block.copy(scene = it)) }
     is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds.orEmpty(), Res.string.block_sound_choose) { onBlockChange(block.copy(sound = it)) }
-    is BlockDefinition.PlayMusic -> Row(
+    is BlockDefinition.PlayMusic -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         AudioFileChoice(block.music, scope.audioFiles?.music.orEmpty(), Res.string.block_music_choose) { onBlockChange(block.copy(music = it)) }
         LabeledSwitch(
@@ -237,15 +264,17 @@ private fun InlineParameters(
     BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin, BlockDefinition.RestartScene, BlockDefinition.StopMusic -> Unit
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OffsetParameters(
     x: Float,
     y: Float,
     isVelocity: Boolean,
     onChange: (x: Float, y: Float) -> Unit,
-) = Row(
+) = FlowRow(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+    itemVerticalAlignment = Alignment.CenterVertically,
 ) {
     NumberField(
         modifier = Modifier.width(96.dp),

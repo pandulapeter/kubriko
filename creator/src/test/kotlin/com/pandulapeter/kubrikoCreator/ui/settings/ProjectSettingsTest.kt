@@ -56,7 +56,7 @@ class ProjectSettingsTest {
     }
 
     @Test
-    fun theSettingsAreReadFromTheProjectAndTheLibrariesFollowTheTypes() = uiTest(width = 640, height = 1600) {
+    fun theSettingsAreReadFromTheProjectAndTheLibrariesFollowTheTypes() = uiTest(width = 960, height = 640) {
         File(root, "build.gradle.kts").writeText("// Reads game.name and game.firstScene.\n")
         File(root, "gradle.properties").writeText(GameSettings(firstScene = "levels/1-1").writtenTo(GameIdentity("Breakout", "1.0.0", 1, "com.example.breakout", "", "").writtenTo("")))
         File(root, "src/commonMain/kotlin/Gravity.kt").apply { parentFile.mkdirs() }.writeText("import com.pandulapeter.kubriko.physics.RigidBody\n")
@@ -74,15 +74,17 @@ class ProjectSettingsTest {
                 onDismiss = {},
             )
         }
-        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Used in src/commonMain/kotlin/Gravity.kt")).fetchSemanticsNodes().isNotEmpty() }
-        onNodeWithText("Breakout").assertExists()
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Breakout")).fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Game").performClick()
         onNodeWithText("levels/1-1").assertExists()
+        onNodeWithText("Libraries in use").performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Used in src/commonMain/kotlin/Gravity.kt")).fetchSemanticsNodes().isNotEmpty() }
         types.value = listOf(ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Ball"))))
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Ball collides with Ball")).fetchSemanticsNodes().isNotEmpty() }
     }
 
     @Test
-    fun anUndoWhileItIsOpenShowsTheSettingsItBroughtBack() = uiTest(width = 640, height = 1600) {
+    fun anUndoWhileItIsOpenShowsTheSettingsItBroughtBack() = uiTest(width = 960, height = 640) {
         File(root, "build.gradle.kts").writeText("// Reads game.name.\n")
         val properties = File(root, "gradle.properties").apply { writeText(identityNamed("Breakout")) }
         val renaming = HistoryEntry(revert = Invocation(SetProjectSettings, SetProjectSettings.Input(name = "Pong")), reapply = Invocation(SetProjectSettings, SetProjectSettings.Input(name = "Breakout")))
@@ -107,7 +109,7 @@ class ProjectSettingsTest {
     }
 
     @Test
-    fun aTargetIsTurnedOnOnlyOnceItsChangeIsConfirmed() = uiTest(width = 900, height = 1600) {
+    fun aTargetIsTurnedOnOnlyOnceItsChangeIsConfirmed() = uiTest(width = 960, height = 720) {
         val project = ProjectGenerator(testConfiguration(), wrapperInstaller = { _, _ -> }, startVersionControl = { _, _ -> })
             .create(NewProjectRequest(name = "Breakout", packageName = "com.example.breakout", parentDirectory = root))
         val sdk = File(root, "sdk").apply { File(this, "platforms").mkdirs() }
@@ -133,6 +135,8 @@ class ProjectSettingsTest {
                 onDismiss = {},
             )
         }
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Targets")).fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Targets").performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Android")).fetchSemanticsNodes().isNotEmpty() }
         onNodeWithText("iOS needs a Mac with Xcode, which this computer doesn't have.").performScrollTo()
         saveSnapshot("project-settings-targets")

@@ -16,15 +16,11 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 
 /**
  * What the workspace screen shows besides the project: its side panels, its dialogs, and whether it follows the AI.
- *
- * @param initialAiPanelView The view the AI panel opens with.
  */
-internal class WorkspaceUiState(
-    initialAiPanelView: AiPanelView,
-) {
+internal class WorkspaceUiState {
     var openPanel: SidePanel? by mutableStateOf(null)
         private set
-    var aiPanelView by mutableStateOf(initialAiPanelView)
+    var aiPanelView by mutableStateOf(AiPanelView.ASSISTANT)
         private set
     var revisitedAiStep: RevisitedAiStep? by mutableStateOf(null)
         private set

@@ -9,6 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,14 +27,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_clear_console
 import kubriko.creator.generated.resources.action_collapse_console
@@ -37,7 +47,6 @@ import kubriko.creator.generated.resources.console_title
 import kubriko.creator.generated.resources.console_with_prefix
 import kubriko.creator.generated.resources.ic_clear
 import kubriko.creator.generated.resources.ic_console
-import kubriko.creator.generated.resources.ic_move_down
 import kubriko.creator.generated.resources.ic_move_up
 import org.jetbrains.compose.resources.stringResource
 
@@ -50,6 +59,7 @@ internal fun Console(
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onClear: () -> Unit,
+    listHeight: Dp,
 ) = Column(
     modifier = Modifier.fillMaxWidth(),
 ) {
@@ -57,10 +67,15 @@ internal fun Console(
         icon = Res.drawable.ic_console,
         title = stringResource(Res.string.console_title),
     ) {
-        if (!isExpanded) {
+        AnimatedVisibility(
+            modifier = Modifier.weight(1f),
+            visible = !isExpanded,
+            enter = fadeIn(CreatorMotion.medium()),
+            exit = fadeOut(CreatorMotion.short()),
+        ) {
             entries.lastOrNull()?.let { entry ->
                 Text(
-                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp),
                     text = entry.text(),
                     color = entry.color(),
                     style = MaterialTheme.typography.bodySmall,
@@ -76,20 +91,26 @@ internal fun Console(
             onClick = onClear,
             isEnabled = entries.isNotEmpty(),
         )
+        val arrowRotation by animateFloatAsState(if (isExpanded) 180f else 0f, CreatorMotion.medium())
         IconActionButton(
-            icon = if (isExpanded) Res.drawable.ic_move_down else Res.drawable.ic_move_up,
+            modifier = Modifier.graphicsLayer { rotationZ = arrowRotation },
+            icon = Res.drawable.ic_move_up,
             label = if (isExpanded) Res.string.action_collapse_console else Res.string.action_expand_console,
             onClick = { onExpandedChange(!isExpanded) },
         )
     }
-    if (isExpanded) {
+    AnimatedVisibility(
+        visible = isExpanded,
+        enter = expandVertically(CreatorMotion.medium()) + fadeIn(CreatorMotion.medium()),
+        exit = shrinkVertically(CreatorMotion.medium()) + fadeOut(CreatorMotion.short()),
+    ) {
         val listState = rememberLazyListState()
         LaunchedEffect(entries.size) {
             if (entries.isNotEmpty()) listState.scrollToItem(entries.lastIndex)
         }
         SelectionContainer {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth().height(180.dp),
+                modifier = Modifier.fillMaxWidth().height(listHeight),
                 state = listState,
             ) {
                 itemsIndexed(entries) { _, entry ->

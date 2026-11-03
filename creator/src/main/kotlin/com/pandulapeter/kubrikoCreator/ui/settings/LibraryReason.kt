@@ -30,7 +30,7 @@ internal fun reasonsOf(library: LibraryInUse): List<LibraryReason> = when {
 }
 
 /**
- * One line of a library's row in [LibrariesSection].
+ * One line of a library's row in [LibrariesPage].
  */
 internal sealed interface LibraryReason {
 

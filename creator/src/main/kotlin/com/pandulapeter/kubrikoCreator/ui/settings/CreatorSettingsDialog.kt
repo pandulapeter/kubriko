@@ -12,28 +12,28 @@ package com.pandulapeter.kubrikoCreator.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
-import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
-import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
+import com.pandulapeter.kubrikoCreator.ui.components.DialogPage
+import com.pandulapeter.kubrikoCreator.ui.components.MasterDetailDialog
 import com.pandulapeter.kubrikoCreator.ui.pickFolder
 import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_browse
-import kubriko.creator.generated.resources.action_done
 import kubriko.creator.generated.resources.action_use_home_folder
 import kubriko.creator.generated.resources.choose_parent_folder
+import kubriko.creator.generated.resources.ic_ai
+import kubriko.creator.generated.resources.ic_folder_open
+import kubriko.creator.generated.resources.ic_palette
 import kubriko.creator.generated.resources.settings_ai_enabled
 import kubriko.creator.generated.resources.settings_ai_enabled_description
 import kubriko.creator.generated.resources.settings_default_project_folder
@@ -46,14 +46,10 @@ import kubriko.creator.generated.resources.settings_theme_dark
 import kubriko.creator.generated.resources.settings_theme_light
 import kubriko.creator.generated.resources.settings_theme_system
 import kubriko.creator.generated.resources.settings_title
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
 import kotlin.math.roundToInt
 
-/**
- * Creator settings: this user's, on this computer, whether a project is open or not.
- */
 @Composable
 internal fun CreatorSettingsDialog(
     settings: CreatorSettings,
@@ -63,117 +59,116 @@ internal fun CreatorSettingsDialog(
     onInterfaceScaleChange: (Float) -> Unit,
     onDefaultProjectFolderChange: (File?) -> Unit,
     onDismiss: () -> Unit,
-) = CreatorDialog(
+) = MasterDetailDialog(
     title = stringResource(Res.string.settings_title),
-    maxWidth = 560.dp,
     onDismiss = onDismiss,
-    text = {
-        Column(
-            modifier = Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+    pages = listOf(
+        DialogPage(
+            key = "appearance",
+            icon = Res.drawable.ic_palette,
+            title = stringResource(Res.string.settings_section_appearance),
         ) {
-            AiSection(
-                isAiEnabled = settings.isAiEnabled,
-                onAiEnabledChange = onAiEnabledChange,
-            )
-            AppearanceSection(
+            AppearancePage(
                 theme = settings.theme,
                 interfaceScale = settings.interfaceScale,
                 onThemeChange = onThemeChange,
                 onInterfaceScaleChange = onInterfaceScaleChange,
             )
-            EditorSection(
+        },
+        DialogPage(
+            key = "editor",
+            icon = Res.drawable.ic_folder_open,
+            title = stringResource(Res.string.settings_section_editor),
+        ) {
+            EditorPage(
                 defaultProjectFolder = settings.defaultProjectFolder?.let(::File) ?: homeFolder,
                 isHomeFolder = settings.defaultProjectFolder == null,
                 onDefaultProjectFolderChange = onDefaultProjectFolderChange,
             )
-        }
-    },
-    confirmButton = {
-        TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_done)) }
-    },
+        },
+        DialogPage(
+            key = "ai",
+            icon = Res.drawable.ic_ai,
+            title = stringResource(Res.string.settings_section_ai),
+        ) {
+            SettingsSwitch(
+                label = stringResource(Res.string.settings_ai_enabled),
+                description = stringResource(Res.string.settings_ai_enabled_description),
+                checked = settings.isAiEnabled,
+                onCheckedChange = onAiEnabledChange,
+            )
+        },
+    ),
 )
 
 @Composable
-private fun AiSection(
-    isAiEnabled: Boolean,
-    onAiEnabledChange: (Boolean) -> Unit,
-) = SettingsSection(Res.string.settings_section_ai) {
-    LabeledSwitch(
-        modifier = Modifier.fillMaxWidth(),
-        label = stringResource(Res.string.settings_ai_enabled),
-        checked = isAiEnabled,
-        onCheckedChange = onAiEnabledChange,
-        labelStyle = MaterialTheme.typography.bodyMedium,
-    )
-    Text(
-        text = stringResource(Res.string.settings_ai_enabled_description),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-@Composable
-private fun AppearanceSection(
+private fun AppearancePage(
     theme: ThemeChoice,
     interfaceScale: Float,
     onThemeChange: (ThemeChoice) -> Unit,
     onInterfaceScaleChange: (Float) -> Unit,
-) = SettingsSection(Res.string.settings_section_appearance) {
-    Label(Res.string.settings_theme)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        ThemeChoice.entries.forEach { choice ->
-            FilterChip(
-                selected = choice == theme,
-                onClick = { onThemeChange(choice) },
-                label = { Text(stringResource(choice.label)) },
-            )
-        }
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+) {
+    SettingsRow(label = stringResource(Res.string.settings_theme)) {
+        SegmentedChoice(
+            options = ThemeChoice.entries,
+            selected = theme,
+            optionText = { stringResource(it.label) },
+            onSelected = onThemeChange,
+        )
     }
-    Label(Res.string.settings_interface_scale)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        CreatorSettings.interfaceScales.forEach { scale ->
-            FilterChip(
-                selected = scale == interfaceScale,
-                onClick = { onInterfaceScaleChange(scale) },
-                label = { Text(interfaceScaleLabel(scale)) },
-            )
-        }
+    SettingsRow(label = stringResource(Res.string.settings_interface_scale)) {
+        SegmentedChoice(
+            options = CreatorSettings.interfaceScales,
+            selected = interfaceScale,
+            optionText = { interfaceScaleLabel(it) },
+            onSelected = onInterfaceScaleChange,
+        )
     }
 }
 
 @Composable
-private fun EditorSection(
+private fun EditorPage(
     defaultProjectFolder: File,
     isHomeFolder: Boolean,
     onDefaultProjectFolderChange: (File?) -> Unit,
-) = SettingsSection(Res.string.settings_section_editor) {
-    Label(Res.string.settings_default_project_folder)
-    Text(
-        text = defaultProjectFolder.path,
-        style = MaterialTheme.typography.bodyMedium,
-    )
+) {
     val pickerTitle = stringResource(Res.string.choose_parent_folder)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = { pickFolder(pickerTitle, defaultProjectFolder)?.let(onDefaultProjectFolderChange) }) {
-            Text(stringResource(Res.string.action_browse))
-        }
-        if (!isHomeFolder) {
-            TextButton(onClick = { onDefaultProjectFolderChange(null) }) {
-                Text(stringResource(Res.string.action_use_home_folder))
+    SettingsRow(
+        label = stringResource(Res.string.settings_default_project_folder),
+        description = defaultProjectFolder.path,
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (!isHomeFolder) {
+                TextButton(onClick = { onDefaultProjectFolderChange(null) }) {
+                    Text(stringResource(Res.string.action_use_home_folder))
+                }
+            }
+            OutlinedButton(onClick = { pickFolder(pickerTitle, defaultProjectFolder)?.let(onDefaultProjectFolderChange) }) {
+                Text(stringResource(Res.string.action_browse))
             }
         }
     }
 }
 
 @Composable
-private fun Label(
-    text: StringResource,
-) = Text(
-    text = stringResource(text),
-    style = MaterialTheme.typography.labelLarge,
-    color = MaterialTheme.colorScheme.onSurfaceVariant,
-)
+private fun <T> SegmentedChoice(
+    options: List<T>,
+    selected: T,
+    optionText: @Composable (T) -> String,
+    onSelected: (T) -> Unit,
+) = SingleChoiceSegmentedButtonRow {
+    options.forEachIndexed { index, option ->
+        SegmentedButton(
+            selected = option == selected,
+            onClick = { onSelected(option) },
+            shape = SegmentedButtonDefaults.itemShape(index, options.size, MaterialTheme.shapes.small),
+            icon = {},
+            label = { Text(text = optionText(option), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        )
+    }
+}
 
 private val ThemeChoice.label
     get() = when (this) {
@@ -182,7 +177,4 @@ private val ThemeChoice.label
         ThemeChoice.DARK -> Res.string.settings_theme_dark
     }
 
-/**
- * An interface scale as the settings show it, a percentage of Material's own sizes.
- */
 internal fun interfaceScaleLabel(scale: Float) = "${(scale * 100).roundToInt()}%"

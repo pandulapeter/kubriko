@@ -23,13 +23,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -47,42 +50,46 @@ internal fun SidebarItem(
     flashKey: Any? = null,
     depth: Int = 0,
     accent: Accent? = null,
+    contextActions: List<ContextAction> = emptyList(),
     modifier: Modifier = Modifier,
-) = Row(
-    modifier = modifier
-        .fillMaxWidth()
-        .height(32.dp)
-        .padding(horizontal = 6.dp)
-        .clip(MaterialTheme.shapes.small)
-        .then(if (isSelected) Modifier.background(accent?.container ?: MaterialTheme.colorScheme.secondaryContainer) else Modifier)
-        .flashBackground(flashKey)
-        .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
-        .semantics { selected = isSelected }
-        .padding(start = 22.dp + SIDEBAR_INDENT * depth, end = 6.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
 ) {
-    val color = if (isSelected && accent == null) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-    Icon(
-        modifier = Modifier.size(16.dp),
-        painter = painterResource(icon),
-        contentDescription = null,
-        tint = accent?.color ?: color.copy(alpha = 0.7f),
-    )
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyMedium,
-        color = color,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
-    if (detail != null) {
-        Text(
-            text = detail,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+    val menu = rememberRightClickMenuState()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .then(if (isSelected) Modifier.background(accent?.container ?: MaterialTheme.colorScheme.secondaryContainer) else Modifier)
+            .flashBackground(flashKey)
+            .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
+            .rightClickMenu(menu)
+            .semantics { selected = isSelected }
+            .padding(start = 28.dp + SIDEBAR_INDENT * depth, end = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val color = if (isSelected && accent == null) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+        Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = accent?.color ?: color.copy(alpha = 0.7f),
         )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (detail != null) {
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+        }
+        RightClickMenu(menu, contextActions)
     }
 }
 

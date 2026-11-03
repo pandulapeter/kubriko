@@ -123,10 +123,11 @@ Besides its tests passing, a change:
   a change built from what the file holds goes through `update`, which reads it once),
   `withLineBreaksOf` (`project/LineBreaks.kt`) for every file it edits, `ProjectTree.walk` for every walk through a
   project, `LatestRequests` for background reads whose results may land out of order; in the UI `BufferedTextField`
-  (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `SettingsSection`, `DragPreviewChip`, `SearchableChoiceButton` for every
+  (`ListItemKeys` for the rows holding one, so a row keeps its text when one above it goes), `LabeledSwitch`, `CreatorDialog`, `MasterDetailDialog` (with `SettingsRow`) for every dialog of several groups, `DragPreviewChip`, `SearchableChoiceButton` for every
   choice of the project's contents (types, Scenes, sprites, audio files, Properties), which grow without bound (it filters once
-  there are more than eight; `KeyChoiceButton` ranks keys by the same `matchingOptions`), and `PanelWidths` with `sidePanel` and
-  `PanelSplitter` for every side panel; in command tests
+  there are more than eight; `KeyChoiceButton` ranks keys by the same `matchingOptions`), `PanelWidths` with `sidePanel` and
+  `PanelSplitter` for every resizable panel (`AnimatedSidePanel` for one that opens and closes), `RightClickMenu` and
+  `hoverReveal` for what a row offers besides its main action, and `CreatorMotion` for every transition; in command tests
   `CommandTesting.kt` in `:creator:commands`' test fixtures (`commandContext`, `assertRoundTrip`); in every test `testing/` (`testDirectory()`, the fakes
   and their contracts).
 - Has its unhappy paths designed: what happens when it throws, when it is cancelled, when it is called again while the first call
@@ -361,7 +362,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 ## AI
 
 - **One AI panel** holds both ways of working with AI (an outside client over MCP, and the in-app assistant), since nobody uses
-  them at once; the map ("What the AI knows about your game") stays behind a button in it, not on the toolbar. The map is computed
+  them at once. The assistant is the recommended way and the panel's own view, which it always opens on; the user's own tool
+  and the map ("What the AI knows about your game") are in the panel's menu, both leading back to it. The map is computed
   once per burst of changes, off the main thread, and only while it is shown (`GameMapState`).
 - **AI features off** (`CreatorSettingsController.isAiEnabled`) is the one check: the MCP server stays stopped, the assistant starts,
   fetches, and installs nothing (`AssistantHost` holds its check), and the UI (through `LocalIsAiEnabled`) shows no AI surface. Every new AI surface reads it and
@@ -396,8 +398,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 ## Settings
 
 - **Creator settings** (`settings/`) are this user's on this computer; an unreadable file means the defaults. The side panels'
-  widths are dragged at their edges and kept per panel (`panelWidths`, by an ID that never changes), saved once per drag, and
-  clamped to the window when drawn, so the panels of a row never take more than half of it.
+  widths and the console's height are dragged at their edges and kept per panel (`panelWidths`, by an ID that never changes),
+  saved once per drag, and clamped to the window when drawn, so the panels of a row never take more than half of it and the
+  console never more than most of the column.
 - **Project settings** live in the project where its build reads them, so it builds the same without Creator. The game's identity and
   settings are `game.*` keys in `gradle.properties`, edited line by line (`GradleProperties`: other lines untouched, values escaped as
   Gradle reads the ISO-8859-1 file, a key set twice read and written at its last line, as Gradle reads it), and every change to them
@@ -434,6 +437,16 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   category), and Play is green.
 - Beginner-friendly by default: one Block category at a time, Blocks added by a click or a drag, and anything advanced (the package
   of a new project) under More options.
+- **Calm and desktop-like:** soft, low-contrast colors (`CreatorColors`, never pure white or black text), small corners, and
+  dialogs of several groups as a list of pages beside the chosen one rather than one long scroll. A row shows its main action;
+  the rest (remove, folder options) fade in while it is pointed at or focused, and its right-click menu offers them too, never
+  only there. A clickable row's background and press feedback span its whole panel (a padded settings page's rows reach
+  past the padding with `fullBleed`); only what is drawn as a card (a Block, a chip) keeps its own shape.
+- **Nothing pops in:** panels, pages, notices, list rows, and dialogs move or fade with `CreatorMotion`'s durations. What
+  replaces a live Scene preview fades in (`fadeInOnChange`) rather than crossfading, which would keep two previews running.
+- **Usable at any window size:** the type editor folds its details, and then its palette, into tabs beside the Events
+  (`BlockTypeEditorColumns`) before the Blocks lose their room, Block parameters wrap, and labels end in an ellipsis rather
+  than wrapping a header.
 - The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.
 - A field above the sidebar's groups filters everything in it by name, showing the folders that hold matches opened; the folders
   the user collapsed are left as they were and come back once the filter is cleared.

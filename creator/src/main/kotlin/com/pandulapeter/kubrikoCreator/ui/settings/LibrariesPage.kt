@@ -19,20 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.project.LibraryInUse
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.project_settings_libraries_description
 import kubriko.creator.generated.resources.project_settings_library_more
-import kubriko.creator.generated.resources.project_settings_section_libraries
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The Libraries in use section of Project settings: each Kubriko library the build depends on, and why.
  */
 @Composable
-internal fun LibrariesSection(
+internal fun LibrariesPage(
     libraries: List<LibraryInUse>,
-) = SettingsSection(
-    title = Res.string.project_settings_section_libraries,
-    description = Res.string.project_settings_libraries_description,
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(12.dp),
 ) {
     libraries.forEach { library -> LibraryRow(library) }
 }

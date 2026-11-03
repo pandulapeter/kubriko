@@ -9,47 +9,43 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.uiComponents.theme.KubrikoColors
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 
 /**
- * Kubriko's theme with the Creator's own [CreatorTypography] in place of the shared one, light or dark as [theme] says.
+ * Kubriko's theme with the Creator's own colors, [CreatorTypography], and desktop-sized corners, light or dark as [theme]
+ * says ([ThemeChoice.SYSTEM] following the operating system as Kubriko's theme does).
  */
 @Composable
 public fun CreatorTheme(
     theme: ThemeChoice = ThemeChoice.SYSTEM,
     content: @Composable () -> Unit,
 ): Unit = KubrikoTheme {
+    val isDark = when (theme) {
+        ThemeChoice.SYSTEM -> MaterialTheme.colorScheme.surface.luminance() < 0.5f
+        ThemeChoice.LIGHT -> false
+        ThemeChoice.DARK -> true
+    }
     MaterialTheme(
-        colorScheme = when (theme) {
-            ThemeChoice.SYSTEM -> MaterialTheme.colorScheme
-            ThemeChoice.LIGHT -> LightScheme
-            ThemeChoice.DARK -> DarkScheme
-        },
+        colorScheme = if (isDark) CreatorDarkColors else CreatorLightColors,
         typography = CreatorTypography(),
+        shapes = CreatorShapes,
         content = content,
     )
 }
 
 /**
- * The same colors [KubrikoTheme] picks from the system's setting.
+ * Corners that suit a desktop window: menus, fields, and cards barely rounded, dialogs only slightly more.
  */
-private val LightScheme = lightColorScheme(
-    primary = KubrikoColors.brandPrimary,
-    onPrimary = KubrikoColors.onBrandPrimary,
-    primaryContainer = KubrikoColors.brandPrimary,
-    onPrimaryContainer = KubrikoColors.onBrandPrimary,
-    secondary = KubrikoColors.brandPrimary,
-)
-
-private val DarkScheme = darkColorScheme(
-    primary = KubrikoColors.brandPrimary,
-    onPrimary = KubrikoColors.onBrandPrimary,
-    primaryContainer = KubrikoColors.brandPrimary,
-    onPrimaryContainer = KubrikoColors.onBrandPrimary,
-    secondary = KubrikoColors.brandSecondary,
+private val CreatorShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(6.dp),
+    medium = RoundedCornerShape(8.dp),
+    large = RoundedCornerShape(10.dp),
+    extraLarge = RoundedCornerShape(12.dp),
 )

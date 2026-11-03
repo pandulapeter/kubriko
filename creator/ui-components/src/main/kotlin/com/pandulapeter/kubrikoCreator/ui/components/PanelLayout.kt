@@ -14,16 +14,16 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 
 /**
- * The side panels' widths as the user left them, and how to keep a new one.
+ * The panels' sizes as the user left them (the side panels' widths and the console's height), and how to keep a new one.
  *
- * @param widths The kept widths in dp, by [Panel.id]; a panel without one has its default width.
- * @param onWidthChange Keeps a panel's new width.
- * @param onWidthReset Gives a panel its default width again.
+ * @param sizes The kept sizes in dp, by [Panel.id]; a panel without one has its default size.
+ * @param onSizeChange Keeps a panel's new size.
+ * @param onSizeReset Gives a panel its default size again.
  */
 public class PanelLayout(
-    private val widths: Map<String, Float>,
-    public val onWidthChange: (Panel, Dp) -> Unit,
-    public val onWidthReset: (Panel) -> Unit,
+    private val sizes: Map<String, Float>,
+    public val onSizeChange: (Panel, Dp) -> Unit,
+    public val onSizeReset: (Panel) -> Unit,
 ) {
-    public fun widthOf(panel: Panel): Dp = widths[panel.id]?.dp ?: panel.default
+    public fun sizeOf(panel: Panel): Dp = sizes[panel.id]?.dp ?: panel.default
 }

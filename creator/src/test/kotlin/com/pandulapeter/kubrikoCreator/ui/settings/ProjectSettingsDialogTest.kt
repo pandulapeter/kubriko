@@ -43,7 +43,7 @@ class ProjectSettingsDialogTest {
     private val identity = GameIdentity("Breakout", "1.0.0", 3, "com.example.breakout", "Pandula", "")
 
     @Test
-    fun typingAValidValueChangesItAndAnInvalidOneSaysWhy() = uiTest(width = 640, height = 900) {
+    fun typingAValidValueChangesItAndAnInvalidOneSaysWhy() = uiTest(width = 960, height = 640) {
         val changes = mutableListOf<SetProjectSettings.Input>()
         var shown by mutableStateOf(identity)
         showing {
@@ -65,7 +65,7 @@ class ProjectSettingsDialogTest {
     }
 
     @Test
-    fun aProjectWhoseBuildDoesNotReadItsSettingsOffersTheUpgrade() = uiTest(width = 640, height = 600) {
+    fun aProjectWhoseBuildDoesNotReadItsSettingsOffersTheUpgrade() = uiTest(width = 960, height = 640) {
         var isReviewing = false
         showing {
             ProjectSettingsDialog(
@@ -82,7 +82,7 @@ class ProjectSettingsDialogTest {
     }
 
     @Test
-    fun settingsThatCanNotBeReadSayWhyAndOfferNoUpgrade() = uiTest(width = 640, height = 600) {
+    fun settingsThatCanNotBeReadSayWhyAndOfferNoUpgrade() = uiTest(width = 960, height = 640) {
         showing {
             ProjectSettingsDialog(
                 settings = null,
@@ -98,7 +98,7 @@ class ProjectSettingsDialogTest {
     }
 
     @Test
-    fun theGameSectionChangesTheGamesSettingsAndListsTheLibrariesWithWhy() = uiTest(width = 640, height = 1400) {
+    fun theGameSectionChangesTheGamesSettingsAndListsTheLibrariesWithWhy() = uiTest(width = 960, height = 640) {
         val changes = mutableListOf<SetProjectSettings.Input>()
         var game by mutableStateOf(GameSettings(aspectRatio = AspectRatio.FIT_VERTICAL))
         val libraries = listOf(
@@ -115,16 +115,18 @@ class ProjectSettingsDialogTest {
                 onDismiss = {},
             )
         }
+        onNodeWithText("Game").performClick()
         onNodeWithText("Fit the height").assertExists()
         onNodeWithText("60 updates per second").assertExists()
         onNodeWithText("game.frameRate", substring = true).assertExists()
+        saveSnapshot("project-settings-game")
+        onNodeWithText("Libraries in use").performClick()
         onNodeWithText("Ball collides with Paddle").assertExists()
         onNodeWithText("Used in src/commonMain/kotlin/com/example/breakout/Gravity.kt").assertExists()
         onNodeWithText("Used by the code Kubriko Creator generates.").assertExists()
         onNodeWithText("Every game uses it.").assertExists()
-        saveSnapshot("project-settings-game")
-        onNodeWithText("Used by the code Kubriko Creator generates.").performScrollTo()
         saveSnapshot("project-settings-libraries")
+        onNodeWithText("Game").performClick()
         onNodeWithText("Height").performTextReplacement("0")
         waitForIdle()
         onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertExists()
@@ -141,13 +143,15 @@ class ProjectSettingsDialogTest {
         onNodeWithText("Width").performTextReplacement("0")
         waitForIdle()
         onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertExists()
-        onNodeWithText("Breakout").performScrollTo().performClick()
+        onNodeWithText("Identity").performClick()
+        onNodeWithText("Breakout").assertExists()
+        onNodeWithText("Game").performClick()
         waitForIdle()
         onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertDoesNotExist()
     }
 
     @Test
-    fun aFirstSceneThatIsGoneSaysSo() = uiTest(width = 640, height = 900) {
+    fun aFirstSceneThatIsGoneSaysSo() = uiTest(width = 960, height = 640) {
         showing {
             ProjectSettingsDialog(
                 settings = ProjectSettingsSnapshot(identity, GameSettingsReading(GameSettings(firstScene = "deleted")), emptyList(), scenes = listOf("main")),
@@ -156,11 +160,12 @@ class ProjectSettingsDialogTest {
                 onDismiss = {},
             )
         }
+        onNodeWithText("Game").performClick()
         onNodeWithText("There's no Scene called deleted.").assertExists()
     }
 
     @Test
-    fun anIdentityWithoutGameSettingsOffersTheUpgradeForThem() = uiTest(width = 640, height = 900) {
+    fun anIdentityWithoutGameSettingsOffersTheUpgradeForThem() = uiTest(width = 960, height = 640) {
         showing {
             ProjectSettingsDialog(
                 settings = ProjectSettingsSnapshot(identity, game = null, libraries = emptyList(), scenes = emptyList()),
@@ -169,12 +174,13 @@ class ProjectSettingsDialogTest {
                 onDismiss = {},
             )
         }
+        onNodeWithText("Game").performClick()
         onNodeWithText("doesn't read its first Scene, aspect ratio, and frame rate", substring = true).assertExists()
         onNodeWithText("Review changes").assertExists()
     }
 
     @Test
-    fun choosingTheDefaultThatAnUnreadableValueShowsWritesIt() = uiTest(width = 640, height = 900) {
+    fun choosingTheDefaultThatAnUnreadableValueShowsWritesIt() = uiTest(width = 960, height = 640) {
         val changes = mutableListOf<SetProjectSettings.Input>()
         showing {
             ProjectSettingsDialog(
@@ -184,6 +190,7 @@ class ProjectSettingsDialogTest {
                 onDismiss = {},
             )
         }
+        onNodeWithText("Game").performClick()
         onNodeWithText("Dynamic").performScrollTo().performClick()
         onAllNodesWithText("Dynamic").onLast().performClick()
         waitForIdle()
@@ -191,7 +198,7 @@ class ProjectSettingsDialogTest {
     }
 
     @Test
-    fun choosingTheDefaultThatAnUnreadableFrameRateShowsWritesIt() = uiTest(width = 640, height = 900) {
+    fun choosingTheDefaultThatAnUnreadableFrameRateShowsWritesIt() = uiTest(width = 960, height = 640) {
         val changes = mutableListOf<SetProjectSettings.Input>()
         showing {
             ProjectSettingsDialog(
@@ -201,6 +208,7 @@ class ProjectSettingsDialogTest {
                 onDismiss = {},
             )
         }
+        onNodeWithText("Game").performClick()
         onNodeWithText("60 updates per second").performScrollTo().performClick()
         onAllNodesWithText("60 updates per second").onLast().performClick()
         waitForIdle()

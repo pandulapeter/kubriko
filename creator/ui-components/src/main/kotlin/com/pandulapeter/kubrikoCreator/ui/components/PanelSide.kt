@@ -10,10 +10,11 @@
 package com.pandulapeter.kubrikoCreator.ui.components
 
 /**
- * Which side of its [PanelSplitter] a side panel is on: [START] panels (left of it) grow when it is dragged to the right,
- * [END] panels when it is dragged to the left.
+ * Which side of its [PanelSplitter] a panel is on: [START] panels (left of it) grow when it is dragged to the right,
+ * [END] panels when it is dragged to the left, and [BOTTOM] panels (below it) when it is dragged up.
  */
 public enum class PanelSide {
     START,
     END,
+    BOTTOM,
 }

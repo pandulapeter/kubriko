@@ -13,17 +13,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -99,64 +95,70 @@ internal fun BlockTypeEditor(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
             val columns = remember(maxWidth) { BlockTypeEditorColumns.of(maxWidth) }
-            Row(
+            BlockTypeEditorBody(
                 modifier = Modifier.fillMaxSize(),
-            ) {
-                PropertiesColumn(
-                    modifier = Modifier.width(columns.properties).fillMaxHeight(),
-                    definition = definition,
-                    sprites = sprites,
-                    propertyKeys = propertyKeys,
-                    inheritedProperties = inheritance.properties,
-                    actions = actions,
-                )
-                VerticalDivider()
-                EventList(
-                    modifier = Modifier.width(columns.events).fillMaxHeight(),
-                    typeKind = definition.kind,
-                    events = definition.events,
-                    keys = eventKeys,
-                    isRecentlyAdded = eventSelection::isRecentlyAdded,
-                    listIdentity = name,
-                    inheritedEvents = inheritance.events,
-                    onOverride = { event -> actions.overrideEvent(event, selectAddedEvent) },
-                    selectedIndex = eventIndex,
-                    onSelected = { eventSelection.select(eventKeys[it]) },
-                    onAdded = { type -> actions.addEvent(type, selectAddedEvent) },
-                    onMoved = actions::moveEvent,
-                    onRemoved = actions::removeEvent,
-                    highlight = highlight,
-                )
-                VerticalDivider()
-                EventBlocks(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    event = event,
-                    scope = scope,
-                    onKeyChange = { key -> eventIndex?.let { actions.setEventKey(it, key) } },
-                    onTimerChange = { timer -> eventIndex?.let { actions.setEventTimer(it, timer) } },
-                    onTimerRename = actions::renameTimer,
-                    onOtherActorTypeChange = { other -> eventIndex?.let { actions.setEventOtherActorType(it, other) } },
-                    onBlockChange = { blockIndex, block -> eventIndex?.let { actions.editBlock(it, blockIndex, block) } },
-                    dragState = dragState,
-                    onBlockRemoved = { blockIndex -> eventIndex?.let { actions.removeBlock(it, blockIndex) } },
-                    highlight = highlight?.takeIf { it.eventIndex == eventIndex },
-                    listIdentity = name to eventIndex?.let(eventKeys::get),
-                    scrollToEndRequest = blockListScrollToEndRequest,
-                )
-                VerticalDivider()
-                BlockPalette(
-                    modifier = Modifier.width(columns.palette).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-                    eventType = event?.type,
-                    typeKind = definition.kind,
-                    dragState = dragState,
-                    onBlockKindSelected = { kind ->
-                        eventIndex?.let {
-                            actions.addBlock(it, kind)
-                            blockListScrollToEndRequest++
-                        }
-                    },
-                )
-            }
+                columns = columns,
+                typeName = name,
+                details = { columnModifier ->
+                    PropertiesColumn(
+                        modifier = columnModifier,
+                        definition = definition,
+                        sprites = sprites,
+                        propertyKeys = propertyKeys,
+                        inheritedProperties = inheritance.properties,
+                        actions = actions,
+                    )
+                },
+                events = { columnModifier ->
+                    EventList(
+                        modifier = columnModifier,
+                        typeKind = definition.kind,
+                        events = definition.events,
+                        keys = eventKeys,
+                        isRecentlyAdded = eventSelection::isRecentlyAdded,
+                        listIdentity = name,
+                        inheritedEvents = inheritance.events,
+                        onOverride = { event -> actions.overrideEvent(event, selectAddedEvent) },
+                        selectedIndex = eventIndex,
+                        onSelected = { eventSelection.select(eventKeys[it]) },
+                        onAdded = { type -> actions.addEvent(type, selectAddedEvent) },
+                        onMoved = actions::moveEvent,
+                        onRemoved = actions::removeEvent,
+                        highlight = highlight,
+                    )
+                },
+                blocks = { columnModifier ->
+                    EventBlocks(
+                        modifier = columnModifier,
+                        event = event,
+                        scope = scope,
+                        onKeyChange = { key -> eventIndex?.let { actions.setEventKey(it, key) } },
+                        onTimerChange = { timer -> eventIndex?.let { actions.setEventTimer(it, timer) } },
+                        onTimerRename = actions::renameTimer,
+                        onOtherActorTypeChange = { other -> eventIndex?.let { actions.setEventOtherActorType(it, other) } },
+                        onBlockChange = { blockIndex, block -> eventIndex?.let { actions.editBlock(it, blockIndex, block) } },
+                        dragState = dragState,
+                        onBlockRemoved = { blockIndex -> eventIndex?.let { actions.removeBlock(it, blockIndex) } },
+                        highlight = highlight?.takeIf { it.eventIndex == eventIndex },
+                        listIdentity = name to eventIndex?.let(eventKeys::get),
+                        scrollToEndRequest = blockListScrollToEndRequest,
+                    )
+                },
+                palette = { columnModifier ->
+                    BlockPalette(
+                        modifier = columnModifier.background(MaterialTheme.colorScheme.surfaceContainerLow),
+                        eventType = event?.type,
+                        typeKind = definition.kind,
+                        dragState = dragState,
+                        onBlockKindSelected = { kind ->
+                            eventIndex?.let {
+                                actions.addBlock(it, kind)
+                                blockListScrollToEndRequest++
+                            }
+                        },
+                    )
+                },
+            )
         }
     }
     DragPreview(dragState)

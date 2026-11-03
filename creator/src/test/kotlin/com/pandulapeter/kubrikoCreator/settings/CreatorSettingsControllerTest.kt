@@ -81,11 +81,11 @@ class CreatorSettingsControllerTest {
     @Test
     fun settingAndResettingAPanelWidth() = runTest {
         val controller = CreatorSettingsController(CreatorSettingsStore(file), backgroundScope, StandardTestDispatcher(testScheduler))
-        controller.setPanelWidth(Panel.SIDEBAR, 300.dp)
+        controller.setPanelSize(Panel.SIDEBAR, 300.dp)
         assertEquals(mapOf("sidebar" to 300f), controller.settings.value.panelWidths)
         runCurrent()
         assertEquals(mapOf("sidebar" to 300f), CreatorSettingsStore(file).load().panelWidths)
-        controller.resetPanelWidth(Panel.SIDEBAR)
+        controller.resetPanelSize(Panel.SIDEBAR)
         assertEquals(emptyMap(), controller.settings.value.panelWidths)
     }
 }

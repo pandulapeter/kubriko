@@ -107,7 +107,7 @@ class AiFeaturesOffTest {
     }
 
     @Test
-    fun theSettingsTurnAiFeaturesOffAndChooseTheThemeAndSize() = uiTest(width = 720, height = 820) {
+    fun theSettingsTurnAiFeaturesOffAndChooseTheThemeAndSize() = uiTest(width = 960, height = 640) {
         val changes = mutableListOf<Any?>()
         showing {
             CreatorSettingsDialog(
@@ -120,13 +120,16 @@ class AiFeaturesOffTest {
                 onDismiss = {},
             )
         }
-        onNodeWithText("AI features").performClick()
         onNodeWithText("Dark").performClick()
         onNodeWithText("100%").performClick()
+        saveSnapshot("creator-settings")
+        onNodeWithText("Editor").performClick()
         onNodeWithText(File("/Users/me").path).assertExists()
         onNodeWithText("Use the home folder").assertDoesNotExist()
-        assertEquals(listOf<Any?>(false, ThemeChoice.DARK, 1f), changes)
-        saveSnapshot("creator-settings")
+        onNodeWithText("AI").performClick()
+        onNodeWithText("AI features").performClick()
+        assertEquals(listOf<Any?>(ThemeChoice.DARK, 1f, false), changes)
+        saveSnapshot("creator-settings-ai")
     }
 
     private companion object {

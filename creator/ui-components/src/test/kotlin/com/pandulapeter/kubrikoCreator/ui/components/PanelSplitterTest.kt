@@ -11,7 +11,10 @@ package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,10 +26,13 @@ import androidx.compose.ui.test.doubleClick
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -46,12 +52,12 @@ class PanelSplitterTest {
         showing {
             val layout = remember(widths) {
                 PanelLayout(
-                    widths = widths,
-                    onWidthChange = { panel, width ->
+                    sizes = widths,
+                    onSizeChange = { panel, width ->
                         changes++
                         widths = widths + (panel.id to width.value)
                     },
-                    onWidthReset = { panel ->
+                    onSizeReset = { panel ->
                         resets++
                         widths = widths - panel.id
                     },
@@ -81,6 +87,61 @@ class PanelSplitterTest {
         assertEquals(1, resets)
         assertEquals(emptyMap(), widths)
     }
+
+    @Test
+    fun draggingAHorizontalSplitterUpGrowsThePanelBelowItWithinMostOfTheColumn() = uiTest(width = 400, height = 600) {
+        showing {
+            val layout = remember(widths) {
+                PanelLayout(
+                    sizes = widths,
+                    onSizeChange = { panel, height ->
+                        changes++
+                        widths = widths + (panel.id to height.value)
+                    },
+                    onSizeReset = { panel ->
+                        resets++
+                        widths = widths - panel.id
+                    },
+                )
+            }
+            BoxWithConstraints {
+                val available = maxHeight
+                val height = rememberPanelHeight(Panel.CONSOLE, layout)
+                Column {
+                    Box(Modifier.weight(1f))
+                    PanelSplitter(height, available)
+                    Box(Modifier.testTag("panel").fillMaxWidth().height(height.heightIn(available)))
+                }
+            }
+        }
+        val defaultHeight = panelHeight()
+        onNodeWithContentDescription("Drag to resize, double-click for the default height").performTouchInput {
+            swipeUp(startY = centerY, endY = centerY - 80f, durationMillis = 200)
+        }
+        waitForIdle()
+        assertTrue(panelHeight() > defaultHeight, "The panel is ${panelHeight()} tall, not taller than its default $defaultHeight")
+        assertEquals(setOf("console"), widths.keys)
+        onNodeWithContentDescription("Drag to resize, double-click for the default height").performTouchInput {
+            swipeUp(startY = centerY, endY = 0f, durationMillis = 200)
+        }
+        waitForIdle()
+        val columnHeight = onRoot().getBoundsInRoot().let { it.bottom - it.top }
+        assertTrue(panelHeight() <= columnHeight * 0.6f + 1.dp, "The panel is ${panelHeight()} tall, more than most of $columnHeight")
+        onNodeWithContentDescription("Drag to resize, double-click for the default height").performMouseInput { doubleClick() }
+        waitForIdle()
+        assertEquals(defaultHeight, panelHeight())
+        assertEquals(emptyMap(), widths)
+    }
+
+    @Test
+    fun aBottomPanelKeepsAFewLinesAndLeavesTheEditorAboveItSomeRoom() {
+        assertEquals(80.dp, clampedPanelHeight(10.dp, 600.dp))
+        assertEquals(200.dp, clampedPanelHeight(200.dp, 600.dp))
+        assertEquals(360.dp, clampedPanelHeight(500.dp, 600.dp))
+        assertEquals(80.dp, clampedPanelHeight(200.dp, 100.dp))
+    }
+
+    private fun androidx.compose.ui.test.ComposeUiTest.panelHeight(): Dp = onNodeWithTag("panel").getBoundsInRoot().let { it.bottom - it.top }
 
     private fun androidx.compose.ui.test.ComposeUiTest.panelWidth(): Dp = onNodeWithTag("panel").getBoundsInRoot().let { it.right - it.left }
 }

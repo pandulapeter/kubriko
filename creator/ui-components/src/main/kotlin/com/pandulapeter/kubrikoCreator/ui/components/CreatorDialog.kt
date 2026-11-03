@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.components
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,7 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 
 /**
- * A dialog of Kubriko Creator's: as wide as its content needs, up to [maxWidth], with a [title] above its [text].
+ * A dialog of Kubriko Creator's: as wide as its content needs, up to [maxWidth], with a [title] above its [text],
+ * fading in rather than appearing at once.
  */
 @Composable
 public fun CreatorDialog(
@@ -31,10 +33,11 @@ public fun CreatorDialog(
     dismissButton: (@Composable () -> Unit)? = null,
     text: @Composable () -> Unit,
 ): Unit = AlertDialog(
-    modifier = Modifier.widthIn(max = maxWidth).padding(24.dp),
+    modifier = Modifier.widthIn(max = maxWidth).padding(24.dp).dialogEntrance(),
     properties = DialogProperties(usePlatformDefaultWidth = false),
     onDismissRequest = onDismiss,
-    title = { Text(title) },
+    shape = MaterialTheme.shapes.extraLarge,
+    title = { Text(title, style = MaterialTheme.typography.titleLarge) },
     text = text,
     confirmButton = confirmButton,
     dismissButton = dismissButton,

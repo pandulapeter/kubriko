@@ -32,8 +32,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
+import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
+import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_remove_event
 import kubriko.creator.generated.resources.ic_close
@@ -58,49 +65,57 @@ internal fun EventListItem(
     onRemove: () -> Unit,
     flashKey: Any?,
     modifier: Modifier = Modifier,
-) = Row(
-    modifier = modifier
-        .fillMaxWidth()
-        .heightIn(min = 36.dp)
-        .alpha(if (dragState.dragged == index) 0.4f else 1f)
-        .then(if (isSelected) Modifier.background(Accent.EVENT.container) else Modifier)
-        .flashBackground(flashKey, Accent.EVENT.color)
-        .dropLines(isDropAbove, isDropBelow)
-        .listDragSource(dragState) { index }
-        .clickable { if (!dragState.isClickAfterDrag) onClick() }
-        .padding(start = 12.dp, end = 4.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
 ) {
-    Icon(
-        modifier = Modifier.size(16.dp),
-        painter = painterResource(event.type.icon),
-        contentDescription = null,
-        tint = Accent.EVENT.color,
-    )
-    Column(
-        modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+    val hover = rememberHoverRevealState()
+    val menu = rememberRightClickMenuState()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 36.dp)
+            .alpha(if (dragState.dragged == index) 0.4f else 1f)
+            .then(if (isSelected) Modifier.background(Accent.EVENT.container) else Modifier)
+            .flashBackground(flashKey, Accent.EVENT.color)
+            .dropLines(isDropAbove, isDropBelow)
+            .listDragSource(dragState) { index }
+            .clickable { if (!dragState.isClickAfterDrag) onClick() }
+            .hoverReveal(hover)
+            .rightClickMenu(menu)
+            .padding(start = 12.dp, end = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = stringResource(event.type.title),
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
+        Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(event.type.icon),
+            contentDescription = null,
+            tint = Accent.EVENT.color,
         )
-        event.detail()?.let { detail ->
+        Column(
+            modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+        ) {
             Text(
-                text = detail,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
+                text = stringResource(event.type.title),
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
+            event.detail()?.let { detail ->
+                Text(
+                    text = detail,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
         }
+        IconActionButton(
+            modifier = Modifier.revealedWhen(hover.isActive || isSelected),
+            icon = Res.drawable.ic_close,
+            label = Res.string.action_remove_event,
+            onClick = onRemove,
+        )
+        RightClickMenu(menu, listOf(ContextAction(stringResource(Res.string.action_remove_event), Res.drawable.ic_close, isDestructive = true, onClick = onRemove)))
     }
-    IconActionButton(
-        icon = Res.drawable.ic_close,
-        label = Res.string.action_remove_event,
-        onClick = onRemove,
-    )
 }
 
 @Composable
