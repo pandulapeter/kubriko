@@ -67,19 +67,40 @@ class BlockTypesControllerTest {
         repository = repository,
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler) + onUnexpectedProblem),
         ioDispatcher = ioDispatcher,
-        onSaved = {
-            savedCount++
-            savedTypeChanges += it
-            onSaved()
+        listener = object : BlockTypesListener {
+            override fun onSaved(haveTypesChanged: Boolean) {
+                savedCount++
+                savedTypeChanges += haveTypesChanged
+                onSaved.invoke()
+            }
+
+            override fun onSaveFailed(failure: FailedWrite) {
+                failures += failure
+            }
+
+            override fun onSavedAgain() {
+                savedAgainCount++
+            }
+
+            override fun onFileUnreadable(file: UnreadableBlockTypeFile) {
+                unreadableReports += file.path
+            }
+
+            override fun onFilesReadableAgain() {
+                readableAgainCount++
+            }
+
+            override fun onLeftoversRemoved(paths: List<String>) {
+                removedLeftoverReports += paths
+            }
+
+            override fun onLeftoverChangedByHand(path: String) {
+                leftoverChangedByHandReports += path
+            }
+
+            override fun onBuildFilesSynced(changes: KubrikoBuildFileChanges) = onBuildFilesSynced.invoke(changes)
         },
-        onSaveFailed = { failures += it },
-        onSavedAgain = { savedAgainCount++ },
-        onFileUnreadable = { unreadableReports += it.path },
-        onFilesReadableAgain = { readableAgainCount++ },
-        onLeftoversRemoved = { removedLeftoverReports += it },
-        onLeftoverChangedByHand = { leftoverChangedByHandReports += it },
         syncBuildFiles = syncBuildFiles,
-        onBuildFilesSynced = onBuildFilesSynced,
         writeDelayInMilliseconds = writeDelayInMilliseconds,
     )
 

@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
-import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
@@ -23,7 +22,6 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import com.pandulapeter.kubrikoCreator.context.KotlinBlockScopeChecks
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.git.GitRepository
@@ -69,7 +67,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Holds the state of an open project: its resources, its console, and the session process that runs or edits it.
@@ -141,7 +138,6 @@ public class WorkspaceController(
      */
     public val formatStatus: StateFlow<ProjectFormatStatus> = _formatStatus.asStateFlow()
 
-    private val hasReportedNewerKubrikoVersion = AtomicBoolean(false)
     private val upgrader = ProjectUpgrader(project.rootDirectory)
     private val _projectUpgrade = MutableStateFlow<TemplateUpgrade>(TemplateUpgrade.UpToDate)
 
@@ -179,16 +175,8 @@ public class WorkspaceController(
             repository = repository,
             scope = scope,
             ioDispatcher = ioDispatcher,
-            onSaved = { haveTypesChanged -> savedTypeBatches.trySend(haveTypesChanged) },
-            onSaveFailed = { appendToConsole(it.toConsoleEntry()) },
-            onSavedAgain = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPES_SAVED_AGAIN)) },
-            onFileUnreadable = { appendToConsole(it.toConsoleEntry()) },
-            onFirstLoaded = ::reportKotlinBlockScopeChanges,
-            onFilesReadableAgain = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.TYPE_FILES_READABLE_AGAIN)) },
-            onLeftoversRemoved = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.GENERATED_LEFTOVERS_REMOVED, arguments = listOf(it.joinToString()))) },
-            onLeftoverChangedByHand = { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.GENERATED_LEFTOVER_CHANGED_BY_HAND, isError = true, arguments = listOf(it))) },
+            listener = BlockTypesReport(consoleLog) { haveTypesChanged -> savedTypeBatches.trySend(haveTypesChanged) },
             syncBuildFiles = syncBuildFiles,
-            onBuildFilesSynced = ::reportBuildFileChanges,
             writeDelayInMilliseconds = writeDelayInMilliseconds,
             isReadOnly = { _formatStatus.value is ProjectFormatStatus.ReadOnly },
         )
@@ -451,29 +439,6 @@ public class WorkspaceController(
     public fun clearConsole(): Unit = consoleLog.clear()
 
     private fun appendToConsole(entry: ConsoleEntry) = consoleLog.append(entry)
-
-    /**
-     * Names, once per type, the types whose Kotlin Blocks rely on what changed when each kind of Event got a function of
-     * its own, which the health checks list Block by Block.
-     */
-    private fun reportKotlinBlockScopeChanges(types: List<BlockTypeDefinition>) {
-        KotlinBlockScopeChecks.of(types).map { it.subject.toString() }.distinct().forEach { name ->
-            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KOTLIN_BLOCK_SCOPE_CHANGED, isError = true, arguments = listOf(name)))
-        }
-    }
-
-    private fun reportBuildFileChanges(changes: KubrikoBuildFileChanges) {
-        changes.previousVersion?.let { appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_VERSION_CHANGED, arguments = listOf(changes.version, it))) }
-        if (changes.isNewerThanCreator && !hasReportedNewerKubrikoVersion.getAndSet(true)) {
-            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_VERSION_NEWER, arguments = listOf(changes.version)))
-        }
-        if (changes.addedArtifacts.isNotEmpty()) {
-            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_LIBRARIES_ADDED, arguments = listOf(changes.addedArtifacts.joinToString())))
-        }
-        if (changes.removedArtifacts.isNotEmpty()) {
-            appendToConsole(ConsoleEntry.Status(WorkspaceStatus.KUBRIKO_LIBRARIES_REMOVED, arguments = listOf(changes.removedArtifacts.joinToString())))
-        }
-    }
 
     /**
      * Stops everything the workspace runs, once the game is gone and the changes made so far are written, giving the game

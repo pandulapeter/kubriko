@@ -16,6 +16,8 @@ import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesListener
+import com.pandulapeter.kubrikoCreator.actors.store.FailedWrite
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -43,8 +45,11 @@ public fun TestScope.blockTypesController(vararg definitions: BlockTypeDefinitio
     repository = repository,
     scope = testScope(),
     ioDispatcher = UnconfinedTestDispatcher(testScheduler),
-    onSaved = {},
-    onSaveFailed = {},
+    listener = object : BlockTypesListener {
+        override fun onSaved(haveTypesChanged: Boolean) = Unit
+
+        override fun onSaveFailed(failure: FailedWrite) = Unit
+    },
 )
 
 public fun TestScope.gitController(repository: FakeGitRepository?) = GitController(

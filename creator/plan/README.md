@@ -50,9 +50,9 @@ generation, and project files in `:creator:core`, a command in `:creator:command
 `:creator:workspace` (with every change routed through `ProjectChanges`), and screen state in a tested holder such as
 `WorkspaceUiState` rather than in a Composable. Left of the structure itself, before the classes involved grow further:
 
-- **Five constructors take more than 12 parameters** (`WorkspaceController` 23, `AssistantController` 18,
-  `SceneEditingController` 17, `BlockTypesController` 15, and `CommandContext` 13), which the size check lets shrink but not
-  grow. Direction: take a responsibility out of each (for `WorkspaceController`, a factory that builds its collaborators).
+- **Four constructors take more than 12 parameters** (`WorkspaceController` 23, `AssistantController` 18,
+  `SceneEditingController` 17, and `CommandContext` 13), which the size check lets shrink but not grow. Direction: group the
+  parameters that belong together into a named collaborator, or take a responsibility out (`issues/`).
 
 ## Vision
 
