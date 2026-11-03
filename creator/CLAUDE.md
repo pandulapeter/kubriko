@@ -52,8 +52,10 @@ model and code generators (`core/src/main/kotlin/com/pandulapeter/kubrikoCreator
 - UI is checked offscreen: `uiTest { showing { … }; saveSnapshot("name") }` (`testing/UiSnapshots.kt` in `:creator:ui-components`'
   test fixtures) renders a composable in the app's theme and interface scale without a window, asserts its texts and clicks,
   and saves a PNG under the module's `build/ui-snapshots`.
-  Every new UI gets one. What needs the real app (windows, focus, live agents) is checked with a window-only screenshot
-  (`screencapture -l <window id>`) before it is called done; `plan/HANDOVER.md` → Working with the live app says how.
+  Every new UI gets one. What needs the real app (windows, focus, a played game) is verified there by the agent before it is
+  called done, never handed to the user as a check: through the end-to-end checks once they exist (`plan/00-end-to-end-checks.md`),
+  until then with a window-only screenshot (`plan/HANDOVER.md` → Working with the live app says how). Only what needs hardware or
+  an account no agent has goes to `plan/HANDOVER.md` → Before a release.
 
 ## Modules
 

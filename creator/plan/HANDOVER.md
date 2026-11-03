@@ -9,7 +9,7 @@
 -->
 # Handover
 
-Where the next session starts: what to do next and what still has to be checked by hand. Each session rewrites it before it ends.
+Where the next session starts: what to do next and what hasn't been verified in the real app yet. Each session rewrites it before it ends.
 The rules are in `../CLAUDE.md`, what is planned in the other files here. A session that finished an item notes here whether its
 review (`README.md`) ran and what it fixed; one that stopped before the review says so under Next, so the next session starts with it.
 
@@ -25,12 +25,26 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
+`00-end-to-end-checks.md`: the harness, then its first slice (Project settings: Game and Identity). After that, each later
+item is verified with it before it is called done, and one slice of Not yet verified is done before each. Then the rest of
+Project settings in `03-settings.md`, as follows.
+
 Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the dialog behind the
-toolbar's settings menu, and `get_project_settings` / `set_project_settings`; see To check by hand). Next is Targets, then
+toolbar's settings menu, and `get_project_settings` / `set_project_settings`; see Not yet verified). Next is Targets, then
 Release, Icons, and Signing, each extending the same dialog and tools. Then `04` to `07` in order. What is left in
 `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
-## To check by hand
+## Before a release
+
+What only the user can check, needing something no agent has (a high refresh rate panel, a real Windows machine, a browser
+sign-in, an OS keychain prompt, a vendor's quota). One line each; the user goes through it once a larger feature set is ready,
+never item by item.
+
+## Not yet verified
+
+What was built and unit-tested but not yet seen working in the real app. The end-to-end checks (`00-end-to-end-checks.md`) work
+through it: each bullet becomes a scenario and is deleted, or moves to Before a release. Nothing new is added here once the
+harness exists; a new item is verified before it is done.
 
 **Project settings: Game (built and unit-tested, and template version 10 built for real by `ProjectTemplateIntegrationTest`; not yet
 seen in the app)**

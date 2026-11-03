@@ -81,8 +81,8 @@ jobs:
              in commits of their own.
           4. Delete the finished item from its plan file (a plan file left empty is deleted and the rest renumbered), describe
              in creator/CLAUDE.md only the rules it introduces that the code can't show, and rewrite HANDOVER.md: Status, Next
-             (the item after this one), and To check by hand (add what only a person in the real app can check; drop nothing
-             you didn't verify yourself). Keep its "Ask before every push" line: it is for interactive sessions, not for you.
+             (the item after this one), Not yet verified (drop what you verified; add only what the end-to-end checks can't
+             reach yet), and Before a release (only what needs hardware or an account no agent has). Keep its "Ask before every push" line: it is for interactive sessions, not for you.
           5. Stop after this one item. Do not start the next.
 
           Committing and pushing:
@@ -107,8 +107,11 @@ jobs:
             the fix, not listed as a follow-up.
           - creator/plan/ holds only unimplemented work: no "Done" notes, history, or past decisions. HANDOVER.md keeps only
             status, next, the manual checks still owed, and live-app notes.
-          - Creator's UI is desktop-scale: compact components from its ui/components, icons with tooltips, logical layout. You
-            can't see the app here; check new screens through the offscreen snapshot tests (UiSnapshots) and look at the images.
+          - Creator's UI is desktop-scale: compact components from its ui/components, icons with tooltips, logical layout. Check
+            new screens through the offscreen snapshot tests (UiSnapshots) and look at the images.
+          - Verify your work in the real app yourself; the user does no checks item by item. Once the end-to-end checks exist
+            (creator/plan/00-end-to-end-checks.md), run them under xvfb-run (installed with sudo apt-get if missing), add the
+            item's scenarios, and look at their screenshots before calling it done.
           - Use the Oxford comma in every list of three or more items in all prose: docs, UI text, and commit messages.
           - The public API of the published library modules must not change without the user's consent; if the item seems to
             need such a change, find a way that doesn't, or stop and say so in HANDOVER.md.

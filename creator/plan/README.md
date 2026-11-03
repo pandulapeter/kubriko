@@ -13,15 +13,18 @@ Only future work lives here; once something is implemented, it is deleted from t
 introduces that the code can't show. Each topic has a file of its own, so a session only needs the one it works on.
 
 Finishing an item takes one more step before the next starts: run `/code-review` on the item's commits (`git log` from where it
-started), fix what it finds in commits of their own, and only then delete the item here. The review checks the change against
+started), fix what it finds in commits of their own, verify it in the real app with the end-to-end checks (`00-end-to-end-checks.md`;
+what they can't reach yet is listed in `HANDOVER.md` → Not yet verified, never left to the user), and only then delete the item here. The review checks the change against
 `../CLAUDE.md` → Definition of done, so what a whole-codebase sweep would find later is found while the item is fresh.
 
 [HANDOVER.md](HANDOVER.md) is where the last session stopped: start there.
 
 ## Roadmap, in order
 
-The files are numbered in the order they are worked on. Every item of `01` to `05` is to be done, none capped in number.
+The files are numbered in the order they are worked on. Every item of `00` to `05` is to be done, none capped in number.
 
+0. [End-to-end checks](00-end-to-end-checks.md) - a harness that drives the real app on a fixture project, built and run unattended,
+   which turns the unverified checks into scenarios before anything else continues.
 1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
    flooded console, two long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.
