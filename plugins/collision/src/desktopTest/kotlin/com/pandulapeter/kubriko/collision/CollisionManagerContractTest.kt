@@ -151,7 +151,7 @@ class CollisionManagerContractTest {
                     kubriko.tick()
                     detectors.forEachIndexed { detectorIndex, detector ->
                         val expected = collisionManager.collidables.value
-                            .filter { it is TypeA && it !== detector && detector.isCollidingWith(it) }
+                            .filter { it is TypeA && detector.isCollidingWith(it) }
                             .toSet()
                         val message = "Seed $seed, $collidableCount candidates, tick $tickIndex, detector $detectorIndex"
                         assertEquals(expected, detector.reported, message)

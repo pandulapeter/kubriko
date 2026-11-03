@@ -11,11 +11,13 @@ package com.pandulapeter.kubriko.helpers
 
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.manager.Manager
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class FixedFrequencyTickSourceTest {
 
     private class DeltaRecordingManager(private val onTick: (tickCount: Int) -> Unit) : Manager() {

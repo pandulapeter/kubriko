@@ -34,7 +34,7 @@ internal class RefCountedRegistry<K : Any, V : Any>(
         if (entry == null) {
             val value = create(key)
             entries[key] = Entry(value, 1)
-            _values.value = _values.value.put(key, value)
+            _values.value = _values.value.putting(key, value)
         } else {
             entry.count++
         }
@@ -45,7 +45,7 @@ internal class RefCountedRegistry<K : Any, V : Any>(
         entry.count--
         if (entry.count <= 0) {
             entries.remove(key)
-            _values.value = _values.value.remove(key)
+            _values.value = _values.value.removing(key)
             release(entry.value)
         }
     }

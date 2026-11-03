@@ -87,20 +87,20 @@ internal actual fun createSoundPlayer(
         return loadedSampleId
     }
 
-    override suspend fun play(sound: Any) {
+    override suspend fun play(cachedSound: Any) {
         withContext(Dispatchers.Default) {
-            sound as Int
+            cachedSound as Int
             synchronized(streamRings) {
-                val ring = streamRings[sound]
+                val ring = streamRings[cachedSound]
                 if (ring == null) {
-                    soundPool.play(sound, 1f, 1f, 1, 0, 1f)
+                    soundPool.play(cachedSound, 1f, 1f, 1, 0, 1f)
                 } else {
                     // SoundPool reports no end of stream, so the oldest stream of this sample is cut off to make room.
                     val oldestStreamId = ring.streamIds[ring.cursor]
                     if (oldestStreamId != 0) {
                         soundPool.stop(oldestStreamId)
                     }
-                    ring.streamIds[ring.cursor] = soundPool.play(sound, 1f, 1f, 1, 0, 1f)
+                    ring.streamIds[ring.cursor] = soundPool.play(cachedSound, 1f, 1f, 1, 0, 1f)
                     ring.cursor = (ring.cursor + 1) % ring.streamIds.size
                 }
             }
