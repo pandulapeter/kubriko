@@ -134,7 +134,7 @@ Besides its tests passing, a change:
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff. |
 | The Kubriko entries of the build files (`kubriko` version, `kubriko-*` libraries, Creator's Maven Local block) | Creator | Brought back in line with the code and Creator's version after every regeneration. |
-| The `game.*` keys of `gradle.properties` (the game's identity) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
+| The `game.*` keys of `gradle.properties` (the game's identity and settings) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
 | `.kubriko/local/` | Creator | Git-ignored. |
 
 ## Threads, writes, and failures
@@ -354,9 +354,18 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - **Creator settings** (`settings/`) are this user's on this computer; an unreadable file means the defaults. The side panels'
   widths are dragged at their edges and kept per panel (`panelWidths`, by an ID that never changes), saved once per drag, and
   clamped to the window when drawn, so the panels of a row never take more than half of it.
-- **Project settings** live in the project where its build reads them, so it builds the same without Creator. The game's identity is
-  `game.*` keys in `gradle.properties`, edited line by line (`GradleProperties`: other lines untouched, values escaped as Gradle
-  reads the ISO-8859-1 file); a project whose build doesn't read them (`GameIdentity.isReadByBuild`) is offered the template upgrade.
+- **Project settings** live in the project where its build reads them, so it builds the same without Creator. The game's identity and
+  settings are `game.*` keys in `gradle.properties`, edited line by line (`GradleProperties`: other lines untouched, values escaped as
+  Gradle reads the ISO-8859-1 file, a key set twice read and written at its last line, as Gradle reads it), and every change to them
+  is one write (`GradlePropertiesFile.update`); a project whose build doesn't read a group (`GameIdentity.isReadByBuild`,
+  `GameSettings.isReadByBuild`) is offered the template upgrade.
+- The game's settings reach the game through the build: template version 10's block turns them into a generated `GameSettings`
+  object that `Game.kt` starts from, so `GameSettings.of` parses exactly as `upgrades/GameSettings-10.gradle.kts.template` does
+  (the viewport's width and height only for the aspect ratios that use them), and the two change together. A value the build
+  can't read shows its default and is written again when chosen. Renaming a Scene, or its folder, follows the first Scene;
+  deleting the first Scene is refused, but undoing its creation isn't.
+- The libraries in use (`LibraryInUse`) are those the sources name, as the build sync decides them, each with what needs it
+  (`PluginUse`, from which the generated Managers' plugins come too).
 
 ## UI
 

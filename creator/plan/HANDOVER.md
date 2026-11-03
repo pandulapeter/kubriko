@@ -25,13 +25,26 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Project settings in `03-settings.md`: Game is built (template version 10, the dialog's Game and Libraries in use sections, and
-`get_project_settings` / `set_project_settings` reading and changing them), but its review (`README.md`, `/code-review` on the
-commits since `877f01e31`) hasn't run yet; finishing that is the next session's item. Then Targets, Release, Icons, and Signing,
-each extending the same dialog and tools. Then `04` to `07` in order. What is left in `01-large-projects.md` waits for other plans
-(Traits, UI elements, git) or for the benchmarks.
+Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the dialog behind the
+toolbar's settings menu, and `get_project_settings` / `set_project_settings`; see To check by hand). Next is Targets, then
+Release, Icons, and Signing, each extending the same dialog and tools. Then `04` to `07` in order. What is left in
+`01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 ## To check by hand
+
+**Project settings: Game (built and unit-tested, and template version 10 built for real by `ProjectTemplateIntegrationTest`; not yet
+seen in the app)**
+- The template version 10 upgrade on a scratch Breakout copy reset to its last commit (with version 9 too): the diff gives `Game.kt`
+  its `ViewportManager` from `GameSettings` and `GameSettings.FIRST_SCENE`, `gradle.properties` the `game.firstScene` it named,
+  and the played game starts in that Scene, at 60 updates per second.
+- The dialog's Game section: choosing the first Scene (and playing the game from it), each aspect ratio in a resized played window
+  (Fixed's bars, Stretched's stretching, Fit the width and Fit the height following the window's shape), typing a size (one undo
+  step, out of range shown in red and not applied), and Every frame the display shows on a 120 Hz screen.
+- A hand-broken `game.frameRate=fast` in `gradle.properties`: the red line naming it, the build's message naming it, and choosing
+  60 writing it again.
+- Renaming the first Scene and its folder (the setting follows), deleting it (refused in the console), and the web build
+  (`wasmJsBrowserDevelopmentRun`) with a fixed aspect ratio.
+- The Libraries in use section on the scratch Breakout copy: each plugin with what uses it, and whether a long list reads well.
 
 **Project settings: Identity (built and unit-tested, not yet seen in the app)**
 - The template version 9 upgrade on a scratch Breakout copy reset to its last commit: the diff names Breakout (from `Main.kt`), applying it builds,
