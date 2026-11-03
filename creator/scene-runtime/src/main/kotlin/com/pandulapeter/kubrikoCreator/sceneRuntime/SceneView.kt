@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.ScenePatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
@@ -44,9 +45,12 @@ import java.io.File
  * its Actors are created from the Scene's states as the game creates them, and are only ever moved while they are
  * dragged. Changes go through commands, which change the Scene, which is [load]ed again, changing only what changed.
  */
-internal class SceneView(entryPoint: CreatorEntryPoint) {
+public class SceneView(entryPoint: CreatorEntryPoint) {
     private val serializationManager = entryPoint.createSerializationManager()
-    val kubriko = Kubriko.newInstance(
+    /**
+     * The Kubriko instance the Scene's Actors are in, which the viewport shows.
+     */
+    public val kubriko: Kubriko = Kubriko.newInstance(
         ViewportManager.newInstance(
             aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
             minimumScaleFactor = MINIMUM_SCALE_FACTOR,
@@ -63,15 +67,21 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         tickSource = TickSource.viewportFrames(shouldPauseOnFocusLoss = false),
         instanceNameForLogging = "SceneView",
     )
-    val viewportManager = kubriko.get<ViewportManager>()
+    /**
+     * The camera and the viewport's size.
+     */
+    public val viewportManager: ViewportManager = kubriko.get<ViewportManager>()
     private val actorManager = kubriko.get<ActorManager>()
 
     /**
      * The Scene's entries, and the Actors created from them at the same indices (null where a state can't be read).
      */
-    var entries: List<SceneActorEntry> = emptyList()
+    public var entries: List<SceneActorEntry> = emptyList()
         private set
-    var actors: List<Editable<*>?> = emptyList()
+    /**
+     * The Actors created from [entries], at the same indices (null where a state can't be read).
+     */
+    public var actors: List<Editable<*>?> = emptyList()
         private set
     private var indicesById: Map<String, Int> = emptyMap()
 
@@ -79,7 +89,7 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
      * The IDs of the Actors that couldn't be created from their states (of a type whose class is gone, for example),
      * which are neither drawn nor selectable on the canvas.
      */
-    var uncreatedIds: Set<String> = emptySet()
+    public var uncreatedIds: Set<String> = emptySet()
         private set
 
     /**
@@ -95,11 +105,12 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     private val boundsGrid = SceneBoundsGrid()
     private var isBoundsGridOutdated = true
 
+    private val _loadRevision = MutableStateFlow(0)
+
     /**
      * Changes every time the Actors are created again, for what shows them.
      */
-    private val _loadRevision = MutableStateFlow(0)
-    val loadRevision = _loadRevision.asStateFlow()
+    public val loadRevision: StateFlow<Int> = _loadRevision.asStateFlow()
 
     /**
      * Shows the Scene's [next] Actors, its new and changed ones created off the main thread. Only what changed
@@ -108,7 +119,7 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
      * stay, unless their order changed, which creates the whole Scene again. The Actors of the types in [previews] are
      * drawn from those looks instead of their classes, and are created again when their type's look changes.
      */
-    suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews) {
+    public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews) {
         val patch = ScenePatch.between(entries, next) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }
         if (patch == null) {
             val created = withContext(Dispatchers.Default) { next.map { createActor(it, previews) } }
@@ -159,7 +170,7 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     /**
      * The ID of the Actor drawn on top at [screenOffset], in the viewport's pixels.
      */
-    fun actorIdAt(screenOffset: Offset): String? {
+    public fun actorIdAt(screenOffset: Offset): String? {
         val position = toScene(screenOffset)
         return currentBoundsGrid().pick(position.x.raw, position.y.raw)?.let { entries[it].id }
     }
@@ -171,23 +182,32 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         }
     }
 
-    fun entryOf(id: String) = indicesById[id]?.let(entries::get)
+    /**
+     * The Scene's entry of the Actor [id], if it has one.
+     */
+    public fun entryOf(id: String): SceneActorEntry? = indicesById[id]?.let(entries::get)
 
-    fun actorOf(id: String) = indicesById[id]?.let(actors::get)
+    /**
+     * The Actor created for the entry [id], if it could be created.
+     */
+    public fun actorOf(id: String): Editable<*>? = indicesById[id]?.let(actors::get)
 
     /**
      * Whether the Actor [id] is the Scene settings, which fill the Scene's bounds behind everything else.
      */
-    fun isBackground(id: String) = entryOf(id)?.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME
+    public fun isBackground(id: String): Boolean = entryOf(id)?.typeId == SceneSettingsCodeGenerator.SETTINGS_NAME
 
-    fun boundsOf(id: String) = indicesById[id]?.let(::boundsAt)
+    /**
+     * Where the Actor [id] is drawn, in Scene units, if it is.
+     */
+    public fun boundsOf(id: String): SceneHitTest.Bounds? = indicesById[id]?.let(::boundsAt)
 
     private fun boundsAt(index: Int) = actors.getOrNull(index)?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME) }
 
     /**
      * Moves and zooms the camera to show the Scene's bounds, or without Scene settings, every Actor.
      */
-    fun zoomToFit() {
+    public fun zoomToFit() {
         val size = viewportManager.size.value
         val framing = SceneFraming.fit(currentBoundsGrid().all(), size.width, size.height) ?: return
         viewportManager.setCameraPosition(SceneOffset(framing.centerX.sceneUnit, framing.centerY.sceneUnit))
@@ -199,30 +219,39 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
     /**
      * Moves the camera to the middle of the Actor [id], keeping the zoom.
      */
-    fun centerOn(id: String) {
+    public fun centerOn(id: String) {
         val bounds = boundsOf(id) ?: return
         viewportManager.setCameraPosition(SceneOffset(((bounds.left + bounds.right) / 2).sceneUnit, ((bounds.top + bounds.bottom) / 2).sceneUnit))
     }
 
-    var camera: SceneCamera
+    /**
+     * Where the camera looks and how far it is zoomed, which a view replacing this one takes over.
+     */
+    public var camera: SceneCamera
         get() = SceneCamera(viewportManager.cameraPosition.value, viewportManager.rawScaleFactor.value.horizontal)
         set(value) {
             viewportManager.setCameraPosition(value.position)
             viewportManager.setScaleFactor(value.scaleFactor)
         }
 
-    fun toScene(screenOffset: Offset): SceneOffset = screenOffset.toSceneOffset(viewportManager)
+    /**
+     * Where [screenOffset], in pixels in the viewport, is in the Scene.
+     */
+    public fun toScene(screenOffset: Offset): SceneOffset = screenOffset.toSceneOffset(viewportManager)
 
     /**
      * Where [position] is in the viewport, in pixels: the inverse of [toScene].
      */
-    fun toScreen(position: SceneOffset): Offset {
+    public fun toScreen(position: SceneOffset): Offset {
         val origin = toScene(Offset.Zero)
         val unit = toScene(Offset(1f, 1f)) - origin
         return Offset((position.x - origin.x).raw / unit.x.raw, (position.y - origin.y).raw / unit.y.raw)
     }
 
-    fun dispose() = kubriko.dispose()
+    /**
+     * Disposes the Kubriko instance, with every Actor in it.
+     */
+    public fun dispose(): Unit = kubriko.dispose()
 
     private fun createActor(entry: SceneActorEntry, previews: Map<String, ActorTypeLook>): Editable<*>? = previews[entry.typeId]?.let { look ->
         PreviewActor(entry.state, look, look.spriteFile?.let { file -> synchronized(previewSprites) { previewSprites.getOrPut(file) { readSprite(file) } } })
@@ -243,14 +272,14 @@ internal class SceneView(entryPoint: CreatorEntryPoint) {
         null
     }
 
-    companion object {
+    internal companion object {
         private const val MINIMUM_SCALE_FACTOR = 0.1f
         private const val MAXIMUM_SCALE_FACTOR = 10f
 
         /**
          * The rectangle [actor] covers, or for one without a size, a small square around its position.
          */
-        fun boundsOf(index: Int, actor: Editable<*>, isBackground: Boolean = false): SceneHitTest.Bounds {
+        public fun boundsOf(index: Int, actor: Editable<*>, isBackground: Boolean = false): SceneHitTest.Bounds {
             val body = actor.body
             val drawingOrder = (actor as? Visible)?.drawingOrder ?: 0f
             return if (body is BoxBody) {

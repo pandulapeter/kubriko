@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 /**
  * Why a Scene can't be drawn.
  */
-internal enum class SceneProblem(override val english: String) : DomainText {
+public enum class SceneProblem(override val english: String) : DomainText {
     ENTRY_POINT_MISSING("The project has no CreatorEntryPoint, so its Scenes can't be edited."),
     ENTRY_POINT_MULTIPLE("The project registers more than one CreatorEntryPoint."),
     ENTRY_POINT_NOT_LOADED("The project's CreatorEntryPoint couldn't be loaded."),

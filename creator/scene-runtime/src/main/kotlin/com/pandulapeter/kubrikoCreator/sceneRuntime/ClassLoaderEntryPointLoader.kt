@@ -27,7 +27,7 @@ import kotlin.io.path.createTempDirectory
  * next build can replace them while these classes are still in use (Windows can't overwrite a jar that is open, and a
  * class loaded later from a rebuilt folder wouldn't match the ones loaded before; [ProjectClassLoader]).
  */
-internal class ClassLoaderEntryPointLoader(
+public class ClassLoaderEntryPointLoader(
     private val rootDirectory: File,
     private val parent: ClassLoader = ClassLoaderEntryPointLoader::class.java.classLoader,
 ) : EntryPointLoader {

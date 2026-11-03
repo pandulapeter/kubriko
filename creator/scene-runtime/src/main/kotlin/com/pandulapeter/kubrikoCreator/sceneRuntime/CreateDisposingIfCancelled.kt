@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
  *
  * @throws Exception What [create] threw, and [LinkageError]s too (a project class that is gone or changed since).
  */
-internal suspend fun <T : Any> createDisposingIfCancelled(
+public suspend fun <T : Any> createDisposingIfCancelled(
     dispatcher: CoroutineDispatcher,
     create: () -> T,
     dispose: (T) -> Unit,

@@ -8,12 +8,13 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.sceneRuntime
-import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
+
+import com.pandulapeter.kubriko.types.SceneOffset
 
 /**
- * Loads a project's classes and finds its entry point, or throws an [EntryPointLoadingException].
+ * Where a [SceneView]'s camera looks and how far it is zoomed, for the view that replaces it.
  */
-internal fun interface EntryPointLoader {
-
-    fun load(classpath: ProjectClasspath): LoadedEntryPoint
-}
+public data class SceneCamera(
+    val position: SceneOffset,
+    val scaleFactor: Float,
+)

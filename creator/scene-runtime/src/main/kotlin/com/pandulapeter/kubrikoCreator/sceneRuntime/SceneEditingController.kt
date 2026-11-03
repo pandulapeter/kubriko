@@ -24,6 +24,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -56,7 +57,7 @@ import java.io.IOException
  * @param awaitWrites Returns once the Actor types are loaded and their changes written, so that a build knows which
  *   looks it compiles.
  */
-internal class SceneEditingController(
+public class SceneEditingController(
     private val creatorKubrikoVersion: String,
     private val creatorLibraries: Map<String, String> = emptyMap(),
     private val runTask: suspend (taskName: String, properties: Map<String, String>) -> Boolean,
@@ -76,7 +77,10 @@ internal class SceneEditingController(
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) {
     private val _state = MutableStateFlow<SceneEditingState>(SceneEditingState.Closed)
-    val state = _state.asStateFlow()
+    /**
+     * The Scene being edited, if any, and how far it got.
+     */
+    public val state: StateFlow<SceneEditingState> = _state.asStateFlow()
     private var job: Job? = null
     private var updateJob: Job? = null
 
@@ -104,7 +108,7 @@ internal class SceneEditingController(
      * Builds and loads the project's classes in the background, so that the first Scene opened doesn't wait for a build,
      * and then warms up the compiler, so that the first change doesn't wait for it either.
      */
-    fun prepare() {
+    public fun prepare() {
         if (loading != null) return
         val prepared = startLoading()
         scope.launch { if (prepared.await() is LoadResult.Loaded) warmUpCompiler() }
@@ -114,7 +118,7 @@ internal class SceneEditingController(
      * Shows [scene], built and loaded with the project's classes, or with the classes loaded for the Scene shown before
      * when nothing changed since ([markOutdated]), so that going back to a Scene doesn't build again.
      */
-    fun open(scene: ProjectResource) = open(scene, isRebuilding = false)
+    public fun open(scene: ProjectResource): Unit = open(scene, isRebuilding = false)
 
     private fun open(scene: ProjectResource, isRebuilding: Boolean) {
         close()
@@ -193,7 +197,7 @@ internal class SceneEditingController(
      * Notes that the project's code threw while the view of [revision]'s classes was being created: the Scene can't be
      * shown with them, or, while a view of older classes [isShowingOlderClasses], stays on those as outdated.
      */
-    fun onViewFailed(revision: Int, exception: Throwable, isShowingOlderClasses: Boolean) {
+    public fun onViewFailed(revision: Int, exception: Throwable, isShowingOlderClasses: Boolean) {
         val open = _state.value as? SceneEditingState.Open ?: return
         if (open.revision != revision) return
         val problem = exception.toString()
@@ -206,7 +210,7 @@ internal class SceneEditingController(
     /**
      * Notes that the Actor types changed in memory, which the open Scene previews right away, before they are written.
      */
-    fun onActorTypesChanged() = _state.update { if (it is SceneEditingState.Open) it.copy(previews = currentPreviews()) else it }
+    public fun onActorTypesChanged(): Unit = _state.update { if (it is SceneEditingState.Open) it.copy(previews = currentPreviews()) else it }
 
     /**
      * Drops a result that isn't a loaded entry point once a Scene showed it, so the next Scene builds again.
@@ -266,7 +270,7 @@ internal class SceneEditingController(
     /**
      * Opens the current Scene again, with the project's classes compiled from scratch and loaded anew.
      */
-    fun reload() {
+    public fun reload() {
         if (_state.value != SceneEditingState.Closed) requestCleanBuild()
         when (val current = _state.value) {
             is SceneEditingState.Open -> open(current.scene, isRebuilding = true)
@@ -281,7 +285,7 @@ internal class SceneEditingController(
      * Notes that an Actor type or a source changed: the open Scene is built again in the background and swaps its
      * classes when that is done ([update]), and the next Scene opened builds the project again.
      */
-    fun markOutdated() {
+    public fun markOutdated() {
         isLoadingOutdated = true
         if (_state.value is SceneEditingState.Open) update()
     }
@@ -290,7 +294,7 @@ internal class SceneEditingController(
      * Notes that commands changed the Scene files called [names]: the open Scene shows its new Actors if it is one of
      * them, and is closed if it was deleted.
      */
-    fun onScenesChanged(names: Collection<String>) {
+    public fun onScenesChanged(names: Collection<String>) {
         val open = _state.value as? SceneEditingState.Open ?: return
         when {
             open.sceneName !in names -> Unit
@@ -311,7 +315,7 @@ internal class SceneEditingController(
      * Shows the open Scene again (or closes it if it is gone) after Scene files changed outside Kubriko Creator, which
      * doesn't say which ones.
      */
-    fun onScenesChangedOnDisk() {
+    public fun onScenesChangedOnDisk() {
         val open = _state.value as? SceneEditingState.Open ?: return
         onScenesChanged(listOf(open.sceneName))
     }
@@ -319,7 +323,7 @@ internal class SceneEditingController(
     /**
      * Notes that a command moved the Scene [oldName] to [scene], which the open Scene follows if it was that one.
      */
-    fun onSceneRenamed(oldName: String, scene: ProjectResource) = _state.update { state ->
+    public fun onSceneRenamed(oldName: String, scene: ProjectResource): Unit = _state.update { state ->
         when {
             state is SceneEditingState.Open && state.sceneName == oldName -> state.copy(scene = scene)
             state is SceneEditingState.Preparing && SceneStore.nameOf(state.scene.file) == oldName -> state.copy(scene = scene)
@@ -330,7 +334,7 @@ internal class SceneEditingController(
     /**
      * Closes the Scene, keeping the project's classes loaded for the next one.
      */
-    fun close() {
+    public fun close() {
         job?.cancel()
         job = null
         updateJob?.cancel()
@@ -343,7 +347,7 @@ internal class SceneEditingController(
     /**
      * Closes the Scene and releases the project's classes, when the workspace closes.
      */
-    fun dispose() {
+    public fun dispose() {
         close()
         loading?.let(::release)
         loading = null

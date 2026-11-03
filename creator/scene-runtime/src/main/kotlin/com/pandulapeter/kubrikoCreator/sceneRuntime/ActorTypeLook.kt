@@ -21,19 +21,19 @@ import java.io.File
  * @param width The size of an Actor whose state has none, as a newly placed one gets it.
  * @param spriteFile The image drawn instead of the shape, or null for the shape.
  */
-internal data class ActorTypeLook(
+public data class ActorTypeLook(
     val shape: ActorShape,
     val color: Long,
     val width: Float,
     val height: Float,
     val spriteFile: File? = null,
 ) {
-    companion object {
+    public companion object {
 
         /**
          * The looks of [actorTypes] by their names, with sprites found among [spriteFiles] (by their path).
          */
-        fun of(actorTypes: List<ActorTypeDefinition>, spriteFiles: Map<String, File>) = actorTypes.associate { type ->
+        public fun of(actorTypes: List<ActorTypeDefinition>, spriteFiles: Map<String, File>): Map<String, ActorTypeLook> = actorTypes.associate { type ->
             type.name to ActorTypeLook(
                 shape = type.shape,
                 color = type.color,
@@ -46,6 +46,6 @@ internal data class ActorTypeLook(
         /**
          * The looks in [current] that the classes built from [built] don't draw yet: the changed ones and the new ones.
          */
-        fun previewsOf(current: Map<String, ActorTypeLook>, built: Map<String, ActorTypeLook>) = current.filter { (name, look) -> built[name] != look }
+        internal fun previewsOf(current: Map<String, ActorTypeLook>, built: Map<String, ActorTypeLook>) = current.filter { (name, look) -> built[name] != look }
     }
 }

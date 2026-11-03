@@ -20,7 +20,7 @@ import kotlin.math.roundToInt
  *
  * @param size The width and height, or null for a body without a size.
  */
-internal data class ActorBodyValues(
+public data class ActorBodyValues(
     val x: Float,
     val y: Float,
     val size: Pair<Float, Float>? = null,
@@ -28,8 +28,11 @@ internal data class ActorBodyValues(
     val scaleHorizontal: Float = 1f,
     val scaleVertical: Float = 1f,
 ) {
-    companion object {
-        fun of(body: PointBody) = if (body is BoxBody) {
+    public companion object {
+        /**
+         * The values [body] has now.
+         */
+        public fun of(body: PointBody): ActorBodyValues = if (body is BoxBody) {
             ActorBodyValues(
                 x = body.position.x.raw,
                 y = body.position.y.raw,

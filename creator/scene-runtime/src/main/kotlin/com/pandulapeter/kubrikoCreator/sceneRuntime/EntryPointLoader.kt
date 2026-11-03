@@ -8,13 +8,15 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.sceneRuntime
-
-import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
 
 /**
- * A project's [CreatorEntryPoint], loaded into Kubriko Creator's own process. [close] releases the project's classes.
+ * Loads a project's classes and finds its entry point, or throws an [EntryPointLoadingException].
  */
-internal class LoadedEntryPoint(
-    val entryPoint: CreatorEntryPoint,
-    val close: () -> Unit,
-)
+public fun interface EntryPointLoader {
+
+    /**
+     * Loads the classes of [classpath] and finds the project's entry point among them.
+     */
+    public fun load(classpath: ProjectClasspath): LoadedEntryPoint
+}

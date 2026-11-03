@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 /**
  * What the Scene editor reports in the console.
  */
-internal enum class SceneStatus(override val english: String) : DomainText {
+public enum class SceneStatus(override val english: String) : DomainText {
     NEWER_LIBRARIES("This project uses newer libraries than Kubriko Creator runs with, so its Scenes may not look as they do in the game: %1\$s."),
     OPENED("The Scene is open, in %1\$s seconds."),
 }
