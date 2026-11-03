@@ -35,8 +35,16 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 5. **System prompt** (`AssistantSystemPrompt`, appended for Claude through `_meta.systemPrompt`): agents without a way to take one get it
    as the first prompt's leading text; move Claude to ACP's own `systemPrompt` field once the Kotlin SDK has it.
 6. **The panel** (`ui/assistant`): a screenshot of the open Scene as a chip too (the game's exists).
+7. **Searching conversations:** a search field over the open project's saved conversations, never another project's, that
+   finds a query in what the user asked and what the agent answered, ignoring case, and lists the matches with the words around
+   them highlighted; choosing one continues that conversation and scrolls to the match. `SavedConversation` keeps only the title and
+   the start of the last answer, and the transcript itself stays with the agent (`session/load` replays it), so Creator keeps each
+   conversation's messages as plain text beside it, without tool calls or images, and capped per conversation. The text is searched
+   in memory, off the main thread, and forgotten with the conversation when `SavedConversationStore` drops the oldest beyond
+   `conversationsPerProject`. Conversations held by another agent are listed too, marked as such and opened read-only from the kept
+   text, since only their own agent can continue them.
 
-**Order:** alongside `06` to `09`, what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
+**Order:** alongside `06` to `09`, searching conversations (with the search of `06-resource-organization.md`), what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
 
 ### What the terms allow
 

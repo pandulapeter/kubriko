@@ -27,7 +27,8 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
    flooded console, two long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
    what the benchmarks show is needed.
 2. [AI assistant](02-ai-assistant.md) - what is left of the in-app assistant (ACP protocol 2, the registry's icons, other agents'
-   fallbacks, Codex's profile), more context for large games, and more for the MCP server, alongside `06` to `09`.
+   fallbacks, Codex's profile, searching a project's conversations), more context for large games, and more for the MCP server,
+   alongside `06` to `09`.
 3. [Playing on every target](03-playing-on-every-target.md) - Play in the browser, on Android devices and emulators, and on iOS
    simulators and devices, from the same button and the same `play` command.
 4. [Screenplay and the writers' room](04-screenplay.md) - the game's design documents as Markdown pages in the project, kept up
