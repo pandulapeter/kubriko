@@ -25,27 +25,25 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start with `03-playing-on-every-target.md`, in its order: choosing where to play (Play's menu, a `target` for `play` and
-`start_game`, `list_play_targets`), then the web, Android, and the iOS simulator, each shipped and reviewed on its own. Then
+Continue `03-playing-on-every-target.md` with the web, then Android and the iOS simulator, each shipped and reviewed on its own;
+each adds its kind to `PlayTarget.Kind`, a source to `PlayTargetChoice`, and its start to `WorkspaceController.play`. Then
 `04-settings.md`'s Release, Icons, and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS
 devices can follow Signing. Then `05` to `08` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI
 elements, git) or for the benchmarks.
 
 What the last session did, all reviewed:
 
-- **Project settings → Targets** (`a03a3f435..74182f7f9`): web, Android, and iOS turn on and off in the Targets section and through
-  `get_target_change` / `set_target`, each as a diff confirmed by its `changeId`. Android adds a library target and an `androidApp`
-  module, iOS a framework and an Xcode project in `iosApp/`, both taking the game's identity. `ProjectTemplateIntegrationTest.everyTargetBuilds`
-  builds the Android APK and, through `xcodebuild`, the iOS app for the simulator, and passes locally. Its review fixed an Apply that
-  could write a diff other than the one shown, catalog entries other entries still used being removed, an undo that dropped what the
-  user added inside a target's blocks (undo now exists only where turning back is exact), a stale `sdk.dir`, a half-written change
-  when a write fails, brackets in strings or comments ending a build block, Xcode selected outside `/Applications`, the bundle ID
-  when iOS is turned on again, and two duplicated helpers. No end-to-end scenario: the integration test covers the real builds.
-- **A project moved onto an unreleased Kubriko** (`b83325272`, `77f450369`, `40d79a9a9`): Creator started as `../gradlew run` from
-  `creator/` skipped the development mode and rewrote the projects it opened onto Kubriko 0.8.1 without Maven Local, so
-  `~/Projects/breakout` no longer built (it is repaired and builds again). Every run task, by path or by name from the root or
-  `creator/`, now publishes through `:publishCreatorLibraries` (desktop, web, Android, and on a Mac iOS), and Creator never moves a
-  project, or creates one, on a version Maven Local (development) or Maven Central (otherwise) doesn't have (`KubrikoAvailability`).
+- **Choosing where to play** (`e905b00ce..3719127b0`): Play's menu (`PlayTargetMenu`) lists where the game can run, with a way to
+  Project settings for more, the choice kept in `.kubriko/local/play.json` (`PlayTargetChoice`, looked for as the project
+  opens), `target` on `play` and `start_game` (the desktop when left out), and `list_play_targets`. Only the desktop is listed
+  until the web lands. Template version 11 (`PlaySwitchesUpgrade`) has the web, Android, and iOS entry points read Play from
+  this Scene and Log Blocks (in debug builds; on the web, only on a loopback host), and the integration test builds all three
+  with it. The review fixed the upgrade wrapping a declaration that followed `main` (the desktop step had the same bug), a
+  repeated `@OptIn` on iOS, the kept choice not reaching Play after a restart, sources looked for on the main thread, and two
+  import helpers ordering differently (the starter templates' imports are now in ktlint's order). Declined: caching the
+  places between `play` calls (a cached device may be gone, and looking costs little next to a build). The game tools'
+  refusal on other targets moved into the Web item, since no other target runs yet. Nothing has run the web entry point's
+  `js()` in a browser yet; the Web item's headless Chromium scenario will.
 
 ## Before a release
 
