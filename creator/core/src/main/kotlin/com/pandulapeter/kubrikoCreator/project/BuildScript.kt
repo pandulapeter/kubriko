@@ -48,15 +48,34 @@ public object BuildScript {
     }
 
     /**
-     * The index of the line closing the block (of braces or parentheses) opened on the line at [start], or null if it isn't
-     * closed.
+     * The index of the line closing the block opened on the line at [start] (counting parentheses too if
+     * [countsParentheses]), or null if it isn't closed. Brackets in string literals and line comments don't count.
      */
-    public fun blockEnd(lines: List<String>, start: Int): Int? {
+    public fun blockEnd(lines: List<String>, start: Int, countsParentheses: Boolean = false): Int? {
         var depth = 0
         for (index in start until lines.size) {
-            depth += lines[index].count { it == '{' || it == '(' } - lines[index].count { it == '}' || it == ')' }
+            val code = codeOf(lines[index])
+            depth += code.count { it == '{' || (countsParentheses && it == '(') } - code.count { it == '}' || (countsParentheses && it == ')') }
             if (depth <= 0) return index
         }
         return null
+    }
+
+    /**
+     * [line] without its string literals and its line comment.
+     */
+    private fun codeOf(line: String) = buildString {
+        var isInString = false
+        var index = 0
+        while (index < line.length) {
+            val character = line[index]
+            when {
+                isInString && character == '\\' -> index++
+                character == '"' -> isInString = !isInString
+                !isInString && character == '/' && line.getOrNull(index + 1) == '/' -> return@buildString
+                !isInString -> append(character)
+            }
+            index++
+        }
     }
 }

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.template
 
 import java.io.File
 import java.util.Properties
+import java.util.concurrent.TimeUnit
 
 /**
  * What this computer can build a game's targets with.
@@ -36,19 +37,35 @@ public interface TargetHost {
             userHome = File(java.lang.System.getProperty("user.home")),
             osName = java.lang.System.getProperty("os.name"),
             applicationsDirectory = File("/Applications"),
+            selectedDeveloperDirectory = ::xcodeSelectPath,
         )
+
+        /**
+         * The developer folder `xcode-select` picked, which is an Xcode's wherever it is installed, or null if it can't tell.
+         */
+        private fun xcodeSelectPath(): String? = runCatching {
+            val process = ProcessBuilder("/usr/bin/xcode-select", "-p").redirectErrorStream(true).start()
+            if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                process.destroyForcibly()
+                null
+            } else {
+                process.inputStream.bufferedReader().readText().trim().takeIf { process.exitValue() == 0 }
+            }
+        }.getOrNull()
     }
 }
 
 /**
  * [TargetHost] from an environment: the SDK of the project's `local.properties`, then `ANDROID_HOME` and
- * `ANDROID_SDK_ROOT`, then where Android Studio installs it; and Xcode in the applications folder or `DEVELOPER_DIR`.
+ * `ANDROID_SDK_ROOT`, then where Android Studio installs it; and Xcode in the applications folder, `DEVELOPER_DIR`, or the one
+ * `xcode-select` picked.
  */
 internal class SystemTargetHost(
     private val environment: Map<String, String>,
     private val userHome: File,
     private val osName: String,
     private val applicationsDirectory: File,
+    private val selectedDeveloperDirectory: () -> String? = { null },
 ) : TargetHost {
     private val isMac get() = osName.startsWith("Mac", ignoreCase = true)
 
@@ -63,12 +80,13 @@ internal class SystemTargetHost(
                 else -> File(userHome, "Android/Sdk")
             },
         )
-    }.firstOrNull { File(it, "platforms").isDirectory }
+    }.firstOrNull(::isSdk)
 
     override val canBuildIos: Boolean
         get() = isMac && (
             environment["DEVELOPER_DIR"]?.contains(".app/") == true ||
-                applicationsDirectory.listFiles().orEmpty().any { it.isDirectory && it.name.startsWith("Xcode") && it.name.endsWith(".app") }
+                applicationsDirectory.listFiles().orEmpty().any { it.isDirectory && it.name.startsWith("Xcode") && it.name.endsWith(".app") } ||
+                selectedDeveloperDirectory()?.contains(".app/") == true
             )
 
     private fun localSdk(rootDirectory: File) = File(rootDirectory, LOCAL_PROPERTIES).takeIf { it.isFile }?.let { file ->
@@ -77,6 +95,11 @@ internal class SystemTargetHost(
 
     companion object {
         const val LOCAL_PROPERTIES = "local.properties"
+
+        /**
+         * Whether [directory] holds an Android SDK the build can use.
+         */
+        fun isSdk(directory: File) = File(directory, "platforms").isDirectory
         const val SDK_DIRECTORY_KEY = "sdk.dir"
     }
 }

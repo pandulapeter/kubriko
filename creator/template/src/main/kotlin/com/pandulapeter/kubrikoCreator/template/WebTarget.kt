@@ -16,6 +16,7 @@ internal object WebTarget : TargetEdits {
     private const val ANNOTATION = "@OptIn(ExperimentalWasmDsl::class)"
     private const val IMPORT = "import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl"
     private const val BLOCK_START = "wasmJs {"
+    private const val DISTRIBUTIONS_START = "compose.desktop.application.nativeDistributions {"
 
     override val target = GameTarget.WEB
 
@@ -25,8 +26,12 @@ internal object WebTarget : TargetEdits {
         val build = files.build ?: return null
         val withTarget = BuildFileLines.withTarget(build, listOf(ANNOTATION, BLOCK_START, "    browser()", "    binaries.executable()", "}")) ?: return null
         val block = files.buildBlockOf(target)
-        val withBlock = if (block.lineSequence().first() in withTarget) withTarget else BuildFileLines.withAppended(withTarget, block)
-        return files.missingFilesOf(target) + (TargetFiles.BUILD_FILE to BuildFileLines.withImport(withBlock, IMPORT))
+        val withBlock = when {
+            block.lineSequence().first() in withTarget -> withTarget
+            else -> BuildFileLines.withBlockAfter(withTarget, block) { it.startsWith(DISTRIBUTIONS_START) } ?: BuildFileLines.withAppended(withTarget, block)
+        }
+        val withImport = if (IMPORT in withBlock.lines()) withBlock else ProjectUpgrader.withImport(withBlock.lines(), IMPORT)
+        return files.missingFilesOf(target) + (TargetFiles.BUILD_FILE to withImport)
     }
 
     override fun turnedOff(files: TargetFiles): Map<String, String>? {

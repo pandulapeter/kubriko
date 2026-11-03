@@ -15,13 +15,16 @@ import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.testing.testAndroidVersions
 import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import java.io.File
+import java.io.IOException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class GameTargetsTest {
@@ -75,8 +78,9 @@ class GameTargetsTest {
         listOf("wasmJs", "ExperimentalWasmDsl", "wasmJsProcessResources").forEach { assertFalse(it in build, it) }
         assertFalse(targets.read()!!.single { it.target == GameTarget.WEB }.isOn)
         assertTrue(file("src/wasmJsMain/resources/index.html").isFile)
+        assertTrue(off.isReversible)
         turn(GameTarget.WEB, isOn = true)
-        assertEquals(newBuild.lines().sorted(), buildFile.readText().lines().sorted())
+        assertEquals(newBuild, buildFile.readText())
         assertTrue(buildFile.readText().contains("    jvm(\"desktop\")\n    @OptIn(ExperimentalWasmDsl::class)\n    wasmJs {\n        browser()\n        binaries.executable()\n    }\n"))
     }
 
@@ -140,9 +144,75 @@ class GameTargetsTest {
     }
 
     @Test
-    fun aLocalPropertiesNamingAnSdkIsKept() {
-        file("local.properties").writeText("sdk.dir=/somewhere\n")
-        assertFalse(turn(GameTarget.ANDROID, isOn = true).changes.any { it.path == "local.properties" })
+    fun aLocalPropertiesNamingTheSdkIsKept() {
+        file("local.properties").writeText("sdk.dir=${sdk.path.replace("\\", "\\\\").replace(":", "\\:")}\n")
+        val on = turn(GameTarget.ANDROID, isOn = true)
+        assertFalse(on.changes.any { it.path == "local.properties" })
+        assertTrue(on.isReversible)
+    }
+
+    @Test
+    fun aLocalPropertiesNamingAFolderThatIsntAnSdkIsFixedAndReported() {
+        file("local.properties").writeText("# Mine.\nsdk.dir=/nowhere\n")
+        turn(GameTarget.ANDROID, isOn = true)
+        assertEquals("# Mine.\nsdk.dir=${sdk.path.replace("\\", "\\\\")}\n", file("local.properties").readText())
+        file("local.properties").writeText("sdk.dir=/nowhere\n")
+        val android = targets.read()!!.single { it.target == GameTarget.ANDROID }
+        assertEquals(TargetProblem.ANDROID_SDK_DIRECTORY_INVALID, android.problem)
+        assertEquals(listOf("/nowhere"), android.arguments)
+    }
+
+    @Test
+    fun turningOffWhatTheUserAddedToIsntUndoneByTurningItBack() {
+        turn(GameTarget.ANDROID, isOn = true)
+        buildFile.writeText(buildFile.readText().replace("implementation(libs.androidx.activity.compose)\n", "implementation(libs.androidx.activity.compose)\n            implementation(\"com.example:mine:1\")\n"))
+        assertFalse(turn(GameTarget.ANDROID, isOn = false).isReversible)
+    }
+
+    @Test
+    fun catalogEntriesSomethingElseUsesOrThatWereThereBeforeStay() {
+        val catalog = file("gradle/libs.versions.toml")
+        catalog.writeText(
+            catalog.readText()
+                .replace("[versions]\n", "[versions]\nandroid-minSdk = \"24\"\n")
+                .replace("[libraries]\n", "[libraries]\nandroidx-activity-ktx = { group = \"androidx.activity\", name = \"activity-ktx\", version.ref = \"androidx-activity\" }\n"),
+        )
+        val before = catalog.readText()
+        turn(GameTarget.ANDROID, isOn = true)
+        assertContains(catalog.readText(), "android-minSdk = \"24\"\n")
+        turn(GameTarget.ANDROID, isOn = false)
+        assertContains(catalog.readText(), "androidx-activity = \"1.13.0\"\n")
+        assertContains(catalog.readText(), "android-minSdk = \"24\"\n")
+        assertFalse("android-gradlePlugin" in catalog.readText())
+        assertEquals(before, catalog.readText().replace("androidx-activity = \"1.13.0\"\n", ""))
+    }
+
+    @Test
+    fun turningIosOnAgainGivesTheXcodeProjectTheApplicationId() {
+        turn(GameTarget.IOS, isOn = true)
+        turn(GameTarget.IOS, isOn = false)
+        file("gradle.properties").writeText(file("gradle.properties").readText().replace("game.applicationId=com.example.mygame", "game.applicationId=com.example.other"))
+        turn(GameTarget.IOS, isOn = true)
+        assertEquals("PRODUCT_BUNDLE_IDENTIFIER=com.example.other\n", file("iosApp/Configuration/Config.xcconfig").readText())
+    }
+
+    @Test
+    fun aWriteThatFailsPutsBackWhatWasWrittenBeforeIt() {
+        val change = assertIs<TargetChange.Proposed>(targets.change(GameTarget.ANDROID, isOn = true))
+        file("src/androidMain").writeText("A file where a folder goes.")
+        assertFailsWith<IOException> { targets.apply(change) }
+        assertEquals(newBuild, buildFile.readText())
+        assertEquals(newCatalog, file("gradle/libs.versions.toml").readText())
+        assertFalse(file("androidApp/build.gradle.kts").exists())
+        assertFalse(file("local.properties").exists())
+    }
+
+    @Test
+    fun theIdNamesExactlyTheChange() {
+        val first = assertIs<TargetChange.Proposed>(targets.change(GameTarget.ANDROID, isOn = true))
+        assertEquals(first.id, assertIs<TargetChange.Proposed>(targets.change(GameTarget.ANDROID, isOn = true)).id)
+        file("settings.gradle.kts").appendText("// Changed.\n")
+        assertNotEquals(first.id, assertIs<TargetChange.Proposed>(targets.change(GameTarget.ANDROID, isOn = true)).id)
     }
 
     @Test
@@ -179,7 +249,7 @@ class GameTargetsTest {
         turn(GameTarget.ANDROID, isOn = false)
         turn(GameTarget.IOS, isOn = false)
         turn(GameTarget.WEB, isOn = true)
-        assertEquals(newBuild.lines().sorted(), buildFile.readText().lines().sorted())
+        assertEquals(newBuild, buildFile.readText())
     }
 
     @Test

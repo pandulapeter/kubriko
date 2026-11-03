@@ -256,7 +256,10 @@ public class ProjectUpgrader(
 
         private val String.isSceneLoader get() = trimStart().startsWith("SceneLoader(")
 
-        private fun withImport(lines: List<String>, import: String): String {
+        /**
+         * [lines] with [import] after their last import, or after the package line if they have none.
+         */
+        internal fun withImport(lines: List<String>, import: String): String {
             val lastImport = lines.indexOfLast { it.startsWith("import ") }
             val packageLine = lines.indexOfFirst { it.startsWith("package ") }
             val result = lines.toMutableList()

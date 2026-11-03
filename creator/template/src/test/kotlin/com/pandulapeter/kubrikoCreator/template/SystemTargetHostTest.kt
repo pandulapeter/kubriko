@@ -65,14 +65,17 @@ class SystemTargetHostTest {
         assertFalse(host(osName = "Linux").canBuildIos)
         File(applications, "Xcode-beta.app").deleteRecursively()
         assertTrue(host(osName = "Mac OS X", environment = mapOf("DEVELOPER_DIR" to "/Volumes/Tools/Xcode.app/Contents/Developer")).canBuildIos)
+        assertTrue(host(osName = "Mac OS X", selected = "/Users/me/Applications/Xcode-26.app/Contents/Developer").canBuildIos)
+        assertFalse(host(osName = "Mac OS X", selected = "/Library/Developer/CommandLineTools").canBuildIos)
     }
 
     private fun sdk(path: String) = File(directory, path).apply { File(this, "platforms").mkdirs() }
 
-    private fun host(osName: String = "Linux", environment: Map<String, String> = emptyMap()) = SystemTargetHost(
+    private fun host(osName: String = "Linux", environment: Map<String, String> = emptyMap(), selected: String? = null) = SystemTargetHost(
         environment = environment,
         userHome = home,
         osName = osName,
         applicationsDirectory = applications,
+        selectedDeveloperDirectory = { selected },
     )
 }

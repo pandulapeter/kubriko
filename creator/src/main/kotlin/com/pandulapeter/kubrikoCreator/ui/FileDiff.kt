@@ -66,13 +66,6 @@ internal fun FileDiff(change: ProposedFileChange) = Column(
     }
 }
 
-private val LineDiff.Kind.prefix
-    get() = when (this) {
-        LineDiff.Kind.SAME -> "  "
-        LineDiff.Kind.REMOVED -> "- "
-        LineDiff.Kind.ADDED -> "+ "
-    }
-
 private val LineDiff.Kind.background
     get() = when (this) {
         LineDiff.Kind.SAME -> Color.Transparent

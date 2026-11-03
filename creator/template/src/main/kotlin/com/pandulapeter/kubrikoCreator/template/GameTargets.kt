@@ -35,6 +35,7 @@ public class GameTargets(
     public fun read(): List<TargetState>? {
         val files = files() ?: return null
         val androidSdk = files.androidSdk
+        val invalidLocalSdk = AndroidTarget.localSdkDirectory(files)?.takeIf { !SystemTargetHost.isSdk(File(it)) }
         return GameTarget.entries.map { target ->
             val isOn = isOn(target, files)
             TargetState(
@@ -44,12 +45,14 @@ public class GameTargets(
                     GameTarget.DESKTOP -> TargetProblem.DESKTOP_ALWAYS_ON
                     GameTarget.WEB -> null
                     GameTarget.ANDROID -> when {
+                        isOn && invalidLocalSdk != null -> TargetProblem.ANDROID_SDK_DIRECTORY_INVALID
                         androidSdk != null -> null
                         isOn -> TargetProblem.ANDROID_SDK_MISSING_WHILE_ON
                         else -> TargetProblem.ANDROID_SDK_MISSING
                     }
                     GameTarget.IOS -> if (isOn || host.canBuildIos) null else TargetProblem.XCODE_MISSING
                 },
+                arguments = if (target == GameTarget.ANDROID && isOn && invalidLocalSdk != null) listOf(invalidLocalSdk) else emptyList(),
             )
         }
     }
@@ -65,14 +68,23 @@ public class GameTargets(
         if (isOn) refusalOfTurningOn(target, files)?.let { return it }
         val changed = (if (isOn) edits.turnedOn(files) else edits.turnedOff(files))
             ?: return TargetChange.Refused(TargetProblem.CHANGED_BY_HAND, listOf(target.key))
-        return TargetChange.Proposed(
-            target = target,
-            isOn = isOn,
-            changes = changed.entries.sortedBy { it.key }.mapNotNull { (path, text) ->
-                val before = files.read(path)
-                if (before == text) null else ProposedFileChange(path = path, before = before.orEmpty(), after = text, isNew = before == null)
-            },
-        )
+        val changes = changed.entries.sortedBy { it.key }.mapNotNull { (path, text) ->
+            val before = files.read(path)
+            if (before == text) null else ProposedFileChange(path = path, before = before.orEmpty(), after = text, isNew = before == null)
+        }
+        return TargetChange.Proposed(target = target, isOn = isOn, changes = changes, isReversible = isReversible(edits, isOn, files, changes))
+    }
+
+    /**
+     * Whether turning [edits]' target back after [changes] brings every file they change back as [files] has it, keeping only
+     * the files they create and what they add to the kept paths.
+     */
+    private fun isReversible(edits: TargetEdits, isOn: Boolean, files: TargetFiles, changes: List<ProposedFileChange>): Boolean {
+        val changed = changes.associate { it.path to it.after }
+        val after = files.copy { path -> if (path in changed) changed[path] else files.read(path) }
+        val reverted = (if (isOn) edits.turnedOff(after) else edits.turnedOn(after)) ?: return false
+        return reverted.all { (path, text) -> text == files.read(path) } &&
+            changes.all { it.isNew || it.path in edits.keptPaths || reverted[it.path] == it.before }
     }
 
     /**

@@ -30,13 +30,14 @@ internal object BuildFileLines {
 
     /**
      * [text] without the block opened on the one line [isStart] accepts by its index (and the [annotation] line right above
-     * it, if it has one), [text] itself if no line opens one, or null if more than one does or it isn't closed.
+     * it, if it has one), [text] itself if no line opens one, or null if more than one does or it isn't closed. A block of
+     * parentheses ([countsParentheses]) ends where its last one closes.
      */
-    fun withoutBlock(text: String, annotation: String? = null, isStart: (lines: List<String>, index: Int) -> Boolean): String? {
+    fun withoutBlock(text: String, annotation: String? = null, countsParentheses: Boolean = false, isStart: (lines: List<String>, index: Int) -> Boolean): String? {
         val lines = text.lines()
         val starts = lines.indices.filter { isStart(lines, it) }
         val start = starts.singleOrNull() ?: return if (starts.isEmpty()) text else null
-        val end = BuildScript.blockEnd(lines, start) ?: return null
+        val end = BuildScript.blockEnd(lines, start, countsParentheses) ?: return null
         val first = if (annotation != null && start > 0 && lines[start - 1].trim() == annotation) start - 1 else start
         return (lines.take(first) + lines.drop(end + 1)).joinToString("\n")
     }
@@ -47,7 +48,18 @@ internal object BuildFileLines {
     fun withAppended(text: String, block: String) = text.trimEnd() + "\n\n" + block
 
     /**
-     * [text] without [block] where [withAppended] put it (or anywhere), [text] itself if it doesn't have it, or null if it has
+     * [text] with [block] after an empty line below the block opened on the one line (not indented) that [isStart] accepts,
+     * or null if no single line opens one.
+     */
+    fun withBlockAfter(text: String, block: String, isStart: (String) -> Boolean): String? {
+        val lines = text.lines()
+        val start = lines.indices.singleOrNull { isStart(lines[it]) } ?: return null
+        val end = BuildScript.blockEnd(lines, start) ?: return null
+        return (lines.take(end + 1) + "" + block.trimEnd().lines() + lines.drop(end + 1)).joinToString("\n")
+    }
+
+    /**
+     * [text] without [block] where [withAppended] or [withBlockAfter] put it (or anywhere), [text] itself if it doesn't have it, or null if it has
      * a block that starts with the same line but was changed.
      */
     fun withoutAppended(text: String, block: String): String? {
@@ -57,20 +69,6 @@ internal object BuildFileLines {
             trimmed in text -> text.replace(trimmed, "")
             block.lineSequence().first() in text -> null
             else -> text
-        }
-    }
-
-    /**
-     * [text] with [import] among its imports, at the top if it has none.
-     */
-    fun withImport(text: String, import: String): String {
-        val lines = text.lines()
-        if (import in lines) return text
-        val lastImport = lines.indexOfLast { it.startsWith("import ") }
-        return if (lastImport >= 0) {
-            (lines.take(lastImport + 1) + import + lines.drop(lastImport + 1)).joinToString("\n")
-        } else {
-            (listOf(import, "") + lines).joinToString("\n")
         }
     }
 

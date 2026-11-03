@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.withLineBreaksOf
 import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
 import java.io.File
+import java.io.IOException
 
 /**
  * Makes this change to [file], whose content is [raw] (empty if it doesn't exist), keeping its line breaks.
@@ -30,7 +31,8 @@ internal fun ProposedFileChange.writeTo(file: File, raw: String) {
 }
 
 /**
- * Makes every one of [changes] in [rootDirectory] if each file is still as the change found it, and none of them otherwise.
+ * Makes every one of [changes] in [rootDirectory] if each file is still as the change found it, and none of them otherwise;
+ * a write that fails puts back the files written before it, and throws.
  *
  * @return Whether they were made.
  */
@@ -44,6 +46,23 @@ internal fun applyAll(rootDirectory: File, changes: List<ProposedFileChange>): B
             else -> file.readText().takeIf { it.withUnixLineBreaks() == change.before } ?: return false
         }
     }
-    changes.forEachIndexed { index, change -> change.writeTo(File(rootDirectory, change.path), raws[index]) }
+    val written = ArrayList<Int>()
+    try {
+        changes.forEachIndexed { index, change ->
+            change.writeTo(File(rootDirectory, change.path), raws[index])
+            written += index
+        }
+    } catch (exception: IOException) {
+        written.forEach { index -> runCatching { restore(File(rootDirectory, changes[index].path), changes[index], raws[index]) } }
+        throw exception
+    }
     return true
+}
+
+/**
+ * Puts back what [change] found in [file] ([raw]), deleting a file it created.
+ */
+@EditorMutation
+private fun restore(file: File, change: ProposedFileChange, raw: String) {
+    if (change.isNew) file.delete() else file.writeTextAtomically(raw)
 }

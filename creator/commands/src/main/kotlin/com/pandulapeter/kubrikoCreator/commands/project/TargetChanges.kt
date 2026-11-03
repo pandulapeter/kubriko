@@ -31,9 +31,12 @@ internal fun CommandContext.targetsOrRejection(target: GameTarget): Pair<GameTar
 }
 
 /**
- * [change] as the AI reads it: each changed file as the lines that change, with two around them, and the files created.
+ * [change] as the AI reads it: its ID, whether undo can turn it back, each changed file as the lines that change (with two
+ * around them), and the files created.
  */
 internal fun changeJson(change: TargetChange.Proposed): JsonObject = buildJsonObject {
+    put("changeId", change.id)
+    put("canBeUndone", change.isReversible)
     putJsonArray("changes") {
         change.changes.filterNot { it.isNew }.forEach { file ->
             add(
@@ -42,12 +45,7 @@ internal fun changeJson(change: TargetChange.Proposed): JsonObject = buildJsonOb
                     put(
                         "diff",
                         LineDiff.withContext(LineDiff.of(file.before, file.after.orEmpty())).joinToString("\n") { line ->
-                            when (line?.kind) {
-                                null -> "…"
-                                LineDiff.Kind.SAME -> "  " + line.text
-                                LineDiff.Kind.REMOVED -> "- " + line.text
-                                LineDiff.Kind.ADDED -> "+ " + line.text
-                            }
+                            line?.let { it.kind.prefix + it.text } ?: "…"
                         },
                     )
                 },

@@ -18,11 +18,15 @@ public object LineDiff {
 
     /**
      * Whether a line was kept, removed, or added.
+     *
+     * @param prefix What a diff shows the line after.
      */
-    public enum class Kind {
-        SAME,
-        REMOVED,
-        ADDED,
+    public enum class Kind(
+        public val prefix: String,
+    ) {
+        SAME("  "),
+        REMOVED("- "),
+        ADDED("+ "),
     }
 
     /**

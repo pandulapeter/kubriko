@@ -94,6 +94,15 @@ public object VersionCatalog {
     }
 
     /**
+     * The value of the entry named [alias] in the [header] of [text], trimmed, or null if it has none.
+     */
+    public fun valueOf(text: String, header: String, alias: String): String? {
+        val lines = text.lines()
+        return section(lines, header).firstOrNull { entryPattern.find(lines[it])?.groupValues?.get(1) == alias }
+            ?.let { lines[it].substringAfter('=').trim() }
+    }
+
+    /**
      * [text] with the entry [alias] = [value] in its [header], which is added at the end if the catalog has none, or [text]
      * itself if it has an entry of that name. The entry goes where it keeps the entries sorted if they are.
      */

@@ -35,6 +35,11 @@ internal class TargetFiles(
     val build get() = read(BUILD_FILE)
 
     /**
+     * These files as [reader] has them instead.
+     */
+    fun copy(reader: (String) -> String?) = TargetFiles(packageName, projectId, applicationId, android, androidSdk, reader)
+
+    /**
      * The files of [target]'s template that the project doesn't have, by their paths, filled in.
      */
     fun missingFilesOf(target: GameTarget): Map<String, String> {

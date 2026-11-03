@@ -31,6 +31,8 @@ internal object IosTarget : TargetEdits {
 
     override val target = GameTarget.IOS
 
+    override val keptPaths = setOf(TargetFiles.GITIGNORE_FILE)
+
     override fun isOn(files: TargetFiles) = files.build?.contains("iosSimulatorArm64(") == true
 
     override fun turnedOn(files: TargetFiles): Map<String, String>? {
@@ -39,7 +41,9 @@ internal object IosTarget : TargetEdits {
         val buildBlock = files.buildBlockOf(target)
         val withBlock = if (buildBlock.lineSequence().first() in withTarget) withTarget else BuildFileLines.withAppended(withTarget, buildBlock)
         val gitignore = files.read(TargetFiles.GITIGNORE_FILE).orEmpty()
+        val configuration = files.read(XCODE_CONFIGURATION)?.let { XCODE_CONFIGURATION to withBundleIdentifier(it, files.applicationId) }
         return files.missingFilesOf(target) +
+            listOfNotNull(configuration) +
             (TargetFiles.BUILD_FILE to withBlock) +
             (TargetFiles.GITIGNORE_FILE to BuildFileLines.withLine(gitignore, XCODE_USER_DATA))
     }
@@ -54,7 +58,7 @@ internal object IosTarget : TargetEdits {
 
     override fun turnedOff(files: TargetFiles): Map<String, String>? {
         val build = files.build ?: return null
-        val withoutTarget = BuildFileLines.withoutBlock(build) { lines, index ->
+        val withoutTarget = BuildFileLines.withoutBlock(build, countsParentheses = true) { lines, index ->
             lines[index].trim() == block.first() && lines.getOrNull(index + 1)?.trim()?.startsWith("ios") == true
         } ?: return null
         if ("iosSimulatorArm64(" in withoutTarget) return null

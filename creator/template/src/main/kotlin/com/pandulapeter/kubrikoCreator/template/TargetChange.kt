@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
+import java.security.MessageDigest
+
 /**
  * What turning a game's target on or off takes.
  */
@@ -16,12 +18,25 @@ public sealed interface TargetChange {
 
     /**
      * The exact changes to the build files (and the target's files that are created), shown before they are made.
+     *
+     * @param isReversible Whether turning the target back afterwards brings every file it changes back as it was, keeping
+     *   only the files it creates and what it adds to [TargetEdits.keptPaths].
      */
     public data class Proposed(
         public val target: GameTarget,
         public val isOn: Boolean,
         public val changes: List<ProposedFileChange>,
-    ) : TargetChange
+        public val isReversible: Boolean,
+    ) : TargetChange {
+        /**
+         * Names exactly these changes, so that the user confirming them can be told from the files having changed since.
+         */
+        public val id: String by lazy {
+            val digest = MessageDigest.getInstance("SHA-256")
+            changes.forEach { change -> listOf(change.path, change.before, change.after.orEmpty()).forEach { digest.update((it + "\u0000").toByteArray()) } }
+            digest.digest().joinToString("") { "%02x".format(it) }.take(16)
+        }
+    }
 
     /**
      * Why it can't be done, with the arguments of the message.
@@ -33,10 +48,11 @@ public sealed interface TargetChange {
 }
 
 /**
- * Whether a game is built for a target, and why it can't be changed or built here, if so.
+ * Whether a game is built for a target, and why it can't be changed or built here, if so, with the arguments of the message.
  */
 public data class TargetState(
     public val target: GameTarget,
     public val isOn: Boolean,
     public val problem: TargetProblem? = null,
+    public val arguments: List<String> = emptyList(),
 )

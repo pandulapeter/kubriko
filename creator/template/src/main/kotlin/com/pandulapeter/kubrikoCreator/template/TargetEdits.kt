@@ -18,6 +18,11 @@ package com.pandulapeter.kubrikoCreator.template
 internal interface TargetEdits {
     val target: GameTarget
 
+    /**
+     * The files turning the target on changes that turning it off leaves as they are, besides the ones it creates.
+     */
+    val keptPaths: Set<String> get() = emptySet()
+
     fun isOn(files: TargetFiles): Boolean
 
     /**
@@ -31,6 +36,9 @@ internal interface TargetEdits {
     fun turnedOff(files: TargetFiles): Map<String, String>?
 
     companion object {
-        val ALL: Map<GameTarget, TargetEdits> = listOf(WebTarget, AndroidTarget, IosTarget).associateBy { it.target }
+        /**
+         * Every target's edits, built on first use, since each of them initializes this interface first.
+         */
+        val ALL: Map<GameTarget, TargetEdits> by lazy { listOf(WebTarget, AndroidTarget, IosTarget).associateBy { it.target } }
     }
 }
