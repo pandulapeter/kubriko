@@ -34,12 +34,15 @@ import java.io.File
  * the template's, as each step defines; a file that already has a step's change counts as done for it, whoever made it,
  * and a file one of whose steps can't be made is left to the user, with none of its steps made.
  */
-internal class ProjectUpgrader(
+public class ProjectUpgrader(
     private val rootDirectory: File,
 ) {
     private val settingsFile get() = File(rootDirectory, BlockTypeStore.SETTINGS_FILE)
 
-    fun check(): TemplateUpgrade {
+    /**
+     * What it takes to bring the project up to [CURRENT_VERSION], without changing anything.
+     */
+    public fun check(): TemplateUpgrade {
         val settings = readSettings() ?: return TemplateUpgrade.UpToDate
         if ((recordedVersion() ?: CURRENT_VERSION) >= CURRENT_VERSION) return TemplateUpgrade.UpToDate
         val packageName = settings["packageName"]?.jsonPrimitive?.content ?: return TemplateUpgrade.UpToDate
@@ -89,7 +92,7 @@ internal class ProjectUpgrader(
      * @return What is still left to do.
      */
     @EditorMutation
-    fun apply(): TemplateUpgrade {
+    public fun apply(): TemplateUpgrade {
         val upgrade = check()
         if (upgrade is TemplateUpgrade.Needed) {
             upgrade.changes.forEach { change ->
@@ -106,7 +109,7 @@ internal class ProjectUpgrader(
     /**
      * Records the current template version when the files need nothing more, as in a project upgraded by hand.
      */
-    fun recordVersionIfUpToDate() {
+    public fun recordVersionIfUpToDate() {
         if (recordedVersion()?.let { it < CURRENT_VERSION } == true && check() == TemplateUpgrade.UpToDate) recordVersion()
     }
 
@@ -121,11 +124,11 @@ internal class ProjectUpgrader(
         settingsFile.writeTextAtomically(json.encodeToString(JsonObject.serializer(), JsonObject(settings + ("templateVersion" to JsonPrimitive(CURRENT_VERSION)))) + "\n")
     }
 
-    companion object {
+    public companion object {
         /**
          * The template version the newest [TemplateStep] brings a project to, which new projects start at.
          */
-        val CURRENT_VERSION = TemplateSteps.FILES.flatMap { it.steps }.maxOf { it.version }
+        public val CURRENT_VERSION: Int = TemplateSteps.FILES.flatMap { it.steps }.maxOf { it.version }
         private val cacheProperties = listOf("org.gradle.configuration-cache", "org.gradle.caching")
         private const val APPLICATION_MAIN = "fun main() = application {"
         private const val LOGGING_SWITCH = "${ManagerTypeCodeGenerator.WIRING_NAME}.${ManagerTypeCodeGenerator.LOGGING_FLAG}"

@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 /**
  * Why a new project can't be created.
  */
-internal enum class TemplateProblem(override val english: String) : DomainText {
+public enum class TemplateProblem(override val english: String) : DomainText {
     PACKAGE_NAME_INVALID("Use at least two parts separated by dots, like com.example.mygame, each starting with a lowercase letter."),
     FOLDER_NOT_EMPTY("That folder already exists and isn't empty."),
     NAME_EMPTY("Give the project a name."),

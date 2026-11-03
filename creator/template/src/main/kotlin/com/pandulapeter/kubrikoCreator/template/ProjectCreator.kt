@@ -14,7 +14,7 @@ import java.io.File
 /**
  * Creates a project on disk, returning its folder, or throws a [ProjectCreationException].
  */
-internal fun interface ProjectCreator {
+public fun interface ProjectCreator {
 
-    fun create(request: NewProjectRequest): File
+    public fun create(request: NewProjectRequest): File
 }

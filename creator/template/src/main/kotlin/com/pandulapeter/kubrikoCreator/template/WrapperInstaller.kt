@@ -14,7 +14,7 @@ import java.io.File
 /**
  * Adds the Gradle wrapper (`gradlew` and its files) to a new project.
  */
-internal fun interface WrapperInstaller {
+public fun interface WrapperInstaller {
 
-    fun install(projectDirectory: File, gradleVersion: String)
+    public fun install(projectDirectory: File, gradleVersion: String)
 }

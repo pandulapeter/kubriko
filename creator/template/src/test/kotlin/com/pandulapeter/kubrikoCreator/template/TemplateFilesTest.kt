@@ -31,7 +31,8 @@ class TemplateFilesTest {
 
     @Test
     fun everyTemplateListsExactlyTheFilesItShips() = ProjectTemplate.entries.forEach { template ->
-        val directory = File(TemplateFiles::class.java.classLoader.getResource(template.root)!!.toURI())
+        // The module's own resource folder: on its test classpath, its jar (through the test fixtures) shadows build/resources.
+        val directory = File("src/main/resources", template.root)
         val shipped = directory.walkTopDown()
             .filter { it.isFile && it.name.endsWith(TemplateFiles.TEMPLATE_SUFFIX) }
             .map { it.relativeTo(directory).invariantSeparatorsPath.removeSuffix(TemplateFiles.TEMPLATE_SUFFIX) }

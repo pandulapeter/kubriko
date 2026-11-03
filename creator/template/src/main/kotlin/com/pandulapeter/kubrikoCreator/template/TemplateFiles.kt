@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.template
 
 /**
- * Reads a template's files from the app's resources, as listed by the template's `files.txt` (resources can't be
+ * Reads a template's files from this module's resources, as listed by the template's `files.txt` (resources can't be
  * listed once they are packaged into a jar).
  */
 internal object TemplateFiles {
@@ -25,5 +25,5 @@ internal object TemplateFiles {
     internal val ProjectTemplate.root get() = "templates/$id"
 
     internal fun readResource(name: String) = TemplateFiles::class.java.classLoader.getResourceAsStream(name)?.use { it.readBytes().decodeToString().replace("\r\n", "\n") }
-        ?: error("$name is missing from the app's resources.")
+        ?: error("$name is missing from this module's resources.")
 }

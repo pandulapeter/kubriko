@@ -58,6 +58,7 @@ include(
     ":creator:core",
     ":creator:gradle-session",
     ":creator:git",
+    ":creator:template",
     ":creator:ui-components",
     ":engine",
     ":examples:demo-content-shaders",

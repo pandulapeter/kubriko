@@ -14,32 +14,45 @@ import java.io.File
 /**
  * The state of the New project screen. The package follows the name until the user edits it.
  */
-internal data class NewProjectForm(
-    val name: String = "",
-    val packageName: String = "",
-    val parentDirectory: File,
-    val isPackageNameEdited: Boolean = false,
-    val isUnderVersionControl: Boolean = true,
+public data class NewProjectForm(
+    public val name: String = "",
+    public val packageName: String = "",
+    public val parentDirectory: File,
+    public val isPackageNameEdited: Boolean = false,
+    public val isUnderVersionControl: Boolean = true,
 ) {
-    val nameError get() = if (name.isEmpty()) null else ProjectNaming.validateName(name)
-    val packageNameError get() = if (packageName.isEmpty()) null else ProjectNaming.validatePackageName(packageName)
+    /**
+     * Why [name] can't be used, or null while it is empty or valid.
+     */
+    public val nameError: TemplateProblem? get() = if (name.isEmpty()) null else ProjectNaming.validateName(name)
+
+    /**
+     * Why [packageName] can't be used, or null while it is empty or valid.
+     */
+    public val packageNameError: TemplateProblem? get() = if (packageName.isEmpty()) null else ProjectNaming.validatePackageName(packageName)
 
     /**
      * What to create, or null while the form is incomplete or invalid.
      */
-    val request
+    public val request: NewProjectRequest?
         get() = if (ProjectNaming.validateName(name) == null && ProjectNaming.validatePackageName(packageName) == null) {
             NewProjectRequest(name = name.trim(), packageName = packageName, parentDirectory = parentDirectory, isUnderVersionControl = isUnderVersionControl)
         } else {
             null
         }
 
-    fun withName(name: String) = copy(
+    /**
+     * The form with [name], and the package derived from it unless the user edited the package.
+     */
+    public fun withName(name: String): NewProjectForm = copy(
         name = name,
         packageName = if (isPackageNameEdited) packageName else ProjectNaming.defaultPackageName(name),
     )
 
-    fun withPackageName(packageName: String) = copy(
+    /**
+     * The form with [packageName], which no longer follows the name.
+     */
+    public fun withPackageName(packageName: String): NewProjectForm = copy(
         packageName = packageName,
         isPackageNameEdited = true,
     )
