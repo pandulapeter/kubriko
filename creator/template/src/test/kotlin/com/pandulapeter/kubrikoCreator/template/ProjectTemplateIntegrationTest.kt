@@ -7,6 +7,8 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+@file:OptIn(EditorMutation::class)
+
 package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
@@ -16,9 +18,12 @@ import com.pandulapeter.kubrikoCreator.actors.EveryBlockTypes
 import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import com.pandulapeter.kubrikoCreator.gradle.DesktopModules
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
+import com.pandulapeter.kubrikoCreator.project.AspectRatio
+import com.pandulapeter.kubrikoCreator.project.GameSettings
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
@@ -67,8 +72,13 @@ class ProjectTemplateIntegrationTest {
                         EveryBlockTypes.all.forEach(store::save)
                         store.regenerateAll()
                         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
+                        GameSettings.write(directory, GameSettings(aspectRatio = AspectRatio.FIXED, viewportWidth = 1280f, viewportHeight = 720.5f, frameRate = GameSettings.EVERY_DISPLAY_FRAME))
                         listOf("audioPlayback", "collision", "keyboardInput", "sprites").forEach { assertContains(buildFile.readText(), "implementation(libs.kubriko.$it)") }
                         assertCompiles(connection, directory, "${template.id} with every Block")
+                        directory.resolve("build/generated/gameSettings/GameSettings.kt").readText().let { gameSettings ->
+                            assertContains(gameSettings, "AspectRatioMode.Fixed(ratio = ${1280f / 720.5f}f, width = 1280.0f.sceneUnit)")
+                            assertContains(gameSettings, "TargetFrameRate.DisplayDefault")
+                        }
                         assertRuntimeClasspathResolves(connection, "${template.id} with every Block")
                         assertCompilerWarmsUp(connection, directory, "${template.id} with every Block")
                     }
