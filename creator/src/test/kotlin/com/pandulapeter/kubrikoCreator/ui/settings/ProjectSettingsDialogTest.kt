@@ -128,6 +128,9 @@ class ProjectSettingsDialogTest {
         onNodeWithText("Height").performTextReplacement("0")
         waitForIdle()
         onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertExists()
+        game = game.copy(viewportHeight = 1000f)
+        waitForIdle()
+        onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertDoesNotExist()
         onNodeWithText("Height").performTextReplacement("720")
         waitForIdle()
         onNodeWithText("Fit the height").performClick()
@@ -135,6 +138,12 @@ class ProjectSettingsDialogTest {
         waitForIdle()
         onNodeWithText("Width").assertExists()
         assertEquals(listOf(SetProjectSettings.Input(viewportHeight = 720f), SetProjectSettings.Input(aspectRatio = AspectRatio.FIXED)), changes)
+        onNodeWithText("Width").performTextReplacement("0")
+        waitForIdle()
+        onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertExists()
+        onNodeWithText("Breakout").performScrollTo().performClick()
+        waitForIdle()
+        onNodeWithText("The viewport's width and height are numbers from 1 to 100000.").assertDoesNotExist()
     }
 
     @Test

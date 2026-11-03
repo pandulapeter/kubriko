@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
@@ -110,7 +111,8 @@ internal fun GameSettingsSection(
 }
 
 /**
- * The width and height fields of the aspect ratios that use them; a size out of range isn't applied, and says why.
+ * The width and height fields of the aspect ratios that use them; a size out of range isn't applied, and says why until
+ * the fields lose the focus or the size changes elsewhere.
  */
 @Composable
 private fun ViewportSizeFields(
@@ -118,13 +120,13 @@ private fun ViewportSizeFields(
     invalidKeys: List<String>,
     onChange: (SetProjectSettings.Input) -> Unit,
 ) {
-    var problem by remember { mutableStateOf<Pair<GameSettingsProblem, List<String>>?>(null) }
+    var problem by remember(settings) { mutableStateOf<Pair<GameSettingsProblem, List<String>>?>(null) }
     fun change(input: SetProjectSettings.Input) {
         problem = input.appliedTo(settings).validate()
         if (problem == null) onChange(input)
     }
     Row(
-        modifier = Modifier.padding(start = LABEL_WIDTH),
+        modifier = Modifier.padding(start = LABEL_WIDTH).onFocusChanged { if (!it.hasFocus) problem = null },
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (settings.aspectRatio.usesWidth) {
