@@ -19,6 +19,7 @@ dependencies {
     // Every published module a project could use, so that a project's classes loaded next to Creator's share them
     // (sceneRuntime/ClassLoaderEntryPointLoader.kt).
     implementation(projects.creator.foundation)
+    implementation(projects.creator.core)
     implementation(projects.creator.uiComponents)
     implementation(projects.plugins.audioPlayback)
     implementation(projects.plugins.collision)
@@ -45,6 +46,7 @@ dependencies {
     implementation(libs.ktor.server.cio)
     implementation(libs.mcp.server)
     testImplementation(testFixtures(projects.creator.foundation))
+    testImplementation(testFixtures(projects.creator.core))
     testImplementation(testFixtures(projects.creator.uiComponents))
     testImplementation(libs.kotlin.test)
     testImplementation(compose.desktop.uiTestJUnit4)

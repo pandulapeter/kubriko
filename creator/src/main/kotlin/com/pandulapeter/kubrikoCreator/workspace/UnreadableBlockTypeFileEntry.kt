@@ -16,7 +16,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 /**
  * The console's report of why this file was left out.
  */
-internal fun UnreadableBlockTypeFile.toConsoleEntry() = when (problem) {
+internal fun UnreadableBlockTypeFile.toConsoleEntry() = when (val problem = problem) {
     is BlockTypeFileProblem.Unparsable -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_UNREADABLE, isError = true, arguments = listOf(path, problem.message))
     is BlockTypeFileProblem.NameMismatch -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_NAME_MISMATCH, isError = true, arguments = listOf(path, problem.name))
     is BlockTypeFileProblem.InvalidName -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FILE_NAME_INVALID, isError = true, arguments = listOf(path, problem.name))

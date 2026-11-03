@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 /**
  * The console's report of what couldn't be written, and why.
  */
-internal fun FailedWrite.toConsoleEntry() = when (subject) {
+internal fun FailedWrite.toConsoleEntry() = when (val subject = subject) {
     is FailedWrite.Subject.Type -> ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPE_NOT_SAVED, isError = true, arguments = listOf(subject.name, reason))
     is FailedWrite.Subject.Folder -> ConsoleEntry.Status(WorkspaceStatus.TYPE_FOLDER_NOT_SAVED, isError = true, arguments = listOf(subject.path, reason))
     FailedWrite.Subject.GeneratedCode -> ConsoleEntry.Status(WorkspaceStatus.GENERATED_CODE_NOT_WRITTEN, isError = true, arguments = listOf(reason))
