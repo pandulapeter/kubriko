@@ -20,7 +20,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
@@ -30,6 +32,7 @@ import java.io.IOException
 import java.nio.channels.Channels
 import java.nio.channels.Pipe
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.time.Duration
 
 /**
  * Launches [FakeAgent]s in this process, talking to Kubriko Creator over pipes as a real agent's process would.
@@ -122,15 +125,22 @@ public class FakeAgentChannel(
     }
 
     /**
-     * Ends the agent as a crashing process would: its streams close and it exits with [exitCode].
+     * Ends the agent as a crashing process would: its streams close and it exits with [exitCode], [exitDelay] later.
      */
-    fun crash(exitCode: Int) {
+    fun crash(exitCode: Int, exitDelay: Duration = Duration.ZERO) {
         if (exit.isCompleted) return
         agentScope.cancel()
         runCatching { toCreator.sink().close() }
         runCatching { errorPipe.sink().close() }
         runCatching { fromCreator.source().close() }
-        exit.complete(exitCode)
+        if (exitDelay == Duration.ZERO) {
+            exit.complete(exitCode)
+        } else {
+            CoroutineScope(Dispatchers.Default).launch {
+                delay(exitDelay)
+                exit.complete(exitCode)
+            }
+        }
     }
 
     override suspend fun awaitExit() = exit.await()

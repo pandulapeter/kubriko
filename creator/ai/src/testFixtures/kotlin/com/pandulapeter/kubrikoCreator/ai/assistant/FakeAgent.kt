@@ -64,6 +64,7 @@ import kotlinx.serialization.json.putJsonObject
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration
 
 /**
  * An ACP agent built on the Kotlin SDK's agent side, answering prompts by their text:
@@ -83,6 +84,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * @param exitsAtStart The exit code the process ends with right after starting, or null if it doesn't.
  * @param sessionClose Run when a conversation is closed (`session/close`), which the agent then advertises; without
  *   it, the agent can't close conversations.
+ * @param crashExitDelay How long after its streams close a `crash` ends the process, as a real process exits a moment
+ *   after its output ends.
  */
 public class FakeAgent(
     private val supportsLoading: Boolean = true,
@@ -91,6 +94,7 @@ public class FakeAgent(
     private val answersInitialize: Boolean = true,
     private val isSignedIn: AtomicBoolean = AtomicBoolean(true),
     private val sessionClose: (suspend () -> Unit)? = null,
+    private val crashExitDelay: Duration = Duration.ZERO,
 ) {
     val clientInfos = CopyOnWriteArrayList<ClientInfo>()
     val newSessions = CopyOnWriteArrayList<SessionCreationParameters>()
@@ -228,7 +232,7 @@ public class FakeAgent(
                 "wait" -> awaitCancellation()
                 "crash" -> {
                     channel.writeError("Fake agent crashed.")
-                    channel.crash(1)
+                    channel.crash(1, exitDelay = crashExitDelay)
                     awaitCancellation()
                 }
                 "later" -> {

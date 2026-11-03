@@ -27,6 +27,7 @@ import com.agentclientprotocol.model.SessionUpdate
 import com.agentclientprotocol.protocol.Protocol
 import com.agentclientprotocol.transport.StdioTransport
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -116,6 +117,9 @@ public class AcpAgent(
     @Volatile
     private var isClosed = false
 
+    /**
+     * @param outputEnded Completed once the agent's output ends, which a crashing process's does a moment before it exits.
+     */
     private class Connection(
         val channel: AgentChannel,
         val scope: CoroutineScope,
@@ -123,6 +127,7 @@ public class AcpAgent(
         val info: AgentInfo,
         val errorReader: Job,
         val startedAt: TimeMark,
+        val outputEnded: Deferred<Unit>,
     )
 
     /**
@@ -200,6 +205,7 @@ public class AcpAgent(
 
     internal suspend fun sessionOf(conversation: AgentConversation): ClientSession = lifecycle.withLock {
         if (conversation !in conversations) throw ConversationLostException()
+        endIfExiting()
         connected()
         conversation.currentSession() ?: throw ConversationLostException()
     }
@@ -259,12 +265,19 @@ public class AcpAgent(
                 _errorOutput.update { (it + line).takeLast(ERROR_OUTPUT_SIZE) }
             }
         }
+        val outputEnded = CompletableDeferred<Unit>()
         val reader = channel.fromAgent.bufferedReader()
         val writer = channel.toAgent.bufferedWriter()
         val transport = StdioTransport(
             parentScope = connectionScope,
             ioDispatcher = ioDispatcher,
-            input = flow { while (true) emit(reader.readLine() ?: break) },
+            input = flow {
+                try {
+                    while (true) emit(reader.readLine() ?: break)
+                } finally {
+                    outputEnded.complete(Unit)
+                }
+            },
             output = { line ->
                 writer.write(line)
                 writer.newLine()
@@ -307,7 +320,7 @@ public class AcpAgent(
         exit.cancel()
         _signInMethods.value = SignInMethod.of(info.authMethods, command)
         _capabilities.value = info.capabilities
-        return Connection(channel, connectionScope, client, info, errorReader, timeSource.markNow())
+        return Connection(channel, connectionScope, client, info, errorReader, timeSource.markNow(), outputEnded)
     }
 
     /**
@@ -330,12 +343,27 @@ public class AcpAgent(
         conversations.removeAll { it.isLost.value }
     }
 
-    private suspend fun onExit(connection: Connection, exitCode: Int) = lifecycle.withLock {
-        if (this.connection !== connection) return@withLock
+    private suspend fun onExit(connection: Connection, exitCode: Int) = lifecycle.withLock { handleExit(connection, exitCode) }
+
+    /**
+     * Handles the exit of the process whose output has ended already, if it exits soon, rather than handing out its
+     * conversations' sessions, which a prompt sent right after a crash would otherwise reach before [onExit] runs.
+     */
+    private suspend fun endIfExiting() {
+        val ending = connection?.takeIf { it.outputEnded.isCompleted } ?: return
+        val exitCode = withTimeoutOrNull(EXIT_WAIT) { withContext(ioDispatcher) { ending.channel.awaitExit() } } ?: return
+        handleExit(ending, exitCode)
+    }
+
+    /**
+     * What [onExit] does, for a caller that holds the lifecycle lock.
+     */
+    private suspend fun handleExit(connection: Connection, exitCode: Int) {
+        if (this.connection !== connection) return
         this.connection = null
         withTimeoutOrNull(EXIT_WAIT) { connection.errorReader.join() }
         shutDown(connection.scope, connection.channel)
-        if (isClosed) return@withLock
+        if (isClosed) return
         crashesInARow = if (connection.startedAt.elapsedNow() < STABLE_UPTIME) crashesInARow + 1 else 1
         when {
             crashesInARow > MAXIMUM_RESTARTS -> _state.value = AgentState.Failed(exitCode, _errorOutput.value)

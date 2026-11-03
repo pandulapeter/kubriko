@@ -205,6 +205,18 @@ class AcpAgentTest {
     }
 
     @Test
+    fun aPromptSentRightAfterACrashWaitsForTheAgentToStartAgain() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
+        val launcher = launcher { FakeAgent(crashExitDelay = 300.milliseconds) }
+        val agent = agent(launcher)
+        val conversation = agent.newConversation(workingDirectory)
+        val messages = messagesOf(conversation)
+        assertFailsWith<Exception> { conversation.prompt(text("crash")) }
+        conversation.prompt(text("hello"))
+        assertReceived(listOf("Hi", " there"), messages)
+        assertEquals(2, launcher.agents.size)
+    }
+
+    @Test
     fun conversationsTheAgentCantLoadAreLost() = blockingTest(timeout = TIMEOUT, context = EmptyCoroutineContext) {
         val launcher = launcher { FakeAgent(supportsLoading = false) }
         val agent = agent(launcher)
