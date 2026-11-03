@@ -25,9 +25,10 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-`00-end-to-end-checks.md`: the harness, then its first slice (Project settings: Game and Identity). After that, each later
-item is verified with it before it is called done, and one slice of Not yet verified is done before each. Then the rest of
-Project settings in `03-settings.md`, as follows.
+`00-end-to-end-checks.md`: the harness is built (`endToEnd/` in `:creator`'s tests, with `OpeningAndPlayingTest` seen passing under
+Xvfb) and its review (`README.md`, from `c33a9042a`) is next, then the plan file's harness section is deleted. After that, its first
+slice (Project settings: Game and Identity); each later item is verified with it before it is called done, and one slice of Not yet
+verified is done before each. Then the rest of Project settings in `03-settings.md`, as follows.
 
 Project settings in `03-settings.md`: Identity and Game are built and reviewed (template versions 9 and 10, the dialog behind the
 toolbar's settings menu, and `get_project_settings` / `set_project_settings`; see Not yet verified). Next is Targets, then
