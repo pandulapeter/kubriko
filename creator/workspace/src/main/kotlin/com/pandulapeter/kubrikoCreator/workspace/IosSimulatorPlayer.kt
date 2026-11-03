@@ -91,7 +91,8 @@ internal class IosSimulatorPlayer(
     }
 
     /**
-     * Boots the simulator if it is shut down and shows it, returning true once it is ready, or null, as the console says.
+     * Boots the simulator if it is shut down and shows it, returning true once it is ready, or null, as the console says. A
+     * Simulator app that can't be opened (an Xcode without it) leaves the game playing unseen, as the console says too.
      */
     private suspend fun booted(simulators: IosSimulators, udid: String, name: String): Boolean? {
         val available = simulators.available() ?: run {
@@ -116,7 +117,10 @@ internal class IosSimulatorPlayer(
                 return null
             }
         }
-        tools.run(listOf("open", "-a", "Simulator", "--args", "-CurrentDeviceUDID", udid), COMMAND_TIMEOUT_IN_MILLISECONDS)
+        val shown = tools.run(listOf("open", "-a", "Simulator", "--args", "-CurrentDeviceUDID", udid), COMMAND_TIMEOUT_IN_MILLISECONDS)
+        if (!shown.isSuccessful) {
+            console.append(ConsoleEntry.Status(WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN, isError = true, arguments = listOf(name, failureReasonOf(shown.output, shown.exitCode))))
+        }
         return true
     }
 

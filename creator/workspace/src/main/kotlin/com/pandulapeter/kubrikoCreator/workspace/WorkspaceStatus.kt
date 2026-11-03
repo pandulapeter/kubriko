@@ -57,6 +57,7 @@ public enum class WorkspaceStatus(override val english: String) : DomainText {
     IOS_SIMULATOR_BOOTING("Starting the simulator %1\$s, which can take a minute…"),
     IOS_SIMULATOR_MISSING("The simulator %1\$s isn't on this Mac anymore. Choose another place in Play's menu."),
     IOS_SIMULATOR_NOT_BOOTED("The simulator %1\$s couldn't be started: %2\$s"),
+    IOS_SIMULATOR_NOT_SHOWN("The game plays on %1\$s, but the Simulator app that shows it couldn't be opened: %2\$s. Xcode opens it from Open Developer Tool, once it is installed."),
     IOS_SIMULATOR_SHUT_DOWN("The simulator %1\$s shut down, so the game ended."),
     IOS_SIMULATOR_TIMED_OUT("The simulator %1\$s wasn't ready within %2\$s minutes, so the game wasn't played on it."),
     IOS_SIMULATORS_UNREADABLE("Xcode couldn't list this Mac's simulators, so the game wasn't played. Opening Xcode once may finish setting it up."),

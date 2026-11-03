@@ -57,6 +57,10 @@ class IosSimulatorPlayerTest {
 
     private fun simulator(state: String) = ok("""{ "devices": { "com.apple.CoreSimulator.SimRuntime.iOS-18-2": [{ "udid": "U1", "isAvailable": true, "state": "$state", "name": "iPhone 16" }] } }""")
 
+    init {
+        tools.answer("-a Simulator --args -CurrentDeviceUDID U1", ok(""))
+    }
+
     private fun builds() {
         tools.stream(build, listOf("** BUILD SUCCEEDED **"), keepsRunning = false)
         app.mkdirs()
@@ -198,6 +202,17 @@ class IosSimulatorPlayerTest {
         assertFalse(player().play(target, firstScene = null) {})
         assertEquals(listOf("iPhone 16 (iOS 18.2)", "134"), console.entries.value.filterIsInstance<ConsoleEntry.Status>().single { it.isError }.arguments)
         assertEquals(WorkspaceStatus.IOS_GAME_EXITED, statuses.last())
+    }
+
+    @Test
+    fun aSimulatorAppThatCantBeOpenedSaysSoAndTheGamePlaysUnseen() = blockingTest {
+        tools.answer("simctl list devices available --json", simulator("Booted"))
+        builds()
+        tools.answer("-a Simulator --args -CurrentDeviceUDID U1", failed("Unable to find application named 'Simulator'\n"))
+        tools.stream(launch, listOf("com.example.mygame: 4321"), keepsRunning = false)
+        assertTrue(player().play(target, firstScene = null) {})
+        val notShown = console.entries.value.filterIsInstance<ConsoleEntry.Status>().single { it.text == WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN }
+        assertEquals(listOf("iPhone 16 (iOS 18.2)", "Unable to find application named 'Simulator'"), notShown.arguments)
     }
 
     @Test

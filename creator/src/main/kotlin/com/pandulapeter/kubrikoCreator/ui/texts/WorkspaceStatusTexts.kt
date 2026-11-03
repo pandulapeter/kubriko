@@ -53,6 +53,7 @@ import kubriko.creator.generated.resources.status_ios_not_started
 import kubriko.creator.generated.resources.status_ios_simulator_booting
 import kubriko.creator.generated.resources.status_ios_simulator_missing
 import kubriko.creator.generated.resources.status_ios_simulator_not_booted
+import kubriko.creator.generated.resources.status_ios_simulator_not_shown
 import kubriko.creator.generated.resources.status_ios_simulator_shut_down
 import kubriko.creator.generated.resources.status_ios_simulator_timed_out
 import kubriko.creator.generated.resources.status_ios_simulators_unreadable
@@ -110,6 +111,7 @@ internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.IOS_SIMULATOR_BOOTING -> Res.string.status_ios_simulator_booting
     WorkspaceStatus.IOS_SIMULATOR_MISSING -> Res.string.status_ios_simulator_missing
     WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED -> Res.string.status_ios_simulator_not_booted
+    WorkspaceStatus.IOS_SIMULATOR_NOT_SHOWN -> Res.string.status_ios_simulator_not_shown
     WorkspaceStatus.IOS_SIMULATOR_SHUT_DOWN -> Res.string.status_ios_simulator_shut_down
     WorkspaceStatus.IOS_SIMULATOR_TIMED_OUT -> Res.string.status_ios_simulator_timed_out
     WorkspaceStatus.IOS_XCODE_MISSING -> Res.string.status_ios_xcode_missing
