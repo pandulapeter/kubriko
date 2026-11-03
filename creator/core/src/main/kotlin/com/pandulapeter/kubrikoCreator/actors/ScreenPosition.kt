@@ -14,37 +14,39 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Where a Manager type's text is shown, with the Compose `Alignment` it becomes.
+ * Where a Manager type's text is shown, with the Compose `Alignment` it becomes, and the horizontal one that lines up
+ * the texts sharing it.
  */
 @Serializable
 @Description("A place on the screen.")
 public enum class ScreenPosition(
     internal val alignment: String,
+    internal val horizontalAlignment: String,
 ) {
     @SerialName("topLeft")
-    TOP_LEFT("TopStart"),
+    TOP_LEFT("TopStart", "Start"),
 
     @SerialName("top")
-    TOP("TopCenter"),
+    TOP("TopCenter", "CenterHorizontally"),
 
     @SerialName("topRight")
-    TOP_RIGHT("TopEnd"),
+    TOP_RIGHT("TopEnd", "End"),
 
     @SerialName("left")
-    LEFT("CenterStart"),
+    LEFT("CenterStart", "Start"),
 
     @SerialName("center")
-    CENTER("Center"),
+    CENTER("Center", "CenterHorizontally"),
 
     @SerialName("right")
-    RIGHT("CenterEnd"),
+    RIGHT("CenterEnd", "End"),
 
     @SerialName("bottomLeft")
-    BOTTOM_LEFT("BottomStart"),
+    BOTTOM_LEFT("BottomStart", "Start"),
 
     @SerialName("bottom")
-    BOTTOM("BottomCenter"),
+    BOTTOM("BottomCenter", "CenterHorizontally"),
 
     @SerialName("bottomRight")
-    BOTTOM_RIGHT("BottomEnd"),
+    BOTTOM_RIGHT("BottomEnd", "End"),
 }

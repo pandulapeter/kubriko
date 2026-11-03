@@ -112,6 +112,7 @@ public object ManagerTypeCodeGenerator {
             needs.forEach { addAll(importsOf(it)) }
             addAll(blockCode.imports)
             if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
+            if (definition.texts.groupBy { it.position }.values.any { it.size > 1 }) add("androidx.compose.foundation.layout.Column")
             if (texts.isNotEmpty() || kotlinUi != null) addAll(COMPOSABLE_IMPORTS)
             kotlinUi?.imports?.let(::addAll)
         }.sorted()
@@ -253,7 +254,8 @@ public object ManagerTypeCodeGenerator {
     }
 
     /**
-     * The Manager's `Composable`: its texts, then its Kotlin UI, which is drawn on top of them.
+     * The Manager's `Composable`: its texts, then its Kotlin UI, which is drawn on top of them. Texts sharing a position
+     * are stacked in a column there, in their order, rather than drawn over each other.
      */
     private fun StringBuilder.appendComposable(definitions: List<ScreenTextDefinition>, texts: List<String>, kotlinUi: KotlinUi?) {
         definitions.forEachIndexed { index, definition ->
@@ -267,17 +269,30 @@ public object ManagerTypeCodeGenerator {
             appendLine("        Box(")
             appendLine("            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),")
             appendLine("        ) {")
-            definitions.forEachIndexed { index, definition ->
-                appendLine("            BasicText(")
-                appendLine("                modifier = Modifier.align(Alignment.${definition.position.alignment}),")
-                appendLine("                text = ${texts[index]},")
-                appendLine("                style = ${textStyleField(index)},")
-                appendLine("            )")
+            definitions.indices.groupBy { definitions[it].position }.forEach { (position, indices) ->
+                if (indices.size == 1) {
+                    appendText(texts[indices.single()], indices.single(), indent = "            ", alignment = position.alignment)
+                } else {
+                    appendLine("            Column(")
+                    appendLine("                modifier = Modifier.align(Alignment.${position.alignment}),")
+                    appendLine("                horizontalAlignment = Alignment.${position.horizontalAlignment},")
+                    appendLine("            ) {")
+                    indices.forEach { index -> appendText(texts[index], index, indent = "                ", alignment = null) }
+                    appendLine("            }")
+                }
             }
             appendLine("        }")
         }
         kotlinUi?.statements?.forEach { appendLine(if (it.isEmpty()) it else "        $it") }
         appendLine("    }")
+    }
+
+    private fun StringBuilder.appendText(text: String, index: Int, indent: String, alignment: String?) {
+        appendLine("${indent}BasicText(")
+        if (alignment != null) appendLine("$indent    modifier = Modifier.align(Alignment.$alignment),")
+        appendLine("$indent    text = $text,")
+        appendLine("$indent    style = ${textStyleField(index)},")
+        appendLine("$indent)")
     }
 
     private fun fieldOf(need: BlockNeed) = when (need) {

@@ -144,6 +144,33 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
+    fun textsSharingAPositionAreStackedInAColumnThereInTheirOrder() {
+        val code = generate(
+            game.copy(
+                texts = listOf(
+                    ScreenTextDefinition("Score: {score}"),
+                    ScreenTextDefinition("Paused", ScreenPosition.BOTTOM),
+                    ScreenTextDefinition("Lives", ScreenPosition.TOP_LEFT),
+                    ScreenTextDefinition("Level", ScreenPosition.BOTTOM_RIGHT),
+                    ScreenTextDefinition("Time", ScreenPosition.BOTTOM_RIGHT),
+                ),
+            ),
+        )
+        assertContains(
+            code,
+            "        ) {\n" +
+                "            Column(\n                modifier = Modifier.align(Alignment.TopStart),\n                horizontalAlignment = Alignment.Start,\n            ) {\n" +
+                "                BasicText(\n                    text = \"Score: \${score.asText()}\",\n                    style = textStyle1,\n                )\n" +
+                "                BasicText(\n                    text = \"Lives\",\n                    style = textStyle3,\n                )\n" +
+                "            }\n" +
+                "            BasicText(\n                modifier = Modifier.align(Alignment.BottomCenter),\n                text = \"Paused\",\n                style = textStyle2,\n            )\n" +
+                "            Column(\n                modifier = Modifier.align(Alignment.BottomEnd),\n                horizontalAlignment = Alignment.End,\n            ) {\n",
+        )
+        assertContains(code, "import androidx.compose.foundation.layout.Column\n")
+        assertFalse("import androidx.compose.foundation.layout.Column\n" in generate(game.copy(texts = listOf(ScreenTextDefinition("A"), ScreenTextDefinition("B", ScreenPosition.TOP)))))
+    }
+
+    @Test
     fun otherManagersAreReachedThroughTheirDelegates() {
         val level = ManagerTypeDefinition("Level", properties = listOf(PropertyDefinition.Number("number")))
         val code = generate(
