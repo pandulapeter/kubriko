@@ -17,10 +17,10 @@ import com.pandulapeter.kubrikoCreator.actors.PauseAction
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
+import com.pandulapeter.kubrikoCreator.gradle.DesktopModules
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
-import com.pandulapeter.kubrikoCreator.project.ProjectInspector
-import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
+import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
@@ -58,7 +58,7 @@ class ProjectTemplateIntegrationTest {
                 val buildFile = directory.resolve(KubrikoBuildFiles.BUILD_FILE)
                 assertFalse("libs.kubriko.collision" in buildFile.readText(), "${template.id}: a plugin nothing uses")
                 GradleProjectConnection(directory).use { connection ->
-                    assertEquals(":", runBlocking { ProjectInspector.desktopModulePathOf(connection) }, template.id)
+                    assertEquals(":", runBlocking { DesktopModules.pathOf(connection) }, template.id)
                     assertCompiles(connection, directory, "${template.id} as created")
                     BlockTypeStore.open(directory)?.let { store ->
                         directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->

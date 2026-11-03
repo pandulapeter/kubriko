@@ -17,7 +17,7 @@ plugins {
 
 dependencies {
     // Every published module a project could use, so that a project's classes loaded next to Creator's share them
-    // (scenes/ClassLoaderEntryPointLoader.kt).
+    // (sceneRuntime/ClassLoaderEntryPointLoader.kt).
     implementation(projects.creator.foundation)
     implementation(projects.creator.uiComponents)
     implementation(projects.plugins.audioPlayback)
@@ -55,7 +55,7 @@ dependencies {
 
 /**
  * The versions of the libraries Kubriko Creator runs with, which a project's classes loaded next to Creator's share
- * (scenes/SharedLibraries.kt): every external module of the runtime classpath, as `group:module=version` lines.
+ * (sceneRuntime/SharedLibraries.kt): every external module of the runtime classpath, as `group:module=version` lines.
  */
 val generateCreatorLibraries = tasks.register("generateCreatorLibraries") {
     val outputDirectory = layout.buildDirectory.dir("generated/creatorLibraries")

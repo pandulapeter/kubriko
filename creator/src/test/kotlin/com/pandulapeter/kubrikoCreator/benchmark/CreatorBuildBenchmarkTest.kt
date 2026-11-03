@@ -17,11 +17,11 @@ import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.gradle.CompilationMode
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
-import com.pandulapeter.kubrikoCreator.scenes.ClassLoaderEntryPointLoader
-import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
+import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
-import com.pandulapeter.kubrikoCreator.scenes.SceneView
+import com.pandulapeter.kubrikoCreator.session.ProjectClasspath
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import com.pandulapeter.kubrikoCreator.template.ProjectGenerator
 import kotlinx.coroutines.runBlocking

@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator
 
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
-import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest

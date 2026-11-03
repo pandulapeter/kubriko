@@ -9,14 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
-import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
-import org.gradle.tooling.model.GradleProject
 import java.io.File
 
 /**
- * What Kubriko Creator needs to know about a project's build. Opening a project only reads its files ([isGradleProject],
- * [nameOf]); the desktop module is asked from Gradle in the background ([desktopModulePathOf]), since that configures
- * every task of the build, and only builds need it.
+ * What Kubriko Creator needs to know about a project's build to open it, read from its files only ([isGradleProject],
+ * [nameOf]). The desktop module is asked from Gradle later ([com.pandulapeter.kubrikoCreator.gradle.DesktopModules]).
  */
 internal object ProjectInspector {
 
@@ -31,12 +28,4 @@ internal object ProjectInspector {
     fun nameOf(directory: File) = listOf("settings.gradle.kts", "settings.gradle")
         .firstNotNullOfOrNull { name -> File(directory, name).takeIf { it.isFile }?.readText()?.let { rootProjectNamePattern.find(it)?.groupValues?.get(1) } }
         ?: directory.name
-
-    /**
-     * The Gradle path of the first module, in Gradle's order, with a Compose desktop `run` task.
-     */
-    suspend fun desktopModulePathOf(connection: GradleProjectConnection) = findDesktopModulePath(ModuleNode.from(connection.model(GradleProject::class.java)))
-
-    internal fun findDesktopModulePath(root: ModuleNode) = root.withDescendants().firstOrNull { "run" in it.taskNames }?.path
-        ?: throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE)
 }

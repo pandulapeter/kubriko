@@ -17,8 +17,8 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 import com.pandulapeter.kubrikoCreator.git.GitStatus
 import com.pandulapeter.kubrikoCreator.project.IdentityProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
-import com.pandulapeter.kubrikoCreator.scenes.SceneProblem
-import com.pandulapeter.kubrikoCreator.scenes.SceneStatus
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneProblem
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneStatus
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.ui.components.FieldError
 import com.pandulapeter.kubrikoCreator.ui.texts.toResource

@@ -8,10 +8,10 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.workspace
-
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

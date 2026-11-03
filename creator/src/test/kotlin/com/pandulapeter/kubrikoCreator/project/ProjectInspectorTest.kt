@@ -13,37 +13,10 @@ import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ProjectInspectorTest {
-
-    @Test
-    fun aSingleModuleProjectRunsFromTheRoot() {
-        assertEquals(":", ProjectInspector.findDesktopModulePath(ModuleNode(":", setOf("build", "run"))))
-    }
-
-    @Test
-    fun theFirstNestedModuleWithARunTaskIsTheDesktopModule() {
-        val root = ModuleNode(
-            path = ":",
-            taskNames = setOf("build"),
-            children = listOf(
-                ModuleNode(":app", setOf("build"), listOf(ModuleNode(":app:android", setOf("assemble")), ModuleNode(":app:desktop", setOf("run")))),
-                ModuleNode(":tools", setOf("run")),
-            ),
-        )
-        assertEquals(":app:desktop", ProjectInspector.findDesktopModulePath(root))
-    }
-
-    @Test
-    fun aProjectWithoutADesktopModuleIsRejectedWithAReason() {
-        val exception = assertFailsWith<ProjectInspectionException> {
-            ProjectInspector.findDesktopModulePath(ModuleNode(":", setOf("build"), listOf(ModuleNode(":android", setOf("assemble")))))
-        }
-        assertEquals(ProjectProblem.NO_DESKTOP_MODULE, exception.reason)
-    }
 
     @Test
     fun aFolderIsAGradleProjectWhenItHasABuildOrSettingsFile() = withTemporaryDirectory { directory ->

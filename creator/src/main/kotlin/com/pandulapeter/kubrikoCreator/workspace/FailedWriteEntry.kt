@@ -8,7 +8,7 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.workspace
-
+import com.pandulapeter.kubrikoCreator.actors.store.FailedWrite
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 
 /**

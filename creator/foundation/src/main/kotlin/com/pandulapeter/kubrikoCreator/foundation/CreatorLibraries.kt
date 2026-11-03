@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.foundation
 
 /**
  * The versions of the libraries Kubriko Creator runs with (`group:module` to version), bundled at build time from its
- * runtime classpath. A project's classes loaded next to Creator's share them ([com.pandulapeter.kubrikoCreator.scenes.SharedLibraries]).
+ * runtime classpath. A project's classes loaded next to Creator's share them ([com.pandulapeter.kubrikoCreator.sceneRuntime.SharedLibraries]).
  */
 public object CreatorLibraries {
     private const val RESOURCE_NAME = "creator-libraries.txt"

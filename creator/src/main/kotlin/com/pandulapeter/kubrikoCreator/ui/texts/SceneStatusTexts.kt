@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.texts
 
-import com.pandulapeter.kubrikoCreator.scenes.SceneStatus
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneStatus
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_scene_newer_libraries
 import kubriko.creator.generated.resources.status_scene_opened

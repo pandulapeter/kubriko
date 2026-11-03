@@ -17,9 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
-import com.pandulapeter.kubrikoCreator.scenes.SceneView
-import com.pandulapeter.kubrikoCreator.scenes.createDisposingIfCancelled
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
+import com.pandulapeter.kubrikoCreator.sceneRuntime.createDisposingIfCancelled
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 

@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.session
 
-import com.pandulapeter.kubrikoCreator.scenes.ProjectClasspath
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
