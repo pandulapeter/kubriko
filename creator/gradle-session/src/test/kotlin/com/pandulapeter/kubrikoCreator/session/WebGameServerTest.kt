@@ -24,6 +24,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.File
+import java.net.Socket
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -113,6 +114,18 @@ class WebGameServerTest {
     @Test
     fun aPageWithoutABodyGetsTheScriptAtItsEnd() {
         assertEquals("<p>x</p><script>new EventSource(\"/kubriko-creator/events\").onmessage = () => location.reload();</script>", WebGameServer.withReloadScript("<p>x</p>"))
+    }
+
+    @Test
+    fun aRequestNamingAnotherHostIsRefused() = runBlocking {
+        File(directory, "index.html").writeText("<body></body>")
+        val server = start()
+        fun statusFor(host: String) = Socket("127.0.0.1", server.address.port).use { socket ->
+            socket.getOutputStream().write("GET / HTTP/1.1\r\nHost: $host\r\nConnection: close\r\n\r\n".toByteArray())
+            socket.getInputStream().bufferedReader().readLine()
+        }
+        assertEquals("HTTP/1.1 403 Forbidden", statusFor("rebound.example:${server.address.port}"))
+        assertEquals("HTTP/1.1 200 OK", statusFor("127.0.0.1:${server.address.port}"))
     }
 
     private suspend fun start(served: File = directory) = WebGameServer.start(served).also { servers += it }

@@ -14,10 +14,13 @@ import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.defaultForFilePath
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.LocalFileContent
+import io.ktor.server.request.host
 import io.ktor.server.response.cacheControl
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytesWriter
@@ -27,6 +30,8 @@ import io.ktor.server.routing.routing
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.withContext
@@ -78,6 +83,13 @@ public class WebGameServer private constructor(
 
     private suspend fun start() {
         server = embeddedServer(CIO, host = HOST, port = 0) {
+            intercept(ApplicationCallPipeline.Plugins) {
+                // A page from elsewhere that rebinds its name to this computer is refused, so it can't read the game.
+                if (call.request.host() != HOST) {
+                    call.respond(HttpStatusCode.Forbidden)
+                    finish()
+                }
+            }
             routing {
                 get(EVENTS_PATH) {
                     call.response.cacheControl(CacheControl.NoStore(null))
@@ -105,8 +117,9 @@ public class WebGameServer private constructor(
         try {
             server.startSuspend(wait = false)
         } catch (exception: CancellationException) {
-            // The CIO engine reports a port it can't bind as a cancellation.
             server.stop(gracePeriodMillis = 0, timeoutMillis = 1_000)
+            currentCoroutineContext().ensureActive()
+            // The CIO engine reports a port it can't bind as a cancellation too.
             throw IOException("The game's page couldn't be served: ${exception.message}")
         }
         address = URI("http://$HOST:${server.engine.resolvedConnectors().first().port}/")
@@ -129,7 +142,10 @@ public class WebGameServer private constructor(
 
     public companion object {
         private const val HOST = "127.0.0.1"
-        private const val PAGE = "index.html"
+        /**
+         * The page a distribution starts from, which is served at the root.
+         */
+        public const val PAGE: String = "index.html"
 
         /**
          * Where a served page listens for [reload].
