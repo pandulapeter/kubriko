@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.session.LiveGameProcesses
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
@@ -27,28 +26,30 @@ import java.util.concurrent.TimeUnit
 internal object SystemToolProcesses : ToolProcesses {
     private const val OUTPUT_TAIL_SIZE = 30
 
+    /**
+     * Its output goes to a file rather than a pipe, since a process it starts that keeps running (the server the first
+     * `adb` starts) would hold a pipe open, and reading it, past the timeout.
+     */
     override suspend fun run(command: List<String>, timeoutInMilliseconds: Long): ToolResult = withContext(Dispatchers.IO) {
-        val process = try {
-            ProcessBuilder(command).redirectErrorStream(true).start()
-        } catch (exception: IOException) {
-            return@withContext ToolResult(exitCode = null, output = exception.message ?: exception.toString())
-        }
-        LiveGameProcesses.add(process)
+        val log = File.createTempFile("kubriko-creator-tool", ".log")
         try {
-            coroutineScope {
-                val output = async { process.inputStream.bufferedReader().use { it.readText() } }
-                val hasEnded = try {
-                    runInterruptible { process.waitFor(timeoutInMilliseconds, TimeUnit.MILLISECONDS) }
-                } catch (exception: CancellationException) {
-                    process.destroyForcibly()
-                    throw exception
-                }
-                if (!hasEnded) process.destroyForcibly()
-                val text = output.await()
-                ToolResult(exitCode = if (hasEnded) process.exitValue() else null, output = text)
+            val process = try {
+                ProcessBuilder(command).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.appendTo(log)).start()
+            } catch (exception: IOException) {
+                return@withContext ToolResult(exitCode = null, output = exception.message ?: exception.toString())
             }
+            LiveGameProcesses.add(process)
+            val hasEnded = try {
+                runInterruptible { process.waitFor(timeoutInMilliseconds, TimeUnit.MILLISECONDS) }.also { if (!it) process.destroyForcibly() }
+            } catch (exception: CancellationException) {
+                process.destroyForcibly()
+                throw exception
+            } finally {
+                LiveGameProcesses.remove(process)
+            }
+            ToolResult(exitCode = if (hasEnded) process.exitValue() else null, output = log.readText())
         } finally {
-            LiveGameProcesses.remove(process)
+            log.delete()
         }
     }
 
