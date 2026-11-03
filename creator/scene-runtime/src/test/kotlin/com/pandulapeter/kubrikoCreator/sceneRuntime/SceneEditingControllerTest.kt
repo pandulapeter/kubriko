@@ -635,4 +635,23 @@ class SceneEditingControllerTest {
         assertEquals(0, closedCount, "both Scenes use the same classes")
         assertEquals(1, tasks.size)
     }
+
+    @Test
+    fun anotherSceneOpenedDuringABuildShowsTheNewClassesOnceTheyAreReadyWithoutBuildingAgain() = runTest {
+        val controller = createController()
+        controller.open(scene)
+        val gate = CompletableDeferred<Unit>().also { buildGate = it }
+        controller.markOutdated()
+        controller.open(otherScene)
+        gate.complete(Unit)
+        val open = assertIs<SceneEditingState.Open>(controller.state.value)
+        assertEquals(otherScene, open.scene)
+        assertEquals(false, open.isUpdating)
+        assertEquals(false, open.isOutdated)
+        assertEquals(2, tasks.size)
+        assertEquals(2, loadedClasspaths.size)
+        advanceTimeBy(6_000)
+        runCurrent()
+        assertEquals(1, closedCount, "the classes shown before the build are released")
+    }
 }
