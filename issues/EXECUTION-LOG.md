@@ -208,3 +208,9 @@ Three read-only reviewers, one per group (H01–H02b, H03a–H04, H05–H07b); e
 
 ## M02b — not started
 This batch ran out of its budget after M02a, so `issues/M02b-type-domain-errors-and-console-texts.md` is untouched and stays for the next run (it is not in SKIPPED.md). Its size, for whoever runs it: 114 distinct `error_*`/`console_*` strings are used under creator/src/main/kotlin, about 53 command files build a `Rejection`/`Applied.failed`, and 32 `ConsoleEntry.Status(` constructions sit in workspace/. M01's `PackageLayeringTest` and M02a's `commandTitle` are in place for it.
+
+## Fixed after the review of the H plans
+- 31231b844: the game's stop is bounded (`GameProcess.STOP_TIMEOUT_IN_MILLISECONDS`, one deadline for every process), `WorkspaceController.close()` waits for it at most `CLOSE_GAME_TIMEOUT_IN_MILLISECONDS`, and `CLOSING_TIMEOUT_IN_MILLISECONDS` is the game's wait, the writes' wait, and the 5-second margin added up.
+- 8c68fbb42: an added Event is selected by its key in the type as it is once the add succeeded (`currentDefinition`), not by the index counted at the click.
+- 1e18b10ee: Enter in a `SearchableChoiceButton`'s empty filter picks nothing.
+- d6e897ae5: the flaky `AssistantControllerTest` was a race in `AssistantController`'s constructor: `AgentSelection` starts loading the registry on the main thread, which could ask `host` whether an agent runs before the constructor had built it; the NullPointerException left the registry unloaded (the hanging test) and reached the next `runTest` (`AttentionChipTest`). The host is now built first.
