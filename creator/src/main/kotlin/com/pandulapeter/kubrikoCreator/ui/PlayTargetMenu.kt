@@ -31,9 +31,9 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_choose_play_target
 import kubriko.creator.generated.resources.action_more_play_targets
 import kubriko.creator.generated.resources.ic_android
+import kubriko.creator.generated.resources.ic_apple
 import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_desktop
-import kubriko.creator.generated.resources.ic_iphone
 import kubriko.creator.generated.resources.ic_settings
 import kubriko.creator.generated.resources.ic_web
 import kubriko.creator.generated.resources.play_target_android
@@ -93,5 +93,5 @@ private fun iconOf(kind: PlayTarget.Kind) = when (kind) {
     PlayTarget.Kind.DESKTOP -> Res.drawable.ic_desktop
     PlayTarget.Kind.WEB -> Res.drawable.ic_web
     PlayTarget.Kind.ANDROID -> Res.drawable.ic_android
-    PlayTarget.Kind.IOS -> Res.drawable.ic_iphone
+    PlayTarget.Kind.IOS -> Res.drawable.ic_apple
 }
