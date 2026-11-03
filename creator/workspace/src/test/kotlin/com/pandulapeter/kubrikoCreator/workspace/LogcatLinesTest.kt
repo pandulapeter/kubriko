@@ -26,9 +26,10 @@ class LogcatLinesTest {
     }
 
     @Test
-    fun onlyTheErrorsOfEverythingElseShow() {
+    fun onlyWhatTheProcessWroteToItsErrorsOrLoggedAsOneShows() {
         assertEquals(ConsoleEntry.BuildOutput("FATAL EXCEPTION: main"), LogcatLines.entryOf("E/AndroidRuntime: FATAL EXCEPTION: main"))
         assertEquals(ConsoleEntry.BuildOutput("Abort message"), LogcatLines.entryOf("F/libc: Abort message"))
+        assertEquals(ConsoleEntry.BuildOutput("java.io.IOException: Gone"), LogcatLines.entryOf("W/System.err: java.io.IOException: Gone"))
         assertNull(LogcatLines.entryOf("W/HWUI: Unknown dataspace 0"))
         assertNull(LogcatLines.entryOf("D/CompatChangeReporter: Compat change id reported"))
         assertNull(LogcatLines.entryOf("--------- beginning of main"))
