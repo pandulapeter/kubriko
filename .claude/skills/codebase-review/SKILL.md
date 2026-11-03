@@ -275,7 +275,7 @@ edits, unless the repository section sets others: root ≤ 2,500 words, a module
   Areas that make good reviewer splits: the Block model and code generators (`actors`), the commands and their
   tool schemas (`commands`, `schema`), the workspace, builds, and play sessions (`workspace`, `gradle`, `session`, `project`, `template`, `git`),
   Scene editing (`scenes`), the AI (`mcp`, `ai/assistant`, `context`), and the UI (`ui`). Its tests are
-  `./gradlew :creator:test`, a plain JVM test task that `desktopTest` doesn't run. Its plans go in `creator/plan/`, not
+  `./gradlew :creator:allTests` (every Creator module; `desktopTest` doesn't run them). Its plans go in `creator/plan/`, not
   `issues/`, as `creator/plan/README.md` says. Its `CLAUDE.md` holds rules and each feature's non-obvious behaviour in a few
   sentences, within about 4,000 words; its package guides keep the default 600.
 - **Stale names in docs:** `python3 .github/scripts/check_doc_names.py [paths…]` lists backticked names and paths in
