@@ -46,10 +46,11 @@ class OpeningAndPlayingTest {
         // take_screenshot scales the game down to at most 1280 pixels wide, so how many pixels a unit is depends on the display.
         val scale = step("The game draws the Gold Bricks in their column") {
             val gold = assertNotNull(first.boundsOf(GOLD), "No Gold Brick was drawn.")
-            val scale = gold.height / GOLD_COLUMN_HEIGHT
+            // The column is cut off at the top of a short window, but always drawn as wide as a Brick.
+            val scale = gold.width / BreakoutFixture.brick.width
+            assertTrue(scale in 0.25f..4f, "The Gold Bricks are ${gold.width} pixels wide, which no display scale explains.")
             // The level puts its Gold Bricks in the fifth column, whose middle is 30 units left of the screen's.
             assertTrue(abs(gold.centerX - (first.width / 2 - 30 * scale)) <= 2, "The Gold Bricks are at $gold, not in their column (at $scale pixels a unit).")
-            assertTrue(abs(gold.width - BreakoutFixture.brick.width * scale) <= 2, "The Gold Bricks are ${gold.width} pixels wide (at $scale pixels a unit).")
             assertTrue(first.countOf(BRICK) > first.countOf(GOLD) * 5, "The other Bricks weren't drawn around them.")
             val ball = assertNotNull(first.boundsOf(BALL), "The Ball wasn't drawn.")
             val ballSize = BreakoutFixture.ball.width * scale
@@ -74,10 +75,6 @@ class OpeningAndPlayingTest {
         const val BRICK = 0x6060AA
         const val BALL = 0xFFFFFF
         const val TEXT = 0x202020
-        /**
-         * The level's column of four Gold Bricks, 30 units apart and 24 tall, from the top of the first to the bottom of the last.
-         */
-        const val GOLD_COLUMN_HEIGHT = 3 * 30f + 24f
         /**
          * The smallest window Kubriko Creator lets itself be (KubrikoCreatorApp.kt), at the display's scale of 1.
          */
