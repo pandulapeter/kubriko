@@ -14,14 +14,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * A group of the sidebar that has folders.
+ * A group of the sidebar that has folders, in the order the sidebar lists them.
  *
- * @param kind The kind of type its folders hold, or null for Scenes.
+ * @param kind The kind of type its folders hold, or null for Scenes and pages.
  */
 @Serializable
 public enum class FolderGroup(
     public val kind: BlockTypeKind?,
 ) {
+    @SerialName("pages")
+    PAGES(null),
+
     @SerialName("actorTypes")
     ACTOR_TYPES(BlockTypeKind.ACTOR),
 
@@ -30,6 +33,7 @@ public enum class FolderGroup(
 
     @SerialName("scenes")
     SCENES(null),
+
     ;
 
     public companion object {

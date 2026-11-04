@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
 /**
  * What the sidebar's groups with folders show ([folderTreeGroups]), computed again only when one of these changes.
@@ -31,14 +32,17 @@ internal fun rememberFolderTreeGroups(
     sceneNames: List<String>,
     sceneFolders: Set<String>,
     openSceneName: String?,
-): Map<FolderGroup, FolderTreeGroupState> = remember(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName) {
-    folderTreeGroups(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName)
+    pages: FolderTreeGroupState,
+): Map<FolderGroup, FolderTreeGroupState> = remember(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages) {
+    folderTreeGroups(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages)
 }
 
 /**
- * What the sidebar's groups with folders show: the type groups for projects that opted in to them, and the Scenes.
+ * What the sidebar's groups with folders show: the screenplay's pages, the type groups for projects that opted in to
+ * them, and the Scenes.
  *
  * @param openSceneName The Scene open in the center, if any.
+ * @param pages The pages with their folders and the one open in the center ([pageGroupState]).
  */
 internal fun folderTreeGroups(
     types: List<BlockTypeDefinition>?,
@@ -47,10 +51,19 @@ internal fun folderTreeGroups(
     sceneNames: List<String>,
     sceneFolders: Set<String>,
     openSceneName: String?,
+    pages: FolderTreeGroupState = FolderTreeGroupState(emptyList(), emptySet(), null),
 ): Map<FolderGroup, FolderTreeGroupState> = buildMap {
+    put(FolderGroup.PAGES, pages)
     if (types != null) {
         put(FolderGroup.ACTOR_TYPES, FolderTreeGroupState(types.filterIsInstance<ActorTypeDefinition>().map { it.name to it.folder }, typeFolders[FolderGroup.ACTOR_TYPES.kind].orEmpty(), selectedTypeName))
         put(FolderGroup.MANAGER_TYPES, FolderTreeGroupState(types.filterIsInstance<ManagerTypeDefinition>().map { it.name to it.folder }, typeFolders[FolderGroup.MANAGER_TYPES.kind].orEmpty(), selectedTypeName))
     }
     put(FolderGroup.SCENES, FolderTreeGroupState(sceneNames.map { it to FolderPaths.parentOf(it) }, sceneFolders, openSceneName))
 }
+
+/**
+ * What the Screenplay group shows: the pages [names], each in the folder its path names, the [folders], and the page
+ * [openPage] open in the center.
+ */
+internal fun pageGroupState(names: List<String>, folders: Set<String>, openPage: String?) =
+    FolderTreeGroupState(names.map { it to PageNaming.folderOf(it) }, folders, openPage)

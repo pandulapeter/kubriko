@@ -35,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.components.fadeInOnChange
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
+import com.pandulapeter.kubrikoCreator.ui.screenplay.PageEditor
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_preparing
@@ -49,6 +50,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
+ * @param pageText The text of the page shown, once it is read, or null.
+ * @param onPageTextChange Saves the page shown.
  */
 @Composable
 internal fun WorkspaceCenter(
@@ -71,6 +74,8 @@ internal fun WorkspaceCenter(
     onReloadScene: () -> Unit,
     onCloseScene: () -> Unit,
     onSceneViewFailed: (revision: Int, exception: Throwable, isShowingOlderClasses: Boolean) -> Unit,
+    pageText: String? = null,
+    onPageTextChange: (name: String, text: String) -> Unit = { _, _ -> },
 ) {
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
@@ -139,6 +144,15 @@ internal fun WorkspaceCenter(
                 },
                 onTypeSelected = onTypeSelected,
                 highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
+            )
+        }
+    } else if (selection is WorkspaceSelection.Page && sceneEditing == SceneEditingState.Closed) {
+        if (pageText != null) {
+            PageEditor(
+                modifier = contentModifier,
+                name = selection.name,
+                text = pageText,
+                onTextChange = { onPageTextChange(selection.name, it) },
             )
         }
     } else if (selection == WorkspaceSelection.None) {

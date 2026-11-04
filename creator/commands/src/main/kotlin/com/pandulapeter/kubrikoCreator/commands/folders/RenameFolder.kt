@@ -27,7 +27,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object RenameFolder : WriteCommand<RenameFolder.Input> {
     override val name: String = "rename_folder"
-    override val description: String = "Renames a folder of Actor types, Manager types, or Scenes, keeping everything in it where it is in it. A Scene's name " +
+    override val description: String = "Renames a folder of Actor types, Manager types, Scenes, or pages, keeping everything in it where it is in it. A Scene's name " +
         "is its path, so renaming its folder renames the Scene, and every goToScene Block follows."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
@@ -40,7 +40,7 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val newPath = renamed(input)
-        context.moveFolder(input.group, input.path, newPath)?.let { scene -> return Applied(inverse = null, failure = sceneNotMoved(scene)) }
+        context.moveFolder(input.group, input.path, newPath)?.let { rejection -> return Applied(inverse = null, failure = rejection) }
         return Applied(inverse = Invocation(RenameFolder, Input(input.group, newPath, FolderPaths.nameOf(input.path))))
     }
 

@@ -16,21 +16,24 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
 /**
  * Every folder of [group], as paths (`enemies/flying`), parents included.
  */
-internal fun CommandContext.foldersOf(group: FolderGroup): Set<String> = when (val kind = group.kind) {
-    null -> (scenes.folders() + scenes.names().map(FolderPaths::parentOf).filter { it.isNotEmpty() }).withParents()
-    else -> blockTypes?.folders?.value?.get(kind).orEmpty()
+internal fun CommandContext.foldersOf(group: FolderGroup): Set<String> = when (group) {
+    FolderGroup.SCENES -> (scenes.folders() + scenes.names().map(FolderPaths::parentOf).filter { it.isNotEmpty() }).withParents()
+    FolderGroup.PAGES -> (screenplay.folders() + screenplay.names().map(PageNaming::folderOf).filter { it.isNotEmpty() }).withParents()
+    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> blockTypes?.folders?.value?.get(checkNotNull(group.kind)).orEmpty()
 }
 
 /**
  * The names of the types or Scenes of [group] and the folders they are in.
  */
-internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, String>> = when (val kind = group.kind) {
-    null -> scenes.names().map { it to FolderPaths.parentOf(it) }
-    else -> blockTypes?.types?.value.orEmpty().filter { it.kind == kind }.map { it.name to it.folder }
+internal fun CommandContext.itemsOf(group: FolderGroup): List<Pair<String, String>> = when (group) {
+    FolderGroup.SCENES -> scenes.names().map { it to FolderPaths.parentOf(it) }
+    FolderGroup.PAGES -> screenplay.names().map { it to PageNaming.folderOf(it) }
+    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> blockTypes?.types?.value.orEmpty().filter { it.kind == group.kind }.map { it.name to it.folder }
 }
 
 /**
@@ -50,6 +53,8 @@ internal fun CommandContext.validateNewFolder(group: FolderGroup, path: String):
     path.isEmpty() || !FolderPaths.isValid(path) -> Rejection(NameProblem.FOLDER_INVALID)
     // A Scene's folders are part of its name.
     group == FolderGroup.SCENES && !SceneNaming.isValid(path) -> Rejection(CommandProblem.SCENE_NAME_INVALID)
+    // So are a page's.
+    group == FolderGroup.PAGES && !PageNaming.isValid(path) -> Rejection(CommandProblem.PAGE_NAME_INVALID, path)
     group == FolderGroup.SCENES && SceneNaming.reservedFolderOf(path, isFolder = true) != null ->
         Rejection(CommandProblem.SCENE_FOLDER_RESERVED, SceneNaming.reservedFolderOf(path, isFolder = true).orEmpty())
     foldersOf(group).any { it.equals(path, ignoreCase = true) } -> Rejection(CommandProblem.FOLDER_EXISTS, path)

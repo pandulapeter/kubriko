@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -48,12 +49,15 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
+import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
+import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.components.AnimatedSidePanel
@@ -70,10 +74,9 @@ import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import com.pandulapeter.kubrikoCreator.workspace.captureGameScreen
-import com.pandulapeter.kubrikoCreator.workspace.createActorType
-import com.pandulapeter.kubrikoCreator.workspace.createManagerType
-import com.pandulapeter.kubrikoCreator.workspace.createScene
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * An open project: the toolbar, the sidebar with the project's contents, the editor of what is selected, and the console.
@@ -131,9 +134,11 @@ private fun WorkspaceContent(
     val shownAiStep = shownAiStep(followedAiStep, uiState.revisitedAiStep, aiSteps.newestChange()?.id)?.takeIf { isAiEnabled }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
     val readOnlyReason = (controller.formatStatus.collectAsState().value as? ProjectFormatStatus.ReadOnly)?.toRejection()
-    val sidebarDragState = rememberSidebarDragState(controller)
+    val sidebarDragState = rememberSidebarDragState(controller.commands)
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
+    val openPageName = (selection as? WorkspaceSelection.Page)?.name
+    val pageText = rememberPageText(controller, openPageName)
     WorkspaceDialogsOf(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
     FollowingAiSteps(controller = controller, followedAiStep = followedAiStep, selection = selection)
     RefreshingGitOnWindowFocus(controller.git::refresh)
@@ -170,8 +175,8 @@ private fun WorkspaceContent(
                     ProjectSidebar(
                         modifier = Modifier.sidePanel(sidebarWidth.widthIn(row)),
                         resources = resources,
-                        folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName),
-                        folderActions = rememberFolderTreeActions(controller, uiState),
+                        folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName, openPageName),
+                        folderActions = rememberFolderTreeActions(controller.creation, controller.commands, controller.selection, uiState),
                         dragState = sidebarDragState,
                         layout = controller.layout.collectAsState().value,
                         gameModule = controller.gameModule.modules.collectAsState().value?.chosen?.let(::moduleFolderOf),
@@ -179,26 +184,19 @@ private fun WorkspaceContent(
                         flashKey = shownAiStep?.flashKey,
                     )
                     PanelSplitter(sidebarWidth, row)
-                    WorkspaceCenter(
+                    WorkspaceCenterOf(
                         modifier = Modifier.weight(1f).fillMaxHeight(),
+                        controller = controller,
+                        uiState = uiState,
                         selection = selection,
                         sceneEditing = sceneEditing,
                         blockTypes = blockTypes,
                         resources = resources,
                         sceneNames = sceneNames,
-                        sceneDescriptions = controller.scenes.descriptions.current.collectAsState().value,
-                        changedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty(),
                         shownAiStep = shownAiStep,
-                        actorTypeDragState = sidebarDragState,
+                        sidebarDragState = sidebarDragState,
                         panelLayout = panelLayout,
-                        onCommand = { invocation, onSuccess -> uiState.dispatch(invocation, onSuccess, controller.commands::dispatch) },
-                        currentBlockType = { blockTypesController?.get(it) },
-                        onCommandIfValid = controller::dispatchIfValid,
-                        onTypeSelected = { controller.selection.selectType(it) },
-                        onPlayScene = { controller.play(firstScene = it) },
-                        onReloadScene = controller.sceneEditing::reload,
-                        onCloseScene = controller.selection::clear,
-                        onSceneViewFailed = controller.sceneEditing::onViewFailed,
+                        pageText = pageText,
                     )
                     WorkspaceSidePanel(
                         panel = uiState.openPanel?.takeIf { it != SidePanel.AI || isAiEnabled },
@@ -280,64 +278,6 @@ private fun WorkspaceToolbarOf(
 private fun rememberWorkspaceUiState(controller: WorkspaceController) = remember(controller) { WorkspaceUiState() }
 
 /**
- * Where the sidebar's types and Scenes are dragged: a dropped one moves to its folder through a command.
- */
-@Composable
-private fun rememberSidebarDragState(controller: WorkspaceController) = remember(controller) {
-    SidebarDragState().apply {
-        onMoveToFolder = { group, name, folder ->
-            controller.commands.dispatch(
-                when (group) {
-                    FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name))))
-                    else -> Invocation(MoveToFolder, MoveToFolder.Input(name, folder))
-                },
-            )
-        }
-    }
-}
-
-/**
- * What the sidebar's groups with folders do, each through the command for it.
- */
-@Composable
-private fun rememberFolderTreeActions(controller: WorkspaceController, uiState: WorkspaceUiState) = remember(controller, uiState) {
-    FolderTreeActions(
-        onSelected = { group, name -> if (group == FolderGroup.SCENES) controller.selection.openScene(name) else controller.selection.selectType(name) },
-        onSelectionCleared = controller.selection::clear,
-        onCreateItem = { group, name ->
-            when (group) {
-                FolderGroup.ACTOR_TYPES -> controller.createActorType(name)
-                FolderGroup.MANAGER_TYPES -> controller.createManagerType(name)
-                FolderGroup.SCENES -> controller.createScene(name)
-            }
-        },
-        onCreateFolder = { group, path -> controller.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
-        onRenameFolder = { group, path, newName -> controller.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
-        onDeleteFolder = { group, path -> controller.commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(group, path))) },
-        onRenameItem = { group, name, newName ->
-            controller.dispatchIfValid(
-                when (group) {
-                    FolderGroup.ACTOR_TYPES -> Invocation(RenameActorType, RenameActorType.Input(name, newName))
-                    FolderGroup.MANAGER_TYPES -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))
-                    FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(FolderPaths.parentOf(name), newName)))
-                },
-            )
-        },
-        onDeleteItem = { group, name ->
-            uiState.dispatch(
-                invocation = when (group) {
-                    FolderGroup.ACTOR_TYPES -> Invocation(DeleteActorType, DeleteActorType.Input(name))
-                    FolderGroup.MANAGER_TYPES -> Invocation(DeleteManagerType, DeleteManagerType.Input(name))
-                    FolderGroup.SCENES -> Invocation(DeleteScene, DeleteScene.Input(name))
-                },
-                onSuccess = {},
-                dispatch = controller.commands::dispatch,
-            )
-        },
-    )
-}
-
-/**
  * What the sidebar's groups with folders show for [controller]'s project, from its folders.
  */
 @Composable
@@ -347,11 +287,14 @@ private fun rememberFolderTreeGroupsOf(
     selectedTypeName: String?,
     sceneNames: List<String>,
     openSceneName: String?,
+    openPageName: String?,
 ): Map<FolderGroup, FolderTreeGroupState> {
     val blockTypesController = controller.blockTypes
     val typeFolders = blockTypesController?.folders?.collectAsState()?.value.orEmpty()
     val sceneFolders = controller.layout.collectAsState().value.sceneFolders
-    return rememberFolderTreeGroups(types.takeIf { blockTypesController != null }, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName)
+    val screenplay = controller.commands.context.screenplay
+    val pages = pageGroupState(screenplay.current.collectAsState().value, screenplay.currentFolders.collectAsState().value, openPageName)
+    return rememberFolderTreeGroups(types.takeIf { blockTypesController != null }, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages)
 }
 
 /**
@@ -465,6 +408,7 @@ private fun WorkspaceAiSidePanelOf(
     sessionState = sessionState,
     onTypeSelected = { controller.selection.selectType(it) },
     onSceneSelected = { controller.selection.openScene(it) },
+    onPageSelected = controller.selection::openPage,
     captureScreen = controller::captureGameScreen,
     width = width,
     row = row,
@@ -488,7 +432,62 @@ private fun FollowingAiSteps(
         when (target) {
             is WorkspaceSelection.BlockType -> controller.selection.selectType(target.name)
             is WorkspaceSelection.Scene -> controller.selection.openScene(target.name)
+            is WorkspaceSelection.Page -> controller.selection.openPage(target.name)
             WorkspaceSelection.None, null -> Unit
         }
     }
 }
+
+/**
+ * The text of the page [name] of [controller]'s screenplay, read off the main thread again after every change to the
+ * pages, or null until it is read. A page that is gone (deleted, or moved by its name) closes.
+ */
+@Composable
+private fun rememberPageText(controller: WorkspaceController, name: String?): String? {
+    val screenplay = controller.commands.context.screenplay
+    val revision by screenplay.revision.collectAsState()
+    val names by screenplay.current.collectAsState()
+    LaunchedEffect(name, names) { if (name != null && name !in names) controller.selection.clear() }
+    return produceState<String?>(null, name, revision) { value = name?.let { withContext(Dispatchers.IO) { screenplay.read(it) } } }.value
+}
+
+/**
+ * Hands the workspace's center what it shows and does from [controller].
+ */
+@Composable
+private fun WorkspaceCenterOf(
+    modifier: Modifier,
+    controller: WorkspaceController,
+    uiState: WorkspaceUiState,
+    selection: WorkspaceSelection,
+    sceneEditing: SceneEditingState,
+    blockTypes: List<BlockTypeDefinition>,
+    resources: Map<ResourceGroup, List<ProjectResource>>,
+    sceneNames: List<String>,
+    shownAiStep: ShownAiStep?,
+    sidebarDragState: SidebarDragState,
+    panelLayout: PanelLayout,
+    pageText: String?,
+) = WorkspaceCenter(
+    modifier = modifier,
+    selection = selection,
+    sceneEditing = sceneEditing,
+    blockTypes = blockTypes,
+    resources = resources,
+    sceneNames = sceneNames,
+    sceneDescriptions = controller.scenes.descriptions.current.collectAsState().value,
+    changedByHand = controller.blockTypes?.changedByHand?.collectAsState()?.value.orEmpty(),
+    shownAiStep = shownAiStep,
+    actorTypeDragState = sidebarDragState,
+    panelLayout = panelLayout,
+    onCommand = { invocation, onSuccess -> uiState.dispatch(invocation, onSuccess, controller.commands::dispatch) },
+    currentBlockType = { controller.blockTypes?.get(it) },
+    onCommandIfValid = controller::dispatchIfValid,
+    onTypeSelected = { controller.selection.selectType(it) },
+    onPlayScene = { controller.play(firstScene = it) },
+    onReloadScene = controller.sceneEditing::reload,
+    onCloseScene = controller.selection::clear,
+    onSceneViewFailed = controller.sceneEditing::onViewFailed,
+    pageText = pageText,
+    onPageTextChange = { name, text -> controller.commands.dispatch(Invocation(EditPage, EditPage.Input(name, text))) },
+)

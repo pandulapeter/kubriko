@@ -528,12 +528,18 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   groups alone add items and folders, while another module's Scenes still open, move between its own folders, and are
   deleted. New Scenes go where the generated code loads them from (`BlockTypeStore.scenePath`), even in a project
   whose other modules have Scenes, or that has none yet.
+- The screenplay's pages are the whole project's, so the Screenplay group (first of the groups, `FolderGroup.PAGES`) is in
+  the module holding the game only, and in a project that isn't opted in only once it has pages. The page editor
+  (`PageEditor`) shows a page rendered and edits one chunk (lines between blank ones, `PageChunks`) at a time in place,
+  inside the text around it as it was when the chunk opened (`PageEditorState`), so typing a blank line doesn't move the
+  field; it saves the whole page through `edit_page` a moment after typing pauses, and a change from elsewhere while typing
+  ends the typing.
 - The sidebar's Kotlin files are read-only and grouped by what the code is, not where it lies: the shared source sets
   (`commonMain`, `main`) at the top, each platform's in a container with its Play menu icon (closed at first), and a folder
   for each package below the one all files share, merged with its only child folder while it holds nothing else (`ui.menu`).
   The package is the one each file declares (`KotlinPackages`), since Kotlin lets folders leave out the shared root package.
-- What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, or nothing), changed only
-  through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
+- What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, a page, or nothing),
+  changed only through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
   own panels, dialogs, and the AI step the user went back to live in `WorkspaceUiState`, a plain class its tests reach without a UI.
 - The type editor's selected Event is its `ListItemKeys` key, not its index (`EventSelectionState`), so it stays on the same
   Event through undo, redo, and the AI's Event changes; an added Event is selected only once its add succeeded, found

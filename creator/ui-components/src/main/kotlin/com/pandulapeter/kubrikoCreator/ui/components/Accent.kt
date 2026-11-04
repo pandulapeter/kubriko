@@ -27,6 +27,7 @@ public enum class Accent(
     CAST(Color(0xFFD9534F), Color(0xFFFF8A80)),
     CREW(Color(0xFF00897B), Color(0xFF5FD4C4)),
     SCENE(Color(0xFFB7791F), Color(0xFFFFC857)),
+    SCREENPLAY(Color(0xFF8D6E63), Color(0xFFD7B19D)),
     EVENT(Color(0xFF5B5BB5), Color(0xFFA9A9F5)),
     CODE(Color(0xFF546E7A), Color(0xFF9DB2BF)),
     MOVEMENT(Color(0xFF3B73D9), Color(0xFF6FA8FF)),

@@ -25,7 +25,8 @@ import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
  *
  * Every module [layout] knows is one, and so is every module with files. Types go to the module of their code, Scenes to
  * every module that has a file of their name (one not scanned yet to [layout]'s Scene module, where it was made), and the
- * Scene folders [folderGroups] holds to that module, since they are those of its Scenes folder. New Scenes are made only
+ * Scene folders [folderGroups] holds to that module, since they are those of its Scenes folder. The screenplay's pages,
+ * which are the whole project's, go to the module holding the game, in a project that isn't opted in only once it has some. New Scenes are made only
  * there, and only when it is the game's: Kubriko Creator's code loads them from it, or it uses Kubriko. In a project
  * that isn't opted in, the place the templates keep Scenes in may be a module nothing loads them from. A module that uses
  * Kubriko lists every group of what a game is made of, empty ones too, so it shows where things go; any other lists only
@@ -58,6 +59,7 @@ internal fun sidebarModules(
         val isSceneHome = path == layout.sceneModule && (usesKubriko || layout.typeModule != null || layout.modules.isEmpty())
         val groups = folderGroups.mapNotNull { (group, state) ->
             when {
+                group == FolderGroup.PAGES -> state.takeIf { path == home && (layout.typeModule != null || it.items.isNotEmpty() || it.folders.isNotEmpty()) }
                 group.kind != null -> state.takeIf { path == typeModule }
                 else -> state.copy(
                     items = state.items.filter { (name, _) -> path in (sceneModules[name] ?: listOf(layout.sceneModule)) },
@@ -74,7 +76,13 @@ internal fun sidebarModules(
             resources = moduleResources,
             resourceGroups = if (usesKubriko) ResourceGroup.entries - ResourceGroup.SCENES else shownResourceGroups(moduleResources).filter { it in moduleResources },
             holdsGame = path == home || home.startsWith("$path/"),
-            creatingGroups = groups.keys.filterTo(HashSet()) { group -> if (group.kind != null) path == typeModule else isSceneHome },
+            creatingGroups = groups.keys.filterTo(HashSet()) { group ->
+                when {
+                    group == FolderGroup.PAGES -> path == home
+                    group.kind != null -> path == typeModule
+                    else -> isSceneHome
+                }
+            },
         )
     }
     val shown = HashSet<String>()

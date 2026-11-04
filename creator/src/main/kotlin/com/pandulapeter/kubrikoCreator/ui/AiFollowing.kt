@@ -31,7 +31,8 @@ internal fun List<AiStep>.newestChange() = lastOrNull { it.changesProject }
 internal fun AiStep.selectionToFollow(): WorkspaceSelection? = when (val target = target?.takeIf { changesProject }) {
     is CommandTarget.BlockType -> WorkspaceSelection.BlockType(target.name)
     is CommandTarget.Scene -> WorkspaceSelection.Scene(target.name)
-    is CommandTarget.Page, CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
+    is CommandTarget.Page -> WorkspaceSelection.Page(target.name)
+    CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
 }
 
 /**
@@ -54,9 +55,9 @@ internal fun AiStep.sidebarName() = when (val target = target) {
 }
 
 /**
- * Whether the editor has a place to go to for this step: an Actor type, a Manager type, or a Scene.
+ * Whether the editor has a place to go to for this step: an Actor type, a Manager type, a Scene, or a page.
  */
-internal fun AiStep.canBeShown() = target is CommandTarget.BlockType || target is CommandTarget.Scene
+internal fun AiStep.canBeShown() = target is CommandTarget.BlockType || target is CommandTarget.Scene || target is CommandTarget.Page
 
 /**
  * A step the user went back to from the assistant panel, which the editor shows until the AI makes another change. It

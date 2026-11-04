@@ -35,13 +35,22 @@ public class ScreenplayStore(
 
     @Volatile
     private var knownNames: List<String>? = null
+
+    @Volatile
+    private var knownFolders: Set<String>? = null
     private val _current = MutableStateFlow(emptyList<String>())
+    private val _currentFolders = MutableStateFlow(emptySet<String>())
     private val _revision = MutableStateFlow(0)
 
     /**
      * The page names as last known, for what shows them.
      */
     public val current: StateFlow<List<String>> = _current.asStateFlow()
+
+    /**
+     * The folders as last known, for what shows them.
+     */
+    public val currentFolders: StateFlow<Set<String>> = _currentFolders.asStateFlow()
 
     /**
      * Raised by every write and [refresh], so that what shows a page reads it again.
@@ -59,8 +68,11 @@ public class ScreenplayStore(
      */
     public fun refresh() {
         val names = scanNames()
+        val folders = scanFolders()
         knownNames = names
+        knownFolders = folders
         _current.value = names
+        _currentFolders.value = folders
         _revision.update { it + 1 }
     }
 
@@ -75,9 +87,15 @@ public class ScreenplayStore(
         .orEmpty()
 
     /**
-     * Every folder of the screenplay, as paths (`levels/forest`), empty ones too.
+     * Every folder of the screenplay as last known ([refresh]), as paths (`levels/forest`), empty ones too; read from the
+     * folder if they aren't known yet.
      */
-    public fun folders(): Set<String> = folder.takeIf { it.isDirectory }?.walkTopDown()
+    public fun folders(): Set<String> = knownFolders ?: scanFolders()
+
+    /**
+     * Every folder of the screenplay as the folder has it now.
+     */
+    public fun scanFolders(): Set<String> = folder.takeIf { it.isDirectory }?.walkTopDown()
         ?.filter { it.isDirectory && it != folder }
         ?.mapTo(sortedSetOf()) { it.relativeTo(folder).invariantSeparatorsPath }
         .orEmpty()
@@ -109,14 +127,30 @@ public class ScreenplayStore(
     }
 
     /**
-     * Deletes the page [name], and the folders it leaves empty.
+     * Creates the folder at [path] with its parents.
+     */
+    @EditorMutation
+    public fun createFolder(path: String) {
+        if (File(folder, path).mkdirs()) refresh()
+    }
+
+    /**
+     * Deletes the folder at [path], with the folders in it, if no file is in it any more.
+     */
+    @EditorMutation
+    public fun deleteFolder(path: String) {
+        val directory = File(folder, path)
+        if (directory.isDirectory && directory.walkTopDown().none { it.isFile } && directory.deleteRecursively()) refresh()
+    }
+
+    /**
+     * Deletes the page [name], leaving its folder, as a folder is deleted only by [deleteFolder].
      */
     @EditorMutation
     public fun delete(name: String) {
         val file = fileOf(name)
         if (!file.delete() && file.exists()) throw IOException("${file.path} couldn't be deleted.")
         ownWrites.record(file)
-        deleteEmptyFoldersAbove(file)
         refresh()
     }
 
@@ -143,7 +177,6 @@ public class ScreenplayStore(
         if (!isMoved) return false
         ownWrites.record(source)
         ownWrites.record(target)
-        deleteEmptyFoldersAbove(source)
         refresh()
         return true
     }
@@ -151,10 +184,4 @@ public class ScreenplayStore(
     public fun fileOf(name: String): File = File(folder, "$name.${PageNaming.EXTENSION}")
 
     private fun nameOf(file: File) = file.relativeTo(folder).invariantSeparatorsPath.removeSuffix(".${PageNaming.EXTENSION}")
-
-    private fun deleteEmptyFoldersAbove(file: File) {
-        generateSequence(file.parentFile) { it.parentFile }
-            .takeWhile { it != folder && it.startsWith(folder) }
-            .forEach { directory -> if (directory.list()?.isEmpty() != true || !directory.delete()) return }
-    }
 }

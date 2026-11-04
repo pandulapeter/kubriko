@@ -59,6 +59,7 @@ internal fun WorkspaceAiSidePanel(
     sessionState: SessionState,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
+    onPageSelected: (String) -> Unit,
     captureScreen: suspend () -> ByteArray?,
     width: PanelWidthState,
     row: PanelRow,
@@ -91,6 +92,7 @@ internal fun WorkspaceAiSidePanel(
             when (val target = step.target) {
                 is CommandTarget.BlockType -> onTypeSelected(target.name)
                 is CommandTarget.Scene -> onSceneSelected(target.name)
+                is CommandTarget.Page -> onPageSelected(target.name)
                 else -> Unit
             }
         },

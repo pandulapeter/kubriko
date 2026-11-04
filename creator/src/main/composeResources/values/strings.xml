@@ -57,6 +57,7 @@
     <string name="error_project_not_opened">Kubriko Creator couldn't open the project: %1$s</string>
     <string name="error_no_desktop_module">None of this project's modules can run on desktop.</string>
     <string name="resource_group_scenes">Scenes</string>
+    <string name="resource_group_screenplay">Screenplay</string>
     <string name="resource_group_sprites">Sprites</string>
     <string name="resource_group_sounds">Sounds</string>
     <string name="resource_group_music">Music</string>
@@ -310,6 +311,7 @@
     <string name="action_delete_actor_type">Delete Actor type</string>
     <string name="action_delete_manager_type">Delete Manager type</string>
     <string name="action_delete_scene">Delete Scene</string>
+    <string name="action_delete_page">Delete page</string>
     <string name="action_add_event">Add Event</string>
     <string name="action_remove">Remove</string>
     <string name="actor_type_appearance">Appearance</string>
@@ -575,7 +577,16 @@
     <string name="error_command_description_invalid">A description is one line of at most %1$s characters.</string>
     <string name="error_command_page_invalid">The offset can't be negative, and the count has to be at least 1.</string>
     <string name="action_new_scene">New Scene</string>
+    <string name="action_new_page">New page</string>
     <string name="new_scene_hint">New Scene name</string>
+    <string name="new_page_hint">New page name</string>
+    <string name="page_add_paragraph">Add a paragraph</string>
+    <string name="page_empty">This page is empty. Add a paragraph to start it.</string>
+    <string name="page_format_heading">Heading</string>
+    <string name="page_format_bold">Bold</string>
+    <string name="page_format_italic">Italic</string>
+    <string name="page_format_list">List</string>
+    <string name="page_format_link">Link</string>
     <string name="error_command_play_duration_invalid">Play for between 1 and %1$s seconds.</string>
     <string name="error_command_play_target_missing">The game can't be played on %1$s here. It can be played on: %2$s.</string>
     <string name="error_mcp_internal">Kubriko Creator ran into an internal error, so nothing was done: %1$s. This is a problem in Kubriko Creator, not in the request.</string>

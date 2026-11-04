@@ -18,6 +18,10 @@ import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.DeleteFolder
+import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.commands.folders.RenameFolder
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.jsonArray
@@ -89,5 +93,19 @@ class ScreenplayCommandsTest {
         executor.execute(Invocation(EditPage, EditPage.Input("hero", "# The hero, again\n")))
         executor.undo()
         assertEquals(hero, context.pages().getValue("screenplay/hero.md"))
+    }
+
+    @Test
+    fun pageFoldersAreCreatedRenamedWithTheirPagesAndDeletedWithUndo() = runTest {
+        val context = commandContext()
+        CreatePage.apply(context, CreatePage.Input("levels/cave", hero))
+        CreatePage.apply(context, CreatePage.Input("levels/deep/pit", hero))
+        context.assertRoundTrip(Invocation(CreateFolder, CreateFolder.Input(FolderGroup.PAGES, "people"))) { context.screenplay.scanFolders() }
+        val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.PAGES, "levels", "worlds"))) { context.screenplay.scanNames() to context.screenplay.scanFolders() }
+        assertEquals(listOf("worlds/cave", "worlds/deep/pit") to setOf("people", "worlds", "worlds/deep"), renamed)
+        assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "worlds"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.PAGES, "worlds")))
+        assertEquals(Rejection(CommandProblem.PAGE_NAME_INVALID, "a".repeat(121)), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.PAGES, "a".repeat(121))))
+        val left = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.PAGES, "people"))) { context.screenplay.scanFolders() }
+        assertEquals(setOf("worlds", "worlds/deep"), left)
     }
 }

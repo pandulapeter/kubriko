@@ -253,7 +253,7 @@ class WorkspaceControllerTest {
         val controller = createController(blockTypeRepository = repository, writeDelayInMilliseconds = 100)
         advanceTimeBy(101)
         repository.writes.clear()
-        assertNull(controller.createActorType("Player"))
+        assertNull(controller.creation.createActorType("Player"))
         controller.play()
         assertTrue(build.runs.isEmpty())
         advanceTimeBy(101)
@@ -267,7 +267,7 @@ class WorkspaceControllerTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository(), writeDelayInMilliseconds = 100, gitRepository = gitRepository)
         advanceTimeBy(101)
         val statusCalls = gitRepository.statusCalls
-        assertNull(controller.createActorType("Player"))
+        assertNull(controller.creation.createActorType("Player"))
         assertEquals(statusCalls, gitRepository.statusCalls)
         advanceTimeBy(101)
         assertTrue(gitRepository.statusCalls > statusCalls)
@@ -302,7 +302,7 @@ class WorkspaceControllerTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository)
         repository.failingNames += "Player"
-        assertNull(controller.createActorType("Player"))
+        assertNull(controller.creation.createActorType("Player"))
         val closing = controller.close()
         repository.failingNames.clear()
         advanceTimeBy(2_001)
@@ -316,7 +316,7 @@ class WorkspaceControllerTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository)
         repository.failingNames += "Player"
-        assertNull(controller.createActorType("Player"))
+        assertNull(controller.creation.createActorType("Player"))
         val closing = controller.close()
         advanceTimeBy(9_999)
         assertFalse(closing.isCompleted)
@@ -330,7 +330,7 @@ class WorkspaceControllerTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository)
         repository.failingNames += "Player"
-        assertNull(controller.createActorType("Player"))
+        assertNull(controller.creation.createActorType("Player"))
         controller.play()
         assertContains(controller.console.value, ConsoleEntry.Status(WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES, isError = true, arguments = listOf("Player", "Locked.")))
         assertEquals(1, build.runs.size)
@@ -427,7 +427,7 @@ class WorkspaceControllerTest {
             playClasspathFile.writeText("kubrikoVersion=1.0.0\nlaunch.java=/java\nlaunch.mainClass=M\nlaunch.workingDir=/game\nlaunch.classpath=/game/classes\n")
             build.currentRun.finish(isSuccessful = true)
             repository.failingNames += "Player"
-            assertNull(controller.createActorType("Player"))
+            assertNull(controller.creation.createActorType("Player"))
             val closing = controller.close()
             advanceTimeBy(CLOSE_GAME_TIMEOUT_IN_MILLISECONDS + 1)
             assertFalse(closing.isCompleted, "the write is still given its retries")
@@ -583,7 +583,7 @@ class WorkspaceControllerTest {
         var scanCount = 0
         val controller = createController(scanResources = { _, _ -> scanCount++; emptyMap() }, blockTypeRepository = FakeBlockTypeRepository())
         assertEquals(1, scanCount)
-        assertNull(controller.createActorType("Player"))
+        assertNull(controller.creation.createActorType("Player"))
         assertEquals(1, scanCount)
         assertEquals("Player", controller.blockTypes!!.selectedName.value)
     }
@@ -592,12 +592,12 @@ class WorkspaceControllerTest {
     fun creatingAnActorOrManagerTypeClosesTheSceneShownAndSelectsTheType() = runTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository())
         controller.sceneEditing.open(scene)
-        assertNull(controller.createActorType("Player"))
+        assertNull(controller.creation.createActorType("Player"))
         assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
         assertEquals("Player", controller.blockTypes!!.selectedName.value)
         assertEquals(WorkspaceSelection.BlockType("Player"), controller.selection.current.value)
         controller.sceneEditing.open(scene)
-        assertNull(controller.createManagerType("Game"))
+        assertNull(controller.creation.createManagerType("Game"))
         assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
         assertEquals("Game", controller.blockTypes.selectedName.value)
         assertEquals(WorkspaceSelection.BlockType("Game"), controller.selection.current.value)
@@ -607,7 +607,7 @@ class WorkspaceControllerTest {
     fun aFailedActorTypeSaveIsReportedInTheConsole() = runTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository().apply { isFailing = true })
         controller.clearConsole()
-        controller.createActorType("Player")
+        controller.creation.createActorType("Player")
         assertEquals(listOf(ConsoleEntry.Status(WorkspaceStatus.BLOCK_TYPE_NOT_SAVED, isError = true, arguments = listOf("Player", "Disk full."))), controller.console.value)
     }
 
@@ -631,7 +631,7 @@ class WorkspaceControllerTest {
     @Test
     fun anActorTypeNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository())
-        assertEquals(NameProblem.TYPE_INVALID, controller.createActorType("ball game")?.reason)
+        assertEquals(NameProblem.TYPE_INVALID, controller.creation.createActorType("ball game")?.reason)
         assertTrue(controller.blockTypes!!.actorTypes.value.isEmpty())
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
@@ -639,7 +639,7 @@ class WorkspaceControllerTest {
     @Test
     fun aSceneNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController()
-        assertEquals(CommandProblem.SCENE_NAME_INVALID, controller.createScene("my level")?.reason)
+        assertEquals(CommandProblem.SCENE_NAME_INVALID, controller.creation.createScene("my level")?.reason)
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
 
@@ -647,7 +647,7 @@ class WorkspaceControllerTest {
     fun rejectedUndoStepsAreReportedInTheConsole() = runTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository)
-        controller.createActorType("Player")
+        controller.creation.createActorType("Player")
         repository.stored.clear()
         controller.onProjectChanged(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS))
         controller.clearConsole()
@@ -682,7 +682,7 @@ class WorkspaceControllerTest {
             repository.writes.clear()
             controller.onProjectChanged(setOf(ProjectChange.SCENES))
             assertEquals(listOf("regenerate"), repository.writes)
-            assertNull(controller.createScene("level2"))
+            assertNull(controller.creation.createScene("level2"))
             assertEquals(listOf("regenerate", "regenerate"), repository.writes)
         } finally {
             root.deleteRecursively()
@@ -765,13 +765,13 @@ class WorkspaceControllerTest {
             controller.onProjectChanged(setOf(ProjectChange.SCENES))
             assertEquals(emptyList(), repository.writes)
             assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
-            assertEquals(ProjectProblem.NEWER_FORMAT, controller.createActorType("Ball")?.reason)
+            assertEquals(ProjectProblem.NEWER_FORMAT, controller.creation.createActorType("Ball")?.reason)
             settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": ${ProjectFormat.CURRENT_VERSION} }""")
             controller.onProjectChanged(setOf(ProjectChange.SETTINGS))
             assertEquals(ProjectFormatStatus.Writable, controller.formatStatus.value)
             assertEquals(listOf("regenerate"), repository.writes)
             assertIs<TemplateUpgrade.Needed>(controller.projectUpgrade.value)
-            assertNull(controller.createActorType("Ball"))
+            assertNull(controller.creation.createActorType("Ball"))
         } finally {
             root.deleteRecursively()
         }
@@ -787,7 +787,7 @@ class WorkspaceControllerTest {
             settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": 99 }""")
             controller.onProjectChanged(setOf(ProjectChange.SETTINGS))
             assertEquals(ProjectFormatStatus.ReadOnly(99, null), controller.formatStatus.value)
-            assertEquals(ProjectProblem.NEWER_FORMAT_UNKNOWN_VERSION, controller.createScene("level")?.reason)
+            assertEquals(ProjectProblem.NEWER_FORMAT_UNKNOWN_VERSION, controller.creation.createScene("level")?.reason)
         } finally {
             root.deleteRecursively()
         }

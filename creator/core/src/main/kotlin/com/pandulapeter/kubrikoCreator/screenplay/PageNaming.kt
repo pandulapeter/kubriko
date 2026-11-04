@@ -9,9 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.screenplay
 
+import com.pandulapeter.kubrikoCreator.actors.FolderPaths
+
 /**
  * How the screenplay's pages are named: by their path in `screenplay/` without `.md`, like Scenes (`hero`,
- * `levels/cave`), each part starting with a letter or a digit, then letters, digits, spaces, dashes, and underscores.
+ * `levels/cave`), each part named as a folder is ([FolderPaths]), and not longer than a path stays readable.
  */
 public object PageNaming {
 
@@ -28,9 +30,8 @@ public object PageNaming {
     public const val EXTENSION: String = "md"
 
     private const val MAXIMUM_LENGTH = 120
-    private val part = Regex("[A-Za-z0-9][A-Za-z0-9 _-]*")
 
-    public fun isValid(name: String): Boolean = name.length <= MAXIMUM_LENGTH && name.split('/').all { part.matches(it) && !it.endsWith(' ') }
+    public fun isValid(name: String): Boolean = name.isNotEmpty() && name.length <= MAXIMUM_LENGTH && FolderPaths.isValid(name)
 
     /**
      * The folder [name] is in, or an empty string for one at the top.

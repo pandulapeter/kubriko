@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object DeleteFolder : WriteCommand<DeleteFolder.Input> {
     override val name: String = "delete_folder"
-    override val description: String = "Deletes an empty folder of Actor types, Manager types, or Scenes. Move what is in it out first."
+    override val description: String = "Deletes an empty folder of Actor types, Manager types, Scenes, or pages. Move what is in it out first."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project

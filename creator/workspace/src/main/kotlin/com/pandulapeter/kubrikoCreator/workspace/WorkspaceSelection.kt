@@ -13,7 +13,8 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 
 /**
- * What the workspace's center shows: one type, one Scene (being prepared, open, or failed), or nothing.
+ * What the workspace's center shows: one type, one Scene (being prepared, open, or failed), one page of the screenplay, or
+ * nothing.
  */
 public sealed interface WorkspaceSelection {
 
@@ -33,6 +34,13 @@ public sealed interface WorkspaceSelection {
      * The Scene [name] is shown, whether it is being prepared, open, or failed.
      */
     public data class Scene(
+        public val name: String,
+    ) : WorkspaceSelection
+
+    /**
+     * The page [name] of the screenplay is shown.
+     */
+    public data class Page(
         public val name: String,
     ) : WorkspaceSelection
 }

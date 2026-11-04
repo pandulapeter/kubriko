@@ -28,22 +28,27 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.action_delete_manager_type
+import kubriko.creator.generated.resources.action_delete_page
 import kubriko.creator.generated.resources.action_delete_scene
 import kubriko.creator.generated.resources.action_new_actor_type
 import kubriko.creator.generated.resources.action_new_manager_type
+import kubriko.creator.generated.resources.action_new_page
 import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.action_rename
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_folder_open
+import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.new_actor_type_hint
 import kubriko.creator.generated.resources.new_folder_hint
 import kubriko.creator.generated.resources.new_manager_type_hint
+import kubriko.creator.generated.resources.new_page_hint
 import kubriko.creator.generated.resources.new_scene_hint
 import kubriko.creator.generated.resources.resource_group_actor_types
 import kubriko.creator.generated.resources.resource_group_manager_types
 import kubriko.creator.generated.resources.resource_group_scenes
+import kubriko.creator.generated.resources.resource_group_screenplay
 import org.jetbrains.compose.resources.stringResource
 /**
  * What a sidebar group with folders shows.
@@ -339,12 +344,14 @@ internal val FolderGroup.icon
     get() = when (this) {
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).icon
         FolderGroup.SCENES -> Res.drawable.ic_scene
+        FolderGroup.PAGES -> Res.drawable.ic_page
     }
 
 internal val FolderGroup.accent
     get() = when (this) {
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> checkNotNull(kind).accent
         FolderGroup.SCENES -> Accent.SCENE
+        FolderGroup.PAGES -> Accent.SCREENPLAY
     }
 
 internal val FolderGroup.title
@@ -352,6 +359,7 @@ internal val FolderGroup.title
         FolderGroup.ACTOR_TYPES -> Res.string.resource_group_actor_types
         FolderGroup.MANAGER_TYPES -> Res.string.resource_group_manager_types
         FolderGroup.SCENES -> Res.string.resource_group_scenes
+        FolderGroup.PAGES -> Res.string.resource_group_screenplay
     }
 
 internal val FolderGroup.newItemLabel
@@ -359,6 +367,7 @@ internal val FolderGroup.newItemLabel
         FolderGroup.ACTOR_TYPES -> Res.string.action_new_actor_type
         FolderGroup.MANAGER_TYPES -> Res.string.action_new_manager_type
         FolderGroup.SCENES -> Res.string.action_new_scene
+        FolderGroup.PAGES -> Res.string.action_new_page
     }
 
 internal val FolderGroup.deleteItemLabel
@@ -366,6 +375,7 @@ internal val FolderGroup.deleteItemLabel
         FolderGroup.ACTOR_TYPES -> Res.string.action_delete_actor_type
         FolderGroup.MANAGER_TYPES -> Res.string.action_delete_manager_type
         FolderGroup.SCENES -> Res.string.action_delete_scene
+        FolderGroup.PAGES -> Res.string.action_delete_page
     }
 
 internal val FolderGroup.newItemHint
@@ -373,4 +383,5 @@ internal val FolderGroup.newItemHint
         FolderGroup.ACTOR_TYPES -> Res.string.new_actor_type_hint
         FolderGroup.MANAGER_TYPES -> Res.string.new_manager_type_hint
         FolderGroup.SCENES -> Res.string.new_scene_hint
+        FolderGroup.PAGES -> Res.string.new_page_hint
     }

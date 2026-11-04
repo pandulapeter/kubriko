@@ -49,7 +49,7 @@ class SidebarModuleTest {
     @Test
     fun typesAndNewScenesAreInCreatorsModuleAndEveryOtherSceneInItsOwn() {
         val (game, android, tools) = modules
-        assertEquals(setOf(FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES, FolderGroup.SCENES), game.folderGroups.keys)
+        assertEquals(setOf(FolderGroup.PAGES, FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES, FolderGroup.SCENES), game.folderGroups.keys)
         assertEquals(game.folderGroups.keys, game.creatingGroups)
         assertEquals(listOf("levels/1-1" to "levels", "fresh" to ""), game.folderGroups.getValue(FolderGroup.SCENES).items)
         assertEquals(setOf("levels", "worlds"), game.folderGroups.getValue(FolderGroup.SCENES).folders)
@@ -224,4 +224,16 @@ class SidebarModuleTest {
     }
 
     private fun modulesOf(vararg modules: Pair<String, Boolean>) = modules.associate { (path, usesKubriko) -> path to ProjectModule(usesKubriko) }
+
+    @Test
+    fun theScreenplayIsInTheGamesModuleOnlyAndInAProjectThatIsntOptedInOnlyOnceItHasPages() {
+        val (_, android, tools) = modules
+        assertEquals(listOf("README" to "", "levels/cave" to "levels"), sidebarModules(resources, folderTreeGroups(listOf(ActorTypeDefinition(name = "Ball")), emptyMap(), null, emptyList(), emptySet(), null, pageGroupState(listOf("README", "levels/cave"), setOf("levels"), null)), ProjectLayout(typeModule = "game", sceneModule = "game")).first().folderGroups.getValue(FolderGroup.PAGES).items)
+        listOf(android, tools).forEach { assertEquals(false, FolderGroup.PAGES in it.folderGroups) }
+        val layout = ProjectLayout(sceneModule = "", modules = modulesOf("" to false, "gameplay" to true))
+        val kotlin = mapOf(ResourceGroup.KOTLIN to listOf(resource(ResourceGroup.KOTLIN, "gameplay/src/main/kotlin/Main.kt", "gameplay", "")))
+        val withPages = sidebarModules(kotlin, folderTreeGroups(null, emptyMap(), null, emptyList(), emptySet(), null, pageGroupState(listOf("README"), emptySet(), null)), layout, gameModule = "gameplay")
+        assertEquals(listOf("README" to ""), withPages.first { it.path == "gameplay" }.folderGroups.getValue(FolderGroup.PAGES).items)
+        assertEquals(setOf(FolderGroup.PAGES), withPages.first { it.path == "gameplay" }.creatingGroups)
+    }
 }

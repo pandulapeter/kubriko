@@ -79,6 +79,24 @@ class SelectionControllerTest {
     }
 
     @Test
+    fun openingAPageClosesTheSceneAndDeselectsTheTypeAndEitherClosesThePage() = runTest {
+        val controller = createController()
+        controller.selection.openScene("level")
+        controller.selection.openPage("hero")
+        assertEquals(WorkspaceSelection.Page("hero"), controller.selection.current.value)
+        assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
+        assertTrue(controller.selection.selectType("Player"))
+        assertEquals(WorkspaceSelection.BlockType("Player"), controller.selection.current.value)
+        controller.selection.openPage("hero")
+        assertNull(controller.blockTypes!!.selectedName.value)
+        assertTrue(controller.selection.openScene("level"))
+        assertEquals(WorkspaceSelection.Scene("level"), controller.selection.current.value)
+        controller.selection.openPage("hero")
+        controller.selection.clear()
+        assertEquals(WorkspaceSelection.None, controller.selection.current.value)
+    }
+
+    @Test
     fun anUnknownTypeOrSceneChangesNothing() = runTest {
         val controller = createController()
         controller.selection.selectType("Player")
