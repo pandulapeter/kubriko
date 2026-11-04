@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import kotlinx.coroutines.withContext
 
 /**
  * What about the open project is worth a look ([HealthChecks]).
@@ -17,9 +18,19 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 internal suspend fun CommandContext.healthFindings(): List<HealthFinding> = healthFindings(sceneTypeCounts())
 
 /**
- * What about the open project is worth a look, with the Scenes' Actor counts [sceneCounts] already read ([sceneTypeCounts]).
+ * What about the open project is worth a look, with the Scenes' Actor counts [sceneCounts] already read ([sceneTypeCounts]),
+ * among every Scene, those that can't be read too.
  */
 internal fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, Int>>): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
-    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), sceneCounts.keys)
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names())
+}
+
+/**
+ * What in the open project names something that no longer exists ([MissingReferenceChecks]).
+ */
+public suspend fun CommandContext.missingReferences(): List<HealthFinding> {
+    val types = blockTypes?.types?.value.orEmpty()
+    val sceneCounts = sceneTypeCounts()
+    return withContext(ioDispatcher) { MissingReferenceChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names()) }
 }

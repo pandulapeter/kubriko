@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,12 +18,17 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -54,5 +60,47 @@ class BlockRowTest {
         onNodeWithText("Repeating").performClick()
         waitForIdle()
         assertEquals(false, block.isRepeating)
+    }
+
+    @Test
+    fun aBlockNamingWhatNoLongerExistsSaysSo() = uiTest(width = 520, height = 360) {
+        val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("score")))
+        val scope = BlockScope.of(ball, listOf(ball, game), sceneNames = listOf("level"), audioFiles = AudioFiles(sounds = listOf("files/sounds/hit.wav")))
+        val blocks = listOf(
+            BlockDefinition.AddActor("Brick"),
+            BlockDefinition.GoToScene("cave"),
+            BlockDefinition.PlaySound("files/sounds/gone.wav"),
+            BlockDefinition.SetNumber("lives", manager = "Game"),
+            BlockDefinition.AddActor("Ball"),
+            BlockDefinition.GoToScene("level"),
+            BlockDefinition.SetNumber("score", manager = "Game"),
+        )
+        showing {
+            Column {
+                blocks.forEachIndexed { index, block ->
+                    BlockRow(block = block, nesting = BlockNesting(0, BlockNesting.Role.PLAIN), scope = scope, index = index, dragState = BlockDragState(onDrop = { _, _ -> }), onBlockChange = {}, onRemove = {})
+                }
+            }
+        }
+        listOf("Brick", "cave", "sounds/gone.wav").forEach { onNodeWithText("$it no longer exists").assertExists() }
+        onAllNodesWithText("no longer exists", substring = true).assertCountEquals(4)
+        saveSnapshot("block-rows-missing")
+    }
+
+    @Test
+    fun aManagerTypesOwnPropertyNamedByItsTypeIsNotMissing() = uiTest(width = 520) {
+        val game = ManagerTypeDefinition(name = "Game", properties = listOf(PropertyDefinition.Number("score")))
+        showing {
+            BlockRow(
+                block = BlockDefinition.SetNumber("score", manager = "Game"),
+                nesting = BlockNesting(0, BlockNesting.Role.PLAIN),
+                scope = BlockScope.of(game, listOf(game)),
+                index = 0,
+                dragState = BlockDragState(onDrop = { _, _ -> }),
+                onBlockChange = {},
+                onRemove = {},
+            )
+        }
+        onAllNodesWithText("no longer exists", substring = true).assertCountEquals(0)
     }
 }

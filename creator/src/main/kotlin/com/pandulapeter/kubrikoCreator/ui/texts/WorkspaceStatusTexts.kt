@@ -66,6 +66,7 @@ import kubriko.creator.generated.resources.status_kubriko_version_changed
 import kubriko.creator.generated.resources.status_kubriko_version_newer
 import kubriko.creator.generated.resources.status_kubriko_version_unavailable
 import kubriko.creator.generated.resources.status_play_from_scene_needs_upgrade
+import kubriko.creator.generated.resources.status_reference_missing
 import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
@@ -123,6 +124,7 @@ internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.BLOCK_TYPES_SAVED_AGAIN -> Res.string.status_block_types_saved_again
     WorkspaceStatus.BROWSER_NOT_OPENED -> Res.string.status_browser_not_opened
     WorkspaceStatus.BUILD_FAILED -> Res.string.status_build_failed
+    WorkspaceStatus.REFERENCE_MISSING -> Res.string.status_reference_missing
     WorkspaceStatus.BUILDING -> Res.string.status_building
     WorkspaceStatus.BUILDING_WITH_UNSAVED_TYPES -> Res.string.status_building_with_unsaved_types
     WorkspaceStatus.BUILDING_WITH_UNWRITTEN_GENERATED_CODE -> Res.string.status_building_with_unwritten_generated_code

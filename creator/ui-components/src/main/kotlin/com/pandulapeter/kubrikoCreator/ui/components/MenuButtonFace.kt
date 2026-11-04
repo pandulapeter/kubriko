@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
@@ -31,20 +33,22 @@ import org.jetbrains.compose.resources.painterResource
  * melt into the popover's surface.
  *
  * @param isWrapping Whether [label] wraps onto further lines when it doesn't fit, rather than being cut off.
+ * @param isMissing Whether the chosen option no longer exists, which shows the button in the error color.
  */
 @Composable
 public fun MenuButtonFace(
     label: String,
     onClick: () -> Unit,
     isWrapping: Boolean = false,
+    isMissing: Boolean = false,
 ): Unit = OutlinedButton(
     modifier = Modifier.heightIn(min = 32.dp),
     contentPadding = PaddingValues(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-    colors = if (LocalIsInPopover.current) {
-        ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
-    } else {
-        ButtonDefaults.outlinedButtonColors()
-    },
+    colors = ButtonDefaults.outlinedButtonColors(
+        containerColor = if (LocalIsInPopover.current) MaterialTheme.colorScheme.surfaceContainerHighest else Color.Unspecified,
+        contentColor = if (isMissing) MaterialTheme.colorScheme.error else Color.Unspecified,
+    ),
+    border = if (isMissing) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else ButtonDefaults.outlinedButtonBorder(),
     onClick = onClick,
 ) {
     Text(

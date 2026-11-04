@@ -315,6 +315,7 @@ public class WorkspaceController(
 
     /** The AI panel's Game map, computed only while it is shown. */
     public val gameMap: GameMapState = GameMapState.of(blockTypes, resources, scenes, commands, sceneEditing, scope, ::reportUnexpectedProblem)
+    private val missingReferences = MissingReferencesReport.of(blockTypes, resources, commands, scope, ::appendToConsole, ::reportUnexpectedProblem)
 
     private val watching = files.startWatching(::onProjectChanged)
 

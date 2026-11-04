@@ -240,7 +240,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   section), turns placeholders of its Properties into text, and leaves Kotlin alone (listed instead), as one undo step that
   brings it all back byte for byte (`ReplaceTypes`, `ReplaceScenes`, internal like `CompositeCommand`). What it touches comes
   from `ProjectReferences`, which `check_change`, the AI's result (`Applied.details`), and the confirmation every delete from the UI waits for (`WorkspaceUiState.dispatch`) read too, so
-  none sees less than the delete does.
+  none sees less than the delete does. What still dangles after a change outside Creator (a file deleted in a terminal, a
+  git checkout) shows where it is: on the Block's card (`isMissingChoice`), in the health checks (`MissingReferenceChecks`),
+  and once in the console (`MissingReferencesReport`, which leaves what dangled at opening to the health checks).
 - **Batches** (`place_actors`, `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) are one undo step each,
   and name no Actor twice and at least one. Paged reads (`read_scene`, `list_actor_types`) keep large games readable.
 

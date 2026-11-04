@@ -48,6 +48,8 @@ import org.jetbrains.compose.resources.stringResource
  * An outlined button showing the chosen option, which opens [options] in a panel: a lazy list, with a field filtering it
  * ([matchingOptions]) once there are more than [SEARCH_THRESHOLD], where Enter picks the first match and Escape closes.
  * Enter with nothing typed picks nothing, since the first option is often "none", which would clear the choice.
+ *
+ * @param isMissing Whether the chosen option no longer exists ([MenuButtonFace]).
  */
 @Composable
 public fun <T> SearchableChoiceButton(
@@ -55,11 +57,13 @@ public fun <T> SearchableChoiceButton(
     options: List<T>,
     optionText: @Composable (T) -> String,
     onSelected: (T) -> Unit,
+    isMissing: Boolean = false,
 ): Unit = Box {
     var isExpanded by remember { mutableStateOf(false) }
     MenuButtonFace(
         label = label,
         onClick = { isExpanded = true },
+        isMissing = isMissing,
     )
     if (isExpanded) {
         Popup(

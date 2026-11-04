@@ -18,11 +18,15 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun SceneChoice(
     scene: String,
-    sceneNames: List<String>,
+    sceneNames: List<String>?,
     onSelected: (String) -> Unit,
 ) = SearchableChoiceButton(
-    label = scene.ifEmpty { stringResource(Res.string.block_scene_choose) },
-    options = sceneNames,
+    label = when {
+        isMissingChoice(scene, sceneNames) -> missingChoiceLabel(scene)
+        else -> scene.ifEmpty { stringResource(Res.string.block_scene_choose) }
+    },
+    options = sceneNames.orEmpty(),
     optionText = { it },
     onSelected = onSelected,
+    isMissing = isMissingChoice(scene, sceneNames),
 )

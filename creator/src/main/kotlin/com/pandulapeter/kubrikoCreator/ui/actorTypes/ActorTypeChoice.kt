@@ -24,8 +24,12 @@ internal fun ActorTypeChoice(
     actorTypeNames: List<String>,
     onSelected: (String) -> Unit,
 ) = SearchableChoiceButton(
-    label = actorType.ifEmpty { stringResource(Res.string.event_collision_choose) },
+    label = when {
+        isMissingChoice(actorType, actorTypeNames) -> missingChoiceLabel(actorType)
+        else -> actorType.ifEmpty { stringResource(Res.string.event_collision_choose) }
+    },
     options = actorTypeNames,
     optionText = { it },
     onSelected = onSelected,
+    isMissing = isMissingChoice(actorType, actorTypeNames),
 )

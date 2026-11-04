@@ -20,14 +20,18 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AudioFileChoice(
     path: String,
-    paths: List<String>,
+    paths: List<String>?,
     placeholder: StringResource,
     onSelected: (String) -> Unit,
 ) = SearchableChoiceButton(
-    label = path.ifEmpty { null }?.let(::audioFileLabel) ?: stringResource(placeholder),
-    options = paths,
+    label = when {
+        isMissingChoice(path, paths) -> missingChoiceLabel(audioFileLabel(path))
+        else -> path.ifEmpty { null }?.let(::audioFileLabel) ?: stringResource(placeholder)
+    },
+    options = paths.orEmpty(),
     optionText = { audioFileLabel(it) },
     onSelected = onSelected,
+    isMissing = isMissingChoice(path, paths),
 )
 
 internal fun audioFileLabel(path: String) = path.removePrefix("files/")

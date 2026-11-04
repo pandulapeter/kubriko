@@ -60,6 +60,42 @@ class HealthChecksTest {
     )
 
     @Test
+    fun whatNamesSomethingThatNoLongerExistsIsReportedWhereItIs() {
+        val door = ActorTypeDefinition(
+            name = "Door",
+            parent = "Gone",
+            properties = listOf(PropertyDefinition.Number("hp")),
+            events = listOf(
+                EventDefinition(EventType.COLLISION, otherActorType = "Ghost"),
+                EventDefinition(
+                    EventType.EVERY_FRAME,
+                    blocks = listOf(
+                        BlockDefinition.AddActor("Brick"),
+                        BlockDefinition.GoToScene("cave"),
+                        BlockDefinition.SetNumber("gold", manager = "Game"),
+                        BlockDefinition.Log("{hp} {mana}"),
+                        BlockDefinition.GoToScene("main"),
+                        BlockDefinition.Kotlin("Brick()"),
+                    ),
+                ),
+            ),
+        )
+        val placed = mapOf("main" to mapOf("Door" to 1, "HandWritten" to 2))
+        val missing = HealthChecks.of(listOf(door, game), ProjectRelations(listOf(door, game), placed), placed.keys).filter { it.kind == HealthFinding.Kind.REFERENCE_MISSING }
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Gone"), "Door"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Ghost"), "Door#0"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Brick"), "Door#1.0"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("cave"), "Door#1.1"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Property("Game", "gold"), "Door#1.2"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Property("Door", "mana"), "Door#1.3"),
+            ),
+            missing,
+        )
+    }
+
+    @Test
     fun aGameWithOneSceneDoesntReportItAsUnreached() =
         assertEquals(emptyList(), HealthChecks.of(listOf(brick), ProjectRelations(listOf(brick), mapOf("main" to mapOf("Brick" to 1))), listOf("main")))
 

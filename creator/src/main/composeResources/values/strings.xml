@@ -141,6 +141,7 @@
     <string name="status_game_restarting">The game starts again, since %1$s changed in a way the running game can't take in, such as a new Property.</string>
     <string name="status_game_reload_failed">The changes couldn't be applied to the running game, so it starts again.</string>
     <string name="status_build_failed">The build failed.</string>
+    <string name="status_reference_missing">%1$s names %2$s, which no longer exists. Choose something else there, or remove it.</string>
     <string name="status_built">Built in %1$s seconds.</string>
     <string name="status_block_type_not_saved">%1$s couldn't be saved: %2$s</string>
     <string name="status_type_folder_not_saved">The folder %1$s couldn't be changed: %2$s</string>
@@ -651,6 +652,7 @@
     <string name="health_unread_property">%1$s: nothing reads it.</string>
     <string name="health_timer_never_started">%1$s: the Timer %2$s never starts, so its Event never runs.</string>
     <string name="health_collision_with_absent_type">%1$s: %2$s is never in a Scene, so their collision Event never runs.</string>
+    <string name="health_reference_missing">%1$s: names %2$s, which no longer exists.</string>
     <string name="health_kotlin_block_return">%1$s: return in this Kotlin Block now ends only its Event, not the rest of the frame.</string>
     <string name="health_kotlin_block_removed_local">%1$s: this Kotlin Block uses %2$s, which its Event no longer has. Read it from body or kubriko instead.</string>
     <string name="game_map_title">What the AI knows about your game</string>
@@ -688,6 +690,7 @@
     <string name="delete_confirmation_none">Nothing else uses it. You can undo this.</string>
     <string name="delete_confirmation_usages">These change with it, in one step you can undo:</string>
     <string name="delete_confirmation_refused">It can't be deleted while this is so.</string>
+    <string name="choice_missing">%1$s no longer exists</string>
     <string name="usage_row">%1$s · %2$s</string>
     <string name="usage_place_event">%1$s, Event %2$d</string>
     <string name="usage_place_block">%1$s, Event %2$d, Block %3$d</string>

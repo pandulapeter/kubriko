@@ -226,14 +226,14 @@ private fun InlineParameters(
         )
     }
     is BlockDefinition.StopTimer -> TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
-    is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames.orEmpty()) { onBlockChange(block.copy(scene = it)) }
-    is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds.orEmpty(), Res.string.block_sound_choose) { onBlockChange(block.copy(sound = it)) }
+    is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames) { onBlockChange(block.copy(scene = it)) }
+    is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds, Res.string.block_sound_choose) { onBlockChange(block.copy(sound = it)) }
     is BlockDefinition.PlayMusic -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        AudioFileChoice(block.music, scope.audioFiles?.music.orEmpty(), Res.string.block_music_choose) { onBlockChange(block.copy(music = it)) }
+        AudioFileChoice(block.music, scope.audioFiles?.music, Res.string.block_music_choose) { onBlockChange(block.copy(music = it)) }
         LabeledSwitch(
             label = stringResource(Res.string.block_parameter_looping),
             checked = block.isLooping,

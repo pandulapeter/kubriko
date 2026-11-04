@@ -45,6 +45,7 @@ public enum class WorkspaceStatus(override val english: String) : DomainText {
     GAME_RELOAD_FAILED("The changes couldn't be applied to the running game, so it starts again."),
     GAME_RELOADED("Changes applied to the running game in %1\$s seconds."),
     GAME_RESTARTING("The game starts again, since %1\$s changed in a way the running game can't take in, such as a new Property."),
+    REFERENCE_MISSING("%1\$s names %2\$s, which no longer exists. Choose something else there, or remove it."),
     GENERATED_CODE_NOT_WRITTEN("The generated code couldn't be written: %1\$s"),
     GENERATED_LEFTOVER_CHANGED_BY_HAND("%1\$s is the generated code of a type that no longer exists, but it was changed by hand, so Kubriko Creator kept it. Delete it once nothing needs it, since it may break the build."),
     GENERATED_LEFTOVERS_REMOVED("Deleted the generated code of types that no longer exist: %1\$s"),

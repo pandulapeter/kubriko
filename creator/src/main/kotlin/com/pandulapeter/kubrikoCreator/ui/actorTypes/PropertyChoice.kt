@@ -36,7 +36,8 @@ internal fun PropertyChoice(
     onSelected: (PropertyReference) -> Unit,
 ) {
     val choices = propertyChoices(scope, reference.kind)
-    if (choices.isEmpty()) {
+    val isMissing = reference.name.isNotEmpty() && (if (reference.manager == scope.typeName) reference.copy(manager = null) else reference) !in choices
+    if (choices.isEmpty() && !isMissing) {
         Text(
             modifier = Modifier.padding(vertical = 6.dp),
             text = stringResource(Res.string.block_property_none, stringResource(reference.kind.title).lowercase()),
@@ -45,10 +46,15 @@ internal fun PropertyChoice(
         )
     } else {
         SearchableChoiceButton(
-            label = if (reference.name.isEmpty()) stringResource(Res.string.block_property_choose) else propertyChoiceText(reference),
+            label = when {
+                isMissing -> missingChoiceLabel(propertyChoiceText(reference))
+                reference.name.isEmpty() -> stringResource(Res.string.block_property_choose)
+                else -> propertyChoiceText(reference)
+            },
             options = choices,
             optionText = { propertyChoiceText(it) },
             onSelected = onSelected,
+            isMissing = isMissing,
         )
     }
 }

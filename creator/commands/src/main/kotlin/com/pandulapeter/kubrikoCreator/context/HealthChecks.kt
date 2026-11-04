@@ -59,6 +59,7 @@ internal object HealthChecks {
                 }
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
+            addAll(MissingReferenceChecks.of(types, relations, sceneNames))
         }
     }
 }
