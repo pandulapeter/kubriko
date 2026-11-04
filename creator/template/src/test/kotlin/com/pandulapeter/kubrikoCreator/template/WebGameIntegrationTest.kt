@@ -38,8 +38,8 @@ import kotlin.test.fail
 
 /**
  * Builds the starter template's web distribution for real, serves it as Kubriko Creator does, and looks at it in headless
- * Chrome (or Chromium): that the page draws the Scene its address names and a Manager type's text, and that a change, once
- * built, reloads the page by itself. Runs with `KUBRIKO_CREATOR_INTEGRATION=true` where Chrome is found ([HeadlessChrome.find]), opens no window,
+ * Chrome (or Chromium): that the page draws the Scene its address names and a Manager type's text, even with the language
+ * a browser started under the POSIX locale reports, and that a change, once built, reloads the page by itself. Runs with `KUBRIKO_CREATOR_INTEGRATION=true` where Chrome is found ([HeadlessChrome.find]), opens no window,
  * and leaves what Chrome showed, and the project, in `build/web-game`.
  */
 class WebGameIntegrationTest {
@@ -65,6 +65,8 @@ class WebGameIntegrationTest {
             build(connection)
             runBlocking { WebGameServer.start(File(directory, DISTRIBUTION)) }.use { server ->
                 HeadlessChrome.start(checkNotNull(chromePath), parentDirectory, width = 800, height = 600).use { chrome ->
+                    // Compose draws no text under a language that isn't a tag, which the web Main.kt guards against.
+                    chrome.reportLanguages("en-US@posix")
                     chrome.navigate(server.addressOf("colored"))
                     chrome.awaitColor(GREEN, "colored")
                     chrome.awaitText()

@@ -47,15 +47,6 @@ class AtomicFileWritesTest {
     }
 
     @Test
-    fun bytesAreWrittenAsTheyAreAndNoTemporaryFileStays() {
-        val bytes = byteArrayOf(0, -1, 0x0D, 0x0A, 0x7F, -128)
-        val file = File(directory, "font/game.ttf")
-        file.writeBytesAtomically(bytes)
-        assertTrue(bytes.contentEquals(file.readBytes()))
-        assertEquals(listOf("game.ttf"), file.parentFile.list()!!.toList())
-    }
-
-    @Test
     fun aNewFileAndItsFoldersAreCreatedWithTheUsualPermissions() {
         val file = File(directory, "scenes/levels/1-1.json")
         file.writeTextAtomically("{}")

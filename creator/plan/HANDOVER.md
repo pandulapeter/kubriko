@@ -25,9 +25,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-First confirm Texts on the web on Linux: `181108f26..566b80b6e` aren't pushed, and only the end-to-end job (a `Tests`
-dispatch) can show that Breakout's texts now draw in the browser there, since on a Mac Compose for Web finds a font of its own
-and the texts drew without the fix too. Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
+First check that the nightly end-to-end job's web step passes: it draws Breakout's texts only since `WebLocaleUpgrade`
+(below), and runs under the POSIX locale that broke them. Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
 writers' room. Pages, their commands and tools, the Screenplay group, and the page editor exist (`0954d5ef2..f82ba8008`, not
 reviewed in `6c082fbff` and `52083d116`). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
 Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
@@ -38,22 +37,30 @@ engine and sprite atlas parts touch only `engine/` and `plugins/sprites`, so the
 their own; its Creator part follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other
 plans (Traits, UI elements, git) or for the benchmarks.
 
-What the last session did, all reviewed (`/code-review high` on `181108f26`; its findings fixed in `566b80b6e`, three
-declined: `TargetFiles`' fixed `src/wasmJsMain` paths, which every target shares, recomputing missing files per proposal, and a
-timeout for the font, which comes from the game's own server):
+What the last session did (the web font and its review fixes, `181108f26` and `566b80b6e`, are taken back by the commit
+that replaces them; the rest reviewed only by its own tests and snapshots):
 
-- **Texts on the web** (`181108f26`, template version 12): Compose for Web has no font of its own on Linux (on a Mac it finds
-  one, and it downloads Noto from Google Fonts for glyphs it lacks), so the web `Main.kt` shows the game only once the
-  project's Public Sans (`src/wasmJsMain/composeResources/font`) is preloaded as the fallback font (`WebFontUpgrade`). A file
-  that isn't text is now a copy of a module resource (`path <- resource` in `files.txt`, `CopiedFile` in upgrades,
-  `ProposedFileChange.resource`, named only in the diff and `get_project_upgrade`), and the font is copied into the template
-  module's resources from `tools/ui-components` at build time. `HeadlessChrome` reaches no host but this computer, so a web
-  check never passes on a download. `WebGameIntegrationTest` checks a Manager type's text and the end-to-end web step
-  Breakout's; both pass on a Mac without the fix too, which is why the Linux run is owed.
-- **A flaky Android player test** (`a2bf3d512`): `builtAlongside` starts the build before the device check, so a device found
-  missing at once always stops a build that began (`BuildAlongsideTest`).
-- The raw-Markdown flash when switching pages couldn't be reproduced, frame by frame offscreen nor by the user afterwards; it
-  was most likely the previous page's text that `52083d116` fixed, in a Creator started before it.
+- **Texts on the web** (template version 12, `WebLocaleUpgrade`): the end-to-end images showed no texts in the browser
+  because a Chrome started under the POSIX locale (CI's) reports its language as `en-US@posix`, which isn't a language tag,
+  and Compose for Web then throws in every text's composition. Found by loading the build in a Linux container (colima on
+  this Mac, `creator/build/linux-probe` held the Playwright probe); Compose for Web 1.12 has a font of its own, so the
+  bundled font first tried fixed nothing and was taken out with its binary-copy machinery. The web `Main.kt` now hands
+  Compose the languages without such a modifier before anything is drawn. `WebGameIntegrationTest` makes the page report
+  `en-US@posix` (`HeadlessChrome.reportLanguages`), so it fails without the guard on any machine, and `HeadlessChrome`
+  reaches no host but this computer.
+- **Play waits for builds** (`8b0176507`): Play is disabled with a spinner while a build the console reports runs
+  (`CreatorTaskRunner.runningBuilds`, not the warm-up or a session's own build).
+- **Configure platforms** (`c4e3611dc`): the Play menu's link to the Targets page, which still fits once every platform is on.
+- **Menus and choice lists** (`d57a966da`): as tall as the window, fading out at an edge with more beyond it
+  (`scrollEdgeFades`).
+- **A flaky Android player test** (`a2bf3d512`): `builtAlongside` starts the build before the device check.
+- **Started, not committed:** `04-screenplay.md`'s Documents group, as `ResourceGroup.DOCUMENTS` (scanned and watched like
+  the other resource groups, `ProjectChange.DOCUMENTS`), a `DocumentStore` in `CommandContext` (through `ScannedFiles`, which
+  keeps its constructor at twelve parameters), and its title and icon; `git stash list` holds it as `documents-wip`. Next:
+  its commands (`read_documents`, `edit_document`, `add_document_to_screenplay`, whose undo needs an internal command moving
+  the page back), opening one in the page editor (`WorkspaceSelection.Document`), its sidebar rows (clickable, with Add to
+  the screenplay behind a confirmation), and `SidebarModuleTest`'s expected groups.
+- A physical iPhone isn't offered by Play yet: that is `03`'s iOS devices, after `05`'s Signing.
 
 ## Before a release
 

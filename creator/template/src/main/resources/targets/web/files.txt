@@ -1,3 +1,2 @@
-src/wasmJsMain/composeResources/font/public_sans_regular.ttf <- fonts/public_sans_regular.ttf
 src/wasmJsMain/kotlin/__PACKAGE__/Main.kt
 src/wasmJsMain/resources/index.html

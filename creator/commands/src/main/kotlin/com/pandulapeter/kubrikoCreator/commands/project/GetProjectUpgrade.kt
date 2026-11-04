@@ -25,7 +25,7 @@ import kotlinx.serialization.json.putJsonArray
 public object GetProjectUpgrade : ReadCommand<NoInput> {
     override val name: String = "get_project_upgrade"
     override val description: String = "Tells whether the project's template files (Game.kt, GameEntryPoint.kt, and others the user owns) need a change Kubriko " +
-        "Creator relies on: each change it can make (the file before and after; after left out to delete it; added instead for a file that isn't text, such as a font) and the files changed too much, left to the user. " +
+        "Creator relies on: each change it can make (the file before and after; after left out to delete it) and the files changed too much, left to the user. " +
         "Show the changes to the user before upgrade_project."
     override val inputSerializer: KSerializer<NoInput> = NoInput.serializer()
 
@@ -38,12 +38,8 @@ public object GetProjectUpgrade : ReadCommand<NoInput> {
                     upgrade.changes.forEach { change ->
                         add(buildJsonObject {
                             put("path", change.path)
-                            if (change.resource != null) {
-                                put("added", "a file that isn't text, shown by its path only")
-                            } else {
-                                put("before", change.before)
-                                change.after?.let { put("after", it) }
-                            }
+                            put("before", change.before)
+                            change.after?.let { put("after", it) }
                         })
                     }
                 }

@@ -21,16 +21,11 @@ internal object TemplateSteps {
         UpgradedFile({ it.entryPointPath }, listOf(SceneEditorManagersUpgrade, RunningInstancesUpgrade.EntryPointStep), WhenMissing.BY_HAND),
         UpgradedFile({ it.mainPath }, listOf(LoggingSwitchUpgrade, FirstSceneOverrideUpgrade, GameIdentityUpgrade.MainStep), WhenMissing.BY_HAND),
         UpgradedFile({ GameIdentity.BUILD_FILE }, listOf(GameIdentityUpgrade.BuildFileStep, GameSettingsUpgrade.BuildFileStep), WhenMissing.BY_HAND),
-        UpgradedFile({ it.webMainPath }, listOf(PlaySwitchesUpgrade.WebStep, WebFontUpgrade.WebStep), WhenMissing.SKIP),
+        UpgradedFile({ it.webMainPath }, listOf(PlaySwitchesUpgrade.WebStep, WebLocaleUpgrade.WebStep), WhenMissing.SKIP),
         UpgradedFile({ it.androidActivityPath }, listOf(PlaySwitchesUpgrade.AndroidStep), WhenMissing.SKIP),
         UpgradedFile({ it.iosViewControllerPath }, listOf(PlaySwitchesUpgrade.IosStep), WhenMissing.SKIP),
         UpgradedFile({ it.pagePath }, listOf(GameIdentityUpgrade.PageStep), WhenMissing.SKIP),
         UpgradedFile({ GameIdentity.GRADLE_PROPERTIES_FILE }, listOf(GradleCachesUpgrade, GameIdentityUpgrade.PropertiesStep, GameSettingsUpgrade.PropertiesStep), WhenMissing.CREATE_EMPTY),
         UpgradedFile({ it.sceneLoaderPath }, emptyList(), WhenMissing.SKIP, deletion = SceneWiringUpgrade.SceneLoaderDeletion),
     )
-
-    /**
-     * Every file an upgrade adds as a copy, shown after the changes of [FILES].
-     */
-    val COPIES = listOf(WebFontUpgrade.fontFile)
 }

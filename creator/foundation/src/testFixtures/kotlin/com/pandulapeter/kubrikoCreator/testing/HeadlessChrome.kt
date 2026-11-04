@@ -65,6 +65,18 @@ public class HeadlessChrome private constructor(
     }
 
     /**
+     * Makes the pages loaded from now on report [languages] as the browser's, as a browser started under the POSIX locale
+     * reports `en-US@posix`, which a headless Chrome on a Mac never does by itself.
+     */
+    public fun reportLanguages(vararg languages: String) {
+        val list = languages.joinToString(", ") { "'$it'" }
+        val script = "Object.defineProperty(navigator, 'languages', { get: () => [$list], configurable: true });" +
+            "Object.defineProperty(navigator, 'language', { get: () => '${languages.first()}', configurable: true });"
+        call("Page.enable", JsonObject(emptyMap()))
+        call("Page.addScriptToEvaluateOnNewDocument", buildJsonObject { put("source", script) })
+    }
+
+    /**
      * What the page shows now.
      */
     public fun screenshot(): BufferedImage {

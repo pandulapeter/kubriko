@@ -91,19 +91,11 @@ class GameTargetsTest {
         val on = targets.change(GameTarget.WEB, isOn = true)
         assertIs<TargetChange.Proposed>(on)
         assertEquals(
-            listOf(
-                "build.gradle.kts" to false,
-                "src/wasmJsMain/composeResources/font/${WebFontUpgrade.FONT_FILE}" to true,
-                "src/wasmJsMain/kotlin/com/example/mygame/Main.kt" to true,
-                "src/wasmJsMain/resources/index.html" to true,
-            ),
+            listOf("build.gradle.kts" to false, "src/wasmJsMain/kotlin/com/example/mygame/Main.kt" to true, "src/wasmJsMain/resources/index.html" to true),
             on.changes.map { it.path to it.isNew },
         )
-        assertEquals(listOf(WebFontUpgrade.FONT_RESOURCE), on.changes.mapNotNull { it.resource })
         assertTrue(targets.apply(on))
         assertContains(file("src/wasmJsMain/resources/index.html").readText(), "src=\"my-game.js\"")
-        assertTrue(TemplateFiles.readBytes(WebFontUpgrade.FONT_RESOURCE).contentEquals(file("src/wasmJsMain/composeResources/font/${WebFontUpgrade.FONT_FILE}").readBytes()))
-        assertTrue(on.isReversible)
     }
 
     @Test

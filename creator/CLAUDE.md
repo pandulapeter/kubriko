@@ -275,9 +275,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   commit first, and applies only to a file that still looks like the template's; others are listed with what to add by hand, and a
   file that already has the change counts as done. A change's `after` is null for a file it deletes. A new template version is a
   `TemplateStep` per file it changes, added to `TemplateSteps.FILES`; the version number follows from them. Template version 5 sets
-  `KubrikoWiring.isLoggingEnabled` from a property only the play session sets, so Log Blocks cost nothing in a released game. A
-  file that isn't text (the web's font) is a copy of one of the module's resources, listed as `path <- resource` in a
-  template's or target's `files.txt` and added by an upgrade as a `CopiedFile`, so a change to it is shown by its path only.
+  `KubrikoWiring.isLoggingEnabled` from a property only the play session sets, so Log Blocks cost nothing in a released game.
 - **Kubriko dependencies** (`project/KubrikoBuildFiles`): after every regeneration of an opted-in project, its build depends on
   exactly the Kubriko libraries its sources name (the engine and `tool-creator-api` always), its `kubriko` version is raised to
   Creator's (a newer one is kept and reported once), and the Maven Local block and the audio plugin's JitPack block come and go
@@ -340,9 +338,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **The web** (`WebPlayer`, `WebGameServer`): playing builds the development distribution rather than running webpack's
   dev server, which would hold a Gradle daemon while the game is open, and serves it from Creator on a loopback port, with
   a script added to `index.html` that loads the page again when the event stream says so; a change while it plays builds it
-  again and says so, which is the web's stand-in for hot reload. Compose for Web has no font of its own, so a text draws nothing
-  without one: the web `Main.kt` shows the game only once the project's own font (Public Sans, in the web source set's
-  `composeResources/font`) is preloaded, which makes it the font every text falls back to. The browser's console isn't Creator's, so the console says
+  again and says so, which is the web's stand-in for hot reload. Compose for Web draws no text at all when the browser's language
+  isn't a language tag, as one started under the POSIX locale reports it (`en-US@posix`, CI's headless Chrome among them),
+  so the web `Main.kt` hands Compose the languages without such a modifier first (`WebLocaleUpgrade`). The browser's console isn't Creator's, so the console says
   where the game is and its logs are. A game played anywhere but the desktop is `SessionController.playElsewhere`, whose
   `SessionState` names the target, and the game tools refuse it (`GameStep.Elsewhere`), since only the desktop's session
   answers them. `-Dkubriko.creator.browser=none` keeps the browser closed (the end-to-end scenarios load the page in a

@@ -38,20 +38,10 @@ public sealed interface TemplateUpgrade {
  * @param before The file's content with Unix line breaks, empty for a file that is created.
  * @param after The new content of the file, or null if it is deleted.
  * @param isNew Whether the file is created, so that it is named rather than shown line by line.
- * @param resource The resource of Kubriko Creator's whose bytes a created file that isn't text (a font) gets, in place of
- *   [after], which is then empty.
  */
 public data class ProposedFileChange(
     public val path: String,
     public val before: String,
     public val after: String?,
     public val isNew: Boolean = false,
-    public val resource: String? = null,
-) {
-    public companion object {
-        /**
-         * The creation of [path] as a copy of Kubriko Creator's [resource].
-         */
-        public fun copyOf(resource: String, path: String): ProposedFileChange = ProposedFileChange(path = path, before = "", after = "", isNew = true, resource = resource)
-    }
-}
+)

@@ -20,7 +20,7 @@ class PlaySwitchesUpgradeTest {
     fun theWebMainBecomesWhatTemplateVersion11Made() {
         assertFalse(PlaySwitchesUpgrade.isWebDone(OLD_WEB_MAIN))
         val upgraded = PlaySwitchesUpgrade.web(OLD_WEB_MAIN, WIRING_IMPORT)
-        assertEquals(WebFontUpgradeTest.WEB_MAIN_11, upgraded)
+        assertEquals(WebLocaleUpgradeTest.WEB_MAIN_11, upgraded)
         assertTrue(PlaySwitchesUpgrade.isWebDone(upgraded))
     }
 

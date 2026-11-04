@@ -1,35 +1,20 @@
 package {{PACKAGE}}
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFontFamilyResolver
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.window.ComposeViewport
 import {{PACKAGE}}.generated.KubrikoWiring
-import {{PACKAGE}}.resources.Res
-import {{PACKAGE}}.resources.public_sans_regular
-import kotlinx.coroutines.CancellationException
-import org.jetbrains.compose.resources.getFontResourceBytes
-import org.jetbrains.compose.resources.getSystemResourceEnvironment
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    useValidBrowserLanguage()
     KubrikoWiring.isLoggingEnabled = creatorParameter("kubriko.creator.logging").toBoolean()
     KubrikoWiring.firstSceneOverride = creatorParameter("kubriko.creator.scene")
     ComposeViewport {
-        WithFallbackFont {
-            Game(
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
+        Game(
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
@@ -40,23 +25,16 @@ fun main() {
 private fun creatorParameter(name: String): String? = js("['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname) ? new URLSearchParams(location.search).get(name) : null")
 
 /**
- * Shows [content] once the font every text falls back to is loaded, since Compose for Web has no font of its own: a text
- * drawn before then stays blank.
+ * Hands Compose the browser's languages without a modifier such as `@posix`, which a browser started under the POSIX
+ * locale reports (`en-US@posix`): Compose reads them as language tags, and draws no text at all when one isn't.
  */
-@Composable
-private fun WithFallbackFont(content: @Composable () -> Unit) {
-    val fontFamilyResolver = LocalFontFamilyResolver.current
-    var isLoaded by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        try {
-            val bytes = getFontResourceBytes(getSystemResourceEnvironment(), Res.font.public_sans_regular)
-            fontFamilyResolver.preload(FontFamily(Font("public_sans_regular", bytes)))
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (exception: Exception) {
-            println("The font texts fall back to couldn't be loaded, so they may stay blank: $exception")
-        }
-        isLoaded = true
+private fun useValidBrowserLanguage(): Unit = js("""{
+    const isValid = (tag) => { try { new Intl.Locale(tag); return true; } catch (e) { return false; } };
+    const reported = navigator.languages || [navigator.language];
+    if (!reported.every(isValid)) {
+        const valid = reported.map((tag) => tag.split('@')[0]).filter(isValid);
+        const languages = valid.length > 0 ? valid : ['en-US'];
+        Object.defineProperty(navigator, 'languages', { get: () => languages });
+        Object.defineProperty(navigator, 'language', { get: () => languages[0] });
     }
-    if (isLoaded) content()
-}
+}""")

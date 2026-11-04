@@ -13,11 +13,8 @@ package com.pandulapeter.kubrikoCreator.template
  * One file of a [ProjectTemplate], before rendering.
  *
  * @param path The file's path in the template, with `__PACKAGE__` standing for the package's folders.
- * @param resource The resource of Kubriko Creator's that a file that isn't text is copied from as it is, in place of
- *   [content].
  */
 public class TemplateFile(
     public val path: String,
     public val content: String,
-    public val resource: String? = null,
 )
