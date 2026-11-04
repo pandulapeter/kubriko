@@ -18,8 +18,10 @@ import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 /**
  * The modules the sidebar shows, as a tree in the order it lists them: each inside the nearest one its folder is in
  * (`app/desktop` and `app/android` inside `app`, which is shown even without a build file of its own, as Gradle makes
- * it a project too, but never inside the folders above a build of its own, such as `gradle/build-logic`), and among those at one level, the one holding the module Kubriko Creator generates code into (or,
- * without block-built types, puts new Scenes in) first, then the root project, then the rest by name.
+ * it a project too, but never inside the folders above a build of its own, such as `gradle/build-logic`), and among
+ * those at one level, the one holding the game's module first, then the root project, then the rest by name. The game's
+ * module is the one Kubriko Creator generates code into, or in a project that isn't opted in, the [gameModule] chosen
+ * in the toolbar (by its folder), or else the one it puts new Scenes in.
  *
  * Every module [layout] knows is one, and so is every module with files. Types go to the module of their code, Scenes to
  * every module that has a file of their name (one not scanned yet to [layout]'s Scene module, where it was made), and the
@@ -34,9 +36,10 @@ internal fun sidebarModules(
     resources: Map<ResourceGroup, List<ProjectResource>>,
     folderGroups: Map<FolderGroup, FolderTreeGroupState>,
     layout: ProjectLayout,
+    gameModule: String? = null,
 ): List<SidebarModule> {
     val typeModule = layout.typeModule ?: layout.sceneModule
-    val home = if (folderGroups.keys.any { it.kind != null }) typeModule else layout.sceneModule
+    val home = if (folderGroups.keys.any { it.kind != null }) typeModule else gameModule ?: layout.sceneModule
     val buildRoots = layout.modules.filterValues { it.isBuildRoot }.keys
     val modules = resources.values.flatten().map { it.module } + layout.modules.keys + layout.sceneModule + home
     val paths = modules.flatMapTo(HashSet()) { path -> listOf(path) + foldersAbove(path, buildRoots) }

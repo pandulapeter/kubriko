@@ -53,6 +53,8 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param folderGroups The groups with folders it shows (the type groups only for projects that opted in to them).
  * @param layout Where the types and new Scenes are kept, which decides the modules they are shown in.
+ * @param gameModule The folder of the module chosen as the game's in the toolbar, whose branch opens first in a project
+ *   that isn't opted in.
  * @param dragState Where types and Scenes are dragged to: folders, and the open Scene.
  */
 @Composable
@@ -63,6 +65,7 @@ internal fun ProjectSidebar(
     folderActions: FolderTreeActions,
     dragState: SidebarDragState,
     layout: ProjectLayout = ProjectLayout(),
+    gameModule: String? = null,
     flashedName: String? = null,
     flashKey: Any? = null,
 ) = Column(
@@ -72,7 +75,7 @@ internal fun ProjectSidebar(
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
     val expansion = remember { SidebarExpansion() }
     val isFiltering = query.isNotBlank()
-    val modules = remember(resources, folderGroups, layout) { sidebarModules(resources, folderGroups, layout) }
+    val modules = remember(resources, folderGroups, layout, gameModule) { sidebarModules(resources, folderGroups, layout, gameModule) }
     val isGrouped = modules.size > 1
     val structure = remember(modules) { modules.map { it.withoutSelection() } }
     val outline = remember(structure) { SidebarOutline(structure.flatMap { it.outlineNodes(isGrouped) }) }

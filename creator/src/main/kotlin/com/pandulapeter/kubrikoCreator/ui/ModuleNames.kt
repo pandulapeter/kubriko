@@ -28,3 +28,9 @@ internal fun gradleModuleName(gradlePath: String) = gradlePath.removePrefix(":")
  */
 @Composable
 internal fun moduleFolderName(path: String) = if (path.isEmpty()) stringResource(Res.string.game_module_root) else path.substringAfterLast('/')
+
+/**
+ * The folder of the module with the Gradle path [gradlePath] (`app/desktop` for `:app:desktop`), where Gradle keeps it
+ * unless its settings move it.
+ */
+internal fun moduleFolderOf(gradlePath: String) = gradlePath.removePrefix(":").replace(':', '/')

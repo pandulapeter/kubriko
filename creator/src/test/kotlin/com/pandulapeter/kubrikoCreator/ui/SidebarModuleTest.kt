@@ -209,5 +209,19 @@ class SidebarModuleTest {
         assertEquals(emptySet(), notOptedIn.single().creatingGroups, "Nothing loads Scenes from where the templates keep them in this project")
     }
 
+    @Test
+    fun aProjectThatIsntOptedInOpensOnTheModuleChosenInTheToolbar() {
+        val modules = sidebarModules(
+            resources = mapOf(ResourceGroup.KOTLIN to listOf("app/desktop", "editor/model", "gameplay").map { resource(ResourceGroup.KOTLIN, "$it/src/main/kotlin/Main.kt", it, "") }),
+            folderGroups = folderTreeGroups(null, emptyMap(), null, emptyList(), emptySet(), null),
+            layout = ProjectLayout(modules = modulesOf("" to false, "app/desktop" to false, "editor/model" to true, "gameplay" to true)),
+            gameModule = moduleFolderOf(":app:desktop"),
+        )
+        assertEquals(listOf("app", "app/desktop"), modules.filter { it.holdsGame }.map { it.path })
+        assertEquals("app", modules.first().path)
+        val optedIn = sidebarModules(resources, folderGroups, ProjectLayout(typeModule = "game", sceneModule = "game"), gameModule = "tools")
+        assertEquals(listOf("game"), optedIn.filter { it.holdsGame }.map { it.path }, "Opted in, the game is where its code is generated")
+    }
+
     private fun modulesOf(vararg modules: Pair<String, Boolean>) = modules.associate { (path, usesKubriko) -> path to ProjectModule(usesKubriko) }
 }

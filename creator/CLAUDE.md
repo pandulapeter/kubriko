@@ -507,8 +507,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - A project of several Gradle modules shows each module's groups under a band of its own, nested as the folders are
   (`app/desktop` inside `app`, shown even without a build file, since Gradle makes it a project too, but a build of its
   own such as `gradle/build-logic` at the top, inside no folder above it) and named by its
-  folder's own name, never by a Gradle path starting with `:`; the branch holding the game's module comes first and is
-  the only one open at first, and a project of one shows no band. A module is a folder with a build file (`ResourceScanner.moduleOf`), told by the files
+  folder's own name, never by a Gradle path starting with `:`; the branch holding the game's module (the toolbar's
+  choice in a project that isn't opted in) comes first and is the only one open at first, and a project of one shows no band. A module is a folder with a build file (`ResourceScanner.moduleOf`), told by the files
   rather than asked from Gradle, so the tree never waits for a build. One whose build file names a Kubriko library
   (`ProjectModules`: a catalog library or bundle, or its coordinates, outside comments) lists every group, an empty one
   as only its faded header; any other lists what it has, and is left out when that is nothing.
