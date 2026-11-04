@@ -18,6 +18,10 @@ import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
@@ -43,6 +47,13 @@ internal class CreatorTaskRunner(
      * while another one runs needs a Gradle daemon of its own.
      */
     private val classpathBuildLock = Mutex()
+    private val _runningBuilds = MutableStateFlow(0)
+
+    /**
+     * How many builds the console reports are running or waiting for another, so the user can tell the game is being
+     * built: neither the silent warm-up nor a play session's build, which lasts as long as the game does, counts.
+     */
+    val runningBuilds: StateFlow<Int> = _runningBuilds.asStateFlow()
 
     /**
      * Runs one of the init script's tasks in the game's module with Kubriko Creator's [properties], reporting
@@ -65,9 +76,18 @@ internal class CreatorTaskRunner(
      * Runs a build Kubriko Creator doesn't run through Gradle itself (Xcode's, whose build phase runs Gradle), as [run]
      * runs its own: once the changes made so far are written, and never alongside another build of the classpath.
      */
-    suspend fun <T> runOutside(build: suspend () -> T): T {
+    suspend fun <T> runOutside(build: suspend () -> T): T = counted {
         startBuild()
-        return classpathBuildLock.withLock { build() }
+        classpathBuildLock.withLock { build() }
+    }
+
+    private suspend fun <T> counted(block: suspend () -> T): T {
+        _runningBuilds.update { it + 1 }
+        try {
+            return block()
+        } finally {
+            _runningBuilds.update { it - 1 }
+        }
     }
 
     private suspend fun startBuild() {
@@ -82,7 +102,10 @@ internal class CreatorTaskRunner(
         }
     }
 
-    private suspend fun runBuild(properties: Map<String, String>, isSession: Boolean, reportsTime: Boolean, taskPathIn: (modulePath: String) -> String): Boolean {
+    private suspend fun runBuild(properties: Map<String, String>, isSession: Boolean, reportsTime: Boolean, taskPathIn: (modulePath: String) -> String): Boolean =
+        if (isSession) buildWith(properties, isSession = true, reportsTime, taskPathIn) else counted { buildWith(properties, isSession = false, reportsTime, taskPathIn) }
+
+    private suspend fun buildWith(properties: Map<String, String>, isSession: Boolean, reportsTime: Boolean, taskPathIn: (modulePath: String) -> String): Boolean {
         startBuild()
         val modulePath = try {
             gameModule.await()

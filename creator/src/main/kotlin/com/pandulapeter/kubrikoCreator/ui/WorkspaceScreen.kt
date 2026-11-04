@@ -250,6 +250,7 @@ private fun WorkspaceToolbarOf(
     onCloseProject: () -> Unit,
 ) = WorkspaceToolbar(
     sessionState = sessionState,
+    isBuilding = controller.runningBuilds.collectAsState().value > 0,
     history = controller.commands.history,
     onUndo = controller.commands::undo,
     onRedo = controller.commands::redo,

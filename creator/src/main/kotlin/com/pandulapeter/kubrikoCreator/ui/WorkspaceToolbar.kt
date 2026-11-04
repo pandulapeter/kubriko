@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
@@ -83,6 +84,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun WorkspaceToolbar(
     sessionState: SessionState,
+    isBuilding: Boolean,
     history: StateFlow<CommandHistory>,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
@@ -111,10 +113,11 @@ internal fun WorkspaceToolbar(
         Button(
             modifier = ToolbarButtonModifier,
             contentPadding = ToolbarButtonPadding,
-            colors = ButtonDefaults.buttonColors(containerColor = Accent.ACTION.color, contentColor = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) Color.Black else Color.White),
+            colors = playColors(),
+            enabled = !isBuilding,
             onClick = onPlay,
         ) {
-            ButtonContent(Res.drawable.ic_play, Res.string.action_play)
+            ButtonContent(Res.drawable.ic_play, Res.string.action_play, isBusy = isBuilding)
         }
         PlayTargetMenu(
             targets = playTargets,
@@ -279,15 +282,38 @@ private fun VersionControlLabel(
 private fun ButtonContent(
     icon: DrawableResource,
     label: StringResource,
+    isBusy: Boolean = false,
 ) {
-    Icon(
-        modifier = Modifier.size(16.dp),
-        painter = painterResource(icon),
-        contentDescription = null,
-    )
+    if (isBusy) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(16.dp).padding(2.dp),
+            strokeWidth = 2.dp,
+            color = LocalContentColor.current,
+        )
+    } else {
+        Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(icon),
+            contentDescription = null,
+        )
+    }
     Text(
         modifier = Modifier.padding(start = 6.dp),
         text = stringResource(label),
+    )
+}
+
+/**
+ * Play's green, kept (faded) while it waits for a build, so it reads as busy rather than unavailable.
+ */
+@Composable
+private fun playColors(): ButtonColors {
+    val content = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) Color.Black else Color.White
+    return ButtonDefaults.buttonColors(
+        containerColor = Accent.ACTION.color,
+        contentColor = content,
+        disabledContainerColor = Accent.ACTION.color.copy(alpha = 0.5f),
+        disabledContentColor = content.copy(alpha = 0.8f),
     )
 }
 

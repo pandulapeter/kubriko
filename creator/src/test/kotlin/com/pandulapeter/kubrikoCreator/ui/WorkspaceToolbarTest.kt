@@ -14,8 +14,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
@@ -61,9 +66,23 @@ class WorkspaceToolbarTest {
         onNodeWithText("app:desktop").assertDoesNotExist()
     }
 
+    @Test
+    fun playWaitsForTheBuildThatRuns() = uiTest(width = 1200, height = 80) {
+        var isBuilding by mutableStateOf(true)
+        var plays = 0
+        showing { Toolbar(SessionState.Idle, isBuilding = isBuilding, onPlay = { plays++ }) }
+        onNode(hasText("Play") and hasClickAction()).assertIsNotEnabled()
+        saveSnapshot("workspace-toolbar-building")
+        isBuilding = false
+        waitForIdle()
+        onNode(hasText("Play") and hasClickAction()).assertIsEnabled().performClick()
+        assertEquals(1, plays)
+    }
+
     @Composable
-    private fun Toolbar(sessionState: SessionState, gameModules: GameModules? = null) = WorkspaceToolbar(
+    private fun Toolbar(sessionState: SessionState, gameModules: GameModules? = null, isBuilding: Boolean = false, onPlay: () -> Unit = {}) = WorkspaceToolbar(
         sessionState = sessionState,
+        isBuilding = isBuilding,
         history = MutableStateFlow(CommandHistory()),
         onUndo = {},
         onRedo = {},
@@ -76,7 +95,7 @@ class WorkspaceToolbarTest {
         onPlayTargetChosen = {},
         gameModules = gameModules,
         onGameModuleChosen = {},
-        onPlay = {},
+        onPlay = onPlay,
         onStop = {},
         onOpenProjectSettings = {},
         onOpenTargets = {},

@@ -54,6 +54,7 @@ class AiFeaturesOffTest {
     private fun WorkspaceParts() = Column {
         WorkspaceToolbar(
             sessionState = SessionState.Idle,
+            isBuilding = false,
             history = MutableStateFlow(CommandHistory()),
             onUndo = {},
             onRedo = {},

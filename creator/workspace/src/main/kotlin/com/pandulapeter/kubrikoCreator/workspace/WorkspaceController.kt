@@ -186,6 +186,11 @@ public class WorkspaceController(
     /** Whether the session process is idle, starting, or running. */
     public val sessionState: StateFlow<SessionState> = sessions.state
 
+    /**
+     * How many of the project's builds the console reports are running, which Play waits for.
+     */
+    public val runningBuilds: StateFlow<Int> = tasks.runningBuilds
+
     private val players = TargetPlayers(
         targets = { files.targets },
         androidDevices = ::androidDevices,

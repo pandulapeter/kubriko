@@ -168,6 +168,32 @@ class CreatorTaskRunnerTest {
     }
 
     @Test
+    fun theBuildsTheConsoleReportsAreCountedWhileTheyRunOrWaitButNotASessionsOrTheWarmUp() = runTest {
+        val runner = createRunner()
+        start(runner)
+        start(runner)
+        assertEquals(2, runner.runningBuilds.value, "the second build counts while it waits for the first")
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(1, runner.runningBuilds.value)
+        build.currentRun.finish(isSuccessful = false)
+        assertEquals(0, runner.runningBuilds.value, "a failed build stops counting too")
+        start(runner, SessionInitScript.SESSION_TASK_NAME)
+        assertEquals(0, runner.runningBuilds.value, "a session's build lasts as long as the game")
+        build.currentRun.finish(isSuccessful = true)
+        backgroundScope.async(UnconfinedTestDispatcher(testScheduler)) { runner.warmUpCompiler() }
+        assertEquals(0, runner.runningBuilds.value, "the warm-up is silent")
+    }
+
+    @Test
+    fun aCancelledBuildStopsCounting() = runTest {
+        val runner = createRunner()
+        val classpath = start(runner)
+        assertEquals(1, runner.runningBuilds.value)
+        classpath.cancel()
+        assertEquals(0, runner.runningBuilds.value)
+    }
+
+    @Test
     fun twoClasspathBuildsDontOverlap() = runTest {
         val runner = createRunner()
         start(runner)
