@@ -50,8 +50,8 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
 14. [Project upkeep](14-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
 15. [Onboarding](15-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
-16. [Automated testing](16-automated-testing.md) - the tests a project already has found, listed, and run with one click, a test kit
-    for games in Kotlin, and the AI writing and keeping them; finding existing tests waits for nothing and can be pulled forward.
+16. [Rehearsals](16-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a
+    test kit for games in Kotlin, and the AI writing and keeping them; finding existing tests waits for nothing and can be pulled forward.
 17. [Later](17-later.md) - code editor, language server, asset editor extension point.
 
 ## Structure
@@ -85,6 +85,7 @@ project file, are in `../CLAUDE.md`.
 | Kotlin Block | A verbatim Kotlin snippet | "Execute code" |
 | Manager type | A class extending `Manager`: game-wide state and logic | Global variables, or a controller object |
 | Property | An `@Exposed` property (or a Manager's `var`) | Variable |
+| Rehearsal | A Kotlin test (`rehearse { }`) playing the game without a window | (none) |
 | Scene | A serialized JSON scene file | Room |
 | Screenplay | The game's design documents: Markdown pages in `screenplay/` | (none; a design document) |
 | Timer | Two `Long` fields counting down | Alarm |
