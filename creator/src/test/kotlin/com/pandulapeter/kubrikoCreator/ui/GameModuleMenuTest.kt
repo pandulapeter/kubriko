@@ -23,21 +23,21 @@ import kotlin.test.assertEquals
 class GameModuleMenuTest {
 
     @Test
-    fun theMenuListsEveryModuleAndChoosesTheGame() = uiTest(width = 480, height = 320) {
+    fun theMenuListsEveryModuleByItsPathWithoutTheLeadingSeparatorAndChoosesTheGame() = uiTest(width = 480, height = 320) {
         val chosen = mutableListOf<String>()
         showing {
             GameModuleMenu(
-                modules = GameModules(listOf(":app:desktop", ":editor:model", ":editor:region"), ":app:desktop"),
+                modules = GameModules(listOf(":", ":app:desktop", ":editor:model"), ":app:desktop"),
                 onChosen = { chosen += it },
             )
         }
-        onNodeWithText(":app:desktop").performClick()
+        onNodeWithText("app:desktop").performClick()
         waitForIdle()
-        onNodeWithText(":editor:region").assertExists()
+        onNodeWithText("Root module").assertExists()
         saveSnapshot("game-module-menu")
-        onNodeWithText(":editor:model").performClick()
+        onNodeWithText("editor:model").performClick()
         waitForIdle()
-        onNodeWithText(":editor:region").assertDoesNotExist()
+        onNodeWithText("Root module").assertDoesNotExist()
         assertEquals(listOf(":editor:model"), chosen)
     }
 }

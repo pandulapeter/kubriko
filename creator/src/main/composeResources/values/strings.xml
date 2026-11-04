@@ -16,6 +16,7 @@
     <string name="action_play">Play</string>
     <string name="action_choose_play_target">Where to play the game</string>
     <string name="action_choose_game_module">Which module is the game</string>
+    <string name="game_module_root">Root module</string>
     <string name="action_more_play_targets">Build for more platforms…</string>
     <string name="play_target_android">Android</string>
     <string name="action_set_up_android_emulators">Set up more emulators…</string>

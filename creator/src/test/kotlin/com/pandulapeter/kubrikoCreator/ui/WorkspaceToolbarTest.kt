@@ -51,14 +51,14 @@ class WorkspaceToolbarTest {
         showing { Toolbar(sessionState, gameModules) }
         gameModules = GameModules(listOf(":"), ":")
         waitForIdle()
-        onNodeWithText(":").assertDoesNotExist()
+        onNodeWithText("Root module").assertDoesNotExist()
         gameModules = GameModules(listOf(":app:desktop", ":editor:model"), ":app:desktop")
         waitForIdle()
-        onNodeWithText(":app:desktop").assertExists()
+        onNodeWithText("app:desktop").assertExists()
         saveSnapshot("workspace-toolbar-game-module")
         sessionState = SessionState.Running(SessionMode.PLAY)
         waitForIdle()
-        onNodeWithText(":app:desktop").assertDoesNotExist()
+        onNodeWithText("app:desktop").assertDoesNotExist()
     }
 
     @Composable
