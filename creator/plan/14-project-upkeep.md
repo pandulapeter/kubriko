@@ -54,6 +54,30 @@ explanations instead of failures for layouts Creator can't interpret.
   the browser.
 - **The code's module.** Generated code, the build file sync, and the sources Creator scans need the module that holds the game's code,
   which in a multi-module project isn't the desktop one (see Kubriko dependencies above).
+- **Types and Scenes in every Kubriko module.** The sidebar already lists every group in each module that uses Kubriko
+  (`ProjectModules`), but only the module the generated code goes to (`CreatorProjectSettings.sourceDirectory`) adds Actor types and
+  Manager types, and only the one the game loads Scenes from adds Scenes. Each of them should take new ones (the user's choice, after
+  the sidebar showed them empty):
+  - **Model.** `.kubriko/project.json` maps each module that holds types to its package and source folder (the current pair becomes
+    the game's module's entry), and each type file records its module (`"module": "tools"`, absent for the game's), so a project
+    without the field reads as before. Both need a format raise with an empty migration. Moving a type between modules is not offered:
+    it would be a modularization change, which Creator leaves to the user.
+  - **Code.** Each module gets its own generated package with its own registry, Scene loader, audio, and `KubrikoWiring` part, written
+    by the same generators run once per module, and the build file sync runs per module (each depends on the libraries its own sources
+    name). A type may refer only to types of its own module and of modules it depends on; the dependencies come from the Gradle model
+    `DesktopModules` already fetches (`project(":x")` lines), and `validate` rejects the rest in the user's words, naming both modules.
+    Parent types follow the same rule.
+  - **Scenes.** A Scene is named by its path within its module's Scenes folder, so names repeat across modules: `SceneStore` keys
+    Scenes by module and path (`tools/sandbox` written as `tools:sandbox` wherever a module is named, the game's needing none), commands
+    and AI tools take that name, and placing an Actor checks that the Scene's module can reach the type's. Today two modules with a Scene
+    of the same name show both in the sidebar, but every command acts on the first file found; this removes that ambiguity.
+  - **Commands and AI.** `create_actor_type`, `create_manager_type`, `create_scene`, and `create_folder` take an optional `module`
+    (absent: the game's), `list_*` and the digest name each item's module only in a project of several, and `get_project_overview`
+    lists the modules and what each may refer to.
+  - **Scene editor.** It loads the game module's classes, so a Scene of another module opens only when the game depends on it; one that
+    can't says why (`SceneEditingState.Unsupported`) rather than failing to create its Actors.
+  - Checked with unit tests per part, the format fixtures, and one end-to-end scenario on a two-module copy of the Breakout fixture that
+    adds a type and a Scene to the second module, builds, and plays.
 - **Every resource.** The sidebar lists only the folders Creator knows about (sprites, sounds, Scenes); a project's own resource
   folders (`files/model`) should show too, opening in the system's editor until a project registers an editor of its own.
 
