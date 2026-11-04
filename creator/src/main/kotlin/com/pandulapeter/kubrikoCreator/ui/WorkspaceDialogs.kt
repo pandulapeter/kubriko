@@ -12,7 +12,10 @@ package com.pandulapeter.kubrikoCreator.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -25,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.project_upgrade_commit_message
@@ -117,10 +121,21 @@ private fun PendingDeleteConfirmation(
     onDismiss: () -> Unit,
 ) {
     val subject = pending.invocation.deletedSubject ?: return
-    val usages by produceState<List<Usage>?>(null, pending) { value = usagesOf(pending.invocation).orEmpty() }
+    var readProblem by remember(pending) { mutableStateOf<String?>(null) }
+    val usages by produceState<List<Usage>?>(null, pending) {
+        value = try {
+            usagesOf(pending.invocation).orEmpty()
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            readProblem = exception.message ?: exception.toString()
+            emptyList()
+        }
+    }
     DeleteConfirmation(
         subject = subject,
         usages = usages,
+        readProblem = readProblem,
         onConfirm = onConfirm,
         onUsageSelected = onUsageSelected,
         onDismiss = onDismiss,

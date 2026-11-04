@@ -35,6 +35,7 @@ import kubriko.creator.generated.resources.action_cancel
 import kubriko.creator.generated.resources.action_delete
 import kubriko.creator.generated.resources.delete_confirmation_loading
 import kubriko.creator.generated.resources.delete_confirmation_none
+import kubriko.creator.generated.resources.delete_confirmation_read_failed
 import kubriko.creator.generated.resources.delete_confirmation_refused
 import kubriko.creator.generated.resources.delete_confirmation_usages
 import kubriko.creator.generated.resources.usage_row
@@ -46,12 +47,14 @@ import org.jetbrains.compose.resources.stringResource
  * while one of them keeps it from being deleted.
  *
  * @param usages The usages, or null while they are being read.
+ * @param readProblem Why the usages couldn't be read, if they couldn't: deleting still goes ahead, and says what it can't do.
  */
 @Composable
 internal fun DeleteConfirmation(
     subject: RelationSubject,
     usages: List<Usage>?,
     onConfirm: () -> Unit,
+    readProblem: String? = null,
     onUsageSelected: (Usage) -> Unit,
     onDismiss: () -> Unit,
 ) = CreatorDialog(
@@ -73,7 +76,19 @@ internal fun DeleteConfirmation(
     dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
+        if (readProblem != null) {
+            Text(text = stringResource(Res.string.delete_confirmation_read_failed, readProblem), color = MaterialTheme.colorScheme.error)
+        } else {
+            DeleteConfirmationSummary(usages)
+        }
+        if (!usages.isNullOrEmpty()) {
+            UsageList(usages = usages, onUsageSelected = onUsageSelected)
+        }
+    }
+}
+
+@Composable
+private fun DeleteConfirmationSummary(usages: List<Usage>?) = Text(
             text = stringResource(
                 when {
                     usages == null -> Res.string.delete_confirmation_loading
@@ -83,11 +98,6 @@ internal fun DeleteConfirmation(
                 },
             ),
         )
-        if (!usages.isNullOrEmpty()) {
-            UsageList(usages = usages, onUsageSelected = onUsageSelected)
-        }
-    }
-}
 
 @Composable
 private fun UsageList(

@@ -88,4 +88,11 @@ class DeleteConfirmationTest {
         assertFalse(isConfirmed)
         saveSnapshot("delete-confirmation-refused")
     }
+
+    @Test
+    fun usagesThatCouldntBeReadAreSaidAndDeletingStillGoesAhead() = uiTest(width = 720, height = 360) {
+        showing { DeleteConfirmation(subject = brick, usages = emptyList(), readProblem = "Permission denied", onConfirm = {}, onUsageSelected = {}, onDismiss = {}) }
+        onNodeWithText("Kubriko Creator couldn't find what uses it, so it can't say what deleting it changes: Permission denied").assertExists()
+        onNodeWithText("Delete").assertIsEnabled()
+    }
 }

@@ -689,6 +689,7 @@
     <string name="delete_confirmation_loading">Looking for what uses it…</string>
     <string name="delete_confirmation_none">Nothing else uses it. You can undo this.</string>
     <string name="delete_confirmation_usages">These change with it, in one step you can undo:</string>
+    <string name="delete_confirmation_read_failed">Kubriko Creator couldn't find what uses it, so it can't say what deleting it changes: %1$s</string>
     <string name="delete_confirmation_refused">It can't be deleted while this is so.</string>
     <string name="choice_missing">%1$s no longer exists</string>
     <string name="usage_row">%1$s · %2$s</string>
