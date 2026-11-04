@@ -146,6 +146,8 @@ class ProjectGeneratorTest {
             File(directory, "src/desktopMain/resources/META-INF/services/com.pandulapeter.kubriko.creator.CreatorEntryPoint").readText().trim(),
         )
         assertTrue("kubriko = \"1.0.0\"" in File(directory, "gradle/libs.versions.toml").readText())
+        val font = File(directory, "src/wasmJsMain/composeResources/font/${WebFontUpgrade.FONT_FILE}")
+        assertTrue(TemplateFiles.readBytes(WebFontUpgrade.FONT_RESOURCE).contentEquals(font.readBytes()), "The web's font isn't copied as it is.")
         assertEquals(ProjectFormatStatus.Writable, ProjectFormat(directory, creatorVersion = "1.0.0").prepare())
         assertTrue("\"formatVersion\": ${ProjectFormat.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())
         assertTrue("\"templateVersion\": ${ProjectUpgrader.CURRENT_VERSION}," in File(directory, ".kubriko/project.json").readText())

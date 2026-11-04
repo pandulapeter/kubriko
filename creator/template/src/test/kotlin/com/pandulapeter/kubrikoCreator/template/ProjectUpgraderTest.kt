@@ -23,6 +23,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ProjectUpgraderTest {
     private val parentDirectory = createTempDirectory().toFile()
@@ -231,6 +232,36 @@ class ProjectUpgraderTest {
     }
 
     @Test
+    fun upgradingAVersion11ProjectAddsTheFontTextsFallBackToOnTheWeb() {
+        val webMain = File(directory, WEB_MAIN_PATH)
+        val newWebMain = webMain.readText()
+        webMain.writeText(WebFontUpgradeTest.WEB_MAIN_11.replace("\n", "\r\n"))
+        val font = File(directory, WEB_FONT_PATH).apply { delete() }
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 11 }""")
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf(WEB_MAIN_PATH to null, WEB_FONT_PATH to WebFontUpgrade.FONT_RESOURCE), upgrade.changes.map { it.path to it.resource })
+        assertTrue(upgrade.changes.last().isNew)
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newWebMain.replace("\n", "\r\n"), webMain.readText())
+        assertTrue(TemplateFiles.readBytes(WebFontUpgrade.FONT_RESOURCE).contentEquals(font.readBytes()))
+    }
+
+    @Test
+    fun aProjectNotBuiltForTheWebGetsNoFont() {
+        File(directory, "src/wasmJsMain").deleteRecursively()
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 11 }""")
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
+    }
+
+    @Test
+    fun aFontAlreadyThereIsKept() {
+        val font = File(directory, WEB_FONT_PATH).apply { writeText("the user's own") }
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 11 }""")
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals("the user's own", font.readText())
+    }
+
+    @Test
     fun upgradingAVersion5ProjectTurnsGradlesCachesOn() {
         val properties = File(directory, "gradle.properties")
         val newProperties = properties.readText()
@@ -328,6 +359,8 @@ class ProjectUpgraderTest {
     companion object {
         private const val PACKAGE_PATH = "src/commonMain/kotlin/com/example/mygame"
         private const val MAIN_PATH = "src/desktopMain/kotlin/com/example/mygame/Main.kt"
+        private const val WEB_MAIN_PATH = "src/wasmJsMain/kotlin/com/example/mygame/Main.kt"
+        private const val WEB_FONT_PATH = "src/wasmJsMain/composeResources/font/${WebFontUpgrade.FONT_FILE}"
         private const val SCENE_LOADER_LINE = "            SceneLoader(scenePath = \"files/scenes/main.json\"),"
         private const val KUBRIKO_IMPORT = "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"
         private const val WIRING_IMPORT = "import com.example.mygame.generated.KubrikoWiring"

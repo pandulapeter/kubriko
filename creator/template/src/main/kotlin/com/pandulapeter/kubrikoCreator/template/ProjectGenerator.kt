@@ -49,7 +49,7 @@ public class ProjectGenerator(
             loadTemplate(request.template).forEach { file ->
                 File(directory, TemplateRenderer.renderPath(file.path, request.packageName)).apply {
                     parentFile.mkdirs()
-                    writeText(TemplateRenderer.renderContent(file.content, values))
+                    if (file.resource == null) writeText(TemplateRenderer.renderContent(file.content, values)) else writeBytes(TemplateFiles.readBytes(file.resource))
                 }
             }
             BlockTypeStore.open(directory)?.regenerateAll()

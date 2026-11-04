@@ -107,6 +107,7 @@ public class HeadlessChrome private constructor(
 
     public companion object {
         private const val POLLING_INTERVAL_IN_MILLISECONDS = 250L
+        private const val LOOPBACK_ONLY = "MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost"
 
         /**
          * The Chrome `KUBRIKO_CREATOR_CHROME` names, else the one in the Mac's applications folder or the first Chrome or
@@ -120,12 +121,14 @@ public class HeadlessChrome private constructor(
             ).firstOrNull { File(it).canExecute() }
 
         /**
-         * Starts [chrome] with a profile of its own in [directory] and a page [width] by [height] pixels.
+         * Starts [chrome] with a profile of its own in [directory] and a page [width] by [height] pixels, reaching no host but
+         * this computer, so a page passes only if it needs nothing from elsewhere (Compose for Web downloads a font a text
+         * lacks from Google Fonts, which a player offline doesn't get).
          */
         public fun start(chrome: String, directory: File, width: Int, height: Int): HeadlessChrome {
             val process = ProcessBuilder(
                 chrome, "--headless=new", "--no-sandbox", "--no-first-run", "--enable-unsafe-swiftshader", "--use-angle=swiftshader",
-                "--window-size=$width,$height", "--remote-debugging-port=0", "--user-data-dir=${File(directory, "chrome-profile")}", "about:blank",
+                "--window-size=$width,$height", "--host-resolver-rules=$LOOPBACK_ONLY", "--remote-debugging-port=0", "--user-data-dir=${File(directory, "chrome-profile")}", "about:blank",
             ).redirectErrorStream(true).start()
             val browserAddress = process.inputStream.bufferedReader().lineSequence()
                 .firstNotNullOfOrNull { line -> line.substringAfter("DevTools listening on ", "").takeIf { it.isNotEmpty() } }

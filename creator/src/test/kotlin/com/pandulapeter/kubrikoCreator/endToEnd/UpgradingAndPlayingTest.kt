@@ -34,7 +34,7 @@ import kotlin.time.Duration.Companion.seconds
  * Breakout brought up to the latest template, then changed the way its upgrades make possible (its name, first Scene, aspect
  * ratio, and frame rate) along with a sprite and a Log Block, and played: what each change should do shows in the played
  * game, its console, and its build. Then a hand-written change reaches the running game, a setting broken by hand fails
- * the build, naming it, and the game played on the web draws in a headless browser and takes in a change too.
+ * the build, naming it, and the game played on the web draws in a headless browser, its texts too, and takes in a change.
  */
 class UpgradingAndPlayingTest {
 
@@ -115,7 +115,7 @@ class UpgradingAndPlayingTest {
             succeed("set_project_settings", mapOf("frameRate" to 60))
             assertContains(File(project, "gradle.properties").readText(), "game.frameRate=60")
         }
-        step("start_game on the web serves the game to the browser, out of the game tools' reach, and a change reloads the page") {
+        step("start_game on the web serves the game to the browser, out of the game tools' reach, texts and all, and a change reloads the page") {
             val chromePath = HeadlessChrome.find()
             // Last, so that a machine without Chrome still runs every other step.
             assumeTrue("Chrome isn't installed.", chromePath != null)
@@ -126,8 +126,9 @@ class UpgradingAndPlayingTest {
             assertContains(tools.call("press_keys", mapOf("keys" to listOf("SPACE"))).text, "runs on web")
             HeadlessChrome.start(checkNotNull(chromePath), outputDirectory, width = 1280, height = 800).use { chrome ->
                 chrome.navigate(address)
-                val page = awaitBrowser(chrome, "web-bonus-scene") { it.boundsOf(SPRITE_COLOR) != null }
+                val page = awaitBrowser(chrome, "web-bonus-scene") { it.boundsOf(SPRITE_COLOR) != null && it.boundsOf(TEXT) != null }
                 assertTrue(page.boundsOf(SPRITE_COLOR) != null, "The page doesn't draw the bonus Scene's sprites.")
+                assertTrue(page.boundsOf(TEXT) != null, "The page doesn't draw the Game's texts.")
                 val game = File(project, "src/commonMain/kotlin/com/example/breakout/Game.kt")
                 val color = "Color(0xFF${"%06X".format(VIEWPORT_COLOR)})"
                 assertContains(game.readText(), color)

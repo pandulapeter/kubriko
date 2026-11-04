@@ -78,10 +78,13 @@ public class GameTargets(
         if (isOn) refusalOfTurningOn(target, files)?.let { return it }
         val changed = (if (isOn) edits.turnedOn(files) else edits.turnedOff(files))
             ?: return TargetChange.Refused(TargetProblem.CHANGED_BY_HAND, listOf(target.key))
-        val changes = changed.entries.sortedBy { it.key }.mapNotNull { (path, text) ->
-            val before = files.read(path)
-            if (before == text) null else ProposedFileChange(path = path, before = before.orEmpty(), after = text, isNew = before == null)
-        }
+        val copies = if (isOn) files.missingCopiesOf(target).map { (path, resource) -> ProposedFileChange.copyOf(resource, path) } else emptyList()
+        val changes = (
+            changed.entries.mapNotNull { (path, text) ->
+                val before = files.read(path)
+                if (before == text) null else ProposedFileChange(path = path, before = before.orEmpty(), after = text, isNew = before == null)
+            } + copies
+            ).sortedBy { it.path }
         return TargetChange.Proposed(target = target, isOn = isOn, changes = changes, isReversible = isReversible(edits, isOn, files, changes))
     }
 

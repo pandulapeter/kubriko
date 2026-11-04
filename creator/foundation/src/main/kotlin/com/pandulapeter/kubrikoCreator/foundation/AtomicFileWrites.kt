@@ -32,7 +32,12 @@ public const val ATOMIC_WRITE_SUFFIX: String = ".creator-write.tmp"
  * can't move atomically, the file is replaced plainly. A move Windows refuses because another program has the file open is
  * tried again a few times first.
  */
-public fun File.writeTextAtomically(text: String, isPrivate: Boolean = false) {
+public fun File.writeTextAtomically(text: String, isPrivate: Boolean = false): Unit = writeBytesAtomically(text.toByteArray(), isPrivate)
+
+/**
+ * Replaces this file's content with [bytes] in one step, as [writeTextAtomically] does with a text.
+ */
+public fun File.writeBytesAtomically(bytes: ByteArray, isPrivate: Boolean = false) {
     val target = canonicalFile
     target.parentFile?.mkdirs()
     val temporary = File(target.parentFile, ".${target.name}.${UUID.randomUUID().toString().take(8)}$ATOMIC_WRITE_SUFFIX")
@@ -45,7 +50,7 @@ public fun File.writeTextAtomically(text: String, isPrivate: Boolean = false) {
                 isPrivate -> Files.setPosixFilePermissions(path, OWNER_ONLY)
             }
         }
-        temporary.writeText(text)
+        temporary.writeBytes(bytes)
         moveReplacing(path, target.toPath())
     } finally {
         temporary.delete()

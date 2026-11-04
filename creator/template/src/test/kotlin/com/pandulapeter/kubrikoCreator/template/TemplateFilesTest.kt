@@ -37,7 +37,19 @@ class TemplateFilesTest {
             .filter { it.isFile && it.name.endsWith(TemplateFiles.TEMPLATE_SUFFIX) }
             .map { it.relativeTo(directory).invariantSeparatorsPath.removeSuffix(TemplateFiles.TEMPLATE_SUFFIX) }
             .toSortedSet()
-        assertEquals(shipped, TemplateFiles.load(template).map { it.path }.toSortedSet(), template.id)
+        assertEquals(shipped, TemplateFiles.load(template).filter { it.resource == null }.map { it.path }.toSortedSet(), template.id)
+    }
+
+    @Test
+    fun everyCopiedFileOfATemplateOrTargetExists() = (ProjectTemplate.entries.map { it.root } + GameTarget.entries.filter { it != GameTarget.DESKTOP }.map { "targets/${it.key}" }).forEach { root ->
+        TemplateFiles.entriesOf(root).mapNotNull { it.second }.forEach { resource ->
+            assertTrue(File("src/main/resources", resource).isFile, "$root copies $resource, which doesn't exist.")
+        }
+    }
+
+    @Test
+    fun theStarterAndTheWebTargetCopyTheFontTheUpgradeAdds() = listOf(ProjectTemplate.STARTER.root, "targets/${GameTarget.WEB.key}").forEach { root ->
+        assertTrue("src/wasmJsMain/composeResources/font/${WebFontUpgrade.FONT_FILE}" to WebFontUpgrade.FONT_RESOURCE in TemplateFiles.entriesOf(root), root)
     }
 
     @Test

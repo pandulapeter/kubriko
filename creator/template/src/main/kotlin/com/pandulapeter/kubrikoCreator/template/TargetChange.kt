@@ -33,7 +33,7 @@ public sealed interface TargetChange {
          */
         public val id: String by lazy {
             val digest = MessageDigest.getInstance("SHA-256")
-            changes.forEach { change -> listOf(change.path, change.before, change.after.orEmpty()).forEach { digest.update((it + "\u0000").toByteArray()) } }
+            changes.forEach { change -> listOf(change.path, change.before, change.after.orEmpty(), change.resource.orEmpty()).forEach { digest.update((it + "\u0000").toByteArray()) } }
             digest.digest().joinToString("") { "%02x".format(it) }.take(16)
         }
     }

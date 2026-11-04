@@ -34,6 +34,8 @@ internal class TemplateContext(
     val androidActivityPath = "${sourceDirectory.replace("commonMain", "androidMain")}/${packageName.replace('.', '/')}/$ANDROID_ACTIVITY_FILE"
     val iosViewControllerPath = "${sourceDirectory.replace("commonMain", "iosMain")}/${packageName.replace('.', '/')}/$IOS_VIEW_CONTROLLER_FILE"
     val pagePath = "${sourceDirectory.replace("commonMain", "wasmJsMain").removeSuffix("/kotlin")}/resources/$PAGE_FILE"
+    val webFontPath = "${sourceDirectory.replace("commonMain", "wasmJsMain").removeSuffix("/kotlin")}/composeResources/font/${WebFontUpgrade.FONT_FILE}"
+    val resourcesPackage = "$packageName.resources"
     val wiringImport = "import $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}.${ManagerTypeCodeGenerator.WIRING_NAME}"
 
     /**

@@ -7,11 +7,18 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+@file:OptIn(EditorMutation::class)
+
 package com.pandulapeter.kubrikoCreator.template
 
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
+import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.session.WebGameServer
 import com.pandulapeter.kubrikoCreator.testing.HeadlessChrome
@@ -31,8 +38,8 @@ import kotlin.test.fail
 
 /**
  * Builds the starter template's web distribution for real, serves it as Kubriko Creator does, and looks at it in headless
- * Chrome (or Chromium): that the page draws the Scene its address names, and that a change, once built, reloads the page
- * by itself. Runs with `KUBRIKO_CREATOR_INTEGRATION=true` where Chrome is found ([HeadlessChrome.find]), opens no window,
+ * Chrome (or Chromium): that the page draws the Scene its address names and a Manager type's text, and that a change, once
+ * built, reloads the page by itself. Runs with `KUBRIKO_CREATOR_INTEGRATION=true` where Chrome is found ([HeadlessChrome.find]), opens no window,
  * and leaves what Chrome showed, and the project, in `build/web-game`.
  */
 class WebGameIntegrationTest {
@@ -44,7 +51,13 @@ class WebGameIntegrationTest {
         val chromePath = HeadlessChrome.find()
         assumeTrue("Chrome isn't installed.", chromePath != null)
         val parentDirectory = File(output, "project").apply { deleteRecursively() }
-        val directory = ProjectGenerator(configuration()).create(NewProjectRequest(name = "Web Game", packageName = "com.example.web", parentDirectory = parentDirectory))
+        val configuration = configuration()
+        val directory = ProjectGenerator(configuration).create(NewProjectRequest(name = "Web Game", packageName = "com.example.web", parentDirectory = parentDirectory))
+        checkNotNull(BlockTypeStore.open(directory)).apply {
+            save(ManagerTypeDefinition(name = "Hud", texts = listOf(ScreenTextDefinition(text = "WWWWWW", size = 64f, color = TEXT))))
+            regenerateAll()
+        }
+        KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
         val scenes = File(directory, "src/commonMain/composeResources/files/scenes")
         File(scenes, "main.json").writeText(sceneColored(RED))
         val colored = File(scenes, "colored.json").apply { writeText(sceneColored(GREEN)) }
@@ -54,6 +67,7 @@ class WebGameIntegrationTest {
                 HeadlessChrome.start(checkNotNull(chromePath), parentDirectory, width = 800, height = 600).use { chrome ->
                     chrome.navigate(server.addressOf("colored"))
                     chrome.awaitColor(GREEN, "colored")
+                    chrome.awaitText()
                     chrome.navigate(server.addressOf(null))
                     chrome.awaitColor(RED, "first")
                     chrome.navigate(server.addressOf("colored"))
@@ -90,6 +104,17 @@ class WebGameIntegrationTest {
         if (!isClose(image.centerPixel, expected)) fail("$name shows ${Integer.toHexString(image.centerPixel)}, not ${java.lang.Long.toHexString(expected)}.")
     }
 
+    /**
+     * Waits until the Manager type's text shows in the top left quarter of the page, saving it as `build/web-game/text.png`.
+     */
+    private fun HeadlessChrome.awaitText() {
+        val image = awaitScreenshot(LOAD_TIME_IN_MILLISECONDS) { it.textPixels > 0 } ?: fail("The text could never be captured.")
+        ImageIO.write(image, "png", File(output.apply { mkdirs() }, "text.png"))
+        if (image.textPixels == 0) fail("The Manager type's text isn't drawn.")
+    }
+
+    private val BufferedImage.textPixels get() = (0 until width / 2).sumOf { x -> (0 until height / 2).count { y -> isClose(getRGB(x, y), TEXT) } }
+
     private val BufferedImage.centerPixel get() = getRGB(width / 2, height / 2)
 
     private fun isClose(actual: Int, expected: Long) = listOf(16, 8, 0).all { shift -> abs((actual shr shift and 0xFF) - (expected shr shift and 0xFF).toInt()) <= 8 }
@@ -105,5 +130,6 @@ class WebGameIntegrationTest {
         const val RED = 0xFFC00000L
         const val GREEN = 0xFF00C000L
         const val BLUE = 0xFF0000C0L
+        const val TEXT = 0xFFFFFFFFL
     }
 }

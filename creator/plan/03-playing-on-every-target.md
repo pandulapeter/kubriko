@@ -17,15 +17,6 @@ Setting up a new iOS simulator can be done at any time; a new Android emulator w
 which `15-onboarding.md` downloads; iOS devices wait for Signing. iOS devices are `PlayTarget.Kind.IOS` too (by an `ios-device:` ID), with a source of places and a start in
 `TargetPlayers`, which `WorkspaceController.play` runs through `SessionController.playElsewhere`, as `IosSimulatorPlayer` does.
 
-## Texts on the web
-
-Compose for Web has no default font, so the texts Creator generates for Manager types (`BasicText` in `ManagerTypeCodeGenerator`)
-draw nothing in the browser: the end-to-end check's web page shows the bonus Scene's sprite but neither "Score" nor "Lives",
-which the desktop shows. The Showcase loads a font of its own on the web (`preloadedFont`, Public Sans). Every project's web entry
-point gets a font the same way, an open one (OFL) shipped in its `composeResources/font` and loaded before the game draws, as a
-template upgrade for existing projects; `WebGameIntegrationTest` and the end-to-end web step then check that a text shows. A bug,
-so it is fixed before the rest of this file.
-
 ## Setting up emulators and simulators
 
 The last entry of Play's Android and iOS submenus (`PlayTargetMenu`, through `WorkspaceController.openDeviceSetup`) opens Android's

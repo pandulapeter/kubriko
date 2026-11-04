@@ -43,13 +43,23 @@ internal class TargetFiles(
      * The files of [target]'s template that the project doesn't have, by their paths, filled in.
      */
     fun missingFilesOf(target: GameTarget): Map<String, String> {
-        val root = "targets/${target.key}"
+        val root = rootOf(target)
         val values = mapOf("PACKAGE" to packageName, "PROJECT_ID" to projectId, "APPLICATION_ID" to applicationId)
-        return TemplateFiles.readResource("$root/files.txt").lines().filter { it.isNotBlank() }
-            .associate { TemplateRenderer.renderPath(it, packageName) to it }
-            .filterKeys { read(it) == null }
-            .mapValues { (_, path) -> TemplateRenderer.renderContent(TemplateFiles.readResource("$root/$path${TemplateFiles.TEMPLATE_SUFFIX}"), values) }
+        return missingEntriesOf(target).filterValues { it.second == null }
+            .mapValues { (_, entry) -> TemplateRenderer.renderContent(TemplateFiles.readResource("$root/${entry.first}${TemplateFiles.TEMPLATE_SUFFIX}"), values) }
     }
+
+    /**
+     * The files of [target]'s template that aren't text and that the project doesn't have, by their paths, each with the
+     * resource it is copied from.
+     */
+    fun missingCopiesOf(target: GameTarget): Map<String, String> = missingEntriesOf(target).mapNotNull { (path, entry) -> entry.second?.let { path to it } }.toMap()
+
+    private fun missingEntriesOf(target: GameTarget) = TemplateFiles.entriesOf(rootOf(target))
+        .associateBy { (path, _) -> TemplateRenderer.renderPath(path, packageName) }
+        .filterKeys { read(it) == null }
+
+    private fun rootOf(target: GameTarget) = "targets/${target.key}"
 
     /**
      * The block [target] adds to the end of the build file, filled in.

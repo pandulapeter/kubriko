@@ -66,6 +66,16 @@ class ProjectUpgradeCommandsTest {
     }
 
     @Test
+    fun aFileThatIsntTextIsShownByItsPathOnly() = runTest {
+        oldProject()
+        File(root, "src/wasmJsMain/kotlin/com/example/game/Main.kt").apply { parentFile.mkdirs() }.writeText("package com.example.game\n")
+        val upgrade = assertIs<CommandOutcome.Success>(GetProjectUpgrade.read(commandContext(rootDirectory = root), NoInput)).result as JsonObject
+        val font = (upgrade.getValue("changes") as JsonArray).map { it.jsonObject }.single { it.getValue("path").jsonPrimitive.content.endsWith(".ttf") }
+        assertEquals(setOf("path", "added"), font.keys)
+        assertEquals("src/wasmJsMain/composeResources/font/public_sans_regular.ttf", font.getValue("path").jsonPrimitive.content)
+    }
+
+    @Test
     fun upgradingChangesTheFilesAndRecordsTheVersion() = runTest {
         oldProject()
         var upgradedCount = 0

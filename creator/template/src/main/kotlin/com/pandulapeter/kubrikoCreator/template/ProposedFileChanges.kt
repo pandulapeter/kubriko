@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.writeBytesAtomically
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.withLineBreaksOf
 import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
@@ -21,8 +22,9 @@ import java.io.IOException
  */
 @EditorMutation
 internal fun ProposedFileChange.writeTo(file: File, raw: String) {
-    when (after) {
-        null -> file.delete()
+    when {
+        after == null -> file.delete()
+        resource != null -> file.writeBytesAtomically(TemplateFiles.readBytes(resource))
         else -> {
             file.parentFile?.mkdirs()
             file.writeTextAtomically(after.withLineBreaksOf(raw))

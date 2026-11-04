@@ -17,11 +17,10 @@ import kotlin.test.assertTrue
 class PlaySwitchesUpgradeTest {
 
     @Test
-    fun theWebMainBecomesWhatTheTemplateMakesNow() {
+    fun theWebMainBecomesWhatTemplateVersion11Made() {
         assertFalse(PlaySwitchesUpgrade.isWebDone(OLD_WEB_MAIN))
         val upgraded = PlaySwitchesUpgrade.web(OLD_WEB_MAIN, WIRING_IMPORT)
-        assertEquals(templateOf("targets/web/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), upgraded)
-        assertEquals(templateOf("templates/starter/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), upgraded)
+        assertEquals(WebFontUpgradeTest.WEB_MAIN_11, upgraded)
         assertTrue(PlaySwitchesUpgrade.isWebDone(upgraded))
     }
 

@@ -29,21 +29,27 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.LineDiff
 import com.pandulapeter.kubrikoCreator.template.ProposedFileChange
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.project_upgrade_file_copied
 import kubriko.creator.generated.resources.project_upgrade_file_deleted
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * One file's [change], as the lines it changes with a few around them.
+ * One file's [change], as the lines it changes with a few around them, or only named for a file that isn't text.
  */
 @Composable
 internal fun FileDiff(change: ProposedFileChange) = Column(
     verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     Text(
-        text = if (change.after == null) stringResource(Res.string.project_upgrade_file_deleted, change.path) else change.path,
+        text = when {
+            change.after == null -> stringResource(Res.string.project_upgrade_file_deleted, change.path)
+            change.resource != null -> stringResource(Res.string.project_upgrade_file_copied, change.path)
+            else -> change.path
+        },
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
     )
+    if (change.resource != null) return@Column
     val lines = remember(change) { LineDiff.withContext(LineDiff.of(change.before, change.after.orEmpty())) }
     Column(
         modifier = Modifier

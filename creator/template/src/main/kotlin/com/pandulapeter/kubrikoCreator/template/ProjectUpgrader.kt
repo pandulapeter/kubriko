@@ -81,6 +81,10 @@ public class ProjectUpgrader(
                 }
             }
         }
+        TemplateSteps.COPIES.forEach { copy ->
+            val path = copy.path(context)
+            if (copy.isNeeded(context) && context.read(path) == null) changes += ProposedFileChange.copyOf(copy.resource, path)
+        }
         return if (changes.isEmpty() && byHand.isEmpty()) TemplateUpgrade.UpToDate else TemplateUpgrade.Needed(changes, byHand)
     }
 
