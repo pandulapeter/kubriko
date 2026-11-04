@@ -83,7 +83,7 @@ internal fun ProjectSidebar(
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
     var collapsedFolders by remember { mutableStateOf(emptyMap<FolderGroup, Set<String>>()) }
     var collapsedGroups by remember { mutableStateOf(setOf(ResourceGroup.KOTLIN)) }
-    var collapsedKotlinFolders by remember { mutableStateOf(emptySet<String>()) }
+    var toggledKotlinFolders by remember { mutableStateOf(emptySet<String>()) }
     val isFiltering = query.isNotBlank()
     val shownFolderGroups = remember(query, folderGroups) {
         if (isFiltering) folderGroups.mapValues { (_, state) -> state.filtered(query) }.filterValues { it.items.isNotEmpty() } else folderGroups
@@ -92,8 +92,8 @@ internal fun ProjectSidebar(
         if (isFiltering) resources.mapValues { (_, groupResources) -> groupResources.filter { matchesSidebarFilter(it.name, query) } } else resources
     }
     val kotlinRootPackage = remember(resources) { rootPackageOf(resources[ResourceGroup.KOTLIN].orEmpty()) }
-    val kotlinRows = remember(shownResources, kotlinRootPackage, collapsedKotlinFolders, isFiltering) {
-        kotlinTreeRows(shownResources[ResourceGroup.KOTLIN].orEmpty(), kotlinRootPackage, if (isFiltering) emptySet() else collapsedKotlinFolders)
+    val kotlinRows = remember(shownResources, kotlinRootPackage, toggledKotlinFolders, isFiltering) {
+        kotlinTreeRows(shownResources[ResourceGroup.KOTLIN].orEmpty(), kotlinRootPackage, toggledKotlinFolders, isEverythingOpen = isFiltering)
     }
     val resourceGroups = shownResourceGroups(shownResources).filter { !isFiltering || shownResources[it].orEmpty().isNotEmpty() }
     SidebarFilterField(
@@ -130,7 +130,7 @@ internal fun ProjectSidebar(
                 if (group == ResourceGroup.KOTLIN) {
                     kotlinTreeItems(
                         rows = kotlinRows,
-                        onToggle = { key -> if (!isFiltering) collapsedKotlinFolders = if (key in collapsedKotlinFolders) collapsedKotlinFolders - key else collapsedKotlinFolders + key },
+                        onToggle = { key -> if (!isFiltering) toggledKotlinFolders = if (key in toggledKotlinFolders) toggledKotlinFolders - key else toggledKotlinFolders + key },
                     )
                 } else {
                     resourceItems(group, groupResources)

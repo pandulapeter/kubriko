@@ -483,9 +483,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - A field above the sidebar's groups filters everything in it by name, showing the folders that hold matches opened; the folders
   the user collapsed are left as they were and come back once the filter is cleared.
 - The sidebar's Kotlin files are read-only and grouped by what the code is, not where it lies: the shared source sets
-  (`commonMain`, `main`) at the top, each platform's in a container with its Play menu icon, and a folder for each package below
-  the one all files share, merged with its only child folder while it holds nothing else (`ui.menu`). The package is the one each
-  file declares (`KotlinPackages`), since Kotlin lets folders leave out the shared root package.
+  (`commonMain`, `main`) at the top, each platform's in a container with its Play menu icon (closed at first), and a folder
+  for each package below the one all files share, merged with its only child folder while it holds nothing else (`ui.menu`).
+  The package is the one each file declares (`KotlinPackages`), since Kotlin lets folders leave out the shared root package.
 - What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, or nothing), changed only
   through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
   own panels, dialogs, and AI-follow state live in `WorkspaceUiState`, a plain class its tests reach without a UI.

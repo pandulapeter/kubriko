@@ -72,7 +72,7 @@ class KotlinTreeTest {
                 "Game.kt",
                 "GameEntryPoint.kt",
             ),
-            kotlinTreeRows(starter, rootPackageOf(starter), collapsed = emptySet()).outline(),
+            kotlinTreeRows(starter, rootPackageOf(starter), toggled = emptySet(), isEverythingOpen = true).outline(),
         )
     }
 
@@ -85,19 +85,41 @@ class KotlinTreeTest {
         )
         assertEquals(
             listOf("ui/", "  feature1.state/", "    MenuState.kt", "  Theme.kt", "Game.kt"),
-            kotlinTreeRows(resources, rootPackageOf(resources), collapsed = emptySet()).outline(),
+            kotlinTreeRows(resources, rootPackageOf(resources), toggled = emptySet(), isEverythingOpen = true).outline(),
         )
-        assertEquals("shared/ui.feature1.state", kotlinTreeRows(resources, "game", collapsed = emptySet())[1].key)
+        assertEquals("shared/ui.feature1.state", kotlinTreeRows(resources, "game", toggled = emptySet(), isEverythingOpen = true)[1].key)
     }
 
     @Test
-    fun collapsedContainersAndFoldersHideWhatTheyHold() {
-        val rows = kotlinTreeRows(starter, "com.game", collapsed = setOf("container:ANDROID", "shared/ui.feature1"))
+    fun containersStartClosedAndFoldersOpenAndToggledOnesTheOtherWayUnlessEverythingIsOpen() {
         assertEquals(
-            listOf("[DESKTOP]", "  Main.kt", "[WEB]", "  Main.kt", "[ANDROID]", "[IOS]", "  MainViewController.kt", "ui.feature1/", "Game.kt", "GameEntryPoint.kt"),
+            listOf("[DESKTOP]", "[WEB]", "[ANDROID]", "[IOS]", "ui.feature1/", "  state/", "    MenuState.kt", "  Menu.kt", "Game.kt", "GameEntryPoint.kt"),
+            kotlinTreeRows(starter, "com.game", toggled = emptySet()).outline(),
+        )
+        val toggled = setOf("container:ANDROID", "shared/ui.feature1")
+        val rows = kotlinTreeRows(starter, "com.game", toggled)
+        assertEquals(
+            listOf("[DESKTOP]", "[WEB]", "[ANDROID]", "  android/", "    Permissions.kt", "  MainActivity.kt", "[IOS]", "ui.feature1/", "Game.kt", "GameEntryPoint.kt"),
             rows.outline(),
         )
-        assertEquals(setOf(false), rows.filter { it.key in setOf("container:ANDROID", "shared/ui.feature1") }.map { (it as? KotlinTreeRow.Container)?.isExpanded ?: (it as KotlinTreeRow.Package).isExpanded }.toSet())
+        assertEquals(
+            mapOf(
+                "container:DESKTOP" to false,
+                "container:WEB" to false,
+                "container:ANDROID" to true,
+                "container:ANDROID/android" to true,
+                "container:IOS" to false,
+                "shared/ui.feature1" to false,
+            ),
+            rows.mapNotNull { row ->
+                when (row) {
+                    is KotlinTreeRow.Container -> row.key to row.isExpanded
+                    is KotlinTreeRow.Package -> row.key to row.isExpanded
+                    is KotlinTreeRow.File -> null
+                }
+            }.toMap(),
+        )
+        assertEquals(kotlinTreeRows(starter, "com.game", toggled = emptySet(), isEverythingOpen = true), kotlinTreeRows(starter, "com.game", toggled, isEverythingOpen = true))
     }
 
     @Test
@@ -111,7 +133,7 @@ class KotlinTreeTest {
         )
         assertEquals(
             listOf("[DESKTOP]", "  Jvm.kt", "[appleMain]", "  Apple.kt", "[commonTest]", "  GameTest.kt", "tools/", "  Tool.kt", "Game.kt"),
-            kotlinTreeRows(resources, rootPackageOf(resources), collapsed = emptySet()).outline(),
+            kotlinTreeRows(resources, rootPackageOf(resources), toggled = emptySet(), isEverythingOpen = true).outline(),
         )
     }
 
@@ -124,14 +146,14 @@ class KotlinTreeTest {
         )
         assertEquals(
             listOf("[IOS]", "  Main.kt (iosArm64Main)", "  Main.kt (iosMain)", "  Other.kt"),
-            kotlinTreeRows(resources, "game", collapsed = emptySet()).outline(),
+            kotlinTreeRows(resources, "game", toggled = emptySet(), isEverythingOpen = true).outline(),
         )
     }
 
     @Test
     fun aFileWhosePackageIsOutsideTheRootIsShownByItsWholePackage() {
         val resources = listOf(kotlin("src/commonMain/kotlin/other/Thing.kt", "other.place"))
-        assertEquals(listOf("other.place/", "  Thing.kt"), kotlinTreeRows(resources, "com.game", collapsed = emptySet()).outline())
+        assertEquals(listOf("other.place/", "  Thing.kt"), kotlinTreeRows(resources, "com.game", toggled = emptySet(), isEverythingOpen = true).outline())
     }
 
     @Test

@@ -21,7 +21,7 @@ internal sealed interface KotlinTreeRow {
 
     /**
      * What tells this row apart from every other folder or container of the tree, and what [kotlinTreeRows] takes as
-     * collapsed.
+     * toggled.
      */
     val key: String
 
@@ -76,10 +76,16 @@ internal fun rootPackageOf(resources: List<ProjectResource>): String {
  * The rows of the Kotlin files in [resources]: the files of each platform's source sets in a container of their own
  * (those of a source set that is no platform's in one named after it), followed by the shared ones, and in each, a
  * folder for every package below [rootPackage] that holds something, merged with the one it holds while that is all it
- * holds. At every level, containers come first, then folders, then files, each sorted by name, and nothing is shown
- * inside a container or folder whose key is in [collapsed].
+ * holds. At every level, containers come first, then folders, then files, each sorted by name. Containers start closed
+ * and folders open, and each one whose key is in [toggled] the other way, unless [isEverythingOpen].
  */
-internal fun kotlinTreeRows(resources: List<ProjectResource>, rootPackage: String, collapsed: Set<String>): List<KotlinTreeRow> {
+internal fun kotlinTreeRows(
+    resources: List<ProjectResource>,
+    rootPackage: String,
+    toggled: Set<String>,
+    isEverythingOpen: Boolean = false,
+): List<KotlinTreeRow> {
+    val collapsed = if (isEverythingOpen) emptySet() else toggled
     val rootSegments = packageSegments(rootPackage)
     val shared = PackageNode()
     val containers = TreeMap<ContainerId, PackageNode>()
@@ -97,7 +103,7 @@ internal fun kotlinTreeRows(resources: List<ProjectResource>, rootPackage: Strin
     }
     val rows = mutableListOf<KotlinTreeRow>()
     containers.forEach { (id, node) ->
-        val container = KotlinTreeRow.Container(id.platform, id.sourceSet, isExpanded = containerKey(id.platform, id.sourceSet) !in collapsed)
+        val container = KotlinTreeRow.Container(id.platform, id.sourceSet, isExpanded = isEverythingOpen || containerKey(id.platform, id.sourceSet) in toggled)
         rows += container
         if (container.isExpanded) rows.addLevel(node, container.key, "", depth = 1, collapsed)
     }

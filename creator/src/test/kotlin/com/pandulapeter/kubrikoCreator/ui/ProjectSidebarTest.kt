@@ -182,7 +182,7 @@ class ProjectSidebarTest {
     }
 
     @Test
-    fun kotlinFilesAreGroupedByPlatformAndByPackageBelowTheRootOneAndItsFoldersOpenAndCloseWithoutAnyActions() = uiTest(width = 300, height = 600) {
+    fun kotlinFilesAreGroupedByPlatformsStartingClosedAndByPackagesBelowTheRootOneAndOpenAndCloseWithoutAnyActions() = uiTest(width = 300, height = 600) {
         fun kotlin(path: String, kotlinPackage: String) = ProjectResource(ResourceGroup.KOTLIN, File(path), path, kotlinPackage)
         showing {
             ProjectSidebar(
@@ -201,14 +201,15 @@ class ProjectSidebarTest {
             )
         }
         onNodeWithText("Kotlin files").performClick()
-        listOf("Desktop", "Android", "ui.feature1", "Menu.kt", "Main.kt", "MainActivity.kt", "Game.kt").forEach { onNodeWithText(it).assertExists() }
+        listOf("Desktop", "Android", "ui.feature1", "Menu.kt", "Game.kt").forEach { onNodeWithText(it).assertExists() }
+        listOf("Main.kt", "MainActivity.kt").forEach { onNodeWithText(it).assertDoesNotExist() }
         onAllNodesWithContentDescription("More options").assertCountEquals(0)
-        saveSnapshot("sidebar-kotlin-files")
         onNodeWithText("Android").performClick()
-        onNodeWithText("MainActivity.kt").assertDoesNotExist()
+        onNodeWithText("MainActivity.kt").assertExists()
+        saveSnapshot("sidebar-kotlin-files")
         onNodeWithText("ui.feature1").performClick()
         onNodeWithText("Menu.kt").assertDoesNotExist()
-        onNodeWithText("Main.kt").assertExists()
+        onNodeWithText("Main.kt").assertDoesNotExist()
         onNode(hasSetTextAction()).performTextInput("main")
         listOf("MainActivity.kt", "Main.kt").forEach { onNodeWithText(it).assertExists() }
         onNodeWithText("Game.kt").assertDoesNotExist()
