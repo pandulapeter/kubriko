@@ -25,7 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-First check that the end-to-end job's web step passes: it draws Breakout's texts only since `GameSizeUpgrade` (below). Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
+Continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
 writers' room. Pages, their commands and tools, the Screenplay group, and the page editor exist (`0954d5ef2..f82ba8008`, not
 reviewed in `6c082fbff` and `52083d116`). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
 Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
@@ -46,14 +46,15 @@ that replaces them; the rest reviewed only by its own tests and snapshots):
   also showed that a browser reporting `en-US@posix` draws no text at all (`WebLocaleUpgrade` guards against it). Compose for
   Web 1.12 has a font of its own, so the bundled font tried first fixed nothing and was taken out with its binary-copy
   machinery. `WebGameIntegrationTest` plays a fixed viewport with the POSIX language (`HeadlessChrome.reportLanguages`) and
-  fails without either fix on any machine. The engine itself letterboxes nothing under a `KubrikoViewport` modifier that
-  sizes it, and draws no Manager UI then: whether `InternalViewport` should apply the aspect ratio before the caller's
-  modifier is the user's call (it changes public behaviour).
+  fails without either fix on any machine. The engine now lays out a fixed aspect ratio's letterbox before `KubrikoViewport`'s
+  modifier (`05ecc2900`, approved by the user), so a modifier sizing the viewport no longer breaks it; a change of public
+  behaviour for the next library release notes. CI's end-to-end job passes with all of it.
 - **Play waits for builds** (`8b0176507`): Play is disabled with a spinner while a build the console reports runs
   (`CreatorTaskRunner.runningBuilds`, not the warm-up or a session's own build).
 - **Configure platforms** (`c4e3611dc`): the Play menu's link to the Targets page, which still fits once every platform is on.
-- **Menus and choice lists** (`d57a966da`): as tall as the window, fading out at an edge with more beyond it
-  (`scrollEdgeFades`).
+- **Menus and choice lists** (`d57a966da`, `a213c8a24`): as tall as the window, fading into the menu's color at an edge
+  with more beyond it (`scrollEdgeFades`, painted over the content, since a masking layer rendered differently on Linux and
+  Windows).
 - **A flaky Android player test** (`a2bf3d512`): `builtAlongside` starts the build before the device check.
 - **Documents, first step:** `04-screenplay.md`'s Documents are scanned and watched as `ResourceGroup.DOCUMENTS` (every
   Markdown file outside `screenplay/`, `ProjectChange.DOCUMENTS`), with a `DocumentStore` in `CommandContext` (through
