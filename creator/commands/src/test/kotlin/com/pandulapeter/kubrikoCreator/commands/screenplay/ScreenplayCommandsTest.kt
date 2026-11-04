@@ -108,4 +108,20 @@ class ScreenplayCommandsTest {
         val left = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.PAGES, "people"))) { context.screenplay.scanFolders() }
         assertEquals(setOf("worlds", "worlds/deep"), left)
     }
+
+    @Test
+    fun aPageNamedOrSizedAsOnlyTheUserCanMakeOneComesBackOnUndo() = runTest {
+        val context = commandContext()
+        val long = "# Long\n\n" + "x".repeat(PAGE_MAXIMUM_LENGTH)
+        File(context.project.rootDirectory, "screenplay/Notes (old).md").apply { parentFile.mkdirs() }.writeText(long)
+        context.screenplay.refresh()
+        val edited = context.assertRoundTrip(Invocation(EditPage, EditPage.Input("Notes (old)", "# Short\n"))) { context.pages() }
+        assertEquals("# Short\n", edited.getValue("screenplay/Notes (old).md"))
+        EditPage.apply(context, EditPage.Input("Notes (old)", long))
+        val moved = context.assertRoundTrip(Invocation(MovePage, MovePage.Input("Notes (old)", "notes"))) { context.pages().keys }
+        assertEquals(setOf("screenplay/notes.md"), moved)
+        MovePage.apply(context, MovePage.Input("notes", "Notes (old)"))
+        val deleted = context.assertRoundTrip(Invocation(DeletePage, DeletePage.Input("Notes (old)"))) { context.pages() }
+        assertEquals(emptyMap(), deleted)
+    }
 }

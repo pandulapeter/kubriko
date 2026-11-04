@@ -72,7 +72,8 @@ public object PageText {
         val replaced = replacement.replace("\r\n", "\n").trimEnd('\n').split('\n')
         val after = lines.drop(section.lines.last + 1)
         val joined = lines.take(section.lines.first) + replaced + (if (after.isNotEmpty() && after.first().isNotBlank()) listOf("") else emptyList()) + after
-        return joined.joinToString(separator)
+        val result = joined.joinToString(separator)
+        return if (text.endsWith('\n') && !result.endsWith('\n')) result + separator else result
     }
 
     /**

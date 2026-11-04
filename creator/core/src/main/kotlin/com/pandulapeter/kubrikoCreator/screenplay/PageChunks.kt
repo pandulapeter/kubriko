@@ -33,7 +33,19 @@ public object PageChunks {
         val before: String,
         val after: String,
     ) {
-        public fun compose(draft: String): String = before + draft + after
+        /**
+         * The page with [draft] in the chunk's place, or, for a blank one, without the chunk and the blank line it had.
+         */
+        public fun compose(draft: String): String {
+            if (draft.isNotBlank()) return before + draft + after
+            val head = before.trimEnd('\n')
+            val tail = after.trimStart('\n')
+            return when {
+                head.isEmpty() -> tail
+                tail.isEmpty() -> head + "\n"
+                else -> head + "\n\n" + tail
+            }
+        }
     }
 
     public fun of(text: String): List<Chunk> {

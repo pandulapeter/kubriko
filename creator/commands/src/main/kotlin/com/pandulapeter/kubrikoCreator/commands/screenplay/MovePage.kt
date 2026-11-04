@@ -36,6 +36,12 @@ public object MovePage : WriteCommand<MovePage.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validatePage(input.page)
         ?: if (input.newPage == input.page) Rejection(CommandProblem.PAGE_TAKEN, input.newPage) else context.validateNewPageName(input.newPage, renamed = input.page)
 
+    /**
+     * Moves a page back to its name, which the user may have given it outside Kubriko Creator.
+     */
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validatePage(input.page)
+        ?: context.screenplay.existingName(input.newPage)?.takeIf { !it.equals(input.page, ignoreCase = true) }?.let { Rejection(CommandProblem.PAGE_TAKEN, input.newPage) }
+
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         if (context.screenplay.scanExistingName(input.newPage)?.let { it != input.page } == true) {
             return@withContext Applied.failed(Rejection(CommandProblem.PAGE_TAKEN, input.newPage))

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.screenplay
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.project.ProjectTree
 import com.pandulapeter.kubrikoCreator.project.withLineBreaksOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +39,7 @@ public class ScreenplayStore(
 
     @Volatile
     private var knownFolders: Set<String>? = null
+    private val refreshLock = Any()
     private val _current = MutableStateFlow(emptyList<String>())
     private val _currentFolders = MutableStateFlow(emptySet<String>())
     private val _revision = MutableStateFlow(0)
@@ -58,15 +60,16 @@ public class ScreenplayStore(
     public val revision: StateFlow<Int> = _revision.asStateFlow()
 
     /**
-     * Every page's name as last known ([refresh]), the first page first, then by name; read from the folder if it isn't
-     * known yet.
+     * Every page's name as last known ([refresh]), the first page first, then by name; none before the first refresh,
+     * since this is what validates on the main thread.
      */
-    public fun names(): List<String> = knownNames ?: scanNames()
+    public fun names(): List<String> = knownNames.orEmpty()
 
     /**
      * Reads the page names from the folder again.
      */
-    public fun refresh() {
+    public fun refresh(): Unit = synchronized(refreshLock) {
+        // One at a time, so that a scan the watcher started before a command's write can't publish after the write's.
         val names = scanNames()
         val folders = scanFolders()
         knownNames = names
@@ -79,7 +82,7 @@ public class ScreenplayStore(
     /**
      * Every page's name as the folder has it now, the first page first, then by name.
      */
-    public fun scanNames(): List<String> = folder.takeIf { it.isDirectory }?.walkTopDown()
+    public fun scanNames(): List<String> = folder.takeIf { it.isDirectory }?.let(ProjectTree::walk)
         ?.filter { it.isFile && it.extension == PageNaming.EXTENSION }
         ?.map { nameOf(it) }
         ?.sortedWith(compareBy<String> { it != PageNaming.FIRST_PAGE }.thenBy { it.lowercase() }.thenBy { it })
@@ -87,15 +90,14 @@ public class ScreenplayStore(
         .orEmpty()
 
     /**
-     * Every folder of the screenplay as last known ([refresh]), as paths (`levels/forest`), empty ones too; read from the
-     * folder if they aren't known yet.
+     * Every folder of the screenplay as last known ([refresh]), as paths (`levels/forest`), empty ones too.
      */
-    public fun folders(): Set<String> = knownFolders ?: scanFolders()
+    public fun folders(): Set<String> = knownFolders.orEmpty()
 
     /**
      * Every folder of the screenplay as the folder has it now.
      */
-    public fun scanFolders(): Set<String> = folder.takeIf { it.isDirectory }?.walkTopDown()
+    public fun scanFolders(): Set<String> = folder.takeIf { it.isDirectory }?.let(ProjectTree::walk)
         ?.filter { it.isDirectory && it != folder }
         ?.mapTo(sortedSetOf()) { it.relativeTo(folder).invariantSeparatorsPath }
         .orEmpty()
@@ -140,7 +142,7 @@ public class ScreenplayStore(
     @EditorMutation
     public fun deleteFolder(path: String) {
         val directory = File(folder, path)
-        if (directory.isDirectory && directory.walkTopDown().none { it.isFile } && directory.deleteRecursively()) refresh()
+        if (directory.isDirectory && ProjectTree.walk(directory).none { it.isFile } && directory.deleteRecursively()) refresh()
     }
 
     /**

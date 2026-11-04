@@ -34,12 +34,17 @@ public object EditPage : WriteCommand<EditPage.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validatePage(input.page) ?: validatePageText(input.text)
 
+    /**
+     * Brings back what the page held, however long it was.
+     */
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validatePage(input.page)
+
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val previous = context.screenplay.read(input.page) ?: return@withContext Applied.failed(Rejection(CommandProblem.PAGE_MISSING, input.page))
         val text = input.section?.let { section ->
             PageText.withSectionReplaced(previous, section, input.text) ?: return@withContext Applied.failed(Rejection(CommandProblem.PAGE_SECTION_MISSING, input.page, section))
         } ?: input.text
-        validatePageText(text)?.let { return@withContext Applied.failed(it) }
+        if (input.section != null) validatePageText(text)?.let { return@withContext Applied.failed(it) }
         context.screenplay.write(input.page, text)
         Applied(inverse = Invocation(EditPage, Input(input.page, previous)))
     }

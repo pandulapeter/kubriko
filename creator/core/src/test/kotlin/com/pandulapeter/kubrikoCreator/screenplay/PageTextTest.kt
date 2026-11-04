@@ -82,4 +82,8 @@ class PageTextTest {
         val text = "# A\r\n\r\n## B\r\nOld\r\n\r\n## C\r\nKept\r\n"
         assertEquals("# A\r\n\r\n## B\r\nNew\r\n\r\n## C\r\nKept\r\n", PageText.withSectionReplaced(text, "B", "## B\nNew\n"))
     }
+
+    @Test
+    fun replacingTheLastSectionKeepsTheFinalLineBreak() =
+        assertEquals("# T\n\n## Planned\n\n- b\n", PageText.withSectionReplaced("# T\n\n## Planned\n\n- a\n", "Planned", "## Planned\n\n- b"))
 }

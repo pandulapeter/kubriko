@@ -34,6 +34,12 @@ public object CreatePage : WriteCommand<CreatePage.Input> {
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateNewPageName(input.page) ?: validatePageText(input.text)
 
+    /**
+     * Brings back a deleted page whatever its name and length, which the user may have given it outside Kubriko Creator.
+     */
+    override fun validateRestoring(context: CommandContext, input: Input): Rejection? =
+        context.screenplay.existingName(input.page)?.let { Rejection(CommandProblem.PAGE_TAKEN, input.page) }
+
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         if (context.screenplay.scanExistingName(input.page) != null) return@withContext Applied.failed(Rejection(CommandProblem.PAGE_TAKEN, input.page))
         context.screenplay.write(input.page, input.text)
