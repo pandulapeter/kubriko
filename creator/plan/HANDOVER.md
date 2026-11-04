@@ -25,43 +25,36 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Start `04-screenplay.md`, an important feature that shouldn't wait longer, then `05-settings.md`'s Release, Icons, and Signing,
-each extending the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s new iOS
-simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its Android
-emulator dialog waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s engine and sprite atlas parts touch only `engine/` and
-`plugins/sprites`, so they can run beside `04` and `05` in a session of their own; its Creator part follows them. Then `06` to `10` in order. What is left
-in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+Continue `04-screenplay.md` with pages and their editor (its Order), then the AI's side of them, keeping them up to date, and the
+writers' room. What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
+Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
+and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s
+new iOS simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its
+Android emulator dialog waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s
+engine and sprite atlas parts touch only `engine/` and `plugins/sprites`, so they can run beside `04` and `05` in a session of
+their own; its Creator part follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other
+plans (Traits, UI elements, git) or for the benchmarks.
 
 Owed: the end-to-end scenario's last step (`UpgradingAndPlayingTest`, Breakout played on the web in headless Chrome through
 `start_game`) has never run, since it needs Linux; dispatch `Tests` once the commits are pushed (ask first) and look at
 `creator-end-to-end`'s images.
 
-What the last session did, all reviewed:
+What the last session did, all reviewed (`/code-review high` on `3108dad56..f1067ff03`; its ten findings fixed in
+`220e8259f` and `f3e677d61`):
 
-- **Log Blocks printing** (`49e4f73ba`, `cec5dce4f`): Kubriko's `Logger` only keeps entries, so nothing a Log Block logged
-  reached the browser's console or a device's output. Each Log Block now also prints on one line while logging is on, and the
-  Scene loader prints its failures; the print is generated into each Block, since a hand-changed `KubrikoWiring` would lack
-  a function of its own.
-- **Android** (`a9a817dd2`, `de4a44029..dddcea6ce`): devices and emulators in Play's menu; an emulator starts while
-  `:androidApp:assembleDebug` builds; the app is installed, started with the switches, logged from `logcat`, and
-  force-stopped by Stop. This Mac's real `adb` and `emulator` output matched the parsers. The review fixed a failed `pidof`
-  ending the game, Stop while starting, the build outliving an unusable device, a tool's child holding a run past its
-  timeout, `System.err` lines, and two misleading failure messages.
-- **iOS simulator** (`f20f4cf56`, `a1ce20e40`, `0a2367c2c`): simulators in Play's menu once the target is on and Xcode is
-  there; one booted while Xcode builds the app, then installed and started with `simctl launch --console-pty`, whose output
-  is the console; Stop terminates it. A real headless launch on this Mac showed `simctl` names the app's process sometimes
-  after its first lines, which the code now allows for. The review fixed Xcode's build skipping the pending writes and the
-  build lock, a Scene name `NSUserDefaults` would read as an array, a stopped build killing Gradle's daemons, a stale app
-  installed, and an exit code, an unreadable simulator list, and a boot that couldn't start being reported as something else.
-- **After the user tried it** (`eecd279a9..5578416d1`): `simctl` holds back what it prints into a pipe until the app ends, so
-  Creator never saw the game start and kept saying Building; the launch now runs inside `script`. Xcode 27 has no Simulator
-  app, so DeviceHub shows the game instead (and the console says when neither opens). Play's menu groups Android's and iOS's
-  places in submenus (devices first, then emulators or simulators, each group ending in the way to set up more, icons only
-  at the top), shows every platform the project is built for and this computer can play even with nothing found yet, and
-  opens Project settings on Targets from Build for more platforms. `RightClickMenu` gained submenus, which don't take the
-  focus, since a focused popup takes every pointer event and the menu under it has to see the pointer move. The failures
-  seen earlier were a flaky Android test (the log reader started after the first check, now fixed) and two sessions running
-  `:creator:test` at once in one folder, deleting each other's in-progress results.
+- **Deletes clean up what refers to them** (`3108dad56`): deleting an Actor type, Manager type, Scene, or Property removes its
+  Actors from every Scene, the Blocks and Events that only mean something with it (an if Block with its section), and turns
+  its placeholders into text, as one undo step restored byte for byte (`ReplaceTypes`, `ReplaceScenes`); Kotlin is listed, never
+  rewritten. `ProjectReferences` finds the usages; `DeletingEveryThingTest` deletes everything in `EveryBlockTypes` and checks
+  nothing names it afterwards, which caught a Block with a Manager type chosen but no Property. `check_change` and the AI's
+  result (`Applied.details`, merged into the write summary) list what happened, with Kotlin places as they are afterwards.
+- **Asking first** (`aa1f6a979`): every delete from the UI goes through `WorkspaceUiState.dispatch`, which holds it for
+  `DeleteConfirmation`: the usages with what happens to each, clickable to their place, refused while the first Scene or a child
+  type keeps it, and saying when nothing uses it or the usages couldn't be read.
+- **What still dangles** (`f1067ff03`): a Block card whose type, Scene, sound, or Property is gone says "no longer exists"
+  (`isMissingChoice`); the health checks report it at its place (`MissingReferenceChecks`, sounds and music included); and the
+  console says it once when it starts within seconds of a change outside Creator (`MissingReferencesReport`).
+- Undoing a creation or an added Property deletes only that thing (`keepsUsages`), so what referred to it before stays.
 
 ## Before a release
 

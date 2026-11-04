@@ -20,7 +20,7 @@ Actor type, and its Events at once.
 
 What exists to build on: the game's notes (`AGENTS.md`, `GameNotes`, `set_game_notes`, `read_game_notes`), the conversation start
 (`ConversationStart`), the assistant's Markdown rendering (`ui/assistant/MarkdownParser`, `MarkdownBlock`), its plan checklist
-(`PlanChecklist`), Keep and Undo for a turn's changes (`TurnChangesCard`), the rename logic's reference edits, and the Game map's
+(`PlanChecklist`), Keep and Undo for a turn's changes (`TurnChangesCard`), the rename logic's reference edits, the usage finder deletes clean up with (`ProjectReferences`), and the Game map's
 health checks.
 
 ## Pages
@@ -67,34 +67,18 @@ health checks.
 
 ## Deleting what is referred to
 
-Renames already follow everywhere (`../CLAUDE.md` → Commands), but deletes don't: `delete_actor_type` refuses only a type with
-children, so a Block naming a deleted Actor type, Scene, sound, or Timer keeps the name and quietly generates a comment while its
-card looks as before (`ActorTypeChoice`, `SceneChoice`, `AudioFileChoice`), the type's Actors stay in Scenes that can no longer
-create them, and pages would keep links to nothing. Pages make this worse, since they mention everything, so it comes first in
-this plan, for every kind of thing at once.
+Deleting an Actor type, Manager type, Scene, or Property cleans up what refers to it, asks first, and shows what still
+dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is left:
 
-- **One usage finder** (`ProjectReferences`, in `:creator:core`, beside `ProjectRelations`) lists everything that refers to a thing:
-  Blocks, conditions, collision Events, parents, Actors placed in Scenes, the first Scene, Kotlin Blocks and hand-written Kotlin
-  (by `KotlinIdentifiers`), and pages' mentions and images. Renames, deletes, the health checks, and find usages
-  (`07-resource-organization.md`) all read it, so none can miss what another sees.
-- **Deleting cleans up what Creator owns,** as one undo step (`CompositeCommand`, with Scenes through `SceneStore.writeAll`), for an
-  Actor type, Manager type, Scene, sprite, sound, music, Property, Timer, folder, or page:
-  - Blocks and conditions that only mean something with the thing (spawning it, going to it, playing it) are removed, and an
-    Event left empty stays; a collision Event with a deleted type is removed with its Blocks.
-  - The type's Actors are removed from every Scene, and their saved values with them.
-  - A page's mention becomes its plain text, so the sentence still reads; an image of a deleted sprite is copied next to the
-    page first, so the page keeps what it showed; a link to a deleted page becomes plain text too.
-  - Hand-written Kotlin and Kotlin Blocks are never rewritten (`../CLAUDE.md` → Principles 2): they are listed, with a warning that
-    the build will fail until they change.
-  - What is still refused stays refused: a type with children, and the first Scene.
-- **Shown before it happens:** the delete confirmation lists every usage by where it is and what will happen to it, each
-  clickable, and says when there are none. The AI sees the same through `check_change`, and the delete's result lists what it
-  removed and changed, including the pages, so the agent can rewrite their sentences in the same turn.
-- **Undo brings all of it back,** the Scenes' Actors with their IDs, the Blocks in their places, the mentions as links, and the
-  copied images gone.
-- **What still dangles** after a change outside Creator (a file deleted in a terminal, a git checkout) is shown where it is: a
-  Block card with a warning ("Brick no longer exists"), a mention chip marked missing, the console after the change, and the
-  health checks.
+- **The other kinds,** once each can be deleted at all: sprites, sounds, and music (their Blocks removed, an Actor type's
+  sprite cleared; dangling ones already show on their cards), a Timer (its start and stop Blocks and its Event), a folder with
+  what is in it (`delete_folder` takes only an empty one today), and a page. `ProjectReferences` gains each, so the
+  confirmation, `check_change`, and the AI's result show them too.
+- **Pages:** `ProjectReferences` finds their mentions and images. Deleting turns a mention into its plain text, copies an image
+  of a deleted sprite next to the page first, so the page keeps what it showed, and turns a link to a deleted page into plain
+  text; undo brings back the links and removes the copies, and a dangling mention chip is marked missing.
+- **Renames read `ProjectReferences` too** (each kind follows its own rename code today), so a rename can't miss what a delete
+  sees; find usages (`07-resource-organization.md`) reads it as well.
 
 ## Pages and the AI
 
@@ -162,7 +146,7 @@ and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite ed
 
 ## Order
 
-Deleting what is referred to first, since it fixes the Blocks and Scenes today; then pages and their editor, then the AI's side
+Pages and their editor first (what is left of deleting what is referred to comes with each kind's delete), then the AI's side
 of them, then keeping them up to date, then the writers' room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
 and `search_project` include their mentions and text.
 
@@ -176,9 +160,8 @@ and `search_project` include their mentions and text.
   Blank template in `ProjectTemplateIntegrationTest`.
 - A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape above, and
   passes `ScreenplayStyle`.
-- Unit tests for deleting each kind of thing: every usage `ProjectReferences` finds, the cleanup of each, a delete and its undo
-  restoring the project byte for byte (Scenes included), hand-written Kotlin left untouched and listed, and a usage the finder
-  misses caught by a test that deletes each thing from `EveryBlockTypes` and checks nothing names it afterwards.
+- Unit tests for deleting each remaining kind as `DeletingWithUsagesTest` and `DeletingEveryThingTest` have them for types,
+  Scenes, and Properties: every usage, its cleanup, and a byte-for-byte undo.
 - Unit tests for images: copying a pasted or dropped one (name clashes, scaling, a file that can't be read), moving and deleting
   them with their page and undoing it, sprite references after a sprite rename, and links resolved to a resource, a page, or the web.
 - Offscreen snapshots (`WorkspaceScreenTest`) of the page editor (rendered, a paragraph being edited, and images of both
