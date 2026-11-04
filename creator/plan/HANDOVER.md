@@ -25,9 +25,10 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `04-screenplay.md` with mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
+First fix `03-playing-on-every-target.md` → Texts on the web (the end-to-end images show Manager texts missing in the browser).
+Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
 writers' room. Pages, their commands and tools, the Screenplay group, and the page editor exist (`0954d5ef2..f82ba8008`, not
-reviewed yet: run `/code-review` on them first). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
+reviewed in `6c082fbff` and `52083d116`). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
 Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
 and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s
 new iOS simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its
@@ -35,10 +36,6 @@ Android emulator dialog waits for `15-onboarding.md`'s download of the SDK's com
 engine and sprite atlas parts touch only `engine/` and `plugins/sprites`, so they can run beside `04` and `05` in a session of
 their own; its Creator part follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other
 plans (Traits, UI elements, git) or for the benchmarks.
-
-Owed: the end-to-end scenario's last step (`UpgradingAndPlayingTest`, Breakout played on the web in headless Chrome through
-`start_game`) has never run, since it needs Linux; dispatch `Tests` once the commits are pushed (ask first) and look at
-`creator-end-to-end`'s images.
 
 What the last session did, all reviewed (`/code-review high` on `3108dad56..f1067ff03`; its ten findings fixed in
 `220e8259f` and `f3e677d61`):
