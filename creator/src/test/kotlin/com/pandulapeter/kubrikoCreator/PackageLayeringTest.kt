@@ -32,7 +32,7 @@ class PackageLayeringTest {
     private val layers = listOf(
         Layer("foundation", "foundation", "console"),
         Layer("ui-components", "ui.components", "ui.theme"),
-        Layer("core", "schema", "actors", "actors.codegen", "actors.store", "project", "scenes"),
+        Layer("core", "schema", "actors", "actors.codegen", "actors.store", "project", "scenes", "screenplay"),
         Layer("gradle-session", "gradle", "session"),
         Layer("git", "git"),
         Layer("template", "template"),

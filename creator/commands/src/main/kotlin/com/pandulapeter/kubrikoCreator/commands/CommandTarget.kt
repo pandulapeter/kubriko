@@ -30,6 +30,13 @@ public sealed interface CommandTarget {
         val name: String,
     ) : CommandTarget
 
+    /**
+     * A page of the screenplay, by its name (`hero`, `levels/cave`).
+     */
+    public data class Page(
+        val name: String,
+    ) : CommandTarget
+
     public data object VersionControl : CommandTarget
 
     public data object Game : CommandTarget

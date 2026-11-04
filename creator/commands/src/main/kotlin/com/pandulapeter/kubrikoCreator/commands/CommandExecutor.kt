@@ -250,6 +250,7 @@ public class CommandExecutor(
         return when (changed) {
             is CommandTarget.BlockType -> changed.name
             is CommandTarget.Scene -> changed.name
+            is CommandTarget.Page -> changed.name
             else -> null
         }
     }

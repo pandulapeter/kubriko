@@ -42,6 +42,7 @@ class ProjectWatcherTest {
         assertEquals(ProjectChange.BLOCK_TYPE_DEFINITIONS, ProjectWatcher.areaOf(".kubriko/actors/Ball.json"))
         assertEquals(ProjectChange.SETTINGS, ProjectWatcher.areaOf(".kubriko/project.json"))
         assertEquals(ProjectChange.SCENES, ProjectWatcher.areaOf("src/commonMain/composeResources/files/scenes/main.json"))
+        assertEquals(ProjectChange.SCREENPLAY, ProjectWatcher.areaOf("screenplay/levels/cave.md"))
         assertEquals(ProjectChange.SOURCES, ProjectWatcher.areaOf("src/commonMain/kotlin/game/Game.kt"))
         assertEquals(ProjectChange.SOURCES, ProjectWatcher.areaOf("app/src/commonMain/composeResources/drawable/ball.png"))
         assertEquals(ProjectChange.MODULES, ProjectWatcher.areaOf("shared/build.gradle.kts"))

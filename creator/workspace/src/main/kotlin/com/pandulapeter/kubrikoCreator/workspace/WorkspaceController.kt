@@ -319,6 +319,7 @@ public class WorkspaceController(
             for (haveTypesChanged in savedTypeBatches) changes.onTypesSaved(haveTypesChanged)
         }
         changes.refreshResources()
+        refreshScreenplay()
         refreshProjectUpgrade()
         blockTypes?.let { types ->
             scope.launch {
@@ -344,8 +345,13 @@ public class WorkspaceController(
      */
     internal fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) {
         if (ProjectChange.MODULES in changes) gameModule.onBuildFilesChanged()
+        if (ProjectChange.SCREENPLAY in changes) refreshScreenplay()
         this.changes.onProjectChanged(changes, snapshot)
         missingReferences.onChangedOutside()
+    }
+
+    private fun refreshScreenplay() {
+        scope.launch(ioDispatcher) { commands.context.screenplay.refresh() }
     }
 
     /**

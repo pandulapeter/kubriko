@@ -91,6 +91,12 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
+import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ListPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
 
 /**
  * Every command of the editor. The AI tool list is generated from it, so a command reaches the AI as soon as it is
@@ -135,6 +141,8 @@ public class CommandRegistry(
                 GetHealthChecks,
                 CheckChange,
                 ReadGameNotes,
+                ListPages,
+                ReadPages,
                 GetKubrikoApi,
                 ReadConsole,
                 GetVersionControlStatus,
@@ -156,6 +164,10 @@ public class CommandRegistry(
                 SetParent,
                 SetDescription,
                 SetGameNotes,
+                CreatePage,
+                EditPage,
+                MovePage,
+                DeletePage,
                 SetProjectSettings,
                 SetTarget,
                 CreateManagerType,

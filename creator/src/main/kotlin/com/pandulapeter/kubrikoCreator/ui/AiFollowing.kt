@@ -31,7 +31,7 @@ internal fun List<AiStep>.newestChange() = lastOrNull { it.changesProject }
 internal fun AiStep.selectionToFollow(): WorkspaceSelection? = when (val target = target?.takeIf { changesProject }) {
     is CommandTarget.BlockType -> WorkspaceSelection.BlockType(target.name)
     is CommandTarget.Scene -> WorkspaceSelection.Scene(target.name)
-    CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
+    is CommandTarget.Page, CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
 }
 
 /**
@@ -49,6 +49,7 @@ internal fun AiStep.highlightIn(actorTypeName: String?, flashKey: Any? = this.fl
 internal fun AiStep.sidebarName() = when (val target = target) {
     is CommandTarget.BlockType -> target.name
     is CommandTarget.Scene -> target.name
+    is CommandTarget.Page -> target.name
     CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
 }
 

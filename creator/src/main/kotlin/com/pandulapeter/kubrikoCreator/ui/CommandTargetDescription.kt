@@ -15,6 +15,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ai_target_block
 import kubriko.creator.generated.resources.ai_target_event
 import kubriko.creator.generated.resources.ai_target_game
+import kubriko.creator.generated.resources.ai_target_page
 import kubriko.creator.generated.resources.ai_target_project
 import kubriko.creator.generated.resources.ai_target_scene
 import kubriko.creator.generated.resources.ai_target_version_control
@@ -35,6 +36,7 @@ internal fun CommandTarget.description(): String = when (this) {
         }
     }
     is CommandTarget.Scene -> stringResource(Res.string.ai_target_scene, name)
+    is CommandTarget.Page -> stringResource(Res.string.ai_target_page, name)
     CommandTarget.VersionControl -> stringResource(Res.string.ai_target_version_control)
     CommandTarget.Game -> stringResource(Res.string.ai_target_game)
     CommandTarget.Project -> stringResource(Res.string.ai_target_project)

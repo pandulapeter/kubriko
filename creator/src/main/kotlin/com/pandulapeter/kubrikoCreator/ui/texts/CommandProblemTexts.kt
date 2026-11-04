@@ -49,6 +49,12 @@ import kubriko.creator.generated.resources.error_command_nothing_to_commit
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
 import kubriko.creator.generated.resources.error_command_page_invalid
+import kubriko.creator.generated.resources.error_command_page_missing
+import kubriko.creator.generated.resources.error_command_page_name_invalid
+import kubriko.creator.generated.resources.error_command_page_not_moved
+import kubriko.creator.generated.resources.error_command_page_section_missing
+import kubriko.creator.generated.resources.error_command_page_taken
+import kubriko.creator.generated.resources.error_command_page_too_long
 import kubriko.creator.generated.resources.error_command_parent_cycle
 import kubriko.creator.generated.resources.error_command_parent_property_kind
 import kubriko.creator.generated.resources.error_command_play_duration_invalid
@@ -141,6 +147,12 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NOTHING_TO_COMMIT -> Res.string.error_command_nothing_to_commit
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
     CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED -> Res.string.error_command_other_actor_type_not_allowed
+    CommandProblem.PAGE_MISSING -> Res.string.error_command_page_missing
+    CommandProblem.PAGE_NAME_INVALID -> Res.string.error_command_page_name_invalid
+    CommandProblem.PAGE_NOT_MOVED -> Res.string.error_command_page_not_moved
+    CommandProblem.PAGE_SECTION_MISSING -> Res.string.error_command_page_section_missing
+    CommandProblem.PAGE_TAKEN -> Res.string.error_command_page_taken
+    CommandProblem.PAGE_TOO_LONG -> Res.string.error_command_page_too_long
     CommandProblem.PAGE_INVALID -> Res.string.error_command_page_invalid
     CommandProblem.PARENT_CYCLE -> Res.string.error_command_parent_cycle
     CommandProblem.PARENT_PROPERTY_KIND -> Res.string.error_command_parent_property_kind

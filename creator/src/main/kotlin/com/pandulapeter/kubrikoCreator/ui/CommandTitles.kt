@@ -92,6 +92,12 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
+import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ListPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_add_block
 import kubriko.creator.generated.resources.command_add_event
@@ -103,14 +109,17 @@ import kubriko.creator.generated.resources.command_commit
 import kubriko.creator.generated.resources.command_create_actor_type
 import kubriko.creator.generated.resources.command_create_folder
 import kubriko.creator.generated.resources.command_create_manager_type
+import kubriko.creator.generated.resources.command_create_page
 import kubriko.creator.generated.resources.command_create_scene
 import kubriko.creator.generated.resources.command_delete_actor_type
 import kubriko.creator.generated.resources.command_delete_folder
 import kubriko.creator.generated.resources.command_delete_manager_type
+import kubriko.creator.generated.resources.command_delete_page
 import kubriko.creator.generated.resources.command_delete_scene
 import kubriko.creator.generated.resources.command_discard_changes
 import kubriko.creator.generated.resources.command_discard_changes_made_by_hand
 import kubriko.creator.generated.resources.command_edit_block
+import kubriko.creator.generated.resources.command_edit_page
 import kubriko.creator.generated.resources.command_edit_property
 import kubriko.creator.generated.resources.command_edit_text
 import kubriko.creator.generated.resources.command_get_block_catalog
@@ -125,12 +134,14 @@ import kubriko.creator.generated.resources.command_get_target_change
 import kubriko.creator.generated.resources.command_get_version_control_status
 import kubriko.creator.generated.resources.command_list_actor_types
 import kubriko.creator.generated.resources.command_list_manager_types
+import kubriko.creator.generated.resources.command_list_pages
 import kubriko.creator.generated.resources.command_list_play_targets
 import kubriko.creator.generated.resources.command_list_scenes
 import kubriko.creator.generated.resources.command_move_actor
 import kubriko.creator.generated.resources.command_move_actor_order
 import kubriko.creator.generated.resources.command_move_block
 import kubriko.creator.generated.resources.command_move_event
+import kubriko.creator.generated.resources.command_move_page
 import kubriko.creator.generated.resources.command_move_to_folder
 import kubriko.creator.generated.resources.command_place_actor
 import kubriko.creator.generated.resources.command_place_actors
@@ -140,6 +151,7 @@ import kubriko.creator.generated.resources.command_read_actor_type
 import kubriko.creator.generated.resources.command_read_console
 import kubriko.creator.generated.resources.command_read_game_notes
 import kubriko.creator.generated.resources.command_read_manager_type
+import kubriko.creator.generated.resources.command_read_pages
 import kubriko.creator.generated.resources.command_read_scene
 import kubriko.creator.generated.resources.command_remove_actor
 import kubriko.creator.generated.resources.command_remove_actors
@@ -256,6 +268,12 @@ private val commandTitles = mapOf(
     ReadGameNotes.name to Res.string.command_read_game_notes,
     SetDescription.name to Res.string.command_set_description,
     SetGameNotes.name to Res.string.command_set_game_notes,
+    ListPages.name to Res.string.command_list_pages,
+    ReadPages.name to Res.string.command_read_pages,
+    CreatePage.name to Res.string.command_create_page,
+    EditPage.name to Res.string.command_edit_page,
+    MovePage.name to Res.string.command_move_page,
+    DeletePage.name to Res.string.command_delete_page,
     SetProjectSettings.name to Res.string.command_set_project_settings,
     SetTarget.name to Res.string.command_set_target,
     UpgradeProject.name to Res.string.command_upgrade_project,

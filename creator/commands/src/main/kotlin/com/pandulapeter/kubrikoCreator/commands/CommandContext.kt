@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -45,6 +46,10 @@ public class CommandContext(
     public val buildFiles: ProjectBuildFiles = ProjectBuildFiles.UpToDate,
     public val rejectChanges: () -> Rejection? = { null },
 ) {
+    /**
+     * The screenplay's pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
+     */
+    public val screenplay: ScreenplayStore = ScreenplayStore(project.rootDirectory, scenes.ownWrites)
 
     /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);
@@ -72,7 +77,7 @@ public class CommandContext(
     }
 
     /**
-     * A hash of the content of each type and Scene in [targets], by its target without Event or Block indices, for telling
+     * A hash of the content of each type, Scene, and page in [targets], by its target without Event or Block indices, for telling
      * whether it changed since. A deleted type or Scene hashes as 0, so one that is still deleted matches. A Scene that
      * exists but can't be read right now (the running game holds it open on Windows) gets null, and so does every other
      * kind of target: a null hash isn't compared.
@@ -80,12 +85,17 @@ public class CommandContext(
     internal suspend fun contentHashesOf(targets: Collection<CommandTarget>): Map<CommandTarget, Int?> {
         val hashes = LinkedHashMap<CommandTarget, Int?>()
         val sceneNames = ArrayList<String>()
+        val pageNames = ArrayList<String>()
         targets.forEach { target ->
             when (target) {
                 is CommandTarget.BlockType -> hashes[CommandTarget.BlockType(target.name)] = blockTypes?.let { it[target.name].hashCode() }
                 is CommandTarget.Scene -> sceneNames += target.name
+                is CommandTarget.Page -> pageNames += target.name
                 else -> Unit
             }
+        }
+        if (pageNames.isNotEmpty()) {
+            withContext(ioDispatcher) { pageNames.forEach { name -> hashes[CommandTarget.Page(name)] = screenplay.read(name)?.hashCode() ?: 0 } }
         }
         if (sceneNames.isNotEmpty()) {
             withContext(ioDispatcher) {

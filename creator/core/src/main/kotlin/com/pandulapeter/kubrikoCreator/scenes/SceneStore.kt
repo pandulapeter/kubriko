@@ -34,6 +34,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
  *   folder new Scenes go to.
  * @param homeDirectory The Scenes folder the game loads its Scenes from, when Kubriko Creator knows it (from the generated
  *   code's module), which new Scenes go to even when another module has Scenes, or none has any yet.
+ * @param ownWrites The record of Kubriko Creator's own writes to the project, which the stores of its other shared files
+ *   (the screenplay's pages) record into too.
  * @param writeText Writes a Scene file, replaceable so that tests can make one fail.
  * @param readText Reads a Scene file, replaceable so that tests can make one fail.
  * @param beforeIndexing Runs between a [refresh]'s walk through the Scenes and its update of the names, so that tests can
@@ -41,7 +43,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  */
 public class SceneStore(
     private val rootDirectory: File,
-    private val ownWrites: OwnWrites = OwnWrites(),
+    public val ownWrites: OwnWrites = OwnWrites(),
     private val writeText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
     private val readText: (File) -> String = { file -> file.readText() },
     private val beforeIndexing: () -> Unit = {},

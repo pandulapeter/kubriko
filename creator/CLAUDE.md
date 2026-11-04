@@ -88,8 +88,9 @@ Creator is split into Gradle modules, lowest first:
 - `:creator:foundation` (`foundation`, `console`): files, the settings folder, typed texts, and console entries.
 - `:creator:ui-components` (`ui.components`, `ui.theme`): the shared components and theme, with their own resources and the
   offscreen UI test helpers.
-- `:creator:core` (`actors`, `actors.codegen`, `actors.store`, `project`, `schema`, and the Scene files in `scenes`): the
-  Block model, code generation, the type store, project files, and Scene files, with no Tooling API, JGit, Ktor, MCP, ACP, or
+- `:creator:core` (`actors`, `actors.codegen`, `actors.store`, `project`, `schema`, the Scene files in `scenes`, and the
+  screenplay's pages in `screenplay`): the Block model, code generation, the type store, project files, Scene files, and
+  pages, with no Tooling API, JGit, Ktor, MCP, ACP, or
   engine dependency.
 - `:creator:gradle-session` (`gradle`, `session`): Gradle and game sessions, with the session init script as its resource and
   the session protocol in its API.
@@ -157,6 +158,7 @@ Besides its tests passing, a change:
 | `.kubriko/scenes.json` (Scene descriptions) | Creator | Read again whenever it is used; a file that can't be read holds none. |
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
 | `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes; an open Scene shows the change. |
+| `screenplay/**/*.md` (the screenplay's pages) | Shared | Read again within a second; Creator writes them only through the page commands (`ScreenplayStore`), which check the folder again before writing, so a page made outside meanwhile is never written over. |
 | `AGENTS.md` (the game's notes) and the `CLAUDE.md` importing it | Shared | Read at the start of every conversation; Creator writes `AGENTS.md` through `set_game_notes`, and `CLAUDE.md` only when the project has none. |
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
 | Template files (`Game.kt`, build files) | User after creation | `templateVersion` in `.kubriko/project.json`; upgrades are shown as a diff. |

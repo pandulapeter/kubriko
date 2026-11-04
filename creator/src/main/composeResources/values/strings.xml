@@ -471,6 +471,12 @@
     <string name="error_command_number_invalid">Every number has to be finite.</string>
     <string name="error_command_key_not_allowed">Only keyPressed Events have a key.</string>
     <string name="error_command_other_actor_type_not_allowed">Only collision Events have another Actor type.</string>
+    <string name="error_command_page_missing">There's no page called %1$s.</string>
+    <string name="error_command_page_name_invalid">%1$s can't be a page's name: use letters, digits, spaces, dashes, and underscores, with a / between folders.</string>
+    <string name="error_command_page_not_moved">Kubriko Creator couldn't move the page %1$s, so nothing changed. Another program may have its file open.</string>
+    <string name="error_command_page_section_missing">%1$s has no section headed %2$s.</string>
+    <string name="error_command_page_taken">There's already a page called %1$s.</string>
+    <string name="error_command_page_too_long">A page can be at most %1$s characters long. Split it into pages of one topic each.</string>
     <string name="error_command_block_not_allowed">The %1$s Block isn't allowed in a %2$s Event.</string>
     <string name="error_command_not_changed_by_hand">The generated code of %1$s wasn't changed by hand.</string>
     <string name="command_create_actor_type">Create Actor type</string>
@@ -627,6 +633,12 @@
     <string name="command_get_kubriko_api">Read Kubriko's API</string>
     <string name="command_read_game_notes">Read the game's notes</string>
     <string name="command_set_game_notes">Change the game's notes</string>
+    <string name="command_list_pages">List the screenplay's pages</string>
+    <string name="command_read_pages">Read pages of the screenplay</string>
+    <string name="command_create_page">Create a page</string>
+    <string name="command_edit_page">Change a page</string>
+    <string name="command_move_page">Move a page</string>
+    <string name="command_delete_page">Delete a page</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>
     <string name="command_build">Build the project</string>
@@ -643,6 +655,7 @@
     <string name="ai_target_event">%1$s, Event %2$s</string>
     <string name="ai_target_block">%1$s, Event %2$s, Block %3$s</string>
     <string name="ai_target_scene">Scene %1$s</string>
+    <string name="ai_target_page">The page %1$s</string>
     <string name="ai_target_version_control">Version control</string>
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
