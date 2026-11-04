@@ -133,8 +133,9 @@ class UpgradingAndPlayingTest {
                 assertContains(game.readText(), color)
                 game.writeText(game.readText().replace(color, "Color(0xFF${"%06X".format(WEB_VIEWPORT_COLOR)})"))
                 fun viewportPixel(image: BufferedImage) = image.getRGB(image.width / 2, image.height - 10)
-                val reloaded = awaitBrowser(chrome, "web-reloaded", timeout = 5.minutes) { ImageChecks.matches(viewportPixel(it), WEB_VIEWPORT_COLOR) }
+                val reloaded = awaitBrowser(chrome, "web-reloaded", timeout = 5.minutes) { ImageChecks.matches(viewportPixel(it), WEB_VIEWPORT_COLOR) && it.boundsOf(SPRITE_COLOR) != null }
                 assertTrue(ImageChecks.matches(viewportPixel(reloaded), WEB_VIEWPORT_COLOR), "The page didn't reload with the color Game.kt now gives the viewport.")
+                assertTrue(reloaded.boundsOf(SPRITE_COLOR) != null, "The reloaded page doesn't draw the bonus Scene's sprites.")
             }
             succeed("stop_game")
         }
