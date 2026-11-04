@@ -50,7 +50,9 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
 14. [Project upkeep](14-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
 15. [Onboarding](15-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
-16. [Later](16-later.md) - code editor, language server, asset editor extension point.
+16. [Automated testing](16-automated-testing.md) - the tests a project already has found, listed, and run with one click, a test kit
+    for games in Kotlin, and the AI writing and keeping them; finding existing tests waits for nothing and can be pulled forward.
+17. [Later](17-later.md) - code editor, language server, asset editor extension point.
 
 ## Structure
 

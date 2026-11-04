@@ -86,6 +86,6 @@ explanations instead of failures for layouts Creator can't interpret.
 `:app:desktop` being the first of its desktop modules, and the toolbar picks another; its `:app:web`, `:app:android`, and `app/ios/iosApp`
 (with the shared `[iOS] Tesselar` scheme) wait for Every entry point. Scene editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the
 editable instance, and is worth little there: its levels are procedural regions, edited in its own region editor. Its models and regions
-need the asset editor extension point (`16-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
+need the asset editor extension point (`17-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
 apply. The goal is working on Tesselar entirely inside Creator: its play, debugging, version control, and AI host, with its own editors
 inside, on the engine's rendering rather than private copies of it (`06-batched-rendering.md`).
