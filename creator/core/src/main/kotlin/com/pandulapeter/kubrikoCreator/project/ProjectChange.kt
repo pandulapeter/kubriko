@@ -35,7 +35,8 @@ public enum class ProjectChange {
     SOURCES,
 
     /**
-     * The build files that make folders Gradle modules, which the resource tree groups files by.
+     * The build files that make folders Gradle modules, which the resource tree groups files by, and the root settings file
+     * that includes them, which together decide the game's module.
      */
     MODULES,
 }

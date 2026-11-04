@@ -98,12 +98,17 @@ public class ProjectWatcher(
             return changes
         }
 
+        /**
+         * The root project's settings files, whose `include` lines make modules too.
+         */
+        private val SETTINGS_FILES = setOf("settings.gradle.kts", "settings.gradle")
+
         internal fun areaOf(path: String) = when {
             path.endsWith(ATOMIC_WRITE_SUFFIX) -> null
             path == BlockTypeStore.SETTINGS_FILE -> ProjectChange.SETTINGS
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
-            ResourceScanner.isBuildFile(path) -> ProjectChange.MODULES
+            ResourceScanner.isBuildFile(path) || path in SETTINGS_FILES -> ProjectChange.MODULES
             path.startsWith("src/") || "/src/" in path -> ProjectChange.SOURCES
             else -> null
         }

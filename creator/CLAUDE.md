@@ -315,7 +315,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **The game's module** (`GameModuleChoice`) is the desktop module (one with a `run` task) that every build, play session,
   and the Scene editor's classes come from: the first in Gradle's order, or the one chosen in the toolbar, which offers the
   choice only when there are several (Tesselar's game beside its model and region editors) and nothing runs. The choice is
-  this computer's (`.kubriko/local/module.json`); choosing builds the Scene editor's classes again.
+  this computer's (`.kubriko/local/module.json`); choosing builds the Scene editor's classes again, and a change to a build file
+  or the root settings file asks Gradle for the modules again before the next build rather than at once, since that configures
+  the whole build.
 - **Where to play** (`PlayTargetChoice`) is this computer's: the choice is kept in `.kubriko/local/play.json`, and one that
   isn't there now (a device unplugged) stays chosen while Play uses the desktop. `play` and `start_game` take the desktop
   when no `target` is given, not the user's choice, so the same call always plays in the same place. The web, Android, and

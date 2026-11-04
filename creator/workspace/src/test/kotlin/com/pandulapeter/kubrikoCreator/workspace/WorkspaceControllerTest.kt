@@ -233,12 +233,16 @@ class WorkspaceControllerTest {
     }
 
     @Test
-    fun theChosenGameModuleIsTheOneBuilt() = runTest {
-        val controller = createController(findDesktopModulePaths = { listOf(":app:desktop", ":editor:model") }, rootDirectory = testDirectory())
+    fun theChosenGameModuleIsBuiltAndBuildFileChangesAskForTheModulesAgain() = runTest {
+        var lookups = 0
+        val controller = createController(findDesktopModulePaths = { lookups++; listOf(":app:desktop", ":editor:model") }, rootDirectory = testDirectory())
         controller.gameModule.choose(":editor:model")
         controller.play()
         assertEquals(":editor:model:${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
+        controller.onProjectChanged(setOf(ProjectChange.MODULES))
+        assertEquals(1, lookups, "the modules are asked for again only once a build needs them")
         build.currentRun.finish(isSuccessful = true)
+        assertEquals(2, lookups)
         assertEquals(":editor:model:${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
     }
 

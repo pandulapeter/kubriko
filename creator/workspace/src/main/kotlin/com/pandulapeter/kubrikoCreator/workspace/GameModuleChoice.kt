@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -35,7 +37,8 @@ import java.util.concurrent.atomic.AtomicReference
  * order is the game's.
  *
  * The modules are asked from Gradle in the background as soon as the workspace opens, since only builds need them, and
- * asked again after a lookup that failed (a build file fixed since, or Gradle's download back online).
+ * asked again, once they are next needed, after a lookup that failed (a build file fixed since, or Gradle's download back
+ * online) and after the build files changed ([onBuildFilesChanged]).
  *
  * @param findDesktopModulePaths Asks Gradle for the paths of the modules with a `run` task, in its order.
  * @param onChosen Called on the main thread once another module is chosen, whose classes are then the project's.
@@ -55,9 +58,10 @@ public class GameModuleChoice internal constructor(
      * The modules the game could be and the one it is, or null until Gradle has named them.
      */
     public val modules: StateFlow<GameModules?> = _modules.asStateFlow()
-    private val lookup = AtomicReference(lookUp().apply { start() })
+    private val lookup = AtomicReference(lookUp())
 
     init {
+        lookup.get().start()
         scope.launch(ioDispatcher) {
             for (path in saves) store.write(LocalModuleSettings(module = path))
         }
@@ -66,8 +70,12 @@ public class GameModuleChoice internal constructor(
     private fun lookUp(): Deferred<GameModules> = scope.async(ioDispatcher, start = CoroutineStart.LAZY) {
         val paths = findDesktopModulePaths()
         val saved = store.read()?.module
-        GameModules(available = paths, chosen = saved?.takeIf { it in paths } ?: paths.firstOrNull() ?: throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE))
-            .also { _modules.value = it }
+        val found = GameModules(available = paths, chosen = saved?.takeIf { it in paths } ?: paths.firstOrNull() ?: throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE))
+        // A lookup replaced while it ran read the build files as they were before, so only the latest one is shown.
+        if (lookup.get() === coroutineContext.job) {
+            _modules.update { shown -> shown?.chosen?.takeIf { it in paths }?.let { found.copy(chosen = it) } ?: found }
+        }
+        found
     }
 
     /**
@@ -97,9 +105,18 @@ public class GameModuleChoice internal constructor(
         onChosen()
     }
 
+    /**
+     * Notes that the build files changed, which may have added or removed modules, so the next build asks Gradle again.
+     */
+    internal fun onBuildFilesChanged() = replace(lookup.get())
+
     private fun replace(current: Deferred<GameModules>) {
         val next = lookUp()
-        if (!lookup.compareAndSet(current, next)) next.cancel()
+        when {
+            !lookup.compareAndSet(current, next) -> next.cancel()
+            // One nothing awaited never started, and would otherwise wait in the workspace's scope until it closes.
+            !current.isActive && !current.isCompleted -> current.cancel()
+        }
     }
 
     internal companion object {

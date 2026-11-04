@@ -113,6 +113,51 @@ class GameModuleChoiceTest {
     }
 
     @Test
+    fun theModulesAreAskedForAgainAfterTheBuildFilesChangedOnlyOnceTheyAreNeeded() = runTest {
+        var lookups = 0
+        val choice = choice { lookups++; paths }
+        choice.choose(":editor:region")
+        choice.onBuildFilesChanged()
+        assertEquals(1, lookups)
+        paths = listOf(":app:desktop", ":editor:model")
+        assertEquals(":app:desktop", choice.await(), "the chosen module is gone, and nothing else was saved")
+        assertEquals(2, lookups)
+        assertEquals(GameModules(paths, ":app:desktop"), choice.modules.value)
+    }
+
+    @Test
+    fun theChosenModuleStaysChosenWhenTheModulesAreAskedForAgain() = runTest {
+        val choice = choice()
+        choice.choose(":editor:model")
+        choice.onBuildFilesChanged()
+        paths = paths + ":editor:sound"
+        assertEquals(":editor:model", choice.await())
+        assertEquals(GameModules(paths, ":editor:model"), choice.modules.value)
+    }
+
+    @Test
+    fun aLookupReplacedWhileItRanIsNotShown() = runTest {
+        val first = CompletableDeferred<List<String>>()
+        var lookups = 0
+        val choice = choice { if (++lookups == 1) first.await() else paths }
+        choice.onBuildFilesChanged()
+        assertEquals(":app:desktop", choice.await())
+        first.complete(listOf(":old"))
+        assertEquals(GameModules(paths, ":app:desktop"), choice.modules.value)
+    }
+
+    @Test
+    fun lookupsReplacedBeforeTheyStartedDontStayInTheWorkspacesScope() = runTest {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val job = Job()
+        val choice = GameModuleChoice(directory, CoroutineScope(backgroundScope.coroutineContext + job + dispatcher), dispatcher, { paths }) {}
+        choice.await()
+        repeat(3) { choice.onBuildFilesChanged() }
+        assertEquals(2, job.children.count(), "the loop saving the choice, and the one lookup that would run next")
+        assertEquals(":app:desktop", choice.await())
+    }
+
+    @Test
     fun aLookupStillRunningIsCancelledWithTheWorkspace() = runTest {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val scope = CoroutineScope(backgroundScope.coroutineContext + Job() + dispatcher)

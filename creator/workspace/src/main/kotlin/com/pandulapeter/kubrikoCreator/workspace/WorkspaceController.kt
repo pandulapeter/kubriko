@@ -376,7 +376,10 @@ public class WorkspaceController(
      * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them; the resource tree is
      * built from [snapshot], the files as the watcher found them, if it is given.
      */
-    internal fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) = this.changes.onProjectChanged(changes, snapshot)
+    internal fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) {
+        if (ProjectChange.MODULES in changes) gameModule.onBuildFilesChanged()
+        this.changes.onProjectChanged(changes, snapshot)
+    }
 
     /**
      * Checks the template files again, recording the new template version if they were upgraded by hand, and where the
