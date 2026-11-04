@@ -38,14 +38,29 @@ explanations instead of failures for layouts Creator can't interpret.
 
 - **The game's module, shared.** The toolbar's choice of the game's module is this computer's (`.kubriko/local/module.json`); an
   opted-in project with several desktop modules should name it in `.kubriko/project.json`, so everyone working on it plays the same one.
+- **Every entry point.** Play's web, Android, and iOS targets come only from `GameTargets`, which reads the template's layout of an
+  opted-in project (one module, `androidApp/`, and `iosApp/` at the root), so a project with an entry point module per platform plays only
+  on the desktop. Creator should read every entry point from the Gradle model `DesktopModules` already fetches, never changing the build:
+  a `run` task is a desktop one, `wasmJsBrowserDevelopmentExecutableDistribution` a web one (it exists only with `binaries.executable()`),
+  an `install…Debug` task an Android app (each flavor its own), and `embedAndSignAppleFrameworkForXcode` the framework of an iOS app, whose
+  Xcode project is found beside it or in `iosApp/` and whose scheme comes from `xcodebuild -list -json`, with a console line naming the
+  missing scheme when a clone has none shared. `GameModules` becomes the entry points by kind, each kind with a choice of its own
+  (`.kubriko/local/module.json`), offered in Play's menu only when a kind has several; the desktop's still decides the Scene editor's
+  classes. `WebPlayer`, `AndroidPlayer` (its `output-metadata.json` under the chosen module's `build/`), and `IosSimulatorPlayer` take the
+  chosen entry point instead of their fixed paths. Project settings → Targets lists what was found, read only, for a project that isn't
+  opted in; turning targets on and off stays the template's. An entry point that isn't the template's starts as it always does, so Play
+  from this Scene and the Log Blocks switch say in the console that they can't reach it. Checked against the Showcase's `app/` modules
+  (the same layout as Tesselar's) with unit tests over recorded models, and one end-to-end scenario playing a multi-module fixture in
+  the browser.
 - **The code's module.** Generated code, the build file sync, and the sources Creator scans need the module that holds the game's code,
   which in a multi-module project isn't the desktop one (see Kubriko dependencies above).
 - **Every resource.** The sidebar lists only the folders Creator knows about (sprites, sounds, Scenes); a project's own resource
   folders (`files/model`) should show too, opening in the system's editor until a project registers an editor of its own.
 
 **Tesselar** (two Kubriko instances, procedural world, its own cuboid model format, a version catalog, and code in `:gameplay` with
-`:app:desktop` beside the desktop `:editor:model` and `:editor:region` tools) is the advanced reference. It plays unchanged, `:app:desktop`
-being the first of its desktop modules, and the toolbar picks another. Scene editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the
+`:app:desktop` beside the desktop `:editor:model` and `:editor:region` tools) is the advanced reference. It plays unchanged on the desktop,
+`:app:desktop` being the first of its desktop modules, and the toolbar picks another; its `:app:web`, `:app:android`, and `app/ios/iosApp`
+(with the shared `[iOS] Tesselar` scheme) wait for Every entry point. Scene editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the
 editable instance, and is worth little there: its levels are procedural regions, edited in its own region editor. Its models and regions
 need the asset editor extension point (`16-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
 apply. The goal is working on Tesselar entirely inside Creator: its play, debugging, version control, and AI host, with its own editors
