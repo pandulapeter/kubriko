@@ -119,6 +119,12 @@ internal fun WorkspaceToolbar(
         ) {
             ButtonContent(Res.drawable.ic_play, Res.string.action_play, isBusy = isBuilding)
         }
+        if (gameModules?.isChoosable == true) {
+            GameModuleMenu(
+                modules = gameModules,
+                onChosen = onGameModuleChosen,
+            )
+        }
         PlayTargetMenu(
             targets = playTargets,
             onOpened = onPlayTargetsOpened,
@@ -126,12 +132,6 @@ internal fun WorkspaceToolbar(
             onConfigurePlatforms = onOpenTargets,
             onSetUpMore = onSetUpMoreDevices,
         )
-        if (gameModules?.isChoosable == true) {
-            GameModuleMenu(
-                modules = gameModules,
-                onChosen = onGameModuleChosen,
-            )
-        }
     } else {
         FilledTonalButton(
             modifier = ToolbarButtonModifier,

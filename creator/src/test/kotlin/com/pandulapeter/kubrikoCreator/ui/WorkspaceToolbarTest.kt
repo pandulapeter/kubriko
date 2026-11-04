@@ -34,6 +34,7 @@ import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class WorkspaceToolbarTest {
@@ -59,7 +60,10 @@ class WorkspaceToolbarTest {
         onNodeWithText("Root module").assertDoesNotExist()
         gameModules = GameModules(listOf(":app:desktop", ":editor:model"), ":app:desktop")
         waitForIdle()
-        onNodeWithText("app:desktop").assertExists()
+        val play = onNode(hasText("Play") and hasClickAction()).fetchSemanticsNode().boundsInRoot
+        val module = onNodeWithText("app:desktop").fetchSemanticsNode().boundsInRoot
+        val target = onNodeWithText("Desktop").fetchSemanticsNode().boundsInRoot
+        assertTrue(play.right <= module.left && module.right <= target.left, "Play, then the module, then the target: $play, $module, $target")
         saveSnapshot("workspace-toolbar-game-module")
         sessionState = SessionState.Running(SessionMode.PLAY)
         waitForIdle()
