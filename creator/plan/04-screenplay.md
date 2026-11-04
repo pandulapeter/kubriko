@@ -27,9 +27,12 @@ health checks.
 
 - **Shared, not the AI's:** the design is the user's; the AI keeps it in step with the game and proposes what it writes (Keep and
   Undo), never writing pages the user didn't see.
-- **Organized by what the player meets, not by the code:** `README.md` is the game, then a page per main part (`hero.md`,
-  `combat.md`), with folders where a part grows (`levels/cave.md`). Never a page per module or package, which would only restate
-  the code the AI already reads.
+- **As few pages as the game allows, split by size, not by part:** a game starts as one page, `README.md`, and a simple one
+  (Breakout) stays that way. A topic gets a page of its own (`combat.md`) only once the page holding it passes the length limit
+  or the topic stands alone (a level set, a progression system), with folders where one grows (`levels/cave.md`). Never a page
+  per Actor type, Manager type, Scene, module, or package: a page says how things behave for the player and mentions the types,
+  never restating their Properties or Events, which the AI already reads. The system prompt and `create_page`'s description
+  say so until `ScreenplayStyle` checks it.
 - **Not the game's notes:** `AGENTS.md` says how to work on the project (conventions, what to avoid), for agents; the screenplay
   says what the game is, for everyone. Both stay vendor-neutral: Creator writes `AGENTS.md`, the cross-vendor convention, and a
   `CLAUDE.md` holding only `@AGENTS.md` when the project has none, since Claude Code doesn't read `AGENTS.md` by itself; pages are
