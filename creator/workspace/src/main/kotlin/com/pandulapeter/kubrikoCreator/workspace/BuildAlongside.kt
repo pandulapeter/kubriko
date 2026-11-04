@@ -10,16 +10,18 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 
 /**
  * Runs [build] while [ready] gets a device ready, returning what [ready] returned once both are done, or null as soon as
- * either fails ([build] returning false, [ready] null), cancelling the other.
+ * either fails ([build] returning false, [ready] null), cancelling the other. The build starts first, so a device found
+ * missing at once still stops a build that began rather than one that never ran.
  */
 internal suspend fun <T : Any> builtAlongside(build: suspend () -> Boolean, ready: suspend () -> T?): T? = coroutineScope {
-    val building = async { build() }
+    val building = async(start = CoroutineStart.UNDISPATCHED) { build() }
     val device = async { ready().also { if (it == null) building.cancel() } }
     val isBuilt = try {
         building.await()
