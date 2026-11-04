@@ -46,7 +46,7 @@ Update-rate throttling is decided by `FrameTickScheduler` (fed by `InternalViewp
 
 `InternalViewport` uses two nested `Box` composables:
 1. **Outer Box**: applies `processOverlayModifier` from all Managers
-2. **Inner Box**: aspect-ratio layout, feeds size to `ViewportManagerImpl`, calls `Composable` for every Manager
+2. **Inner Box**: aspect-ratio layout, feeds size to `ViewportManagerImpl`, calls `Composable` for every Manager. Under `Fixed` the letterbox (`align` and `aspectRatio`) comes before the caller's modifier, so a modifier that sizes the viewport applies within the letterbox instead of keeping it from forming (`FixedViewportLayoutTest`, the one engine test that composes the viewport offscreen)
 
 `ActorManagerImpl.Composable` hands `layerIndices` to `Layers`, which iterates them in a restart scope of its own, so a layer coming or going never rebuilds the container's modifier chain, and keys each layer's `Canvas` by its index, so one appearing in front of the others never hands a later layer's node to a different layer. It creates a `Canvas` per layer with `processModifier` applied, then inside each `onDraw` applies `transformViewport` (translate + scale around camera) and iterates the culler's pre-sorted `sortedVisibleActorsByLayer[layerIndex]` — skipping the transform, and the viewport reads it needs, on layers with no visible actors. Overlay actors are drawn without the viewport transform. `gameTime.value` is read solely to invalidate the Canvas on every tick. `gameTime` itself is `MetadataManagerImpl.gameTime`, a `mutableLongStateOf` written directly in `onUpdate` — a primitive Compose snapshot state, not a `collectAsState()` read of the public `totalRuntimeInMilliseconds` StateFlow, which stays around only as public API.
 

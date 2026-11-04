@@ -37,5 +37,10 @@ kotlin {
             implementation(libs.apache.commonsLang)
             implementation(libs.kotlinx.coroutines.desktop)
         }
+        // The viewport's layout is tested offscreen, which needs Compose's UI tests and Skia's native library.
+        desktopTest.dependencies {
+            implementation(compose.desktop.uiTestJUnit4)
+            implementation(compose.desktop.currentOs)
+        }
     }
 }

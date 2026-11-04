@@ -160,7 +160,9 @@ sealed class ViewportManager(
         ) : AspectRatioMode()
 
         /**
-         * The viewport has a fixed aspect ratio and minimum width, potentially adding letterboxing.
+         * The viewport has a fixed aspect ratio and minimum width, potentially adding letterboxing. The letterbox is laid
+         * out before the modifier handed to `KubrikoViewport`, which applies within it, so a modifier sizing the viewport
+         * (such as `fillMaxSize`) can't keep it from forming.
          */
         data class Fixed(
             val ratio: Float,

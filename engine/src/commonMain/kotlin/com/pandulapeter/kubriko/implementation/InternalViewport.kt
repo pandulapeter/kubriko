@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -154,16 +155,7 @@ fun InternalViewport(
             }
         ) {
             Box(
-                modifier = when (aspectRatioMode) {
-                    ViewportManager.AspectRatioMode.Dynamic,
-                    is ViewportManager.AspectRatioMode.FitHorizontal,
-                    is ViewportManager.AspectRatioMode.FitVertical,
-                    is ViewportManager.AspectRatioMode.Stretched -> modifier.fillMaxSize()
-
-                    is ViewportManager.AspectRatioMode.Fixed -> modifier
-                        .align(aspectRatioMode.alignment)
-                        .aspectRatio(ratio = aspectRatioMode.ratio)
-                }
+                modifier = viewportModifier(aspectRatioMode, modifier)
                     .clipToBounds()
                     .onSizeChanged { intSize -> kubrikoImpl.viewportManager.onViewportSizeChanged(intSize.width.toFloat(), intSize.height.toFloat()) }
             ) {
@@ -172,6 +164,23 @@ fun InternalViewport(
             }
         }
     }
+}
+
+/**
+ * The game area within the canvas: all of it, or for [ViewportManager.AspectRatioMode.Fixed] the letterbox, which comes
+ * before [modifier], so that a modifier sizing the viewport (such as `fillMaxSize`) sizes it within the letterbox rather
+ * than keeping the letterbox from forming.
+ */
+private fun BoxScope.viewportModifier(aspectRatioMode: ViewportManager.AspectRatioMode, modifier: Modifier) = when (aspectRatioMode) {
+    ViewportManager.AspectRatioMode.Dynamic,
+    is ViewportManager.AspectRatioMode.FitHorizontal,
+    is ViewportManager.AspectRatioMode.FitVertical,
+    is ViewportManager.AspectRatioMode.Stretched -> modifier.fillMaxSize()
+
+    is ViewportManager.AspectRatioMode.Fixed -> Modifier
+        .align(aspectRatioMode.alignment)
+        .aspectRatio(ratio = aspectRatioMode.ratio)
+        .then(modifier)
 }
 
 private fun isTickingAllowed(kubrikoImpl: KubrikoImpl, viewportTickSource: ViewportFrameTickSource) =
