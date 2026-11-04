@@ -32,6 +32,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
  *
  * @param sceneResources The Scene files the last scan of the project found. Scenes created since then are found in the
  *   folder new Scenes go to.
+ * @param homeDirectory The Scenes folder the game loads its Scenes from, when Kubriko Creator knows it (from the generated
+ *   code's module), which new Scenes go to even when another module has Scenes, or none has any yet.
  * @param writeText Writes a Scene file, replaceable so that tests can make one fail.
  * @param readText Reads a Scene file, replaceable so that tests can make one fail.
  * @param beforeIndexing Runs between a [refresh]'s walk through the Scenes and its update of the names, so that tests can
@@ -43,6 +45,7 @@ public class SceneStore(
     private val writeText: (File, String) -> Unit = { file, text -> file.writeTextAtomically(text) },
     private val readText: (File) -> String = { file -> file.readText() },
     private val beforeIndexing: () -> Unit = {},
+    private val homeDirectory: File? = null,
     private val sceneResources: () -> List<ProjectResource>,
 ) {
     /**
@@ -50,7 +53,7 @@ public class SceneStore(
      */
     public val descriptions: SceneDescriptions = SceneDescriptions(rootDirectory, ownWrites)
 
-    private val sceneDirectory get() = newSceneDirectoryOf(rootDirectory, sceneResources())
+    private val sceneDirectory get() = newSceneDirectoryOf(rootDirectory, sceneResources(), homeDirectory)
 
     private val indexLock = Any()
     private val refreshLock = Any()
@@ -349,10 +352,11 @@ public class SceneStore(
 
         /**
          * The folder new Scenes and Scene folders of the project in [rootDirectory] go to, which has the Scene files
-         * [sceneResources]: next to the existing Scenes, or where the project templates keep them.
+         * [sceneResources]: the [homeDirectory] the game loads them from if known, or else next to the existing Scenes, or
+         * where the project templates keep them.
          */
-        public fun newSceneDirectoryOf(rootDirectory: File, sceneResources: List<ProjectResource>): File =
-            sceneResources.firstNotNullOfOrNull { rootOf(it.file) } ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
+        public fun newSceneDirectoryOf(rootDirectory: File, sceneResources: List<ProjectResource>, homeDirectory: File? = null): File =
+            homeDirectory ?: sceneResources.firstNotNullOfOrNull { rootOf(it.file) } ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
 
         /**
          * Every folder of the Scenes folder [directory], as paths (`levels/forest`), empty ones too.

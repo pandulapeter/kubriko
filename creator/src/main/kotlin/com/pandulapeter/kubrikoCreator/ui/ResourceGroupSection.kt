@@ -50,6 +50,7 @@ internal fun LazyListScope.resourceGroupSection(
     item(key = groupKey) {
         ResourceGroupHeader(
             group = group,
+            indent = module.depth,
             isExpanded = isExpanded,
             onToggle = { tree.toggle(groupKey) },
             subfolderActions = tree.subfolderActions(groupKey),
@@ -59,7 +60,7 @@ internal fun LazyListScope.resourceGroupSection(
         !isExpanded -> Unit
         groupResources.isEmpty() -> item(key = "$groupKey-empty") {
             Text(
-                modifier = Modifier.padding(start = 36.dp, top = 2.dp, bottom = 6.dp),
+                modifier = Modifier.padding(start = 36.dp + SIDEBAR_INDENT * module.depth, top = 2.dp, bottom = 6.dp),
                 text = stringResource(Res.string.resource_group_empty),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -68,26 +69,28 @@ internal fun LazyListScope.resourceGroupSection(
         group == ResourceGroup.KOTLIN -> kotlinTreeItems(
             groupKey = groupKey,
             rows = kotlinTreeRows(groupResources, module.kotlinRootPackage, tree.toggledKotlinRows(groupKey), isEverythingOpen = tree.isFiltering),
+            indent = module.depth,
             tree = tree,
         )
-        else -> resourceItems(group, groupResources)
+        else -> resourceItems(group, groupResources, indent = module.depth)
     }
 }
 
 /**
  * The header of a group of files, opened and closed by a click, with [subfolderActions] before its chevron while it
- * holds folders.
+ * holds folders, and its content [indent] levels in, as the module it belongs to is.
  */
 @Composable
 private fun ResourceGroupHeader(
     group: ResourceGroup,
+    indent: Int,
     isExpanded: Boolean,
     onToggle: () -> Unit,
     subfolderActions: SubfolderActions?,
 ) {
     val hover = rememberHoverRevealState()
     PanelHeader(
-        modifier = Modifier.clickable(onClick = onToggle).hoverReveal(hover),
+        modifier = Modifier.clickable(onClick = onToggle).hoverReveal(hover).padding(start = SIDEBAR_INDENT * indent),
         icon = group.icon,
         title = stringResource(group.title),
         accent = Accent.CODE,
@@ -106,9 +109,9 @@ private fun ResourceGroupHeader(
 }
 
 /**
- * The files of an asset [group], by name.
+ * The files of an asset [group], by name, [indent] levels in.
  */
-private fun LazyListScope.resourceItems(group: ResourceGroup, groupResources: List<ProjectResource>) {
+private fun LazyListScope.resourceItems(group: ResourceGroup, groupResources: List<ProjectResource>, indent: Int) {
     val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
     items(groupResources, key = { it.relativePath }) { resource ->
         SidebarItem(
@@ -116,6 +119,7 @@ private fun LazyListScope.resourceItems(group: ResourceGroup, groupResources: Li
             accent = Accent.CODE,
             text = resource.name,
             detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
+            depth = indent,
             onClick = null,
         )
     }

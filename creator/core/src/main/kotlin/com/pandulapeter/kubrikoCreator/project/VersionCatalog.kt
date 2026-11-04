@@ -18,6 +18,7 @@ public object VersionCatalog {
     public const val VERSIONS: String = "[versions]"
     public const val LIBRARIES: String = "[libraries]"
     public const val PLUGINS: String = "[plugins]"
+    private const val BUNDLES = "[bundles]"
     private val entryPattern = Regex("""^\s*([A-Za-z0-9_-]+)\s*=""")
     private const val VERSION_NAME = "kubriko"
     private val versionPattern = Regex("""^\s*$VERSION_NAME\s*=\s*"([^"]*)"\s*$""")
@@ -73,6 +74,17 @@ public object VersionCatalog {
             lines.add(position, line)
         }
         return lines.joinToString("\n")
+    }
+
+    /**
+     * The aliases of the bundles of [text] that hold one of the libraries with [aliases].
+     */
+    internal fun bundlesHolding(text: String, aliases: Collection<String>): List<String> {
+        val lines = text.lines()
+        return section(lines, BUNDLES).mapNotNull { index ->
+            val (alias, entries) = lines[index].split('=', limit = 2).takeIf { it.size == 2 } ?: return@mapNotNull null
+            alias.trim().takeIf { bundle -> bundle.isNotEmpty() && aliases.any { "\"$it\"" in entries } }
+        }
     }
 
     /**

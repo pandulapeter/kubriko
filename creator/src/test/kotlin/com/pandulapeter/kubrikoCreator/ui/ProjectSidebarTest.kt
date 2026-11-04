@@ -32,6 +32,7 @@ import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
@@ -274,22 +275,57 @@ class ProjectSidebarTest {
                 ),
                 folderActions = folderActions,
                 dragState = SidebarDragState(),
-                layout = ProjectLayout(typeModule = "", sceneModule = ""),
-                projectName = "Breakout",
+                layout = ProjectLayout(typeModule = "", sceneModule = "", modules = modulesOf("" to true, "tools" to false)),
             )
         }
-        listOf("Breakout", ":tools", "Ball", "Intro", "Sandbox", "grid.png").forEach { onNodeWithText(it).assertExists() }
+        listOf("Root module", "tools", "Ball", "Intro", "Sandbox", "grid.png").forEach { onNodeWithText(it).assertExists() }
+        onAllNodesWithText(":tools", substring = true).assertCountEquals(0)
         onAllNodesWithText("Scenes").assertCountEquals(2)
         onAllNodesWithContentDescription("New Scene").assertCountEquals(1)
-        onAllNodesWithText("Kotlin files").assertCountEquals(1)
+        onAllNodesWithText("Kotlin files").assertCountEquals(2)
+        onAllNodesWithText("Sounds").assertCountEquals(1)
         saveSnapshot("sidebar-modules")
         onNodeWithText("Sandbox").performMouseInput { rightClick() }
         onNodeWithText("Delete Scene").performClick()
         assertEquals(listOf(FolderGroup.SCENES to "Sandbox"), deletedItems)
-        onNodeWithText("Breakout").performClick()
+        onNodeWithText("Root module").performClick()
         listOf("Ball", "Intro").forEach { onNodeWithText(it).assertDoesNotExist() }
         onNode(hasSetTextAction()).performTextInput("grid")
-        listOf(":tools", "grid.png").forEach { onNodeWithText(it).assertExists() }
-        listOf("Breakout", "Sandbox").forEach { onNodeWithText(it).assertDoesNotExist() }
+        listOf("tools", "grid.png").forEach { onNodeWithText(it).assertExists() }
+        listOf("Root module", "Sandbox").forEach { onNodeWithText(it).assertDoesNotExist() }
     }
+
+    @Test
+    fun modulesInsideAnotherOneAreShownInsideItsBandAndCloseWithIt() = uiTest(width = 300, height = 700) {
+        fun kotlin(path: String, module: String) = ProjectResource(ResourceGroup.KOTLIN, File(path), path, "com.game", module)
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = mapOf(
+                    ResourceGroup.KOTLIN to listOf(
+                        kotlin("app/desktop/src/main/kotlin/com/game/Main.kt", "app/desktop"),
+                        kotlin("app/android/src/main/kotlin/com/game/MainActivity.kt", "app/android"),
+                        kotlin("shared/src/commonMain/kotlin/com/game/Game.kt", "shared"),
+                    ),
+                ),
+                folderGroups = emptyMap(),
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+                layout = ProjectLayout(sceneModule = "shared", modules = modulesOf("" to false, "app/desktop" to false, "app/android" to false, "shared" to true)),
+            )
+        }
+        listOf("shared", "app", "desktop", "android").forEach { onNodeWithText(it).assertExists() }
+        onNodeWithText("Root module").assertDoesNotExist()
+        listOf("app:desktop", "app/desktop").forEach { onNodeWithText(it).assertDoesNotExist() }
+        val app = onNodeWithText("app", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val desktop = onNodeWithText("desktop", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        assertTrue(desktop.left > app.left, "A module inside another one is indented below it")
+        assertTrue(desktop.top > app.top)
+        saveSnapshot("sidebar-nested-modules")
+        onNodeWithText("app").performClick()
+        listOf("desktop", "android").forEach { onNodeWithText(it).assertDoesNotExist() }
+        onNodeWithText("shared").assertExists()
+    }
+
+    private fun modulesOf(vararg modules: Pair<String, Boolean>) = modules.associate { (path, usesKubriko) -> path to ProjectModule(usesKubriko) }
 }

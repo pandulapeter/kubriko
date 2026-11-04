@@ -32,12 +32,14 @@ import kubriko.creator.generated.resources.ic_module
 import org.jetbrains.compose.resources.painterResource
 
 /**
- * The band above the groups of one Gradle module of a project of several, named by its Gradle path ([title]), opened
- * and closed by a click, with [subfolderActions] before its chevron while it holds anything that opens.
+ * The band above the groups of the Gradle module in [path] of a project of several, indented by its [depth] among the
+ * modules, named by [moduleFolderName], opened and closed by a click, with [subfolderActions] before its chevron while it
+ * holds anything that opens.
  */
 @Composable
 internal fun SidebarModuleHeader(
-    title: String,
+    path: String,
+    depth: Int,
     isExpanded: Boolean,
     onToggle: () -> Unit,
     subfolderActions: SubfolderActions?,
@@ -51,7 +53,7 @@ internal fun SidebarModuleHeader(
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onToggle)
             .hoverReveal(hover)
-            .padding(start = 12.dp, end = SIDEBAR_ROW_END),
+            .padding(start = 12.dp + SIDEBAR_INDENT * depth, end = SIDEBAR_ROW_END),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -63,7 +65,7 @@ internal fun SidebarModuleHeader(
         )
         Text(
             modifier = Modifier.weight(1f),
-            text = title,
+            text = moduleFolderName(path),
             style = MaterialTheme.typography.titleSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -80,10 +82,3 @@ internal fun SidebarModuleHeader(
         )
     }
 }
-
-/**
- * The name a module of the project in [SidebarModule.path] goes by: its folder written as a Gradle path (`:app:desktop`),
- * which it is unless its build sets another (or it is a build of its own, such as `buildSrc`), or for the root project,
- * the project's own name.
- */
-internal fun moduleTitle(path: String, projectName: String) = if (path.isEmpty()) projectName else ":" + path.replace('/', ':')

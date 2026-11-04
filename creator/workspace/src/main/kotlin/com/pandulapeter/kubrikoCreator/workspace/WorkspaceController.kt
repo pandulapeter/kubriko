@@ -107,6 +107,7 @@ public class WorkspaceController(
     /** Where the project keeps what Kubriko Creator makes, as the last scan found it. */
     public val layout: StateFlow<ProjectLayout> = _layout.asStateFlow()
     private val generatedPath = blockTypeSetup?.generatedPath
+    private val sceneHome = blockTypeSetup?.scenePath?.let { File(project.rootDirectory, it) }
     private val incrementalCompilation = IncrementalCompilationPolicy(
         hasExpectDeclarations = ExpectDeclarations(project.rootDirectory).let { declarations -> { withContext(ioDispatcher) { declarations.any() } } },
     )
@@ -139,7 +140,7 @@ public class WorkspaceController(
     /**
      * The project's Scene files, by name.
      */
-    public val scenes: SceneStore = SceneStore(project.rootDirectory, files.ownWrites) { _resources.value[ResourceGroup.SCENES].orEmpty() }
+    public val scenes: SceneStore = SceneStore(project.rootDirectory, files.ownWrites, homeDirectory = sceneHome) { _resources.value[ResourceGroup.SCENES].orEmpty() }
 
     /** The project's version control. */
     public val git: GitController = GitController(
@@ -428,7 +429,7 @@ public class WorkspaceController(
     private suspend fun scanResourcesNow(snapshot: ProjectSnapshot?) {
         val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == files.ownWrites.generation }
         val (resources, layout) = withContext(ioDispatcher) {
-            files.scanResources(project.rootDirectory, currentSnapshot).let { it to ProjectLayout.of(project.rootDirectory, it, generatedPath) }
+            files.scanResources(project.rootDirectory, currentSnapshot).let { it to ProjectLayout.of(project.rootDirectory, it, generatedPath, sceneHome, currentSnapshot) }
         }
         _resources.value = resources
         _layout.value = layout

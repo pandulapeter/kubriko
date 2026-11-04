@@ -16,12 +16,14 @@ import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFileChanges
  *
  * @param repository Where the types are kept.
  * @param generatedPath Where their code is generated, which version control groups with its types.
+ * @param scenePath The Scenes folder the generated code loads Scenes from, where new Scenes go.
  * @param syncBuildFiles Brings the project's Kubriko dependencies in line with the code after each batch of writes.
  * @param writeDelayInMilliseconds How long changes wait to be written together with the next ones.
  */
 public class BlockTypesSetup(
     internal val repository: BlockTypeRepository,
     internal val generatedPath: String? = null,
+    internal val scenePath: String? = null,
     internal val syncBuildFiles: () -> KubrikoBuildFileChanges? = { null },
     internal val writeDelayInMilliseconds: Long = 0,
 )

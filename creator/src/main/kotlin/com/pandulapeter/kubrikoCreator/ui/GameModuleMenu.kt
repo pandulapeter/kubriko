@@ -28,7 +28,6 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.workspace.GameModules
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_choose_game_module
-import kubriko.creator.generated.resources.game_module_root
 import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_module
 import org.jetbrains.compose.resources.painterResource
@@ -53,17 +52,14 @@ internal fun GameModuleMenu(
             onClick = anchor::open,
         ) {
             Icon(modifier = Modifier.size(16.dp), painter = painterResource(Res.drawable.ic_module), contentDescription = null)
-            Text(modifier = Modifier.padding(start = 6.dp), text = moduleName(modules.chosen))
+            Text(modifier = Modifier.padding(start = 6.dp), text = gradleModuleName(modules.chosen))
             Icon(modifier = Modifier.size(16.dp), painter = painterResource(Res.drawable.ic_chevron), contentDescription = null)
         }
     }
     RightClickMenu(
         state = menu,
         actions = modules.available.map { path ->
-            ContextAction(label = moduleName(path), isCurrent = path == modules.chosen) { onChosen(path) }
+            ContextAction(label = gradleModuleName(path), isCurrent = path == modules.chosen) { onChosen(path) }
         },
     )
 }
-
-@Composable
-private fun moduleName(path: String) = path.removePrefix(":").ifEmpty { stringResource(Res.string.game_module_root) }

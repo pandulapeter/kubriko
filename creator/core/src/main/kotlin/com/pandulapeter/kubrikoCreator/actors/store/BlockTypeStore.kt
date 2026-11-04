@@ -52,6 +52,12 @@ public class BlockTypeStore private constructor(
     private val generatedDirectory get() = File(rootDirectory, generatedPath)
 
     /**
+     * The Scenes folder the generated code loads Scenes from (in `composeResources`, next to the source folder), relative
+     * to the project root, which is the one Scenes are made in.
+     */
+    public val scenePath: String get() = File(File(settings.sourceDirectory).parentFile, "composeResources/${ScenesCodeGenerator.SCENE_DIRECTORY}").invariantSeparatorsPath
+
+    /**
      * The definition files the last [load] couldn't read, which [save] and [delete] leave alone.
      */
     private var unreadableFiles = emptySet<File>()
@@ -302,7 +308,7 @@ public class BlockTypeStore private constructor(
      * The music of every Scene the game can load (those next to the source folder, in `composeResources`) that has some.
      */
     private fun sceneMusic(): Set<String> {
-        val scenes = File(File(rootDirectory, settings.sourceDirectory).parentFile, "composeResources/${ScenesCodeGenerator.SCENE_DIRECTORY}")
+        val scenes = File(rootDirectory, scenePath)
             .walkTopDown()
             .filter { it.isFile && it.extension == "json" }
             .toSet()

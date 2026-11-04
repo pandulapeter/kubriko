@@ -170,7 +170,6 @@ private fun WorkspaceContent(
                         folderActions = rememberFolderTreeActions(controller),
                         dragState = sidebarDragState,
                         layout = controller.layout.collectAsState().value,
-                        projectName = controller.project.name,
                         flashedName = shownAiStep?.step?.sidebarName(),
                         flashKey = shownAiStep?.flashKey,
                     )

@@ -44,14 +44,13 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The project's contents: its Actor types, Manager types, and Scenes as trees of folders, then its other files grouped
  * by what they are, below a field that narrows them all to those whose names contain what is typed (opening the folders
- * that hold them; Escape clears it). In a project of several Gradle modules, each module's are under a band of its own
- * ([sidebarModules]). Clicking a type edits it, and clicking a Scene opens it; clicking the selected one again, or empty
+ * that hold them; Escape clears it). In a project of several Gradle modules, each module's are under a band of its own,
+ * nested as the modules are ([sidebarModules]). Clicking a type edits it, and clicking a Scene opens it; clicking the selected one again, or empty
  * space, selects nothing. Opening a closed folder, group, or module shows the folders in it closed, and the buttons a
  * row holding folders shows while it is pointed at open or close every one of them.
  *
  * @param folderGroups The groups with folders it shows (the type groups only for projects that opted in to them).
  * @param layout Where the types and new Scenes are kept, which decides the modules they are shown in.
- * @param projectName What the root project is called in a project of several modules.
  * @param dragState Where types and Scenes are dragged to: folders, and the open Scene.
  */
 @Composable
@@ -62,7 +61,6 @@ internal fun ProjectSidebar(
     folderActions: FolderTreeActions,
     dragState: SidebarDragState,
     layout: ProjectLayout = ProjectLayout(),
-    projectName: String = "",
     flashedName: String? = null,
     flashKey: Any? = null,
 ) = Column(
@@ -77,7 +75,7 @@ internal fun ProjectSidebar(
     val structure = remember(modules) { modules.map { it.withoutSelection() } }
     val outline = remember(structure) { SidebarOutline(structure.flatMap { it.outlineNodes(isGrouped) }) }
     LaunchedEffect(outline) { expansion.forgetAllBut(outline) }
-    val shownModules = remember(query, modules) { if (isFiltering) modules.mapNotNull { it.filtered(query) } else modules }
+    val shownModules = remember(query, modules) { if (isFiltering) filteredModules(modules, query) else modules }
     val tree = remember(outline, expansion, isFiltering) { SidebarTree(outline, expansion, isFiltering) }
     SidebarFilterField(
         query = query,
@@ -86,13 +84,16 @@ internal fun ProjectSidebar(
     LazyColumn(
         modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } },
     ) {
+        val openModules = HashSet<String>()
         shownModules.forEach { module ->
+            if (module.parent != null && module.parent !in openModules) return@forEach
             val moduleKey = SidebarKeys.module(module.path)
             if (isGrouped) {
                 item(key = moduleKey) {
                     SidebarModuleHeader(
                         modifier = Modifier.animateItem(),
-                        title = moduleTitle(module.path, projectName),
+                        path = module.path,
+                        depth = module.depth,
                         isExpanded = tree.isExpanded(moduleKey),
                         onToggle = { tree.toggle(moduleKey) },
                         subfolderActions = tree.subfolderActions(moduleKey),
@@ -100,6 +101,7 @@ internal fun ProjectSidebar(
                 }
             }
             if (!isGrouped || tree.isExpanded(moduleKey)) {
+                openModules += module.path
                 moduleSections(
                     module = module,
                     folderActions = folderActions,
@@ -140,10 +142,8 @@ private fun LazyListScope.moduleSections(
 ) {
     FolderGroup.entries.forEach { group ->
         folderTreeSection(
-            module = module.path,
+            module = module,
             group = group,
-            state = module.folderGroups[group] ?: return@forEach,
-            isCreating = group in module.creatingGroups,
             actions = folderActions,
             dragState = dragState,
             tree = tree,

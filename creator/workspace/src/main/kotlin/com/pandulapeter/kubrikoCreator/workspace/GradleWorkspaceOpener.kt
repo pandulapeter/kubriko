@@ -87,6 +87,7 @@ public class GradleWorkspaceOpener(
                     BlockTypesSetup(
                         repository = store,
                         generatedPath = store.generatedPath,
+                        scenePath = store.scenePath,
                         syncBuildFiles = KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal, isKubrikoAvailable)::sync,
                         writeDelayInMilliseconds = WRITE_DELAY_IN_MILLISECONDS,
                     )

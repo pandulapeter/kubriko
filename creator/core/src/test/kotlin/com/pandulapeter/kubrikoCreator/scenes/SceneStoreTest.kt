@@ -135,6 +135,20 @@ class SceneStoreTest {
     }
 
     @Test
+    fun newScenesGoWhereTheGameLoadsThemFromEvenWhenAnotherModuleHasScenesOrNoneHasAny() {
+        val home = File(root, "game/src/commonMain/composeResources/files/scenes")
+        val store = SceneStore(root, homeDirectory = home) { scanned }
+        store.write("first", "[]")
+        assertTrue(File(home, "first.json").isFile)
+        val tools = File(root, "app/src/commonMain/composeResources/files/scenes/sandbox.json").apply { parentFile.mkdirs(); writeText("[]") }
+        scan(tools)
+        store.write("second", "[]")
+        store.createFolder("worlds")
+        assertTrue(File(home, "second.json").isFile)
+        assertEquals(setOf("worlds"), store.folders())
+    }
+
+    @Test
     fun aSceneOfAnotherModuleStaysInItsOwnScenesFolderWhenRenamed() {
         levels.mkdirs()
         val main = File(levels, "main.json").apply { writeText("[]") }

@@ -501,11 +501,17 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   a level at a time, and a row holding folders offers Expand all and Collapse all while it is pointed at. What is open is
   kept by key (`SidebarKeys`) over an outline of everything as if it were all open (`SidebarOutline`), so a folder keeps its
   state while the rows around it come and go.
-- A project of several Gradle modules shows each module's groups under a band of its own, the one Creator generates into
-  first; a project of one shows none. A module is a folder with a build file (`ResourceScanner.moduleOf`), told by the files
-  rather than asked from Gradle, so the tree never waits for a build. Modules are only read: the types and new Scenes stay
-  in the modules Creator writes them to (`ProjectLayout`), whose groups alone add items and folders, while another
-  module's Scenes still open, move between its own folders, and are deleted.
+- A project of several Gradle modules shows each module's groups under a band of its own, nested as the folders are
+  (`app/desktop` inside `app`, shown even without a build file, since Gradle makes it a project too, but a build of its
+  own such as `gradle/build-logic` at the top, inside no folder above it) and named by its
+  folder's own name, never by a Gradle path starting with `:`; the branch holding the game's module comes first, and a
+  project of one shows no band. A module is a folder with a build file (`ResourceScanner.moduleOf`), told by the files
+  rather than asked from Gradle, so the tree never waits for a build. One whose build file names a Kubriko library
+  (`ProjectModules`: a catalog library or bundle, or its coordinates, outside comments) lists every group, empty ones too; any other lists what it has, and is left out when that is nothing.
+  Modules are only read: the types and new Scenes stay in the modules Creator writes them to (`ProjectLayout`), whose
+  groups alone add items and folders, while another module's Scenes still open, move between its own folders, and are
+  deleted. New Scenes go where the generated code loads them from (`BlockTypeStore.scenePath`), even in a project
+  whose other modules have Scenes, or that has none yet.
 - The sidebar's Kotlin files are read-only and grouped by what the code is, not where it lies: the shared source sets
   (`commonMain`, `main`) at the top, each platform's in a container with its Play menu icon (closed at first), and a folder
   for each package below the one all files share, merged with its only child folder while it holds nothing else (`ui.menu`).

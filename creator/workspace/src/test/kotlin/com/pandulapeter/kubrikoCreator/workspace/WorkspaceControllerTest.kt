@@ -29,6 +29,7 @@ import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
+import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
@@ -147,7 +148,7 @@ class WorkspaceControllerTest {
         sharedScene.file.apply { parentFile.mkdirs() }.writeText("[]")
         File(sharedScene.file.parentFile, "worlds").mkdirs()
         val controller = createController(scanResources = { _, _ -> mapOf(ResourceGroup.SCENES to listOf(sharedScene)) }, rootDirectory = root)
-        assertEquals(ProjectLayout(sceneFolders = setOf("worlds"), typeModule = null, sceneModule = "shared"), controller.layout.value)
+        assertEquals(ProjectLayout(sceneFolders = setOf("worlds"), typeModule = null, sceneModule = "shared", modules = modulesOf("shared" to false)), controller.layout.value)
     }
 
     @Test
@@ -795,4 +796,6 @@ class WorkspaceControllerTest {
     private companion object {
         const val CREATOR_KUBRIKO_VERSION = "1.0.0"
     }
+
+    private fun modulesOf(vararg modules: Pair<String, Boolean>) = modules.associate { (path, usesKubriko) -> path to ProjectModule(usesKubriko) }
 }

@@ -75,7 +75,7 @@ public fun workspaceController(
     parentScope = parentScope,
     ioDispatcher = ioDispatcher,
     files = WorkspaceFiles(ownWrites, scanResources, startWatching, targets),
-    blockTypeSetup = blockTypeRepository?.let { BlockTypesSetup(it, generatedPath, syncBuildFiles, writeDelayInMilliseconds) },
+    blockTypeSetup = blockTypeRepository?.let { BlockTypesSetup(it, generatedPath, syncBuildFiles = syncBuildFiles, writeDelayInMilliseconds = writeDelayInMilliseconds) },
     sceneRuntime = SceneRuntimeSetup(creatorKubrikoVersion, creatorLibraries, entryPointLoader),
     initialFormatStatus = initialFormatStatus,
     gitRepositories = GitRepositories(openGitRepository, createGitRepository),

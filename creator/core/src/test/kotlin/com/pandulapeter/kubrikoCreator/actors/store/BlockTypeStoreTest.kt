@@ -148,6 +148,16 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun theScenesAreLoadedFromComposeResourcesNextToTheSourceFolderOfItsModule() {
+        optIn()
+        assertEquals("src/commonMain/composeResources/files/scenes", BlockTypeStore.open(root)!!.scenePath)
+        optIn("""{ "packageName": "com.example.game", "sourceDirectory": "shared/src/commonMain/kotlin" }""")
+        assertEquals("shared/src/commonMain/composeResources/files/scenes", BlockTypeStore.open(root)!!.scenePath)
+        optIn("""{ "packageName": "com.example.game", "sourceDirectory": "kotlin" }""")
+        assertEquals("composeResources/files/scenes", BlockTypeStore.open(root)!!.scenePath)
+    }
+
+    @Test
     fun theSourceFolderComesFromTheSettings() {
         optIn("""{ "packageName": "io.game", "sourceDirectory": "shared/src/commonMain/kotlin" }""")
         BlockTypeStore.open(root)!!.saveAndRegenerate(ball)

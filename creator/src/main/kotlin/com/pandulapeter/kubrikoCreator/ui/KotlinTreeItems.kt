@@ -19,12 +19,13 @@ import kubriko.creator.generated.resources.ic_folder_open
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The [rows] of the Kotlin files of the group [groupKey] ([kotlinTreeRows]): platform containers and package folders,
- * opened and closed in [tree] by a click, and the files.
+ * The [rows] of the Kotlin files of the group [groupKey] ([kotlinTreeRows]), [indent] levels further in: platform
+ * containers and package folders, opened and closed in [tree] by a click, and the files.
  */
 internal fun LazyListScope.kotlinTreeItems(
     groupKey: String,
     rows: List<KotlinTreeRow>,
+    indent: Int,
     tree: SidebarTree,
 ) = items(rows, key = { row -> SidebarKeys.folder(groupKey, row.key) }) { row ->
     val key = SidebarKeys.folder(groupKey, row.key)
@@ -32,7 +33,7 @@ internal fun LazyListScope.kotlinTreeItems(
         is KotlinTreeRow.Container -> SidebarFolderRow(
             modifier = Modifier.animateItem(),
             name = row.platform?.let { stringResource(it.title) } ?: row.sourceSet.orEmpty(),
-            depth = row.depth,
+            depth = row.depth + indent,
             isExpanded = row.isExpanded,
             icon = row.platform?.icon ?: Res.drawable.ic_folder_open,
             onToggle = { tree.toggle(key) },
@@ -41,7 +42,7 @@ internal fun LazyListScope.kotlinTreeItems(
         is KotlinTreeRow.Package -> SidebarFolderRow(
             modifier = Modifier.animateItem(),
             name = row.name,
-            depth = row.depth,
+            depth = row.depth + indent,
             isExpanded = row.isExpanded,
             onToggle = { tree.toggle(key) },
             subfolderActions = tree.subfolderActions(key),
@@ -52,7 +53,7 @@ internal fun LazyListScope.kotlinTreeItems(
             accent = Accent.CODE,
             text = row.resource.name,
             detail = row.detail,
-            depth = row.depth,
+            depth = row.depth + indent,
             onClick = null,
         )
     }

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
+import com.pandulapeter.kubrikoCreator.project.ProjectModule
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
@@ -106,4 +107,84 @@ class SidebarModuleTest {
     }
 
     private fun mapValuesTo(module: String) = resources.mapValues { (_, list) -> list.map { it.copy(module = module) } }
+
+    @Test
+    fun modulesAreNestedInsideTheNearestModuleTheirFolderIsInWithTheGamesBranchFirst() {
+        fun kotlin(module: String) = resource(ResourceGroup.KOTLIN, "$module/src/main/kotlin/Main.kt", module, "")
+        val nested = sidebarModules(
+            resources = mapOf(ResourceGroup.KOTLIN to listOf("", "app/desktop", "tools/editor/model").map(::kotlin)),
+            folderGroups = emptyMap(),
+            layout = ProjectLayout(sceneModule = "app/shared", modules = modulesOf("" to false, "app/desktop" to false, "app/shared" to true, "tools/editor/model" to false, "tools/editor" to false)),
+        )
+        assertEquals(listOf("app", "app/shared", "app/desktop", "", "tools", "tools/editor", "tools/editor/model"), nested.map { it.path })
+        assertEquals(listOf(null, "app", "app", null, null, "tools", "tools/editor"), nested.map { it.parent })
+        assertEquals(listOf(0, 1, 1, 0, 0, 1, 2), nested.map { it.depth })
+    }
+
+    @Test
+    fun aModuleWithNothingToShowHoldingNoneThatHasIsLeftOut() {
+        val modules = sidebarModules(
+            resources = emptyMap(),
+            folderGroups = emptyMap(),
+            layout = ProjectLayout(sceneModule = "game", modules = modulesOf("" to false, "game" to true, "tools/editor" to false, "tools/editor/model" to false)),
+        )
+        assertEquals(listOf("game"), modules.map { it.path })
+        assertEquals(listOf(""), sidebarModules(emptyMap(), emptyMap(), ProjectLayout(modules = modulesOf("" to false))).map { it.path }, "A project shows its only module even when empty")
+    }
+
+    @Test
+    fun aModuleThatUsesKubrikoListsEveryGroupEmptyOnesTooAndAnyOtherOnlyWhatItHas() {
+        val withKubriko = sidebarModules(resources, folderGroups, ProjectLayout(typeModule = "game", sceneModule = "game", modules = modulesOf("game" to true, "tools" to true, "androidApp" to false)))
+        val (game, android, tools) = withKubriko
+        assertEquals(listOf(ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC, ResourceGroup.KOTLIN), game.resourceGroups)
+        assertEquals(game.resourceGroups, tools.resourceGroups)
+        assertEquals(setOf(FolderGroup.SCENES), tools.folderGroups.keys)
+        assertEquals(listOf(ResourceGroup.KOTLIN), android.resourceGroups)
+        assertEquals(emptyMap(), android.folderGroups)
+        val emptyKubrikoModule = sidebarModules(resources, folderGroups, ProjectLayout(typeModule = "game", sceneModule = "game", modules = modulesOf("game" to true, "levels" to true))).first { it.path == "levels" }
+        assertEquals(listOf<Pair<String, String>>(), emptyKubrikoModule.folderGroups.getValue(FolderGroup.SCENES).items)
+        assertEquals(emptySet(), emptyKubrikoModule.creatingGroups)
+    }
+
+    @Test
+    fun filteringKeepsTheModulesHoldingOneThatMatchesSoItIsShownWhereItIs() {
+        val nested = sidebarModules(
+            resources = mapOf(ResourceGroup.KOTLIN to listOf(resource(ResourceGroup.KOTLIN, "app/desktop/src/main/kotlin/Main.kt", "app/desktop", ""))),
+            folderGroups = emptyMap(),
+            layout = ProjectLayout(sceneModule = "app/desktop", modules = modulesOf("app" to true, "app/desktop" to false, "tools" to false)),
+        )
+        val filtered = filteredModules(nested, "main")
+        assertEquals(listOf("app", "app/desktop"), filtered.map { it.path })
+        assertEquals(emptyList(), filtered.first().resourceGroups, "The module holding the match shows only its band")
+        assertEquals(emptyList(), filteredModules(nested, "zzz"))
+    }
+
+    @Test
+    fun aBuildOfItsOwnIsShownAtTheTopRatherThanInsideTheFoldersAboveIt() {
+        val modules = sidebarModules(
+            resources = mapOf(ResourceGroup.KOTLIN to listOf(resource(ResourceGroup.KOTLIN, "gradle/build-logic/convention/src/main/kotlin/Plugin.kt", "gradle/build-logic/convention", ""))),
+            folderGroups = emptyMap(),
+            layout = ProjectLayout(
+                sceneModule = "game",
+                modules = mapOf(
+                    "game" to ProjectModule(usesKubriko = true),
+                    "gradle/build-logic" to ProjectModule(usesKubriko = false, isBuildRoot = true),
+                    "gradle/build-logic/convention" to ProjectModule(usesKubriko = false),
+                ),
+            ),
+        )
+        assertEquals(listOf("game" to null, "gradle/build-logic" to null, "gradle/build-logic/convention" to "gradle/build-logic"), modules.map { it.path to it.parent })
+    }
+
+    @Test
+    fun theOnlyModuleLeftOnceTheEmptyOnesAreOutListsKotlinFilesAsAProjectOfOneAlwaysDoes() {
+        val only = sidebarModules(
+            resources = mapOf(ResourceGroup.SPRITES to listOf(resource(ResourceGroup.SPRITES, "game/src/commonMain/composeResources/drawable/hero.png", "game"))),
+            folderGroups = emptyMap(),
+            layout = ProjectLayout(sceneModule = "game", modules = modulesOf("" to false, "game" to false)),
+        ).single()
+        assertEquals(listOf(ResourceGroup.SPRITES, ResourceGroup.KOTLIN), only.resourceGroups)
+    }
+
+    private fun modulesOf(vararg modules: Pair<String, Boolean>) = modules.associate { (path, usesKubriko) -> path to ProjectModule(usesKubriko) }
 }
