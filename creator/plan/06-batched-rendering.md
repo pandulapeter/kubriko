@@ -29,10 +29,6 @@ they ship with the library's next release whenever they are ready.
 
 ## Engine
 
-- **Immutable sprite bitmaps** (first, since it is small): on the Skia targets, Compose turns a mutable bitmap into an image on every
-  draw, which re-copies and re-uploads its pixels. Tesselar marks every finished bitmap immutable (`ImageBitmap.markImmutable()`, a no-op on
-  Android); `SpriteManager`'s loader (`ImageLoader.skiko.kt`) doesn't, for decoded or scaled sprites alike. The helper becomes public
-  engine API, the loader uses it, and Tesselar's copy goes. Library tests have no Skia runtime, so the check runs where one exists.
 - **Batched Actors:** a new Trait extending `Visible` (its name decided by the item) whose Actors describe their look instead of drawing it.
   Two levels:
   - Declarative looks: a rectangle, an ellipse, or a sprite region, each with a color or tint, which the engine turns into geometry.
@@ -68,8 +64,12 @@ they ship with the library's next release whenever they are ready.
 
 - `SpriteManager` packs the sprites a game declares as belonging together into atlas pages at load, off the main thread: pages of a size
   every target supports, each sprite padded by its own edge pixels so neighbors never bleed in, sprite sheets packed whole so
-  `AnimatedSprite`'s frames stay regions of one page. Pages are marked immutable. Batched sprite looks name a region, and a run continues
-  while its page stays the same.
+  `AnimatedSprite`'s frames stay regions of one page. Batched sprite looks name a region, and a run continues while its page stays the
+  same.
+- **Pages are marked immutable.** On the Skia targets, Compose turns a mutable bitmap into an image on every draw, re-copying its pixels.
+  Decoded sprites are already immutable (`toComposeImageBitmap` marks them), but a page is a bitmap drawn into, as Tesselar's bakes and
+  mip levels are, which is why Tesselar marks every finished bitmap (`ImageBitmap.markImmutable()`, a no-op on Android). That helper
+  becomes public engine API with the atlas, its first engine user, and so do mip levels (Texture mip chains above).
 - **At load, not at build time,** so that hand-written games benefit too and projects keep no generated images in version control;
   Creator only decides what goes together. Build-time packing can follow if loading times ever ask for it.
 - The packer works on sizes alone, so the layout, padding, and pages are unit tested without images; only copying pixels needs Skia.
