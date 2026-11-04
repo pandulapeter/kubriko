@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
+
 /**
  * A [WriteCommand] together with its input, ready to be validated and applied.
  *
@@ -42,4 +44,10 @@ public data class Invocation<I>(
     internal fun validate(context: CommandContext) = if (isRestoring) command.validateRestoring(context, input) else command.validate(context, input)
 
     internal suspend fun apply(context: CommandContext) = command.apply(context, input)
+
+    /**
+     * What this deletes, if it is a delete ([DeletingCommand]).
+     */
+    @Suppress("UNCHECKED_CAST")
+    public val deletedSubject: RelationSubject? get() = (command as? DeletingCommand<I>)?.subject(input)
 }

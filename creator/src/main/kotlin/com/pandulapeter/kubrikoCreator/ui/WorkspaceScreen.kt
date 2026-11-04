@@ -48,6 +48,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -167,7 +168,7 @@ private fun WorkspaceContent(
                         modifier = Modifier.sidePanel(sidebarWidth.widthIn(row)),
                         resources = resources,
                         folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName),
-                        folderActions = rememberFolderTreeActions(controller),
+                        folderActions = rememberFolderTreeActions(controller, uiState),
                         dragState = sidebarDragState,
                         layout = controller.layout.collectAsState().value,
                         gameModule = controller.gameModule.modules.collectAsState().value?.chosen?.let(::moduleFolderOf),
@@ -187,7 +188,7 @@ private fun WorkspaceContent(
                         shownAiStep = shownAiStep,
                         actorTypeDragState = sidebarDragState,
                         panelLayout = panelLayout,
-                        onCommand = controller.commands::dispatch,
+                        onCommand = { invocation, onSuccess -> uiState.dispatch(invocation, onSuccess, controller.commands::dispatch) },
                         currentBlockType = { blockTypesController?.get(it) },
                         onCommandIfValid = controller::dispatchIfValid,
                         onTypeSelected = { controller.selection.selectType(it) },
@@ -296,7 +297,7 @@ private fun rememberSidebarDragState(controller: WorkspaceController) = remember
  * What the sidebar's groups with folders do, each through the command for it.
  */
 @Composable
-private fun rememberFolderTreeActions(controller: WorkspaceController) = remember(controller) {
+private fun rememberFolderTreeActions(controller: WorkspaceController, uiState: WorkspaceUiState) = remember(controller, uiState) {
     FolderTreeActions(
         onSelected = { group, name -> if (group == FolderGroup.SCENES) controller.selection.openScene(name) else controller.selection.selectType(name) },
         onSelectionCleared = controller.selection::clear,
@@ -320,12 +321,14 @@ private fun rememberFolderTreeActions(controller: WorkspaceController) = remembe
             )
         },
         onDeleteItem = { group, name ->
-            controller.commands.dispatch(
-                when (group) {
+            uiState.dispatch(
+                invocation = when (group) {
                     FolderGroup.ACTOR_TYPES -> Invocation(DeleteActorType, DeleteActorType.Input(name))
                     FolderGroup.MANAGER_TYPES -> Invocation(DeleteManagerType, DeleteManagerType.Input(name))
                     FolderGroup.SCENES -> Invocation(DeleteScene, DeleteScene.Input(name))
                 },
+                onSuccess = {},
+                dispatch = controller.commands::dispatch,
             )
         },
     )
@@ -366,6 +369,15 @@ private fun WorkspaceDialogsOf(
     history = controller.commands.history,
     gitState = controller.git.state,
     onCommand = controller.commands::dispatch,
+    usagesOf = controller.commands::usagesOf,
+    onConfirmedDelete = controller.commands::dispatch,
+    onUsageSelected = { usage ->
+        when (val owner = usage.placeOwner) {
+            is RelationSubject.Type -> controller.selection.selectType(owner.name)
+            is RelationSubject.Scene -> controller.selection.openScene(owner.name)
+            is RelationSubject.Property, null -> Unit
+        }
+    },
 )
 
 /**

@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
+import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 
 /**
@@ -36,6 +38,12 @@ internal class WorkspaceUiState {
      * The page Project settings opens on, or null for its first one.
      */
     var projectSettingsPage: ProjectSettingsPage? by mutableStateOf(null)
+        private set
+
+    /**
+     * The delete the user is asked to confirm, if any.
+     */
+    var pendingDelete: PendingDelete? by mutableStateOf(null)
         private set
 
     /**
@@ -100,5 +108,20 @@ internal class WorkspaceUiState {
 
     fun hideProjectSettings() {
         isShowingProjectSettings = false
+    }
+
+    /**
+     * Dispatches [invocation] with [onSuccess] through [dispatch], or, for a delete, first asks the user to confirm it
+     * ([pendingDelete]), so that the user sees what it changes wherever the delete starts.
+     */
+    fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit, dispatch: (Invocation<*>, () -> Unit) -> Unit) {
+        if (invocation.command is DeletingCommand<*>) pendingDelete = PendingDelete(invocation, onSuccess) else dispatch(invocation, onSuccess)
+    }
+
+    /**
+     * Closes the delete's confirmation, confirmed or not.
+     */
+    fun finishDeleting() {
+        pendingDelete = null
     }
 }

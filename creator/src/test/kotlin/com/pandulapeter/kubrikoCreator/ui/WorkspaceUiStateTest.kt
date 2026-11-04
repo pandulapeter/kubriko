@@ -11,6 +11,9 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
@@ -107,5 +110,23 @@ class WorkspaceUiStateTest {
         assertEquals(AiPanelView.ASSISTANT, uiState.aiPanelView)
         uiState.selectAiPanelView(AiPanelView.GAME_MAP)
         assertEquals(AiPanelView.GAME_MAP, uiState.aiPanelView)
+    }
+
+    @Test
+    fun aDeleteWaitsForItsConfirmationWhileOtherChangesAreDispatchedAtOnce() {
+        val dispatched = mutableListOf<Invocation<*>>()
+        val rename = Invocation(RenameActorType, RenameActorType.Input("Ball", "Puck"))
+        val delete = Invocation(DeleteActorType, DeleteActorType.Input("Ball"))
+        uiState.dispatch(rename, onSuccess = {}) { invocation, _ -> dispatched += invocation }
+        assertEquals(listOf<Invocation<*>>(rename), dispatched)
+        assertNull(uiState.pendingDelete)
+        var isDone = false
+        uiState.dispatch(delete, onSuccess = { isDone = true }) { invocation, _ -> dispatched += invocation }
+        assertEquals(listOf<Invocation<*>>(rename), dispatched)
+        assertSame(delete, uiState.pendingDelete?.invocation)
+        uiState.pendingDelete?.onSuccess?.invoke()
+        assertTrue(isDone)
+        uiState.finishDeleting()
+        assertNull(uiState.pendingDelete)
     }
 }

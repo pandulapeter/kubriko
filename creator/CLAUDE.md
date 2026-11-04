@@ -239,7 +239,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   removes its type's Actors from every Scene and the Blocks and Events that only mean something with it (an if Block with its
   section), turns placeholders of its Properties into text, and leaves Kotlin alone (listed instead), as one undo step that
   brings it all back byte for byte (`ReplaceTypes`, `ReplaceScenes`, internal like `CompositeCommand`). What it touches comes
-  from `ProjectReferences`, which `check_change` and the AI's result (`Applied.details`) read too, so
+  from `ProjectReferences`, which `check_change`, the AI's result (`Applied.details`), and the confirmation every delete from the UI waits for (`WorkspaceUiState.dispatch`) read too, so
   none sees less than the delete does.
 - **Batches** (`place_actors`, `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) are one undo step each,
   and name no Actor twice and at least one. Paged reads (`read_scene`, `list_actor_types`) keep large games readable.

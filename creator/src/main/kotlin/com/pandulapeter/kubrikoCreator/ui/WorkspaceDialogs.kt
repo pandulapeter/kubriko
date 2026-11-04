@@ -11,12 +11,15 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
+import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTargets
@@ -39,6 +42,9 @@ import java.io.File
  * @param history The command history, after every change of which Project settings reads the settings again.
  * @param gitState The project's version control, collected only while the upgrade offers to commit first.
  * @param onCommand Dispatches a command.
+ * @param usagesOf Reads what a delete would do to each usage of what it deletes.
+ * @param onConfirmedDelete Dispatches a delete the user confirmed, with what runs once it was applied.
+ * @param onUsageSelected Goes to the place of a usage the delete's confirmation lists.
  */
 @Composable
 internal fun WorkspaceDialogs(
@@ -51,7 +57,25 @@ internal fun WorkspaceDialogs(
     history: StateFlow<CommandHistory>,
     gitState: StateFlow<GitState>,
     onCommand: (Invocation<*>) -> Unit,
+    usagesOf: suspend (Invocation<*>) -> List<Usage>?,
+    onConfirmedDelete: (Invocation<*>, () -> Unit) -> Unit,
+    onUsageSelected: (Usage) -> Unit,
 ) {
+    uiState.pendingDelete?.let { pending ->
+        PendingDeleteConfirmation(
+            pending = pending,
+            usagesOf = usagesOf,
+            onConfirm = {
+                uiState.finishDeleting()
+                onConfirmedDelete(pending.invocation, pending.onSuccess)
+            },
+            onUsageSelected = { usage ->
+                uiState.finishDeleting()
+                onUsageSelected(usage)
+            },
+            onDismiss = uiState::finishDeleting,
+        )
+    }
     if (uiState.isShowingProjectSettings) {
         ProjectSettings(
             rootDirectory = rootDirectory,
@@ -79,4 +103,26 @@ internal fun WorkspaceDialogs(
             onDismiss = uiState::finishReviewingUpgrade,
         )
     }
+}
+
+/**
+ * The confirmation of [pending], with its usages once [usagesOf] has read them.
+ */
+@Composable
+private fun PendingDeleteConfirmation(
+    pending: PendingDelete,
+    usagesOf: suspend (Invocation<*>) -> List<Usage>?,
+    onConfirm: () -> Unit,
+    onUsageSelected: (Usage) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val subject = pending.invocation.deletedSubject ?: return
+    val usages by produceState<List<Usage>?>(null, pending) { value = usagesOf(pending.invocation).orEmpty() }
+    DeleteConfirmation(
+        subject = subject,
+        usages = usages,
+        onConfirm = onConfirm,
+        onUsageSelected = onUsageSelected,
+        onDismiss = onDismiss,
+    )
 }

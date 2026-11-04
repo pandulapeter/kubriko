@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.writeSummary
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CancellationException
@@ -113,6 +114,12 @@ public class CommandExecutor(
         val command = registry[name] ?: return CommandOutcome.Rejected(Rejection(CommandProblem.UNKNOWN, name))
         return call(name, command, arguments, origin, clientName)
     }
+
+    /**
+     * What applying [invocation] would do to each usage of what it deletes ([deleteWithUsages]), read while no change
+     * is being made, or null if it deletes nothing.
+     */
+    public suspend fun usagesOf(invocation: Invocation<*>): List<Usage>? = invocation.deletedSubject?.let { subject -> changes.withLock { context.usagesOf(subject) } }
 
     public fun undo() {
         scope.launch(start = CoroutineStart.UNDISPATCHED) { step(isUndo = true)?.report() }

@@ -43,7 +43,7 @@ internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, d
  * What deleting [subject] would do to each of its usages, as [deleteWithUsages] would make it: for the confirmation and
  * `check_change`.
  */
-public suspend fun CommandContext.usagesOf(subject: RelationSubject): List<Usage> = projectReferences().usagesOf(subject)
+internal suspend fun CommandContext.usagesOf(subject: RelationSubject): List<Usage> = projectReferences().usagesOf(subject)
 
 private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usages: List<Usage>): Map<String, String> {
     val typeName = (subject as? RelationSubject.Type)?.name ?: return emptyMap()

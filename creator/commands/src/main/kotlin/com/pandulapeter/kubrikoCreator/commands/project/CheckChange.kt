@@ -13,8 +13,8 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
-import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
 import com.pandulapeter.kubrikoCreator.commands.InputProblem
+import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -51,7 +51,7 @@ public object CheckChange : ReadCommand<CheckChange.Input> {
             return CommandOutcome.Rejected(Rejection(CommandProblem.INPUT_INVALID, InputProblem.describe(exception.message)))
         }
         command.validate(context, decoded)?.let { return CommandOutcome.Rejected(it) }
-        val usages = (command as? DeletingCommand<I>)?.let { context.usagesOf(it.subject(decoded)) }.orEmpty()
+        val usages = Invocation(command, decoded).deletedSubject?.let { context.usagesOf(it) }.orEmpty()
         return CommandOutcome.Success(JsonPrimitive(if (usages.isEmpty()) ACCEPTED else ACCEPTED + USAGES + usages.joinToString("\n")))
     }
 
