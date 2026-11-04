@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.gameMap
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -45,22 +43,20 @@ internal fun LazyListScope.healthSection(
     if (findings.isEmpty()) return
     item(key = "health") {
         Text(
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 10.dp, bottom = 2.dp),
             text = stringResource(Res.string.game_map_worth_a_look),
             style = MaterialTheme.typography.titleSmall,
         )
     }
     items(findings, key = { "health:$it" }) { finding ->
         Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    when (val subject = finding.subject) {
-                        is RelationSubject.Type -> onTypeSelected(subject.name)
-                        is RelationSubject.Property -> onTypeSelected(subject.owner)
-                        is RelationSubject.Scene -> onSceneSelected(subject.name)
-                    }
-                },
+            modifier = Modifier.gameMapRow {
+                when (val subject = finding.subject) {
+                    is RelationSubject.Type -> onTypeSelected(subject.name)
+                    is RelationSubject.Property -> onTypeSelected(subject.owner)
+                    is RelationSubject.Scene -> onSceneSelected(subject.name)
+                }
+            },
             text = finding.text(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,

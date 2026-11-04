@@ -50,13 +50,14 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The AI panel's header. The Assistant is the panel's own view, so its header names it and keeps the map and the way to
- * use one's own AI tool instead in its menu; those two views lead back to it.
+ * The AI panel's header. The Assistant is the panel's own view, so its header names it, holds its [assistantActions], and
+ * keeps the map and the way to use one's own AI tool instead in its menu; those two views lead back to it.
  */
 @Composable
 internal fun AiPanelHeader(
     view: AiPanelView,
     onViewSelected: (AiPanelView) -> Unit,
+    assistantActions: @Composable () -> Unit = {},
 ) = AnimatedContent(
     modifier = Modifier.fillMaxWidth(),
     targetState = view,
@@ -69,7 +70,7 @@ internal fun AiPanelHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (isAssistant) {
-            AssistantHeader(onViewSelected)
+            AssistantHeader(onViewSelected, assistantActions)
         } else {
             IconActionButton(
                 icon = Res.drawable.ic_arrow_back,
@@ -84,15 +85,19 @@ internal fun AiPanelHeader(
 @Composable
 private fun RowScope.AssistantHeader(
     onViewSelected: (AiPanelView) -> Unit,
+    actions: @Composable () -> Unit,
 ) {
     Icon(
         modifier = Modifier.size(16.dp),
         painter = painterResource(Res.drawable.ic_ai),
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.primary,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     HeaderTitle(stringResource(Res.string.ai_panel_assistant))
-    MoreAiOptions(onViewSelected)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        actions()
+        MoreAiOptions(onViewSelected)
+    }
 }
 
 @Composable

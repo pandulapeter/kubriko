@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
@@ -44,7 +46,9 @@ public fun Popover(
     Popup(
         popupPositionProvider = remember(position) { AtPosition(position) },
         onDismissRequest = state::close,
-        properties = PopupProperties(focusable = isFocusable),
+        // The position is in window coordinates (localToWindow); with the platform insets on, Compose would hand the
+        // position provider a space shifted by the title bar the content extends under.
+        properties = PopupProperties(focusable = isFocusable, usePlatformInsets = false),
     ) {
         Surface(
             modifier = modifier.dialogEntrance(),
@@ -53,10 +57,18 @@ public fun Popover(
             border = MenuStyle.border,
             shadowElevation = MenuStyle.elevation,
         ) {
-            Column(content = content)
+            CompositionLocalProvider(LocalIsInPopover provides true) {
+                Column(content = content)
+            }
         }
     }
 }
+
+/**
+ * Whether what is composed sits on a [Popover]'s surface, where a control that is otherwise see-through needs a fill of its
+ * own to stand out from it.
+ */
+internal val LocalIsInPopover = staticCompositionLocalOf { false }
 
 /**
  * Puts the popover's corner at [position], moved back inside the window when it would leave it.

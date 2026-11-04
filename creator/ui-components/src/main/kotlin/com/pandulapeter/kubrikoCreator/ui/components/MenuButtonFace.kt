@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +27,8 @@ import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.ic_chevr
 import org.jetbrains.compose.resources.painterResource
 
 /**
- * The outlined button of a menu, showing the chosen option with a chevron.
+ * The outlined button of a menu, showing the chosen option with a chevron, filled on a [Popover] so that it doesn't
+ * melt into the popover's surface.
  */
 @Composable
 public fun MenuButtonFace(
@@ -34,6 +37,11 @@ public fun MenuButtonFace(
 ): Unit = OutlinedButton(
     modifier = Modifier.heightIn(min = 32.dp),
     contentPadding = PaddingValues(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+    colors = if (LocalIsInPopover.current) {
+        ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+    } else {
+        ButtonDefaults.outlinedButtonColors()
+    },
     onClick = onClick,
 ) {
     Text(

@@ -143,10 +143,10 @@ class WorkspaceControllerTest {
         var isFailing = false
         val controller = createController(scanResources = { _, _ -> if (isFailing) throw IllegalStateException("Broken.") else mapOf(ResourceGroup.SCENES to listOf(scene)) })
         isFailing = true
-        controller.refreshResources()
+        controller.onProjectChanged(setOf(ProjectChange.SCENES))
         assertContains(controller.statuses, WorkspaceStatus.UNEXPECTED_PROBLEM)
         isFailing = false
-        controller.refreshResources()
+        controller.onProjectChanged(setOf(ProjectChange.SCENES))
         assertEquals(mapOf(ResourceGroup.SCENES to listOf(scene)), controller.resources.value)
     }
 
@@ -179,14 +179,6 @@ class WorkspaceControllerTest {
         ownWrites.record(File(rootDirectory, "scenes/main.json"))
         controller.onProjectChanged(setOf(ProjectChange.SCENES), snapshot)
         assertEquals(listOf<ProjectSnapshot?>(null, null), snapshots)
-    }
-
-    @Test
-    fun refreshingRescansTheResources() = runTest {
-        var scanCount = 0
-        val controller = createController(scanResources = { _, _ -> scanCount++; emptyMap() })
-        controller.refreshResources()
-        assertEquals(2, scanCount)
     }
 
     @Test

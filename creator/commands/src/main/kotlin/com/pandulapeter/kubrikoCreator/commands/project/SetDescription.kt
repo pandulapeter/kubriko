@@ -58,8 +58,6 @@ public object SetDescription : WriteCommand<SetDescription.Input> {
         return Applied(inverse = Invocation(SetDescription, input.copy(description = previous.orEmpty())))
     }
 
-    override fun mergeKey(input: Input): Any? = input.type?.let { "type:$it" } ?: "scene:${input.scene}"
-
     @Serializable
     public data class Input(
         @Description(Descriptions.TYPE_NAME)
@@ -70,5 +68,8 @@ public object SetDescription : WriteCommand<SetDescription.Input> {
         @SerialName("description") val description: String,
     )
 
-    internal const val MAXIMUM_LENGTH = 200
+    /**
+     * How long a description may be.
+     */
+    public const val MAXIMUM_LENGTH: Int = 200
 }

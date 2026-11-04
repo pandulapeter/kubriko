@@ -31,7 +31,7 @@ import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
-import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
+import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
@@ -66,7 +66,6 @@ class AiFeaturesOffTest {
             onPlayTargetChosen = {},
             onPlay = {},
             onStop = {},
-            onRefresh = {},
             onOpenProjectSettings = {},
             onOpenTargets = {},
             onSetUpMoreDevices = {},
@@ -79,7 +78,7 @@ class AiFeaturesOffTest {
             onFollowingChange = {},
             onClick = {},
         )
-        DescriptionField(key = "Ball", description = null, onDescriptionChange = {})
+        DescriptionPreview(name = "Ball", description = null, maximumLength = 200, onDescriptionChange = {})
         WelcomeScreen(error = null, errorArguments = emptyList(), recentProjects = emptyList(), onNewProject = {}, onOpenProject = {}, onForgetRecentProject = {}, onOpenSettings = {})
         WorkspaceHint(Modifier.height(240.dp))
     }

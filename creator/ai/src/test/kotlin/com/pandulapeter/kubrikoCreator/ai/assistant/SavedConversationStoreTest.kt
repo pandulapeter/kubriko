@@ -51,6 +51,17 @@ class SavedConversationStoreTest {
     }
 
     @Test
+    fun removingForgetsOnlyThatConversation() {
+        val store = SavedConversationStore(file)
+        store.save(saved("a", 1))
+        store.save(saved("b", 2))
+        store.save(saved("a", 3, agentId = "antigravity-acp"))
+        store.remove(breakout, "claude-acp", "a")
+        assertEquals(listOf("b"), store.of(breakout, "claude-acp").map { it.id })
+        assertEquals(listOf("a"), store.of(breakout, "antigravity-acp").map { it.id })
+    }
+
+    @Test
     fun anUnreadableFileMeansNone() {
         file.writeText("nope")
         assertEquals(emptyList(), SavedConversationStore(file).of(breakout, "claude-acp"))

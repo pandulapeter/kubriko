@@ -48,7 +48,6 @@ class WorkspaceToolbarTest {
                 onPlayTargetChosen = {},
                 onPlay = {},
                 onStop = {},
-                onRefresh = {},
                 onOpenProjectSettings = {},
                 onOpenTargets = {},
                 onSetUpMoreDevices = {},

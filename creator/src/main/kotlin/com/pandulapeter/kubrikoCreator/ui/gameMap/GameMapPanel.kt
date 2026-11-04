@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +33,7 @@ import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
-import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.components.fullBleed
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_property_of_manager
 import kubriko.creator.generated.resources.game_map_actor_types
@@ -45,10 +44,8 @@ import kubriko.creator.generated.resources.game_map_manager_types
 import kubriko.creator.generated.resources.game_map_no_description
 import kubriko.creator.generated.resources.game_map_places
 import kubriko.creator.generated.resources.game_map_scenes
-import kubriko.creator.generated.resources.game_map_title
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_manager_type
-import kubriko.creator.generated.resources.ic_map
 import kubriko.creator.generated.resources.ic_scene
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -71,18 +68,14 @@ internal fun GameMapPanel(
 ) = Column(
     modifier = modifier,
 ) {
-    PanelHeader(
-        icon = Res.drawable.ic_map,
-        title = stringResource(Res.string.game_map_title),
-    )
-    HorizontalDivider()
     val references = remember(digest) { digest?.let(::referencesByOwner).orEmpty() }
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(horizontal = GAME_MAP_GUTTER, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         item {
             Text(
+                modifier = Modifier.padding(bottom = 6.dp),
                 text = stringResource(Res.string.game_map_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -140,7 +133,7 @@ private fun LazyListScope.typeSection(
 private fun SectionTitle(
     title: StringResource,
 ) = Text(
-    modifier = Modifier.padding(top = 4.dp),
+    modifier = Modifier.padding(top = 10.dp, bottom = 2.dp),
     text = stringResource(title),
     style = MaterialTheme.typography.titleSmall,
 )
@@ -154,7 +147,7 @@ private fun MapEntry(
     details: List<String>,
     onClick: () -> Unit,
 ) = Row(
-    modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 2.dp),
+    modifier = Modifier.gameMapRow(onClick),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.Top,
 ) {
@@ -183,6 +176,19 @@ private fun MapEntry(
         }
     }
 }
+
+/**
+ * How far the map's content is kept from the panel's edges, which its clickable rows reach past.
+ */
+internal val GAME_MAP_GUTTER = 12.dp
+
+/**
+ * A clickable row of the map, its background and press feedback reaching both edges of the panel.
+ */
+internal fun Modifier.gameMapRow(onClick: () -> Unit): Modifier = fullBleed(GAME_MAP_GUTTER)
+    .fillMaxWidth()
+    .clickable(onClick = onClick)
+    .padding(horizontal = GAME_MAP_GUTTER, vertical = 6.dp)
 
 @Composable
 private fun subjectText(subject: RelationSubject) = when (subject) {

@@ -33,12 +33,10 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
-import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_commit
-import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_start_version_control
 import kubriko.creator.generated.resources.git_branch
 import kubriko.creator.generated.resources.git_changes
@@ -49,7 +47,6 @@ import kubriko.creator.generated.resources.git_no_repository
 import kubriko.creator.generated.resources.git_title
 import kubriko.creator.generated.resources.ic_branch
 import kubriko.creator.generated.resources.ic_history
-import kubriko.creator.generated.resources.ic_refresh
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -62,7 +59,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun GitPanel(
     state: StateFlow<GitState>,
-    onRefresh: () -> Unit,
     onStartVersionControl: () -> Unit,
     onCommit: (message: String, onCommitted: () -> Unit) -> Unit,
     onDiscard: (ChangeEntry) -> Unit,
@@ -73,9 +69,7 @@ internal fun GitPanel(
     PanelHeader(
         icon = Res.drawable.ic_branch,
         title = stringResource(Res.string.git_title),
-    ) {
-        IconActionButton(icon = Res.drawable.ic_refresh, label = Res.string.action_refresh, onClick = onRefresh)
-    }
+    )
     when (val state = state.collectAsState().value) {
         GitState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally))
         GitState.NoRepository -> NoRepository(onStartVersionControl)

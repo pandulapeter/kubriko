@@ -35,15 +35,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
+import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
+import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
+import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
@@ -107,6 +112,7 @@ internal fun SceneEditorPane(
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     var selectedId by remember(state.scene.file) { mutableStateOf<String?>(null) }
     var isActorListShown by remember { mutableStateOf(false) }
+    var isSettingsShown by remember(state.scene.file) { mutableStateOf(false) }
     SceneHeader(
         sceneName = state.scene.name,
         isOutdated = state.isOutdated,
@@ -121,7 +127,17 @@ internal fun SceneEditorPane(
         onDelete = { onCommand(Invocation(DeleteScene, DeleteScene.Input(state.sceneName))) },
         onClose = onClose,
     )
+    DescriptionPreview(
+        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+        name = state.sceneName,
+        description = description,
+        maximumLength = SetDescription.MAXIMUM_LENGTH,
+        onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(scene = state.sceneName, description = it))) },
+    )
     HorizontalDivider()
+    if (isSettingsShown) {
+        SceneSettingsDialogOf(view = view, sceneName = state.sceneName, music = music, onCommand = onCommand, onDismiss = { isSettingsShown = false })
+    }
     state.problem?.let { problem -> InvalidSceneNotice(problem = problem, onOpenFile = { openInSystemEditor(state.scene.file) }) }
     val onRemove = { actorId: String ->
         selectedId = null
@@ -145,8 +161,12 @@ internal fun SceneEditorPane(
                     uncreatedIds = view.uncreatedIds,
                     selectedId = selectedId,
                     onSelect = { actorId ->
-                        selectedId = actorId
-                        view.centerOn(actorId)
+                        if (view.isBackground(actorId)) {
+                            isSettingsShown = true
+                        } else {
+                            selectedId = actorId
+                            view.centerOn(actorId)
+                        }
                     },
                 )
                 PanelSplitter(actorListWidth, row)
@@ -158,7 +178,7 @@ internal fun SceneEditorPane(
                 previews = state.previews,
                 isSceneReadable = state.problem == null,
                 selectedId = selectedId,
-                onSelect = { selectedId = it },
+                onSelect = { actorId -> selectedId = actorId?.takeUnless(view::isBackground) },
                 onMove = { actorId, x, y -> onCommand(Invocation(MoveActor, MoveActor.Input(state.sceneName, actorId, x, y))) },
                 onRemove = onRemove,
                 dragState = actorTypeDragState,
@@ -176,13 +196,33 @@ internal fun SceneEditorPane(
                 selectedId = selectedId,
                 actorTypes = actorTypes,
                 music = music,
-                description = description,
-                onSelect = { selectedId = it },
+                onOpenSceneSettings = { isSettingsShown = true },
                 onCommand = onCommand,
                 onRemove = onRemove,
             )
         }
     }
+}
+
+/**
+ * The Scene settings of [view]'s Scene in a dialog, following the Scene as it is loaded again.
+ */
+@Composable
+private fun SceneSettingsDialogOf(
+    view: SceneView,
+    sceneName: String,
+    music: List<String>,
+    onCommand: (Invocation<*>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    view.loadRevision.collectAsState().value
+    SceneSettingsDialog(
+        settings = view.entries.getOrNull(SceneSettingsState.indexIn(view.entries)),
+        music = music,
+        onChange = { change -> onCommand(Invocation(SetSceneSettings, SetSceneSettings.Input(sceneName).change())) },
+        onRestoreDefaults = { settings -> onCommand(Invocation(RemoveActor, RemoveActor.Input(sceneName, settings.id))) },
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable

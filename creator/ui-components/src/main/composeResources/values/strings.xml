@@ -26,4 +26,7 @@
     <string name="panel_resize">Drag to resize, double-click for the default width</string>
     <string name="panel_resize_height">Drag to resize, double-click for the default height</string>
     <string name="description_hint_without_ai">What it is for in the game, in one line</string>
+    <string name="description_dialog_title">What %1$s is for</string>
+    <string name="description_length">%1$d / %2$d</string>
+    <string name="action_save">Save</string>
 </resources>

@@ -43,7 +43,6 @@ class WorkspaceGitSidePanelTest {
             Row {
                 WorkspaceGitSidePanel(
                     gitState = state,
-                    onRefresh = {},
                     onCommand = { invocation, onSuccess ->
                         invocations += invocation
                         onSuccess()

@@ -39,9 +39,11 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   input (never its arguments) and to the agent only as `ANTHROPIC_API_KEY`. Claude Agent reports a new identity only at the next
   prompt, so after a terminal sign-in `needsSignIn` stays false until it reports something new.
 - **Processes:** one that ends unasked is started again and its conversations loaded again, but one that exits soon after starting
-  several times in a row is `Failed` until it is used again. A conversation closed during this run is reopened as it was, since the
-  SDK refuses `session/load` for an ID it still holds; ending them all restarts an agent that can't close conversations, so their
-  IDs can be loaded later.
+  several times in a row is `Failed` until it is used again. Ending them all restarts an agent that can't close conversations, so
+  their IDs can be loaded later.
+- **Deleting** a conversation ends it and forgets it for good; it is removed from the saved ones only once it ended, since a turn
+  ending meanwhile would save it again. The panel lists open and saved conversations together, the one talked in last first
+  (`AssistantChat.lastMessageAt`).
 - **Updates:** an agent announces its slash commands before anything collects a conversation's `updates`, so
   `AgentConversation.availableCommands` keeps the first announcement.
 - **Downloads** (`BinaryAgentInstaller`, `NodeRuntime`) are checked against the published SHA-256 where there is one and refuse

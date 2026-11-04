@@ -37,11 +37,14 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -83,6 +86,7 @@ class AssistantControllerTest {
         secretStore: SecretStore = secrets,
         scope: CoroutineScope = this.scope,
         ioDispatcher: CoroutineDispatcher = io,
+        clock: () -> Long = { 1_000 },
     ) = AssistantController(
         scope = scope,
         runner = runner,
@@ -106,7 +110,7 @@ class AssistantControllerTest {
         },
         sources = AgentSources(registry = registry, installer = installer, node = node),
         home = "/Users/me",
-        clock = { 1_000 },
+        clock = clock,
         isAiEnabled = isAiEnabled,
     ).also { controllers += it }
 
@@ -331,17 +335,67 @@ class AssistantControllerTest {
     }
 
     @Test
-    fun aConversationClosedInThisRunIsReopenedAsItWas() = blockingTest {
+    fun aDeletedConversationIsForgottenForGoodAndANewOneTakesItsPlace() = blockingTest {
         val controller = controller()
         val chat = controller.startChat()
         chat.state.first { it == ChatState.Ready }
         onMain { chat.send("hello") }
         chat.isBusy.first { !it }
-        onMain { controller.close(chat) }
+        val store = SavedConversationStore(File(settingsDirectory, "conversations.json"))
+        assertEquals(listOf("hello"), store.of(projectDirectory, "claude-acp").map { it.title })
+        onMain { controller.delete(chat) }
+        val replacement = controller.currentChat.value
+        assertNotNull(replacement)
+        assertNotSame(chat, replacement)
+        assertEquals(listOf(replacement), controller.chats.value)
+        withTimeout(5_000) { while (store.of(projectDirectory, "claude-acp").isNotEmpty()) delay(10) }
+    }
+
+    @Test
+    fun deletingTheShownConversationShowsTheOneTalkedInLast() = blockingTest {
+        val time = AtomicLong()
+        val controller = controller(clock = time::incrementAndGet)
+        val earlier = controller.startChat()
+        earlier.state.first { it == ChatState.Ready }
+        onMain { earlier.send("hello") }
+        earlier.isBusy.first { !it }
+        val later = controller.startChat()
+        later.state.first { it == ChatState.Ready }
+        onMain { later.send("hi") }
+        later.isBusy.first { !it }
+        val shown = controller.startChat()
+        onMain { controller.delete(shown) }
+        assertSame(later, controller.currentChat.value)
+    }
+
+    @Test
+    fun aNewConversationIsOnlyStartedWhenNoOpenOneIsEmpty() = blockingTest {
+        val controller = controller()
+        val empty = controller.startChat()
+        val talkedIn = controller.startChat()
+        assertSame(empty, talkedIn)
+        empty.state.first { it == ChatState.Ready }
+        onMain { empty.send("hello") }
+        empty.isBusy.first { !it }
+        val next = controller.startChat()
+        assertNotSame(empty, next)
+        onMain { controller.select(empty) }
+        assertSame(next, controller.startChat())
+        assertEquals(listOf(empty, next), controller.chats.value)
+    }
+
+    @Test
+    fun aContinuedConversationKeepsWhenItsLastMessageWasSaid() = blockingTest {
+        val earlier = controller()
+        val chat = earlier.startChat()
+        chat.state.first { it == ChatState.Ready }
+        onMain { chat.send("hello") }
+        chat.isBusy.first { !it }
+        val controller = controller()
+        onMain { controller.setProject(projectDirectory) }
         val saved = controller.savedConversations.first { it.isNotEmpty() }.single()
-        assertEquals("hello", saved.title)
         onMain { controller.resume(saved) }
-        assertSame(chat, controller.currentChat.value)
+        assertEquals(saved.updatedAt, controller.currentChat.value?.lastMessageAt?.value)
         assertEquals(emptyList(), controller.savedConversations.value)
     }
 
@@ -455,19 +509,6 @@ class AssistantControllerTest {
         assertTrue("@google/gemini-cli@1.0.0" in launcher.commands.last().arguments)
         withTimeout(5.seconds) { while (launcher.channels.count { !it.isStopped } > 1) delay(10) }
         assertFalse(launcher.channels.last().isStopped)
-    }
-
-    @Test
-    fun endingAConversationShowsTheOneBefore() = blockingTest {
-        val controller = controller()
-        val first = controller.startChat()
-        val second = onMain {
-            controller.newChat()
-            controller.currentChat.value!!
-        }
-        onMain { controller.close(second) }
-        assertSame(first, controller.currentChat.value)
-        assertEquals(listOf(first), controller.chats.value)
     }
 
     @Test

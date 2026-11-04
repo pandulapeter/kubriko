@@ -28,6 +28,7 @@
     <string name="action_new_project">New project…</string>
     <string name="action_create_project">Create</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
     <string name="action_browse">Browse…</string>
     <string name="choose_project_folder">Choose a Kubriko project folder</string>
     <string name="choose_parent_folder">Choose where to create the project</string>
@@ -364,7 +365,6 @@
     <string name="action_more_options">More options</string>
     <string name="new_folder_hint">Folder name</string>
     <string name="action_new_manager_type">New Manager type</string>
-    <string name="action_refresh">Refresh</string>
     <string name="action_collapse_console">Hide the console</string>
     <string name="action_expand_console">Show the console</string>
     <string name="recent_projects">Recent projects</string>
@@ -395,6 +395,7 @@
     <string name="scene_inspector_scale_horizontal">Scale across</string>
     <string name="scene_inspector_scale_vertical">Scale down</string>
     <string name="scene_settings_title">Scene settings</string>
+    <string name="action_restore_scene_settings">Restore the defaults</string>
     <string name="scene_actor_search">Filter by type or ID</string>
     <string name="scene_actor_count">Actors: %1$d</string>
     <string name="scene_actor_count_filtered">Actors: %1$d of %2$d</string>
@@ -586,7 +587,6 @@
     <string name="action_disconnect">Disconnect</string>
     <string name="action_install">Install</string>
     <string name="action_apply_command">Use this command</string>
-    <string name="ai_connection_clients">Connect an AI tool</string>
     <string name="ai_connection_other">Other tools that support MCP over HTTP can connect to this address:</string>
     <string name="ai_connection_advanced">Advanced</string>
     <string name="ai_client_checking">Checking…</string>
@@ -675,7 +675,9 @@
     <string name="game_map_names_in_kotlin">Names %1$s in Kotlin</string>
     <string name="game_map_empty">Nothing yet: create an Actor type or a Scene, and it shows up here.</string>
     <string name="action_new_conversation">New conversation</string>
-    <string name="action_close_conversation">End this conversation</string>
+    <string name="action_delete_conversation">Delete this conversation</string>
+    <string name="assistant_delete_conversation_title">Delete this conversation?</string>
+    <string name="assistant_delete_conversation_message">It can't be continued afterwards. What it changed in the project stays.</string>
     <string name="action_send">Send</string>
     <string name="action_install_node">Install Node.js</string>
     <string name="action_open_agent_log">Open the agent's log</string>

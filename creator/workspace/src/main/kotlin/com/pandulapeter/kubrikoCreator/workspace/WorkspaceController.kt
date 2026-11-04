@@ -325,7 +325,7 @@ public class WorkspaceController(
         scope.launch {
             for (haveTypesChanged in savedTypeBatches) changes.onTypesSaved(haveTypesChanged)
         }
-        refreshResources()
+        changes.refreshResources()
         refreshProjectUpgrade()
         blockTypes?.let { types ->
             scope.launch {
@@ -421,9 +421,6 @@ public class WorkspaceController(
             }
         }
     }
-
-    /** Scans the project's resources again. */
-    public fun refreshResources(): Unit = changes.refreshResources()
 
     /**
      * Scans the resource tree from [snapshot], unless one of Creator's own writes came after it was taken, whose change

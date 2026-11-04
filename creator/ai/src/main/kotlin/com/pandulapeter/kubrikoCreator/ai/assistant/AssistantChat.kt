@@ -28,13 +28,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 /**
@@ -53,6 +54,9 @@ import kotlinx.coroutines.launch
  *   be continued later.
  * @param changeLog The open project's changes, which a prompt sums up for the agent when someone else made them since
  *   its last turn ([ChangesSummary]).
+ * @param lastMessageAt When the last message of a continued conversation was said, or null for a new one, which counts
+ *   from now.
+ * @param clock The time, in milliseconds since the epoch.
  */
 public class AssistantChat(
     parentScope: CoroutineScope,
@@ -63,6 +67,8 @@ public class AssistantChat(
     private val changeLog: () -> ChangeLog? = { null },
     private val onTurnEnded: suspend (id: String, title: String, lastAnswer: String?) -> Unit = { _, _, _ -> },
     private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
+    lastMessageAt: Long? = null,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private val _state = MutableStateFlow<ChatState>(ChatState.Starting)
@@ -105,6 +111,18 @@ public class AssistantChat(
      * The agent's ID of the conversation, which continues it after a restart, once it has started.
      */
     internal val conversationId = _conversationId.asStateFlow()
+    private val _lastMessageAt = MutableStateFlow(lastMessageAt ?: clock())
+
+    /**
+     * When the user or the agent last said something, in milliseconds since the epoch, which orders the conversations.
+     */
+    public val lastMessageAt: StateFlow<Long> = _lastMessageAt.asStateFlow()
+    private val _isEmpty = MutableStateFlow(lastMessageAt == null)
+
+    /**
+     * Whether nothing has been said in the conversation yet: a new one the user hasn't written in. A continued one never is.
+     */
+    public val isEmpty: StateFlow<Boolean> = _isEmpty.asStateFlow()
     private val _toolsId = MutableStateFlow<String?>(null)
 
     /**
@@ -154,6 +172,8 @@ public class AssistantChat(
     public fun send(text: String, context: suspend () -> List<ContentBlock> = { emptyList() }) {
         if (_isBusy.value || text.isBlank() || _state.value != ChatState.Ready || conversation == null) return
         _transcript.update { it.withUserMessage(text) }
+        _lastMessageAt.value = clock()
+        _isEmpty.value = false
         prompt(text, context)
     }
 
@@ -182,6 +202,7 @@ public class AssistantChat(
                 val content = listOfNotNull(changes?.let(ContentBlock::Text)) + lastContext + ContentBlock.Text(text)
                 val response = conversation.prompt(content) { update -> _transcript.update { it.withUpdate(update) } }
                 _transcript.update { it.withTurnEnd(response.stopReason) }
+                _lastMessageAt.value = clock()
                 if (response.stopReason == StopReason.CANCELLED) forgetReads(conversation)
                 if (log != null && turnStart != null) {
                     val toolsId = _toolsId.value
@@ -274,7 +295,7 @@ public class AssistantChat(
     internal suspend fun close() {
         isClosed = true
         pendingAnswer?.complete(RequestPermissionOutcome.Cancelled)
-        scope.cancel()
+        scope.coroutineContext.job.cancelAndJoin()
         conversation?.let { end(it) }
         conversation = null
     }

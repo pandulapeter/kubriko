@@ -153,6 +153,10 @@ public class AssistantController(
 
     override fun newChat() {
         if (!host.isOn) return
+        chatList.open.value.firstOrNull { it.isEmpty.value }?.let { empty ->
+            chatList.select(empty)
+            return
+        }
         openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(openProject.digest(), lastConversationOf(directory))) }
     }
 
@@ -160,11 +164,11 @@ public class AssistantController(
 
     override fun resume(conversation: SavedConversation) {
         if (!host.isOn) return
-        if (chatList.reopen(conversation.id)) return
-        openChat { owner, directory, permissions, onHistory -> owner.resumeConversation(directory, conversation.id, permissions, onHistory) }
+        chatList.onResumed(conversation.id)
+        openChat(lastMessageAt = conversation.updatedAt) { owner, directory, permissions, onHistory -> owner.resumeConversation(directory, conversation.id, permissions, onHistory) }
     }
 
-    private fun openChat(start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
+    private fun openChat(lastMessageAt: Long? = null, start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
         val directory = project ?: return
         val agentId = selection.agent.value.id
         var owner: Assistant? = null
@@ -179,13 +183,18 @@ public class AssistantController(
             onTurnEnded = { id, title, lastAnswer ->
                 withContext(ioDispatcher) { storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH))) }
             },
+            lastMessageAt = lastMessageAt,
+            clock = clock,
         )
         chatList.add(chat)
     }
 
     override fun select(chat: AssistantChat): Unit = chatList.select(chat)
 
-    override fun close(chat: AssistantChat): Unit = chatList.close(chat, project, selection.agent.value.id)
+    override fun delete(chat: AssistantChat) {
+        chatList.delete(chat, project, selection.agent.value.id)
+        if (chatList.open.value.isEmpty()) newChat()
+    }
 
     override fun selectAgent(choice: AgentChoice) {
         if (!host.isOn) return

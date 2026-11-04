@@ -69,8 +69,8 @@ internal class FakeAssistantPanelModel(
         calls += "select"
     }
 
-    override fun close(chat: AssistantChat) {
-        calls += "close"
+    override fun delete(chat: AssistantChat) {
+        calls += "delete"
     }
 
     override fun selectAgent(choice: AgentChoice) {

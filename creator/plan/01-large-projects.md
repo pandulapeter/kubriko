@@ -61,7 +61,7 @@ Found in review rather than measured, but each grows with the project and runs o
   full, since it scrolls on a change of size (`ui/Console.kt`), and each new line reopens a collapsed console
   (`ui/WorkspaceConsole.kt`). Direction: append in batches into a ring buffer, follow the end only while the list is at its end, and
   open the console by itself once per play session.
-- **Two choosers list everything.** The Scene settings' music choice (`SceneSettingsInspector`) and the type header's list of
+- **Two choosers list everything.** The Scene settings' music choice (`SceneSettingsFields`) and the type header's list of
   further children (`BlockTypeHeader`) still compose every option of a `MenuButton`'s `DropdownMenu`. Direction:
   `SearchableChoiceButton`, which the other project choices use, and folder paths in its options.
 - **Sidebar rows** are rebuilt inside the lazy list's builder on every AI step's flash (`folderTreeSection` calls `folderTreeRows`

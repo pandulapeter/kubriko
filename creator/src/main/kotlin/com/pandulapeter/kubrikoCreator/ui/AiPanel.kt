@@ -32,7 +32,10 @@ import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
+import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantForms
+import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantHeaderActions
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantPanel
+import com.pandulapeter.kubrikoCreator.ui.assistant.rememberAssistantForms
 import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
@@ -65,9 +68,11 @@ internal fun AiPanel(
 ) = Column(
     modifier = modifier,
 ) {
+    val assistantForms = rememberAssistantForms()
     AiPanelHeader(
         view = view,
         onViewSelected = onViewSelected,
+        assistantActions = { AssistantHeaderActions(model = assistant, forms = assistantForms) },
     )
     HorizontalDivider()
     var shownDigest by remember { mutableStateOf(digest) }
@@ -84,6 +89,7 @@ internal fun AiPanel(
         AiPanelContent(
             view = shownView,
             assistant = assistant,
+            assistantForms = assistantForms,
             mcp = mcp,
             aiClients = aiClients,
             aiSteps = aiSteps,
@@ -102,6 +108,7 @@ internal fun AiPanel(
 private fun AiPanelContent(
     view: AiPanelView,
     assistant: AssistantPanelModel,
+    assistantForms: AssistantForms,
     mcp: McpController,
     aiClients: AiClientsController,
     aiSteps: List<AiStep>,
@@ -118,6 +125,7 @@ private fun AiPanelContent(
         AiPanelView.ASSISTANT -> AssistantPanel(
             modifier = content,
             model = assistant,
+            forms = assistantForms,
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,

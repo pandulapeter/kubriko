@@ -55,7 +55,6 @@ import kubriko.creator.generated.resources.action_open_settings
 import kubriko.creator.generated.resources.action_play
 import kubriko.creator.generated.resources.action_redo
 import kubriko.creator.generated.resources.action_redo_named
-import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_stop
 import kubriko.creator.generated.resources.action_toggle_ai
 import kubriko.creator.generated.resources.action_toggle_version_control
@@ -66,7 +65,6 @@ import kubriko.creator.generated.resources.ic_branch
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_redo
-import kubriko.creator.generated.resources.ic_refresh
 import kubriko.creator.generated.resources.ic_settings
 import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.ic_undo
@@ -96,7 +94,6 @@ internal fun WorkspaceToolbar(
     onPlayTargetChosen: (PlayTarget) -> Unit,
     onPlay: () -> Unit,
     onStop: () -> Unit,
-    onRefresh: () -> Unit,
     onOpenProjectSettings: () -> Unit,
     onOpenTargets: () -> Unit,
     onSetUpMoreDevices: (PlayTarget.Kind) -> Unit,
@@ -165,11 +162,6 @@ internal fun WorkspaceToolbar(
     ) {
         VersionControlLabel(gitState)
     }
-    IconActionButton(
-        icon = Res.drawable.ic_refresh,
-        label = Res.string.action_refresh,
-        onClick = onRefresh,
-    )
     MenuIconButton(
         icon = Res.drawable.ic_settings,
         label = Res.string.action_open_settings,

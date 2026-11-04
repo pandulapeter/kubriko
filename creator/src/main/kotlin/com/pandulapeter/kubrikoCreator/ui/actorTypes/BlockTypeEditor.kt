@@ -35,7 +35,8 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
+import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
+import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_properties_empty
@@ -209,10 +210,11 @@ private fun TypeDetails(
         onTypeSelected = onTypeSelected,
         onDelete = actions::delete,
     )
-    DescriptionField(
+    DescriptionPreview(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-        key = definition.name,
+        name = definition.name,
         description = definition.description,
+        maximumLength = SetDescription.MAXIMUM_LENGTH,
         onDescriptionChange = actions::setDescription,
     )
     if (isChangedByHand) {

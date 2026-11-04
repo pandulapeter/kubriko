@@ -23,11 +23,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
@@ -104,6 +106,7 @@ internal fun WorkspaceScreen(
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
     WorkspaceDialogsOf(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
     FollowingAiSteps(controller = controller, uiState = uiState, latestAiStep = latestAiStep, selection = selection)
+    RefreshingGitOnWindowFocus(controller.git::refresh)
     var columnHeight by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
     Box(
@@ -192,6 +195,21 @@ internal fun WorkspaceScreen(
     }
 }
 
+/**
+ * Reads the repository again whenever the window gets the focus back, as IntelliJ does, since the project watcher leaves
+ * `.git` out and a commit or a checkout made in a terminal would otherwise go unseen.
+ */
+@Composable
+private fun RefreshingGitOnWindowFocus(
+    refresh: () -> Unit,
+) {
+    val isWindowFocused = LocalWindowInfo.current.isWindowFocused
+    val currentRefresh by rememberUpdatedState(refresh)
+    LaunchedEffect(isWindowFocused) {
+        if (isWindowFocused) currentRefresh()
+    }
+}
+
 @Composable
 private fun WorkspaceToolbarOf(
     controller: WorkspaceController,
@@ -214,7 +232,6 @@ private fun WorkspaceToolbarOf(
     onPlayTargetChosen = controller.playTargets::choose,
     onPlay = controller::play,
     onStop = controller::stopSession,
-    onRefresh = controller::refreshResources,
     onOpenProjectSettings = { uiState.showProjectSettings() },
     onOpenTargets = { uiState.showProjectSettings(ProjectSettingsPage.TARGETS) },
     onSetUpMoreDevices = controller::openDeviceSetup,
@@ -368,7 +385,6 @@ private fun WorkspaceGitSidePanelOf(
     row: PanelRow,
 ) = WorkspaceGitSidePanel(
     gitState = controller.git.state,
-    onRefresh = controller.git::refresh,
     onCommand = controller.commands::dispatch,
     width = width,
     row = row,

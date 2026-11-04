@@ -186,7 +186,8 @@ Besides its tests passing, a change:
 - `ProjectWatcher` polls file stamps every second, skipping generated code and output folders outside `src` (any name inside
   it). Files as Creator left them (`OwnWrites`) don't count as changed, so Creator's own writes reload nothing. `ProjectChanges` is the one table routing Creator's own writes (the Scene changes `SceneStore` records,
   which `CommandExecutor` hands over after each command, and saved type batches) and the watcher's changes: a Scene edit refreshes
-  only the Scene view, a new or removed Scene the resource tree too, and every change the Version control panel. Resource scans and
+  only the Scene view, a new or removed Scene the resource tree too, and every change the Version control panel. Nothing needs a
+  refresh button: the watcher leaves `.git` out, so git is read again whenever the window gets the focus back too. Resource scans and
   git refreshes are coalesced, so at most one runs and one waits. The resource tree after an outside change comes from the
   watcher's snapshot, so its one-second walk is the only periodic one; after Creator's own writes, which a snapshot may
   predate, the project is walked, and so is it for a snapshot taken before an own write (`OwnWrites.generation`), since the

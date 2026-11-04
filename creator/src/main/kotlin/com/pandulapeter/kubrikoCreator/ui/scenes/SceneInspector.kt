@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,16 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.scenes.MoveActorOrder
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
-import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ActorBodyValues
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
-import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
-import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
-import com.pandulapeter.kubrikoCreator.ui.components.DescriptionField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
@@ -45,19 +39,17 @@ import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_move_down
 import kubriko.creator.generated.resources.ic_move_up
-import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.scene_actor_not_created_hint
 import kubriko.creator.generated.resources.scene_inspector_hint
 import kubriko.creator.generated.resources.scene_settings_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The column beside the Scene: the selected Actor's values, the Scene settings when they are selected, or with nothing
- * selected, how to place Actors and a way to the Scene settings.
+ * The column beside the Scene: the selected Actor's values, or with nothing selected, how to place Actors and a way to the
+ * Scene settings.
  *
  * @param actorTypes The project's block-built Actor types, whose Properties and colors their Actors show.
  * @param music The project's music files, for the Scene settings.
- * @param description What the Scene is for, shown with nothing selected.
  */
 @Composable
 internal fun SceneInspector(
@@ -66,8 +58,7 @@ internal fun SceneInspector(
     selectedId: String?,
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>,
-    description: String?,
-    onSelect: (String?) -> Unit,
+    onOpenSceneSettings: () -> Unit,
     onCommand: (Invocation<*>) -> Unit,
     onRemove: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -80,12 +71,6 @@ internal fun SceneInspector(
     val actor = selectedId?.let(view::actorOf)
     when {
         selectedId == null || entry == null -> {
-            DescriptionField(
-                modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp),
-                key = sceneName,
-                description = description,
-                onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(scene = sceneName, description = it))) },
-            )
             Text(
                 modifier = Modifier.padding(12.dp),
                 text = stringResource(Res.string.scene_inspector_hint),
@@ -94,31 +79,9 @@ internal fun SceneInspector(
             )
             TextButton(
                 modifier = Modifier.padding(horizontal = 4.dp),
-                onClick = {
-                    val settings = view.entries.getOrNull(SceneSettingsState.indexIn(view.entries))
-                    if (settings != null) {
-                        onSelect(settings.id)
-                    } else {
-                        val actorId = SceneDocument.newId(view.entries.map { it.id })
-                        onSelect(actorId)
-                        onCommand(Invocation(SetSceneSettings, SetSceneSettings.Input(sceneName, actorId = actorId)))
-                    }
-                },
+                onClick = onOpenSceneSettings,
             ) {
                 Text(stringResource(Res.string.scene_settings_title))
-            }
-        }
-        view.isBackground(selectedId) -> {
-            PanelHeader(icon = Res.drawable.ic_scene, title = stringResource(Res.string.scene_settings_title), accent = Accent.SCENE) {
-                IconActionButton(icon = Res.drawable.ic_delete, label = Res.string.action_remove_actor, onClick = { onRemove(selectedId) })
-            }
-            key(selectedId) {
-                SceneSettingsInspector(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    values = SceneSettingsState.read(entry.state),
-                    music = music,
-                    onChange = { change -> onCommand(Invocation(SetSceneSettings, SetSceneSettings.Input(sceneName).change())) },
-                )
             }
         }
         else -> {

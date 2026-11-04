@@ -45,7 +45,6 @@ import kubriko.creator.generated.resources.ai_client_variant
 import kubriko.creator.generated.resources.ai_connection_advanced
 import kubriko.creator.generated.resources.ai_connection_calls
 import kubriko.creator.generated.resources.ai_connection_calls_empty
-import kubriko.creator.generated.resources.ai_connection_clients
 import kubriko.creator.generated.resources.ai_connection_enabled
 import kubriko.creator.generated.resources.ai_connection_note
 import kubriko.creator.generated.resources.ai_connection_other
@@ -145,10 +144,6 @@ private fun ConnectionSettings(
     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
     verticalArrangement = Arrangement.spacedBy(10.dp),
 ) {
-    Text(
-        text = stringResource(Res.string.ai_connection_clients),
-        style = MaterialTheme.typography.titleSmall,
-    )
     clientSetups.forEach { setup ->
         AiClientRow(
             title = setup.variant?.let { stringResource(Res.string.ai_client_variant, setup.client.displayName, it) } ?: setup.client.displayName,

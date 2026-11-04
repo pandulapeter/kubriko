@@ -66,11 +66,13 @@ internal fun AssistantPanel(
     modifier: Modifier = Modifier,
     attention: List<AttentionChip> = emptyList(),
     captureScreen: suspend () -> ByteArray? = { null },
+    forms: AssistantForms = rememberAssistantForms(),
 ) {
     val agent by model.agent.collectAsState()
     CompositionLocalProvider(LocalAgent provides agent) {
         AssistantPanelContent(
             model = model,
+            forms = forms,
             aiSteps = aiSteps,
             onShowStep = onShowStep,
             attention = attention,
@@ -80,10 +82,10 @@ internal fun AssistantPanel(
     }
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 private fun AssistantPanelContent(
     model: AssistantPanelModel,
+    forms: AssistantForms,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
     attention: List<AttentionChip>,
@@ -94,33 +96,33 @@ private fun AssistantPanelContent(
 ) {
     val chats by model.chats.collectAsState()
     val chat by model.currentChat.collectAsState()
-    val authStatus by model.authStatus.collectAsState()
     val signInMethods by model.signInMethods.collectAsState()
     val hasApiKey by model.hasApiKey.collectAsState()
-    var isEnteringApiKey by remember { mutableStateOf(false) }
-    var isEnteringCustomAgent by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         model.findConfigurations()
         if (model.currentChat.value == null) model.newChat()
     }
-    AssistantHeaderOf(
-        model = model,
-        chats = chats,
-        chat = chat,
-        authStatus = authStatus,
-        signInMethods = signInMethods,
-        hasApiKey = hasApiKey,
-        onEnterCustomAgent = { isEnteringCustomAgent = true },
-        onUseApiKey = { isEnteringApiKey = true },
-    )
-    if (isEnteringCustomAgent) {
+    ConversationBar(
+        canDelete = chat?.isEmpty?.collectAsState()?.value == false,
+        onDelete = { chat?.let(model::delete) },
+    ) { modifier ->
+        ConversationMenu(
+            modifier = modifier,
+            chats = chats,
+            current = chat,
+            savedConversations = model.savedConversations.collectAsState().value,
+            onSelected = model::select,
+            onResume = model::resume,
+        )
+    }
+    if (forms.isEnteringCustomAgent) {
         CustomAgentForm(
             initialCommand = model.customAgentCommand,
             onSave = { command ->
-                isEnteringCustomAgent = false
+                forms.isEnteringCustomAgent = false
                 model.selectAgent(AgentChoice.Custom(command))
             },
-            onCancel = { isEnteringCustomAgent = false },
+            onCancel = { forms.isEnteringCustomAgent = false },
         )
     }
     HorizontalDivider()
@@ -143,16 +145,16 @@ private fun AssistantPanelContent(
         ) { isPromptRefused ->
             AssistantSignInArea(
                 session = session,
-                isEnteringApiKey = isEnteringApiKey,
+                isEnteringApiKey = forms.isEnteringApiKey,
                 needsSignIn = needsSignIn || isPromptRefused,
                 methods = signInMethods,
                 canKeepApiKey = model.canKeepApiKey,
                 hasApiKeyFailed = hasApiKeyFailed,
                 onSignIn = model::signIn,
                 onCloseSignIn = model::closeSignIn,
-                onUseApiKey = { isEnteringApiKey = true },
-                onSaveApiKey = { key -> model.setApiKey(key) { isEnteringApiKey = false } },
-                onCancelApiKey = { isEnteringApiKey = false },
+                onUseApiKey = { forms.isEnteringApiKey = true },
+                onSaveApiKey = { key -> model.setApiKey(key) { forms.isEnteringApiKey = false } },
+                onCancelApiKey = { forms.isEnteringApiKey = false },
                 variablesForm = model.variablesForm.collectAsState().value,
                 hasVariablesFailed = model.variablesFailed.collectAsState().value,
                 onSaveVariables = model::setVariables,
@@ -161,78 +163,6 @@ private fun AssistantPanelContent(
         }
     }
 }
-
-/**
- * The header of [model]'s panel, with the conversation [chat] it shows and its setup.
- */
-@Composable
-private fun AssistantHeaderOf(
-    model: AssistantPanelModel,
-    chats: List<AssistantChat>,
-    chat: AssistantChat?,
-    authStatus: AuthStatus?,
-    signInMethods: List<SignInMethod>,
-    hasApiKey: Boolean,
-    onEnterCustomAgent: () -> Unit,
-    onUseApiKey: () -> Unit,
-) {
-    val agent = LocalAgent.current
-    val configOptions = chat?.configOptions?.collectAsState()?.value.orEmpty()
-    AssistantHeader(
-        setupSummary = (listOf(agent.name) + currentChoices(configOptions)).joinToString(SUMMARY_SEPARATOR),
-        canClose = chat != null,
-        onNewConversation = model::newChat,
-        onCloseConversation = { chat?.let(model::close) },
-        conversation = { modifier ->
-            ConversationMenu(
-                modifier = modifier,
-                chats = chats,
-                current = chat,
-                savedConversations = model.savedConversations.collectAsState().value,
-                onSelected = model::select,
-                onResume = model::resume,
-            )
-        },
-    ) { close ->
-        AssistantSetupRow(stringResource(Res.string.assistant_setup_agent)) {
-            AgentMenu(
-                agent = agent,
-                agents = model.agents.collectAsState().value,
-                customAgentCommand = model.customAgentCommand,
-                onSelected = model::selectAgent,
-                onEnterCustomAgent = {
-                    close()
-                    onEnterCustomAgent()
-                },
-                onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
-            )
-        }
-        AssistantAccountMenu(
-            status = authStatus,
-            methods = signInMethods,
-            hasApiKey = hasApiKey,
-            canKeepApiKey = model.canKeepApiKey,
-            onSignIn = { method ->
-                close()
-                model.signIn(method)
-            },
-            onUseApiKey = {
-                close()
-                onUseApiKey()
-            },
-            onRemoveApiKey = model::removeApiKey,
-        )
-        AssistantSetupOptions(
-            configuration = model.configuration.collectAsState().value,
-            configurations = model.configurations.collectAsState().value,
-            configOptions = configOptions,
-            onConfigurationSelected = model::selectConfiguration,
-            onConfigOptionSelected = { option, choice -> chat?.setConfigOption(option.id, SessionConfigOptionValue.of(choice.value.value)) },
-        )
-    }
-}
-
-private const val SUMMARY_SEPARATOR = " · "
 
 @Composable
 private fun ChatContent(
@@ -350,7 +280,7 @@ internal fun conversationTitle(firstMessage: String): String {
     return cut.trimEnd('.', ',', ';', ':') + ELLIPSIS
 }
 
-private const val TITLE_LENGTH = 40
+private const val TITLE_LENGTH = 80
 private const val ELLIPSIS = "…"
 
 /**

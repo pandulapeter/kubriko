@@ -19,8 +19,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * The assistant's conversations about the open project: the ones open, the one shown, the ones closed during this run,
- * and the earlier ones [store] keeps, which can be continued.
+ * The assistant's conversations about the open project: the ones open, the one shown, and the earlier ones [store] keeps,
+ * which can be continued.
  *
  * @param scope Where the lists change: the main thread, which the panel reads them on.
  */
@@ -49,12 +49,6 @@ internal class AssistantChats(
     val saved = _saved.asStateFlow()
 
     /**
-     * Conversations closed during this run, kept running so that continuing one needs no `session/load`, which the
-     * agent's client refuses for an ID it still holds.
-     */
-    private val parked = mutableListOf<AssistantChat>()
-
-    /**
      * Opens [chat] and shows it.
      */
     fun add(chat: AssistantChat) {
@@ -67,40 +61,33 @@ internal class AssistantChats(
     }
 
     /**
-     * Closes [chat], showing the one before it. A conversation with something in it is kept for continuing it later;
-     * an empty one ends.
+     * Ends [chat] and forgets it for good, [store] included, showing the open conversation that was talked in last. It is
+     * forgotten only once it ended, since a turn ending meanwhile would keep it again.
      */
-    fun close(chat: AssistantChat, project: File?, agentId: String) {
-        val index = _open.value.indexOf(chat)
-        if (index < 0) return
+    fun delete(chat: AssistantChat, project: File?, agentId: String) {
+        if (chat !in _open.value) return
         _open.update { it - chat }
-        if (_current.value === chat) _current.value = _open.value.getOrNull((index - 1).coerceAtLeast(0))
-        if (chat.conversationId.value != null && chat.transcript.value.title != null) {
-            parked += chat
-            refreshSaved(project, agentId)
-        } else {
-            scope.launch { chat.close() }
+        if (_current.value === chat) _current.value = _open.value.maxByOrNull { it.lastMessageAt.value }
+        scope.launch {
+            chat.close()
+            val id = chat.conversationId.value ?: return@launch
+            if (store != null && project != null) withContext(ioDispatcher) { store.remove(project, agentId, id) }
         }
     }
 
     /**
-     * Opens again the conversation [id] closed during this run, if it was, and tells whether it was.
+     * Leaves the earlier conversation [id] out of [saved], once it is being continued.
      */
-    fun reopen(id: String): Boolean {
+    fun onResumed(id: String) {
         _saved.update { saved -> saved.filterNot { it.id == id } }
-        val chat = parked.firstOrNull { it.conversationId.value == id } ?: return false
-        parked -= chat
-        add(chat)
-        return true
     }
 
     /**
-     * Forgets every conversation, open or closed during this run, and returns them, for ending them.
+     * Forgets every open conversation and returns them, for ending them.
      */
     fun takeAll(): List<AssistantChat> {
-        val all = _open.value + parked
+        val all = _open.value
         _open.value = emptyList()
-        parked.clear()
         _current.value = null
         return all
     }

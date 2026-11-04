@@ -9,8 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.assistant
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -20,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentCommand
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AuthStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeConfiguration
@@ -38,6 +44,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_delete
+import kubriko.creator.generated.resources.action_delete_conversation
+import kubriko.creator.generated.resources.action_new_conversation
 import kubriko.creator.generated.resources.action_save
 import kubriko.creator.generated.resources.assistant_account_signed_in
 import kubriko.creator.generated.resources.assistant_account_use_api_key
@@ -86,6 +95,18 @@ class AssistantPanelTest {
         chat
     }
 
+    /**
+     * The panel with its buttons in the AI panel's header, as the app shows them.
+     */
+    @Composable
+    private fun AssistantPanelWithActions(model: AssistantPanelModel) {
+        val forms = rememberAssistantForms()
+        Column {
+            Row { AssistantHeaderActions(model = model, forms = forms) }
+            AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, forms = forms)
+        }
+    }
+
     private fun ComposeUiTest.openSetup() = onNodeWithContentDescription("Assistant setup", substring = true).performClick()
 
     @Test
@@ -103,7 +124,7 @@ class AssistantPanelTest {
             useApiKey = stringResource(Res.string.assistant_account_use_api_key)
             configurationLabel = stringResource(Res.string.assistant_configuration_default)
             note = stringResource(Res.string.assistant_note_untested, untested.name)
-            AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {})
+            AssistantPanelWithActions(model)
         }
         onNodeWithText(note).assertExists()
         onNodeWithText(accountLabel).assertDoesNotExist()
@@ -130,7 +151,7 @@ class AssistantPanelTest {
             useApiKey = stringResource(Res.string.assistant_account_use_api_key)
             configurationLabel = stringResource(Res.string.assistant_configuration_default)
             note = stringResource(Res.string.assistant_note)
-            AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {})
+            AssistantPanelWithActions(model)
         }
         onNodeWithText(note).assertExists()
         openSetup()
@@ -144,7 +165,7 @@ class AssistantPanelTest {
     @Test
     fun theFirstShowingStartsAConversation() = uiTest {
         val model = FakeAssistantPanelModel()
-        showing { AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}) }
+        showing { AssistantPanelWithActions(model) }
         waitForIdle()
         assertEquals(1, model.calls.count { it == "newChat" })
         assertEquals(1, model.calls.count { it == "findConfigurations" })
@@ -160,7 +181,7 @@ class AssistantPanelTest {
             agentLabel = stringResource(Res.string.assistant_agent_untested, untested.name)
             customAgent = stringResource(Res.string.assistant_agent_custom)
             save = stringResource(Res.string.action_save)
-            AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {})
+            AssistantPanelWithActions(model)
         }
         openSetup()
         onNodeWithText(agentLabel).performClick()
@@ -168,5 +189,44 @@ class AssistantPanelTest {
         onAllNodes(hasSetTextAction())[0].performTextInput("goose acp")
         onNodeWithText(save).performClick()
         assertEquals(listOf<AgentChoice>(AgentChoice.Custom("goose acp")), model.selectedAgents)
+    }
+
+    @Test
+    fun anEmptyConversationCanNeitherBeDeletedNorFollowedByANewOne() = uiTest {
+        val model = FakeAssistantPanelModel().apply { currentChat.value = readyChat() }
+        lateinit var delete: String
+        lateinit var newConversation: String
+        showing {
+            delete = stringResource(Res.string.action_delete_conversation)
+            newConversation = stringResource(Res.string.action_new_conversation)
+            AssistantPanelWithActions(model)
+        }
+        onNodeWithContentDescription(delete).assertDoesNotExist()
+        onNodeWithContentDescription(newConversation).assertIsNotEnabled()
+    }
+
+    @Test
+    fun aConversationWithMessagesIsDeletedOnlyOnceConfirmed() = uiTest {
+        val chat = readyChat()
+        runBlocking {
+            withContext(mainThread) { chat.send("hello") }
+            withTimeout(10.seconds) { chat.isBusy.first { !it } }
+        }
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        lateinit var deleteConversation: String
+        lateinit var newConversation: String
+        lateinit var delete: String
+        showing {
+            deleteConversation = stringResource(Res.string.action_delete_conversation)
+            newConversation = stringResource(Res.string.action_new_conversation)
+            delete = stringResource(Res.string.action_delete)
+            AssistantPanelWithActions(model)
+        }
+        onNodeWithContentDescription(newConversation).assertIsEnabled()
+        onNodeWithContentDescription(deleteConversation).performClick()
+        assertEquals(emptyList(), model.calls.filter { it == "delete" })
+        saveSnapshot("assistant-delete-conversation")
+        onNodeWithText(delete).performClick()
+        assertEquals(listOf("delete"), model.calls.filter { it == "delete" })
     }
 }

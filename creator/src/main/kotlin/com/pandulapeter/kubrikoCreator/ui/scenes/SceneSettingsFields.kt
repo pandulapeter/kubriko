@@ -43,7 +43,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onChange Called with the values to change, as `set_scene_settings` takes them (without the Scene).
  */
 @Composable
-internal fun SceneSettingsInspector(
+internal fun SceneSettingsFields(
     values: SceneSettingsState.Values,
     music: List<String>,
     onChange: (SetSceneSettings.Input.() -> SetSceneSettings.Input) -> Unit,

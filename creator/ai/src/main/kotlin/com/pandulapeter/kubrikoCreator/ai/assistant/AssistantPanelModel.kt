@@ -133,7 +133,8 @@ public interface AssistantPanelModel {
     public fun findConfigurations()
 
     /**
-     * Starts a conversation about the open project and shows it.
+     * Starts a conversation about the open project and shows it, or shows the open one nothing has been said in yet, if
+     * there is one.
      */
     public fun newChat()
 
@@ -148,9 +149,9 @@ public interface AssistantPanelModel {
     public fun select(chat: AssistantChat)
 
     /**
-     * Closes [chat], showing the conversation before it; one with something in it can be continued later.
+     * Ends [chat] and forgets it for good, showing the open conversation talked in last, or a new one when none is left.
      */
-    public fun close(chat: AssistantChat)
+    public fun delete(chat: AssistantChat)
 
     /**
      * Runs [choice] from now on, which ends every conversation and starts a new one.

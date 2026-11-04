@@ -59,11 +59,13 @@ class DescriptionCommandsTest {
     }
 
     @Test
-    fun typingADescriptionIsOneUndoStep() = runTest {
+    fun everySavedDescriptionIsAStepOfItsOwn() = runTest {
         val context = commandContext(ActorTypeDefinition("Ball"))
         val executor = CommandExecutor(context, testScope())
-        listOf("t", "th", "the").forEach { executor.execute(Invocation(SetDescription, SetDescription.Input(type = "Ball", description = it))) }
-        assertEquals(1, executor.history.value.undoable.size)
+        listOf("Bounces", "Bounces off the paddle").forEach { executor.execute(Invocation(SetDescription, SetDescription.Input(type = "Ball", description = it))) }
+        assertEquals(2, executor.history.value.undoable.size)
+        executor.step(isUndo = true)
+        assertEquals("Bounces", context.blockTypes!!["Ball"]!!.description)
         executor.step(isUndo = true)
         assertNull(context.blockTypes!!["Ball"]!!.description)
     }

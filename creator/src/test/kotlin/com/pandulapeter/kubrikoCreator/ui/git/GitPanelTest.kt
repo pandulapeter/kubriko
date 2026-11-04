@@ -30,7 +30,7 @@ class GitPanelTest {
     @Test
     fun aCommitThatFailsKeepsTheMessage() = uiTest {
         val commits = mutableListOf<String>()
-        showing { GitPanel(state = state, onRefresh = {}, onStartVersionControl = {}, onCommit = { message, _ -> commits += message }, onDiscard = {}) }
+        showing { GitPanel(state = state, onStartVersionControl = {}, onCommit = { message, _ -> commits += message }, onDiscard = {}) }
         onNode(hasSetTextAction()).performTextReplacement("Make the Ball faster")
         onNodeWithText("Commit").performClick()
         waitForIdle()
@@ -40,7 +40,7 @@ class GitPanelTest {
 
     @Test
     fun aCommitThatWorksClearsTheMessage() = uiTest {
-        showing { GitPanel(state = state, onRefresh = {}, onStartVersionControl = {}, onCommit = { _, onCommitted -> onCommitted() }, onDiscard = {}) }
+        showing { GitPanel(state = state, onStartVersionControl = {}, onCommit = { _, onCommitted -> onCommitted() }, onDiscard = {}) }
         onNode(hasSetTextAction()).performTextReplacement("Make the Ball faster")
         onNodeWithText("Commit").performClick()
         waitForIdle()

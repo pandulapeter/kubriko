@@ -19,16 +19,31 @@ import com.agentclientprotocol.model.SessionConfigSelectOptions
 import com.agentclientprotocol.model.SessionConfigValueId
 import com.agentclientprotocol.model.ToolCallId
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
+import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantChat
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
+import com.pandulapeter.kubrikoCreator.ai.assistant.SavedConversation
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancel
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_list_scenes
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class AssistantPanelDecisionsTest {
+    private val scope = CoroutineScope(SupervisorJob())
+    private val chat = AssistantChat(parentScope = scope, start = { _, _ -> awaitCancellation() }, end = {})
+
+    @AfterTest
+    fun tearDown() {
+        scope.cancel()
+    }
+
     private val commands = listOf(
         AvailableCommand("compact", "Compact the conversation"),
         AvailableCommand("context", "Show the context"),
@@ -73,8 +88,11 @@ class AssistantPanelDecisionsTest {
     @Test
     fun conversationsAreNamedByTheirFirstLineCutAtAWord() {
         assertEquals("Make the Ball faster", conversationTitle("Make the Ball faster\nand red"))
-        assertEquals("Make the Ball start twice as fast. Keep…", conversationTitle("Make the Ball start twice as fast. Keep the answer short."))
-        assertEquals("a".repeat(40) + "…", conversationTitle("a".repeat(50)))
+        assertEquals(
+            "Make the Ball start twice as fast, and the Paddle a little slower. Keep the…",
+            conversationTitle("Make the Ball start twice as fast, and the Paddle a little slower. Keep the answer short."),
+        )
+        assertEquals("a".repeat(80) + "…", conversationTitle("a".repeat(90)))
     }
 
     @Test
@@ -132,5 +150,23 @@ class AssistantPanelDecisionsTest {
         val variables = listOf(SignInMethod.Variable("KEY"), SignInMethod.Variable("REGION", isOptional = true))
         assertEquals(false, canSaveVariables(variables, mapOf("KEY" to " ")))
         assertEquals(true, canSaveVariables(variables, mapOf("KEY" to "abc")))
+    }
+
+    @Test
+    fun conversationsAreListedTalkedInLastFirstWithOpenOnesBeforeEarlierOnesOfTheSameMoment() {
+        val earlier = listOf(
+            SavedConversation(project = "/projects/breakout", agentId = "claude-acp", id = "b", title = "B", updatedAt = 30),
+            SavedConversation(project = "/projects/breakout", agentId = "claude-acp", id = "d", title = "D", updatedAt = 10),
+        )
+        val open = listOf(20L, 30L).map { ConversationChoice.Open(chat = chat, lastMessageAt = it) }
+        assertEquals(
+            listOf(30L to "open", 30L to "b", 20L to "open", 10L to "d"),
+            conversationChoices(open, earlier).map { choice ->
+                choice.lastMessageAt to when (choice) {
+                    is ConversationChoice.Open -> "open"
+                    is ConversationChoice.Earlier -> choice.conversation.id
+                }
+            },
+        )
     }
 }

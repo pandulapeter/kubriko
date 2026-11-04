@@ -45,6 +45,14 @@ public class SavedConversationStore(
         }
     }
 
+    /**
+     * Forgets the conversation [id] about [project] held by the agent [agentId].
+     */
+    @Synchronized
+    internal fun remove(project: File, agentId: String, id: String) {
+        store.update { current -> current.orEmpty().filterNot { it.project == project.absolutePath && it.agentId == agentId && it.id == id } }
+    }
+
     private fun read() = store.read().valueOrNull().orEmpty()
 
     public companion object {

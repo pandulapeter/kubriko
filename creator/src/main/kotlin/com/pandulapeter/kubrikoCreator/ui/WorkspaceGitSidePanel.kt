@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 internal fun WorkspaceGitSidePanel(
     gitState: StateFlow<GitState>,
-    onRefresh: () -> Unit,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     width: PanelWidthState,
     row: PanelRow,
@@ -41,7 +40,6 @@ internal fun WorkspaceGitSidePanel(
     GitPanel(
         modifier = Modifier.sidePanel(width.widthIn(row)),
         state = gitState,
-        onRefresh = onRefresh,
         onStartVersionControl = { onCommand(Invocation(StartVersionControl, NoInput)) {} },
         onCommit = { message, onCommitted -> onCommand(Invocation(Commit, Commit.Input(message)), onCommitted) },
         onDiscard = { change -> onCommand(Invocation(DiscardChanges, DiscardChanges.Input(change.paths))) {} },
