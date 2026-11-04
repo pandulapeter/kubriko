@@ -8,9 +8,7 @@
  * https://mozilla.org/MPL/2.0/.
  */
 package com.pandulapeter.kubrikoCreator.workspace
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -19,9 +17,6 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.ProjectBuildFiles
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
-import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
-import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -331,37 +326,6 @@ public class WorkspaceController(
             }
         }
     }
-
-    /**
-     * Creates an empty Actor type and selects it, closing the Scene shown.
-     *
-     * @return Why [name] can't be used, or null if the Actor type is being created.
-     */
-    public fun createActorType(name: String): Rejection? {
-        val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
-        commands.validate(invocation)?.let { return it }
-        commands.dispatch(invocation) { selection.selectType(name) }
-        return null
-    }
-
-    /**
-     * Creates an empty Manager type and selects it, closing the Scene shown.
-     *
-     * @return Why [name] can't be used, or null if the Manager type is being created.
-     */
-    public fun createManagerType(name: String): Rejection? {
-        val invocation = Invocation(CreateManagerType, ManagerTypeDefinition(name = name))
-        commands.validate(invocation)?.let { return it }
-        commands.dispatch(invocation) { selection.selectType(name) }
-        return null
-    }
-
-    /**
-     * Creates an empty Scene.
-     *
-     * @return Why [name] can't be used, or null if the Scene is being created.
-     */
-    public fun createScene(name: String): Rejection? = dispatchIfValid(Invocation(CreateScene, CreateScene.Input(name)))
 
     /**
      * Applies [invocation] unless it is rejected.

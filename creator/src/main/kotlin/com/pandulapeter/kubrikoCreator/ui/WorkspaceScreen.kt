@@ -70,6 +70,9 @@ import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import com.pandulapeter.kubrikoCreator.workspace.captureGameScreen
+import com.pandulapeter.kubrikoCreator.workspace.createActorType
+import com.pandulapeter.kubrikoCreator.workspace.createManagerType
+import com.pandulapeter.kubrikoCreator.workspace.createScene
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
 
 /**
