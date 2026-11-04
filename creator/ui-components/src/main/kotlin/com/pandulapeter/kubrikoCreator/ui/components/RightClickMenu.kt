@@ -99,7 +99,7 @@ private fun MenuLevel(
     ) {
         val scroll = rememberScrollState()
         Column(
-            modifier = Modifier.scrollEdgeFades(scroll).verticalScroll(scroll).padding(vertical = 4.dp),
+            modifier = Modifier.scrollEdgeFades(scroll, MenuStyle.color).verticalScroll(scroll).padding(vertical = 4.dp),
         ) {
             actions.forEachIndexed { index, action ->
                 if (action.isSeparated) HorizontalDivider(Modifier.padding(vertical = 4.dp))

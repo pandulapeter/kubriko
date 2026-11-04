@@ -15,39 +15,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Fades this scrolling content out at its top or bottom while there is more of it beyond that edge, over about two rows
- * of a menu, so that a list its height cuts off says so even when the cut falls between rows. Goes before the modifier
- * that scrolls it, so that it fades the visible part.
+ * Fades this scrolling content into [color], the surface it is on, at its top or bottom while there is more of it beyond
+ * that edge, over about two rows of a menu, so that a list its height cuts off says so even when the cut falls between
+ * rows. Goes before the modifier that scrolls it, so that it covers the visible part. It is painted over the content
+ * rather than masking it, which every renderer draws alike.
  */
 @Composable
-public fun Modifier.scrollEdgeFades(state: ScrollableState, length: Dp = 48.dp): Modifier {
+public fun Modifier.scrollEdgeFades(state: ScrollableState, color: Color, length: Dp = 48.dp): Modifier {
     val hasMoreAbove = state.canScrollBackward
     val hasMoreBelow = state.canScrollForward
-    return graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }.drawWithContent {
+    return drawWithContent {
         drawContent()
         val fade = length.toPx().coerceAtMost(size.height / 3)
         if (hasMoreAbove) {
             drawRect(
-                brush = Brush.verticalGradient(0f to Color.Transparent, 1f to Color.Black, startY = 0f, endY = fade),
+                brush = Brush.verticalGradient(0f to color, 1f to color.copy(alpha = 0f), startY = 0f, endY = fade),
                 size = Size(size.width, fade),
-                blendMode = BlendMode.DstIn,
             )
         }
         if (hasMoreBelow) {
             drawRect(
-                brush = Brush.verticalGradient(0f to Color.Black, 1f to Color.Transparent, startY = size.height - fade, endY = size.height),
+                brush = Brush.verticalGradient(0f to color.copy(alpha = 0f), 1f to color, startY = size.height - fade, endY = size.height),
                 topLeft = Offset(0f, size.height - fade),
                 size = Size(size.width, fade),
-                blendMode = BlendMode.DstIn,
             )
         }
     }

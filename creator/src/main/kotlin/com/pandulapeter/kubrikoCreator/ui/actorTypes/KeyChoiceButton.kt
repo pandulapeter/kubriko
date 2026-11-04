@@ -146,7 +146,7 @@ private fun KeyChoicePanel(
         }
         val listState = rememberLazyListState()
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().scrollEdgeFades(listState),
+            modifier = Modifier.fillMaxWidth().scrollEdgeFades(listState, MenuStyle.color),
             state = listState,
             contentPadding = PaddingValues(vertical = 4.dp),
         ) {

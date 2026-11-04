@@ -49,7 +49,7 @@ class ScrollEdgeFadesTest {
      */
     private fun showingAList(scroll: ScrollState, check: (top: Float, bottom: Float) -> Unit) = uiTest(width = 100, height = 200) {
         showing {
-            Box(Modifier.testTag("list").size(100.dp, 200.dp).scrollEdgeFades(scroll).verticalScroll(scroll)) {
+            Box(Modifier.testTag("list").size(100.dp, 200.dp).scrollEdgeFades(scroll, Color.Black).verticalScroll(scroll)) {
                 Box(Modifier.fillMaxWidth().height(1000.dp).background(Color.White))
             }
         }
