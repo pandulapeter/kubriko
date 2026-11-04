@@ -46,7 +46,7 @@ public class ProjectUpgrader(
         if ((recordedVersion() ?: CURRENT_VERSION) >= CURRENT_VERSION) return TemplateUpgrade.UpToDate
         val packageName = settings["packageName"]?.jsonPrimitive?.content ?: return TemplateUpgrade.UpToDate
         val sourceDirectory = settings["sourceDirectory"]?.jsonPrimitive?.content ?: "src/commonMain/kotlin"
-        val context = TemplateContext(packageName, sourceDirectory, ::read) { ProjectInspector.nameOf(rootDirectory) }
+        val context = TemplateContext(packageName, sourceDirectory, ::read, exists = { File(rootDirectory, it).isFile }) { ProjectInspector.nameOf(rootDirectory) }
         val changes = mutableListOf<ProposedFileChange>()
         val byHand = mutableListOf<String>()
         val doneOrProposedPaths = HashSet<String>()
@@ -83,7 +83,7 @@ public class ProjectUpgrader(
         }
         TemplateSteps.COPIES.forEach { copy ->
             val path = copy.path(context)
-            if (copy.isNeeded(context) && context.read(path) == null) changes += ProposedFileChange.copyOf(copy.resource, path)
+            if (copy.isNeeded(context) && !context.exists(path)) changes += ProposedFileChange.copyOf(copy.resource, path)
         }
         return if (changes.isEmpty() && byHand.isEmpty()) TemplateUpgrade.UpToDate else TemplateUpgrade.Needed(changes, byHand)
     }

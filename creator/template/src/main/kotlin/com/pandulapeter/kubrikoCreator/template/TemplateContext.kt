@@ -17,12 +17,14 @@ import com.pandulapeter.kubrikoCreator.project.GameSettings
  * What the [TemplateStep]s of one upgrade check share: where the template's files are in the project, and how to read them.
  *
  * @param reader A project file's text with Unix line breaks, or null if it doesn't exist.
+ * @param exists Whether a project file exists, for one that isn't text.
  * @param projectName The name of the project's folder, which names the game when no title does.
  */
 internal class TemplateContext(
     val packageName: String,
     sourceDirectory: String,
     private val reader: (String) -> String?,
+    private val exists: (String) -> Boolean = { reader(it) != null },
     projectName: () -> String,
 ) {
     val packagePath = "$sourceDirectory/${packageName.replace('.', '/')}"
@@ -35,7 +37,6 @@ internal class TemplateContext(
     val iosViewControllerPath = "${sourceDirectory.replace("commonMain", "iosMain")}/${packageName.replace('.', '/')}/$IOS_VIEW_CONTROLLER_FILE"
     val pagePath = "${sourceDirectory.replace("commonMain", "wasmJsMain").removeSuffix("/kotlin")}/resources/$PAGE_FILE"
     val webFontPath = "${sourceDirectory.replace("commonMain", "wasmJsMain").removeSuffix("/kotlin")}/composeResources/font/${WebFontUpgrade.FONT_FILE}"
-    val resourcesPackage = "$packageName.resources"
     val wiringImport = "import $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}.${ManagerTypeCodeGenerator.WIRING_NAME}"
 
     /**
@@ -49,6 +50,8 @@ internal class TemplateContext(
     val firstScene by lazy { read(gamePath)?.let(GameSettingsUpgrade::firstSceneOf) ?: GameSettings.DEFAULT_FIRST_SCENE }
 
     fun read(path: String) = reader(path)
+
+    fun exists(path: String) = exists.invoke(path)
 
     private companion object {
         const val GAME_FILE = "Game.kt"

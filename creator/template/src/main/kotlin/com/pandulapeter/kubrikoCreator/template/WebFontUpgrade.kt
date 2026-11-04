@@ -13,7 +13,7 @@ package com.pandulapeter.kubrikoCreator.template
  * Template version 12: Compose for Web has no font of its own, so a text (a Manager type's) drew nothing in the browser.
  * The web source set gets an open font (Public Sans, under the SIL Open Font License, which its metadata carries), and the
  * web `Main.kt` shows the game only once that font is loaded as the one every text falls back to. A `Main.kt` whose
- * `ComposeViewport` isn't the template's, or a build that names its resources' package otherwise, is left to the user.
+ * `ComposeViewport` isn't the template's, or a build that doesn't name its resources' package, is left to the user.
  */
 internal object WebFontUpgrade {
     private const val VERSION = 12
@@ -21,25 +21,38 @@ internal object WebFontUpgrade {
     const val FONT_RESOURCE = "fonts/$FONT_FILE"
     private const val WRAPPER = "WithFallbackFont"
     private const val VIEWPORT = "ComposeViewport {"
+    private const val FONT_FAMILY_RESOLVER = "LocalFontFamilyResolver"
+    private const val RAW_STRING = "\"\"\""
+    private val clashingNames = listOf("Font", "Res")
+    private val resourcesPackagePattern = Regex("""packageOfResClass\s*=\s*"([^"]+)"""")
     private val fontAccessor = FONT_FILE.substringBeforeLast('.')
 
-    fun isDone(text: String) = WRAPPER in text || "LocalFontFamilyResolver" in text
+    fun isDone(text: String) = WRAPPER in text || FONT_FAMILY_RESOLVER in text
+
+    /**
+     * Whether a project whose web `Main.kt` is [text] needs the font: one that loads a font of its own doesn't.
+     */
+    fun needsFont(text: String) = WRAPPER in text || FONT_FAMILY_RESOLVER !in text
 
     /**
      * [text] (the web `Main.kt`) showing the game only once the fallback font is loaded, or null if its `ComposeViewport`
-     * block isn't there once, ending in a line of its own, or the build doesn't put the resources in [resourcesPackage].
+     * block isn't there once, ending in a line of its own and holding no raw string, if it imports another `Font` or
+     * `Res`, or if [buildFile] doesn't name the package of the resources' `Res` class.
      */
-    fun web(text: String, resourcesPackage: String, buildFile: String?): String? {
-        if (buildFile?.lines()?.any { it.trim() == "packageOfResClass = \"$resourcesPackage\"" } != true) return null
+    fun web(text: String, buildFile: String?): String? {
+        val resourcesPackage = buildFile?.let { resourcesPackagePattern.find(it)?.groupValues?.get(1) } ?: return null
         val lines = text.lines()
+        val imports = imports(resourcesPackage)
+        if (lines.any { line -> line.startsWith("import ") && line !in imports && clashingNames.any { line.endsWith(".$it") || line.endsWith(" as $it") } }) return null
         val start = lines.indices.singleOrNull { lines[it].trim() == VIEWPORT } ?: return null
         val indent = lines[start].takeWhile { it == ' ' }
         val end = (start + 1 until lines.size).firstOrNull { lines[it] == "$indent}" } ?: return null
+        if (lines.subList(start + 1, end).any { RAW_STRING in it }) return null
         val body = lines.subList(start + 1, end).map { if (it.isEmpty()) it else "    $it" }
         val last = lines.indexOfLast { it.isNotBlank() }
         val wrapped = lines.subList(0, start + 1) + "$indent    $WRAPPER {" + body + "$indent    }" + lines.subList(end, last + 1) +
             fallbackFont + lines.subList(last + 1, lines.size)
-        return imports(resourcesPackage).fold(wrapped) { result, import ->
+        return imports.fold(wrapped) { result, import ->
             if (import in result) result else ProjectUpgrader.withImport(result, import).lines()
         }.joinToString("\n")
     }
@@ -94,11 +107,11 @@ internal object WebFontUpgrade {
 
         override fun isDone(text: String, context: TemplateContext) = isDone(text)
 
-        override fun change(text: String, context: TemplateContext) = web(text, context.resourcesPackage, context.read(TargetFiles.BUILD_FILE))
+        override fun change(text: String, context: TemplateContext) = web(text, context.read(TargetFiles.BUILD_FILE))
     }
 
     /**
-     * The font this version adds to a project built for the web, which a project that isn't keeps without.
+     * The font this version adds to a project built for the web, unless its `Main.kt` loads a font of its own.
      */
-    val fontFile = CopiedFile(path = { it.webFontPath }, resource = FONT_RESOURCE) { context -> context.read(context.webMainPath) != null }
+    val fontFile = CopiedFile(path = { it.webFontPath }, resource = FONT_RESOURCE) { context -> context.read(context.webMainPath)?.let(::needsFont) == true }
 }

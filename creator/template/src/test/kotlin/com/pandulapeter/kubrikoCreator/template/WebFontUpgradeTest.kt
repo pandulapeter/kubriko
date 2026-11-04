@@ -20,7 +20,7 @@ class WebFontUpgradeTest {
     @Test
     fun theWebMainBecomesWhatTheTemplateMakesNow() {
         assertFalse(WebFontUpgrade.isDone(WEB_MAIN_11))
-        val upgraded = WebFontUpgrade.web(WEB_MAIN_11, RESOURCES_PACKAGE, BUILD_FILE)
+        val upgraded = WebFontUpgrade.web(WEB_MAIN_11, BUILD_FILE)
         assertEquals(templateOf("targets/web/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), upgraded)
         assertEquals(templateOf("templates/starter/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), upgraded)
         assertTrue(WebFontUpgrade.isDone(checkNotNull(upgraded)))
@@ -32,17 +32,39 @@ class WebFontUpgradeTest {
     }
 
     @Test
-    fun aMainUnlikeTheTemplatesOrABuildNamingItsResourcesOtherwiseIsLeftToTheUser() {
-        assertNull(WebFontUpgrade.web(WEB_MAIN_11.replace("    ComposeViewport {", "    ComposeViewport(viewportContainerId = \"game\") {"), RESOURCES_PACKAGE, BUILD_FILE))
-        assertNull(WebFontUpgrade.web(WEB_MAIN_11.replace("        )\n    }\n}", "        )\n    }}"), RESOURCES_PACKAGE, BUILD_FILE))
-        assertNull(WebFontUpgrade.web(WEB_MAIN_11, RESOURCES_PACKAGE, BUILD_FILE.replace(RESOURCES_PACKAGE, "com.example.other")))
-        assertNull(WebFontUpgrade.web(WEB_MAIN_11, RESOURCES_PACKAGE, buildFile = null))
+    fun theResourcesPackageIsTheOneTheBuildNames() {
+        val upgraded = checkNotNull(WebFontUpgrade.web(WEB_MAIN_11, "compose.resources {\n    packageOfResClass=\"com.example.assets\"\n}\n"))
+        assertTrue("import com.example.assets.Res\n" in upgraded && "import com.example.assets.public_sans_regular\n" in upgraded, upgraded)
+    }
+
+    @Test
+    fun aMainUnlikeTheTemplatesOrABuildNamingNoResourcesPackageIsLeftToTheUser() {
+        assertNull(WebFontUpgrade.web(WEB_MAIN_11.replace("    ComposeViewport {", "    ComposeViewport(viewportContainerId = \"game\") {"), BUILD_FILE))
+        assertNull(WebFontUpgrade.web(WEB_MAIN_11.replace("        )\n    }\n}", "        )\n    }}"), BUILD_FILE))
+        assertNull(WebFontUpgrade.web(WEB_MAIN_11.replace("            modifier = Modifier.fillMaxSize(),", "            modifier = Modifier.fillMaxSize(),\n            title = \"\"\"\n}\n\"\"\","), BUILD_FILE))
+        assertNull(WebFontUpgrade.web(WEB_MAIN_11, "compose.resources {\n}\n"))
+        assertNull(WebFontUpgrade.web(WEB_MAIN_11, buildFile = null))
+    }
+
+    @Test
+    fun aMainImportingAnotherFontOrResIsLeftToTheUser() = listOf("import org.jetbrains.compose.resources.Font", "import com.example.other.Res", "import com.example.other.Typeface as Font").forEach { import ->
+        assertNull(WebFontUpgrade.web(WEB_MAIN_11.replace("import androidx.compose.ui.Modifier\n", "import androidx.compose.ui.Modifier\n$import\n"), BUILD_FILE), import)
     }
 
     @Test
     fun anImportThatIsThereAlreadyIsNotAddedAgain() {
-        val withImport = WEB_MAIN_11.replace("import androidx.compose.ui.Modifier\n", "import androidx.compose.ui.Modifier\nimport androidx.compose.ui.text.font.FontFamily\n")
-        assertEquals(templateOf("targets/web/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), WebFontUpgrade.web(withImport, RESOURCES_PACKAGE, BUILD_FILE))
+        val withImports = WEB_MAIN_11.replace(
+            "import androidx.compose.ui.Modifier\n",
+            "import androidx.compose.ui.Modifier\nimport androidx.compose.ui.text.font.FontFamily\nimport androidx.compose.ui.text.platform.Font\n",
+        )
+        assertEquals(templateOf("targets/web/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), WebFontUpgrade.web(withImports, BUILD_FILE))
+    }
+
+    @Test
+    fun onlyAMainThatDoesntLoadAFontOfItsOwnNeedsTheFont() {
+        assertTrue(WebFontUpgrade.needsFont(WEB_MAIN_11))
+        assertTrue(WebFontUpgrade.needsFont(templateOf("targets/web/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt")))
+        assertFalse(WebFontUpgrade.needsFont(WEB_MAIN_11.replace("    ComposeViewport {", "    ComposeViewport {\n        val resolver = LocalFontFamilyResolver.current")))
     }
 
     private fun templateOf(path: String) = TemplateRenderer.renderContent(checkNotNull(TemplateFiles.readResource("$path${TemplateFiles.TEMPLATE_SUFFIX}")), mapOf("PACKAGE" to PACKAGE))

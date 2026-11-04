@@ -254,6 +254,15 @@ class ProjectUpgraderTest {
     }
 
     @Test
+    fun aProjectWhoseWebMainLoadsAFontOfItsOwnGetsNoFont() {
+        val webMain = File(directory, WEB_MAIN_PATH)
+        webMain.writeText(WebFontUpgradeTest.WEB_MAIN_11.replace("    ComposeViewport {", "    ComposeViewport {\n        val resolver = LocalFontFamilyResolver.current"))
+        File(directory, WEB_FONT_PATH).delete()
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 11 }""")
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).check())
+    }
+
+    @Test
     fun aFontAlreadyThereIsKept() {
         val font = File(directory, WEB_FONT_PATH).apply { writeText("the user's own") }
         settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 11 }""")

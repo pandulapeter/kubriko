@@ -43,7 +43,7 @@ class TemplateFilesTest {
     @Test
     fun everyCopiedFileOfATemplateOrTargetExists() = (ProjectTemplate.entries.map { it.root } + GameTarget.entries.filter { it != GameTarget.DESKTOP }.map { "targets/${it.key}" }).forEach { root ->
         TemplateFiles.entriesOf(root).mapNotNull { it.second }.forEach { resource ->
-            assertTrue(File("src/main/resources", resource).isFile, "$root copies $resource, which doesn't exist.")
+            assertTrue(TemplateFiles.readBytes(resource).isNotEmpty(), "$root copies $resource, which is empty.")
         }
     }
 

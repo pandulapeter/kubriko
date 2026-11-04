@@ -21,3 +21,8 @@ dependencies {
     testImplementation(testFixtures(projects.creator.core))
     testImplementation(testFixtures(projects.creator.foundation))
 }
+
+// Projects get the same Public Sans file as the Showcase's components, copied in rather than kept twice.
+tasks.processResources {
+    from("../../tools/ui-components/src/commonMain/composeResources/font/public_sans_regular.ttf") { into("fonts") }
+}
