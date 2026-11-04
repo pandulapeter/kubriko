@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
@@ -27,6 +28,8 @@ import androidx.compose.ui.unit.dp
  * A switch with its [label] before it, toggled by a click on either, which also names it for accessibility.
  *
  * @param enabled Whether it can be toggled; a disabled one still shows its state.
+ * @param contentPadding The room around the label and the switch inside the area that toggles it and shows its hover and
+ * press feedback.
  */
 @Composable
 public fun LabeledSwitch(
@@ -36,8 +39,11 @@ public fun LabeledSwitch(
     modifier: Modifier = Modifier,
     labelStyle: TextStyle = MaterialTheme.typography.bodySmall,
     enabled: Boolean = true,
+    contentPadding: PaddingValues = PaddingValues(),
 ): Unit = Row(
-    modifier = modifier.toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange),
+    modifier = modifier
+        .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
+        .padding(contentPadding),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically,
 ) {

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.mcp
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.commands.AiStep
@@ -34,7 +35,7 @@ class AiActivityBarTest {
     }
 
     @Test
-    fun followingIsASwitch() = uiTest(width = 800, height = 120) {
+    fun followingIsASwitchFillingTheBarsEnd() = uiTest(width = 800, height = 120) {
         val changes = mutableListOf<Boolean>()
         showing {
             AiActivityBar(
@@ -45,6 +46,11 @@ class AiActivityBarTest {
             )
         }
         onNodeWithText("Follow").assertIsOn()
+        val switchBounds = onNodeWithText("Follow").getUnclippedBoundsInRoot()
+        val barBounds = onNodeWithText("Step 1").getUnclippedBoundsInRoot()
+        assertEquals(barBounds.top, switchBounds.top)
+        assertEquals(barBounds.bottom, switchBounds.bottom)
+        assertEquals(barBounds.right, switchBounds.right)
         saveSnapshot("ai-activity-bar")
         onNodeWithText("Follow").performClick()
         assertEquals(listOf(false), changes)
