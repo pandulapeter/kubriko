@@ -129,10 +129,10 @@
     <string name="status_ios_simulator_timed_out">The simulator %1$s wasn't ready within %2$s minutes, so the game wasn't played on it.</string>
     <string name="status_ios_simulators_unreadable">Xcode couldn't list this Mac's simulators, so the game wasn't played. Opening Xcode once may finish setting it up.</string>
     <string name="status_ios_xcode_missing">The game can be played on iOS only on a Mac with Xcode.</string>
-    <string name="status_browser_not_opened">The browser couldn't be opened, so open %1$s in one to play.</string>
+    <string name="status_browser_not_opened">The browser couldn't be opened, so open this address in one to play: %1$s</string>
     <string name="status_web_game_missing">The web build finished, but there's no game at %1$s to play.</string>
     <string name="status_web_game_reloaded">Built again, so the game's page loads again.</string>
-    <string name="status_web_game_served">The game plays in the browser at %1$s. Its logs are in the browser's console, in its developer tools.</string>
+    <string name="status_web_game_served">The game plays in the browser, with its logs in the browser's console (in its developer tools), at %1$s</string>
     <string name="status_session_stopped">Session stopped.</string>
     <string name="status_play_from_scene_needs_upgrade">This project's files are older than playing from a Scene needs, so the game may start with its first Scene instead of %1$s. Upgrading the project fixes that.</string>
     <string name="status_game_failed">The game stopped with an error (exit code %1$s). The last lines it printed:</string>

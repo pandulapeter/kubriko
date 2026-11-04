@@ -168,4 +168,11 @@ class WebPlayerTest {
         assertContains(page(opened.single()).body(), WebGameServer.EVENTS_PATH)
         playing.cancelAndJoin()
     }
+
+    @Test
+    fun theAddressEndsItsMessageSoNothingIsTakenForPartOfIt() {
+        listOf(WorkspaceStatus.WEB_GAME_SERVED, WorkspaceStatus.BROWSER_NOT_OPENED).forEach { status ->
+            assertTrue(status.english.endsWith("%1\$s"), "\${status.name} has text after the address, which a link detector or an agent would take for part of it.")
+        }
+    }
 }

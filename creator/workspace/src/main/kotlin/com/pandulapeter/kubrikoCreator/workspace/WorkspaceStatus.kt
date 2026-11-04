@@ -33,7 +33,7 @@ public enum class WorkspaceStatus(override val english: String) : DomainText {
     ANDROID_SDK_MISSING("There's no Android SDK on this computer, so the game can't be played on Android."),
     BLOCK_TYPE_NOT_SAVED("%1\$s couldn't be saved: %2\$s"),
     BLOCK_TYPES_SAVED_AGAIN("Kubriko Creator could write its changes again."),
-    BROWSER_NOT_OPENED("The browser couldn't be opened, so open %1\$s in one to play."),
+    BROWSER_NOT_OPENED("The browser couldn't be opened, so open this address in one to play: %1\$s"),
     BUILD_FAILED("The build failed."),
     BUILDING("Building the project…"),
     BUILDING_WITH_UNSAVED_TYPES("Building with %1\$s as it is on disk, since Kubriko Creator couldn't save it: %2\$s"),
@@ -89,5 +89,5 @@ public enum class WorkspaceStatus(override val english: String) : DomainText {
     UNSUPPORTED_PROTOCOL("This version of Kubriko Creator doesn't support the project's Kubriko version."),
     WEB_GAME_MISSING("The web build finished, but there's no game at %1\$s to play."),
     WEB_GAME_RELOADED("Built again, so the game's page loads again."),
-    WEB_GAME_SERVED("The game plays in the browser at %1\$s. Its logs are in the browser's console, in its developer tools."),
+    WEB_GAME_SERVED("The game plays in the browser, with its logs in the browser's console (in its developer tools), at %1\$s"),
 }

@@ -122,7 +122,7 @@ class UpgradingAndPlayingTest {
             assertContains(tools.call("list_play_targets").text, "\"id\":\"web\"")
             val started = tools.call("start_game", mapOf("target" to "web", "scene" to BONUS_SCENE), timeout = 10.minutes)
             assertTrue(!started.isError && started["hasStarted"]?.jsonPrimitive?.boolean == true, started.text)
-            val address = URI(assertNotNull(Regex("""http://127\.0\.0\.1:\d+/\?[^\s"\\]+""").find(started.text), "No address in: ${started.text}").value)
+            val address = URI(assertNotNull(Regex("""http://127\.0\.0\.1:\d+/\?[^\s"\\]*[^\s"\\.,;:)]""").find(started.text), "No address in: ${started.text}").value)
             assertContains(tools.call("press_keys", mapOf("keys" to listOf("SPACE"))).text, "runs on web")
             HeadlessChrome.start(checkNotNull(chromePath), outputDirectory, width = 1280, height = 800).use { chrome ->
                 chrome.navigate(address)
