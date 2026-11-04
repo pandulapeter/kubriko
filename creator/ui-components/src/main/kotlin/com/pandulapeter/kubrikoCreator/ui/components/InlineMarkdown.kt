@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.ui.assistant
+package com.pandulapeter.kubrikoCreator.ui.components
 
 /**
  * A line of Markdown with its markers removed, and the ranges of [text] they styled.

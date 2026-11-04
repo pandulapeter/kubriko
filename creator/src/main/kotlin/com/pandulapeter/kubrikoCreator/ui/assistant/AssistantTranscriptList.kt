@@ -51,6 +51,7 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.ui.canBeShown
 import com.pandulapeter.kubrikoCreator.ui.commandTitle
 import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
+import com.pandulapeter.kubrikoCreator.ui.components.MarkdownText
 import com.pandulapeter.kubrikoCreator.ui.description
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_failure_agent_not_started

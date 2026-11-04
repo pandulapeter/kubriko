@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubrikoCreator.ui.assistant
+package com.pandulapeter.kubrikoCreator.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,10 +48,10 @@ import androidx.compose.ui.unit.dp
  * message isn't read whole again for each chunk).
  */
 @Composable
-internal fun MarkdownText(
+public fun MarkdownText(
     text: String,
     modifier: Modifier = Modifier,
-) = Column(
+): Unit = Column(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(6.dp),
 ) {

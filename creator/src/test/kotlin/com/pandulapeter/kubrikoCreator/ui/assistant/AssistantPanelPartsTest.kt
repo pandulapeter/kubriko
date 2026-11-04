@@ -34,6 +34,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import com.pandulapeter.kubrikoCreator.ui.components.MarkdownText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
