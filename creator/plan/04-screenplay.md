@@ -76,7 +76,7 @@ this plan, for every kind of thing at once.
 - **One usage finder** (`ProjectReferences`, in `:creator:core`, beside `ProjectRelations`) lists everything that refers to a thing:
   Blocks, conditions, collision Events, parents, Actors placed in Scenes, the first Scene, Kotlin Blocks and hand-written Kotlin
   (by `KotlinIdentifiers`), and pages' mentions and images. Renames, deletes, the health checks, and find usages
-  (`06-resource-organization.md`) all read it, so none can miss what another sees.
+  (`07-resource-organization.md`) all read it, so none can miss what another sees.
 - **Deleting cleans up what Creator owns,** as one undo step (`CompositeCommand`, with Scenes through `SceneStore.writeAll`), for an
   Actor type, Manager type, Scene, sprite, sound, music, Property, Timer, folder, or page:
   - Blocks and conditions that only mean something with the thing (spawning it, going to it, playing it) are removed, and an
@@ -131,8 +131,8 @@ Creator can't write the design for the user, but it makes a missing or stale pag
   to update the screenplay" one click away. It never refuses the commit.
 - **Project settings → Screenplay:** these reminders on or off per project, on for new ones.
 - **Writing one for an existing game:** "Write the screenplay" (the assistant panel's menu, and the opt-in of
-  `13-project-upkeep.md`) has the agent read the game and propose pages for what it finds, for the user to keep page by page.
-- **Every template and demo game** ships with its screenplay, which is also what its tour shows (`14-onboarding.md`).
+  `14-project-upkeep.md`) has the agent read the game and propose pages for what it finds, for the user to keep page by page.
+- **Every template and demo game** ships with its screenplay, which is also what its tour shows (`15-onboarding.md`).
 
 ## The writers' room
 
@@ -158,12 +158,12 @@ playable version of them, then the next, playing and showing each one.
 
 The writers' room is a conversation with extra rules (`AssistantSystemPrompt` gains a section, sent only to these conversations)
 and the `ask_user` tool, not a wizard of its own: the agent leads, and everything it does goes through the usual commands, Keep,
-and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite editor (`09-sprite-editor.md`) exists.
+and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite editor (`10-sprite-editor.md`) exists.
 
 ## Order
 
 Deleting what is referred to first, since it fixes the Blocks and Scenes today; then pages and their editor, then the AI's side
-of them, then keeping them up to date, then the writers' room (`ask_user` and the Blank template first). Search (`06-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
+of them, then keeping them up to date, then the writers' room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
 and `search_project` include their mentions and text.
 
 ## Testing

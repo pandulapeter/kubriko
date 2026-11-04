@@ -16,7 +16,7 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
 - **Branches:** create and switch from a menu. Merging is left to other tools at first.
 - **Checkpoints:** offer to commit before risky operations (Convert to code, deleting an Actor type, upgrading Kubriko, AI changes).
 - **Remotes:** publish to a new GitHub repository, push, and pull (fast-forward only, explaining when histories diverged), credentials in the OS
-  keychain. A generated GitHub Actions workflow builds every platform (`12-export-and-distribution.md`).
+  keychain. A generated GitHub Actions workflow builds every platform (`13-export-and-distribution.md`).
 - **Conflicts:** never write conflict markers into Creator's JSON; stop before changing anything and explain which files clash. Since every
   Scene Actor has a stable ID, a Scene conflict can later be shown, and resolved, Actor by Actor (`01-large-projects.md`).
 - **Projects inside a larger repository** (not at its root: a monorepo, a game beside its website, a folder of several games). Today such

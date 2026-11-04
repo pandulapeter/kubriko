@@ -13,7 +13,7 @@
 
 Two variants, named the same on every platform:
 
-- **Debug** is what Play already runs: the play session, logging, Play from this Scene, hot reload, and the debugger (`11-debugger.md`).
+- **Debug** is what Play already runs: the play session, logging, Play from this Scene, hot reload, and the debugger (`12-debugger.md`).
   Exporting it is offered only where someone else runs it: an Android debug APK for testers, and an unminified web build with source maps.
   Desktop has no debug export, since Play is that.
 - **Release** is what Export makes, and the only variant a player gets: shrunk, optimized, obfuscated where the platform can be, and with
@@ -37,7 +37,7 @@ Two variants, named the same on every platform:
 
 | Platform | Release build |
 |---|---|
-| Desktop | Compose's release packaging with ProGuard: shrinking, optimization, and obfuscation, with the rules from `app/desktop/proguard-rules.pro` written into the project (desktop ProGuard reads no consumer rules) and the user's own from Project settings. Needs a JDK with `jmods`, so the JDK Creator downloads (`14-onboarding.md`) must be a full one. |
+| Desktop | Compose's release packaging with ProGuard: shrinking, optimization, and obfuscation, with the rules from `app/desktop/proguard-rules.pro` written into the project (desktop ProGuard reads no consumer rules) and the user's own from Project settings. Needs a JDK with `jmods`, so the JDK Creator downloads (`15-onboarding.md`) must be a full one. |
 | Web | The Kotlin/Wasm production distribution: dead code elimination, Binaryen's optimizer, and webpack's minified JavaScript. Names are stripped rather than obfuscated, which is what Wasm offers. Exported as static files, zipped. |
 | Android | R8 in full mode with `isMinifyEnabled` and `isShrinkResources`; the engine's consumer rules ship with its artifact. |
 | iOS | The Kotlin/Native release framework (optimized, no debug info) in Xcode's Release configuration; Kotlin/Native has no obfuscation step. |
@@ -64,6 +64,6 @@ signing profile the project names there; keystores and certificates stay outside
 ## Distributing Creator
 
 - One installer per OS with `jpackage`. Its bundled runtime can't start Gradle (jpackage strips `bin/`), so Creator downloads a full JDK 21 into
-  its data folder on first launch, alongside Gradle, and points the Tooling API at it (the setup screen in `14-onboarding.md`).
+  its data folder on first launch, alongside Gradle, and points the Tooling API at it (the setup screen in `15-onboarding.md`).
 - Update checks that offer, never install silently; its own release workflow and test job.
 - A Creator release follows each Kubriko release, since opted-in projects use Creator's own Kubriko version (`../CLAUDE.md` → Library side).

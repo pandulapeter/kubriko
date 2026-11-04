@@ -20,7 +20,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
   its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
 - Creator is AI-centric. `02-ai-assistant.md` is built except what needs a real session or someone else's work:
   Codex's profile (Codex is out of quota until Nov 21, 2026), ACP protocol 2 and its `systemPrompt` field (not final, not in the
-  Kotlin SDK), Actors' states for the AI (needs `11-debugger.md`), the registry's icons (each vendor's trademark rules), and the
+  Kotlin SDK), Actors' states for the AI (needs `12-debugger.md`), the registry's icons (each vendor's trademark rules), and the
   smaller follow-ups the file lists.
 
 ## Next
@@ -28,7 +28,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 Start `04-screenplay.md`, an important feature that shouldn't wait longer, then `05-settings.md`'s Release, Icons, and Signing,
 each extending the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s new iOS
 simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its Android
-emulator dialog waits for `14-onboarding.md`'s download of the SDK's command-line tools. Then `06` to `09` in order. What is left
+emulator dialog waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s engine and sprite atlas parts touch only `engine/` and
+`plugins/sprites`, so they can run beside `04` and `05` in a session of their own; its Creator part follows them. Then `06` to `10` in order. What is left
 in `01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
 Owed: the end-to-end scenario's last step (`UpgradingAndPlayingTest`, Breakout played on the web in headless Chrome through

@@ -48,5 +48,6 @@ explanations instead of failures for layouts Creator can't interpret.
 `:app:desktop` beside the desktop `:editor:model` and `:editor:region` tools) is the advanced reference. It plays unchanged, though only
 because `:app:desktop` comes first. Scene editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the
 editable instance, and is worth little there: its levels are procedural regions, edited in its own region editor. Its models and regions
-need the asset editor extension point (`15-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
-apply. The realistic ceiling is Creator as its play, debugging, version control, and AI host, with its own editors inside.
+need the asset editor extension point (`16-later.md`), where its two editor modules would be the first editors Creator hosts. Blocks don't
+apply. The goal is working on Tesselar entirely inside Creator: its play, debugging, version control, and AI host, with its own editors
+inside, on the engine's rendering rather than private copies of it (`06-batched-rendering.md`).

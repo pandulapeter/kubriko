@@ -16,7 +16,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 ## More for the MCP server
 
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
-  (`11-debugger.md`) exists.
+  (`12-debugger.md`) exists.
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), and numbering steps per project
   rather than per run of Creator.
 
@@ -44,7 +44,7 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
    `conversationsPerProject`. Conversations held by another agent are listed too, marked as such and opened read-only from the kept
    text, since only their own agent can continue them.
 
-**Order:** alongside `06` to `09`, searching conversations (with the search of `06-resource-organization.md`), what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
+**Order:** alongside `07` to `10`, searching conversations (with the search of `07-resource-organization.md`), what is left of the fallbacks (Other agents and services); Codex's profile once it can be checked; and the MCP server items above.
 
 ### What the terms allow
 
@@ -116,7 +116,7 @@ understand the game is shown to the user too.
 - **Fewer retries:** validation rejections that say precisely what to change (inputs that don't decode already do, and
   `check_change` tries a change without making it).
 - **Cheaper screenshots:** cropped to an Actor (the region crop exists), and replaced by Actors' states from the debug agent
-  (`11-debugger.md`) where those say enough.
+  (`12-debugger.md`) where those say enough.
 - **Planning first:** approving a plan from its checklist (an Approve button that answers the agent), rather than in a reply,
   and model hints (a smaller model for small edits) that the user decides on, since they pay.
 

@@ -44,10 +44,10 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 - **Size and scale Blocks:** a box collision mask keeps the size it was built with, so the generated code builds a new mask when
   the size changes.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
-  editor (`09-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
-  column; tinting a sprite with the color. Layer and drawing order are part of the Visible Trait (`07-reuse-and-traits.md`).
+  editor (`10-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
+  column; tinting a sprite with the color. Each is a property of the type's batched look (`06-batched-rendering.md`). Layer and drawing order are part of the Visible Trait (`08-reuse-and-traits.md`).
 - **More Events:** removed from the Scene, key released and held, left the
-  Scene bounds (as opposed to touching the edge). Pointer and gamepad Events come with their Traits (`07-reuse-and-traits.md`).
+  Scene bounds (as opposed to touching the edge). Pointer and gamepad Events come with their Traits (`08-reuse-and-traits.md`).
 - **More drag and drop:** dragging a Block into another Event.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
