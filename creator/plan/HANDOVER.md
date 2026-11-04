@@ -56,7 +56,7 @@ that replaces them; the rest reviewed only by its own tests and snapshots):
 - **A flaky Android player test** (`a2bf3d512`): `builtAlongside` starts the build before the device check.
 - **Started, not committed:** `04-screenplay.md`'s Documents group, as `ResourceGroup.DOCUMENTS` (scanned and watched like
   the other resource groups, `ProjectChange.DOCUMENTS`), a `DocumentStore` in `CommandContext` (through `ScannedFiles`, which
-  keeps its constructor at twelve parameters), and its title and icon; `git stash list` holds it as `documents-wip`. Next:
+  keeps its constructor at twelve parameters), and its title and icon, uncommitted in the working tree. Next:
   its commands (`read_documents`, `edit_document`, `add_document_to_screenplay`, whose undo needs an internal command moving
   the page back), opening one in the page editor (`WorkspaceSelection.Document`), its sidebar rows (clickable, with Add to
   the screenplay behind a confirmation), and `SidebarModuleTest`'s expected groups.
