@@ -52,9 +52,13 @@ class ResourceScannerTest {
                 "Pods/src/main/composeResources/files/scenes/pod.json",
                 "app/build/composeResources/files/scenes/copy.json",
                 "README.md",
+                "docs/Guide.MD",
+                "screenplay/README.md",
+                "build/docs/Generated.md",
             ).forEach { File(root, it).apply { parentFile.mkdirs() }.writeText("") }
             val resources = ResourceScanner.scan(root)
-            assertEquals(setOf(ResourceGroup.SCENES, ResourceGroup.KOTLIN), resources.keys)
+            assertEquals(setOf(ResourceGroup.DOCUMENTS, ResourceGroup.SCENES, ResourceGroup.KOTLIN), resources.keys)
+            assertEquals(listOf("README.md", "docs/Guide.MD"), resources.getValue(ResourceGroup.DOCUMENTS).map { it.relativePath }, "pages and build output aren't documents")
             assertEquals(
                 listOf("src/main/composeResources/files/scenes/a.json", "src/main/composeResources/files/scenes/b.json"),
                 resources.getValue(ResourceGroup.SCENES).map { it.relativePath },
@@ -132,7 +136,7 @@ class ResourceScannerTest {
             ).forEach { File(root, it).apply { parentFile.mkdirs() }.writeText("") }
             val walked = ResourceScanner.scan(root, hiddenDirectory = hidden)
             assertEquals(walked, ResourceScanner.scan(root, hiddenDirectory = hidden, snapshot = ProjectWatcher.snapshot(root, hidden)))
-            assertEquals(setOf(ResourceGroup.KOTLIN, ResourceGroup.SCENES, ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC), walked.keys)
+            assertEquals(setOf(ResourceGroup.DOCUMENTS, ResourceGroup.KOTLIN, ResourceGroup.SCENES, ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC), walked.keys)
         } finally {
             root.deleteRecursively()
         }

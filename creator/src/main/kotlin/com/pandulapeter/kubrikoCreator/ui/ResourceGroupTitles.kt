@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.resource_group_documents
 import kubriko.creator.generated.resources.resource_group_kotlin
 import kubriko.creator.generated.resources.resource_group_music
 import kubriko.creator.generated.resources.resource_group_scenes
@@ -21,6 +22,7 @@ import org.jetbrains.compose.resources.StringResource
 internal val ResourceGroup.title: StringResource
     get() = when (this) {
         ResourceGroup.SCENES -> Res.string.resource_group_scenes
+        ResourceGroup.DOCUMENTS -> Res.string.resource_group_documents
         ResourceGroup.SPRITES -> Res.string.resource_group_sprites
         ResourceGroup.SOUNDS -> Res.string.resource_group_sounds
         ResourceGroup.MUSIC -> Res.string.resource_group_music

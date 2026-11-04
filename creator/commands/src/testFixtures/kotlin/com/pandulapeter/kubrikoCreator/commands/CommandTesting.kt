@@ -71,6 +71,7 @@ public fun TestScope.commandContext(
     runner: ProjectRunner = FakeProjectRunner(),
     audioFiles: AudioFiles? = null,
     spriteFiles: SpriteFiles? = null,
+    documents: List<String> = emptyList(),
     report: (ConsoleEntry) -> Unit = {},
     onProjectUpgraded: () -> Unit = {},
     projectUpgrade: () -> TemplateUpgrade = { TemplateUpgrade.UpToDate },
@@ -87,8 +88,7 @@ public fun TestScope.commandContext(
     scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText) { emptyList() },
     runner = runner,
     ioDispatcher = ioDispatcher,
-    audioFiles = { audioFiles },
-    spriteFiles = { spriteFiles },
+    scannedFiles = ScannedFiles(audioFiles = { audioFiles }, spriteFiles = { spriteFiles }, documents = { documents }),
     report = report,
     buildFiles = object : ProjectBuildFiles {
         override fun current() = projectUpgrade()

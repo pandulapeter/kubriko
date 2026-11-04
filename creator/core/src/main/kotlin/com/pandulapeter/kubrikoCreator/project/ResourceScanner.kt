@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.project
 
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import java.io.File
 
 /**
@@ -78,11 +79,18 @@ public object ResourceScanner {
 
     private fun parentOf(path: String) = path.substringBeforeLast('/', "")
 
+    /**
+     * Whether [relativePath] is a Markdown file of the project that isn't one of the screenplay's pages.
+     */
+    public fun isDocument(relativePath: String): Boolean =
+        relativePath.substringAfterLast('.', "").equals(PageNaming.EXTENSION, ignoreCase = true) && !relativePath.startsWith(PageNaming.FOLDER + "/")
+
     internal fun classify(relativePath: String): ResourceGroup? {
         val segments = relativePath.split('/')
         val extension = relativePath.substringAfterLast('.', "").lowercase()
         val isComposeResource = "composeResources" in segments
         return when {
+            isDocument(relativePath) -> ResourceGroup.DOCUMENTS
             extension == "kt" && "src" in segments -> ResourceGroup.KOTLIN
             !isComposeResource -> null
             extension == "json" && "scenes" in segments -> ResourceGroup.SCENES

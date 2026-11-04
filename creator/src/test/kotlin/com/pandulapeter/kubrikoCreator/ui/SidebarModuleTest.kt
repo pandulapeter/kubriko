@@ -136,7 +136,7 @@ class SidebarModuleTest {
     fun aModuleThatUsesKubrikoListsEveryGroupEmptyOnesTooAndAnyOtherOnlyWhatItHas() {
         val withKubriko = sidebarModules(resources, folderGroups, ProjectLayout(typeModule = "game", sceneModule = "game", modules = modulesOf("game" to true, "tools" to true, "androidApp" to false)))
         val (game, android, tools) = withKubriko
-        assertEquals(listOf(ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC, ResourceGroup.KOTLIN), game.resourceGroups)
+        assertEquals(listOf(ResourceGroup.DOCUMENTS, ResourceGroup.SPRITES, ResourceGroup.SOUNDS, ResourceGroup.MUSIC, ResourceGroup.KOTLIN), game.resourceGroups)
         assertEquals(game.resourceGroups, tools.resourceGroups)
         assertEquals(setOf(FolderGroup.SCENES), tools.folderGroups.keys)
         assertEquals(listOf(ResourceGroup.KOTLIN), android.resourceGroups)

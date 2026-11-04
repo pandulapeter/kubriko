@@ -110,6 +110,7 @@ public class ProjectWatcher(
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
             path.startsWith(PageNaming.FOLDER + "/") -> ProjectChange.SCREENPLAY
+            ResourceScanner.isDocument(path) -> ProjectChange.DOCUMENTS
             ResourceScanner.isBuildFile(path) || path in SETTINGS_FILES || path == VersionCatalog.FILE -> ProjectChange.MODULES
             path.startsWith("src/") || "/src/" in path -> ProjectChange.SOURCES
             else -> null

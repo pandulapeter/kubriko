@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_code
+import kubriko.creator.generated.resources.ic_file
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_sound
@@ -129,6 +130,7 @@ private fun LazyListScope.resourceItems(group: ResourceGroup, groupResources: Li
 private val ResourceGroup.icon
     get() = when (this) {
         ResourceGroup.SCENES -> Res.drawable.ic_scene
+        ResourceGroup.DOCUMENTS -> Res.drawable.ic_file
         ResourceGroup.SPRITES -> Res.drawable.ic_sprite
         ResourceGroup.SOUNDS -> Res.drawable.ic_sound
         ResourceGroup.MUSIC -> Res.drawable.ic_music

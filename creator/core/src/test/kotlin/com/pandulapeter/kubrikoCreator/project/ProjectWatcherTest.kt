@@ -41,6 +41,9 @@ class ProjectWatcherTest {
     fun filesAreSortedIntoTheAreaTheyBelongTo() {
         assertEquals(ProjectChange.BLOCK_TYPE_DEFINITIONS, ProjectWatcher.areaOf(".kubriko/actors/Ball.json"))
         assertEquals(ProjectChange.SETTINGS, ProjectWatcher.areaOf(".kubriko/project.json"))
+        assertEquals(ProjectChange.DOCUMENTS, ProjectWatcher.areaOf("README.md"))
+        assertEquals(ProjectChange.DOCUMENTS, ProjectWatcher.areaOf("docs/guide.md"))
+        assertEquals(ProjectChange.SCREENPLAY, ProjectWatcher.areaOf("screenplay/README.md"))
         assertEquals(ProjectChange.SCENES, ProjectWatcher.areaOf("src/commonMain/composeResources/files/scenes/main.json"))
         assertEquals(ProjectChange.SCREENPLAY, ProjectWatcher.areaOf("screenplay/levels/cave.md"))
         assertEquals(ProjectChange.SOURCES, ProjectWatcher.areaOf("src/commonMain/kotlin/game/Game.kt"))

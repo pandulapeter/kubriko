@@ -121,7 +121,7 @@ internal class ProjectChanges(
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
             resourceRefreshes.trySend(ResourceRefresh(snapshot))
             onCodeChanged()
-        } else if (ProjectChange.MODULES in changes) {
+        } else if (ProjectChange.MODULES in changes || ProjectChange.DOCUMENTS in changes) {
             resourceRefreshes.trySend(ResourceRefresh(snapshot))
         }
         refreshGit()

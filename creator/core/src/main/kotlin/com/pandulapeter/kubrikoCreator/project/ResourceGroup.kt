@@ -14,6 +14,11 @@ package com.pandulapeter.kubrikoCreator.project
  */
 public enum class ResourceGroup {
     SCENES,
+
+    /**
+     * The project's Markdown files outside the screenplay (its `README.md`, `AGENTS.md`, `docs/`), which aren't pages.
+     */
+    DOCUMENTS,
     SPRITES,
     SOUNDS,
     MUSIC,

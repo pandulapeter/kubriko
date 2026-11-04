@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.ProjectBuildFiles
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.commands.ScannedFiles
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.foundation.unexpectedProblemHandler
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -296,8 +297,11 @@ public class WorkspaceController(
                 classpathFile = SessionInitScript.buildClasspathFileOf(project.rootDirectory),
             ),
             ioDispatcher = ioDispatcher,
-            audioFiles = { AudioFiles.of(_resources.value) },
-            spriteFiles = { SpriteFiles.of(_resources.value) },
+            scannedFiles = ScannedFiles(
+                audioFiles = { AudioFiles.of(_resources.value) },
+                spriteFiles = { SpriteFiles.of(_resources.value) },
+                documents = { _resources.value[ResourceGroup.DOCUMENTS].orEmpty().map { it.relativePath } },
+            ),
             report = ::appendToConsole,
             buildFiles = object : ProjectBuildFiles {
                 override fun current() = _projectUpgrade.value
@@ -343,6 +347,7 @@ public class WorkspaceController(
     internal fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) {
         if (ProjectChange.MODULES in changes) gameModule.onBuildFilesChanged()
         if (ProjectChange.SCREENPLAY in changes) refreshScreenplay()
+        if (ProjectChange.DOCUMENTS in changes) commands.context.documents.onChangedOutside()
         this.changes.onProjectChanged(changes, snapshot)
         missingReferences.onChangedOutside()
     }

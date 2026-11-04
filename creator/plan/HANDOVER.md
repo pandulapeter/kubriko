@@ -54,12 +54,12 @@ that replaces them; the rest reviewed only by its own tests and snapshots):
 - **Menus and choice lists** (`d57a966da`): as tall as the window, fading out at an edge with more beyond it
   (`scrollEdgeFades`).
 - **A flaky Android player test** (`a2bf3d512`): `builtAlongside` starts the build before the device check.
-- **Started, not committed:** `04-screenplay.md`'s Documents group, as `ResourceGroup.DOCUMENTS` (scanned and watched like
-  the other resource groups, `ProjectChange.DOCUMENTS`), a `DocumentStore` in `CommandContext` (through `ScannedFiles`, which
-  keeps its constructor at twelve parameters), and its title and icon, uncommitted in the working tree. Next:
-  its commands (`read_documents`, `edit_document`, `add_document_to_screenplay`, whose undo needs an internal command moving
-  the page back), opening one in the page editor (`WorkspaceSelection.Document`), its sidebar rows (clickable, with Add to
-  the screenplay behind a confirmation), and `SidebarModuleTest`'s expected groups.
+- **Documents group, first step:** `04-screenplay.md`'s Documents are `ResourceGroup.DOCUMENTS` (every Markdown file
+  outside `screenplay/`, scanned and watched like the other resource groups, `ProjectChange.DOCUMENTS`), listed in the
+  sidebar but not opened yet, and a `DocumentStore` in `CommandContext` (through `ScannedFiles`, which keeps its constructor
+  at twelve parameters). Next: its commands (`read_documents`, `edit_document`, `add_document_to_screenplay`, whose undo
+  needs an internal command moving the page back), opening one in the page editor (`WorkspaceSelection.Document`), and its
+  sidebar rows (clickable, with Add to the screenplay behind a confirmation).
 - A physical iPhone isn't offered by Play yet: that is `03`'s iOS devices, after `05`'s Signing.
 
 ## Before a release

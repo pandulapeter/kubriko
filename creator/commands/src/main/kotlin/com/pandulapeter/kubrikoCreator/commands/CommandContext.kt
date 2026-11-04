@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
@@ -24,8 +25,7 @@ import kotlinx.coroutines.withContext
  * What commands read and change: the parts of the open project.
  *
  * @param blockTypes The project's block-built types, or null if the project hasn't opted in to them.
- * @param audioFiles The sounds and music of the project, or null if they aren't known, so they aren't checked.
- * @param spriteFiles The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
+ * @param scannedFiles What the last resource scan found of the files commands check against.
  * @param report Adds an entry to the console, for what the user should know after a command.
  * @param buildFiles The project's build files that came from its template: the upgrade they need, as last checked in the
  *   background, so that validating reads no files, who to tell once a command changed them, and the game's targets.
@@ -40,8 +40,7 @@ public class CommandContext(
     public val scenes: SceneStore,
     public val runner: ProjectRunner,
     public val ioDispatcher: CoroutineDispatcher,
-    public val audioFiles: () -> AudioFiles? = { null },
-    public val spriteFiles: () -> SpriteFiles? = { null },
+    scannedFiles: ScannedFiles = ScannedFiles(),
     public val report: (ConsoleEntry) -> Unit = {},
     public val buildFiles: ProjectBuildFiles = ProjectBuildFiles.UpToDate,
     public val rejectChanges: () -> Rejection? = { null },
@@ -50,6 +49,21 @@ public class CommandContext(
      * The screenplay's pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */
     public val screenplay: ScreenplayStore = ScreenplayStore(project.rootDirectory, scenes.ownWrites)
+
+    /**
+     * The sounds and music of the project, or null if they aren't known, so they aren't checked.
+     */
+    public val audioFiles: () -> AudioFiles? = scannedFiles.audioFiles
+
+    /**
+     * The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
+     */
+    public val spriteFiles: () -> SpriteFiles? = scannedFiles.spriteFiles
+
+    /**
+     * The project's Markdown files that aren't pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
+     */
+    public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites, scannedFiles.documents)
 
     /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);

@@ -58,6 +58,7 @@
     <string name="error_no_desktop_module">None of this project's modules can run on desktop.</string>
     <string name="resource_group_scenes">Scenes</string>
     <string name="resource_group_screenplay">Screenplay</string>
+    <string name="resource_group_documents">Documents</string>
     <string name="resource_group_sprites">Sprites</string>
     <string name="resource_group_sounds">Sounds</string>
     <string name="resource_group_music">Music</string>

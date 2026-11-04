@@ -40,6 +40,11 @@ public enum class ProjectChange {
     SCREENPLAY,
 
     /**
+     * The project's other Markdown files ([ResourceGroup.DOCUMENTS]).
+     */
+    DOCUMENTS,
+
+    /**
      * The build files that make folders Gradle modules, which the resource tree groups files by, the root settings file
      * that includes them, which together decide the game's module, and the version catalog, through which a module's
      * build file names the Kubriko libraries that make it one of the game's.
