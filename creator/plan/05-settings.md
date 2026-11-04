@@ -40,6 +40,18 @@ holds what Creator needs for itself.
 - **Release:** whether release builds are obfuscated (on by default), and extra shrinker rules for hand-written code
   (`13-export-and-distribution.md` → Build variants).
 - **Signing:** which key each target uses, from the keys on this machine (below).
+- **Entry points** (`14-project-upkeep.md` → Entry points and Editions): the entry points found in the build, IntelliJ's, and
+  Creator's own, as a master-detail page grouped into the game's and the tools, each by platform, with a filter by edition once
+  there are several. A beginner's project shows one row per target and a New entry point button, nothing else. A row's detail shows
+  where it comes from (the build, IntelliJ, or Creator; shared or this computer's only), its name, whether it is the game's or a
+  tool, its edition, and whether it is its kind's default; then, folded under Advanced, what its kind takes: on the desktop the
+  program arguments, JVM options, environment variables, working directory, and Gradle properties; on the web the Gradle properties
+  and the browser it opens in (this computer's); on Android the flavor and the launch activity; on iOS the scheme and the
+  configuration. A value that is this computer's only says so in the row, and one that can't play says why rather than being left
+  out. Targets keeps turning the template's targets on and off; what each one turned on adds shows here.
+- **Editions:** added, renamed, reordered (the first is the default), and removed, each with its name, application ID suffix,
+  version, and the Scenes it leaves out. Identity shows each value with the edition overriding it, so a demo's name is set where
+  the game's is.
 
 ### Signing
 
@@ -52,5 +64,5 @@ platform details are in `13-export-and-distribution.md`.
 ## AI tools
 
 `get_project_settings` and `set_project_settings` exist for Identity and Game, and `get_target_change` and `set_target` for Targets;
-Release joins them, with the same diffs and confirmations as the panel (the tool list's budget in `TokenBudgetTest` will need raising).
+Release joins them (and Entry points and Editions through the commands `14-project-upkeep.md` lists), with the same diffs and confirmations as the panel (the tool list's budget in `TokenBudgetTest` will need raising).
 Signing and Creator settings get no tools: one is secret, the other is the user's own.

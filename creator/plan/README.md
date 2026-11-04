@@ -47,7 +47,8 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
 12. [Debugger](12-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
 13. [Export and distribution](13-export-and-distribution.md) - debug and release builds, signed Android builds, desktop installers,
     web export, iOS, and Creator's own installers.
-14. [Project upkeep](14-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in.
+14. [Project upkeep](14-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in, every entry
+    point (IntelliJ's run configurations and tools included), and editions such as a demo and a full version.
 15. [Onboarding](15-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
     games of increasing complexity, and cloning a project from version control.
 16. [Rehearsals](16-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a

@@ -59,7 +59,9 @@ smoke-tests it by starting it and waiting a few seconds for a crash.
 
 Desktop installers build only for the host OS; an optional generated GitHub Actions workflow builds all three (as this repository does for the
 Showcase). Every export is the release variant (above), named and versioned from Project settings (`05-settings.md`), and signed with the
-signing profile the project names there; keystores and certificates stay outside the project.
+signing profile the project names there; keystores and certificates stay outside the project. A project with editions
+(`14-project-upkeep.md` → Editions) exports the ones chosen in one go, each from its own entry points, with its own name, version, and
+application ID, and the check of what a release has stripped also looks for what only another edition uses.
 
 ## Distributing Creator
 
