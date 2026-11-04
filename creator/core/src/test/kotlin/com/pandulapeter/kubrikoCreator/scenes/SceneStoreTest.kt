@@ -135,6 +135,17 @@ class SceneStoreTest {
     }
 
     @Test
+    fun aSceneOfAnotherModuleStaysInItsOwnScenesFolderWhenRenamed() {
+        levels.mkdirs()
+        val main = File(levels, "main.json").apply { writeText("[]") }
+        val tools = File(root, "tools/src/commonMain/composeResources/files/scenes/sandbox.json").apply { parentFile.mkdirs(); writeText("[]") }
+        scan(main, tools)
+        assertTrue(store.move("sandbox", "tests/sandbox"))
+        assertTrue(File(root, "tools/src/commonMain/composeResources/files/scenes/tests/sandbox.json").isFile)
+        assertFalse(File(levels, "tests/sandbox.json").exists())
+    }
+
+    @Test
     fun deletedScenesAreGoneEvenBeforeTheNextScan() {
         levels.mkdirs()
         val main = File(levels, "main.json").apply { writeText("[]") }

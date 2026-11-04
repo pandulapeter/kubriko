@@ -30,19 +30,22 @@ internal class SidebarDragState(
 
     /**
      * @param folder The folder it is in now.
+     * @param module The module its group is shown in, which it can't be moved out of.
      */
     data class Dragged(
         val name: String,
         val group: FolderGroup,
         val folder: String,
+        val module: String = "",
     )
 
     /**
-     * A folder row of the sidebar, or a group's header for an empty [path].
+     * A folder row of the sidebar, or a group's header for an empty [path], in the group of [module].
      */
     data class FolderKey(
         val group: FolderGroup,
         val path: String,
+        val module: String = "",
     )
 
     /**
@@ -84,7 +87,7 @@ internal class SidebarDragState(
     val hoveredFolder: FolderKey?
         get() {
             val dragged = dragged ?: return null
-            return dropTargets.values.firstOrNull { it.folder.group == dragged.group && it.bounds.contains(pointer) }?.folder
+            return dropTargets.values.firstOrNull { it.folder.group == dragged.group && it.folder.module == dragged.module && it.bounds.contains(pointer) }?.folder
         }
 
     fun start(dragged: Dragged, at: Offset) {

@@ -73,6 +73,18 @@ class SidebarDragStateTest {
     }
 
     @Test
+    fun aSceneDroppedOnAFolderOfAnotherModuleGoesNowhere() {
+        state.target(SidebarDragState.FolderKey(FolderGroup.SCENES, "levels", module = "game"), Rect(0f, 300f, 260f, 330f))
+        state.target(SidebarDragState.FolderKey(FolderGroup.SCENES, "tests", module = "tools"), Rect(0f, 330f, 260f, 360f))
+        state.start(SidebarDragState.Dragged("Intro", FolderGroup.SCENES, folder = "", module = "game"), Offset(10f, 500f))
+        state.moveTo(Offset(10f, 340f))
+        assertNull(state.hoveredFolder)
+        state.moveTo(Offset(10f, 310f))
+        state.end()
+        assertEquals(listOf("Intro" to "levels"), moved)
+    }
+
+    @Test
     fun nothingHappensWhenATypeIsDroppedWhereItIsOrNowhere() {
         state.start(ball, Offset(10f, 200f))
         state.moveTo(Offset(10f, 10f))

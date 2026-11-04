@@ -21,6 +21,7 @@ public object ResourceScanner {
     private val spriteExtensions = setOf("png", "webp", "jpg", "jpeg", "svg")
     private val soundExtensions = setOf("wav")
     private val musicExtensions = setOf("mp3", "ogg")
+    private val buildFileNames = setOf("build.gradle.kts", "build.gradle")
 
     /**
      * @param hiddenDirectory A folder, relative to [rootDirectory], whose files are left out: the generated code of
@@ -43,14 +44,39 @@ public object ResourceScanner {
             .groupResources(rootDirectory)
     }
 
-    private fun Sequence<String>.groupResources(rootDirectory: File) = mapNotNull { relativePath ->
-        classify(relativePath)?.let { group ->
-            val file = File(rootDirectory, relativePath)
-            ProjectResource(group, file, relativePath, if (group == ResourceGroup.KOTLIN) KotlinPackages.of(file, relativePath) else null)
+    private fun Sequence<String>.groupResources(rootDirectory: File): Map<ResourceGroup, List<ProjectResource>> {
+        val paths = toList()
+        val modules = paths.mapNotNullTo(HashSet()) { path -> path.takeIf(::isBuildFile)?.let(::parentOf) }
+        return paths.mapNotNull { relativePath ->
+            classify(relativePath)?.let { group ->
+                val file = File(rootDirectory, relativePath)
+                val kotlinPackage = if (group == ResourceGroup.KOTLIN) KotlinPackages.of(file, relativePath) else null
+                ProjectResource(group, file, relativePath, kotlinPackage, moduleOf(relativePath) { it in modules })
+            }
         }
+            .sortedBy { it.relativePath }
+            .groupBy { it.group }
     }
-        .sortedBy { it.relativePath }
-        .groupBy { it.group }
+
+    /**
+     * The Gradle module [relativePath] (a file or a folder of the project in [rootDirectory]) belongs to, as
+     * [ProjectResource.module] names it: the nearest folder holding it, or the folder itself, that has a build file.
+     * Modules are told by their files rather than asked from Gradle, so the tree never waits for a build, and a module
+     * that `settings.gradle.kts` doesn't include (`buildSrc`, an included build) is one too, as it is in an IDE.
+     */
+    public fun moduleOf(rootDirectory: File, relativePath: String): String = moduleOf(relativePath) { folder ->
+        buildFileNames.any { File(File(rootDirectory, folder), it).isFile }
+    }
+
+    internal fun isBuildFile(relativePath: String) = relativePath.substringAfterLast('/') in buildFileNames
+
+    private inline fun moduleOf(relativePath: String, isModule: (String) -> Boolean): String {
+        var folder = relativePath.trimEnd('/')
+        while (folder.isNotEmpty() && !isModule(folder)) folder = parentOf(folder)
+        return folder
+    }
+
+    private fun parentOf(path: String) = path.substringBeforeLast('/', "")
 
     internal fun classify(relativePath: String): ResourceGroup? {
         val segments = relativePath.split('/')

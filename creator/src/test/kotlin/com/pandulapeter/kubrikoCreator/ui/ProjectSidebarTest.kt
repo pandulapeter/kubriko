@@ -19,6 +19,8 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -35,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -201,11 +204,13 @@ class ProjectSidebarTest {
             )
         }
         onNodeWithText("Kotlin files").performClick()
-        listOf("Desktop", "Android", "ui.feature1", "Menu.kt", "Game.kt").forEach { onNodeWithText(it).assertExists() }
-        listOf("Main.kt", "MainActivity.kt").forEach { onNodeWithText(it).assertDoesNotExist() }
+        listOf("Desktop", "Android", "ui.feature1", "Game.kt").forEach { onNodeWithText(it).assertExists() }
+        listOf("Main.kt", "MainActivity.kt", "Menu.kt").forEach { onNodeWithText(it).assertDoesNotExist() }
         onAllNodesWithContentDescription("More options").assertCountEquals(0)
         onNodeWithText("Android").performClick()
         onNodeWithText("MainActivity.kt").assertExists()
+        onNodeWithText("ui.feature1").performClick()
+        onNodeWithText("Menu.kt").assertExists()
         saveSnapshot("sidebar-kotlin-files")
         onNodeWithText("ui.feature1").performClick()
         onNodeWithText("Menu.kt").assertDoesNotExist()
@@ -213,5 +218,78 @@ class ProjectSidebarTest {
         onNode(hasSetTextAction()).performTextInput("main")
         listOf("MainActivity.kt", "Main.kt").forEach { onNodeWithText(it).assertExists() }
         onNodeWithText("Game.kt").assertDoesNotExist()
+    }
+
+    @Test
+    fun aFolderOpensWithTheFoldersInItClosedAndTheButtonsOfARowOpenOrCloseEverythingInIt() = uiTest(width = 300, height = 600) {
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = emptyMap(),
+                folderGroups = folderTreeGroups(
+                    types = listOf(ActorTypeDefinition(name = "Bat", folder = "enemies/flying"), ActorTypeDefinition(name = "Slime", folder = "enemies")),
+                    typeFolders = emptyMap(),
+                    selectedTypeName = null,
+                    sceneNames = emptyList(),
+                    sceneFolders = emptySet(),
+                    openSceneName = null,
+                ),
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+            )
+        }
+        listOf("enemies", "flying", "Bat", "Slime").forEach { onNodeWithText(it).assertExists() }
+        onNodeWithText("Actor types").performMouseInput { moveTo(center) }
+        saveSnapshot("sidebar-expand-collapse-buttons")
+        onAllNodesWithContentDescription("Collapse all").onFirst().performClick()
+        onNodeWithText("enemies").assertExists()
+        listOf("flying", "Bat", "Slime").forEach { onNodeWithText(it).assertDoesNotExist() }
+        onNodeWithText("enemies").performClick()
+        listOf("flying", "Slime").forEach { onNodeWithText(it).assertExists() }
+        onNodeWithText("Bat").assertDoesNotExist()
+        onAllNodesWithContentDescription("Expand all").onFirst().performClick()
+        onNodeWithText("Bat").assertExists()
+        onAllNodesWithContentDescription("Expand all").assertCountEquals(2)
+    }
+
+    @Test
+    fun aProjectOfSeveralModulesShowsEachUnderItsOwnBandAndAddsOnlyWhereCreatorWrites() = uiTest(width = 300, height = 700) {
+        fun resource(group: ResourceGroup, path: String, module: String) = ProjectResource(group, File(path), path, if (group == ResourceGroup.KOTLIN) "com.game" else null, module)
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = listOf(
+                    resource(ResourceGroup.SCENES, "src/commonMain/composeResources/files/scenes/Intro.json", ""),
+                    resource(ResourceGroup.SCENES, "tools/src/commonMain/composeResources/files/scenes/Sandbox.json", "tools"),
+                    resource(ResourceGroup.SPRITES, "tools/src/commonMain/composeResources/drawable/grid.png", "tools"),
+                    resource(ResourceGroup.KOTLIN, "tools/src/desktopMain/kotlin/com/game/Tool.kt", "tools"),
+                ).groupBy { it.group },
+                folderGroups = folderTreeGroups(
+                    types = listOf(ActorTypeDefinition(name = "Ball")),
+                    typeFolders = emptyMap(),
+                    selectedTypeName = null,
+                    sceneNames = listOf("Intro", "Sandbox"),
+                    sceneFolders = emptySet(),
+                    openSceneName = null,
+                ),
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+                layout = ProjectLayout(typeModule = "", sceneModule = ""),
+                projectName = "Breakout",
+            )
+        }
+        listOf("Breakout", ":tools", "Ball", "Intro", "Sandbox", "grid.png").forEach { onNodeWithText(it).assertExists() }
+        onAllNodesWithText("Scenes").assertCountEquals(2)
+        onAllNodesWithContentDescription("New Scene").assertCountEquals(1)
+        onAllNodesWithText("Kotlin files").assertCountEquals(1)
+        saveSnapshot("sidebar-modules")
+        onNodeWithText("Sandbox").performMouseInput { rightClick() }
+        onNodeWithText("Delete Scene").performClick()
+        assertEquals(listOf(FolderGroup.SCENES to "Sandbox"), deletedItems)
+        onNodeWithText("Breakout").performClick()
+        listOf("Ball", "Intro").forEach { onNodeWithText(it).assertDoesNotExist() }
+        onNode(hasSetTextAction()).performTextInput("grid")
+        listOf(":tools", "grid.png").forEach { onNodeWithText(it).assertExists() }
+        listOf("Breakout", "Sandbox").forEach { onNodeWithText(it).assertDoesNotExist() }
     }
 }

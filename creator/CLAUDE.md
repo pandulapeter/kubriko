@@ -495,6 +495,15 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   moves into that row's folder (onto the header or an item outside every folder, out of them all).
 - A field above the sidebar's groups filters everything in it by name, showing the folders that hold matches opened; the folders
   the user collapsed are left as they were and come back once the filter is cleared.
+- Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens
+  a level at a time, and a row holding folders offers Expand all and Collapse all while it is pointed at. What is open is
+  kept by key (`SidebarKeys`) over an outline of everything as if it were all open (`SidebarOutline`), so a folder keeps its
+  state while the rows around it come and go.
+- A project of several Gradle modules shows each module's groups under a band of its own, the one Creator generates into
+  first; a project of one shows none. A module is a folder with a build file (`ResourceScanner.moduleOf`), told by the files
+  rather than asked from Gradle, so the tree never waits for a build. Modules are only read: the types and new Scenes stay
+  in the modules Creator writes them to (`ProjectLayout`), whose groups alone add items and folders, while another
+  module's Scenes still open, move between its own folders, and are deleted.
 - The sidebar's Kotlin files are read-only and grouped by what the code is, not where it lies: the shared source sets
   (`commonMain`, `main`) at the top, each platform's in a container with its Play menu icon (closed at first), and a folder
   for each package below the one all files share, merged with its only child folder while it holds nothing else (`ui.menu`).

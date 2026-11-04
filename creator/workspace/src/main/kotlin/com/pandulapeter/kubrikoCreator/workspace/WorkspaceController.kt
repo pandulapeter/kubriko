@@ -102,12 +102,11 @@ public class WorkspaceController(
 
     /** The project's resources, by group, as the last scan found them. */
     public val resources: StateFlow<Map<ResourceGroup, List<ProjectResource>>> = _resources.asStateFlow()
-    private val _sceneFolders = MutableStateFlow(emptySet<String>())
+    private val _layout = MutableStateFlow(ProjectLayout())
 
-    /**
-     * The folders of the Scenes folder, empty ones too.
-     */
-    public val sceneFolders: StateFlow<Set<String>> = _sceneFolders.asStateFlow()
+    /** Where the project keeps what Kubriko Creator makes, as the last scan found it. */
+    public val layout: StateFlow<ProjectLayout> = _layout.asStateFlow()
+    private val generatedPath = blockTypeSetup?.generatedPath
     private val incrementalCompilation = IncrementalCompilationPolicy(
         hasExpectDeclarations = ExpectDeclarations(project.rootDirectory).let { declarations -> { withContext(ioDispatcher) { declarations.any() } } },
     )
@@ -146,7 +145,7 @@ public class WorkspaceController(
     public val git: GitController = GitController(
         openRepository = gitRepositories.open,
         createRepository = gitRepositories.create,
-        generatedPath = blockTypeSetup?.generatedPath,
+        generatedPath = generatedPath,
         scope = scope,
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
@@ -425,9 +424,11 @@ public class WorkspaceController(
      */
     private suspend fun scanResourcesNow(snapshot: ProjectSnapshot?) {
         val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == files.ownWrites.generation }
-        val (resources, folders) = withContext(ioDispatcher) { files.scanResources(project.rootDirectory, currentSnapshot) to scenes.folders() }
+        val (resources, layout) = withContext(ioDispatcher) {
+            files.scanResources(project.rootDirectory, currentSnapshot).let { it to ProjectLayout.of(project.rootDirectory, it, generatedPath) }
+        }
         _resources.value = resources
-        _sceneFolders.value = folders
+        _layout.value = layout
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.
         withContext(ioDispatcher) { scenes.refresh() }
     }

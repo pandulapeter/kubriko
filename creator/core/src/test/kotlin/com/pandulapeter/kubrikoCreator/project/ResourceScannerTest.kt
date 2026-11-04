@@ -160,4 +160,39 @@ class ResourceScannerTest {
             root.deleteRecursively()
         }
     }
+
+    @Test
+    fun everyFileBelongsToTheNearestFolderWithABuildFileWhetherWalkedOrFromASnapshot() {
+        val root = createTempDirectory().toFile()
+        try {
+            listOf(
+                "settings.gradle.kts",
+                "build.gradle.kts",
+                "src/commonMain/kotlin/Game.kt",
+                "shared/build.gradle",
+                "shared/src/commonMain/kotlin/Shared.kt",
+                "shared/src/commonMain/composeResources/drawable/hero.png",
+                "app/desktop/build.gradle.kts",
+                "app/desktop/src/main/kotlin/Main.kt",
+                "app/src/main/kotlin/NoModuleOfItsOwn.kt",
+            ).forEach { File(root, it).apply { parentFile.mkdirs() }.writeText("") }
+            val walked = ResourceScanner.scan(root)
+            assertEquals(
+                mapOf(
+                    "app/desktop/src/main/kotlin/Main.kt" to "app/desktop",
+                    "app/src/main/kotlin/NoModuleOfItsOwn.kt" to "",
+                    "shared/src/commonMain/kotlin/Shared.kt" to "shared",
+                    "src/commonMain/kotlin/Game.kt" to "",
+                ),
+                walked.getValue(ResourceGroup.KOTLIN).associate { it.relativePath to it.module },
+            )
+            assertEquals(listOf("shared"), walked.getValue(ResourceGroup.SPRITES).map { it.module })
+            assertEquals(walked, ResourceScanner.scan(root, snapshot = ProjectWatcher.snapshot(root, null)))
+            assertEquals("app/desktop", ResourceScanner.moduleOf(root, "app/desktop/src/main/kotlin/game/generated"))
+            assertEquals("shared", ResourceScanner.moduleOf(root, "shared"))
+            assertEquals("", ResourceScanner.moduleOf(root, "src/commonMain/composeResources/files/scenes"))
+        } finally {
+            root.deleteRecursively()
+        }
+    }
 }

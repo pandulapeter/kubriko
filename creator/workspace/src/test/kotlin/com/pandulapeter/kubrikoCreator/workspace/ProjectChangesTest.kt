@@ -129,6 +129,14 @@ class ProjectChangesTest {
     }
 
     @Test
+    fun theWatchersBuildFileChangesOnlyRegroupTheResourcesByModule() = runTest {
+        val snapshot = ProjectSnapshot(mapOf("shared/build.gradle.kts" to FileStamp(1, 1)))
+        router().onProjectChanged(setOf(ProjectChange.MODULES), snapshot)
+        assertEquals(listOf("git"), calls)
+        assertEquals(listOf<ProjectSnapshot?>(snapshot), scannedSnapshots)
+    }
+
+    @Test
     fun aWatcherChangeIsScannedFromItsSnapshotWithoutAWalk() = runTest {
         val snapshot = ProjectSnapshot(mapOf("src/commonMain/kotlin/Game.kt" to FileStamp(1, 1)))
         router().onProjectChanged(setOf(ProjectChange.SOURCES), snapshot)

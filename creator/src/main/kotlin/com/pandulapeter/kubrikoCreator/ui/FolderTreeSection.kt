@@ -89,36 +89,43 @@ internal sealed interface SidebarNaming {
 }
 
 /**
- * The header of a group and its tree of folders and items. Every row offers what can be done to it the same two ways: a ⋮
- * button that shows while it is pointed at, and its right-click menu. What is being named appears where it will be, as a
- * field that looks like its row. An item dragged onto a folder, or onto any row, moves into that row's folder (onto the
- * header or an item outside every folder, out of them all), and an Actor type dragged into the open Scene is placed there.
+ * The header of a group of [module] and its tree of folders and items. Every row offers what can be done to it the same
+ * two ways: a ⋮ button that shows while it is pointed at, and its right-click menu, and a row holding folders has buttons
+ * that open or close every one of them. What is being named appears where it will be, as a field that looks like its row.
+ * An item dragged onto a folder, or onto any row, moves into that row's folder (onto the header or an item outside every
+ * folder, out of them all), and an Actor type dragged into the open Scene is placed there. Only while the group
+ * [isCreating] in this module are items and folders added, and its folders renamed and deleted.
  *
- * @param collapsed The folders whose contents are hidden.
+ * @param tree Which folders are open, by their [SidebarKeys].
  * @param naming What is being named in the sidebar, if anything.
  */
 internal fun LazyListScope.folderTreeSection(
+    module: String,
     group: FolderGroup,
     state: FolderTreeGroupState,
+    isCreating: Boolean,
     actions: FolderTreeActions,
     dragState: SidebarDragState,
-    collapsed: Set<String>,
-    onCollapsedChange: (Set<String>) -> Unit,
+    tree: SidebarTree,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
     flashedName: String?,
     flashKey: Any?,
 ) {
-    item(key = "${group.name}-header") {
+    val groupKey = SidebarKeys.folderGroup(module, group)
+    item(key = "$groupKey-header") {
         SidebarGroupHeader(
             group = group,
+            module = module,
+            isCreating = isCreating,
             dragState = dragState,
             onNewItem = { onNamingChange(SidebarNaming.NewItem(group)) },
             onNewFolder = { onNamingChange(SidebarNaming.NewFolder(group, "")) },
+            subfolderActions = tree.subfolderActions(groupKey),
         )
     }
-    if (naming == SidebarNaming.NewItem(group)) {
-        item(key = "${group.name}-new") {
+    if (isCreating && naming == SidebarNaming.NewItem(group)) {
+        item(key = "$groupKey-new") {
             SidebarNameField(
                 group = group,
                 isFolder = false,
@@ -128,8 +135,8 @@ internal fun LazyListScope.folderTreeSection(
             )
         }
     }
-    if (naming == SidebarNaming.NewFolder(group, "")) {
-        item(key = "${group.name}-new-folder") {
+    if (isCreating && naming == SidebarNaming.NewFolder(group, "")) {
+        item(key = "$groupKey-new-folder") {
             SidebarNameField(
                 group = group,
                 isFolder = true,
@@ -141,55 +148,30 @@ internal fun LazyListScope.folderTreeSection(
     }
     val folderOfItem = state.items.toMap()
     items(
-        folderTreeRows(state.items, state.folders, collapsed),
+        folderTreeRows(state.items, state.folders, tree.collapsedFolders(groupKey)),
         key = { row ->
             when (row) {
-                is FolderTreeRow.Folder -> "${group.name}-folder-${row.path}"
-                is FolderTreeRow.Item -> "${group.name}-item-${row.name}"
+                is FolderTreeRow.Folder -> "$groupKey-folder-${row.path}"
+                is FolderTreeRow.Item -> "$groupKey-item-${row.name}"
             }
         },
     ) { row ->
         when (row) {
-            is FolderTreeRow.Folder -> Column(Modifier.animateItem()) {
-                if (naming == SidebarNaming.RenamedFolder(group, row.path)) {
-                    SidebarNameField(
-                        group = group,
-                        isFolder = true,
-                        depth = row.depth,
-                        initialName = row.name,
-                        onName = { name -> actions.onRenameFolder(group, row.path, name) },
-                        onNamingChange = onNamingChange,
-                    )
-                } else {
-                    SidebarFolderRow(
-                        modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path)),
-                        name = row.name,
-                        depth = row.depth,
-                        isExpanded = row.isExpanded,
-                        onToggle = { onCollapsedChange(if (row.isExpanded) collapsed + row.path else collapsed - row.path) },
-                        actions = folderActions(
-                            isEmpty = row.isEmpty,
-                            onNewFolder = {
-                                onCollapsedChange(collapsed - row.path)
-                                onNamingChange(SidebarNaming.NewFolder(group, row.path))
-                            },
-                            onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
-                            onDelete = { actions.onDeleteFolder(group, row.path) },
-                        ),
-                    )
-                }
-                if (naming == SidebarNaming.NewFolder(group, row.path)) {
-                    SidebarNameField(
-                        group = group,
-                        isFolder = true,
-                        depth = row.depth + 1,
-                        onName = { name -> actions.onCreateFolder(group, FolderPaths.child(row.path, name)) },
-                        onNamingChange = onNamingChange,
-                    )
-                }
-            }
+            is FolderTreeRow.Folder -> FolderTreeFolder(
+                modifier = Modifier.animateItem(),
+                module = module,
+                group = group,
+                row = row,
+                isCreating = isCreating,
+                actions = actions,
+                dragState = dragState,
+                tree = tree,
+                naming = naming,
+                onNamingChange = onNamingChange,
+            )
             is FolderTreeRow.Item -> FolderTreeItem(
                 modifier = Modifier.animateItem(),
+                module = module,
                 group = group,
                 row = row,
                 folder = folderOfItem[row.name].orEmpty(),
@@ -205,10 +187,72 @@ internal fun LazyListScope.folderTreeSection(
 }
 
 /**
- * An item of [group]'s tree in [folder], or the field renaming it while [isRenaming].
+ * A folder of [group]'s tree in [module], or the field renaming it, followed by the field naming a new folder in it while
+ * one is.
+ */
+@Composable
+private fun FolderTreeFolder(
+    module: String,
+    group: FolderGroup,
+    row: FolderTreeRow.Folder,
+    isCreating: Boolean,
+    actions: FolderTreeActions,
+    dragState: SidebarDragState,
+    tree: SidebarTree,
+    naming: SidebarNaming?,
+    onNamingChange: (SidebarNaming?) -> Unit,
+    modifier: Modifier = Modifier,
+) = Column(modifier) {
+    val key = SidebarKeys.folder(SidebarKeys.folderGroup(module, group), row.path)
+    if (isCreating && naming == SidebarNaming.RenamedFolder(group, row.path)) {
+        SidebarNameField(
+            group = group,
+            isFolder = true,
+            depth = row.depth,
+            initialName = row.name,
+            onName = { name -> actions.onRenameFolder(group, row.path, name) },
+            onNamingChange = onNamingChange,
+        )
+    } else {
+        SidebarFolderRow(
+            modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path, module)),
+            name = row.name,
+            depth = row.depth,
+            isExpanded = row.isExpanded,
+            onToggle = { tree.toggle(key) },
+            actions = if (isCreating) {
+                folderActions(
+                    isEmpty = row.isEmpty,
+                    onNewFolder = {
+                        tree.expand(key)
+                        onNamingChange(SidebarNaming.NewFolder(group, row.path))
+                    },
+                    onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
+                    onDelete = { actions.onDeleteFolder(group, row.path) },
+                )
+            } else {
+                emptyList()
+            },
+            subfolderActions = tree.subfolderActions(key),
+        )
+    }
+    if (isCreating && naming == SidebarNaming.NewFolder(group, row.path)) {
+        SidebarNameField(
+            group = group,
+            isFolder = true,
+            depth = row.depth + 1,
+            onName = { name -> actions.onCreateFolder(group, FolderPaths.child(row.path, name)) },
+            onNamingChange = onNamingChange,
+        )
+    }
+}
+
+/**
+ * An item of [group]'s tree in [module], in [folder], or the field renaming it while [isRenaming].
  */
 @Composable
 private fun FolderTreeItem(
+    module: String,
     group: FolderGroup,
     row: FolderTreeRow.Item,
     folder: String,
@@ -232,8 +276,8 @@ private fun FolderTreeItem(
 } else {
     SidebarItem(
         modifier = modifier
-            .itemDropTarget(dragState, SidebarDragState.FolderKey(group, folder), id = group to row.name)
-            .sidebarDragSource(dragState, SidebarDragState.Dragged(row.name, group, folder)),
+            .itemDropTarget(dragState, SidebarDragState.FolderKey(group, folder, module), id = Triple(module, group, row.name))
+            .sidebarDragSource(dragState, SidebarDragState.Dragged(row.name, group, folder, module)),
         icon = group.icon,
         accent = group.accent,
         text = FolderPaths.nameOf(row.name),

@@ -139,6 +139,18 @@ class WorkspaceControllerTest {
     }
 
     @Test
+    fun theLayoutFollowsTheScanSoTheScenesFolderIsTheOneItFound() = runTest {
+        val root = testDirectory()
+        val shared = File(root, "shared").apply { mkdirs() }
+        File(shared, "build.gradle.kts").writeText("")
+        val sharedScene = ProjectResource(ResourceGroup.SCENES, File(shared, "src/commonMain/composeResources/files/scenes/level.json"), "shared/src/commonMain/composeResources/files/scenes/level.json", module = "shared")
+        sharedScene.file.apply { parentFile.mkdirs() }.writeText("[]")
+        File(sharedScene.file.parentFile, "worlds").mkdirs()
+        val controller = createController(scanResources = { _, _ -> mapOf(ResourceGroup.SCENES to listOf(sharedScene)) }, rootDirectory = root)
+        assertEquals(ProjectLayout(sceneFolders = setOf("worlds"), typeModule = null, sceneModule = "shared"), controller.layout.value)
+    }
+
+    @Test
     fun anUnexpectedFailureInTheBackgroundIsReportedInTheConsoleAndTheRestKeepsWorking() = runTest {
         var isFailing = false
         val controller = createController(scanResources = { _, _ -> if (isFailing) throw IllegalStateException("Broken.") else mapOf(ResourceGroup.SCENES to listOf(scene)) })

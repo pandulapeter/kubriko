@@ -231,6 +231,8 @@
     <string name="new_project_package_hint">The package names the game's code, like an address. It's filled in from the name, and only matters if you publish the game.</string>
     <string name="action_expand_group">Show</string>
     <string name="action_collapse_group">Hide</string>
+    <string name="action_expand_all">Expand all</string>
+    <string name="action_collapse_all">Collapse all</string>
     <string name="block_if">If</string>
     <string name="block_else">Else</string>
     <string name="block_repeat">Repeat</string>

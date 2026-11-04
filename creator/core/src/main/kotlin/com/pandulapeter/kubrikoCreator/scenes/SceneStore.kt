@@ -50,10 +50,7 @@ public class SceneStore(
      */
     public val descriptions: SceneDescriptions = SceneDescriptions(rootDirectory, ownWrites)
 
-    /**
-     * Where new Scenes go: next to the existing ones, or where the project templates keep them.
-     */
-    private val sceneDirectory get() = sceneResources().firstNotNullOfOrNull { rootOf(it.file) } ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
+    private val sceneDirectory get() = newSceneDirectoryOf(rootDirectory, sceneResources())
 
     private val indexLock = Any()
     private val refreshLock = Any()
@@ -121,9 +118,7 @@ public class SceneStore(
     /**
      * Every folder of the Scenes folder, as paths (`levels/forest`), empty ones too.
      */
-    public fun folders(): Set<String> = sceneDirectory.walkTopDown()
-        .filter { it.isDirectory && it != sceneDirectory }
-        .mapTo(sortedSetOf()) { it.relativeTo(sceneDirectory).invariantSeparatorsPath }
+    public fun folders(): Set<String> = foldersIn(sceneDirectory)
 
     @EditorMutation
     public fun createFolder(path: String) {
@@ -140,14 +135,15 @@ public class SceneStore(
     }
 
     /**
-     * Moves the Scene [oldName] to [newName], into another folder if its path says so.
+     * Moves the Scene [oldName] to [newName], into another folder if its path says so, within the Scenes folder it is in
+     * (in a project of several modules, each may have one).
      *
      * @return Whether it was moved: Windows refuses to move a file another program (the running game) has open.
      */
     @EditorMutation
     public fun move(oldName: String, newName: String): Boolean {
         val source = file(oldName) ?: return false
-        val target = File(sceneDirectory, "$newName.$EXTENSION")
+        val target = File(rootOf(source) ?: sceneDirectory, "$newName.$EXTENSION")
         val isMoved = try {
             target.parentFile.mkdirs()
             if (source.canonicalPath.equals(target.canonicalPath, ignoreCase = true)) {
@@ -350,6 +346,20 @@ public class SceneStore(
          * The Scenes folder [file] is in, if any.
          */
         private fun rootOf(file: File) = generateSequence(file.parentFile) { it.parentFile }.firstOrNull { it.name == "scenes" && it.parentFile?.name == "files" }
+
+        /**
+         * The folder new Scenes and Scene folders of the project in [rootDirectory] go to, which has the Scene files
+         * [sceneResources]: next to the existing Scenes, or where the project templates keep them.
+         */
+        public fun newSceneDirectoryOf(rootDirectory: File, sceneResources: List<ProjectResource>): File =
+            sceneResources.firstNotNullOfOrNull { rootOf(it.file) } ?: File(rootDirectory, DEFAULT_SCENE_DIRECTORY)
+
+        /**
+         * Every folder of the Scenes folder [directory], as paths (`levels/forest`), empty ones too.
+         */
+        public fun foldersIn(directory: File): Set<String> = directory.walkTopDown()
+            .filter { it.isDirectory && it != directory }
+            .mapTo(sortedSetOf()) { it.relativeTo(directory).invariantSeparatorsPath }
 
         public const val DEFAULT_SCENE_DIRECTORY: String = "src/commonMain/composeResources/files/scenes"
         private const val EXTENSION = "json"

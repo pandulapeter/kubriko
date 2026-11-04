@@ -17,12 +17,15 @@ import java.io.File
  * @param file The file itself.
  * @param relativePath The file's path relative to the project root, with forward slashes.
  * @param kotlinPackage The package a Kotlin file declares (empty for the default package), or null for other files.
+ * @param module The folder of the Gradle module the file belongs to, relative to the project root, with forward slashes
+ *   (empty for the root project; [ResourceScanner.moduleOf] says which one that is).
  */
 public data class ProjectResource(
     val group: ResourceGroup,
     val file: File,
     val relativePath: String,
     val kotlinPackage: String? = null,
+    val module: String = "",
 ) {
     val name: String get() = file.name
 }

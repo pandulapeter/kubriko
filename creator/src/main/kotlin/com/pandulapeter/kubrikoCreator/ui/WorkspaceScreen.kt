@@ -169,6 +169,8 @@ private fun WorkspaceContent(
                         folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName),
                         folderActions = rememberFolderTreeActions(controller),
                         dragState = sidebarDragState,
+                        layout = controller.layout.collectAsState().value,
+                        projectName = controller.project.name,
                         flashedName = shownAiStep?.step?.sidebarName(),
                         flashKey = shownAiStep?.flashKey,
                     )
@@ -342,7 +344,7 @@ private fun rememberFolderTreeGroupsOf(
 ): Map<FolderGroup, FolderTreeGroupState> {
     val blockTypesController = controller.blockTypes
     val typeFolders = blockTypesController?.folders?.collectAsState()?.value.orEmpty()
-    val sceneFolders by controller.sceneFolders.collectAsState()
+    val sceneFolders = controller.layout.collectAsState().value.sceneFolders
     return rememberFolderTreeGroups(types.takeIf { blockTypesController != null }, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName)
 }
 

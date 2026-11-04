@@ -33,4 +33,9 @@ public enum class ProjectChange {
      * Anything else in the project's source folders (code and resources), apart from Creator's generated code.
      */
     SOURCES,
+
+    /**
+     * The build files that make folders Gradle modules, which the resource tree groups files by.
+     */
+    MODULES,
 }
