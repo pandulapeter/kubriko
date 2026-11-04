@@ -60,7 +60,7 @@ public data class BlockScope(
      * ([PropertyNaming]), and no Manager type is named after a lookup every type may have (`ViewportManager`), so it
      * clashes with nothing.
      */
-    internal fun managerField(manager: String) = manager.replaceFirstChar { it.lowercase() } + MANAGER_FIELD_SUFFIX
+    internal fun managerField(manager: String) = managerFieldOf(manager)
 
     /**
      * The other Manager types that [kotlinUi] names by their field, which the generated class has to look up.
@@ -80,6 +80,11 @@ public data class BlockScope(
     internal fun isOwn(manager: String?) = manager == null || (kind == BlockTypeKind.MANAGER && manager == typeName)
 
     public companion object {
+
+        /**
+         * The field generated code, and so a Kotlin Block, reaches the Manager type [manager] through ([managerField]).
+         */
+        public fun managerFieldOf(manager: String): String = manager.replaceFirstChar { it.lowercase() } + MANAGER_FIELD_SUFFIX
 
         /**
          * What the field a type looks another Manager type up in ends with, after the Manager type's name.

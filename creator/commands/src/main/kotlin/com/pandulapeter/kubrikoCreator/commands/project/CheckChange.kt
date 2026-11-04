@@ -13,10 +13,12 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandRegistry
+import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
 import com.pandulapeter.kubrikoCreator.commands.InputProblem
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.usagesOf
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -29,7 +31,7 @@ import kotlinx.serialization.json.JsonPrimitive
 public object CheckChange : ReadCommand<CheckChange.Input> {
     override val name: String = "check_change"
     override val description: String = "Tells whether a write tool would accept the given arguments, changing nothing: the rejection it would give, or that it would be " +
-        "accepted. For a change built from many parts, checked before making it."
+        "accepted, with what a delete would clean up. For a change built from many parts, checked before making it."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
     private val json = Json { ignoreUnknownKeys = false }
 
@@ -40,7 +42,7 @@ public object CheckChange : ReadCommand<CheckChange.Input> {
         return check(context, command, input.arguments)
     }
 
-    private fun <I> check(context: CommandContext, command: WriteCommand<I>, arguments: JsonObject): CommandOutcome {
+    private suspend fun <I> check(context: CommandContext, command: WriteCommand<I>, arguments: JsonObject): CommandOutcome {
         val decoded = try {
             json.decodeFromJsonElement(command.inputSerializer, arguments)
         } catch (exception: SerializationException) {
@@ -48,10 +50,13 @@ public object CheckChange : ReadCommand<CheckChange.Input> {
         } catch (exception: IllegalArgumentException) {
             return CommandOutcome.Rejected(Rejection(CommandProblem.INPUT_INVALID, InputProblem.describe(exception.message)))
         }
-        return command.validate(context, decoded)?.let(CommandOutcome::Rejected) ?: CommandOutcome.Success(JsonPrimitive(ACCEPTED))
+        command.validate(context, decoded)?.let { return CommandOutcome.Rejected(it) }
+        val usages = (command as? DeletingCommand<I>)?.let { context.usagesOf(it.subject(decoded)) }.orEmpty()
+        return CommandOutcome.Success(JsonPrimitive(if (usages.isEmpty()) ACCEPTED else ACCEPTED + USAGES + usages.joinToString("\n")))
     }
 
     private const val ACCEPTED = "It would be accepted."
+    private const val USAGES = " What refers to what it deletes, and what deleting it would do there:\n"
 
     @Serializable
     public data class Input(

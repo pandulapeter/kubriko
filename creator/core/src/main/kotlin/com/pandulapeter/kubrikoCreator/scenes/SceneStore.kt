@@ -295,11 +295,20 @@ public class SceneStore(
      * recording no change.
      */
     @EditorMutation
-    internal fun writeAll(changes: Map<String, List<SceneActorEntry>>) {
+    internal fun writeAll(changes: Map<String, List<SceneActorEntry>>): Unit = writeFiles(changes.mapValues { (_, actors) -> SceneDocument.format(actors) to actors })
+
+    /**
+     * Writes each Scene in [contents] as the exact text given, all or none, as [writeAll] does: how a change to several
+     * Scenes is undone byte for byte.
+     */
+    @EditorMutation
+    public fun writeAllTexts(contents: Map<String, String>): Unit = writeFiles(contents.mapValues { (_, content) -> content to null })
+
+    private fun writeFiles(changes: Map<String, Pair<String, List<SceneActorEntry>?>>) {
         val originals = changes.keys.associateWith { name -> cached(name)?.text }
         val written = ArrayList<SceneChange.Written>()
         try {
-            changes.forEach { (name, actors) -> written += writeFile(name, SceneDocument.format(actors), actors) }
+            changes.forEach { (name, change) -> written += writeFile(name, change.first, change.second) }
         } catch (exception: IOException) {
             written.forEach { change ->
                 try {

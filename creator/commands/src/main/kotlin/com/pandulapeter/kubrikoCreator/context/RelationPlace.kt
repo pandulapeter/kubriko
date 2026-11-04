@@ -14,49 +14,49 @@ package com.pandulapeter.kubrikoCreator.context
  * Manager type, or a Scene. Written as tool results address it, with indexes from 0: `Ball#2.1` is Block 1 of
  * Event 2 of Ball.
  */
-internal sealed interface RelationPlace {
+public sealed interface RelationPlace {
 
     /**
      * The type or Scene the place belongs to.
      */
-    val owner: RelationSubject
+    public val owner: RelationSubject
 
-    data class Type(
+    public data class Type(
         val name: String,
         val eventIndex: Int? = null,
         val blockIndex: Int? = null,
     ) : RelationPlace {
-        override val owner get() = RelationSubject.Type(name)
+        override val owner: RelationSubject get() = RelationSubject.Type(name)
 
-        override fun toString() = when {
+        override fun toString(): String = when {
             eventIndex == null -> name
             blockIndex == null -> "$name#$eventIndex"
             else -> "$name#$eventIndex.$blockIndex"
         }
     }
 
-    data class Text(
+    public data class Text(
         val manager: String,
         val textIndex: Int,
     ) : RelationPlace {
-        override val owner get() = RelationSubject.Type(manager)
+        override val owner: RelationSubject get() = RelationSubject.Type(manager)
 
-        override fun toString() = "$manager text $textIndex"
+        override fun toString(): String = "$manager text $textIndex"
     }
 
-    data class KotlinUi(
+    public data class KotlinUi(
         val manager: String,
     ) : RelationPlace {
-        override val owner get() = RelationSubject.Type(manager)
+        override val owner: RelationSubject get() = RelationSubject.Type(manager)
 
-        override fun toString() = "$manager Kotlin UI"
+        override fun toString(): String = "$manager Kotlin UI"
     }
 
-    data class Scene(
+    public data class Scene(
         val name: String,
     ) : RelationPlace {
-        override val owner get() = RelationSubject.Scene(name)
+        override val owner: RelationSubject get() = RelationSubject.Scene(name)
 
-        override fun toString() = "Scene $name"
+        override fun toString(): String = "Scene $name"
     }
 }

@@ -22,6 +22,7 @@ import kubriko.creator.generated.resources.game_map_moves_towards
 import kubriko.creator.generated.resources.game_map_names_in_kotlin
 import kubriko.creator.generated.resources.game_map_places
 import kubriko.creator.generated.resources.game_map_reads
+import kubriko.creator.generated.resources.game_map_starts_with
 
 /**
  * The lines of the digest about each type, by the type.
@@ -42,6 +43,7 @@ internal val RelationKind.label
         RelationKind.READS -> Res.string.game_map_reads
         RelationKind.CHANGES -> Res.string.game_map_changes
         RelationKind.NAMES_IN_KOTLIN -> Res.string.game_map_names_in_kotlin
+        RelationKind.STARTS_WITH -> Res.string.game_map_starts_with
     }
 
 /**

@@ -24,4 +24,9 @@ public enum class RelationKind(
     READS("reads"),
     CHANGES("changes"),
     NAMES_IN_KOTLIN("names in Kotlin"),
+
+    /**
+     * The game's settings starting with a Scene, which only [ProjectReferences] reports.
+     */
+    STARTS_WITH("starts with"),
 }

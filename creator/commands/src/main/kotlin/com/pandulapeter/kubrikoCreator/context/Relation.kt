@@ -14,11 +14,11 @@ package com.pandulapeter.kubrikoCreator.context
  *
  * @param count How many times it is made in one place: the number of Actors a Scene places, for example.
  */
-internal data class Relation(
+public data class Relation(
     val place: RelationPlace,
     val kind: RelationKind,
     val subject: RelationSubject,
     val count: Int = 1,
 ) {
-    override fun toString() = "$place ${kind.verb} $subject" + if (count > 1) " ($count)" else ""
+    override fun toString(): String = "$place ${kind.verb} $subject" + if (count > 1) " ($count)" else ""
 }

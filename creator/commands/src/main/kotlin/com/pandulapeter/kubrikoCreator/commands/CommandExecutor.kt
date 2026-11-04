@@ -100,7 +100,7 @@ public class CommandExecutor(
         applied.inverse?.let { inverse ->
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
-        return CommandOutcome.Success(if (isByAi && applied.result == JsonNull) context.writeSummary(revision, invocation.commandName, target) else applied.result)
+        return CommandOutcome.Success(if (isByAi && applied.result == JsonNull) JsonObject(context.writeSummary(revision, invocation.commandName, target) + applied.details.orEmpty()) else applied.result)
     }
 
     /**

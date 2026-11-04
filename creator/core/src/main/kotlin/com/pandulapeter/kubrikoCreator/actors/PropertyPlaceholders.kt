@@ -38,6 +38,22 @@ public object PropertyPlaceholders {
         if (placeholder.manager == oldName) placeholder.copy(manager = newName) else placeholder
     }
 
+    /**
+     * [text] with each placeholder [isDeleted] accepts written as the plain name of its Property, so the sentence still
+     * reads once the Property is gone.
+     */
+    public fun withPlaceholdersAsText(text: String, isDeleted: (Placeholder) -> Boolean): String {
+        var end = 0
+        return buildString {
+            find(text).forEach { placeholder ->
+                append(text, end, placeholder.range.first)
+                if (isDeleted(placeholder)) append(placeholder.name) else append(text, placeholder.range.first, placeholder.range.last + 1)
+                end = placeholder.range.last + 1
+            }
+            append(text, end, text.length)
+        }
+    }
+
     private fun replace(text: String, change: (Placeholder) -> Placeholder): String {
         var end = 0
         return buildString {

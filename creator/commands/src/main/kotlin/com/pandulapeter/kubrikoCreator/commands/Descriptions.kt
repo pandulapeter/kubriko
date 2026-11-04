@@ -13,6 +13,7 @@ package com.pandulapeter.kubrikoCreator.commands
  * Descriptions many command inputs share, so they read the same in every tool schema.
  */
 internal object Descriptions {
+    const val DELETE_CLEANUP = "Blocks, Events, and Scene Actors needing it go too; check_change lists what."
     const val TYPE_NAME = "The name of the Actor type or Manager type."
     const val SCENE_NAME = "The name of the Scene: its path in the Scenes folder without .json, like level-2 or levels/1-1."
     const val EVENT_INDEX = "The index of the Event in the Actor type's Event list, starting from 0."

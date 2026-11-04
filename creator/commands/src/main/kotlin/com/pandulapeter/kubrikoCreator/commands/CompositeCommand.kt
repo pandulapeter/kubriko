@@ -10,10 +10,6 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 
@@ -24,7 +20,7 @@ import kotlinx.serialization.json.JsonNull
 internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
     override val name = "composite"
     override val description = ""
-    override val inputSerializer: KSerializer<Input> = NotATool
+    override val inputSerializer: KSerializer<Input> = NotATool("CompositeCommand")
 
     override fun commandName(input: Input) = input.parts.first().commandName
 
@@ -87,13 +83,5 @@ internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
         init {
             require(parts.isNotEmpty()) { "A composite change has at least one part." }
         }
-    }
-
-    private object NotATool : KSerializer<Input> {
-        override val descriptor = buildClassSerialDescriptor("CompositeCommand")
-
-        override fun serialize(encoder: Encoder, value: Input) = throw SerializationException("CompositeCommand isn't a tool.")
-
-        override fun deserialize(decoder: Decoder): Input = throw SerializationException("CompositeCommand isn't a tool.")
     }
 }

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
 import kotlinx.coroutines.withContext
 
 /**
@@ -23,3 +24,19 @@ internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, I
  * The relations between the parts of the open project.
  */
 internal suspend fun CommandContext.projectRelations() = ProjectRelations(types = blockTypes?.types?.value.orEmpty(), scenes = sceneTypeCounts())
+
+/**
+ * Everything that refers to the parts of the open project, hand-written Kotlin included.
+ */
+internal suspend fun CommandContext.projectReferences(): ProjectReferences {
+    val types = blockTypes?.types?.value.orEmpty()
+    val sceneCounts = sceneTypeCounts()
+    return withContext(ioDispatcher) {
+        ProjectReferences(
+            types = types,
+            sceneTypeCounts = sceneCounts,
+            firstScene = firstSceneSettings(project.rootDirectory)?.firstScene,
+            kotlinFiles = HandWrittenKotlin.read(project.rootDirectory),
+        )
+    }
+}

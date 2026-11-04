@@ -90,7 +90,7 @@ class PropertyCommandsTest {
         val context = context(SceneActorEntry("Player", """{"score":12.0}"""))
         Invocation(RemoveProperty, RemoveProperty.Input("Player", "score")).apply(context)
         assertEquals(listOf("""{"score":12.0}"""), context.states())
-        assertEquals(listOf(BlockDefinition.ChangeNumber("score", 2f), BlockDefinition.Log("Score: {score}, {scoreboard}")), context.player().events[0].blocks)
+        assertEquals(listOf(BlockDefinition.Log("Score: score, {scoreboard}")), context.player().events[0].blocks)
         Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Text("score"))).apply(context)
         assertEquals(listOf("{}"), context.states())
     }

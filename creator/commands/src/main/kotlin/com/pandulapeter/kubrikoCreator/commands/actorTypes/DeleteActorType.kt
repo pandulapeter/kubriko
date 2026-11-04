@@ -14,20 +14,26 @@ import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
+import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.deleteWithUsages
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @OptIn(EditorMutation::class)
-public object DeleteActorType : WriteCommand<DeleteActorType.Input> {
+public object DeleteActorType : DeletingCommand<DeleteActorType.Input> {
     override val name: String = "delete_actor_type"
-    override val description: String = "Deletes a block-built Actor type with its generated Kotlin class."
+    override val description: String = "Deletes a block-built Actor type. " + Descriptions.DELETE_CLEANUP
     override val inputSerializer: KSerializer<Input> = Input.serializer()
+
+    override fun subject(input: Input): RelationSubject = RelationSubject.Type(input.actorType)
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.actorType)
 
@@ -37,14 +43,20 @@ public object DeleteActorType : WriteCommand<DeleteActorType.Input> {
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
+        if (!input.keepsUsages) return context.deleteWithUsages(subject(input), Invocation(DeleteActorType, input.copy(keepsUsages = true)))
         val definition = context.requireActorType(input.actorType)
         context.requireBlockTypes.delete(input.actorType)
         return Applied(inverse = Invocation(CreateActorType, definition))
     }
 
+    /**
+     * @param keepsUsages Whether it deletes only the Actor type itself, leaving what refers to it: the last part of the delete, after
+     *   [deleteWithUsages] cleaned that up.
+     */
     @Serializable
     public data class Input(
         @Description("The name of the Actor type to delete.")
         @SerialName("actorType") val actorType: String,
+        @Transient val keepsUsages: Boolean = false,
     )
 }

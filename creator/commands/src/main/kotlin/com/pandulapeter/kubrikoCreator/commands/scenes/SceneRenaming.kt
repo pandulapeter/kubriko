@@ -14,9 +14,9 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.context.HandWrittenKotlin
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.GameSettings
-import com.pandulapeter.kubrikoCreator.project.ProjectTree
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
@@ -41,7 +41,7 @@ internal suspend fun CommandContext.renameScene(oldName: String, newName: String
     } catch (exception: IOException) {
         report(ConsoleEntry.Status(CommandProblem.FIRST_SCENE_NOT_FOLLOWED, isError = true, arguments = listOf(oldName, exception.message ?: exception.toString())))
     }
-    withContext(ioDispatcher) { handWrittenFilesNaming(project.rootDirectory, oldName) }.forEach { path ->
+    withContext(ioDispatcher) { HandWrittenKotlin.read(project.rootDirectory) }.filterValues { "\"$oldName\"" in it }.keys.sorted().forEach { path ->
         report(ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf(path, oldName, newName)))
     }
     return true
@@ -62,14 +62,3 @@ internal fun firstSceneSettings(rootDirectory: File) = GameSettings.read(rootDir
  * Why the Scene [name] couldn't be moved.
  */
 internal fun sceneNotMoved(name: String) = Rejection(CommandProblem.SCENE_NOT_MOVED, name)
-
-/**
- * The Kotlin files outside generated code that name the Scene [name] in a string, like `Game.kt` names the first one.
- */
-private fun handWrittenFilesNaming(rootDirectory: File, name: String) = ProjectTree.walk(rootDirectory, skipped = creatorDirectories)
-    .filter { it.isFile && it.extension == "kt" && "\"$name\"" in it.readText() }
-    .map { it.relativeTo(rootDirectory).invariantSeparatorsPath }
-    .sorted()
-    .toList()
-
-private val creatorDirectories = setOf(".kubriko", "generated")

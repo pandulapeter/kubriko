@@ -100,7 +100,10 @@ internal class ProjectRelations(
         identifier.findAll(code).map { it.value }.filter { it in typeNames }.distinct().forEach { add(Relation(place, RelationKind.NAMES_IN_KOTLIN, RelationSubject.Type(it))) }
     }
 
-    private fun propertyOf(typeName: String, manager: String?, name: String) =
+    /**
+     * The Property called [name] of [manager] (the type's own one, if null) as [typeName] uses it.
+     */
+    fun propertyOf(typeName: String, manager: String?, name: String) =
         RelationSubject.Property(owner = manager ?: ownerOfProperty(typeName, name), name = name)
 
     private companion object {
