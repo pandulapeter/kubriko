@@ -96,11 +96,8 @@ public class WorkspaceController(
      */
     private val scope = CoroutineScope(workspaceScope.coroutineContext + unexpectedProblemHandler(::reportUnexpectedProblem))
 
-    /**
-     * The Gradle path of the module that runs the game on desktop, asked from Gradle in the background as soon as the
-     * workspace opens, since only builds need it.
-     */
-    private val desktopModulePath = DesktopModuleLookup(scope, ioDispatcher, processes.findDesktopModulePath)
+    /** The module that is the game, which Creator builds, plays, and edits the Scenes of. */
+    public val gameModule: GameModuleChoice = GameModuleChoice(project.rootDirectory, scope, ioDispatcher, processes.findDesktopModulePaths) { sceneEditing.markOutdated() }
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
 
     /** The project's resources, by group, as the last scan found them. */
@@ -177,7 +174,7 @@ public class WorkspaceController(
     private val tasks = CreatorTaskRunner(
         rootDirectory = project.rootDirectory,
         build = processes.build,
-        desktopModulePath = desktopModulePath,
+        gameModule = gameModule,
         incrementalCompilation = incrementalCompilation,
         console = consoleLog,
         awaitWrites = blockTypes?.let { types -> { if (types.awaitWrites()) null else types.unsavedWrites() } } ?: { null },
@@ -199,7 +196,7 @@ public class WorkspaceController(
         androidDevices = ::androidDevices,
         web = WebPlayer(
             runTask = tasks::run,
-            moduleDirectory = { File(project.rootDirectory, desktopModulePath.await().removePrefix(":").replace(':', File.separatorChar)) },
+            moduleDirectory = { File(project.rootDirectory, gameModule.await().removePrefix(":").replace(':', File.separatorChar)) },
             openBrowser = processes.openBrowser,
             console = consoleLog,
             ioDispatcher = ioDispatcher,

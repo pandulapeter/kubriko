@@ -9,11 +9,13 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
@@ -22,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import com.pandulapeter.kubrikoCreator.workspace.GameModules
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
@@ -33,32 +36,52 @@ class WorkspaceToolbarTest {
     @Test
     fun theButtonsAtTheEndStayInPlaceWhileTheGameRuns() = uiTest(width = 1200, height = 80) {
         var sessionState by mutableStateOf<SessionState>(SessionState.Idle)
-        showing {
-            WorkspaceToolbar(
-                sessionState = sessionState,
-                history = MutableStateFlow(CommandHistory()),
-                onUndo = {},
-                onRedo = {},
-                gitState = MutableStateFlow(GitState.NoRepository),
-                isAiConnected = false,
-                openPanel = null,
-                onPanelToggled = {},
-                playTargets = PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP),
-                onPlayTargetsOpened = {},
-                onPlayTargetChosen = {},
-                onPlay = {},
-                onStop = {},
-                onOpenProjectSettings = {},
-                onOpenTargets = {},
-                onSetUpMoreDevices = {},
-                onOpenSettings = {},
-                onCloseProject = {},
-            )
-        }
+        showing { Toolbar(sessionState) }
         val idle = onNodeWithContentDescription("Close project").fetchSemanticsNode().boundsInRoot
         sessionState = SessionState.Running(SessionMode.PLAY)
         waitForIdle()
         saveSnapshot("workspace-toolbar-playing")
         assertEquals(idle, onNodeWithContentDescription("Close project").fetchSemanticsNode().boundsInRoot)
     }
+
+    @Test
+    fun theGameModuleIsOfferedOnlyWhileThereIsAChoiceAndNothingRuns() = uiTest(width = 1200, height = 80) {
+        var sessionState by mutableStateOf<SessionState>(SessionState.Idle)
+        var gameModules by mutableStateOf<GameModules?>(null)
+        showing { Toolbar(sessionState, gameModules) }
+        gameModules = GameModules(listOf(":"), ":")
+        waitForIdle()
+        onNodeWithText(":").assertDoesNotExist()
+        gameModules = GameModules(listOf(":app:desktop", ":editor:model"), ":app:desktop")
+        waitForIdle()
+        onNodeWithText(":app:desktop").assertExists()
+        saveSnapshot("workspace-toolbar-game-module")
+        sessionState = SessionState.Running(SessionMode.PLAY)
+        waitForIdle()
+        onNodeWithText(":app:desktop").assertDoesNotExist()
+    }
+
+    @Composable
+    private fun Toolbar(sessionState: SessionState, gameModules: GameModules? = null) = WorkspaceToolbar(
+        sessionState = sessionState,
+        history = MutableStateFlow(CommandHistory()),
+        onUndo = {},
+        onRedo = {},
+        gitState = MutableStateFlow(GitState.NoRepository),
+        isAiConnected = false,
+        openPanel = null,
+        onPanelToggled = {},
+        playTargets = PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP),
+        onPlayTargetsOpened = {},
+        onPlayTargetChosen = {},
+        gameModules = gameModules,
+        onGameModuleChosen = {},
+        onPlay = {},
+        onStop = {},
+        onOpenProjectSettings = {},
+        onOpenTargets = {},
+        onSetUpMoreDevices = {},
+        onOpenSettings = {},
+        onCloseProject = {},
+    )
 }

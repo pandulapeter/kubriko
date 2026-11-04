@@ -47,7 +47,7 @@ public fun workspaceController(
     ioDispatcher: CoroutineDispatcher,
     build: ProjectBuild = FakeProjectBuild(),
     sessionChannel: SessionChannel = FakeSessionChannel(),
-    findDesktopModulePath: suspend () -> String = { ":" },
+    findDesktopModulePaths: suspend () -> List<String> = { listOf(":") },
     runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit = GameProcess(project.rootDirectory, SessionInitScript.playDirectoryOf(project.rootDirectory))::run,
     ownWrites: OwnWrites = OwnWrites(),
     scanResources: (File, ProjectSnapshot?) -> Map<ResourceGroup, List<ProjectResource>> = { root, snapshot -> ResourceScanner.scan(root, snapshot = snapshot) },
@@ -68,9 +68,9 @@ public fun workspaceController(
 ): WorkspaceController = WorkspaceController(
     project = project,
     processes = if (tools == null) {
-        ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePath, openBrowser)
+        ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePaths, openBrowser)
     } else {
-        ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePath, openBrowser, tools)
+        ProjectProcesses(build, sessionChannel, runGame, findDesktopModulePaths, openBrowser, tools)
     },
     parentScope = parentScope,
     ioDispatcher = ioDispatcher,

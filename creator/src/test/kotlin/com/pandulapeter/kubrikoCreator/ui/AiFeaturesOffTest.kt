@@ -64,6 +64,8 @@ class AiFeaturesOffTest {
             playTargets = PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP),
             onPlayTargetsOpened = {},
             onPlayTargetChosen = {},
+            gameModules = null,
+            onGameModuleChosen = {},
             onPlay = {},
             onStop = {},
             onOpenProjectSettings = {},

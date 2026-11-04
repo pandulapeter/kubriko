@@ -11,9 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTargets
-import com.pandulapeter.kubrikoCreator.foundation.JsonFileStore
 import com.pandulapeter.kubrikoCreator.foundation.LatestRequests
-import com.pandulapeter.kubrikoCreator.foundation.valueOrNull
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +28,7 @@ import java.io.File
 
 /**
  * Where the game can be played, and the place the user chose for Play, kept for the project on this computer in
- * [FILE], and looked for as soon as the project opens. A chosen place that isn't there now (a device unplugged) stays chosen, and Play uses the desktop until it is back.
+ * `.kubriko/local/play.json`, and looked for as soon as the project opens. A chosen place that isn't there now (a device unplugged) stays chosen, and Play uses the desktop until it is back.
  *
  * @param sources Each finds the places of one kind the game can be played on now, besides the desktop, and may block.
  */
@@ -40,7 +38,7 @@ public class PlayTargetChoice internal constructor(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
-    private val store = JsonFileStore(File(rootDirectory, FILE), LocalPlaySettings.serializer())
+    private val store = LocalProjectStore(rootDirectory, FILE_NAME, LocalPlaySettings.serializer())
     private val chosenId = MutableStateFlow<String?>(null)
 
     @Volatile
@@ -56,7 +54,7 @@ public class PlayTargetChoice internal constructor(
 
     init {
         scope.launch {
-            val saved = withContext(ioDispatcher) { store.read().valueOrNull()?.target }
+            val saved = withContext(ioDispatcher) { store.read()?.target }
             chosenId.compareAndSet(null, saved)
             refresh()
         }
@@ -114,6 +112,6 @@ public class PlayTargetChoice internal constructor(
     private fun chosenAmong(available: List<PlayTarget>) = available.firstOrNull { it.id == chosenId.value } ?: PlayTarget.DESKTOP
 
     internal companion object {
-        const val FILE = ".kubriko/local/play.json"
+        const val FILE_NAME = "play.json"
     }
 }

@@ -71,7 +71,7 @@ public class GradleWorkspaceOpener(
                     build = connection,
                     sessionChannel = opening.track(SessionServer(opening.scope)),
                     runGame = GameProcess(directory, SessionInitScript.playDirectoryOf(directory))::run,
-                    findDesktopModulePath = { DesktopModules.pathOf(connection) },
+                    findDesktopModulePaths = { DesktopModules.pathsOf(connection) },
                 ),
                 parentScope = scope,
                 workspaceScope = opening.scope,

@@ -20,7 +20,7 @@ import java.net.URI
  * @param build The project's Gradle connection, which runs every build and task.
  * @param sessionChannel The channel the game's session process reports to.
  * @param runGame Starts the game process Creator runs itself ([GameProcess]).
- * @param findDesktopModulePath Asks [build] for the Gradle path of the module that runs the game on desktop.
+ * @param findDesktopModulePaths Asks [build] for the Gradle paths of the modules that run on desktop, one of which is the game's.
  * @param openBrowser Opens the system's browser on an address, where the game plays on the web, returning whether it could.
  * @param tools Runs the command-line tools the game is played on a device through.
  */
@@ -28,7 +28,7 @@ public class ProjectProcesses(
     internal val build: ProjectBuild,
     internal val sessionChannel: SessionChannel,
     internal val runGame: suspend (GameLaunch, Map<String, String>) -> GameProcess.Exit,
-    internal val findDesktopModulePath: suspend () -> String = { ":" },
+    internal val findDesktopModulePaths: suspend () -> List<String> = { listOf(":") },
     internal val openBrowser: (URI) -> Boolean = SystemBrowser::open,
     internal val tools: ToolProcesses = SystemToolProcesses,
 )

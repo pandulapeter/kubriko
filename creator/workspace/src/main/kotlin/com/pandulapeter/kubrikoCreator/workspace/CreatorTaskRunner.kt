@@ -24,7 +24,7 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Runs Kubriko Creator's init script tasks in the project's desktop module, reporting how they went in the console.
+ * Runs Kubriko Creator's init script tasks in the game's module, reporting how they went in the console.
  *
  * @param awaitWrites Returns once every change made so far is written, which a build waits for, or writing them failed; what
  *   isn't on disk then, which the build goes ahead without, or null if everything is.
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 internal class CreatorTaskRunner(
     private val rootDirectory: File,
     private val build: ProjectBuild,
-    private val desktopModulePath: DesktopModuleLookup,
+    private val gameModule: GameModuleChoice,
     private val incrementalCompilation: IncrementalCompilationPolicy,
     private val console: ConsoleLog,
     private val awaitWrites: suspend () -> UnsavedWrites?,
@@ -45,7 +45,7 @@ internal class CreatorTaskRunner(
     private val classpathBuildLock = Mutex()
 
     /**
-     * Runs one of the init script's tasks in the project's desktop module with Kubriko Creator's [properties], reporting
+     * Runs one of the init script's tasks in the game's module with Kubriko Creator's [properties], reporting
      * compiler errors (or, when the build reports none, the end of its output) in the console.
      *
      * @return Whether the build succeeded.
@@ -85,7 +85,7 @@ internal class CreatorTaskRunner(
     private suspend fun runBuild(properties: Map<String, String>, isSession: Boolean, reportsTime: Boolean, taskPathIn: (modulePath: String) -> String): Boolean {
         startBuild()
         val modulePath = try {
-            desktopModulePath.await()
+            gameModule.await()
         } catch (exception: ProjectInspectionException) {
             console.append(ConsoleEntry.Status(exception.reason, isError = true))
             return false
@@ -138,7 +138,7 @@ internal class CreatorTaskRunner(
      */
     suspend fun warmUpCompiler() {
         val modulePath = try {
-            desktopModulePath.await()
+            gameModule.await()
         } catch (exception: CancellationException) {
             throw exception
         } catch (_: Exception) {

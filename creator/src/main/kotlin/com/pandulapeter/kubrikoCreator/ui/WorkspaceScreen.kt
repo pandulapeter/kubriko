@@ -256,6 +256,8 @@ private fun WorkspaceToolbarOf(
     playTargets = controller.playTargets.targets.collectAsState().value,
     onPlayTargetsOpened = controller.playTargets::startRefresh,
     onPlayTargetChosen = controller.playTargets::choose,
+    gameModules = controller.gameModule.modules.collectAsState().value,
+    onGameModuleChosen = controller.gameModule::choose,
     onPlay = controller::play,
     onStop = controller::stopSession,
     onOpenProjectSettings = { uiState.showProjectSettings() },

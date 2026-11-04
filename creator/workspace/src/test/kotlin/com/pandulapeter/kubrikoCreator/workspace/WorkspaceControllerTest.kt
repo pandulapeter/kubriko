@@ -47,6 +47,7 @@ import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.testing.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.testing.FakeSessionChannel
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -84,8 +85,7 @@ class WorkspaceControllerTest {
     private val channel = FakeSessionChannel()
 
     private fun TestScope.createController(
-        desktopModulePath: String = ":",
-        findDesktopModulePath: suspend () -> String = { desktopModulePath },
+        findDesktopModulePaths: suspend () -> List<String> = { listOf(":") },
         ioDispatcher: CoroutineDispatcher? = null,
         scanResources: (File, ProjectSnapshot?) -> Map<ResourceGroup, List<ProjectResource>> = { _, _ -> emptyMap() },
         blockTypeRepository: FakeBlockTypeRepository? = null,
@@ -105,7 +105,7 @@ class WorkspaceControllerTest {
             sessionChannel = channel,
             parentScope = CoroutineScope(backgroundScope.coroutineContext + dispatcher),
             ioDispatcher = ioDispatcher ?: dispatcher,
-            findDesktopModulePath = findDesktopModulePath,
+            findDesktopModulePaths = findDesktopModulePaths,
             scanResources = scanResources,
             blockTypeRepository = blockTypeRepository,
             startWatching = startWatching,
@@ -154,7 +154,7 @@ class WorkspaceControllerTest {
     fun nothingReadsAPartBeforeItExists() = runTest {
         val controller = createController(
             blockTypeRepository = FakeBlockTypeRepository(listOf(ActorTypeDefinition(name = "Ball"))),
-            findDesktopModulePath = { ":desktop" },
+            findDesktopModulePaths = { listOf(":desktop") },
             gitRepository = FakeGitRepository(),
         )
         assertEquals(emptyList(), controller.console.value.filterIsInstance<ConsoleEntry.Status>().filter { it.text == WorkspaceStatus.UNEXPECTED_PROBLEM })
@@ -208,9 +208,9 @@ class WorkspaceControllerTest {
     fun theDesktopModuleIsAskedForAgainAfterALookupThatFailed() = runTest {
         var lookups = 0
         val controller = createController(
-            findDesktopModulePath = {
+            findDesktopModulePaths = {
                 lookups++
-                if (lookups == 1) throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) else ":"
+                if (lookups == 1) throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) else listOf(":")
             },
         )
         controller.play()
@@ -218,6 +218,16 @@ class WorkspaceControllerTest {
         assertEquals(1, lookups, "the next lookup waits until it is needed, so it reads the files as they are then")
         controller.play()
         assertEquals(1, build.runs.size)
+    }
+
+    @Test
+    fun theChosenGameModuleIsTheOneBuilt() = runTest {
+        val controller = createController(findDesktopModulePaths = { listOf(":app:desktop", ":editor:model") }, rootDirectory = testDirectory())
+        controller.gameModule.choose(":editor:model")
+        controller.play()
+        assertEquals(":editor:model:${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
+        build.currentRun.finish(isSuccessful = true)
+        assertEquals(":editor:model:${SessionInitScript.SESSION_TASK_NAME}", build.currentRun.taskPath)
     }
 
     @Test

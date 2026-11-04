@@ -52,7 +52,13 @@ class CreatorTaskRunnerTest {
         return CreatorTaskRunner(
             rootDirectory = rootDirectory,
             build = build,
-            desktopModulePath = DesktopModuleLookup(CoroutineScope(backgroundScope.coroutineContext + SupervisorJob(backgroundScope.coroutineContext[Job]) + dispatcher), dispatcher, findDesktopModulePath),
+            gameModule = GameModuleChoice(
+                rootDirectory = rootDirectory,
+                scope = CoroutineScope(backgroundScope.coroutineContext + SupervisorJob(backgroundScope.coroutineContext[Job]) + dispatcher),
+                ioDispatcher = dispatcher,
+                findDesktopModulePaths = { listOf(findDesktopModulePath()) },
+                onChosen = {},
+            ),
             incrementalCompilation = IncrementalCompilationPolicy(hasExpectDeclarations),
             console = console,
             awaitWrites = awaitWrites,

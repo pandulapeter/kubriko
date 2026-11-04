@@ -13,7 +13,7 @@ import java.io.File
 
 /**
  * What Kubriko Creator needs to know about a project's build to open it, read from its files only ([isGradleProject],
- * [nameOf]). The desktop module is asked from Gradle later (`DesktopModules`, in the `gradle` package).
+ * [nameOf]). The desktop modules are asked from Gradle later (`DesktopModules`, in the `gradle` package).
  */
 public object ProjectInspector {
 

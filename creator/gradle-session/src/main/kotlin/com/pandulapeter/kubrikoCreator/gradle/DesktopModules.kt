@@ -9,20 +9,19 @@
  */
 package com.pandulapeter.kubrikoCreator.gradle
 
-import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import org.gradle.tooling.model.GradleProject
 
 /**
- * Finds a project's desktop module. It is asked from Gradle in the background, since that configures every task of the
- * build, and only builds need it.
+ * Finds a project's desktop modules. They are asked from Gradle in the background, since that configures every task of the
+ * build, and only builds need them.
  */
 public object DesktopModules {
 
     /**
-     * The Gradle path of the first module, in Gradle's order, with a Compose desktop `run` task.
+     * The Gradle paths of the modules with a Compose desktop `run` task, in Gradle's order (depth first, children by name),
+     * which is empty for a project without one.
      */
-    public suspend fun pathOf(connection: GradleProjectConnection): String = find(ModuleNode.from(connection.model(GradleProject::class.java)))
+    public suspend fun pathsOf(connection: GradleProjectConnection): List<String> = pathsIn(ModuleNode.from(connection.model(GradleProject::class.java)))
 
-    internal fun find(root: ModuleNode): String = root.withDescendants().firstOrNull { "run" in it.taskNames }?.path
-        ?: throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE)
+    internal fun pathsIn(root: ModuleNode): List<String> = root.withDescendants().filter { "run" in it.taskNames }.map { it.path }.toList()
 }

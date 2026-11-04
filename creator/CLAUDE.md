@@ -164,7 +164,7 @@ Besides its tests passing, a change:
 | The `game.*` keys of `gradle.properties` (the game's identity and settings) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
 | A target's own files (`androidApp/`, `iosApp/`, `src/androidMain`, `src/iosMain`) | User after creation | Created by turning the target on when missing, never rewritten, and kept when it is turned off. |
 | The `PRODUCT_BUNDLE_IDENTIFIER` line of `iosApp/Configuration/Config.xcconfig` | Creator | Follows `game.applicationId`; the Xcode build fails, naming both, while they differ. |
-| `.kubriko/local/` | Creator | Git-ignored. |
+| `.kubriko/local/` | Creator | Git-ignored, by a `.gitignore` of its own (`LocalProjectStore`), since a project Creator didn't make doesn't ignore it. |
 
 ## Threads, writes, and failures
 
@@ -288,7 +288,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 
 ## Builds and playing
 
-- **Opening** never waits for Gradle: it reads the build files, and asks Gradle for the desktop module in the background; the first
+- **Opening** never waits for Gradle: it reads the build files, and asks Gradle for the desktop modules in the background; the first
   build waits for that. The workspace builds the classpath and loads the project's classes right away, so the Gradle daemon is warm
   and the first Scene opens without a build, then compiles one generated file (`CreatorTaskRunner.warmUpCompiler`), since Kotlin's
   compile daemon starts only when something needs compiling and a cold one made the first change seconds slower. The warm-up is
@@ -312,6 +312,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   code changes reload; a changed superclass, interface, instance field, or a class with static state (which a reload would leave
   null or reset) restarts the game from the same Scene. A game waits for the one before it to end, since Hot Reload's pid file is
   shared.
+- **The game's module** (`GameModuleChoice`) is the desktop module (one with a `run` task) that every build, play session,
+  and the Scene editor's classes come from: the first in Gradle's order, or the one chosen in the toolbar, which offers the
+  choice only when there are several (Tesselar's game beside its model and region editors) and nothing runs. The choice is
+  this computer's (`.kubriko/local/module.json`); choosing builds the Scene editor's classes again.
 - **Where to play** (`PlayTargetChoice`) is this computer's: the choice is kept in `.kubriko/local/play.json`, and one that
   isn't there now (a device unplugged) stays chosen while Play uses the desktop. `play` and `start_game` take the desktop
   when no `target` is given, not the user's choice, so the same call always plays in the same place. The web, Android, and

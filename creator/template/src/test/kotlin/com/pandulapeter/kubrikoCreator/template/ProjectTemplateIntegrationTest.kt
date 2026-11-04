@@ -64,7 +64,7 @@ class ProjectTemplateIntegrationTest {
                 val buildFile = directory.resolve(KubrikoBuildFiles.BUILD_FILE)
                 assertFalse("libs.kubriko.collision" in buildFile.readText(), "${template.id}: a plugin nothing uses")
                 GradleProjectConnection(directory).use { connection ->
-                    assertEquals(":", runBlocking { DesktopModules.pathOf(connection) }, template.id)
+                    assertEquals(listOf(":"), runBlocking { DesktopModules.pathsOf(connection) }, template.id)
                     assertCompiles(connection, directory, "${template.id} as created")
                     BlockTypeStore.open(directory)?.let { store ->
                         directory.resolve("src/commonMain/composeResources/drawable/every-block.png").apply { parentFile.mkdirs() }.let { image ->
@@ -109,7 +109,7 @@ class ProjectTemplateIntegrationTest {
                 assertTrue(targets.apply(assertIs<TargetChange.Proposed>(targets.change(target, isOn = true))), target.key)
             }
             GradleProjectConnection(directory).use { connection ->
-                assertEquals(":", runBlocking { DesktopModules.pathOf(connection) })
+                assertEquals(listOf(":"), runBlocking { DesktopModules.pathsOf(connection) })
                 assertCompiles(connection, directory, "every target")
                 assertTaskRuns(connection, ":androidApp:assembleDebug", "every target")
                 val apk = directory.resolve("androidApp/build/outputs/apk/debug/androidApp-debug.apk")

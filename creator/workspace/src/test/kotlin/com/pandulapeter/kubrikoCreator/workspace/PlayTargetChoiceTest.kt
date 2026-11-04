@@ -25,7 +25,7 @@ import kotlin.test.assertEquals
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayTargetChoiceTest {
     private val directory = testDirectory()
-    private val file = File(directory, PlayTargetChoice.FILE)
+    private val file = File(directory, "${LocalProjectStore.FOLDER}/${PlayTargetChoice.FILE_NAME}")
     private val device = PlayTarget(id = "device", kind = PlayTarget.Kind.DESKTOP, name = "Device")
     private var devices = listOf(device)
 

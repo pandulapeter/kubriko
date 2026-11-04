@@ -45,6 +45,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
+import com.pandulapeter.kubrikoCreator.workspace.GameModules
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
@@ -92,6 +93,8 @@ internal fun WorkspaceToolbar(
     playTargets: PlayTargets,
     onPlayTargetsOpened: () -> Unit,
     onPlayTargetChosen: (PlayTarget) -> Unit,
+    gameModules: GameModules?,
+    onGameModuleChosen: (String) -> Unit,
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onOpenProjectSettings: () -> Unit,
@@ -120,6 +123,12 @@ internal fun WorkspaceToolbar(
             onMoreTargets = onOpenTargets,
             onSetUpMore = onSetUpMoreDevices,
         )
+        if (gameModules?.isChoosable == true) {
+            GameModuleMenu(
+                modules = gameModules,
+                onChosen = onGameModuleChosen,
+            )
+        }
     } else {
         FilledTonalButton(
             modifier = ToolbarButtonModifier,
