@@ -59,6 +59,7 @@ internal fun AssistantAccountMenu(
                         AccountAction.RemoveApiKey -> onRemoveApiKey()
                     }
                 },
+                isWrapping = true,
             )
         }
     }

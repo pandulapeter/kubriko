@@ -12,8 +12,10 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -78,7 +80,8 @@ private fun SetupButton(
     )
     Popover(
         state = menu,
-        modifier = Modifier.width(SETUP_WIDTH),
+        // As wide as its widest row, so that a long account or model name shows in full; in a window too narrow for it, the rows wrap.
+        modifier = Modifier.widthIn(min = SETUP_MINIMUM_WIDTH).width(IntrinsicSize.Max),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -135,4 +138,4 @@ private fun AssistantSetup(
 }
 
 private const val SUMMARY_SEPARATOR = " · "
-private val SETUP_WIDTH = 320.dp
+private val SETUP_MINIMUM_WIDTH = 320.dp

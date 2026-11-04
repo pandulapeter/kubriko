@@ -472,7 +472,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   to (`RowActionsButton`, or a `Box` with it), since a popup counts as one more child of the row it is in and would move
   its neighbours. A panel's background reaches its divider: a `PanelSplitter` is a one-pixel line with its grip laid over
   both neighbours. Settings that rarely change stay behind a button rather than on screen (the assistant's agent, account,
-  configuration, and options are in its header's setup `Popover`). A clickable row's background and press feedback span its whole panel (a padded settings page's rows reach
+  configuration, and options are in its header's setup `Popover`, which grows to its widest row and wraps a label it
+  still can't fit, since an account's email or a model's name is never to be cut off). A clickable row's background and press feedback span its whole panel (a padded settings page's rows reach
   past the padding with `fullBleed`); only what is drawn as a card (a Block, a chip) keeps its own shape.
 - **Nothing pops in:** panels, pages, notices, list rows, and dialogs move or fade with `CreatorMotion`'s durations. What
   replaces a live Scene preview fades in (`fadeInOnChange`) rather than crossfading, which would keep two previews running.

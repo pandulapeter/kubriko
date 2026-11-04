@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 /**
  * A button showing [label] that opens a menu of [options], each shown by [optionText], calling [onSelected] with the one
  * chosen. The option shown by [label] is marked as the current one.
+ *
+ * @param isWrapping Whether [label] wraps onto further lines when it doesn't fit, rather than being cut off.
  */
 @Composable
 public fun <T> MenuButton(
@@ -22,6 +24,7 @@ public fun <T> MenuButton(
     options: List<T>,
     optionText: @Composable (T) -> String,
     onSelected: (T) -> Unit,
+    isWrapping: Boolean = false,
 ): Unit = Box {
     val menu = rememberRightClickMenuState()
     val anchor = rememberMenuAnchor(menu)
@@ -29,6 +32,7 @@ public fun <T> MenuButton(
         MenuButtonFace(
             label = label,
             onClick = anchor::open,
+            isWrapping = isWrapping,
         )
     }
     RightClickMenu(

@@ -51,6 +51,7 @@ internal fun AgentMenu(
                 AgentMenuItem.OpenLog -> onOpenLog?.invoke()
             }
         },
+        isWrapping = true,
     )
 }
 

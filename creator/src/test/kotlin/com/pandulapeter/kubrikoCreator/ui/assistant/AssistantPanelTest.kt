@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
@@ -20,7 +21,9 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.TextLayoutResult
 import com.pandulapeter.kubrikoCreator.ai.assistant.AcpAgent
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentChoice
 import com.pandulapeter.kubrikoCreator.ai.assistant.AgentCommand
@@ -31,6 +34,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeConfiguration
 import com.pandulapeter.kubrikoCreator.ai.assistant.FakeAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
+import com.pandulapeter.kubrikoCreator.testing.PANEL_WIDTH
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -61,6 +65,8 @@ import java.util.concurrent.Executors
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -228,5 +234,32 @@ class AssistantPanelTest {
         saveSnapshot("assistant-delete-conversation")
         onNodeWithText(delete).performClick()
         assertEquals(listOf("delete"), model.calls.filter { it == "delete" })
+    }
+
+    @Test
+    fun aLongAccountNameShowsInFullInOneLineWhereTheWindowHasRoom() = showingALongAccountName(width = 1200) { layout ->
+        assertEquals(1, layout.lineCount)
+    }
+
+    @Test
+    fun aLongAccountNameWrapsInsteadOfBeingCutOffInANarrowWindow() = showingALongAccountName(width = PANEL_WIDTH) { layout ->
+        assertTrue(layout.lineCount > 1)
+    }
+
+    private fun showingALongAccountName(width: Int, checkLayout: (TextLayoutResult) -> Unit) = uiTest(width = width) {
+        val status = AuthStatus(AuthStatus.Kind.ACCOUNT, "Claude Max", email = "a.rather.long.address.for.a.subscription@example.com")
+        val model = FakeAssistantPanelModel().apply { authStatus.value = status }
+        lateinit var accountLabel: String
+        showing {
+            accountLabel = stringResource(Res.string.assistant_account_signed_in, status.label, status.email!!)
+            AssistantPanelWithActions(model)
+        }
+        openSetup()
+        saveSnapshot("assistant-setup-long-account-$width")
+        val layouts = mutableListOf<TextLayoutResult>()
+        onNodeWithText(accountLabel).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val layout = layouts.single()
+        assertFalse(layout.hasVisualOverflow)
+        checkLayout(layout)
     }
 }

@@ -29,11 +29,14 @@ import org.jetbrains.compose.resources.painterResource
 /**
  * The outlined button of a menu, showing the chosen option with a chevron, filled on a [Popover] so that it doesn't
  * melt into the popover's surface.
+ *
+ * @param isWrapping Whether [label] wraps onto further lines when it doesn't fit, rather than being cut off.
  */
 @Composable
 public fun MenuButtonFace(
     label: String,
     onClick: () -> Unit,
+    isWrapping: Boolean = false,
 ): Unit = OutlinedButton(
     modifier = Modifier.heightIn(min = 32.dp),
     contentPadding = PaddingValues(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
@@ -47,8 +50,8 @@ public fun MenuButtonFace(
     Text(
         modifier = Modifier.weight(1f, fill = false),
         text = label,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
+        maxLines = if (isWrapping) Int.MAX_VALUE else 1,
+        overflow = if (isWrapping) TextOverflow.Clip else TextOverflow.Ellipsis,
     )
     Icon(
         modifier = Modifier.padding(start = 4.dp).size(14.dp),
