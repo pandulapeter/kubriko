@@ -36,6 +36,6 @@ public object CreateActorType : WriteCommand<ActorTypeDefinition> {
 
     override suspend fun apply(context: CommandContext, input: ActorTypeDefinition): Applied {
         context.requireBlockTypes.put(input)
-        return Applied(inverse = Invocation(DeleteActorType, DeleteActorType.Input(input.name)))
+        return Applied(inverse = Invocation(DeleteActorType, DeleteActorType.Input(input.name, keepsUsages = true)))
     }
 }

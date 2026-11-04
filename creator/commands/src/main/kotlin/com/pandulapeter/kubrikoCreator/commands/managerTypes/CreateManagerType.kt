@@ -41,6 +41,6 @@ public object CreateManagerType : WriteCommand<ManagerTypeDefinition> {
 
     override suspend fun apply(context: CommandContext, input: ManagerTypeDefinition): Applied {
         context.requireBlockTypes.put(input)
-        return Applied(inverse = Invocation(DeleteManagerType, DeleteManagerType.Input(input.name)))
+        return Applied(inverse = Invocation(DeleteManagerType, DeleteManagerType.Input(input.name, keepsUsages = true)))
     }
 }

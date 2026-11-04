@@ -17,6 +17,8 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
@@ -105,7 +107,8 @@ class DeletingWithUsagesTest {
         val text = assertIs<CommandOutcome.Success>(check).result.jsonPrimitive.content
         expected.forEach { assertContains(text, it) }
         val details = assertNotNull(DeleteActorType.apply(context, DeleteActorType.Input("Brick")).details)
-        assertEquals(expected, details.getValue("usages").jsonArray.map { it.jsonPrimitive.content })
+        val afterwards = expected.map { it.replace("Ball#0.3 names", "Ball#0.1 names") }
+        assertEquals(afterwards, details.getValue("usages").jsonArray.map { it.jsonPrimitive.content })
     }
 
     @Test
@@ -215,5 +218,46 @@ class DeletingWithUsagesTest {
         assertEquals(UsageEffect.PREVENTS_DELETING, context.usagesOf(RelationSubject.Scene("cave")).last().effect)
         assertNotNull(DeleteScene.apply(context, DeleteScene.Input("cave")).failure)
         assertEquals(door, context.blockTypes!!.types.value.single())
+    }
+
+    @Test
+    fun undoingACreationLeavesWhatReferredToItBeforeAsItWas() = runTest {
+        val context = commandContext(ball)
+        context.writeScene("level", sceneText)
+        val before = context.snapshot()
+        val inverse = assertNotNull(CreateActorType.apply(context, brick).inverse).copy(isRestoring = true)
+        inverse.apply(context)
+        assertEquals(before, context.snapshot())
+        val player = ActorTypeDefinition(name = "Player", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("{hp}")))))
+        val propertyContext = commandContext(player)
+        val removal = assertNotNull(AddProperty.apply(propertyContext, AddProperty.Input("Player", PropertyDefinition.Number("hp"))).inverse)
+        removal.apply(propertyContext)
+        assertEquals(player, propertyContext.blockTypes!!["Player"])
+    }
+
+    @Test
+    fun aSceneWithAnActorWhoseStateCantBeReadDoesntStopTheDelete() = runTest {
+        val context = commandContext(ball, brick)
+        val text = """[{"typeId":"Brick","state":"{}"},{"typeId":"Ball","state":"not json"}]"""
+        context.writeScene("level", text)
+        val after = context.assertRoundTrip(Invocation(DeleteActorType, DeleteActorType.Input("Brick"))) { context.sceneFile("level").readText() }
+        assertContains(after, "not json")
+        assertEquals(false, "Brick" in after)
+    }
+
+    @Test
+    fun kotlinNamingADeletedSceneIsListedAndAPlaceholderUsedTwiceOnce() = runTest {
+        val door = ActorTypeDefinition(
+            name = "Door",
+            properties = listOf(PropertyDefinition.Number("hp")),
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("println(\"cave\")"), BlockDefinition.Log("{hp} of {hp}")))),
+        )
+        val context = commandContext(door)
+        context.writeScene("cave", "[]")
+        assertEquals(
+            listOf(Usage(UsagePlace.InModel(RelationPlace.Type("Door", 0, 0)), RelationKind.NAMES_IN_KOTLIN, RelationSubject.Scene("cave"), UsageEffect.KOTLIN_TO_CHANGE)),
+            context.usagesOf(RelationSubject.Scene("cave")),
+        )
+        assertEquals(1, context.usagesOf(RelationSubject.Property("Door", "hp")).size)
     }
 }

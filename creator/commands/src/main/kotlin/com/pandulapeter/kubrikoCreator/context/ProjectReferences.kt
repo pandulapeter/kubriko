@@ -26,7 +26,8 @@ import com.pandulapeter.kubrikoCreator.actors.propertyReference
  *
  * @param sceneTypeCounts The number of Actors of each type ID that each Scene places, by the Scene's name.
  * @param firstScene The Scene the game starts with, if its settings name one.
- * @param kotlinFiles The text of every hand-written Kotlin file, by its path from the project's root.
+ * @param kotlinFiles The text of every hand-written Kotlin file, by its path from the project's root (only those
+ *   [readsKotlinFiles] says the usages of a subject need).
  */
 internal class ProjectReferences(
     private val types: List<BlockTypeDefinition>,
@@ -44,13 +45,15 @@ internal class ProjectReferences(
     fun usagesOf(subject: RelationSubject): List<Usage> = buildList {
         relations.to(subject)
             .filterNot { subject is RelationSubject.Type && it.place.owner == subject }
+            .distinct()
             .forEach { relation -> add(usageOf(relation)) }
         addAll(managerChoiceUsagesOf(subject))
         addAll(kotlinBlockUsagesOf(subject))
         if (subject is RelationSubject.Scene && subject.name == firstScene) {
             add(Usage(UsagePlace.GameSettings, RelationKind.STARTS_WITH, subject, UsageEffect.PREVENTS_DELETING))
         }
-        kotlinFiles.keys.sorted().filter { path -> namesInFile(kotlinFiles.getValue(path), subject) }.forEach { path ->
+        val isNamedIn = fileNaming(subject)
+        kotlinFiles.keys.sorted().filter { path -> isNamedIn(kotlinFiles.getValue(path)) }.forEach { path ->
             add(Usage(UsagePlace.KotlinFile(path), RelationKind.NAMES_IN_KOTLIN, subject, UsageEffect.KOTLIN_TO_CHANGE))
         }
     }
@@ -60,6 +63,12 @@ internal class ProjectReferences(
      * and the placeholders turned into text.
      */
     fun typesAfterDeleting(usages: List<Usage>): List<BlockTypeDefinition> = ReferenceCleanup(types, relations).typesAfter(usages)
+
+    /**
+     * [usages] as they are once deleting has removed the Blocks and Events it removes: the Kotlin left to change at the
+     * place it moved to, which is what the AI is told, and the rest as they were.
+     */
+    fun usagesAfterDeleting(usages: List<Usage>): List<Usage> = ReferenceCleanup(types, relations).usagesAfter(usages)
 
     private fun usageOf(relation: Relation): Usage {
         val place = UsagePlace.InModel(relation.place)
@@ -126,7 +135,10 @@ internal class ProjectReferences(
             } else {
                 return@buildList
             }
-            is RelationSubject.Scene -> return@buildList
+            is RelationSubject.Scene -> {
+                addAll(kotlinNamingScene(subject))
+                return@buildList
+            }
         }
         types.forEach { type ->
             if (subject is RelationSubject.Type && type.name == subject.name) return@forEach
@@ -145,10 +157,31 @@ internal class ProjectReferences(
         }
     }
 
-    private fun namesInFile(text: String, subject: RelationSubject) = when (subject) {
-        is RelationSubject.Type -> Regex("\\b" + Regex.escape(subject.name) + "\\b").containsMatchIn(text)
-        is RelationSubject.Scene -> "\"${subject.name}\"" in text
-        is RelationSubject.Property -> false
+    /**
+     * Kotlin Blocks and Kotlin UI naming the Scene [subject] in a string, as `goToScene("level-2")` would.
+     */
+    private fun kotlinNamingScene(subject: RelationSubject.Scene) = buildList {
+        val quoted = sceneString(subject.name)
+        types.forEach { type ->
+            type.events.forEachIndexed { eventIndex, event ->
+                event.blocks.forEachIndexed { blockIndex, block ->
+                    if (block is BlockDefinition.Kotlin && quoted in block.code) {
+                        add(Usage(UsagePlace.InModel(RelationPlace.Type(type.name, eventIndex, blockIndex)), RelationKind.NAMES_IN_KOTLIN, subject, UsageEffect.KOTLIN_TO_CHANGE))
+                    }
+                }
+            }
+            if ((type as? ManagerTypeDefinition)?.kotlinUi?.contains(quoted) == true) {
+                add(Usage(UsagePlace.InModel(RelationPlace.KotlinUi(type.name)), RelationKind.NAMES_IN_KOTLIN, subject, UsageEffect.KOTLIN_TO_CHANGE))
+            }
+        }
+    }
+
+    private fun sceneString(name: String) = "\"$name\""
+
+    private fun fileNaming(subject: RelationSubject): (String) -> Boolean = when (subject) {
+        is RelationSubject.Type -> Regex("\\b" + Regex.escape(subject.name) + "\\b")::containsMatchIn
+        is RelationSubject.Scene -> sceneString(subject.name).let { quoted -> { text -> quoted in text } }
+        is RelationSubject.Property -> { _ -> false }
     }
 
     private fun blockAt(place: RelationPlace) = (place as? RelationPlace.Type)?.let { type ->
@@ -161,6 +194,12 @@ internal class ProjectReferences(
     }
 
     companion object {
+
+        /**
+         * Whether hand-written Kotlin can name [subject], so that its usages need [kotlinFiles]: a type's class, or a
+         * Scene's name in a string, but not a Property, whose name is an ordinary word.
+         */
+        fun readsKotlinFiles(subject: RelationSubject) = subject !is RelationSubject.Property
 
         /**
          * The indexes of the if or repeat Block at [index] of [blocks] and of every Block of its section: up to its end

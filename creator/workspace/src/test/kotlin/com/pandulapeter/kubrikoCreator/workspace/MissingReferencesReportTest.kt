@@ -31,7 +31,7 @@ class MissingReferencesReportTest {
     private var findings = listOf(missing("Gone", "Door#0.0"))
     private var isFailing = false
 
-    private fun missing(name: String, place: String) = HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type(name), place)
+    private fun missing(name: String, place: String) = HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type(place.substringBefore('#')), place, usage = name)
 
     private fun TestScope.report() = MissingReferencesReport(
         changes = changes,
@@ -43,6 +43,7 @@ class MissingReferencesReportTest {
         report = { console += it },
         reportFailure = { failures += it },
         computeDispatcher = StandardTestDispatcher(testScheduler),
+        now = { testScheduler.currentTime },
     )
 
     private suspend fun TestScope.change() {
@@ -52,10 +53,11 @@ class MissingReferencesReportTest {
     }
 
     @Test
-    fun onlyWhatStartsToDangleAfterOpeningIsReportedOnce() = runTest {
-        report()
+    fun whatStartsToDangleAfterAChangeOutsideIsReportedOnce() = runTest {
+        val report = report()
         runCurrent()
         assertEquals(emptyList(), console)
+        report.onChangedOutside()
         findings = findings + missing("Brick", "Ball#1.2")
         change()
         change()
@@ -63,9 +65,23 @@ class MissingReferencesReportTest {
     }
 
     @Test
-    fun aFailedCheckIsReportedAndTheNextChangeChecksAgain() = runTest {
-        report()
+    fun whatStartsToDangleThroughCreatorsOwnChangesOrLongAfterOneOutsideIsLeftToTheHealthChecks() = runTest {
+        val report = report()
         runCurrent()
+        findings = findings + missing("Brick", "Ball#1.2")
+        change()
+        report.onChangedOutside()
+        advanceTimeBy(MissingReferencesReport.REPORT_WINDOW_IN_MILLISECONDS + 1)
+        findings = findings + missing("Wall", "Ball#2.0")
+        change()
+        assertEquals(emptyList(), console)
+    }
+
+    @Test
+    fun aFailedCheckIsReportedAndTheNextChangeChecksAgain() = runTest {
+        val report = report()
+        runCurrent()
+        report.onChangedOutside()
         isFailing = true
         findings = findings + missing("Brick", "Ball#1.2")
         change()

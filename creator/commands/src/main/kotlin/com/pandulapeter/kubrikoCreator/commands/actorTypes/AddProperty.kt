@@ -52,7 +52,7 @@ public object AddProperty : WriteCommand<AddProperty.Input> {
             context.requireBlockTypes.put(definition)
             throw exception
         }
-        val removal = Invocation(RemoveProperty, RemoveProperty.Input(input.actorType, input.property.name))
+        val removal = Invocation(RemoveProperty, RemoveProperty.Input(input.actorType, input.property.name, keepsUsages = true))
         if (replaced.isEmpty()) return Applied(inverse = removal)
         val restoredStates = replaced.map { (scene, states) ->
             Invocation(SetActorsState, SetActorsState.Input(scene, states.map { (id, state) -> SetActorsState.ActorState(id, state) }), isRestoring = true)

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -84,15 +85,33 @@ class HealthChecksTest {
         val missing = HealthChecks.of(listOf(door, game), ProjectRelations(listOf(door, game), placed), placed.keys).filter { it.kind == HealthFinding.Kind.REFERENCE_MISSING }
         assertEquals(
             listOf(
-                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Gone"), "Door"),
-                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Ghost"), "Door#0"),
-                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Brick"), "Door#1.0"),
-                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Scene("cave"), "Door#1.1"),
-                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Property("Game", "gold"), "Door#1.2"),
-                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Property("Door", "mana"), "Door#1.3"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Door"), "Door", usage = "Gone"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Door"), "Door#0", usage = "Ghost"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Door"), "Door#1.0", usage = "Brick"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Door"), "Door#1.1", usage = "Scene cave"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Door"), "Door#1.2", usage = "Game.gold"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Door"), "Door#1.3", usage = "Door.mana"),
             ),
             missing,
         )
+    }
+
+    @Test
+    fun aPlayBlockWhoseAudioFileIsGoneIsReportedOnlyWhenTheFilesAreKnown() {
+        val radio = ActorTypeDefinition(
+            name = "Radio",
+            events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.PlaySound("files/hit.wav"), BlockDefinition.PlaySound("files/gone.wav"), BlockDefinition.PlayMusic("files/theme.mp3")))),
+        )
+        val placed = mapOf("main" to mapOf("Radio" to 1))
+        val relations = ProjectRelations(listOf(radio), placed)
+        assertEquals(
+            listOf(
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Radio"), "Radio#0.1", usage = "files/gone.wav"),
+                HealthFinding(HealthFinding.Kind.REFERENCE_MISSING, RelationSubject.Type("Radio"), "Radio#0.2", usage = "files/theme.mp3"),
+            ),
+            HealthChecks.of(listOf(radio), relations, placed.keys, AudioFiles(sounds = listOf("files/hit.wav"))),
+        )
+        assertEquals(emptyList(), HealthChecks.of(listOf(radio), relations, placed.keys))
     }
 
     @Test

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
+import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
@@ -22,7 +23,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
  */
 internal object HealthChecks {
 
-    fun of(types: List<BlockTypeDefinition>, relations: ProjectRelations, sceneNames: Collection<String>): List<HealthFinding> {
+    fun of(types: List<BlockTypeDefinition>, relations: ProjectRelations, sceneNames: Collection<String>, audioFiles: AudioFiles? = null): List<HealthFinding> {
         val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
         val family = ActorTypeFamily(actorTypes)
         val instantiated = relations.all.filter { it.kind == RelationKind.PLACES || it.kind == RelationKind.ADDS }.mapNotNullTo(HashSet()) { (it.subject as? RelationSubject.Type)?.name }
@@ -59,7 +60,7 @@ internal object HealthChecks {
                 }
             }
             addAll(KotlinBlockScopeChecks.of(types, family))
-            addAll(MissingReferenceChecks.of(types, relations, sceneNames))
+            addAll(MissingReferenceChecks.of(types, relations, sceneNames, audioFiles))
         }
     }
 }

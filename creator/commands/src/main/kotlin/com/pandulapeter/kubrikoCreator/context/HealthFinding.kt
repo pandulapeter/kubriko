@@ -16,7 +16,8 @@ package com.pandulapeter.kubrikoCreator.context
  * @param subject What it is about: an Actor type, a Property, or a Scene.
  * @param detail The Timer or the other Actor type it names, or the place of the Block (`Ball#1.2`), for the kinds that
  *   name one.
- * @param usage What a Kotlin Block uses that changed: `return`, or the name of a local it no longer has.
+ * @param usage What a Kotlin Block uses that changed (`return`, or the name of a local it no longer has), or what a
+ *   reference names that no longer exists.
  */
 public data class HealthFinding(
     val kind: Kind,
@@ -57,8 +58,8 @@ public data class HealthFinding(
         KOTLIN_BLOCK_SCOPE_CHANGED,
 
         /**
-         * A Block, Event, placeholder, or parent naming what no longer exists ([MissingReferenceChecks]), at the place in
-         * [detail].
+         * A Block, Event, placeholder, or parent of [subject] naming [usage], which no longer exists
+         * ([MissingReferenceChecks]), at the place in [detail].
          */
         REFERENCE_MISSING,
     }
@@ -69,7 +70,7 @@ public data class HealthFinding(
         Kind.UNREAD_PROPERTY -> "$subject: nothing reads it (no condition, Log Block, text, or Kotlin names it)."
         Kind.TIMER_NEVER_STARTED -> "$subject: the timerFinished Event of $detail never fires, since no startTimer Block of its family starts it."
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."
-        Kind.REFERENCE_MISSING -> "$detail: names $subject, which no longer exists."
+        Kind.REFERENCE_MISSING -> "$detail: names $usage, which no longer exists."
         Kind.KOTLIN_BLOCK_SCOPE_CHANGED -> if (usage == KotlinBlockScopeChecks.RETURN) {
             "$detail: return in this Kotlin Block now ends only this Event's Blocks (and those of the type's later Events of the same kind), not the rest of the frame or the other collisions."
         } else {

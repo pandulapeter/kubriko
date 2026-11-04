@@ -49,7 +49,7 @@ public object DeleteManagerType : DeletingCommand<DeleteManagerType.Input> {
 
     /**
      * @param keepsUsages Whether it deletes only the Manager type itself, leaving what refers to it: the last part of the delete, after
-     *   [deleteWithUsages] cleaned that up.
+     *   [deleteWithUsages] cleaned that up, and what undoes its creation, which leaves what referred to it before as it was.
      */
     @Serializable
     public data class Input(

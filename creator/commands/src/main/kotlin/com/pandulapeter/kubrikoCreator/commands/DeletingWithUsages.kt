@@ -28,7 +28,7 @@ import kotlinx.serialization.json.putJsonArray
  * one step, undone together, and the AI hears every usage and what happened to it, Kotlin left to change included.
  */
 internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, delete: Invocation<*>): Applied {
-    val references = projectReferences()
+    val references = projectReferences(subject)
     val usages = references.usagesOf(subject)
     val parts = buildList {
         scenesWithout(subject, usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceScenes, ReplaceScenes.Input(it))) }
@@ -36,14 +36,14 @@ internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, d
         add(delete)
     }
     val applied = parts.singleOrNull()?.apply(this) ?: CompositeCommand.apply(this, CompositeCommand.Input(parts))
-    return if (applied.failure == null && usages.isNotEmpty()) applied.copy(details = usagesDetails(usages)) else applied
+    return if (applied.failure == null && usages.isNotEmpty()) applied.copy(details = usagesDetails(references.usagesAfterDeleting(usages))) else applied
 }
 
 /**
  * What deleting [subject] would do to each of its usages, as [deleteWithUsages] would make it: for the confirmation and
  * `check_change`.
  */
-internal suspend fun CommandContext.usagesOf(subject: RelationSubject): List<Usage> = projectReferences().usagesOf(subject)
+internal suspend fun CommandContext.usagesOf(subject: RelationSubject): List<Usage> = projectReferences(subject).usagesOf(subject)
 
 private suspend fun CommandContext.scenesWithout(subject: RelationSubject, usages: List<Usage>): Map<String, String> {
     val typeName = (subject as? RelationSubject.Type)?.name ?: return emptyMap()

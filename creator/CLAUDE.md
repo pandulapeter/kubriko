@@ -242,7 +242,9 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   from `ProjectReferences`, which `check_change`, the AI's result (`Applied.details`), and the confirmation every delete from the UI waits for (`WorkspaceUiState.dispatch`) read too, so
   none sees less than the delete does. What still dangles after a change outside Creator (a file deleted in a terminal, a
   git checkout) shows where it is: on the Block's card (`isMissingChoice`), in the health checks (`MissingReferenceChecks`),
-  and once in the console (`MissingReferencesReport`, which leaves what dangled at opening to the health checks).
+  and once in the console (`MissingReferencesReport`, only for what starts dangling within seconds of a change outside
+  Creator, so neither the types loading at opening nor a placeholder typed halfway is reported as deleted). Undoing a
+  creation deletes only the thing (`keepsUsages`), leaving what referred to it before as it was.
 - **Batches** (`place_actors`, `remove_actors`, `restore_actors`, `set_actors_values`, `set_actors_state`) are one undo step each,
   and name no Actor twice and at least one. Paged reads (`read_scene`, `list_actor_types`) keep large games readable.
 

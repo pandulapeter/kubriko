@@ -23,7 +23,7 @@ internal suspend fun CommandContext.healthFindings(): List<HealthFinding> = heal
  */
 internal fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, Int>>): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
-    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names())
+    return HealthChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles())
 }
 
 /**
@@ -32,5 +32,5 @@ internal fun CommandContext.healthFindings(sceneCounts: Map<String, Map<String, 
 public suspend fun CommandContext.missingReferences(): List<HealthFinding> {
     val types = blockTypes?.types?.value.orEmpty()
     val sceneCounts = sceneTypeCounts()
-    return withContext(ioDispatcher) { MissingReferenceChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names()) }
+    return withContext(ioDispatcher) { MissingReferenceChecks.of(types, ProjectRelations(types, sceneCounts), scenes.names(), audioFiles()) }
 }

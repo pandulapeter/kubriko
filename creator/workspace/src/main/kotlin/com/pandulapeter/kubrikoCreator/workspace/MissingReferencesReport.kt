@@ -18,8 +18,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
@@ -30,14 +32,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Says in the console what starts naming something that no longer exists, [DEBOUNCE_IN_MILLISECONDS] after the last
- * change: a type or Scene deleted outside Kubriko Creator (in a terminal, by a git checkout), whose Blocks a delete in
- * Kubriko Creator would have cleaned up. What already dangled when the project opened is left to the health checks.
+ * Says in the console what starts naming something that no longer exists after a change outside Kubriko Creator (a type
+ * or Scene deleted in a terminal, or by a git checkout), whose Blocks a delete in Kubriko Creator would have cleaned up.
+ * It checks [DEBOUNCE_IN_MILLISECONDS] after every change, but reports only within [REPORT_WINDOW_IN_MILLISECONDS] of one
+ * from outside ([onChangedOutside]), long enough for the types it changed to be read again: the types loading at opening,
+ * and the user's own edits (a placeholder typed halfway), are left to the health checks and the Block cards.
  *
  * @param changes Emits whenever what names what may have changed.
  * @param compute Finds what names something that no longer exists; it runs on [computeDispatcher].
  * @param report Writes a line to the console.
  * @param reportFailure Says that a check failed; the next change checks again.
+ * @param now The time in milliseconds, which tests replace with virtual time.
  */
 internal class MissingReferencesReport(
     changes: Flow<Any?>,
@@ -46,11 +51,15 @@ internal class MissingReferencesReport(
     private val report: (ConsoleEntry) -> Unit,
     private val reportFailure: (Throwable) -> Unit,
     private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val now: () -> Long = System::currentTimeMillis,
 ) {
+    private val outsideChanges = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private var reportsUntil = Long.MIN_VALUE
+
     init {
         scope.launch {
             var known: Set<HealthFinding>? = null
-            changes.onStart { emit(Unit) }.collectLatest {
+            merge(changes, outsideChanges).onStart { emit(Unit) }.collectLatest {
                 if (known != null) delay(DEBOUNCE_IN_MILLISECONDS)
                 val current = try {
                     withContext(computeDispatcher) { compute() }.toSet()
@@ -60,9 +69,9 @@ internal class MissingReferencesReport(
                     reportFailure(exception)
                     return@collectLatest
                 }
-                known?.let { previous ->
+                known?.takeIf { now() <= reportsUntil }?.let { previous ->
                     (current - previous).forEach { finding ->
-                        report(ConsoleEntry.Status(WorkspaceStatus.REFERENCE_MISSING, isError = true, arguments = listOf(finding.detail.orEmpty(), finding.subject.toString())))
+                        report(ConsoleEntry.Status(WorkspaceStatus.REFERENCE_MISSING, isError = true, arguments = listOf(finding.detail.orEmpty(), finding.usage.orEmpty())))
                     }
                 }
                 known = current
@@ -70,8 +79,17 @@ internal class MissingReferencesReport(
         }
     }
 
+    /**
+     * Notes that files changed outside Kubriko Creator, so that what starts dangling within the window is reported.
+     */
+    fun onChangedOutside() {
+        reportsUntil = now() + REPORT_WINDOW_IN_MILLISECONDS
+        outsideChanges.tryEmit(Unit)
+    }
+
     companion object {
         const val DEBOUNCE_IN_MILLISECONDS = 500L
+        const val REPORT_WINDOW_IN_MILLISECONDS = 5_000L
 
         /**
          * The report of a workspace, whose references may change with its types and resources.

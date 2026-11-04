@@ -26,38 +26,66 @@ internal class ReferenceCleanup(
 
     fun typesAfter(usages: List<Usage>): List<BlockTypeDefinition> {
         val deletedProperties = usages.mapNotNullTo(HashSet()) { it.subject as? RelationSubject.Property }
-        val places = usages.mapNotNull { usage -> ((usage.place as? UsagePlace.InModel)?.place)?.let { it to usage.effect } }
-        val byType = places.groupBy { (place, _) -> place.owner }
+        val removals = removalsOf(usages)
         return types.mapNotNull { type ->
-            val changes = byType[RelationSubject.Type(type.name)] ?: return@mapNotNull null
-            cleaned(type, changes, deletedProperties).takeIf { it != type }
+            val removal = removals[type.name] ?: return@mapNotNull null
+            cleaned(type, removal, deletedProperties).takeIf { it != type }
         }
     }
 
-    private fun cleaned(type: BlockTypeDefinition, changes: List<Pair<RelationPlace, UsageEffect>>, deletedProperties: Set<RelationSubject.Property>): BlockTypeDefinition {
-        fun isDeleted(placeholder: PropertyPlaceholders.Placeholder) = relations.propertyOf(type.name, placeholder.manager, placeholder.name) in deletedProperties
-        val removedEvents = HashSet<Int>()
-        val removedBlocks = HashMap<Int, MutableSet<Int>>()
-        val textsToClean = HashSet<Int>()
-        changes.forEach { (place, effect) ->
+    /**
+     * [usages] with the places of the Kotlin left to change moved to where the removed Blocks and Events before them
+     * leave them.
+     */
+    fun usagesAfter(usages: List<Usage>): List<Usage> {
+        val removals = removalsOf(usages)
+        return usages.map { usage ->
+            val place = (usage.place as? UsagePlace.InModel)?.place as? RelationPlace.Type
+            val removal = place?.let { removals[it.name] }
+            if (usage.effect != UsageEffect.KOTLIN_TO_CHANGE || place?.eventIndex == null || removal == null) return@map usage
+            val eventIndex = place.eventIndex
+            val moved = place.copy(
+                eventIndex = eventIndex - removal.events.count { it < eventIndex },
+                blockIndex = place.blockIndex?.let { blockIndex -> blockIndex - removal.blocks[eventIndex].orEmpty().count { it < blockIndex } },
+            )
+            usage.copy(place = UsagePlace.InModel(moved))
+        }
+    }
+
+    /**
+     * What deleting removes from each type, by its name: Events, Blocks by Event, and the texts whose placeholders change.
+     */
+    private fun removalsOf(usages: List<Usage>): Map<String, Removal> {
+        val removals = HashMap<String, Removal>()
+        usages.forEach { usage ->
+            val place = (usage.place as? UsagePlace.InModel)?.place ?: return@forEach
+            val removal = removals.getOrPut((place.owner as? RelationSubject.Type)?.name ?: return@forEach, ::Removal)
             when (place) {
                 is RelationPlace.Type -> {
                     val eventIndex = place.eventIndex ?: return@forEach
                     val blockIndex = place.blockIndex
-                    when (effect) {
-                        UsageEffect.EVENT_REMOVED -> removedEvents += eventIndex
-                        UsageEffect.BLOCK_REMOVED -> removedBlocks.getOrPut(eventIndex, ::HashSet) += checkNotNull(blockIndex)
-                        UsageEffect.SECTION_REMOVED -> removedBlocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(type.events[eventIndex].blocks, checkNotNull(blockIndex))
+                    when (usage.effect) {
+                        UsageEffect.EVENT_REMOVED -> removal.events += eventIndex
+                        UsageEffect.BLOCK_REMOVED -> removal.blocks.getOrPut(eventIndex, ::HashSet) += checkNotNull(blockIndex)
+                        UsageEffect.SECTION_REMOVED -> {
+                            val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
+                            removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
+                        }
                         UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING -> Unit
                     }
                 }
-                is RelationPlace.Text -> if (effect == UsageEffect.PLACEHOLDER_TO_TEXT) textsToClean += place.textIndex
+                is RelationPlace.Text -> if (usage.effect == UsageEffect.PLACEHOLDER_TO_TEXT) removal.texts += place.textIndex
                 is RelationPlace.KotlinUi, is RelationPlace.Scene -> Unit
             }
         }
+        return removals
+    }
+
+    private fun cleaned(type: BlockTypeDefinition, removal: Removal, deletedProperties: Set<RelationSubject.Property>): BlockTypeDefinition {
+        fun isDeleted(placeholder: PropertyPlaceholders.Placeholder) = relations.propertyOf(type.name, placeholder.manager, placeholder.name) in deletedProperties
         val events = type.events.mapIndexedNotNull { eventIndex, event ->
-            if (eventIndex in removedEvents) return@mapIndexedNotNull null
-            val removed = removedBlocks[eventIndex].orEmpty()
+            if (eventIndex in removal.events) return@mapIndexedNotNull null
+            val removed = removal.blocks[eventIndex].orEmpty()
             event.copy(
                 blocks = event.blocks.mapIndexedNotNull { blockIndex, block ->
                     when {
@@ -69,14 +97,20 @@ internal class ReferenceCleanup(
             )
         }
         val withEvents = type.withEvents(events)
-        return if (withEvents is ManagerTypeDefinition && textsToClean.isNotEmpty()) {
+        return if (withEvents is ManagerTypeDefinition && removal.texts.isNotEmpty()) {
             withEvents.copy(
                 texts = withEvents.texts.mapIndexed { index, text ->
-                    if (index in textsToClean) text.copy(text = PropertyPlaceholders.withPlaceholdersAsText(text.text, ::isDeleted)) else text
+                    if (index in removal.texts) text.copy(text = PropertyPlaceholders.withPlaceholdersAsText(text.text, ::isDeleted)) else text
                 },
             )
         } else {
             withEvents
         }
+    }
+
+    private class Removal {
+        val events = HashSet<Int>()
+        val blocks = HashMap<Int, MutableSet<Int>>()
+        val texts = HashSet<Int>()
     }
 }

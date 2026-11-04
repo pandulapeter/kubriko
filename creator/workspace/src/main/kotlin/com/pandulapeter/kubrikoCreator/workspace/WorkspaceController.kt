@@ -381,6 +381,7 @@ public class WorkspaceController(
     internal fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) {
         if (ProjectChange.MODULES in changes) gameModule.onBuildFilesChanged()
         this.changes.onProjectChanged(changes, snapshot)
+        missingReferences.onChangedOutside()
     }
 
     /**

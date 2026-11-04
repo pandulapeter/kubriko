@@ -26,9 +26,10 @@ internal suspend fun CommandContext.sceneTypeCounts(): Map<String, Map<String, I
 internal suspend fun CommandContext.projectRelations() = ProjectRelations(types = blockTypes?.types?.value.orEmpty(), scenes = sceneTypeCounts())
 
 /**
- * Everything that refers to the parts of the open project, hand-written Kotlin included.
+ * Everything that refers to the parts of the open project, with the hand-written Kotlin files only when those can name
+ * [subject] ([ProjectReferences.readsKotlinFiles]).
  */
-internal suspend fun CommandContext.projectReferences(): ProjectReferences {
+internal suspend fun CommandContext.projectReferences(subject: RelationSubject): ProjectReferences {
     val types = blockTypes?.types?.value.orEmpty()
     val sceneCounts = sceneTypeCounts()
     return withContext(ioDispatcher) {
@@ -36,7 +37,7 @@ internal suspend fun CommandContext.projectReferences(): ProjectReferences {
             types = types,
             sceneTypeCounts = sceneCounts,
             firstScene = firstSceneSettings(project.rootDirectory)?.firstScene,
-            kotlinFiles = HandWrittenKotlin.read(project.rootDirectory),
+            kotlinFiles = if (ProjectReferences.readsKotlinFiles(subject)) HandWrittenKotlin.read(project.rootDirectory) else emptyMap(),
         )
     }
 }
