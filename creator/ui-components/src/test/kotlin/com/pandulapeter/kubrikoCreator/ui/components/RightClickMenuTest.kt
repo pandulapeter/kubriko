@@ -12,17 +12,39 @@ package com.pandulapeter.kubrikoCreator.ui.components
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performScrollTo
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class RightClickMenuTest {
+
+    @Test
+    fun aMenuTallerThanTheWindowStaysInsideItScrollsAndFadesTheEdgeWithMoreBeyondIt() = uiTest(width = 480, height = 320) {
+        showing {
+            val menu = rememberRightClickMenuState()
+            val anchor = rememberMenuAnchor(menu)
+            TextButton(modifier = anchor.modifier, onClick = anchor::open) { Text("Open") }
+            RightClickMenu(state = menu, actions = (1..40).map { ContextAction(label = "Entry $it") {} })
+        }
+        onNodeWithText("Open").performClick()
+        waitForIdle()
+        val first = onNodeWithText("Entry 1").fetchSemanticsNode().boundsInWindow
+        assertTrue(first.top >= 0f, "The menu starts above the window, at ${first.top}.")
+        onNodeWithText("Entry 40").assertIsNotDisplayed()
+        saveSnapshot("right-click-menu-scrolling")
+        onNodeWithText("Entry 40").performScrollTo().assertIsDisplayed()
+        saveSnapshot("right-click-menu-scrolled")
+    }
 
     @Test
     fun anEntryWithChildrenOpensTheirMenuBesideItAndChoosingThereClosesEveryMenu() = uiTest(width = 480, height = 320) {

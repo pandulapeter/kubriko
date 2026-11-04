@@ -16,11 +16,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +48,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButtonFace
 import com.pandulapeter.kubrikoCreator.ui.components.MenuStyle
 import com.pandulapeter.kubrikoCreator.ui.components.matchingOptions
+import com.pandulapeter.kubrikoCreator.ui.components.scrollEdgeFades
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.key_listening
@@ -143,8 +144,10 @@ private fun KeyChoicePanel(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        val listState = rememberLazyListState()
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp),
+            modifier = Modifier.fillMaxWidth().scrollEdgeFades(listState),
+            state = listState,
             contentPadding = PaddingValues(vertical = 4.dp),
         ) {
             items(keys, key = { it.composeKeyName }) { key ->

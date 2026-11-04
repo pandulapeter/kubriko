@@ -491,9 +491,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (`CreatorTheme` turns off Material's 48dp touch targets, so a control takes only the room it draws), small corners, and
   dialogs of several groups as a list of pages beside the chosen one rather than one long scroll. A row shows its main action;
   the rest (remove, or a ⋮ `RowActionsButton` opening the same `RightClickMenu` as a right-click) fade in while it is pointed
-  at or focused, never only in the right-click menu. Every menu is a `RightClickMenu` (compact rows, scrolling to the popover's
-  edges; `MenuButton`, `MenuIconButton`, and `RowActionsButton` open one under themselves through a `MenuAnchor`), and every
-  menu and popup looks like one (`MenuStyle`: brighter than any panel,
+  at or focused, never only in the right-click menu. Every menu is a `RightClickMenu` (compact rows, as tall as the window lets it, scrolling to the popover's
+  edges; `MenuButton`, `MenuIconButton`, and `RowActionsButton` open one under themselves through a `MenuAnchor`), a list in a popup that its height still cuts off fades out at that edge (`scrollEdgeFades`), so it never looks
+  complete when it isn't, and every menu and popup looks like one (`MenuStyle`: brighter than any panel,
   with an edge and a shadow), so it never reads as part of the panel it opened from, and is held by the button it belongs
   to (`RowActionsButton`, or a `Box` with it), since a popup counts as one more child of the row it is in and would move
   its neighbours. A panel's background reaches its divider: a `PanelSplitter` is a one-pixel line with its grip laid over

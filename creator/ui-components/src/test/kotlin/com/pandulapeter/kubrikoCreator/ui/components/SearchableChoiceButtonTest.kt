@@ -26,6 +26,7 @@ import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class SearchableChoiceButtonTest {
@@ -53,6 +54,16 @@ class SearchableChoiceButtonTest {
         onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
         assertEquals("Player", selected)
         assertEquals(1, onAllNodes(isRoot()).fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun aListTallerThanTheWindowStaysInsideItAndScrolls() = uiTest(width = 400, height = 300) {
+        showChoice((1..60).map { "Option$it" }) {}
+        onNodeWithText("Choose").performClick()
+        waitForIdle()
+        assertTrue(onNodeWithText("Option1").fetchSemanticsNode().boundsInWindow.top >= 0f)
+        onNodeWithText("Option60").assertDoesNotExist()
+        saveSnapshot("searchable-choice-scrolling")
     }
 
     @Test

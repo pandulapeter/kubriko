@@ -53,8 +53,8 @@ import org.jetbrains.compose.resources.painterResource
 
 /**
  * The menu of [actions] that opens right where the element with [rightClickMenu] of [state] was right-clicked (or under the
- * button that opened it): a [Popover] holding compact rows, which scrolls when they are too many, its scrolling reaching
- * the popover's edges. An action with children opens their menu beside it when pointed at or clicked, and choosing in it
+ * button that opened it): a [Popover] holding compact rows, as tall as the window lets it, which scrolls when they are
+ * still too many, its scrolling reaching the popover's edges and the edge with more beyond it fading out. An action with children opens their menu beside it when pointed at or clicked, and choosing in it
  * closes every menu. Every menu of Kubriko Creator is one.
  */
 @Composable
@@ -97,8 +97,9 @@ private fun MenuLevel(
         isFocusable = !isSubmenu,
         modifier = Modifier.width(IntrinsicSize.Max).widthIn(min = MENU_MINIMUM_WIDTH, max = MENU_MAXIMUM_WIDTH),
     ) {
+        val scroll = rememberScrollState()
         Column(
-            modifier = Modifier.heightIn(max = MENU_MAXIMUM_HEIGHT).verticalScroll(rememberScrollState()).padding(vertical = 4.dp),
+            modifier = Modifier.scrollEdgeFades(scroll).verticalScroll(scroll).padding(vertical = 4.dp),
         ) {
             actions.forEachIndexed { index, action ->
                 if (action.isSeparated) HorizontalDivider(Modifier.padding(vertical = 4.dp))
@@ -197,6 +198,5 @@ private fun MenuEntry(
 
 private val MENU_MINIMUM_WIDTH = 140.dp
 private val MENU_MAXIMUM_WIDTH = 300.dp
-private val MENU_MAXIMUM_HEIGHT = 360.dp
 private val MENU_ENTRY_HEIGHT = 30.dp
 private const val EXPANDED_ENTRY_ALPHA = 0.08f
