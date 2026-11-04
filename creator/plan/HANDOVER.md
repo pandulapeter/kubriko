@@ -25,8 +25,9 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-First fix `03-playing-on-every-target.md` → Texts on the web (the end-to-end images show Manager texts missing in the browser).
-Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
+First confirm Texts on the web on Linux: `181108f26..566b80b6e` aren't pushed, and only the end-to-end job (a `Tests`
+dispatch) can show that Breakout's texts now draw in the browser there, since on a Mac Compose for Web finds a font of its own
+and the texts drew without the fix too. Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
 writers' room. Pages, their commands and tools, the Screenplay group, and the page editor exist (`0954d5ef2..f82ba8008`, not
 reviewed in `6c082fbff` and `52083d116`). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
 Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
@@ -37,22 +38,22 @@ engine and sprite atlas parts touch only `engine/` and `plugins/sprites`, so the
 their own; its Creator part follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other
 plans (Traits, UI elements, git) or for the benchmarks.
 
-What the last session did, all reviewed (`/code-review high` on `3108dad56..f1067ff03`; its ten findings fixed in
-`220e8259f` and `f3e677d61`):
+What the last session did, all reviewed (`/code-review high` on `181108f26`; its findings fixed in `566b80b6e`, three
+declined: `TargetFiles`' fixed `src/wasmJsMain` paths, which every target shares, recomputing missing files per proposal, and a
+timeout for the font, which comes from the game's own server):
 
-- **Deletes clean up what refers to them** (`3108dad56`): deleting an Actor type, Manager type, Scene, or Property removes its
-  Actors from every Scene, the Blocks and Events that only mean something with it (an if Block with its section), and turns
-  its placeholders into text, as one undo step restored byte for byte (`ReplaceTypes`, `ReplaceScenes`); Kotlin is listed, never
-  rewritten. `ProjectReferences` finds the usages; `DeletingEveryThingTest` deletes everything in `EveryBlockTypes` and checks
-  nothing names it afterwards, which caught a Block with a Manager type chosen but no Property. `check_change` and the AI's
-  result (`Applied.details`, merged into the write summary) list what happened, with Kotlin places as they are afterwards.
-- **Asking first** (`aa1f6a979`): every delete from the UI goes through `WorkspaceUiState.dispatch`, which holds it for
-  `DeleteConfirmation`: the usages with what happens to each, clickable to their place, refused while the first Scene or a child
-  type keeps it, and saying when nothing uses it or the usages couldn't be read.
-- **What still dangles** (`f1067ff03`): a Block card whose type, Scene, sound, or Property is gone says "no longer exists"
-  (`isMissingChoice`); the health checks report it at its place (`MissingReferenceChecks`, sounds and music included); and the
-  console says it once when it starts within seconds of a change outside Creator (`MissingReferencesReport`).
-- Undoing a creation or an added Property deletes only that thing (`keepsUsages`), so what referred to it before stays.
+- **Texts on the web** (`181108f26`, template version 12): Compose for Web has no font of its own on Linux (on a Mac it finds
+  one, and it downloads Noto from Google Fonts for glyphs it lacks), so the web `Main.kt` shows the game only once the
+  project's Public Sans (`src/wasmJsMain/composeResources/font`) is preloaded as the fallback font (`WebFontUpgrade`). A file
+  that isn't text is now a copy of a module resource (`path <- resource` in `files.txt`, `CopiedFile` in upgrades,
+  `ProposedFileChange.resource`, named only in the diff and `get_project_upgrade`), and the font is copied into the template
+  module's resources from `tools/ui-components` at build time. `HeadlessChrome` reaches no host but this computer, so a web
+  check never passes on a download. `WebGameIntegrationTest` checks a Manager type's text and the end-to-end web step
+  Breakout's; both pass on a Mac without the fix too, which is why the Linux run is owed.
+- **A flaky Android player test** (`a2bf3d512`): `builtAlongside` starts the build before the device check, so a device found
+  missing at once always stops a build that began (`BuildAlongsideTest`).
+- The raw-Markdown flash when switching pages couldn't be reproduced, frame by frame offscreen nor by the user afterwards; it
+  was most likely the previous page's text that `52083d116` fixed, in a Creator started before it.
 
 ## Before a release
 
