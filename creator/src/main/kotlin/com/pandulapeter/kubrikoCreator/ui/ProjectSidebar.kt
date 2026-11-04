@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -84,6 +86,9 @@ internal fun ProjectSidebar(
     LazyColumn(
         modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } },
     ) {
+        // A first row that is always there, so the list keeps its top in place, not whatever row came first: module bands
+        // that appear once the project is read are inserted above that row, and would otherwise be scrolled out of view.
+        item(key = "sidebar-top") { Spacer(Modifier.height(1.dp)) }
         val openModules = HashSet<String>()
         shownModules.forEach { module ->
             if (module.parent != null && module.parent !in openModules) return@forEach
@@ -91,7 +96,7 @@ internal fun ProjectSidebar(
             if (isGrouped) {
                 item(key = moduleKey) {
                     SidebarModuleHeader(
-                        modifier = Modifier.animateItem(),
+                        modifier = sidebarItemMotion(),
                         path = module.path,
                         depth = module.depth,
                         isExpanded = tree.isExpanded(moduleKey),
@@ -117,7 +122,7 @@ internal fun ProjectSidebar(
         if (isFiltering && shownModules.isEmpty()) {
             item(key = "filter-none") {
                 Text(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = sidebarItemMotion(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)),
                     text = stringResource(Res.string.choice_none_found),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

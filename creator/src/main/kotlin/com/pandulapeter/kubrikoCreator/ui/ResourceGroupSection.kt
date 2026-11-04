@@ -14,10 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
@@ -32,12 +31,12 @@ import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_scene
 import kubriko.creator.generated.resources.ic_sound
 import kubriko.creator.generated.resources.ic_sprite
-import kubriko.creator.generated.resources.resource_group_empty
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The header of a group of [module]'s files that aren't types or Scenes, then, while it is open in [tree], its files: the
- * Kotlin files as a tree, the rest by name, or a line saying there are none.
+ * Kotlin files as a tree, the rest by name. A group with none is only its header, faded, which says where such files go
+ * without a line of its own for each.
  */
 internal fun LazyListScope.resourceGroupSection(
     module: SidebarModule,
@@ -49,23 +48,17 @@ internal fun LazyListScope.resourceGroupSection(
     val groupResources = module.resources[group].orEmpty()
     item(key = groupKey) {
         ResourceGroupHeader(
+            modifier = sidebarItemMotion(),
             group = group,
             indent = module.depth,
             isExpanded = isExpanded,
+            isEmpty = groupResources.isEmpty(),
             onToggle = { tree.toggle(groupKey) },
             subfolderActions = tree.subfolderActions(groupKey),
         )
     }
     when {
-        !isExpanded -> Unit
-        groupResources.isEmpty() -> item(key = "$groupKey-empty") {
-            Text(
-                modifier = Modifier.padding(start = 36.dp + SIDEBAR_INDENT * module.depth, top = 2.dp, bottom = 6.dp),
-                text = stringResource(Res.string.resource_group_empty),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        !isExpanded || groupResources.isEmpty() -> Unit
         group == ResourceGroup.KOTLIN -> kotlinTreeItems(
             groupKey = groupKey,
             rows = kotlinTreeRows(groupResources, module.kotlinRootPackage, tree.toggledKotlinRows(groupKey), isEverythingOpen = tree.isFiltering),
@@ -78,19 +71,24 @@ internal fun LazyListScope.resourceGroupSection(
 
 /**
  * The header of a group of files, opened and closed by a click, with [subfolderActions] before its chevron while it
- * holds folders, and its content [indent] levels in, as the module it belongs to is.
+ * holds folders, and its content [indent] levels in, as the module it belongs to is. While it [isEmpty], it is faded and
+ * opens nothing.
  */
 @Composable
 private fun ResourceGroupHeader(
     group: ResourceGroup,
     indent: Int,
     isExpanded: Boolean,
+    isEmpty: Boolean,
     onToggle: () -> Unit,
     subfolderActions: SubfolderActions?,
+    modifier: Modifier = Modifier,
 ) {
     val hover = rememberHoverRevealState()
     PanelHeader(
-        modifier = Modifier.clickable(onClick = onToggle).hoverReveal(hover).padding(start = SIDEBAR_INDENT * indent),
+        modifier = modifier
+            .then(if (isEmpty) Modifier.alpha(EMPTY_GROUP_ALPHA) else Modifier.clickable(onClick = onToggle).hoverReveal(hover))
+            .padding(start = SIDEBAR_INDENT * indent),
         icon = group.icon,
         title = stringResource(group.title),
         accent = Accent.CODE,
@@ -101,10 +99,12 @@ private fun ResourceGroupHeader(
                 actions = subfolderActions,
             )
         }
-        SidebarChevron(
-            modifier = Modifier.padding(end = 8.dp).size(16.dp),
-            isExpanded = isExpanded,
-        )
+        if (!isEmpty) {
+            SidebarChevron(
+                modifier = Modifier.padding(end = 8.dp).size(16.dp),
+                isExpanded = isExpanded,
+            )
+        }
     }
 }
 
@@ -115,6 +115,7 @@ private fun LazyListScope.resourceItems(group: ResourceGroup, groupResources: Li
     val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
     items(groupResources, key = { it.relativePath }) { resource ->
         SidebarItem(
+            modifier = sidebarItemMotion(),
             icon = group.icon,
             accent = Accent.CODE,
             text = resource.name,
@@ -141,3 +142,8 @@ private val ResourceGroup.icon
 internal fun shownResourceGroups(resources: Map<ResourceGroup, List<ProjectResource>>) = ResourceGroup.entries.filter { group ->
     group != ResourceGroup.SCENES && (group == ResourceGroup.KOTLIN || resources[group].orEmpty().isNotEmpty())
 }
+
+/**
+ * How strongly the header of a group with nothing in it shows, faded enough to read as empty and still be read.
+ */
+internal const val EMPTY_GROUP_ALPHA = 0.55f

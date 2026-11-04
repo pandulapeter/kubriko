@@ -18,11 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
@@ -47,7 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * A folder of the sidebar, opened and closed by a click, drawn with [icon]. Its [actions], if any, are offered by its ⋮
  * (shown while it is pointed at) and its right-click menu, and its [subfolderActions], if it holds folders, by the
- * buttons before it.
+ * buttons laid over the end of its name while it is pointed at.
  */
 @Composable
 internal fun SidebarFolderRow(
@@ -83,19 +81,14 @@ internal fun SidebarFolderRow(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Text(
+        SidebarRowTitle(
             modifier = Modifier.padding(start = 4.dp).weight(1f),
             text = name,
             style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            isPointedAt = hover.isActive || menu.isOpen,
+            subfolderActions = subfolderActions,
+            background = MaterialTheme.colorScheme.surfaceContainerLow,
         )
-        if (subfolderActions != null) {
-            ExpandCollapseButtons(
-                isShown = hover.isActive || menu.isOpen,
-                actions = subfolderActions,
-            )
-        }
         if (actions.isNotEmpty()) {
             RowActionsButton(
                 modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),

@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -32,7 +33,8 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The header of a sidebar group with folders in [module]: while it [isCreating], its + (at the end, as every panel
  * header's is) adds an item, and its ⋮ (shown while it is pointed at) and its right-click menu offer that and a new
- * folder, as a folder row's do; in a module Kubriko Creator doesn't add to, it offers neither. Its [subfolderActions], if
+ * folder, as a folder row's do; in a module Kubriko Creator doesn't add to, it offers neither, and is faded while it
+ * [isEmpty], as an empty group of files is. Its [subfolderActions], if
  * it holds folders, are the buttons before them. Dropping an item on it moves it out of its folder. Its content is
  * [indent] levels in, as the module it belongs to is.
  */
@@ -42,18 +44,21 @@ internal fun SidebarGroupHeader(
     module: String,
     indent: Int,
     isCreating: Boolean,
+    isEmpty: Boolean,
     dragState: SidebarDragState,
     onNewItem: () -> Unit,
     onNewFolder: () -> Unit,
     subfolderActions: SubfolderActions?,
+    modifier: Modifier = Modifier,
 ) {
     val hover = rememberHoverRevealState()
     val menu = rememberRightClickMenuState()
     PanelHeader(
-        modifier = Modifier
+        modifier = modifier
             .folderDropTarget(dragState, SidebarDragState.FolderKey(group, "", module))
             .hoverReveal(hover)
             .then(if (isCreating) Modifier.rightClickMenu(menu) else Modifier)
+            .then(if (isEmpty && !isCreating) Modifier.alpha(EMPTY_GROUP_ALPHA) else Modifier)
             .padding(start = SIDEBAR_INDENT * indent),
         icon = group.icon,
         title = stringResource(group.title),

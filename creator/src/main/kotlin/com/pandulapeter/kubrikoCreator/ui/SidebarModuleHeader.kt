@@ -19,11 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
@@ -33,8 +31,8 @@ import org.jetbrains.compose.resources.painterResource
 
 /**
  * The band above the groups of the Gradle module in [path] of a project of several, indented by its [depth] among the
- * modules, named by [moduleFolderName], opened and closed by a click, with [subfolderActions] before its chevron while it
- * holds anything that opens.
+ * modules, named by [moduleFolderName], opened and closed by a click, with [subfolderActions] laid over the end of its
+ * name while it is pointed at and holds anything that opens.
  */
 @Composable
 internal fun SidebarModuleHeader(
@@ -63,19 +61,14 @@ internal fun SidebarModuleHeader(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Text(
+        SidebarRowTitle(
             modifier = Modifier.weight(1f),
             text = moduleFolderName(path),
             style = MaterialTheme.typography.titleSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            isPointedAt = hover.isActive,
+            subfolderActions = subfolderActions,
+            background = MaterialTheme.colorScheme.surfaceContainerHigh,
         )
-        if (subfolderActions != null) {
-            ExpandCollapseButtons(
-                isShown = hover.isActive,
-                actions = subfolderActions,
-            )
-        }
         SidebarChevron(
             modifier = Modifier.padding(end = 8.dp).size(16.dp),
             isExpanded = isExpanded,

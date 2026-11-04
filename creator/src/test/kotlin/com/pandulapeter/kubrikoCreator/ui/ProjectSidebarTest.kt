@@ -10,12 +10,16 @@
 package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -250,7 +254,10 @@ class ProjectSidebarTest {
         onNodeWithText("Bat").assertDoesNotExist()
         onAllNodesWithContentDescription("Expand all").onFirst().performClick()
         onNodeWithText("Bat").assertExists()
+        onAllNodesWithContentDescription("Expand all").assertCountEquals(1)
+        onNodeWithText("enemies").performMouseInput { moveTo(center) }
         onAllNodesWithContentDescription("Expand all").assertCountEquals(2)
+        saveSnapshot("sidebar-folder-hover-buttons")
     }
 
     @Test
@@ -278,7 +285,10 @@ class ProjectSidebarTest {
                 layout = ProjectLayout(typeModule = "", sceneModule = "", modules = modulesOf("" to true, "tools" to false)),
             )
         }
-        listOf("Root module", "tools", "Ball", "Intro", "Sandbox", "grid.png").forEach { onNodeWithText(it).assertExists() }
+        listOf("Root module", "tools", "Ball", "Intro").forEach { onNodeWithText(it).assertExists() }
+        listOf("Sandbox", "grid.png").forEach { onNodeWithText(it).assertDoesNotExist() }
+        onNodeWithText("tools").performClick()
+        listOf("Sandbox", "grid.png").forEach { onNodeWithText(it).assertExists() }
         onAllNodesWithText(":tools", substring = true).assertCountEquals(0)
         onAllNodesWithText("Scenes").assertCountEquals(2)
         onAllNodesWithContentDescription("New Scene").assertCountEquals(1)
@@ -314,8 +324,10 @@ class ProjectSidebarTest {
                 layout = ProjectLayout(sceneModule = "shared", modules = modulesOf("" to false, "app/desktop" to false, "app/android" to false, "shared" to true)),
             )
         }
-        listOf("shared", "app", "desktop", "android").forEach { onNodeWithText(it).assertExists() }
-        onNodeWithText("Root module").assertDoesNotExist()
+        listOf("shared", "app").forEach { onNodeWithText(it).assertExists() }
+        listOf("Root module", "desktop", "android").forEach { onNodeWithText(it).assertDoesNotExist() }
+        onNodeWithText("app").performClick()
+        listOf("desktop", "android").forEach { onNodeWithText(it).assertExists() }
         listOf("app:desktop", "app/desktop").forEach { onNodeWithText(it).assertDoesNotExist() }
         val app = onNodeWithText("app", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
         val desktop = onNodeWithText("desktop", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
@@ -325,6 +337,48 @@ class ProjectSidebarTest {
         onNodeWithText("app").performClick()
         listOf("desktop", "android").forEach { onNodeWithText(it).assertDoesNotExist() }
         onNodeWithText("shared").assertExists()
+    }
+
+    @Test
+    fun theModulesFoundOnceTheProjectIsReadAreShownFromTheTopRatherThanScrolledAway() = uiTest(width = 300, height = 600) {
+        val game = ProjectResource(ResourceGroup.KOTLIN, File("src/commonMain/kotlin/Game.kt"), "src/commonMain/kotlin/Game.kt", "com.game", "")
+        val tool = ProjectResource(ResourceGroup.KOTLIN, File("tools/src/main/kotlin/Tool.kt"), "tools/src/main/kotlin/Tool.kt", "com.game", "tools")
+        var layout by mutableStateOf(ProjectLayout())
+        var resources by mutableStateOf(emptyMap<ResourceGroup, List<ProjectResource>>())
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = folderGroups,
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+                layout = layout,
+            )
+        }
+        onNodeWithText("Root module").assertDoesNotExist()
+        layout = ProjectLayout(modules = modulesOf("" to true, "tools" to false))
+        resources = mapOf(ResourceGroup.KOTLIN to listOf(game, tool))
+        waitForIdle()
+        onNodeWithText("Root module").assertIsDisplayed()
+        onNodeWithText("Actor types").assertIsDisplayed()
+    }
+
+    @Test
+    fun aGroupWithNothingInItIsOnlyItsFadedHeader() = uiTest(width = 300, height = 600) {
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = emptyMap(),
+                folderGroups = emptyMap(),
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+                layout = ProjectLayout(modules = modulesOf("" to true)),
+            )
+        }
+        listOf("Sprites", "Sounds", "Music", "Kotlin files").forEach { onNodeWithText(it).assertExists() }
+        onNodeWithText("Sprites").performClick()
+        onAllNodesWithContentDescription("Hide").assertCountEquals(0)
+        saveSnapshot("sidebar-empty-groups")
     }
 
     private fun modulesOf(vararg modules: Pair<String, Boolean>) = modules.associate { (path, usesKubriko) -> path to ProjectModule(usesKubriko) }

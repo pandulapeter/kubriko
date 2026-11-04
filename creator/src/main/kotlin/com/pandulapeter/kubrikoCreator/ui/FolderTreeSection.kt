@@ -116,10 +116,12 @@ internal fun LazyListScope.folderTreeSection(
     val groupKey = SidebarKeys.folderGroup(module.path, group)
     item(key = "$groupKey-header") {
         SidebarGroupHeader(
+            modifier = sidebarItemMotion(),
             group = group,
             module = module.path,
             indent = indent,
             isCreating = isCreating,
+            isEmpty = state.items.isEmpty() && state.folders.isEmpty(),
             dragState = dragState,
             onNewItem = { onNamingChange(SidebarNaming.NewItem(group)) },
             onNewFolder = { onNamingChange(SidebarNaming.NewFolder(group, "")) },
@@ -129,6 +131,7 @@ internal fun LazyListScope.folderTreeSection(
     if (isCreating && naming == SidebarNaming.NewItem(group)) {
         item(key = "$groupKey-new") {
             SidebarNameField(
+                modifier = sidebarItemMotion(),
                 group = group,
                 isFolder = false,
                 depth = indent,
@@ -140,6 +143,7 @@ internal fun LazyListScope.folderTreeSection(
     if (isCreating && naming == SidebarNaming.NewFolder(group, "")) {
         item(key = "$groupKey-new-folder") {
             SidebarNameField(
+                modifier = sidebarItemMotion(),
                 group = group,
                 isFolder = true,
                 depth = indent,
@@ -160,7 +164,7 @@ internal fun LazyListScope.folderTreeSection(
     ) { row ->
         when (row) {
             is FolderTreeRow.Folder -> FolderTreeFolder(
-                modifier = Modifier.animateItem(),
+                modifier = sidebarItemMotion(),
                 module = module.path,
                 group = group,
                 row = row,
@@ -173,7 +177,7 @@ internal fun LazyListScope.folderTreeSection(
                 onNamingChange = onNamingChange,
             )
             is FolderTreeRow.Item -> FolderTreeItem(
-                modifier = Modifier.animateItem(),
+                modifier = sidebarItemMotion(),
                 module = module.path,
                 group = group,
                 row = row,

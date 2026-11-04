@@ -186,5 +186,28 @@ class SidebarModuleTest {
         assertEquals(listOf(ResourceGroup.SPRITES, ResourceGroup.KOTLIN), only.resourceGroups)
     }
 
+    @Test
+    fun onlyTheGamesBranchStartsOpenInAProjectOfSeveralModules() {
+        val modules = sidebarModules(
+            resources = mapOf(ResourceGroup.KOTLIN to listOf("app/shared", "app/desktop", "tools").map { resource(ResourceGroup.KOTLIN, "$it/src/main/kotlin/Main.kt", it, "") }),
+            folderGroups = emptyMap(),
+            layout = ProjectLayout(sceneModule = "app/shared", modules = modulesOf("app/shared" to true, "app/desktop" to false, "tools" to false)),
+        )
+        assertEquals(mapOf("app" to true, "app/shared" to true, "app/desktop" to false, "tools" to false), modules.associate { it.path to it.holdsGame })
+        val outline = SidebarOutline(modules.flatMap { it.outlineNodes(isGrouped = true) })
+        assertEquals(listOf(true, true, false, false), modules.map { outline.isExpandedByDefault(SidebarKeys.module(it.path)) })
+    }
+
+    @Test
+    fun aModuleThatDoesntUseKubrikoGetsNoScenesJustBecauseTheTemplatesWouldPutThemThere() {
+        val notOptedIn = sidebarModules(
+            resources = mapOf(ResourceGroup.KOTLIN to listOf(resource(ResourceGroup.KOTLIN, "gameplay/src/main/kotlin/Main.kt", "gameplay", ""))),
+            folderGroups = folderTreeGroups(null, emptyMap(), null, emptyList(), emptySet(), null),
+            layout = ProjectLayout(sceneModule = "", modules = modulesOf("" to false, "gameplay" to true)),
+        )
+        assertEquals(listOf("gameplay"), notOptedIn.map { it.path })
+        assertEquals(emptySet(), notOptedIn.single().creatingGroups, "Nothing loads Scenes from where the templates keep them in this project")
+    }
+
     private fun modulesOf(vararg modules: Pair<String, Boolean>) = modules.associate { (path, usesKubriko) -> path to ProjectModule(usesKubriko) }
 }

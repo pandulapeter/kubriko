@@ -23,7 +23,9 @@ import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
  *
  * Every module [layout] knows is one, and so is every module with files. Types go to the module of their code, Scenes to
  * every module that has a file of their name (one not scanned yet to [layout]'s Scene module, where it was made), and the
- * Scene folders [folderGroups] holds to that module, since they are those of its Scenes folder. A module that uses
+ * Scene folders [folderGroups] holds to that module, since they are those of its Scenes folder. New Scenes are made only
+ * there, and only when it is the game's: Kubriko Creator's code loads them from it, or it uses Kubriko. In a project
+ * that isn't opted in, the place the templates keep Scenes in may be a module nothing loads them from. A module that uses
  * Kubriko lists every group of what a game is made of, empty ones too, so it shows where things go; any other lists only
  * what it has (Kotlin files always in a project of one module), and one with nothing to show, holding none that has
  * something (a root project only gathering the others), isn't listed.
@@ -50,13 +52,14 @@ internal fun sidebarModules(
     val sceneModules = resources[ResourceGroup.SCENES].orEmpty().groupBy({ SceneStore.nameOf(it.file) }, { it.module })
     val built = ordered.map { path ->
         val usesKubriko = layout.modules[path]?.usesKubriko == true
+        val isSceneHome = path == layout.sceneModule && (usesKubriko || layout.typeModule != null || layout.modules.isEmpty())
         val groups = folderGroups.mapNotNull { (group, state) ->
             when {
                 group.kind != null -> state.takeIf { path == typeModule }
                 else -> state.copy(
                     items = state.items.filter { (name, _) -> path in (sceneModules[name] ?: listOf(layout.sceneModule)) },
                     folders = if (path == layout.sceneModule) state.folders else emptySet(),
-                ).takeIf { path == layout.sceneModule || usesKubriko || it.items.isNotEmpty() }
+                ).takeIf { isSceneHome || usesKubriko || it.items.isNotEmpty() || it.folders.isNotEmpty() }
             }?.let { group to it }
         }.toMap()
         val moduleResources = resources.mapValues { (_, groupResources) -> groupResources.filter { it.module == path } }.filterValues { it.isNotEmpty() }
@@ -67,7 +70,8 @@ internal fun sidebarModules(
             folderGroups = groups,
             resources = moduleResources,
             resourceGroups = if (usesKubriko) ResourceGroup.entries - ResourceGroup.SCENES else shownResourceGroups(moduleResources).filter { it in moduleResources },
-            creatingGroups = groups.keys.filterTo(HashSet()) { group -> if (group.kind != null) path == typeModule else path == layout.sceneModule },
+            holdsGame = path == home || home.startsWith("$path/"),
+            creatingGroups = groups.keys.filterTo(HashSet()) { group -> if (group.kind != null) path == typeModule else isSceneHome },
         )
     }
     val shown = HashSet<String>()

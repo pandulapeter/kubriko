@@ -31,7 +31,7 @@ internal fun LazyListScope.kotlinTreeItems(
     val key = SidebarKeys.folder(groupKey, row.key)
     when (row) {
         is KotlinTreeRow.Container -> SidebarFolderRow(
-            modifier = Modifier.animateItem(),
+            modifier = sidebarItemMotion(),
             name = row.platform?.let { stringResource(it.title) } ?: row.sourceSet.orEmpty(),
             depth = row.depth + indent,
             isExpanded = row.isExpanded,
@@ -40,7 +40,7 @@ internal fun LazyListScope.kotlinTreeItems(
             subfolderActions = tree.subfolderActions(key),
         )
         is KotlinTreeRow.Package -> SidebarFolderRow(
-            modifier = Modifier.animateItem(),
+            modifier = sidebarItemMotion(),
             name = row.name,
             depth = row.depth + indent,
             isExpanded = row.isExpanded,
@@ -48,7 +48,7 @@ internal fun LazyListScope.kotlinTreeItems(
             subfolderActions = tree.subfolderActions(key),
         )
         is KotlinTreeRow.File -> SidebarItem(
-            modifier = Modifier.animateItem(),
+            modifier = sidebarItemMotion(),
             icon = Res.drawable.ic_code,
             accent = Accent.CODE,
             text = row.resource.name,

@@ -19,6 +19,8 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
  * @param path The module's folder, as [ProjectResource.module] names it.
  * @param parent The path of the module it is shown inside (`app` for `app/desktop`), or null for one at the top.
  * @param depth How many modules it is inside.
+ * @param holdsGame Whether it is the module Kubriko Creator generates code into (or puts new Scenes in), or holds it,
+ *   which is open at first while the others start closed, so a project of many modules opens on the game.
  * @param folderGroups Its groups with folders: the types in the module their code is generated into, and its Scenes.
  * @param resources Its files, by group.
  * @param resourceGroups The groups of its files that aren't types or Scenes it lists ([shownResourceGroups]; in a project
@@ -31,6 +33,7 @@ internal data class SidebarModule(
     val path: String,
     val parent: String? = null,
     val depth: Int = 0,
+    val holdsGame: Boolean = false,
     val folderGroups: Map<FolderGroup, FolderTreeGroupState>,
     val resources: Map<ResourceGroup, List<ProjectResource>>,
     val resourceGroups: List<ResourceGroup>,
@@ -54,7 +57,7 @@ internal data class SidebarModule(
      * don't depend on what is selected.
      */
     fun outlineNodes(isGrouped: Boolean): List<SidebarOutline.Node> = buildList {
-        val moduleKey = if (isGrouped) SidebarKeys.module(path).also { add(SidebarOutline.Node(it, parent = parent?.let(SidebarKeys::module), isFolder = false)) } else null
+        val moduleKey = if (isGrouped) SidebarKeys.module(path).also { add(SidebarOutline.Node(it, parent = parent?.let(SidebarKeys::module), isFolder = false, isExpandedByDefault = holdsGame)) } else null
         folderGroups.forEach { (group, state) ->
             val groupKey = SidebarKeys.folderGroup(path, group)
             add(SidebarOutline.Node(groupKey, moduleKey, isFolder = false, isCollapsible = false))
