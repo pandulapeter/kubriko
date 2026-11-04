@@ -88,9 +88,15 @@ they ship with the library's next release whenever they are ready.
 
 ## Tesselar
 
-- In `~/Projects/Tesselar`, against a `publishToMavenLocal` of this repository: its scene pass becomes a client of the engine's custom
-  emission and change gating, and its copies of `markImmutable`, `TextureMipChainCache`, `RenderWarmUp`, and `BackgroundPass` are
-  deleted in favor of the engine's. Its cuboid, terrain, shadow, water, and weather code stays its own.
+- **Every item here that unlocks a change in Tesselar makes that change as part of the item**, never as a follow-up: the item is done
+  only once `~/Projects/Tesselar` uses what it added, built and run against a `publishToMavenLocal` of this repository (which shadows
+  Maven Central for its pinned version), in commits of its own following that repository's conventions. Its pinned Kubriko version is
+  raised once the library release holds the change. The Showcase's `demo-isometric-graphics`, a copy of Tesselar, takes the same
+  change where it has the code it replaces.
+- What that means per item: its scene pass becomes a client of the engine's custom emission and change gating; its copies of
+  `markImmutable`, `TextureMipChainCache`, `RenderWarmUp`, and `BackgroundPass` are deleted in favor of the engine's; and textured batch
+  improvements (sampling, the mean-color stand-in) replace its own workarounds. Its cuboid, terrain, shadow, water, and weather code
+  stays its own.
 - Whatever it still had to keep private for speed is either moved up as well or written down in this file with the reason, so the
   engine keeps up with what Tesselar learns.
 
