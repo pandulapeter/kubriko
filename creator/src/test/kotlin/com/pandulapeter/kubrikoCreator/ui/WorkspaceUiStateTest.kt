@@ -57,6 +57,15 @@ class WorkspaceUiStateTest {
     }
 
     @Test
+    fun showingTheAssistantOpensTheAiPanelOnItsOwnView() {
+        uiState.togglePanel(SidePanel.VERSION_CONTROL)
+        uiState.selectAiPanelView(AiPanelView.GAME_MAP)
+        uiState.showAssistant()
+        assertEquals(SidePanel.AI, uiState.openPanel)
+        assertEquals(AiPanelView.ASSISTANT, uiState.aiPanelView)
+    }
+
+    @Test
     fun projectSettingsOpenOnThePageAskedForOrTheFirst() {
         uiState.showProjectSettings(ProjectSettingsPage.TARGETS)
         assertTrue(uiState.isShowingProjectSettings)

@@ -54,6 +54,14 @@ internal class WorkspaceUiState {
         openPanel = SidePanel.AI
     }
 
+    /**
+     * Opens the AI panel on the assistant, whichever view it showed.
+     */
+    fun showAssistant() {
+        showAiPanel()
+        aiPanelView = AiPanelView.ASSISTANT
+    }
+
     fun selectAiPanelView(view: AiPanelView) {
         aiPanelView = view
     }

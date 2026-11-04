@@ -661,6 +661,10 @@
     <string name="action_back_to_assistant">Back to the Assistant</string>
     <string name="game_map_hint">What Kubriko Creator tells the AI about the game when a conversation starts, worked out from the types and Scenes. Describe each one, so that both of you know what it is for.</string>
     <string name="game_map_no_description">No description yet</string>
+    <string name="action_write_description_with_ai">Write with AI</string>
+    <string name="assistant_prompt_describe_actor_type">Write the description of the Actor type %1$s from what it does, or improve the one it has. Change nothing else.</string>
+    <string name="assistant_prompt_describe_manager_type">Write the description of the Manager type %1$s from what it does, or improve the one it has. Change nothing else.</string>
+    <string name="assistant_prompt_describe_scene">Write the description of the Scene %1$s from what is placed in it, or improve the one it has. Change nothing else.</string>
     <string name="game_map_actor_types">Actor types</string>
     <string name="game_map_manager_types">Manager types</string>
     <string name="game_map_scenes">Scenes</string>

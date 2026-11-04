@@ -43,6 +43,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param name What is described, named in the dialog's title.
  * @param maximumLength How long the description may be.
+ * @param action What the row offers at its end besides editing, such as having the AI write the description.
  */
 @Composable
 public fun DescriptionPreview(
@@ -51,6 +52,7 @@ public fun DescriptionPreview(
     maximumLength: Int,
     onDescriptionChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    action: @Composable () -> Unit = {},
 ) {
     var isEditing by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
@@ -79,6 +81,7 @@ public fun DescriptionPreview(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        action()
     }
     if (isEditing) {
         DescriptionDialog(

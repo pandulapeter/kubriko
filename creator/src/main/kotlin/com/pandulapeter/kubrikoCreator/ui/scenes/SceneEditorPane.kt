@@ -46,6 +46,7 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
+import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
@@ -68,6 +69,7 @@ import kubriko.creator.generated.resources.action_show_scene_actors
 import kubriko.creator.generated.resources.action_zoom_in
 import kubriko.creator.generated.resources.action_zoom_out
 import kubriko.creator.generated.resources.action_zoom_to_fit
+import kubriko.creator.generated.resources.assistant_prompt_describe_scene
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_delete
@@ -133,6 +135,7 @@ internal fun SceneEditorPane(
         description = description,
         maximumLength = SetDescription.MAXIMUM_LENGTH,
         onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(scene = state.sceneName, description = it))) },
+        action = { WriteDescriptionButton(prompt = stringResource(Res.string.assistant_prompt_describe_scene, state.sceneName)) },
     )
     HorizontalDivider()
     if (isSettingsShown) {

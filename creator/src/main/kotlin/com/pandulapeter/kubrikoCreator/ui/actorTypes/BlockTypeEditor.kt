@@ -36,10 +36,13 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
+import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_properties_empty
+import kubriko.creator.generated.resources.assistant_prompt_describe_actor_type
+import kubriko.creator.generated.resources.assistant_prompt_describe_manager_type
 import kubriko.creator.generated.resources.manager_type_properties_empty
 import org.jetbrains.compose.resources.stringResource
 
@@ -216,6 +219,10 @@ private fun TypeDetails(
         description = definition.description,
         maximumLength = SetDescription.MAXIMUM_LENGTH,
         onDescriptionChange = actions::setDescription,
+        action = {
+            val prompt = if (definition is ManagerTypeDefinition) Res.string.assistant_prompt_describe_manager_type else Res.string.assistant_prompt_describe_actor_type
+            WriteDescriptionButton(prompt = stringResource(prompt, definition.name))
+        },
     )
     if (isChangedByHand) {
         ChangedByHandNotice(

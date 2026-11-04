@@ -389,6 +389,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - **AI features off** (`CreatorSettingsController.isAiEnabled`) is the one check: the MCP server stays stopped, the assistant starts,
   fetches, and installs nothing (`AssistantHost` holds its check), and the UI (through `LocalIsAiEnabled`) shows no AI surface. Every new AI surface reads it and
   joins `AiFeaturesOffTest`. Commands, undo, and the game notes stay.
+- **Writing descriptions:** the AI button at the end of a description (`WriteDescriptionButton`) sends its prompt to the
+  conversation the assistant shows and opens it, rather than asking a hidden one, so the change is seen and ends with Keep
+  and Undo like any other turn; it shows only while that conversation takes prompts (`LocalDescriptionWriter`).
 - **The MCP server** (`mcp/McpToolServer`) listens on `127.0.0.1` only; every request needs the token (a header, or `?token=` for
   clients that can't send one, compared in constant time), and the SDK's DNS rebinding protection limits hosts to localhost. Tool calls run `CommandExecutor.call` on the main dispatcher, so AI
   changes enter the same undo history; rejections and unexpected exceptions are `isError` results in plain words. It stays even

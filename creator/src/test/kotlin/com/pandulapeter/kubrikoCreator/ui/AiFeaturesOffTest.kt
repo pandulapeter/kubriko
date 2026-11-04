@@ -78,7 +78,9 @@ class AiFeaturesOffTest {
             onFollowingChange = {},
             onClick = {},
         )
-        DescriptionPreview(name = "Ball", description = null, maximumLength = 200, onDescriptionChange = {})
+        CompositionLocalProvider(LocalDescriptionWriter provides DescriptionWriter(isBusy = false) {}) {
+            DescriptionPreview(name = "Ball", description = null, maximumLength = 200, onDescriptionChange = {}, action = { WriteDescriptionButton(prompt = "") })
+        }
         WelcomeScreen(error = null, errorArguments = emptyList(), recentProjects = emptyList(), onNewProject = {}, onOpenProject = {}, onForgetRecentProject = {}, onOpenSettings = {})
         WorkspaceHint(Modifier.height(240.dp))
     }

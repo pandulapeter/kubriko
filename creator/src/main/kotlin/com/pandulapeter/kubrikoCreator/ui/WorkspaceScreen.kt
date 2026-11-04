@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -85,8 +86,33 @@ internal fun WorkspaceScreen(
     onCloseProject: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    val isAiEnabled = LocalIsAiEnabled.current
     val uiState = rememberWorkspaceUiState(controller)
+    CompositionLocalProvider(LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant)) {
+        WorkspaceContent(
+            controller = controller,
+            uiState = uiState,
+            mcp = mcp,
+            aiClients = aiClients,
+            assistant = assistant,
+            panelLayout = panelLayout,
+            onCloseProject = onCloseProject,
+            onOpenSettings = onOpenSettings,
+        )
+    }
+}
+
+@Composable
+private fun WorkspaceContent(
+    controller: WorkspaceController,
+    uiState: WorkspaceUiState,
+    mcp: McpController,
+    aiClients: AiClientsController,
+    assistant: AssistantController,
+    panelLayout: PanelLayout,
+    onCloseProject: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    val isAiEnabled = LocalIsAiEnabled.current
     val resources by controller.resources.collectAsState()
     val sessionState by controller.sessionState.collectAsState()
     val blockTypesController = controller.blockTypes
