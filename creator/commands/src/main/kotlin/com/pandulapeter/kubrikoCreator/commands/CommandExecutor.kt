@@ -65,6 +65,17 @@ public class CommandExecutor(
     public fun validate(invocation: Invocation<*>): Rejection? = context.rejectChanges() ?: invocation.validate(context)
 
     /**
+     * Applies [invocation] unless it is rejected, calling [onSuccess] once it was applied.
+     *
+     * @return Why it was rejected, or null if it is being applied.
+     */
+    public fun dispatchIfValid(invocation: Invocation<*>, onSuccess: () -> Unit = {}): Rejection? {
+        validate(invocation)?.let { return it }
+        dispatch(invocation, onSuccess)
+        return null
+    }
+
+    /**
      * Applies [command] in the background, for user interface callbacks, reporting a rejection through [onRejected].
      * A change that needs no disk or git access shows before this returns, unless an AI tool call holds the change lock, so
      * text fields never lag behind what was typed.

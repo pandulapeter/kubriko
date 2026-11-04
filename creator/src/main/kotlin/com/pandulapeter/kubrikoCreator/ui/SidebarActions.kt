@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.folders.CreateFolder
@@ -60,11 +59,6 @@ internal fun rememberFolderTreeActions(
     selection: SelectionController,
     uiState: WorkspaceUiState,
 ) = remember(creation, commands, selection, uiState) {
-    fun dispatchIfValid(invocation: Invocation<*>): Rejection? {
-        commands.validate(invocation)?.let { return it }
-        commands.dispatch(invocation)
-        return null
-    }
     FolderTreeActions(
         onSelected = { group, name ->
             when (group) {
@@ -82,11 +76,11 @@ internal fun rememberFolderTreeActions(
                 FolderGroup.PAGES -> creation.createPage(name)
             }
         },
-        onCreateFolder = { group, path -> dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
-        onRenameFolder = { group, path, newName -> dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
+        onCreateFolder = { group, path -> commands.dispatchIfValid(Invocation(CreateFolder, CreateFolder.Input(group, path))) },
+        onRenameFolder = { group, path, newName -> commands.dispatchIfValid(Invocation(RenameFolder, RenameFolder.Input(group, path, newName))) },
         onDeleteFolder = { group, path -> commands.dispatch(Invocation(DeleteFolder, DeleteFolder.Input(group, path))) },
         onRenameItem = { group, name, newName ->
-            dispatchIfValid(
+            commands.dispatchIfValid(
                 when (group) {
                     FolderGroup.ACTOR_TYPES -> Invocation(RenameActorType, RenameActorType.Input(name, newName))
                     FolderGroup.MANAGER_TYPES -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))

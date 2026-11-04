@@ -32,21 +32,21 @@ public class WorkspaceCreation internal constructor(
      *
      * @return Why [name] can't be used, or null if the Actor type is being created.
      */
-    public fun createActorType(name: String): Rejection? = dispatchIfValid(Invocation(CreateActorType, ActorTypeDefinition(name = name))) { selection.selectType(name) }
+    public fun createActorType(name: String): Rejection? = commands.dispatchIfValid(Invocation(CreateActorType, ActorTypeDefinition(name = name))) { selection.selectType(name) }
 
     /**
      * Creates an empty Manager type and selects it, closing the Scene shown.
      *
      * @return Why [name] can't be used, or null if the Manager type is being created.
      */
-    public fun createManagerType(name: String): Rejection? = dispatchIfValid(Invocation(CreateManagerType, ManagerTypeDefinition(name = name))) { selection.selectType(name) }
+    public fun createManagerType(name: String): Rejection? = commands.dispatchIfValid(Invocation(CreateManagerType, ManagerTypeDefinition(name = name))) { selection.selectType(name) }
 
     /**
      * Creates an empty Scene.
      *
      * @return Why [name] can't be used, or null if the Scene is being created.
      */
-    public fun createScene(name: String): Rejection? = dispatchIfValid(Invocation(CreateScene, CreateScene.Input(name)))
+    public fun createScene(name: String): Rejection? = commands.dispatchIfValid(Invocation(CreateScene, CreateScene.Input(name)))
 
     /**
      * Creates a page of the screenplay titled after its name, and shows it.
@@ -54,11 +54,5 @@ public class WorkspaceCreation internal constructor(
      * @return Why [name] can't be used, or null if the page is being created.
      */
     public fun createPage(name: String): Rejection? =
-        dispatchIfValid(Invocation(CreatePage, CreatePage.Input(name, "# ${name.substringAfterLast('/')}\n"))) { selection.openPage(name) }
-
-    private fun dispatchIfValid(invocation: Invocation<*>, onSuccess: () -> Unit = {}): Rejection? {
-        commands.validate(invocation)?.let { return it }
-        commands.dispatch(invocation, onSuccess)
-        return null
-    }
+        commands.dispatchIfValid(Invocation(CreatePage, CreatePage.Input(name, "# ${name.substringAfterLast('/')}\n"))) { selection.openPage(name) }
 }

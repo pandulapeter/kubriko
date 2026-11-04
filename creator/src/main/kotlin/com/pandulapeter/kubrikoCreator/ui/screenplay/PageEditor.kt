@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -60,6 +61,8 @@ internal fun PageEditor(
     val state = remember(name) { PageEditorState(text, onTextChange) }
     state.onTextChange = onTextChange
     LaunchedEffect(text) { state.onPageChanged(text) }
+    // What was typed in the last moment before the editor goes (another page or type is shown) is saved too.
+    DisposableEffect(state) { onDispose { state.finish() } }
     val session = state.session
     LaunchedEffect(session?.draft?.text) {
         if (session != null) {
@@ -77,19 +80,19 @@ internal fun PageEditor(
         ) {
             PageTitle(name)
             if (session == null) {
-                val chunks = PageChunks.of(state.text)
+                val chunks = remember(state.text) { PageChunks.of(state.text) }
                 if (chunks.isEmpty()) {
                     Text(stringResource(Res.string.page_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 chunks.forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(index) } }
             } else {
-                PageChunks.of(session.frame.before).forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(state.indexOf(index, isAfter = false)) } }
+                remember(session.frame) { PageChunks.of(session.frame.before) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(state.indexOf(index, isAfter = false)) } }
                 PageChunkField(
                     value = session.draft,
                     onValueChange = state::onDraftChange,
                     onDone = state::finish,
                 )
-                PageChunks.of(session.frame.after).forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(state.indexOf(index, isAfter = true)) } }
+                remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(state.indexOf(index, isAfter = true)) } }
             }
             TextButton(onClick = state::append) { Text(stringResource(Res.string.page_add_paragraph)) }
         }

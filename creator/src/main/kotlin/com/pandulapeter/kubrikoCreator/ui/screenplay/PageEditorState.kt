@@ -14,11 +14,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
 import com.pandulapeter.kubrikoCreator.screenplay.PageChunks
 
 /**
  * What the page editor edits: the page as last known, and the one chunk being typed into ([Session]), framed by the text
  * around it, so that the chunks around it stay where they are while it is typed into, blank lines and all.
+ *
+ * The page is held with `\n` line breaks, since chunks are; the store writes the page's own back.
  *
  * @param onTextChange Saves the whole page, which arrives back through [onPageChanged].
  */
@@ -27,7 +30,7 @@ internal class PageEditorState(
     var onTextChange: (String) -> Unit,
 ) {
     /**
-     * @param isNew Whether the chunk is a new one at the end, which is left out if nothing was typed into it.
+     * @param isNew Whether the chunk is a new one at the end not saved yet, which is left out if nothing was typed into it.
      */
     data class Session(
         val frame: PageChunks.Frame,
@@ -37,7 +40,7 @@ internal class PageEditorState(
 
     var session: Session? by mutableStateOf(null)
         private set
-    var text: String by mutableStateOf(text)
+    var text: String by mutableStateOf(text.withUnixLineBreaks())
         private set
     private var lastSaved: String? = null
 
@@ -45,7 +48,8 @@ internal class PageEditorState(
      * Follows the page as it is on disk: a change made elsewhere while a chunk is being typed into ends that, since the
      * frame around it no longer matches.
      */
-    fun onPageChanged(page: String) {
+    fun onPageChanged(changed: String) {
+        val page = changed.withUnixLineBreaks()
         if (page == text) return
         if (session != null && page != lastSaved) session = null
         text = page
@@ -79,6 +83,8 @@ internal class PageEditorState(
         val current = session ?: return
         if (current.isNew && current.draft.text.isBlank()) return
         val composed = current.frame.compose(current.draft.text)
+        // Once saved, a new chunk is part of the page: clearing it removes it like any other.
+        if (current.isNew) session = current.copy(isNew = false)
         if (composed == text) return
         text = composed
         lastSaved = composed

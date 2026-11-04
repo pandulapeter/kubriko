@@ -57,4 +57,24 @@ class PageEditorStateTest {
         state.finish()
         assertEquals(page.trimEnd('\n') + "\n\n## Planned\n", saved.single())
     }
+
+    @Test
+    fun aPageWithWindowsLineBreaksIsntWrittenWhenNothingWasTyped() {
+        val windows = PageEditorState(page.replace("\n", "\r\n")) { saved += it }
+        windows.edit(1)
+        windows.save()
+        windows.onPageChanged(page.replace("\n", "\r\n"))
+        assertEquals(emptyList(), saved)
+        assertEquals("A knight.", windows.session?.draft?.text)
+    }
+
+    @Test
+    fun aNewChunkSavedOnceIsRemovedWhenItIsCleared() {
+        state.append()
+        state.onDraftChange(TextFieldValue("Hello"))
+        state.save()
+        state.onDraftChange(TextFieldValue(""))
+        state.finish()
+        assertEquals(page, saved.last())
+    }
 }

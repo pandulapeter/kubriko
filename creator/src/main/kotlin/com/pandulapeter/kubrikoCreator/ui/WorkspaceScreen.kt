@@ -440,7 +440,8 @@ private fun FollowingAiSteps(
 
 /**
  * The text of the page [name] of [controller]'s screenplay, read off the main thread again after every change to the
- * pages, or null until it is read. A page that is gone (deleted, or moved by its name) closes.
+ * pages, or null until it is read or if it can't be (another program holds it). A page that is gone (deleted, or moved by
+ * its name) closes.
  */
 @Composable
 private fun rememberPageText(controller: WorkspaceController, name: String?): String? {
@@ -448,7 +449,11 @@ private fun rememberPageText(controller: WorkspaceController, name: String?): St
     val revision by screenplay.revision.collectAsState()
     val names by screenplay.current.collectAsState()
     LaunchedEffect(name, names) { if (name != null && name !in names) controller.selection.clear() }
-    return produceState<String?>(null, name, revision) { value = name?.let { withContext(Dispatchers.IO) { screenplay.read(it) } } }.value
+    val read = produceState<Pair<String, String?>?>(null, name, revision) {
+        value = name?.let { page -> page to withContext(Dispatchers.IO) { runCatching { screenplay.read(page) }.getOrNull() } }
+    }.value
+    // A text read for the page shown before is never handed to this one.
+    return read?.takeIf { it.first == name }?.second
 }
 
 /**
@@ -482,7 +487,7 @@ private fun WorkspaceCenterOf(
     panelLayout = panelLayout,
     onCommand = { invocation, onSuccess -> uiState.dispatch(invocation, onSuccess, controller.commands::dispatch) },
     currentBlockType = { controller.blockTypes?.get(it) },
-    onCommandIfValid = controller::dispatchIfValid,
+    onCommandIfValid = { controller.commands.dispatchIfValid(it) },
     onTypeSelected = { controller.selection.selectType(it) },
     onPlayScene = { controller.play(firstScene = it) },
     onReloadScene = controller.sceneEditing::reload,

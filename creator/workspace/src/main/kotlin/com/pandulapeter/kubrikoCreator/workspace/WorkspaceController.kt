@@ -332,17 +332,6 @@ public class WorkspaceController(
     }
 
     /**
-     * Applies [invocation] unless it is rejected.
-     *
-     * @return Why it was rejected, or null if it is being applied.
-     */
-    public fun dispatchIfValid(invocation: Invocation<*>): Rejection? {
-        commands.validate(invocation)?.let { return it }
-        commands.dispatch(invocation)
-        return null
-    }
-
-    /**
      * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them; the resource tree is
      * built from [snapshot], the files as the watcher found them, if it is given.
      */
