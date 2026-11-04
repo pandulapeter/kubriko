@@ -86,13 +86,10 @@ class WorkspaceUiStateTest {
     }
 
     @Test
-    fun dismissingTheUpgradeNoticeAndFollowingTheAiAreRemembered() {
+    fun dismissingTheUpgradeNoticeIsRemembered() {
         assertFalse(uiState.isUpgradeNoticeDismissed)
         uiState.dismissUpgradeNotice()
         assertTrue(uiState.isUpgradeNoticeDismissed)
-        assertTrue(uiState.isFollowingAi)
-        uiState.followAi(false)
-        assertFalse(uiState.isFollowingAi)
     }
 
     @Test

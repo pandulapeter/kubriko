@@ -15,6 +15,8 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class CreatorSettingsStoreTest {
     private val directory = createTempDirectory().toFile()
@@ -68,5 +70,25 @@ class CreatorSettingsStoreTest {
         assertEquals(settings, CreatorSettingsStore(file).load())
         file.writeText("""{"isAiEnabled":false,"theme":"DARK","interfaceScale":0.85,"defaultProjectFolder":null}""")
         assertEquals(emptyMap(), store.load().panelWidths)
+    }
+
+    @Test
+    fun theAiIsFollowedWithAShortDelayAndKeepAndUndoAreHiddenUntilChanged() {
+        val defaults = store.load()
+        assertTrue(defaults.isFollowingAi)
+        assertEquals(300, defaults.aiFollowDelayInMillis)
+        assertFalse(defaults.isTurnReviewShown)
+        val settings = CreatorSettings(isFollowingAi = false, aiFollowDelayInMillis = 1_000, isTurnReviewShown = true)
+        store.save(settings)
+        assertEquals(settings, CreatorSettingsStore(file).load())
+    }
+
+    @Test
+    fun anAiFollowDelayNotOfferedBecomesTheClosestOne() {
+        file.parentFile.mkdirs()
+        file.writeText("""{"aiFollowDelayInMillis":550}""")
+        assertEquals(600, store.load().aiFollowDelayInMillis)
+        file.writeText("""{"aiFollowDelayInMillis":-20}""")
+        assertEquals(0, store.load().aiFollowDelayInMillis)
     }
 }

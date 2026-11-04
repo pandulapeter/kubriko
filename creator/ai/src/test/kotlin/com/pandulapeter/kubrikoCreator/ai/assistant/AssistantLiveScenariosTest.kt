@@ -58,7 +58,7 @@ class AssistantLiveScenariosTest {
         val changes = assertNotNull(chat.transcript.value.items.filterIsInstance<TranscriptItem.TurnChanges>().lastOrNull(), "No card of what changed.")
         withContext(session.mainThread) { chat.undoChanges(changes.sinceRevision) }
         withContext(Dispatchers.Default) {
-            withTimeout(1.minutes) { chat.transcript.first { transcript -> transcript.items.any { it is TranscriptItem.TurnChanges && it.state != TranscriptItem.TurnChanges.State.OFFERED } } }
+            withTimeout(1.minutes) { chat.transcript.first { transcript -> transcript.items.any { it is TranscriptItem.TurnReview && it.state != TranscriptItem.TurnReview.State.OFFERED } } }
         }
         assertEquals(BreakoutFixture.ball, session.context.ball())
     }

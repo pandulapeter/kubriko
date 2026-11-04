@@ -110,7 +110,7 @@ class AiFeaturesOffTest {
     }
 
     @Test
-    fun theSettingsTurnAiFeaturesOffAndChooseTheThemeAndSize() = uiTest(width = 960, height = 640) {
+    fun theSettingsTurnAiFeaturesOffAndChooseTheThemeSizeAndHowTheAiShows() = uiTest(width = 960, height = 640) {
         val changes = mutableListOf<Any?>()
         showing {
             CreatorSettingsDialog(
@@ -120,6 +120,9 @@ class AiFeaturesOffTest {
                 onThemeChange = { changes += it },
                 onInterfaceScaleChange = { changes += it },
                 onDefaultProjectFolderChange = { changes += it },
+                onFollowingAiChange = { changes += "follow $it" },
+                onAiFollowDelayChange = { changes += it },
+                onTurnReviewShownChange = { changes += "review $it" },
                 onDismiss = {},
             )
         }
@@ -130,8 +133,11 @@ class AiFeaturesOffTest {
         onNodeWithText(File("/Users/me").path).assertExists()
         onNodeWithText("Use the home folder").assertDoesNotExist()
         onNodeWithText("AI").performClick()
+        onNodeWithText("Follow the AI").performClick()
+        onNodeWithText("1 s").performClick()
+        onNodeWithText("Keep and Undo after each answer").performClick()
         onNodeWithText("AI features").performClick()
-        assertEquals(listOf<Any?>(ThemeChoice.DARK, 1f, false), changes)
+        assertEquals(listOf<Any?>(ThemeChoice.DARK, 1f, "follow false", 1_000, "review true", false), changes)
         saveSnapshot("creator-settings-ai")
     }
 

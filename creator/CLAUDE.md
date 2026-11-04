@@ -390,8 +390,12 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   fetches, and installs nothing (`AssistantHost` holds its check), and the UI (through `LocalIsAiEnabled`) shows no AI surface. Every new AI surface reads it and
   joins `AiFeaturesOffTest`. Commands, undo, and the game notes stay.
 - **Writing descriptions:** the AI button at the end of a description (`WriteDescriptionButton`) sends its prompt to the
-  conversation the assistant shows and opens it, rather than asking a hidden one, so the change is seen and ends with Keep
-  and Undo like any other turn; it shows only while that conversation takes prompts (`LocalDescriptionWriter`).
+  conversation the assistant shows and opens it, rather than asking a hidden one, so the change is seen and reviewed like
+  any other turn; it shows only while that conversation takes prompts (`LocalDescriptionWriter`).
+- **Following the AI** goes only to what a step changes (`AiStep.changesProject`): the Actor type, Manager type, or Scene,
+  lighting up its Event or Block. Each followed step stays at least the settings' delay (`AiStepPacing`), so quick steps
+  don't flash. Following, that delay, and Keep and Undo after a turn are Creator settings (`LocalAiActivitySettings`),
+  and the activity bar's Follow switch writes the same setting.
 - **The MCP server** (`mcp/McpToolServer`) listens on `127.0.0.1` only; every request needs the token (a header, or `?token=` for
   clients that can't send one, compared in constant time), and the SDK's DNS rebinding protection limits hosts to localhost. Tool calls run `CommandExecutor.call` on the main dispatcher, so AI
   changes enter the same undo history; rejections and unexpected exceptions are `isError` results in plain words. It stays even
@@ -493,7 +497,7 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   The package is the one each file declares (`KotlinPackages`), since Kotlin lets folders leave out the shared root package.
 - What the center shows is one `WorkspaceSelection` (a type, a Scene being prepared, open, or failed, or nothing), changed only
   through `SelectionController`, the one place that pairs selecting a type with closing the Scene. The workspace screen's
-  own panels, dialogs, and AI-follow state live in `WorkspaceUiState`, a plain class its tests reach without a UI.
+  own panels, dialogs, and the AI step the user went back to live in `WorkspaceUiState`, a plain class its tests reach without a UI.
 - The type editor's selected Event is its `ListItemKeys` key, not its index (`EventSelectionState`), so it stays on the same
   Event through undo, redo, and the AI's Event changes; an added Event is selected only once its add succeeded, found
   by its key in the type as it is at that moment (an add may wait behind an AI tool call that changes the Events).

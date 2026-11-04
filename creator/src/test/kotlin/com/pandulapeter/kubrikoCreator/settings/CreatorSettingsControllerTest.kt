@@ -43,8 +43,19 @@ class CreatorSettingsControllerTest {
         controller.setTheme(ThemeChoice.LIGHT)
         controller.setInterfaceScale(1.3f)
         controller.setDefaultProjectFolder(folder)
+        controller.setFollowingAi(false)
+        controller.setAiFollowDelay(600)
+        controller.setTurnReviewShown(true)
         assertFalse(controller.isAiEnabled.value)
-        val expected = CreatorSettings(isAiEnabled = false, theme = ThemeChoice.LIGHT, interfaceScale = 1.3f, defaultProjectFolder = folder.absolutePath)
+        val expected = CreatorSettings(
+            isAiEnabled = false,
+            theme = ThemeChoice.LIGHT,
+            interfaceScale = 1.3f,
+            defaultProjectFolder = folder.absolutePath,
+            isFollowingAi = false,
+            aiFollowDelayInMillis = 600,
+            isTurnReviewShown = true,
+        )
         assertEquals(expected, controller.settings.value)
         runCurrent()
         assertEquals(expected, CreatorSettingsStore(file).load())
@@ -72,10 +83,12 @@ class CreatorSettingsControllerTest {
     }
 
     @Test
-    fun aScaleNotOfferedIsTheClosestOne() = runTest {
+    fun aScaleOrDelayNotOfferedIsTheClosestOne() = runTest {
         val controller = CreatorSettingsController(CreatorSettingsStore(file), backgroundScope, StandardTestDispatcher(testScheduler))
         controller.setInterfaceScale(0.7f)
         assertEquals(0.75f, controller.settings.value.interfaceScale)
+        controller.setAiFollowDelay(250)
+        assertEquals(300, controller.settings.value.aiFollowDelayInMillis)
     }
 
     @Test

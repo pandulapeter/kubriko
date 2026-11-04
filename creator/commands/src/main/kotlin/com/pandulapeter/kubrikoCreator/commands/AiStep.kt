@@ -14,6 +14,7 @@ package com.pandulapeter.kubrikoCreator.commands
  *
  * @param toolName The name of the tool the client called.
  * @param target What the call reads or changes, if anything in particular.
+ * @param changesProject Whether the call is one that changes the project, rather than reading it or running something.
  * @param rejection Why the call failed, once it has.
  * @param origin Which of the assistant's conversations made the call, and the client's own ID for it, if known.
  * @param clientName The name the MCP client gave itself, if it gave one.
@@ -23,6 +24,7 @@ public data class AiStep(
     val toolName: String,
     val target: CommandTarget?,
     val isRunning: Boolean,
+    val changesProject: Boolean = false,
     val rejection: Rejection? = null,
     val origin: AiStepOrigin? = null,
     val clientName: String? = null,

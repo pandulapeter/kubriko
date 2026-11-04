@@ -325,7 +325,7 @@ class AssistantChatTest {
         val changes = chat.transcript.value.items.filterIsInstance<TranscriptItem.TurnChanges>().single()
         assertEquals(listOf<CommandTarget?>(CommandTarget.BlockType("Ball", 0)), changes.changes.map { it.target })
         withContext(mainThread) { chat.undoChanges(changes.sinceRevision) }
-        chat.transcript.first { transcript -> transcript.items.any { it is TranscriptItem.TurnChanges && it.state == TranscriptItem.TurnChanges.State.UNDONE } }
+        chat.transcript.first { transcript -> transcript.items.any { it is TranscriptItem.TurnReview && it.state == TranscriptItem.TurnReview.State.UNDONE } }
         assertEquals(listOf("tools" to 1), undoneTurns)
     }
 

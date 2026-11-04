@@ -58,13 +58,22 @@ public sealed interface TranscriptItem {
     }
 
     /**
-     * What a turn changed in the project, offered to keep or undo.
+     * What a turn changed in the project, shown before the agent's final answer.
      *
      * @param sinceRevision The project's revision when the turn began.
      */
     public data class TurnChanges(
         val sinceRevision: Int,
         val changes: List<ChangeRecord>,
+    ) : TranscriptItem
+
+    /**
+     * Keep and Undo for what a turn changed, after the agent's final answer, until one is chosen, and then which one was.
+     *
+     * @param sinceRevision The project's revision when the turn began.
+     */
+    public data class TurnReview(
+        val sinceRevision: Int,
         val state: State = State.OFFERED,
     ) : TranscriptItem {
         /**

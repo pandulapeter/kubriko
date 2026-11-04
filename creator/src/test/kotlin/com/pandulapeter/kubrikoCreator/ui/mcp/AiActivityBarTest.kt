@@ -9,12 +9,21 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.mcp
 
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
+import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalTestApi::class)
 class AiActivityBarTest {
     private fun step(clientName: String?) = AiStep(0, "add_block", null, isRunning = false, clientName = clientName)
 
@@ -22,5 +31,22 @@ class AiActivityBarTest {
     fun clientsAreNamedOnlyWhileStepsComeFromMoreThanOne() {
         assertFalse(showsClientNames(listOf(step("claude-code"), step("claude-code"), step(null))))
         assertTrue(showsClientNames(listOf(step("claude-code"), step("cursor"))))
+    }
+
+    @Test
+    fun followingIsASwitch() = uiTest(width = 800, height = 120) {
+        val changes = mutableListOf<Boolean>()
+        showing {
+            AiActivityBar(
+                steps = listOf(AiStep(0, "add_block", null, isRunning = true, changesProject = true)),
+                isFollowing = true,
+                onFollowingChange = { changes += it },
+                onClick = {},
+            )
+        }
+        onNodeWithText("Follow").assertIsOn()
+        saveSnapshot("ai-activity-bar")
+        onNodeWithText("Follow").performClick()
+        assertEquals(listOf(false), changes)
     }
 }

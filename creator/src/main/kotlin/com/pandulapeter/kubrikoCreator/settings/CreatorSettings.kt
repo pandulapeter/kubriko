@@ -20,6 +20,10 @@ import kotlinx.serialization.Serializable
  *
  * @param isAiEnabled Whether any AI feature exists at all: off, Creator shows no AI surface, serves no tools, starts no
  *   agent, and sends nothing anywhere.
+ * @param isFollowingAi Whether the editor goes to what each of the AI's changes is about, as it makes them.
+ * @param aiFollowDelayInMillis How long the editor shows one of the AI's changes at least before it goes to the next one,
+ *   so that quick steps don't make it flash.
+ * @param isTurnReviewShown Whether the assistant ends each turn that changed the project with Keep and Undo.
  * @param interfaceScale How much smaller or larger than Material's own sizes everything is drawn.
  * @param defaultProjectFolder Where New project creates projects unless told otherwise, the home folder when null.
  * @param panelWidths The sizes in dp the user dragged the panels to (the side panels' widths, the console's height), by
@@ -32,11 +36,21 @@ internal data class CreatorSettings(
     @SerialName("interfaceScale") val interfaceScale: Float = DEFAULT_INTERFACE_SCALE,
     @SerialName("defaultProjectFolder") val defaultProjectFolder: String? = null,
     @SerialName("panelWidths") val panelWidths: Map<String, Float> = emptyMap(),
+    @SerialName("isFollowingAi") val isFollowingAi: Boolean = true,
+    @SerialName("aiFollowDelayInMillis") val aiFollowDelayInMillis: Int = DEFAULT_AI_FOLLOW_DELAY,
+    @SerialName("isTurnReviewShown") val isTurnReviewShown: Boolean = false,
 ) {
     companion object {
         /**
          * The interface scales offered, the default among them.
          */
         val interfaceScales = listOf(0.75f, DEFAULT_INTERFACE_SCALE, 1f, 1.15f, 1.3f)
+
+        /**
+         * The delays in milliseconds offered for following the AI, the default among them.
+         */
+        val aiFollowDelays = listOf(0, DEFAULT_AI_FOLLOW_DELAY, 600, 1_000)
     }
 }
+
+private const val DEFAULT_AI_FOLLOW_DELAY = 300

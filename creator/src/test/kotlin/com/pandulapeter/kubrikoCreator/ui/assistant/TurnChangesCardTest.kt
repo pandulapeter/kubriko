@@ -11,7 +11,6 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -20,7 +19,6 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class TurnChangesCardTest {
@@ -33,22 +31,11 @@ class TurnChangesCardTest {
     )
 
     @Test
-    fun whatATurnChangedIsListedWithKeepAndUndo() = uiTest {
-        val choices = mutableListOf<String>()
-        showing { TurnChangesCard(changes = changes, onKeep = { choices += "keep" }, onUndo = { choices += "undo" }) }
+    fun whatATurnChangedIsListedWithoutKeepAndUndo() = uiTest {
+        showing { TurnChangesCard(changes = changes) }
         onNodeWithText("What changed").assertExists()
         onNodeWithText("Paddle", substring = true).assertExists()
-        saveSnapshot("turn-changes-offered")
-        onNodeWithText("Undo").performClick()
-        onNodeWithText("Keep").performClick()
-        assertEquals(listOf("undo", "keep"), choices)
-    }
-
-    @Test
-    fun aChoiceMadeIsSaid() = uiTest {
-        showing { TurnChangesCard(changes = changes.copy(state = TranscriptItem.TurnChanges.State.PARTLY_UNDONE), onKeep = {}, onUndo = {}) }
-        onNodeWithText("Undone up to a later change of yours", substring = true).assertExists()
         onNodeWithText("Keep").assertDoesNotExist()
-        saveSnapshot("turn-changes-partly-undone")
+        saveSnapshot("turn-changes")
     }
 }

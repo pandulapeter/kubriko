@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.ui.commandTitleText
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.description
 import kotlinx.coroutines.delay
@@ -55,7 +55,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * What the AI is doing, step by step: the step it is on (pulsing while it runs) after the one before, numbered, with
- * the switch that makes the editor follow it. It shows up when an AI client starts working and hides a few seconds
+ * the switch that makes the editor follow its changes. It shows up when an AI client starts working and hides a few seconds
  * after it stops.
  */
 @Composable
@@ -113,10 +113,11 @@ internal fun AiActivityBar(
                 isCurrent = true,
                 showsClient = showsClients,
             )
-            FilterChip(
-                selected = isFollowing,
-                onClick = { onFollowingChange(!isFollowing) },
-                label = { Text(stringResource(Res.string.ai_activity_follow)) },
+            LabeledSwitch(
+                label = stringResource(Res.string.ai_activity_follow),
+                checked = isFollowing,
+                onCheckedChange = onFollowingChange,
+                labelStyle = MaterialTheme.typography.labelMedium,
             )
         }
     }

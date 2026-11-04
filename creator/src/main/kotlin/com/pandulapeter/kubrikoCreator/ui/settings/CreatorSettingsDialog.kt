@@ -36,7 +36,13 @@ import kubriko.creator.generated.resources.ic_folder_open
 import kubriko.creator.generated.resources.ic_palette
 import kubriko.creator.generated.resources.settings_ai_enabled
 import kubriko.creator.generated.resources.settings_ai_enabled_description
+import kubriko.creator.generated.resources.settings_ai_follow_delay
+import kubriko.creator.generated.resources.settings_ai_follow_delay_description
+import kubriko.creator.generated.resources.settings_ai_follow_delay_none
+import kubriko.creator.generated.resources.settings_ai_follow_delay_seconds
 import kubriko.creator.generated.resources.settings_default_project_folder
+import kubriko.creator.generated.resources.settings_follow_ai
+import kubriko.creator.generated.resources.settings_follow_ai_description
 import kubriko.creator.generated.resources.settings_interface_scale
 import kubriko.creator.generated.resources.settings_section_ai
 import kubriko.creator.generated.resources.settings_section_appearance
@@ -46,6 +52,8 @@ import kubriko.creator.generated.resources.settings_theme_dark
 import kubriko.creator.generated.resources.settings_theme_light
 import kubriko.creator.generated.resources.settings_theme_system
 import kubriko.creator.generated.resources.settings_title
+import kubriko.creator.generated.resources.settings_turn_review
+import kubriko.creator.generated.resources.settings_turn_review_description
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
 import kotlin.math.roundToInt
@@ -58,6 +66,9 @@ internal fun CreatorSettingsDialog(
     onThemeChange: (ThemeChoice) -> Unit,
     onInterfaceScaleChange: (Float) -> Unit,
     onDefaultProjectFolderChange: (File?) -> Unit,
+    onFollowingAiChange: (Boolean) -> Unit,
+    onAiFollowDelayChange: (Int) -> Unit,
+    onTurnReviewShownChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) = MasterDetailDialog(
     title = stringResource(Res.string.settings_title),
@@ -91,11 +102,12 @@ internal fun CreatorSettingsDialog(
             icon = Res.drawable.ic_ai,
             title = stringResource(Res.string.settings_section_ai),
         ) {
-            SettingsSwitch(
-                label = stringResource(Res.string.settings_ai_enabled),
-                description = stringResource(Res.string.settings_ai_enabled_description),
-                checked = settings.isAiEnabled,
-                onCheckedChange = onAiEnabledChange,
+            AiPage(
+                settings = settings,
+                onAiEnabledChange = onAiEnabledChange,
+                onFollowingAiChange = onFollowingAiChange,
+                onAiFollowDelayChange = onAiFollowDelayChange,
+                onTurnReviewShownChange = onTurnReviewShownChange,
             )
         },
     ),
@@ -153,16 +165,69 @@ private fun EditorPage(
 }
 
 @Composable
+private fun AiPage(
+    settings: CreatorSettings,
+    onAiEnabledChange: (Boolean) -> Unit,
+    onFollowingAiChange: (Boolean) -> Unit,
+    onAiFollowDelayChange: (Int) -> Unit,
+    onTurnReviewShownChange: (Boolean) -> Unit,
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+) {
+    SettingsSwitch(
+        label = stringResource(Res.string.settings_ai_enabled),
+        description = stringResource(Res.string.settings_ai_enabled_description),
+        checked = settings.isAiEnabled,
+        onCheckedChange = onAiEnabledChange,
+    )
+    SettingsSwitch(
+        label = stringResource(Res.string.settings_follow_ai),
+        description = stringResource(Res.string.settings_follow_ai_description),
+        checked = settings.isFollowingAi,
+        onCheckedChange = onFollowingAiChange,
+        isEnabled = settings.isAiEnabled,
+    )
+    SettingsRow(
+        label = stringResource(Res.string.settings_ai_follow_delay),
+        description = stringResource(Res.string.settings_ai_follow_delay_description),
+    ) {
+        SegmentedChoice(
+            options = CreatorSettings.aiFollowDelays,
+            selected = settings.aiFollowDelayInMillis,
+            optionText = { aiFollowDelayLabel(it) },
+            onSelected = onAiFollowDelayChange,
+            isEnabled = settings.isAiEnabled && settings.isFollowingAi,
+        )
+    }
+    SettingsSwitch(
+        label = stringResource(Res.string.settings_turn_review),
+        description = stringResource(Res.string.settings_turn_review_description),
+        checked = settings.isTurnReviewShown,
+        onCheckedChange = onTurnReviewShownChange,
+        isEnabled = settings.isAiEnabled,
+    )
+}
+
+@Composable
+private fun aiFollowDelayLabel(delayInMillis: Int) = if (delayInMillis == 0) {
+    stringResource(Res.string.settings_ai_follow_delay_none)
+} else {
+    stringResource(Res.string.settings_ai_follow_delay_seconds, (delayInMillis / 1_000f).toString().removeSuffix(".0"))
+}
+
+@Composable
 private fun <T> SegmentedChoice(
     options: List<T>,
     selected: T,
     optionText: @Composable (T) -> String,
     onSelected: (T) -> Unit,
+    isEnabled: Boolean = true,
 ) = SingleChoiceSegmentedButtonRow {
     options.forEachIndexed { index, option ->
         SegmentedButton(
             selected = option == selected,
             onClick = { onSelected(option) },
+            enabled = isEnabled,
             shape = SegmentedButtonDefaults.itemShape(index, options.size, MaterialTheme.shapes.small),
             icon = {},
             label = { Text(text = optionText(option), maxLines = 1, overflow = TextOverflow.Ellipsis) },

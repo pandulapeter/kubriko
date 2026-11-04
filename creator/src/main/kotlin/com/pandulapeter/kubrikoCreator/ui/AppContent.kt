@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +72,9 @@ internal fun AppContent(
             onThemeChange = creatorSettings::setTheme,
             onInterfaceScaleChange = creatorSettings::setInterfaceScale,
             onDefaultProjectFolderChange = creatorSettings::setDefaultProjectFolder,
+            onFollowingAiChange = creatorSettings::setFollowingAi,
+            onAiFollowDelayChange = creatorSettings::setAiFollowDelay,
+            onTurnReviewShownChange = creatorSettings::setTurnReviewShown,
             onDismiss = { isShowingSettings = false },
         )
     }
@@ -83,7 +87,9 @@ internal fun AppContent(
         Box(
             modifier = Modifier.weight(1f),
         ) {
-            ScreenContent(
+            val aiActivitySettings = remember(settings, creatorSettings) { AiActivitySettings.of(settings, creatorSettings::setFollowingAi) }
+            CompositionLocalProvider(LocalAiActivitySettings provides aiActivitySettings) {
+                ScreenContent(
                 screen = screen,
                 recentProjects = recentProjects,
                 defaultParentDirectory = defaultParentDirectory,
@@ -95,9 +101,10 @@ internal fun AppContent(
                 mcp = mcp,
                 aiClients = aiClients,
                 assistant = assistant,
-                panelLayout = panelLayout,
-                onOpenSettings = { isShowingSettings = true },
-            )
+                    panelLayout = panelLayout,
+                    onOpenSettings = { isShowingSettings = true },
+                )
+            }
         }
     }
 }

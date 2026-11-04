@@ -19,6 +19,8 @@ import com.agentclientprotocol.model.StopReason
 import com.agentclientprotocol.model.ToolCallId
 import com.agentclientprotocol.model.ToolCallStatus
 import com.agentclientprotocol.model.ToolKind
+import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -98,4 +100,44 @@ class AssistantTranscriptTest {
             .withUpdate(SessionUpdate.UsageUpdate(84_000, 200_000, Cost(0.12, "USD")))
         assertEquals(ConversationUsage(84_000, 200_000, 0.12, "USD"), transcript.usage)
     }
+
+    @Test
+    fun whatATurnChangedComesBeforeItsFinalAnswerAndKeepAndUndoAfterIt() {
+        val toolCall = SessionUpdate.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__add_block", ToolKind.OTHER, ToolCallStatus.COMPLETED)
+        val transcript = AssistantTranscript().withUserMessage("faster").with(message("On it."), toolCall, message("Done."))
+            .withTurnEnd(StopReason.MAX_TOKENS)
+            .withTurnChanges(4, changes)
+        assertEquals(
+            listOf(
+                TranscriptItem.UserMessage("faster"),
+                TranscriptItem.AgentMessage("On it."),
+                TranscriptItem.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__add_block", ToolKind.OTHER, ToolCallStatus.COMPLETED),
+                TranscriptItem.TurnChanges(4, changes),
+                TranscriptItem.AgentMessage("Done."),
+                TranscriptItem.TurnEnded(StopReason.MAX_TOKENS),
+                TranscriptItem.TurnReview(4),
+            ),
+            transcript.items,
+        )
+    }
+
+    @Test
+    fun aTurnWithoutAFinalAnswerEndsWithWhatItChanged() {
+        val toolCall = SessionUpdate.ToolCall(ToolCallId("1"), "mcp__kubriko-creator__add_block", ToolKind.OTHER, ToolCallStatus.COMPLETED)
+        val transcript = AssistantTranscript().withUserMessage("faster").with(toolCall).withTurnChanges(4, changes)
+        assertEquals(listOf(TranscriptItem.TurnChanges(4, changes), TranscriptItem.TurnReview(4)), transcript.items.drop(2))
+        assertEquals(AssistantTranscript().withUserMessage("hi"), AssistantTranscript().withUserMessage("hi").withTurnChanges(4, emptyList()))
+    }
+
+    @Test
+    fun onlyTheReviewOfTheTurnChosenChanges() {
+        val transcript = AssistantTranscript().withTurnChanges(1, changes).withTurnChanges(4, changes)
+            .withTurnReviewState(4, TranscriptItem.TurnReview.State.UNDONE)
+        assertEquals(
+            listOf(TranscriptItem.TurnReview(1), TranscriptItem.TurnReview(4, TranscriptItem.TurnReview.State.UNDONE)),
+            transcript.items.filterIsInstance<TranscriptItem.TurnReview>(),
+        )
+    }
+
+    private val changes = listOf(ChangeRecord(5, "add_block", CommandTarget.BlockType("Ball", 0, 0)))
 }

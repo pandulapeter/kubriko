@@ -67,16 +67,24 @@ public data class AssistantTranscript(
     internal fun withTurnEnd(reason: StopReason) = if (reason == StopReason.END_TURN) this else copy(items = items + TranscriptItem.TurnEnded(reason))
 
     /**
-     * Offers to keep or undo [changes], unless there are none.
+     * Shows what [changes] a turn made before the agent's final answer, and offers to keep or undo them at the end,
+     * unless there are none.
      */
-    internal fun withTurnChanges(sinceRevision: Int, changes: List<ChangeRecord>) =
-        if (changes.isEmpty()) this else copy(items = items + TranscriptItem.TurnChanges(sinceRevision, changes))
+    internal fun withTurnChanges(sinceRevision: Int, changes: List<ChangeRecord>): AssistantTranscript {
+        if (changes.isEmpty()) return this
+        val lastIndex = items.indexOfLast { it !is TranscriptItem.TurnEnded }
+        val summaryIndex = if (items.getOrNull(lastIndex) is TranscriptItem.AgentMessage) lastIndex else lastIndex + 1
+        return copy(
+            items = items.subList(0, summaryIndex) + TranscriptItem.TurnChanges(sinceRevision, changes) + items.subList(summaryIndex, items.size) +
+                TranscriptItem.TurnReview(sinceRevision),
+        )
+    }
 
     /**
      * Marks the changes of the turn that began at [sinceRevision] as [state].
      */
-    internal fun withTurnChangesState(sinceRevision: Int, state: TranscriptItem.TurnChanges.State) = copy(
-        items = items.map { if (it is TranscriptItem.TurnChanges && it.sinceRevision == sinceRevision) it.copy(state = state) else it },
+    internal fun withTurnReviewState(sinceRevision: Int, state: TranscriptItem.TurnReview.State) = copy(
+        items = items.map { if (it is TranscriptItem.TurnReview && it.sinceRevision == sinceRevision) it.copy(state = state) else it },
     )
 
     internal fun withFailure(reason: FailureReason, details: String? = null) = copy(items = items + TranscriptItem.Failure(reason, details))

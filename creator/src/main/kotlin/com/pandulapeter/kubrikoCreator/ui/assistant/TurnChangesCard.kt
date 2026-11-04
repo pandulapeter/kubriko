@@ -12,14 +12,11 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,24 +25,17 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.ui.commandTitleText
 import com.pandulapeter.kubrikoCreator.ui.description
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_keep
-import kubriko.creator.generated.resources.action_undo
-import kubriko.creator.generated.resources.assistant_changes_kept
 import kubriko.creator.generated.resources.assistant_changes_more
-import kubriko.creator.generated.resources.assistant_changes_partly_undone
 import kubriko.creator.generated.resources.assistant_changes_title
-import kubriko.creator.generated.resources.assistant_changes_undone
 import kubriko.creator.generated.resources.console_with_prefix
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * What a turn changed in the project, with Keep and Undo until one is chosen, and then which one was.
+ * What a turn changed in the project, listed before the agent's final answer.
  */
 @Composable
 internal fun TurnChangesCard(
     changes: TranscriptItem.TurnChanges,
-    onKeep: () -> Unit,
-    onUndo: () -> Unit,
 ) = Column(
     modifier = Modifier
         .fillMaxWidth()
@@ -73,30 +63,6 @@ internal fun TurnChangesCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    when (changes.state) {
-        TranscriptItem.TurnChanges.State.OFFERED -> Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            FilledTonalButton(onClick = onKeep) {
-                Text(stringResource(Res.string.action_keep))
-            }
-            TextButton(onClick = onUndo) {
-                Text(stringResource(Res.string.action_undo))
-            }
-        }
-        TranscriptItem.TurnChanges.State.KEPT -> Status(stringResource(Res.string.assistant_changes_kept))
-        TranscriptItem.TurnChanges.State.UNDONE -> Status(stringResource(Res.string.assistant_changes_undone))
-        TranscriptItem.TurnChanges.State.PARTLY_UNDONE -> Status(stringResource(Res.string.assistant_changes_partly_undone))
-    }
 }
-
-@Composable
-private fun Status(
-    text: String,
-) = Text(
-    text = text,
-    style = MaterialTheme.typography.bodySmall,
-    color = MaterialTheme.colorScheme.primary,
-)
 
 private const val SHOWN_CHANGES = 8

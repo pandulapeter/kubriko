@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeHighlight
+import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 
 /**
  * What lights up the step's target once it has finished (only then is its target final: a Block being added has no
@@ -20,9 +21,18 @@ import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeHighlight
 internal val AiStep.flashKey get() = id.takeUnless { isRunning }
 
 /**
- * The Actor type the editor switches to while following the AI through this step, if any.
+ * The newest step that changes the project, the kind the editor follows.
  */
-internal fun AiStep.actorTypeToFollow() = (target as? CommandTarget.BlockType)?.name
+internal fun List<AiStep>.newestChange() = lastOrNull { it.changesProject }
+
+/**
+ * What the editor goes to while following the AI through this step: the Actor type, Manager type, or Scene it changes.
+ */
+internal fun AiStep.selectionToFollow(): WorkspaceSelection? = when (val target = target?.takeIf { changesProject }) {
+    is CommandTarget.BlockType -> WorkspaceSelection.BlockType(target.name)
+    is CommandTarget.Scene -> WorkspaceSelection.Scene(target.name)
+    CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
+}
 
 /**
  * What this finished step lights up in the editor of [actorTypeName], or null if it runs or is about something else.
@@ -48,10 +58,10 @@ internal fun AiStep.sidebarName() = when (val target = target) {
 internal fun AiStep.canBeShown() = target is CommandTarget.BlockType || target is CommandTarget.Scene
 
 /**
- * A step the user went back to from the assistant panel, which the editor shows until the AI takes another one. It
+ * A step the user went back to from the assistant panel, which the editor shows until the AI makes another change. It
  * compares by identity, so going back to the same step again lights it up again.
  *
- * @param latestStepId The ID of the AI's newest step when the user went back.
+ * @param latestStepId The ID of the AI's newest change ([newestChange]) when the user went back.
  */
 internal class RevisitedAiStep(
     val step: AiStep,
@@ -67,10 +77,10 @@ internal data class ShownAiStep(
 )
 
 /**
- * The step the editor shows: the one the user went back to ([revisited]) until the AI takes another one, otherwise
- * the AI's newest ([latest]).
+ * The step the editor shows: the one the user went back to ([revisited]) until the AI makes another change (after
+ * [newestChangeId]), otherwise the one it follows ([followed]).
  */
-internal fun shownAiStep(latest: AiStep?, revisited: RevisitedAiStep?) = revisited
-    ?.takeIf { it.latestStepId == latest?.id }
+internal fun shownAiStep(followed: AiStep?, revisited: RevisitedAiStep?, newestChangeId: Int? = followed?.id) = revisited
+    ?.takeIf { it.latestStepId == newestChangeId }
     ?.let { ShownAiStep(step = it.step, flashKey = it) }
-    ?: latest?.let { ShownAiStep(step = it, flashKey = it.flashKey) }
+    ?: followed?.let { ShownAiStep(step = it, flashKey = it.flashKey) }

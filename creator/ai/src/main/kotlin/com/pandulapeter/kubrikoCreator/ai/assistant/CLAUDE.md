@@ -48,5 +48,6 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   `AgentConversation.availableCommands` keeps the first announcement.
 - **Downloads** (`BinaryAgentInstaller`, `NodeRuntime`) are checked against the published SHA-256 where there is one and refuse
   archive entries outside their folder.
-- **Turns:** a turn that changed the project ends with Keep and Undo, which reverts the conversation's own changes through the undo
-  history while they are the newest (`CommandExecutor.undoTurn`).
+- **Turns:** a turn that changed the project lists what changed before its final answer (`TurnChanges`) and ends with Keep and
+  Undo (`TurnReview`, shown only when the setting is on), which reverts the conversation's own changes through the undo history
+  while they are the newest (`CommandExecutor.undoTurn`).

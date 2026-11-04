@@ -769,6 +769,14 @@
     <string name="settings_section_ai">AI</string>
     <string name="settings_ai_enabled">AI features</string>
     <string name="settings_ai_enabled_description">When off, Kubriko Creator shows no AI panel or AI activity, serves no tools to AI apps, starts no agent, and sends nothing anywhere. Projects made with AI open as usual.</string>
+    <string name="settings_follow_ai">Follow the AI</string>
+    <string name="settings_follow_ai_description">Shows each Actor type, Manager type, or Scene the AI changes as it changes it, and lights up the Event or Block it works on. The Follow switch over the editor turns this on and off too.</string>
+    <string name="settings_ai_follow_delay">Time on each change</string>
+    <string name="settings_ai_follow_delay_description">The least time the editor stays on each change, so quick steps don't flash.</string>
+    <string name="settings_ai_follow_delay_none">None</string>
+    <string name="settings_ai_follow_delay_seconds">%1$s s</string>
+    <string name="settings_turn_review">Keep and Undo after each answer</string>
+    <string name="settings_turn_review_description">Ends every assistant turn that changed the project with a card to keep or undo all of its changes at once. Undo and redo work either way.</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_theme_system">System</string>

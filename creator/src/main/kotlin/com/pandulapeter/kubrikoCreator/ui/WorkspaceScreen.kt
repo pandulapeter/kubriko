@@ -123,15 +123,15 @@ private fun WorkspaceContent(
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     val mcpState by mcp.state.collectAsState()
     val aiSteps by controller.commands.aiSteps.collectAsState()
-    val latestAiStep = aiSteps.lastOrNull()
-    val shownAiStep = shownAiStep(latestAiStep, uiState.revisitedAiStep)?.takeIf { isAiEnabled }
+    val followedAiStep = rememberFollowedAiStep(aiSteps, LocalAiActivitySettings.current.followDelayInMillis)
+    val shownAiStep = shownAiStep(followedAiStep, uiState.revisitedAiStep, aiSteps.newestChange()?.id)?.takeIf { isAiEnabled }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
     val readOnlyReason = (controller.formatStatus.collectAsState().value as? ProjectFormatStatus.ReadOnly)?.toRejection()
     val sidebarDragState = rememberSidebarDragState(controller)
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
     WorkspaceDialogsOf(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
-    FollowingAiSteps(controller = controller, uiState = uiState, latestAiStep = latestAiStep, selection = selection)
+    FollowingAiSteps(controller = controller, followedAiStep = followedAiStep, selection = selection)
     RefreshingGitOnWindowFocus(controller.git::refresh)
     var columnHeight by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
@@ -452,18 +452,24 @@ private fun WorkspaceAiSidePanelOf(
 )
 
 /**
- * Selects each Actor type the AI changes, while the user follows the AI.
+ * Goes to each Actor type, Manager type, or Scene the AI changes, while the user follows the AI.
  */
 @Composable
 private fun FollowingAiSteps(
     controller: WorkspaceController,
-    uiState: WorkspaceUiState,
-    latestAiStep: AiStep?,
+    followedAiStep: AiStep?,
     selection: WorkspaceSelection,
 ) {
-    val isAiEnabled = LocalIsAiEnabled.current
-    LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
-        val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
-        if (isAiEnabled && uiState.isFollowingAi && selection != WorkspaceSelection.BlockType(name)) controller.selection.selectType(name)
+    val isAiEnabled by rememberUpdatedState(LocalIsAiEnabled.current)
+    val isFollowing by rememberUpdatedState(LocalAiActivitySettings.current.isFollowing)
+    val currentSelection by rememberUpdatedState(selection)
+    val target = followedAiStep?.selectionToFollow()
+    LaunchedEffect(followedAiStep?.id, target) {
+        if (!isAiEnabled || !isFollowing || target == currentSelection) return@LaunchedEffect
+        when (target) {
+            is WorkspaceSelection.BlockType -> controller.selection.selectType(target.name)
+            is WorkspaceSelection.Scene -> controller.selection.openScene(target.name)
+            WorkspaceSelection.None, null -> Unit
+        }
     }
 }

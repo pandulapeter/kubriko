@@ -40,6 +40,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.ui.LocalAiActivitySettings
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_empty
@@ -197,6 +198,7 @@ private fun ChatContent(
                 isBusy = isBusy,
                 steps = steps,
                 onShowStep = onShowStep,
+                isTurnReviewShown = LocalAiActivitySettings.current.isTurnReviewShown,
                 onKeepChanges = chat::keepChanges,
                 onUndoChanges = chat::undoChanges,
             )

@@ -87,7 +87,7 @@ internal fun WorkspaceAiSidePanel(
         aiClients = aiClients,
         aiSteps = aiSteps,
         onShowStep = { step ->
-            uiState.revisit(step, latestStepId = aiSteps.lastOrNull()?.id)
+            uiState.revisit(step, latestStepId = aiSteps.newestChange()?.id)
             when (val target = step.target) {
                 is CommandTarget.BlockType -> onTypeSelected(target.name)
                 is CommandTarget.Scene -> onSceneSelected(target.name)

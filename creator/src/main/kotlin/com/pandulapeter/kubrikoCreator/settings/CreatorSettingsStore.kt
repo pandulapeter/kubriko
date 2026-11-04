@@ -17,9 +17,8 @@ import java.io.File
 import kotlin.math.abs
 
 /**
- * Keeps [CreatorSettings] in [file]. A missing or unreadable file means the defaults, and an interface scale that isn't
- * offered the closest one that is. A
- * save that can't be written leaves the settings applying until Kubriko Creator quits.
+ * Keeps [CreatorSettings] in [file]. A missing or unreadable file means the defaults, and an interface scale or AI follow
+ * delay that isn't offered the closest one that is. A save that can't be written leaves the settings applying until Kubriko Creator quits.
  */
 internal class CreatorSettingsStore(
     file: File,
@@ -34,7 +33,9 @@ internal class CreatorSettingsStore(
         },
     )
 
-    fun load(): CreatorSettings = store.read().valueOrNull()?.let { it.copy(interfaceScale = closestInterfaceScale(it.interfaceScale)) } ?: CreatorSettings()
+    fun load(): CreatorSettings = store.read().valueOrNull()?.let {
+        it.copy(interfaceScale = closestInterfaceScale(it.interfaceScale), aiFollowDelayInMillis = closestAiFollowDelay(it.aiFollowDelayInMillis))
+    } ?: CreatorSettings()
 
     fun save(settings: CreatorSettings) {
         store.write(settings)
@@ -45,5 +46,7 @@ internal class CreatorSettingsStore(
         fun default() = CreatorSettingsStore(File(settingsDirectory(), "settings.json"))
 
         fun closestInterfaceScale(scale: Float) = CreatorSettings.interfaceScales.minBy { abs(it - scale) }
+
+        fun closestAiFollowDelay(delayInMillis: Int) = CreatorSettings.aiFollowDelays.minBy { abs(it.toLong() - delayInMillis) }
     }
 }

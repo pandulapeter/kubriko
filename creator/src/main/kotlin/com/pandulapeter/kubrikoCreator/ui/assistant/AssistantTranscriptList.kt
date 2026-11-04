@@ -82,6 +82,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param isBusy Whether the agent works on a turn, shown at the end until it writes something.
  * @param steps The AI step each of Kubriko Creator's tool calls made, by the call's ID ([aiStepsOf]).
  * @param onShowStep Goes to what a step worked on, in the editor.
+ * @param isTurnReviewShown Whether turns that changed the project end with Keep and Undo.
  * @param onKeepChanges Keeps what the turn that began at a revision changed.
  * @param onUndoChanges Reverts what the turn that began at a revision changed.
  */
@@ -92,11 +93,13 @@ internal fun AssistantTranscriptList(
     steps: Map<ToolCallId, AiStep>,
     onShowStep: (AiStep) -> Unit,
     modifier: Modifier = Modifier,
+    isTurnReviewShown: Boolean = false,
     onKeepChanges: (sinceRevision: Int) -> Unit = {},
     onUndoChanges: (sinceRevision: Int) -> Unit = {},
 ) {
+    val shownItems = remember(items, isTurnReviewShown) { if (isTurnReviewShown) items else items.filterNot { it is TranscriptItem.TurnReview } }
     val listState = rememberLazyListState()
-    val last = items.lastOrNull()
+    val last = shownItems.lastOrNull()
     var isFollowing by remember { mutableStateOf(true) }
     LaunchedEffect(listState) {
         var previous = TranscriptScroll(0, 0)
@@ -106,8 +109,8 @@ internal fun AssistantTranscriptList(
                 previous = current
             }
     }
-    LaunchedEffect(items.size, (last as? TranscriptItem.AgentMessage)?.text?.length, isBusy) {
-        if (isFollowing && items.isNotEmpty()) listState.scrollToItem(items.lastIndex + if (isBusy) 1 else 0, Int.MAX_VALUE)
+    LaunchedEffect(shownItems.size, (last as? TranscriptItem.AgentMessage)?.text?.length, isBusy) {
+        if (isFollowing && shownItems.isNotEmpty()) listState.scrollToItem(shownItems.lastIndex + if (isBusy) 1 else 0, Int.MAX_VALUE)
     }
     LazyColumn(
         modifier = modifier,
@@ -115,8 +118,9 @@ internal fun AssistantTranscriptList(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        // The list only grows at its end or changes items in place, so their indices are stable keys.
-        itemsIndexed(items, contentType = { _, item -> item::class }) { _, item ->
+        // The list grows at its end and changes items in place, but for a turn's changes slipped in before its final
+        // answer, which only moves the items after them, so their indices are stable enough as keys.
+        itemsIndexed(shownItems, contentType = { _, item -> item::class }) { _, item ->
             when (item) {
                 is TranscriptItem.UserMessage -> UserMessage(item.text)
                 is TranscriptItem.AgentMessage -> SelectionContainer { MarkdownText(item.text) }
@@ -126,8 +130,9 @@ internal fun AssistantTranscriptList(
                     step = steps[item.id],
                     onShowStep = onShowStep,
                 )
-                is TranscriptItem.TurnChanges -> TurnChangesCard(
-                    changes = item,
+                is TranscriptItem.TurnChanges -> TurnChangesCard(changes = item)
+                is TranscriptItem.TurnReview -> TurnReviewCard(
+                    review = item,
                     onKeep = { onKeepChanges(item.sinceRevision) },
                     onUndo = { onUndoChanges(item.sinceRevision) },
                 )

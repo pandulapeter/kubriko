@@ -196,7 +196,7 @@ public class CommandExecutor(
         } catch (exception: IllegalArgumentException) {
             return rejectInput(name, command, exception, origin, clientName)
         }
-        val step = AiStep(id = nextAiStepId++, toolName = name, target = command.target(context, input), isRunning = true, origin = origin, clientName = clientName)
+        val step = AiStep(id = nextAiStepId++, toolName = name, target = command.target(context, input), isRunning = true, changesProject = command is WriteCommand, origin = origin, clientName = clientName)
         publish(step)
         var rejection: Rejection? = null
         try {

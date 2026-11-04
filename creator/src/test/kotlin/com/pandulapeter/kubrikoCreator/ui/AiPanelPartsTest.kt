@@ -73,12 +73,14 @@ class AiPanelPartsTest {
                 items = listOf(
                     TranscriptItem.UserMessage("Make the Ball faster"),
                     TranscriptItem.ToolCall(ToolCallId("1"), "kubriko-creator_edit_block", status = ToolCallStatus.COMPLETED),
-                    TranscriptItem.AgentMessage("Done: the Ball now starts at **360**."),
                     TranscriptItem.TurnChanges(4, listOf(ChangeRecord(5, "edit_block", CommandTarget.BlockType("Ball", 0, 0)))),
+                    TranscriptItem.AgentMessage("Done: the Ball now starts at **360**."),
+                    TranscriptItem.TurnReview(4),
                 ),
                 isBusy = false,
                 steps = emptyMap(),
                 onShowStep = {},
+                isTurnReviewShown = true,
                 onKeepChanges = { kept += it },
             )
         }
@@ -89,6 +91,26 @@ class AiPanelPartsTest {
         onNodeWithText("Keep").performClick()
         assertEquals(listOf(4), kept)
         saveSnapshot("transcript")
+    }
+
+    @Test
+    fun keepAndUndoAreLeftOutUnlessTurnedOn() = uiTest {
+        showing {
+            AssistantTranscriptList(
+                items = listOf(
+                    TranscriptItem.UserMessage("Make the Ball faster"),
+                    TranscriptItem.TurnChanges(4, listOf(ChangeRecord(5, "edit_block", CommandTarget.BlockType("Ball", 0, 0)))),
+                    TranscriptItem.AgentMessage("Done."),
+                    TranscriptItem.TurnReview(4),
+                ),
+                isBusy = false,
+                steps = emptyMap(),
+                onShowStep = {},
+            )
+        }
+        onNodeWithText("What changed").assertExists()
+        onNodeWithText("Keep").assertDoesNotExist()
+        onNodeWithText("Undo").assertDoesNotExist()
     }
 
     @Test

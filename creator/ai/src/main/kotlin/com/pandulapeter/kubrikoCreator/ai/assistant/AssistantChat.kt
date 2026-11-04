@@ -234,7 +234,7 @@ public class AssistantChat(
     /**
      * Keeps what the turn that began at [sinceRevision] changed.
      */
-    public fun keepChanges(sinceRevision: Int): Unit = _transcript.update { it.withTurnChangesState(sinceRevision, TranscriptItem.TurnChanges.State.KEPT) }
+    public fun keepChanges(sinceRevision: Int): Unit = _transcript.update { it.withTurnReviewState(sinceRevision, TranscriptItem.TurnReview.State.KEPT) }
 
     /**
      * Reverts what the turn that began at [sinceRevision] changed, up to a later change of someone else's.
@@ -243,8 +243,8 @@ public class AssistantChat(
         val toolsId = _toolsId.value ?: return
         scope.launch {
             val remaining = undoTurn(toolsId, sinceRevision)
-            val state = if (remaining == 0) TranscriptItem.TurnChanges.State.UNDONE else TranscriptItem.TurnChanges.State.PARTLY_UNDONE
-            _transcript.update { it.withTurnChangesState(sinceRevision, state) }
+            val state = if (remaining == 0) TranscriptItem.TurnReview.State.UNDONE else TranscriptItem.TurnReview.State.PARTLY_UNDONE
+            _transcript.update { it.withTurnReviewState(sinceRevision, state) }
         }
     }
 

@@ -37,10 +37,11 @@ internal fun WorkspaceNotices(
     readOnlyReason: Rejection?,
     isUpgradeNeeded: Boolean,
 ) {
+    val aiActivitySettings = LocalAiActivitySettings.current
     AiActivityBar(
         steps = aiSteps,
-        isFollowing = uiState.isFollowingAi,
-        onFollowingChange = uiState::followAi,
+        isFollowing = aiActivitySettings.isFollowing,
+        onFollowingChange = aiActivitySettings.onFollowingChange,
         onClick = uiState::showAiPanel,
     )
     var shownReadOnlyReason by remember { mutableStateOf(readOnlyReason) }

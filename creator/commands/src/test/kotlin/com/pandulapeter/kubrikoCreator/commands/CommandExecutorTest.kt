@@ -165,7 +165,7 @@ class CommandExecutorTest {
     }
 
     @Test
-    fun toolCallsAreRecordedAsStepsThatStartRunningAndNameWhatTheyChanged() = runTest {
+    fun toolCallsAreRecordedAsStepsThatStartRunningAndNameWhatTheyReadOrChanged() = runTest {
         val (executor, _) = executor(ball)
         val running = mutableListOf<AiStep>()
         val collecting = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { executor.aiSteps.collect { steps -> steps.lastOrNull()?.takeIf { it.isRunning }?.let(running::add) } }
@@ -175,13 +175,13 @@ class CommandExecutorTest {
         collecting.cancel()
         assertEquals(
             listOf(
-                AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 1), isRunning = false),
+                AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 1), isRunning = false, changesProject = true),
                 AiStep(1, "read_actor_type", CommandTarget.BlockType("Wall"), isRunning = false, rejection = Rejection(CommandProblem.ACTOR_TYPE_MISSING, "Wall")),
             ),
             executor.aiSteps.value.take(2),
         )
         assertEquals(CommandProblem.INPUT_INVALID, executor.aiSteps.value[2].rejection?.reason)
-        assertEquals(listOf(AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 0), isRunning = true)), running.take(1))
+        assertEquals(listOf(AiStep(0, "add_block", CommandTarget.BlockType("Ball", 0, 0), isRunning = true, changesProject = true)), running.take(1))
     }
 
     @Test

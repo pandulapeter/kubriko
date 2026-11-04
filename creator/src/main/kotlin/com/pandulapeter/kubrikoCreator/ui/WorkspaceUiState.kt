@@ -16,7 +16,7 @@ import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 
 /**
- * What the workspace screen shows besides the project: its side panels, its dialogs, and whether it follows the AI.
+ * What the workspace screen shows besides the project: its side panels, its dialogs, and the AI step the user went back to.
  */
 internal class WorkspaceUiState {
     var openPanel: SidePanel? by mutableStateOf(null)
@@ -24,8 +24,6 @@ internal class WorkspaceUiState {
     var aiPanelView by mutableStateOf(AiPanelView.ASSISTANT)
         private set
     var revisitedAiStep: RevisitedAiStep? by mutableStateOf(null)
-        private set
-    var isFollowingAi by mutableStateOf(true)
         private set
     var isUpgradeNoticeDismissed by mutableStateOf(false)
         private set
@@ -66,12 +64,8 @@ internal class WorkspaceUiState {
         aiPanelView = view
     }
 
-    fun followAi(isFollowing: Boolean) {
-        isFollowingAi = isFollowing
-    }
-
     /**
-     * Shows [step] again, until the AI takes a step after [latestStepId].
+     * Shows [step] again, until the AI makes a change after [latestStepId].
      */
     fun revisit(step: AiStep, latestStepId: Int?) {
         revisitedAiStep = RevisitedAiStep(step, latestStepId = latestStepId)

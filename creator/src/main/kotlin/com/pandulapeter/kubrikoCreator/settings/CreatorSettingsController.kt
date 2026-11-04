@@ -45,6 +45,12 @@ internal class CreatorSettingsController(
 
     fun setAiEnabled(isEnabled: Boolean) = update { it.copy(isAiEnabled = isEnabled) }
 
+    fun setFollowingAi(isFollowing: Boolean) = update { it.copy(isFollowingAi = isFollowing) }
+
+    fun setAiFollowDelay(delayInMillis: Int) = update { it.copy(aiFollowDelayInMillis = CreatorSettingsStore.closestAiFollowDelay(delayInMillis)) }
+
+    fun setTurnReviewShown(isShown: Boolean) = update { it.copy(isTurnReviewShown = isShown) }
+
     fun setTheme(theme: ThemeChoice) = update { it.copy(theme = theme) }
 
     fun setInterfaceScale(scale: Float) = update { it.copy(interfaceScale = CreatorSettingsStore.closestInterfaceScale(scale)) }
