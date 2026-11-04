@@ -44,7 +44,10 @@ public object ResourceScanner {
     }
 
     private fun Sequence<String>.groupResources(rootDirectory: File) = mapNotNull { relativePath ->
-        classify(relativePath)?.let { group -> ProjectResource(group, File(rootDirectory, relativePath), relativePath) }
+        classify(relativePath)?.let { group ->
+            val file = File(rootDirectory, relativePath)
+            ProjectResource(group, file, relativePath, if (group == ResourceGroup.KOTLIN) KotlinPackages.of(file, relativePath) else null)
+        }
     }
         .sortedBy { it.relativePath }
         .groupBy { it.group }
@@ -69,6 +72,6 @@ public object ResourceScanner {
      * the same name, or null outside a source folder.
      */
     public fun sourceSetOf(resource: ProjectResource): String? = resource.relativePath.split('/').let { segments ->
-        segments.indexOf("src").takeIf { it >= 0 }?.let { segments.getOrNull(it + 1) }
+        segments.indexOf("src").takeIf { it >= 0 && it + 1 < segments.lastIndex }?.let { segments[it + 1] }
     }
 }

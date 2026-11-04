@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -178,5 +179,38 @@ class ProjectSidebarTest {
         assertEquals(listOf(ResourceGroup.KOTLIN), shownResourceGroups(emptyMap()))
         val sound = ProjectResource(ResourceGroup.SOUNDS, File("hit.wav"), "hit.wav")
         assertEquals(listOf(ResourceGroup.SOUNDS, ResourceGroup.KOTLIN), shownResourceGroups(mapOf(ResourceGroup.SOUNDS to listOf(sound))))
+    }
+
+    @Test
+    fun kotlinFilesAreGroupedByPlatformAndByPackageBelowTheRootOneAndItsFoldersOpenAndCloseWithoutAnyActions() = uiTest(width = 300, height = 600) {
+        fun kotlin(path: String, kotlinPackage: String) = ProjectResource(ResourceGroup.KOTLIN, File(path), path, kotlinPackage)
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = mapOf(
+                    ResourceGroup.KOTLIN to listOf(
+                        kotlin("src/commonMain/kotlin/com/game/Game.kt", "com.game"),
+                        kotlin("src/commonMain/kotlin/com/game/ui/feature1/Menu.kt", "com.game.ui.feature1"),
+                        kotlin("src/desktopMain/kotlin/com/game/Main.kt", "com.game"),
+                        kotlin("src/androidMain/kotlin/com/game/MainActivity.kt", "com.game"),
+                    ),
+                ),
+                folderGroups = emptyMap(),
+                folderActions = folderActions,
+                dragState = SidebarDragState(),
+            )
+        }
+        onNodeWithText("Kotlin files").performClick()
+        listOf("Desktop", "Android", "ui.feature1", "Menu.kt", "Main.kt", "MainActivity.kt", "Game.kt").forEach { onNodeWithText(it).assertExists() }
+        onAllNodesWithContentDescription("More options").assertCountEquals(0)
+        saveSnapshot("sidebar-kotlin-files")
+        onNodeWithText("Android").performClick()
+        onNodeWithText("MainActivity.kt").assertDoesNotExist()
+        onNodeWithText("ui.feature1").performClick()
+        onNodeWithText("Menu.kt").assertDoesNotExist()
+        onNodeWithText("Main.kt").assertExists()
+        onNode(hasSetTextAction()).performTextInput("main")
+        listOf("MainActivity.kt", "Main.kt").forEach { onNodeWithText(it).assertExists() }
+        onNodeWithText("Game.kt").assertDoesNotExist()
     }
 }

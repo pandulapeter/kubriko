@@ -47,21 +47,23 @@ import kubriko.creator.generated.resources.ic_create_new_folder
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edit
 import kubriko.creator.generated.resources.ic_folder_open
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A folder of the sidebar, opened and closed by a click. Its ⋮ (shown while it is pointed at) and its right-click menu
- * offer a new folder inside it, renaming it, and, while it is empty, deleting it.
+ * A folder of the sidebar, opened and closed by a click, drawn with [icon]. Its [actions], if any, are offered by its ⋮
+ * (shown while it is pointed at) and its right-click menu.
  */
 @Composable
 internal fun SidebarFolderRow(
-    row: FolderTreeRow.Folder,
+    name: String,
+    depth: Int,
+    isExpanded: Boolean,
     onToggle: () -> Unit,
-    onNewFolder: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: DrawableResource = Res.drawable.ic_folder_open,
+    actions: List<ContextAction> = emptyList(),
 ) {
     val hover = rememberHoverRevealState()
     val menu = rememberRightClickMenuState()
@@ -72,42 +74,55 @@ internal fun SidebarFolderRow(
             .clickable(onClick = onToggle)
             .hoverReveal(hover)
             .rightClickMenu(menu)
-            .padding(start = SIDEBAR_ROW_START - CHEVRON_ROOM + SIDEBAR_INDENT * row.depth, end = SIDEBAR_ROW_END),
+            .padding(start = SIDEBAR_ROW_START - CHEVRON_ROOM + SIDEBAR_INDENT * depth, end = if (actions.isEmpty()) 12.dp else SIDEBAR_ROW_END),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val chevronRotation by animateFloatAsState(if (row.isExpanded) 0f else -90f, CreatorMotion.medium())
+        val chevronRotation by animateFloatAsState(if (isExpanded) 0f else -90f, CreatorMotion.medium())
         Icon(
             modifier = Modifier.size(14.dp).rotate(chevronRotation),
             painter = painterResource(Res.drawable.ic_chevron),
-            contentDescription = stringResource(if (row.isExpanded) Res.string.action_collapse_group else Res.string.action_expand_group),
+            contentDescription = stringResource(if (isExpanded) Res.string.action_collapse_group else Res.string.action_expand_group),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Icon(
             modifier = Modifier.size(16.dp),
-            painter = painterResource(Res.drawable.ic_folder_open),
+            painter = painterResource(icon),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             modifier = Modifier.padding(start = 4.dp).weight(1f),
-            text = row.name,
+            text = name,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        RowActionsButton(
-            modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
-            menu = menu,
-            actions = listOfNotNull(
-                ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder, onClick = onNewFolder),
-                ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit, onClick = onRename),
-                ContextAction(stringResource(Res.string.action_delete_folder), Res.drawable.ic_delete, isDestructive = true, onClick = onDelete).takeIf { row.isEmpty },
-            ),
-            label = Res.string.action_more_options,
-        )
+        if (actions.isNotEmpty()) {
+            RowActionsButton(
+                modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
+                menu = menu,
+                actions = actions,
+                label = Res.string.action_more_options,
+            )
+        }
     }
 }
+
+/**
+ * What a folder of a group with folders offers: a new folder inside it, renaming it, and, while it [isEmpty], deleting it.
+ */
+@Composable
+internal fun folderActions(
+    isEmpty: Boolean,
+    onNewFolder: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) = listOfNotNull(
+    ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder, onClick = onNewFolder),
+    ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit, onClick = onRename),
+    ContextAction(stringResource(Res.string.action_delete_folder), Res.drawable.ic_delete, isDestructive = true, onClick = onDelete).takeIf { isEmpty },
+)
 
 /**
  * The room the chevron and the space after it take before a folder's icon, which lines up with an item's.

@@ -144,5 +144,20 @@ class ResourceScannerTest {
         assertEquals("desktopMain", ResourceScanner.sourceSetOf(resource("src/desktopMain/kotlin/game/Main.kt")))
         assertEquals("wasmJsMain", ResourceScanner.sourceSetOf(resource("app/src/wasmJsMain/kotlin/Main.kt")))
         assertNull(ResourceScanner.sourceSetOf(resource("scripts/Tool.kt")))
+        assertNull(ResourceScanner.sourceSetOf(resource("scripts/src/Tool.kt")))
+    }
+
+    @Test
+    fun kotlinFilesCarryThePackageTheyDeclare() {
+        val root = createTempDirectory().toFile()
+        try {
+            File(root, "src/commonMain/kotlin/ui/Menu.kt").apply { parentFile.mkdirs() }.writeText("package com.game.ui\n")
+            File(root, "src/commonMain/composeResources/drawable/ball.png").apply { parentFile.mkdirs() }.writeText("")
+            val resources = ResourceScanner.scan(root)
+            assertEquals(listOf("com.game.ui"), resources.getValue(ResourceGroup.KOTLIN).map { it.kotlinPackage })
+            assertEquals(listOf(null), resources.getValue(ResourceGroup.SPRITES).map { it.kotlinPackage })
+        } finally {
+            root.deleteRecursively()
+        }
     }
 }

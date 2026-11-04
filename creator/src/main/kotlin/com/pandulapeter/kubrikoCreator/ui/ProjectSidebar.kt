@@ -83,12 +83,17 @@ internal fun ProjectSidebar(
     var naming by remember { mutableStateOf<SidebarNaming?>(null) }
     var collapsedFolders by remember { mutableStateOf(emptyMap<FolderGroup, Set<String>>()) }
     var collapsedGroups by remember { mutableStateOf(setOf(ResourceGroup.KOTLIN)) }
+    var collapsedKotlinFolders by remember { mutableStateOf(emptySet<String>()) }
     val isFiltering = query.isNotBlank()
     val shownFolderGroups = remember(query, folderGroups) {
         if (isFiltering) folderGroups.mapValues { (_, state) -> state.filtered(query) }.filterValues { it.items.isNotEmpty() } else folderGroups
     }
     val shownResources = remember(query, resources) {
         if (isFiltering) resources.mapValues { (_, groupResources) -> groupResources.filter { matchesSidebarFilter(it.name, query) } } else resources
+    }
+    val kotlinRootPackage = remember(resources) { rootPackageOf(resources[ResourceGroup.KOTLIN].orEmpty()) }
+    val kotlinRows = remember(shownResources, kotlinRootPackage, collapsedKotlinFolders, isFiltering) {
+        kotlinTreeRows(shownResources[ResourceGroup.KOTLIN].orEmpty(), kotlinRootPackage, if (isFiltering) emptySet() else collapsedKotlinFolders)
     }
     val resourceGroups = shownResourceGroups(shownResources).filter { !isFiltering || shownResources[it].orEmpty().isNotEmpty() }
     SidebarFilterField(
@@ -115,12 +120,22 @@ internal fun ProjectSidebar(
         }
         resourceGroups.forEach { group ->
             val isCollapsed = !isFiltering && group in collapsedGroups
+            val groupResources = shownResources[group].orEmpty()
             resourceGroupSection(
                 group = group,
-                groupResources = shownResources[group].orEmpty(),
+                isEmpty = groupResources.isEmpty(),
                 isCollapsed = isCollapsed,
                 onToggle = { if (!isFiltering) collapsedGroups = if (isCollapsed) collapsedGroups - group else collapsedGroups + group },
-            )
+            ) {
+                if (group == ResourceGroup.KOTLIN) {
+                    kotlinTreeItems(
+                        rows = kotlinRows,
+                        onToggle = { key -> if (!isFiltering) collapsedKotlinFolders = if (key in collapsedKotlinFolders) collapsedKotlinFolders - key else collapsedKotlinFolders + key },
+                    )
+                } else {
+                    resourceItems(group, groupResources)
+                }
+            }
         }
         if (isFiltering && shownFolderGroups.isEmpty() && resourceGroups.isEmpty()) {
             item(key = "filter-none") {
@@ -157,13 +172,15 @@ private fun SidebarFilterField(
 )
 
 /**
- * The header of a group of files that aren't types or Scenes, then its files unless it [isCollapsed].
+ * The header of a group of files that aren't types or Scenes, then, unless it [isCollapsed], its [items], or a line
+ * saying it [isEmpty].
  */
 private fun LazyListScope.resourceGroupSection(
     group: ResourceGroup,
-    groupResources: List<ProjectResource>,
+    isEmpty: Boolean,
     isCollapsed: Boolean,
     onToggle: () -> Unit,
+    items: LazyListScope.() -> Unit,
 ) {
     item(key = group) {
         PanelHeader(
@@ -181,7 +198,7 @@ private fun LazyListScope.resourceGroupSection(
         }
     }
     if (isCollapsed) return
-    if (groupResources.isEmpty()) {
+    if (isEmpty) {
         item(key = "$group-empty") {
             Text(
                 modifier = Modifier.padding(start = 36.dp, top = 2.dp, bottom = 6.dp),
@@ -191,16 +208,23 @@ private fun LazyListScope.resourceGroupSection(
             )
         }
     } else {
-        val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
-        items(groupResources, key = { it.relativePath }) { resource ->
-            SidebarItem(
-                icon = group.icon,
-                accent = Accent.CODE,
-                text = resource.name,
-                detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
-                onClick = null,
-            )
-        }
+        items()
+    }
+}
+
+/**
+ * The files of an asset [group], by name.
+ */
+private fun LazyListScope.resourceItems(group: ResourceGroup, groupResources: List<ProjectResource>) {
+    val duplicateNames = groupResources.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
+    items(groupResources, key = { it.relativePath }) { resource ->
+        SidebarItem(
+            icon = group.icon,
+            accent = Accent.CODE,
+            text = resource.name,
+            detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
+            onClick = null,
+        )
     }
 }
 

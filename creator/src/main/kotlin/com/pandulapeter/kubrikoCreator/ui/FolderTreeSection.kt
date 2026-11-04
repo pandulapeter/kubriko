@@ -163,14 +163,19 @@ internal fun LazyListScope.folderTreeSection(
                 } else {
                     SidebarFolderRow(
                         modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group, row.path)),
-                        row = row,
+                        name = row.name,
+                        depth = row.depth,
+                        isExpanded = row.isExpanded,
                         onToggle = { onCollapsedChange(if (row.isExpanded) collapsed + row.path else collapsed - row.path) },
-                        onNewFolder = {
-                            onCollapsedChange(collapsed - row.path)
-                            onNamingChange(SidebarNaming.NewFolder(group, row.path))
-                        },
-                        onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
-                        onDelete = { actions.onDeleteFolder(group, row.path) },
+                        actions = folderActions(
+                            isEmpty = row.isEmpty,
+                            onNewFolder = {
+                                onCollapsedChange(collapsed - row.path)
+                                onNamingChange(SidebarNaming.NewFolder(group, row.path))
+                            },
+                            onRename = { onNamingChange(SidebarNaming.RenamedFolder(group, row.path)) },
+                            onDelete = { actions.onDeleteFolder(group, row.path) },
+                        ),
                     )
                 }
                 if (naming == SidebarNaming.NewFolder(group, row.path)) {
