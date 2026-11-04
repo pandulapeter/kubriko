@@ -17,6 +17,9 @@ Hosts Agent Client Protocol agents through the official Kotlin SDK. Tests run `F
   variables); `AssistantSettingsState` saves their settings off the main thread. The panel reads an `AssistantPanelModel` (which
   `AssistantController` implements), and what a given agent offers, an API key and Claude Code configurations, comes from its
   `AgentProfile.usesClaudeAccount`, not from the UI.
+- **Starting with a project:** an agent that has worked before (it holds a saved conversation about any project) opens a
+  conversation as soon as a project opens, whether or not the panel is shown, so what needs one taking prompts (writing
+  descriptions) works from the start; any other agent waits for the panel, since starting it may download it or ask to sign in.
 - **Agents:** Claude Agent is the one fully supported agent (`RegistryAgent.isTested`); every other ACP Registry agent runs on
   generic fallbacks chosen from its `initialize` answer (`AgentProfile.fallback`), with as little per-agent code as possible, and
   is shown as untested. An agent a vendor publishes in the registry counts as meant for hosting, so vendors' terms don't gate it;

@@ -34,6 +34,12 @@ public class SavedConversationStore(
     internal fun of(project: File, agentId: String) = read().filter { it.project == project.absolutePath && it.agentId == agentId }.sortedByDescending { it.updatedAt }
 
     /**
+     * Whether the agent [agentId] holds a conversation about any project, which means it has worked here before.
+     */
+    @Synchronized
+    internal fun hasAny(agentId: String) = read().any { it.agentId == agentId }
+
+    /**
      * Keeps [conversation], replacing the one with its ID, and forgets the oldest of its project beyond the limit.
      */
     @Synchronized

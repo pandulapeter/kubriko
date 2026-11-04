@@ -143,12 +143,29 @@ public class AssistantController(
     override fun findConfigurations(): Unit = claude.findConfigurations()
 
     /**
-     * Makes [directory] the project conversations are about, ending those about the one before.
+     * Makes [directory] the project conversations are about, ending those about the one before, and opens a conversation
+     * about it right away when the chosen agent has worked before ([startIfSetUp]).
      */
     public fun setProject(directory: File?) {
         if (directory == project) return
         project = directory
         endChats()
+        if (directory != null) startIfSetUp(directory)
+    }
+
+    /**
+     * Opens a conversation about [directory] while the panel may still be hidden, so that what needs one taking prompts
+     * (writing descriptions, for one) works from the start, if the chosen agent has a saved conversation: one that
+     * finished a turn, so it is installed and signed in, and starting it fetches and asks for nothing.
+     */
+    private fun startIfSetUp(directory: File) {
+        if (!host.isOn) return
+        scope.launch {
+            selection.awaitLoaded()
+            val agentId = selection.agent.value.id
+            val hasWorked = withContext(ioDispatcher) { storage.conversations?.hasAny(agentId) } == true
+            if (hasWorked && project == directory && selection.agent.value.id == agentId && chatList.current.value == null) newChat()
+        }
     }
 
     override fun newChat() {

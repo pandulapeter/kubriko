@@ -461,6 +461,38 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun openingAProjectStartsNoAgentThatHasNotWorkedBefore() = blockingTest {
+        SavedConversationStore(File(settingsDirectory, "conversations.json")).save(SavedConversation("/projects/other", "codex-acp", "earlier", "Earlier", 500))
+        val controller = controller()
+        onMain { controller.setProject(projectDirectory) }
+        awaitIdle(mainThread, io)
+        assertNull(controller.currentChat.value)
+        assertTrue(commands.isEmpty())
+    }
+
+    @Test
+    fun openingAProjectStartsTheAgentThatWorkedBeforeWithoutThePanel() = blockingTest {
+        SavedConversationStore(File(settingsDirectory, "conversations.json")).save(SavedConversation("/projects/other", RegistryAgent.claude.id, "earlier", "Earlier", 500))
+        val controller = controller()
+        onMain { controller.setProject(projectDirectory) }
+        controller.currentChat.first { it != null }!!.state.first { it == ChatState.Ready }
+        assertEquals(1, controller.chats.value.size)
+        assertEquals(1, commands.size)
+        onMain { controller.newChat() }
+        assertEquals(1, controller.chats.value.size)
+    }
+
+    @Test
+    fun withAiFeaturesOffOpeningAProjectStartsNoAgentThatWorkedBefore() = blockingTest {
+        SavedConversationStore(File(settingsDirectory, "conversations.json")).save(SavedConversation("/projects/other", RegistryAgent.claude.id, "earlier", "Earlier", 500))
+        val controller = controller(isAiEnabled = MutableStateFlow(false))
+        onMain { controller.setProject(projectDirectory) }
+        awaitIdle(mainThread, io)
+        assertNull(controller.currentChat.value)
+        assertTrue(commands.isEmpty())
+    }
+
+    @Test
     fun switchingAgentsWhileAConversationIsClosingStartsTheNewAgentAndListsItsConversations() = blockingTest {
         nextAgents += FakeAgent(isSignedIn = isSignedIn, sessionClose = { awaitCancellation() })
         val registry = registry(CODEX)
