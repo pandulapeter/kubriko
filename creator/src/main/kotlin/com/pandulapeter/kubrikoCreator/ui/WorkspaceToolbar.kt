@@ -123,7 +123,7 @@ internal fun WorkspaceToolbar(
             targets = playTargets,
             onOpened = onPlayTargetsOpened,
             onChosen = onPlayTargetChosen,
-            onMoreTargets = onOpenTargets,
+            onConfigurePlatforms = onOpenTargets,
             onSetUpMore = onSetUpMoreDevices,
         )
         if (gameModules?.isChoosable == true) {

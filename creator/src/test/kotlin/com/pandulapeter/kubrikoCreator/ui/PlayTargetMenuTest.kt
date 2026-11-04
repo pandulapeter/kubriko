@@ -32,13 +32,13 @@ class PlayTargetMenuTest {
                 targets = PlayTargets(listOf(PlayTarget.DESKTOP, other, PlayTarget.WEB), chosen = PlayTarget.DESKTOP),
                 onOpened = { events += "opened" },
                 onChosen = { events += "chose ${it.id}" },
-                onMoreTargets = { events += "more" },
+                onConfigurePlatforms = { events += "more" },
                 onSetUpMore = { events += "set up $it" },
             )
         }
         onNodeWithText("Desktop").performClick()
         waitForIdle()
-        onNodeWithText("Build for more platforms…").assertExists()
+        onNodeWithText("Configure platforms…").assertExists()
         onNodeWithText("Other window").performClick()
         waitForIdle()
         assertEquals(listOf("opened", "chose other"), events)
@@ -55,7 +55,7 @@ class PlayTargetMenuTest {
                 targets = PlayTargets(listOf(PlayTarget.DESKTOP, PlayTarget.WEB, emulator, phone, simulator), chosen = PlayTarget.DESKTOP),
                 onOpened = {},
                 onChosen = { events += "chose ${it.id}" },
-                onMoreTargets = {},
+                onConfigurePlatforms = {},
                 onSetUpMore = { events += "set up $it" },
             )
         }
@@ -87,7 +87,7 @@ class PlayTargetMenuTest {
                 targets = PlayTargets(listOf(PlayTarget.DESKTOP), PlayTarget.DESKTOP, setOf(PlayTarget.Kind.DESKTOP, PlayTarget.Kind.ANDROID)),
                 onOpened = {},
                 onChosen = {},
-                onMoreTargets = {},
+                onConfigurePlatforms = {},
                 onSetUpMore = { events += "set up $it" },
             )
         }
@@ -110,13 +110,13 @@ class PlayTargetMenuTest {
                 targets = PlayTargets(listOf(PlayTarget.DESKTOP), chosen = PlayTarget.DESKTOP),
                 onOpened = {},
                 onChosen = { events += "chose ${it.id}" },
-                onMoreTargets = { events += "more" },
+                onConfigurePlatforms = { events += "more" },
                 onSetUpMore = {},
             )
         }
         onNodeWithText("Desktop").performClick()
         waitForIdle()
-        onNodeWithText("Build for more platforms…").performClick()
+        onNodeWithText("Configure platforms…").performClick()
         waitForIdle()
         assertEquals(listOf("more"), events)
     }
