@@ -243,6 +243,18 @@ class ProjectUpgraderTest {
     }
 
     @Test
+    fun upgradingAVersion12ProjectLetsAFixedViewportLetterboxOnTheWeb() {
+        val webMain = File(directory, "src/wasmJsMain/kotlin/com/example/mygame/Main.kt")
+        val newWebMain = webMain.readText()
+        webMain.writeText(checkNotNull(WebLocaleUpgrade.web(WebLocaleUpgradeTest.WEB_MAIN_11)))
+        settingsFile.writeText("""{ "packageName": "com.example.mygame", "sourceDirectory": "src/commonMain/kotlin", "templateVersion": 12 }""")
+        val upgrade = assertIs<TemplateUpgrade.Needed>(ProjectUpgrader(directory).check())
+        assertEquals(listOf("src/wasmJsMain/kotlin/com/example/mygame/Main.kt"), upgrade.changes.map { it.path })
+        assertEquals(TemplateUpgrade.UpToDate, ProjectUpgrader(directory).apply())
+        assertEquals(newWebMain, webMain.readText())
+    }
+
+    @Test
     fun upgradingAVersion5ProjectTurnsGradlesCachesOn() {
         val properties = File(directory, "gradle.properties")
         val newProperties = properties.readText()

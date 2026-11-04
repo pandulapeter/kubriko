@@ -18,12 +18,12 @@ import kotlin.test.assertTrue
 class WebLocaleUpgradeTest {
 
     @Test
-    fun theWebMainBecomesWhatTheTemplateMakesNow() {
+    fun theWebMainCallsTheGuardFirstAsTheTemplateDoes() {
         assertFalse(WebLocaleUpgrade.isDone(WEB_MAIN_11))
-        val upgraded = WebLocaleUpgrade.web(WEB_MAIN_11)
-        assertEquals(templateOf("targets/web/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), upgraded)
-        assertEquals(templateOf("templates/starter/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), upgraded)
-        assertTrue(WebLocaleUpgrade.isDone(checkNotNull(upgraded)))
+        val upgraded = checkNotNull(WebLocaleUpgrade.web(WEB_MAIN_11))
+        assertTrue(WebLocaleUpgrade.isDone(upgraded))
+        assertEquals(templateOf("targets/web/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), GameSizeUpgrade.change(upgraded))
+        assertEquals(templateOf("templates/starter/src/wasmJsMain/kotlin/__PACKAGE__/Main.kt"), GameSizeUpgrade.change(upgraded))
     }
 
     @Test

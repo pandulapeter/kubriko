@@ -38,8 +38,9 @@ import kotlin.test.fail
 
 /**
  * Builds the starter template's web distribution for real, serves it as Kubriko Creator does, and looks at it in headless
- * Chrome (or Chromium): that the page draws the Scene its address names and a Manager type's text, even with the language
- * a browser started under the POSIX locale reports, and that a change, once built, reloads the page by itself. Runs with `KUBRIKO_CREATOR_INTEGRATION=true` where Chrome is found ([HeadlessChrome.find]), opens no window,
+ * Chrome (or Chromium): that the page draws the Scene its address names and a Manager type's text in a fixed viewport,
+ * even with the language a browser started under the POSIX locale reports, and that a change, once built, reloads the page
+ * by itself. Runs with `KUBRIKO_CREATOR_INTEGRATION=true` where Chrome is found ([HeadlessChrome.find]), opens no window,
  * and leaves what Chrome showed, and the project, in `build/web-game`.
  */
 class WebGameIntegrationTest {
@@ -58,6 +59,10 @@ class WebGameIntegrationTest {
             regenerateAll()
         }
         KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
+        // A fixed aspect ratio, which letterboxes the viewport, is what an entry point sizing the game itself broke.
+        File(directory, "gradle.properties").apply {
+            writeText(readText().replace("game.aspectRatio=dynamic", "game.aspectRatio=fixed").replace("game.viewportWidth=1920", "game.viewportWidth=1200").replace("game.viewportHeight=1080", "game.viewportHeight=1800"))
+        }
         val scenes = File(directory, "src/commonMain/composeResources/files/scenes")
         File(scenes, "main.json").writeText(sceneColored(RED))
         val colored = File(scenes, "colored.json").apply { writeText(sceneColored(GREEN)) }
@@ -132,6 +137,6 @@ class WebGameIntegrationTest {
         const val RED = 0xFFC00000L
         const val GREEN = 0xFF00C000L
         const val BLUE = 0xFF0000C0L
-        const val TEXT = 0xFFFFFFFFL
+        const val TEXT = 0xFFFFE000L
     }
 }

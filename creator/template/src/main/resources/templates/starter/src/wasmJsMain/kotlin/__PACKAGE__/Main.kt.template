@@ -1,8 +1,6 @@
 package {{PACKAGE}}
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeViewport
 import {{PACKAGE}}.generated.KubrikoWiring
 
@@ -12,9 +10,7 @@ fun main() {
     KubrikoWiring.isLoggingEnabled = creatorParameter("kubriko.creator.logging").toBoolean()
     KubrikoWiring.firstSceneOverride = creatorParameter("kubriko.creator.scene")
     ComposeViewport {
-        Game(
-            modifier = Modifier.fillMaxSize(),
-        )
+        Game()
     }
 }
 

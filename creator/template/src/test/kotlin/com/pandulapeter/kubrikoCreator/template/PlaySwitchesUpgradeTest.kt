@@ -28,7 +28,7 @@ class PlaySwitchesUpgradeTest {
     fun theAndroidActivityBecomesWhatTheTemplateMakesNow() {
         assertFalse(PlaySwitchesUpgrade.isAndroidDone(OLD_ANDROID_ACTIVITY))
         val upgraded = PlaySwitchesUpgrade.android(OLD_ANDROID_ACTIVITY, WIRING_IMPORT)
-        assertEquals(templateOf("targets/android/src/androidMain/kotlin/__PACKAGE__/MainActivity.kt"), upgraded)
+        assertEquals(templateOf("targets/android/src/androidMain/kotlin/__PACKAGE__/MainActivity.kt"), GameSizeUpgrade.change(upgraded))
         assertTrue(PlaySwitchesUpgrade.isAndroidDone(upgraded))
     }
 
@@ -64,7 +64,7 @@ class PlaySwitchesUpgradeTest {
     @Test
     fun anImportThatIsThereAlreadyIsNotAddedAgain() {
         val withImport = OLD_ANDROID_ACTIVITY.replace("import android.os.Bundle", "import android.content.pm.ApplicationInfo\nimport android.os.Bundle")
-        assertEquals(templateOf("targets/android/src/androidMain/kotlin/__PACKAGE__/MainActivity.kt"), PlaySwitchesUpgrade.android(withImport, WIRING_IMPORT))
+        assertEquals(templateOf("targets/android/src/androidMain/kotlin/__PACKAGE__/MainActivity.kt"), GameSizeUpgrade.change(PlaySwitchesUpgrade.android(withImport, WIRING_IMPORT)))
     }
 
     private fun templateOf(path: String) = TemplateRenderer.renderContent(checkNotNull(TemplateFiles.readResource("$path${TemplateFiles.TEMPLATE_SUFFIX}")), mapOf("PACKAGE" to PACKAGE))

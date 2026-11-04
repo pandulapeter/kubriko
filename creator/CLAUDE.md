@@ -339,8 +339,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   dev server, which would hold a Gradle daemon while the game is open, and serves it from Creator on a loopback port, with
   a script added to `index.html` that loads the page again when the event stream says so; a change while it plays builds it
   again and says so, which is the web's stand-in for hot reload. Compose for Web draws no text at all when the browser's language
-  isn't a language tag, as one started under the POSIX locale reports it (`en-US@posix`, CI's headless Chrome among them),
-  so the web `Main.kt` hands Compose the languages without such a modifier first (`WebLocaleUpgrade`). The browser's console isn't Creator's, so the console says
+  isn't a language tag, as one started under the POSIX locale reports it (`en-US@posix`), so the web `Main.kt` hands Compose
+  the languages without such a modifier first (`WebLocaleUpgrade`). Every entry point calls `Game()` without sizing it
+  (`GameSizeUpgrade`): a size handed to `KubrikoViewport` keeps a fixed aspect ratio from letterboxing the viewport and the
+  Manager types' texts from drawing, and the viewport fills the screen by itself for the other aspect ratios. The browser's console isn't Creator's, so the console says
   where the game is and its logs are. A game played anywhere but the desktop is `SessionController.playElsewhere`, whose
   `SessionState` names the target, and the game tools refuse it (`GameStep.Elsewhere`), since only the desktop's session
   answers them. `-Dkubriko.creator.browser=none` keeps the browser closed (the end-to-end scenarios load the page in a

@@ -25,8 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-First check that the nightly end-to-end job's web step passes: it draws Breakout's texts only since `WebLocaleUpgrade`
-(below), and runs under the POSIX locale that broke them. Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
+First check that the end-to-end job's web step passes: it draws Breakout's texts only since `GameSizeUpgrade` (below). Then continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
 writers' room. Pages, their commands and tools, the Screenplay group, and the page editor exist (`0954d5ef2..f82ba8008`, not
 reviewed in `6c082fbff` and `52083d116`). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
 Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
@@ -40,14 +39,16 @@ plans (Traits, UI elements, git) or for the benchmarks.
 What the last session did (the web font and its review fixes, `181108f26` and `566b80b6e`, are taken back by the commit
 that replaces them; the rest reviewed only by its own tests and snapshots):
 
-- **Texts on the web** (template version 12, `WebLocaleUpgrade`): the end-to-end images showed no texts in the browser
-  because a Chrome started under the POSIX locale (CI's) reports its language as `en-US@posix`, which isn't a language tag,
-  and Compose for Web then throws in every text's composition. Found by loading the build in a Linux container (colima on
-  this Mac, `creator/build/linux-probe` held the Playwright probe); Compose for Web 1.12 has a font of its own, so the
-  bundled font first tried fixed nothing and was taken out with its binary-copy machinery. The web `Main.kt` now hands
-  Compose the languages without such a modifier before anything is drawn. `WebGameIntegrationTest` makes the page report
-  `en-US@posix` (`HeadlessChrome.reportLanguages`), so it fails without the guard on any machine, and `HeadlessChrome`
-  reaches no host but this computer.
+- **Texts on the web** (template versions 12 and 13): Breakout's texts never drew in the browser because the web (and
+  Android) entry point handed `Game` a `Modifier.fillMaxSize()`, which under Breakout's fixed aspect ratio keeps the viewport
+  from letterboxing and the Manager types' texts from drawing (`GameSizeUpgrade`: `Game()`, as desktop and iOS have it).
+  Found by loading builds in a Linux container (colima on this Mac, a Playwright probe in `creator/build/linux-probe`), which
+  also showed that a browser reporting `en-US@posix` draws no text at all (`WebLocaleUpgrade` guards against it). Compose for
+  Web 1.12 has a font of its own, so the bundled font tried first fixed nothing and was taken out with its binary-copy
+  machinery. `WebGameIntegrationTest` plays a fixed viewport with the POSIX language (`HeadlessChrome.reportLanguages`) and
+  fails without either fix on any machine. The engine itself letterboxes nothing under a `KubrikoViewport` modifier that
+  sizes it, and draws no Manager UI then: whether `InternalViewport` should apply the aspect ratio before the caller's
+  modifier is the user's call (it changes public behaviour).
 - **Play waits for builds** (`8b0176507`): Play is disabled with a spinner while a build the console reports runs
   (`CreatorTaskRunner.runningBuilds`, not the warm-up or a session's own build).
 - **Configure platforms** (`c4e3611dc`): the Play menu's link to the Targets page, which still fits once every platform is on.
