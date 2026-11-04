@@ -19,35 +19,29 @@ words instead of grepping Kotlin; and the conversation between them, which can n
 Actor type, and its Events at once.
 
 What exists to build on: the game's notes (`AGENTS.md`, `GameNotes`, `set_game_notes`, `read_game_notes`), the conversation start
-(`ConversationStart`), the assistant's Markdown rendering (`ui/assistant/MarkdownParser`, `MarkdownBlock`), its plan checklist
+(`ConversationStart`), the shared Markdown rendering (`ui.components.MarkdownText`), its plan checklist
 (`PlanChecklist`), Keep and Undo for a turn's changes (`TurnChangesCard`), the rename logic's reference edits, the usage finder deletes clean up with (`ProjectReferences`), and the Game map's
 health checks.
 
 ## Pages
 
-- **Plain files:** `screenplay/**/*.md` at the project's root, shared like the game's notes (`../CLAUDE.md` → Files and ownership
-  gains the row): Creator and the AI write them through commands, the user can write them anywhere, and a change from outside shows
-  within a second. Folders are real folders. `screenplay/README.md` is the first page, "The game", so the folder reads well on
-  GitHub and in IntelliJ without Creator.
+Pages exist (`../CLAUDE.md` → Files and ownership, and UI): plain Markdown in `screenplay/`, the page commands and tools, the
+Screenplay group in the sidebar, and a page editor that edits one chunk at a time in place. What is left:
+
 - **One shape per page,** checked but never forced on the user: a `# Title`, a one-sentence summary as the first paragraph (what the
-  page index shows), what is in the game as headed sections, and at the end an optional `## Planned` list. A page holding only
-  Planned is a feature not started. When a planned item is built, it leaves Planned and the page describes it; nothing records that
-  it once was planned (as in this folder).
+  page index shows), what is in the game as headed sections, and at the end an optional `## Planned` list (`PageText` reads them).
+  A page holding only Planned is a feature not started. When a planned item is built, it leaves Planned and the page describes it;
+  nothing records that it once was planned (as in this folder). A new project's `screenplay/README.md` is the first page, "The game".
 - **The first page** holds the pitch, the core loop, who plays it and on what, and the look, plus an optional **Words** list that maps
   the game's own names to the project's ("the hero" is `Player`), which the AI then speaks in.
 - **Mentions** are relative Markdown links to the thing's own file (an Actor type's `.kubriko/actors/…json`, a Scene's JSON, a
   sprite, a sound, a Kotlin file, or another page), so they still work on GitHub and in IntelliJ. Creator shows them as chips in
-  the thing's `Accent`, opens the thing on a click, and offers them while typing `@`. Renaming or moving a thing, a page
-  included, updates every mention and image that points at it, in the same undo step as the rename; deleting one is in
-  Deleting what is referred to, below.
-- **The sidebar** gets a Screenplay group above the cast, with folders, the filter, drag and drop, and right-click menus as the
-  other groups have (`ResourceGroup`, `ResourceGroupTitles`).
-- **The page editor** in the center (a `WorkspaceSelection` of its own): a simple Markdown editor, not a word processor. The
-  page shows rendered, and clicking into a paragraph edits that paragraph's Markdown in place, so the source is never far but
-  never in the way. A small toolbar and the usual shortcuts (Cmd/Ctrl+B, I, K) cover headings, bold, italic, lists, links,
-  mentions, and images, each writing plain Markdown. The assistant's Markdown parser and renderer move to
-  `:creator:ui-components` and are shared, gaining what pages need beyond chat (images, links, and nested lists). Edits are
-  commands with undo (merged per pause in typing, as a Block's text is); the AI's edits show as a diff before Keep.
+  the thing's `Accent`, opens the thing on a click, and offers them while typing `@` (and from the editor's toolbar). Renaming or
+  moving a thing, a page included, updates every mention and image that points at it, in the same undo step as the rename;
+  deleting one is in Deleting what is referred to, below. An open page renamed elsewhere stays open under its new name (it
+  closes today).
+- **The page editor** still lacks: images and mentions in its toolbar, a `# Title` drawn larger than its `##` sections, the
+  shared renderer's images and nested lists, and the AI's edits shown as a diff before Keep.
 - **Images** are ordinary Markdown images, so they show on GitHub and in IntelliJ too:
   - An image pasted or dropped onto a page is copied next to the page (into the page's own folder, named after the page and
     numbered), never referenced where it was. Moving a page moves its images with it, deleting one offers to delete the images
@@ -59,10 +53,9 @@ health checks.
   - A health check names images no page uses, and images whose file is gone.
 - **Mentioned in:** an open Actor type, Manager type, or Scene shows the pages that mention it, so the design is one click away
   from the Events.
-- **Commands and tools:** `create_page`, `edit_page` (one section by its heading, or the whole page), `move_page` (renames and
-  folders), `delete_page`, `list_pages`, and `read_pages`, which answers again with what changed (`ResultDelta`), like the other reads.
-  `add_page_image` puts an image on a page from a game screenshot (`take_screenshot`'s) or a sprite reference, so the agent can
-  show what it built. `read_pages` lists a page's images without sending them; the agent asks for one when it needs to see it.
+- **Tools:** `add_page_image` puts an image on a page from a game screenshot (`take_screenshot`'s) or a sprite reference, so the
+  agent can show what it built. `read_pages` lists a page's images without sending them; the agent asks for one when it needs to
+  see it.
 - **AI features off** changes nothing here: pages, mentions, and their checks are the editor's, not the AI's.
 
 ## Deleting what is referred to
@@ -146,13 +139,13 @@ and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite ed
 
 ## Order
 
-Pages and their editor first (what is left of deleting what is referred to comes with each kind's delete), then the AI's side
+Mentions and images next (what is left of deleting what is referred to comes with each kind's delete), then the AI's side
 of them, then keeping them up to date, then the writers' room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
 and `search_project` include their mentions and text.
 
 ## Testing
 
-- Unit tests for the page store, mentions (parsing, renames, deletions, and links that leave the project), `ScreenplayStyle`'s
+- Unit tests for mentions (parsing, renames, deletions, and links that leave the project), `ScreenplayStyle`'s
   rules (each with what it must not flag), the health checks, and the commands with undo, as for the other kinds.
 - `EvalSetTest` requests that touch pages ("make the hero jump twice" editing `hero.md` too), and `TokenBudgetTest` budgets for the
   page index and `read_pages`.
@@ -164,8 +157,7 @@ and `search_project` include their mentions and text.
   Scenes, and Properties: every usage, its cleanup, and a byte-for-byte undo.
 - Unit tests for images: copying a pasted or dropped one (name clashes, scaling, a file that can't be read), moving and deleting
   them with their page and undoing it, sprite references after a sprite rename, and links resolved to a resource, a page, or the web.
-- Offscreen snapshots (`WorkspaceScreenTest`) of the page editor (rendered, a paragraph being edited, and images of both
-  kinds), the mention chips, and the `ask_user` buttons.
+- Offscreen snapshots of the page editor's images of both kinds, the mention chips, and the `ask_user` buttons.
 
 ## Open questions
 

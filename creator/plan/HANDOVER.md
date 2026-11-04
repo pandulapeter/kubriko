@@ -25,8 +25,9 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `04-screenplay.md` with pages and their editor (its Order), then the AI's side of them, keeping them up to date, and the
-writers' room. What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
+Continue `04-screenplay.md` with mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
+writers' room. Pages, their commands and tools, the Screenplay group, and the page editor exist (`0954d5ef2..f82ba8008`, not
+reviewed yet: run `/code-review` on them first). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
 Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
 and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s
 new iOS simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its
