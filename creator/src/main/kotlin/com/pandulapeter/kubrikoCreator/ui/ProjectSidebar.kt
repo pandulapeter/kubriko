@@ -45,7 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The project's contents: its Actor types, Manager types, and Scenes as trees of folders, then its other files grouped
- * by what they are, below a field that narrows them all to those whose names contain what is typed (opening the folders
+ * by what they are, and its documents by the folders they are in, below a field that narrows them all to those whose names contain what is typed (opening the folders
  * that hold them; Escape clears it). In a project of several Gradle modules, each module's are under a band of its own,
  * nested as the modules are ([sidebarModules]). Clicking a type edits it, and clicking a Scene opens it; clicking the selected one again, or empty
  * space, selects nothing. Opening a closed folder, group, or module shows the folders in it closed, and the buttons a
@@ -56,6 +56,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param gameModule The folder of the module chosen as the game's in the toolbar, whose branch opens first in a project
  *   that isn't opted in.
  * @param dragState Where types and Scenes are dragged to: folders, and the open Scene.
+ * @param documentActions What the documents listed in each band do ([documentRows]); a band offers New document too.
+ * @param selectedDocument The path of the document shown in the center, if any.
  */
 @Composable
 internal fun ProjectSidebar(
@@ -64,6 +66,8 @@ internal fun ProjectSidebar(
     folderGroups: Map<FolderGroup, FolderTreeGroupState>,
     folderActions: FolderTreeActions,
     dragState: SidebarDragState,
+    documentActions: DocumentActions,
+    selectedDocument: String? = null,
     layout: ProjectLayout = ProjectLayout(),
     gameModule: String? = null,
     flashedName: String? = null,
@@ -105,6 +109,12 @@ internal fun ProjectSidebar(
                         isExpanded = tree.isExpanded(moduleKey),
                         onToggle = { tree.toggle(moduleKey) },
                         subfolderActions = tree.subfolderActions(moduleKey),
+                        actions = listOf(
+                            newDocumentAction {
+                                tree.expand(moduleKey)
+                                naming = SidebarNaming.NewDocument(module.path, "")
+                            },
+                        ),
                     )
                 }
             }
@@ -119,6 +129,15 @@ internal fun ProjectSidebar(
                     onNamingChange = { naming = it },
                     flashedName = flashedName,
                     flashKey = flashKey,
+                )
+                documentRows(
+                    module = module,
+                    actions = documentActions,
+                    tree = tree,
+                    naming = naming,
+                    onNamingChange = { naming = it },
+                    selectedDocument = selectedDocument,
+                    onSelectionCleared = folderActions.onSelectionCleared,
                 )
             }
         }
@@ -136,7 +155,7 @@ internal fun ProjectSidebar(
 }
 
 /**
- * The groups of one [module]: those with folders, then its other files.
+ * The groups of one [module]: those with folders, then its other files ([documentRows] follow them).
  */
 private fun LazyListScope.moduleSections(
     module: SidebarModule,

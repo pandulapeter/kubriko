@@ -14,6 +14,9 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
+import com.pandulapeter.kubrikoCreator.commands.screenplay.EditDocument
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
@@ -128,5 +131,24 @@ class WorkspaceUiStateTest {
         assertTrue(isDone)
         uiState.finishDeleting()
         assertNull(uiState.pendingDelete)
+    }
+
+    @Test
+    fun deletingADocumentOrAddingItToTheScreenplayWaitsForItsConfirmationWhileEditingOneDoesnt() {
+        val dispatched = mutableListOf<Invocation<*>>()
+        val edit = Invocation(EditDocument, EditDocument.Input("README.md", "# Game"))
+        uiState.dispatch(edit, onSuccess = {}) { invocation, _ -> dispatched += invocation }
+        assertEquals(listOf<Invocation<*>>(edit), dispatched)
+        listOf(
+            Invocation(DeleteDocument, DeleteDocument.Input("README.md")),
+            Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input("README.md", "README")),
+        ).forEach { change ->
+            uiState.dispatch(change, onSuccess = {}) { invocation, _ -> dispatched += invocation }
+            assertSame(change, uiState.pendingDocumentChange?.invocation)
+            assertNull(uiState.pendingDelete)
+            uiState.finishDocumentChange()
+            assertNull(uiState.pendingDocumentChange)
+        }
+        assertEquals(listOf<Invocation<*>>(edit), dispatched)
     }
 }

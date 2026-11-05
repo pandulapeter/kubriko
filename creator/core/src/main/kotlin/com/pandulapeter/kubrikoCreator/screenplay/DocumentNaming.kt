@@ -50,6 +50,19 @@ public object DocumentNaming {
     public fun folderOf(path: String): String = path.substringBeforeLast('/', missingDelimiterValue = "")
 
     /**
+     * The name of the page the document at [path] becomes in the screenplay: its own name, at the screenplay's top, with
+     * what a page's name can't hold ([PageNaming]) turned into dashes.
+     */
+    public fun pageNameOf(path: String): String = nameOf(path)
+        .replace(Regex("[^A-Za-z0-9 _-]"), "-")
+        .trim(' ', '-', '_')
+        .ifEmpty { "document" }
+        .take(PAGE_NAME_LENGTH)
+        .trimEnd()
+
+    private const val PAGE_NAME_LENGTH = 100
+
+    /**
      * The name of the document at [path], without its folders and `.md`.
      */
     public fun nameOf(path: String): String = path.substringAfterLast('/').let { it.substring(0, it.length - PageNaming.EXTENSION.length - 1) }

@@ -28,6 +28,8 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
  * @param creatingGroups The groups new items and folders can be made in here: those whose files Kubriko Creator puts in
  *   this module. In another module's, what exists can be opened, renamed, and deleted, but nothing is added.
  * @param kotlinRootPackage The package every one of its Kotlin files is in ([rootPackageOf]).
+ * @param documents The paths of the project's documents in its folder and not in a band of their own, listed after its
+ *   groups, each plain folder of them a folder row.
  */
 internal data class SidebarModule(
     val path: String,
@@ -39,6 +41,7 @@ internal data class SidebarModule(
     val resourceGroups: List<ResourceGroup>,
     val creatingGroups: Set<FolderGroup>,
     val kotlinRootPackage: String = rootPackageOf(resources[ResourceGroup.KOTLIN].orEmpty()),
+    val documents: List<String> = emptyList(),
 ) {
     /**
      * This module narrowed to what matches [query] ([matchesSidebarFilter]), or null when nothing in it does.
@@ -47,7 +50,12 @@ internal data class SidebarModule(
         val shownGroups = folderGroups.mapValues { (_, state) -> state.filtered(query) }.filterValues { it.items.isNotEmpty() }
         val shownResources = resources.mapValues { (_, groupResources) -> groupResources.filter { matchesSidebarFilter(it.name, query) } }.filterValues { it.isNotEmpty() }
         val shownResourceGroups = resourceGroups.filter { it in shownResources }
-        return if (shownGroups.isEmpty() && shownResourceGroups.isEmpty()) null else copy(folderGroups = shownGroups, resources = shownResources, resourceGroups = shownResourceGroups)
+        val shownDocuments = documents.filter { matchesSidebarFilter(it.substringAfterLast('/'), query) }
+        return if (shownGroups.isEmpty() && shownResourceGroups.isEmpty() && shownDocuments.isEmpty()) {
+            null
+        } else {
+            copy(folderGroups = shownGroups, resources = shownResources, resourceGroups = shownResourceGroups, documents = shownDocuments)
+        }
     }
 
     fun withoutSelection() = copy(folderGroups = folderGroups.mapValues { (_, state) -> state.copy(selectedName = null) })
@@ -72,7 +80,29 @@ internal data class SidebarModule(
                 addFolders(groupKey, rows.map { OutlineFolder(it.key, it.depth, isExpandedByDefault = it !is KotlinTreeRow.Container) })
             }
         }
+        if (documents.isNotEmpty()) {
+            val documentsKey = SidebarKeys.documents(path)
+            add(SidebarOutline.Node(documentsKey, moduleKey, isFolder = false, isCollapsible = false))
+            val folders = folderTreeRows(documentItems(), emptySet(), collapsed = emptySet()).filterIsInstance<FolderTreeRow.Folder>()
+            addFolders(documentsKey, folders.map { OutlineFolder(it.path, it.depth, isExpandedByDefault = false) })
+        }
     }
+
+    /**
+     * Its [documents], each with the folder it is in below this module's folder (empty for none), as [folderTreeRows]
+     * takes them.
+     */
+    fun documentItems(): List<Pair<String, String>> = documents.map { document -> document to documentFolderOf(document) }
+
+    /**
+     * The folder the document at [document] is in below this module's folder, or an empty string for none.
+     */
+    fun documentFolderOf(document: String): String = document.removePrefix(if (path.isEmpty()) "" else "$path/").substringBeforeLast('/', "")
+
+    /**
+     * The folder at [folder] below this module's folder, from the project's root.
+     */
+    fun documentFolderPath(folder: String): String = listOf(path, folder).filter { it.isNotEmpty() }.joinToString("/")
 
     /**
      * Adds the [folders] of the group [groupKey], given in the order a tree lists them, each under the nearest one before

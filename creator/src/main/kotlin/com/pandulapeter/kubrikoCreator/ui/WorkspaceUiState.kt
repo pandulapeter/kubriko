@@ -15,6 +15,8 @@ import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 
 /**
@@ -44,6 +46,12 @@ internal class WorkspaceUiState {
      * The delete the user is asked to confirm, if any.
      */
     var pendingDelete: PendingDelete? by mutableStateOf(null)
+        private set
+
+    /**
+     * A change to one of the user's documents waiting for the user to confirm it.
+     */
+    var pendingDocumentChange: PendingDocumentChange? by mutableStateOf(null)
         private set
 
     /**
@@ -112,10 +120,15 @@ internal class WorkspaceUiState {
 
     /**
      * Dispatches [invocation] with [onSuccess] through [dispatch], or, for a delete, first asks the user to confirm it
-     * ([pendingDelete]), so that the user sees what it changes wherever the delete starts.
+     * ([pendingDelete]), so that the user sees what it changes wherever the delete starts, and for a change that deletes
+     * or moves one of the user's documents, asks too ([pendingDocumentChange]).
      */
     fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit, dispatch: (Invocation<*>, () -> Unit) -> Unit) {
-        if (invocation.command is DeletingCommand<*>) pendingDelete = PendingDelete(invocation, onSuccess) else dispatch(invocation, onSuccess)
+        when (invocation.command) {
+            is DeletingCommand<*> -> pendingDelete = PendingDelete(invocation, onSuccess)
+            DeleteDocument, AddDocumentToScreenplay -> pendingDocumentChange = PendingDocumentChange(invocation, onSuccess)
+            else -> dispatch(invocation, onSuccess)
+        }
     }
 
     /**
@@ -123,5 +136,12 @@ internal class WorkspaceUiState {
      */
     fun finishDeleting() {
         pendingDelete = null
+    }
+
+    /**
+     * Closes the document change's confirmation, confirmed or not.
+     */
+    fun finishDocumentChange() {
+        pendingDocumentChange = null
     }
 }

@@ -78,19 +78,23 @@ internal class FolderTreeActions(
 )
 
 /**
- * A name being typed in a group of the sidebar: a new item, a new folder (in [parent], empty for none), or a new name for a
- * folder or an item.
+ * A name being typed in the sidebar: in a group, a new item, a new folder (in [NewFolder.parent], empty for none), or a new
+ * name for a folder or an item; among the documents, a new one (in the folder of [NewDocument.module] at
+ * [NewDocument.folder], empty for the module's own) or a new name for one.
  */
 internal sealed interface SidebarNaming {
-    val group: FolderGroup
 
-    data class NewItem(override val group: FolderGroup) : SidebarNaming
+    data class NewItem(val group: FolderGroup) : SidebarNaming
 
-    data class NewFolder(override val group: FolderGroup, val parent: String) : SidebarNaming
+    data class NewFolder(val group: FolderGroup, val parent: String) : SidebarNaming
 
-    data class RenamedFolder(override val group: FolderGroup, val path: String) : SidebarNaming
+    data class RenamedFolder(val group: FolderGroup, val path: String) : SidebarNaming
 
-    data class RenamedItem(override val group: FolderGroup, val name: String) : SidebarNaming
+    data class RenamedItem(val group: FolderGroup, val name: String) : SidebarNaming
+
+    data class NewDocument(val module: String, val folder: String) : SidebarNaming
+
+    data class RenamedDocument(val path: String) : SidebarNaming
 }
 
 /**

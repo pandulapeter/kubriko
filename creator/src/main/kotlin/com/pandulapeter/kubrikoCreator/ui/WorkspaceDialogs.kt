@@ -47,7 +47,8 @@ import java.io.File
  * @param gitState The project's version control, collected only while the upgrade offers to commit first.
  * @param onCommand Dispatches a command.
  * @param usagesOf Reads what a delete would do to each usage of what it deletes.
- * @param onConfirmedDelete Dispatches a delete the user confirmed, with what runs once it was applied.
+ * @param onConfirmedDelete Dispatches a delete (or a change to a document) the user confirmed, with what runs once it was
+ *   applied.
  * @param onUsageSelected Goes to the place of a usage the delete's confirmation lists.
  */
 @Composable
@@ -65,6 +66,16 @@ internal fun WorkspaceDialogs(
     onConfirmedDelete: (Invocation<*>, () -> Unit) -> Unit,
     onUsageSelected: (Usage) -> Unit,
 ) {
+    uiState.pendingDocumentChange?.let { pending ->
+        DocumentChangeConfirmation(
+            pending = pending,
+            onConfirm = {
+                uiState.finishDocumentChange()
+                onConfirmedDelete(pending.invocation, pending.onSuccess)
+            },
+            onDismiss = uiState::finishDocumentChange,
+        )
+    }
     uiState.pendingDelete?.let { pending ->
         PendingDeleteConfirmation(
             pending = pending,

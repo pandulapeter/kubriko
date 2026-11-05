@@ -24,6 +24,11 @@ internal object SidebarKeys {
     fun resourceGroup(module: String, group: ResourceGroup) = "$module|files:${group.name}"
 
     /**
+     * Where the documents of [module] are listed, whose folder rows are [folder]s of it.
+     */
+    fun documents(module: String) = "$module|documents"
+
+    /**
      * A folder of the group [groupKey]: its path, or the Kotlin tree's own key for its rows ([KotlinTreeRow.key]).
      */
     fun folder(groupKey: String, path: String) = "$groupKey|$path"

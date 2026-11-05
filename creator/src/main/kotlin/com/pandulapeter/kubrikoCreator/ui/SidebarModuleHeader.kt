@@ -23,16 +23,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
+import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_more_options
 import kubriko.creator.generated.resources.ic_module
 import org.jetbrains.compose.resources.painterResource
 
 /**
  * The band above the groups of the Gradle module in [path] of a project of several, indented by its [depth] among the
  * modules, named by [moduleFolderName], opened and closed by a click, with [subfolderActions] laid over the end of its
- * name while it is pointed at and holds anything that opens.
+ * name while it is pointed at and holds anything that opens, and its [actions], if any, in its ⋮ (shown while it is
+ * pointed at) and its right-click menu.
  */
 @Composable
 internal fun SidebarModuleHeader(
@@ -42,8 +49,10 @@ internal fun SidebarModuleHeader(
     onToggle: () -> Unit,
     subfolderActions: SubfolderActions?,
     modifier: Modifier = Modifier,
+    actions: List<ContextAction> = emptyList(),
 ) {
     val hover = rememberHoverRevealState()
+    val menu = rememberRightClickMenuState()
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -51,6 +60,7 @@ internal fun SidebarModuleHeader(
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onToggle)
             .hoverReveal(hover)
+            .then(if (actions.isEmpty()) Modifier else Modifier.rightClickMenu(menu))
             .padding(start = 12.dp + SIDEBAR_INDENT * depth, end = SIDEBAR_ROW_END),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -69,6 +79,14 @@ internal fun SidebarModuleHeader(
             subfolderActions = subfolderActions,
             background = MaterialTheme.colorScheme.surfaceContainerHigh,
         )
+        if (actions.isNotEmpty()) {
+            RowActionsButton(
+                modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
+                menu = menu,
+                actions = actions,
+                label = Res.string.action_more_options,
+            )
+        }
         SidebarChevron(
             modifier = Modifier.padding(end = 8.dp).size(16.dp),
             isExpanded = isExpanded,

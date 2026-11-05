@@ -31,7 +31,8 @@ import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
  * that isn't opted in, the place the templates keep Scenes in may be a module nothing loads them from. A module that uses
  * Kubriko lists every group of what a game is made of, empty ones too, so it shows where things go; any other lists only
  * what it has (Kotlin files always in a project of one module), and one with nothing to show, holding none that has
- * something (a root project only gathering the others), isn't listed.
+ * something (a root project only gathering the others), isn't listed. Documents are listed in the band of the folder they
+ * are in, never in a group: the nearest module, or folder holding only modules, above them.
  */
 internal fun sidebarModules(
     resources: Map<ResourceGroup, List<ProjectResource>>,
@@ -53,6 +54,7 @@ internal fun sidebarModules(
         addLevel(path)
     }
     addLevel(null)
+    val documents = resources[ResourceGroup.DOCUMENTS].orEmpty().groupBy({ document -> bandOf(document.relativePath, paths) }, { it.relativePath })
     val sceneModules = resources[ResourceGroup.SCENES].orEmpty().groupBy({ SceneStore.nameOf(it.file) }, { it.module })
     val built = ordered.map { path ->
         val usesKubriko = layout.modules[path]?.usesKubriko == true
@@ -74,7 +76,8 @@ internal fun sidebarModules(
             depth = generateSequence(parents[path]) { parents[it] }.count(),
             folderGroups = groups,
             resources = moduleResources,
-            resourceGroups = if (usesKubriko) ResourceGroup.entries - ResourceGroup.SCENES else shownResourceGroups(moduleResources).filter { it in moduleResources },
+            resourceGroups = if (usesKubriko) ResourceGroup.entries - ResourceGroup.SCENES - ResourceGroup.DOCUMENTS else shownResourceGroups(moduleResources).filter { it in moduleResources },
+            documents = documents[path].orEmpty(),
             holdsGame = path == home || home.startsWith("$path/"),
             creatingGroups = groups.keys.filterTo(HashSet()) { group ->
                 when {
@@ -87,7 +90,7 @@ internal fun sidebarModules(
     }
     val shown = HashSet<String>()
     built.asReversed().forEach { module ->
-        if (module.folderGroups.isNotEmpty() || module.resourceGroups.isNotEmpty() || module.path in shown) {
+        if (module.folderGroups.isNotEmpty() || module.resourceGroups.isNotEmpty() || module.documents.isNotEmpty() || module.path in shown) {
             generateSequence(module.path) { parents[it] }.forEach(shown::add)
         }
     }
@@ -104,9 +107,15 @@ internal fun filteredModules(modules: List<SidebarModule>, query: String): List<
     val parents = modules.associate { it.path to it.parent }
     val kept = filtered.filterValues { it != null }.keys.flatMapTo(HashSet()) { path -> generateSequence(path) { parents[it] } }
     return modules.filter { it.path in kept }.map { module ->
-        filtered[module.path] ?: module.copy(folderGroups = emptyMap(), resources = emptyMap(), resourceGroups = emptyList())
+        filtered[module.path] ?: module.copy(folderGroups = emptyMap(), resources = emptyMap(), resourceGroups = emptyList(), documents = emptyList())
     }
 }
+
+/**
+ * The band the document at [document] is listed in: the deepest of [bands] whose folder holds it, which may be a folder
+ * holding only modules, or the root project.
+ */
+private fun bandOf(document: String, bands: Set<String>) = bands.filter { band -> document.startsWith("$band/") }.maxByOrNull { it.length } ?: ""
 
 /**
  * The folders above the module in [path] that show as modules holding it, nearest first: each of them (Gradle makes

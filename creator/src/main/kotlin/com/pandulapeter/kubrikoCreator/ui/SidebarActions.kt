@@ -25,10 +25,15 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
+import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceCreation
+import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 
 /**
  * Where the sidebar's items are dragged: a dropped one moves to its folder through a command.
@@ -98,6 +103,38 @@ internal fun rememberFolderTreeActions(
                     FolderGroup.PAGES -> Invocation(DeletePage, DeletePage.Input(name))
                 },
                 onSuccess = {},
+                dispatch = commands::dispatch,
+            )
+        },
+    )
+}
+
+/**
+ * What the sidebar's documents do, each through the command for it; deleting one, or adding it to the screenplay, waits
+ * for its confirmation ([WorkspaceUiState.dispatch]). A document renamed while it is shown stays shown.
+ */
+@Composable
+internal fun rememberDocumentActions(
+    creation: WorkspaceCreation,
+    commands: CommandExecutor,
+    selection: SelectionController,
+    uiState: WorkspaceUiState,
+) = remember(creation, commands, selection, uiState) {
+    DocumentActions(
+        onOpen = selection::openDocument,
+        onCreate = creation::createDocument,
+        onRename = { path, newName ->
+            val newPath = DocumentNaming.pathOf(DocumentNaming.folderOf(path), newName)
+            commands.dispatchIfValid(Invocation(MoveDocument, MoveDocument.Input(path, newPath))) {
+                if (selection.current.value == WorkspaceSelection.Document(path)) selection.openDocument(newPath)
+            }
+        },
+        onDelete = { path -> uiState.dispatch(Invocation(DeleteDocument, DeleteDocument.Input(path)), onSuccess = {}, dispatch = commands::dispatch) },
+        onAddToScreenplay = { path ->
+            val page = DocumentNaming.pageNameOf(path)
+            uiState.dispatch(
+                invocation = Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input(path, page)),
+                onSuccess = { if (selection.current.value == WorkspaceSelection.Document(path)) selection.openPage(page) },
                 dispatch = commands::dispatch,
             )
         },

@@ -176,6 +176,8 @@ private fun WorkspaceContent(
                         folderGroups = rememberFolderTreeGroupsOf(controller, blockTypes, selectedBlockTypeName, sceneNames, openSceneName, openPageName),
                         folderActions = rememberFolderTreeActions(controller.creation, controller.commands, controller.selection, uiState),
                         dragState = sidebarDragState,
+                        documentActions = rememberDocumentActions(controller.creation, controller.commands, controller.selection, uiState),
+                        selectedDocument = (selection as? WorkspaceSelection.Document)?.path,
                         layout = controller.layout.collectAsState().value,
                         gameModule = controller.gameModule.modules.collectAsState().value?.chosen?.let(::moduleFolderOf),
                         flashedName = shownAiStep?.step?.sidebarName(),

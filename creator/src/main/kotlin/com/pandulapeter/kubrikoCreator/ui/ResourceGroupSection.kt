@@ -138,11 +138,11 @@ private val ResourceGroup.icon
     }
 
 /**
- * The resource groups the sidebar lists below the groups with folders (so not Scenes): Kotlin files always, and the
- * kinds of asset nothing can use yet only when the project has some.
+ * The resource groups the sidebar lists below the groups with folders (so not Scenes, nor documents, which are listed by
+ * their folders): Kotlin files always, and the kinds of asset nothing can use yet only when the project has some.
  */
 internal fun shownResourceGroups(resources: Map<ResourceGroup, List<ProjectResource>>) = ResourceGroup.entries.filter { group ->
-    group != ResourceGroup.SCENES && (group == ResourceGroup.KOTLIN || resources[group].orEmpty().isNotEmpty())
+    group != ResourceGroup.SCENES && group != ResourceGroup.DOCUMENTS && (group == ResourceGroup.KOTLIN || resources[group].orEmpty().isNotEmpty())
 }
 
 /**

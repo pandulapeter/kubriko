@@ -48,4 +48,12 @@ class DocumentNamingTest {
         assertEquals("combat", DocumentNaming.nameOf("docs/combat.md"))
         assertEquals("Notes", DocumentNaming.nameOf("Notes.MD"))
     }
+
+    @Test
+    fun aDocumentBecomesAPageOfItsOwnNameAsAPageCanHoldIt() {
+        listOf("docs/combat.md" to "combat", "v1.2 notes.md" to "v1-2 notes", "_draft.md" to "draft", "....md" to "document").forEach { (path, page) ->
+            assertEquals(page, DocumentNaming.pageNameOf(path))
+            assertTrue(PageNaming.isValid(page), page)
+        }
+    }
 }

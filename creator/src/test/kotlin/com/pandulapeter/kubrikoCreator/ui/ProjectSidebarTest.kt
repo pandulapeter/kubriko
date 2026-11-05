@@ -69,6 +69,7 @@ class ProjectSidebarTest {
         onRenameItem = { group, name, newName -> null.also { renamedItems += Triple(group, name, newName) } },
         onDeleteItem = { group, name -> deletedItems += group to name },
     )
+    private val noDocumentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {})
     private val deletedItems = mutableListOf<Pair<FolderGroup, String>>()
     private val renamedItems = mutableListOf<Triple<FolderGroup, String, String>>()
 
@@ -80,6 +81,7 @@ class ProjectSidebarTest {
                 resources = resources,
                 folderGroups = folderGroups,
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
             )
         }
@@ -107,6 +109,7 @@ class ProjectSidebarTest {
                 resources = resources,
                 folderGroups = folderGroups,
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = dragState,
             )
         }
@@ -137,6 +140,7 @@ class ProjectSidebarTest {
                 resources = resources,
                 folderGroups = folderGroups,
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
             )
         }
@@ -159,6 +163,7 @@ class ProjectSidebarTest {
                 resources = resources,
                 folderGroups = folderGroups,
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
             )
         }
@@ -205,6 +210,7 @@ class ProjectSidebarTest {
                 ),
                 folderGroups = emptyMap(),
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
             )
         }
@@ -240,6 +246,7 @@ class ProjectSidebarTest {
                     openSceneName = null,
                 ),
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
             )
         }
@@ -281,6 +288,7 @@ class ProjectSidebarTest {
                     openSceneName = null,
                 ),
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
                 layout = ProjectLayout(typeModule = "", sceneModule = "", modules = modulesOf("" to true, "tools" to false)),
             )
@@ -320,6 +328,7 @@ class ProjectSidebarTest {
                 ),
                 folderGroups = emptyMap(),
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
                 layout = ProjectLayout(sceneModule = "shared", modules = modulesOf("" to false, "app/desktop" to false, "app/android" to false, "shared" to true)),
             )
@@ -351,6 +360,7 @@ class ProjectSidebarTest {
                 resources = resources,
                 folderGroups = folderGroups,
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
                 layout = layout,
             )
@@ -371,6 +381,7 @@ class ProjectSidebarTest {
                 resources = emptyMap(),
                 folderGroups = emptyMap(),
                 folderActions = folderActions,
+                documentActions = noDocumentActions,
                 dragState = SidebarDragState(),
                 layout = ProjectLayout(modules = modulesOf("" to true)),
             )
