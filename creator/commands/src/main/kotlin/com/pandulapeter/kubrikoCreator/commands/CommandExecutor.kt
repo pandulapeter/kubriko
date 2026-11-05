@@ -262,6 +262,7 @@ public class CommandExecutor(
             is CommandTarget.BlockType -> changed.name
             is CommandTarget.Scene -> changed.name
             is CommandTarget.Page -> changed.name
+            is CommandTarget.Document -> changed.path
             else -> null
         }
     }

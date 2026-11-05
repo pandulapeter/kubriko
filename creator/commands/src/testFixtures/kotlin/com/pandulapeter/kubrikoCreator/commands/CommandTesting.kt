@@ -88,7 +88,7 @@ public fun TestScope.commandContext(
     scenes = SceneStore(rootDirectory, writeText = sceneWriteText, readText = sceneReadText) { emptyList() },
     runner = runner,
     ioDispatcher = ioDispatcher,
-    scannedFiles = ScannedFiles(audioFiles = { audioFiles }, spriteFiles = { spriteFiles }, documents = { documents }),
+    scannedFiles = ScannedFiles(audioFiles = { audioFiles }, spriteFiles = { spriteFiles }),
     report = report,
     buildFiles = object : ProjectBuildFiles {
         override fun current() = projectUpgrade()
@@ -98,7 +98,7 @@ public fun TestScope.commandContext(
         override val targets = targets
     },
     rejectChanges = rejectChanges,
-)
+).also { it.documents.refresh(documents) }
 
 /**
  * Applies [invocation], checks that its inverse reverts it and that the inverse of the inverse makes it again, and

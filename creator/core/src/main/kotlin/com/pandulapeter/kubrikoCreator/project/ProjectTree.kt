@@ -47,5 +47,10 @@ public object ProjectTree {
      */
     internal fun isWithinSources(root: File, file: File) = "src" in file.relativeTo(root).invariantSeparatorsPath.split('/').dropLast(1)
 
-    private fun isIgnored(directory: File) = directory.name in ignoredDirectoryNames || directory.name in toolDirectoryNames
+    /**
+     * Whether a folder called [name] is left out of the walk outside source folders.
+     */
+    public fun isLeftOut(name: String): Boolean = name in ignoredDirectoryNames || name in toolDirectoryNames
+
+    private fun isIgnored(directory: File) = isLeftOut(directory.name)
 }

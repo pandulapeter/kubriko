@@ -92,14 +92,21 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
+import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.EditDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ListPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadDocuments
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_add_block
+import kubriko.creator.generated.resources.command_add_document_to_screenplay
 import kubriko.creator.generated.resources.command_add_event
 import kubriko.creator.generated.resources.command_add_property
 import kubriko.creator.generated.resources.command_add_text
@@ -107,11 +114,13 @@ import kubriko.creator.generated.resources.command_build
 import kubriko.creator.generated.resources.command_check_change
 import kubriko.creator.generated.resources.command_commit
 import kubriko.creator.generated.resources.command_create_actor_type
+import kubriko.creator.generated.resources.command_create_document
 import kubriko.creator.generated.resources.command_create_folder
 import kubriko.creator.generated.resources.command_create_manager_type
 import kubriko.creator.generated.resources.command_create_page
 import kubriko.creator.generated.resources.command_create_scene
 import kubriko.creator.generated.resources.command_delete_actor_type
+import kubriko.creator.generated.resources.command_delete_document
 import kubriko.creator.generated.resources.command_delete_folder
 import kubriko.creator.generated.resources.command_delete_manager_type
 import kubriko.creator.generated.resources.command_delete_page
@@ -119,6 +128,7 @@ import kubriko.creator.generated.resources.command_delete_scene
 import kubriko.creator.generated.resources.command_discard_changes
 import kubriko.creator.generated.resources.command_discard_changes_made_by_hand
 import kubriko.creator.generated.resources.command_edit_block
+import kubriko.creator.generated.resources.command_edit_document
 import kubriko.creator.generated.resources.command_edit_page
 import kubriko.creator.generated.resources.command_edit_property
 import kubriko.creator.generated.resources.command_edit_text
@@ -140,6 +150,7 @@ import kubriko.creator.generated.resources.command_list_scenes
 import kubriko.creator.generated.resources.command_move_actor
 import kubriko.creator.generated.resources.command_move_actor_order
 import kubriko.creator.generated.resources.command_move_block
+import kubriko.creator.generated.resources.command_move_document
 import kubriko.creator.generated.resources.command_move_event
 import kubriko.creator.generated.resources.command_move_page
 import kubriko.creator.generated.resources.command_move_to_folder
@@ -149,6 +160,7 @@ import kubriko.creator.generated.resources.command_play
 import kubriko.creator.generated.resources.command_press_keys
 import kubriko.creator.generated.resources.command_read_actor_type
 import kubriko.creator.generated.resources.command_read_console
+import kubriko.creator.generated.resources.command_read_documents
 import kubriko.creator.generated.resources.command_read_game_notes
 import kubriko.creator.generated.resources.command_read_manager_type
 import kubriko.creator.generated.resources.command_read_pages
@@ -274,6 +286,12 @@ private val commandTitles = mapOf(
     EditPage.name to Res.string.command_edit_page,
     MovePage.name to Res.string.command_move_page,
     DeletePage.name to Res.string.command_delete_page,
+    ReadDocuments.name to Res.string.command_read_documents,
+    CreateDocument.name to Res.string.command_create_document,
+    EditDocument.name to Res.string.command_edit_document,
+    MoveDocument.name to Res.string.command_move_document,
+    DeleteDocument.name to Res.string.command_delete_document,
+    AddDocumentToScreenplay.name to Res.string.command_add_document_to_screenplay,
     SetProjectSettings.name to Res.string.command_set_project_settings,
     SetTarget.name to Res.string.command_set_target,
     UpgradeProject.name to Res.string.command_upgrade_project,

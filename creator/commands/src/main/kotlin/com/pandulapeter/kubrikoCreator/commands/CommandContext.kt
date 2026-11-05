@@ -63,7 +63,7 @@ public class CommandContext(
     /**
      * The project's Markdown files that aren't pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */
-    public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites, scannedFiles.documents)
+    public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites)
 
     /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);
@@ -91,7 +91,7 @@ public class CommandContext(
     }
 
     /**
-     * A hash of the content of each type, Scene, and page in [targets], by its target without Event or Block indices, for telling
+     * A hash of the content of each type, Scene, page, and document in [targets], by its target without Event or Block indices, for telling
      * whether it changed since. A deleted type or Scene hashes as 0, so one that is still deleted matches. A Scene that
      * exists but can't be read right now (the running game holds it open on Windows) gets null, and so does every other
      * kind of target: a null hash isn't compared.
@@ -100,16 +100,21 @@ public class CommandContext(
         val hashes = LinkedHashMap<CommandTarget, Int?>()
         val sceneNames = ArrayList<String>()
         val pageNames = ArrayList<String>()
+        val documentPaths = ArrayList<String>()
         targets.forEach { target ->
             when (target) {
                 is CommandTarget.BlockType -> hashes[CommandTarget.BlockType(target.name)] = blockTypes?.let { it[target.name].hashCode() }
                 is CommandTarget.Scene -> sceneNames += target.name
                 is CommandTarget.Page -> pageNames += target.name
+                is CommandTarget.Document -> documentPaths += target.path
                 else -> Unit
             }
         }
         if (pageNames.isNotEmpty()) {
             withContext(ioDispatcher) { pageNames.forEach { name -> hashes[CommandTarget.Page(name)] = screenplay.read(name)?.hashCode() ?: 0 } }
+        }
+        if (documentPaths.isNotEmpty()) {
+            withContext(ioDispatcher) { documentPaths.forEach { path -> hashes[CommandTarget.Document(path)] = documents.fileOf(path).takeIf { it.isFile }?.readBytes()?.contentHashCode() ?: 0 } }
         }
         if (sceneNames.isNotEmpty()) {
             withContext(ioDispatcher) {

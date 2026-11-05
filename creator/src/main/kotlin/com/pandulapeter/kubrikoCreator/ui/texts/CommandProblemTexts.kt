@@ -29,6 +29,12 @@ import kubriko.creator.generated.resources.error_command_commit_conflicts
 import kubriko.creator.generated.resources.error_command_commit_message_empty
 import kubriko.creator.generated.resources.error_command_condition_not_allowed
 import kubriko.creator.generated.resources.error_command_description_invalid
+import kubriko.creator.generated.resources.error_command_document_missing
+import kubriko.creator.generated.resources.error_command_document_not_moved
+import kubriko.creator.generated.resources.error_command_document_path_invalid
+import kubriko.creator.generated.resources.error_command_document_taken
+import kubriko.creator.generated.resources.error_command_document_too_long
+import kubriko.creator.generated.resources.error_command_document_unreadable
 import kubriko.creator.generated.resources.error_command_event_missing
 import kubriko.creator.generated.resources.error_command_event_not_allowed
 import kubriko.creator.generated.resources.error_command_failed
@@ -147,6 +153,12 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NOTHING_TO_COMMIT -> Res.string.error_command_nothing_to_commit
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
     CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED -> Res.string.error_command_other_actor_type_not_allowed
+    CommandProblem.DOCUMENT_MISSING -> Res.string.error_command_document_missing
+    CommandProblem.DOCUMENT_NOT_MOVED -> Res.string.error_command_document_not_moved
+    CommandProblem.DOCUMENT_PATH_INVALID -> Res.string.error_command_document_path_invalid
+    CommandProblem.DOCUMENT_TAKEN -> Res.string.error_command_document_taken
+    CommandProblem.DOCUMENT_TOO_LONG -> Res.string.error_command_document_too_long
+    CommandProblem.DOCUMENT_UNREADABLE -> Res.string.error_command_document_unreadable
     CommandProblem.PAGE_MISSING -> Res.string.error_command_page_missing
     CommandProblem.PAGE_NAME_INVALID -> Res.string.error_command_page_name_invalid
     CommandProblem.PAGE_NOT_MOVED -> Res.string.error_command_page_not_moved

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ai_target_block
+import kubriko.creator.generated.resources.ai_target_document
 import kubriko.creator.generated.resources.ai_target_event
 import kubriko.creator.generated.resources.ai_target_game
 import kubriko.creator.generated.resources.ai_target_page
@@ -37,6 +38,7 @@ internal fun CommandTarget.description(): String = when (this) {
     }
     is CommandTarget.Scene -> stringResource(Res.string.ai_target_scene, name)
     is CommandTarget.Page -> stringResource(Res.string.ai_target_page, name)
+    is CommandTarget.Document -> stringResource(Res.string.ai_target_document, path)
     CommandTarget.VersionControl -> stringResource(Res.string.ai_target_version_control)
     CommandTarget.Game -> stringResource(Res.string.ai_target_game)
     CommandTarget.Project -> stringResource(Res.string.ai_target_project)

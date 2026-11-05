@@ -91,11 +91,17 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
+import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.EditDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ListPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadDocuments
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
 
 /**
@@ -143,6 +149,7 @@ public class CommandRegistry(
                 ReadGameNotes,
                 ListPages,
                 ReadPages,
+                ReadDocuments,
                 GetKubrikoApi,
                 ReadConsole,
                 GetVersionControlStatus,
@@ -168,6 +175,11 @@ public class CommandRegistry(
                 EditPage,
                 MovePage,
                 DeletePage,
+                CreateDocument,
+                EditDocument,
+                MoveDocument,
+                DeleteDocument,
+                AddDocumentToScreenplay,
                 SetProjectSettings,
                 SetTarget,
                 CreateManagerType,

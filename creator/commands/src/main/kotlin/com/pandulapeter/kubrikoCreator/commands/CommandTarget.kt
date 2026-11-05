@@ -37,6 +37,13 @@ public sealed interface CommandTarget {
         val name: String,
     ) : CommandTarget
 
+    /**
+     * One of the project's Markdown files that aren't pages, by its path from the project's root (`docs/combat.md`).
+     */
+    public data class Document(
+        val path: String,
+    ) : CommandTarget
+
     public data object VersionControl : CommandTarget
 
     public data object Game : CommandTarget

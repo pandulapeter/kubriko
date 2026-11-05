@@ -17,10 +17,8 @@ import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
  *
  * @param audioFiles The sounds and music of the project, or null if they aren't known, so they aren't checked.
  * @param spriteFiles The images Actor types can be drawn as, or null if they aren't known, so they aren't checked.
- * @param documents The paths of the project's Markdown files that aren't pages.
  */
 public class ScannedFiles(
     public val audioFiles: () -> AudioFiles? = { null },
     public val spriteFiles: () -> SpriteFiles? = { null },
-    public val documents: () -> List<String> = { emptyList() },
 )

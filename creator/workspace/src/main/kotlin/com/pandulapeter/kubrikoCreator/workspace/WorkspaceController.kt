@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -300,7 +301,6 @@ public class WorkspaceController(
             scannedFiles = ScannedFiles(
                 audioFiles = { AudioFiles.of(_resources.value) },
                 spriteFiles = { SpriteFiles.of(_resources.value) },
-                documents = { _resources.value[ResourceGroup.DOCUMENTS].orEmpty().map { it.relativePath } },
             ),
             report = ::appendToConsole,
             buildFiles = object : ProjectBuildFiles {
@@ -331,6 +331,7 @@ public class WorkspaceController(
             for (haveTypesChanged in savedTypeBatches) changes.onTypesSaved(haveTypesChanged)
         }
         changes.refreshResources()
+        scope.launch { commands.context.documents.structureRevision.drop(1).collect { changes.refreshResources() } }
         refreshScreenplay()
         refreshProjectUpgrade()
         blockTypes?.let { types ->
@@ -405,6 +406,7 @@ public class WorkspaceController(
         val (resources, layout) = withContext(ioDispatcher) {
             files.scanResources(project.rootDirectory, currentSnapshot).let { it to ProjectLayout.of(project.rootDirectory, it, generatedPath, sceneHome, currentSnapshot) }
         }
+        commands.context.documents.refresh(resources[ResourceGroup.DOCUMENTS].orEmpty().map { it.relativePath })
         _resources.value = resources
         _layout.value = layout
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.

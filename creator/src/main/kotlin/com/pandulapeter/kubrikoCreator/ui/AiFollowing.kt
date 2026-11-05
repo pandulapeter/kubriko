@@ -32,7 +32,7 @@ internal fun AiStep.selectionToFollow(): WorkspaceSelection? = when (val target 
     is CommandTarget.BlockType -> WorkspaceSelection.BlockType(target.name)
     is CommandTarget.Scene -> WorkspaceSelection.Scene(target.name)
     is CommandTarget.Page -> WorkspaceSelection.Page(target.name)
-    CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
+    is CommandTarget.Document, CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
 }
 
 /**
@@ -51,6 +51,7 @@ internal fun AiStep.sidebarName() = when (val target = target) {
     is CommandTarget.BlockType -> target.name
     is CommandTarget.Scene -> target.name
     is CommandTarget.Page -> target.name
+    is CommandTarget.Document -> target.path
     CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
 }
 

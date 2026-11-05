@@ -22,6 +22,7 @@ internal fun CommandTarget.notation(): String = when (this) {
     is CommandTarget.BlockType -> RelationPlace.Type(name, eventIndex, blockIndex).toString()
     is CommandTarget.Scene -> RelationSubject.Scene(name).toString()
     is CommandTarget.Page -> "page $name"
+    is CommandTarget.Document -> "document $path"
     CommandTarget.VersionControl -> "version control"
     CommandTarget.Game -> "the game"
     CommandTarget.Project -> "the project's files"
