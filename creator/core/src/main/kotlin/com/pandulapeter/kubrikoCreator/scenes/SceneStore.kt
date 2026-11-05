@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.scenes
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -17,7 +18,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -149,19 +149,7 @@ public class SceneStore(
     public fun move(oldName: String, newName: String): Boolean {
         val source = file(oldName) ?: return false
         val target = File(rootOf(source) ?: sceneDirectory, "$newName.$EXTENSION")
-        val isMoved = try {
-            target.parentFile.mkdirs()
-            if (source.canonicalPath.equals(target.canonicalPath, ignoreCase = true)) {
-                // Only the case changes, which Files.move takes for a move onto the same file where names ignore case.
-                source.renameTo(target)
-            } else {
-                Files.move(source.toPath(), target.toPath())
-                true
-            }
-        } catch (_: IOException) {
-            false
-        }
-        if (!isMoved) return false
+        if (!source.moveWithoutReplacing(target)) return false
         cache.remove(source)
         ownWrites.record(source)
         ownWrites.record(target)

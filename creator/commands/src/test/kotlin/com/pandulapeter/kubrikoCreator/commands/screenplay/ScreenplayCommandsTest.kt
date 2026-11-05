@@ -62,6 +62,13 @@ class ScreenplayCommandsTest {
     }
 
     @Test
+    fun aPageRenamedOnlyInCaseTakesTheNewName() = runTest {
+        val context = commandContext()
+        CreatePage.apply(context, CreatePage.Input("hero", hero))
+        assertEquals(setOf("screenplay/Hero.md"), context.assertRoundTrip(Invocation(MovePage, MovePage.Input("hero", "Hero"))) { context.pages().keys })
+    }
+
+    @Test
     fun aPageMadeOutsideMeanwhileIsntWrittenOver() = runTest {
         val context = commandContext()
         context.screenplay.refresh()

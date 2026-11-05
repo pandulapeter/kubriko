@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.screenplay
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectTree
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 
 /**
  * The screenplay's pages: plain Markdown files in `screenplay/` at the project's root ([PageNaming]), shared with the user,
@@ -165,18 +165,7 @@ public class ScreenplayStore(
     public fun move(oldName: String, newName: String): Boolean {
         val source = fileOf(oldName)
         val target = fileOf(newName)
-        val isMoved = try {
-            target.parentFile.mkdirs()
-            if (source.canonicalPath.equals(target.canonicalPath, ignoreCase = true)) {
-                source.renameTo(target)
-            } else {
-                Files.move(source.toPath(), target.toPath())
-                true
-            }
-        } catch (_: IOException) {
-            false
-        }
-        if (!isMoved) return false
+        if (!source.moveWithoutReplacing(target)) return false
         ownWrites.record(source)
         ownWrites.record(target)
         refresh()
