@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.context.Usage
@@ -49,6 +50,7 @@ import java.io.File
  * @param usagesOf Reads what a delete would do to each usage of what it deletes.
  * @param onConfirmedDelete Dispatches a delete (or a change to a document) the user confirmed, with what runs once it was
  *   applied.
+ * @param validate Why a change can't be made, or null, for what a confirmation lets the user still change.
  * @param onUsageSelected Goes to the place of a usage the delete's confirmation lists.
  */
 @Composable
@@ -64,14 +66,16 @@ internal fun WorkspaceDialogs(
     onCommand: (Invocation<*>) -> Unit,
     usagesOf: suspend (Invocation<*>) -> List<Usage>?,
     onConfirmedDelete: (Invocation<*>, () -> Unit) -> Unit,
+    validate: (Invocation<*>) -> Rejection?,
     onUsageSelected: (Usage) -> Unit,
 ) {
     uiState.pendingDocumentChange?.let { pending ->
         DocumentChangeConfirmation(
             pending = pending,
-            onConfirm = {
+            validate = validate,
+            onConfirm = { confirmed ->
                 uiState.finishDocumentChange()
-                onConfirmedDelete(pending.invocation, pending.onSuccess)
+                onConfirmedDelete(confirmed) { pending.onSuccess(confirmed) }
             },
             onDismiss = uiState::finishDocumentChange,
         )

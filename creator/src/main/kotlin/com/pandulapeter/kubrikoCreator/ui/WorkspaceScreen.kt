@@ -132,7 +132,7 @@ private fun WorkspaceContent(
     val shownAiStep = shownAiStep(followedAiStep, uiState.revisitedAiStep, aiSteps.newestChange()?.id)?.takeIf { isAiEnabled }
     val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
     val readOnlyReason = (controller.formatStatus.collectAsState().value as? ProjectFormatStatus.ReadOnly)?.toRejection()
-    val sidebarDragState = rememberSidebarDragState(controller.commands)
+    val sidebarDragState = rememberSidebarDragState(controller.commands, controller.creation)
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
     val openPageName = (selection as? WorkspaceSelection.Page)?.name
@@ -318,6 +318,7 @@ private fun WorkspaceDialogsOf(
     onCommand = controller.commands::dispatch,
     usagesOf = controller.commands::usagesOf,
     onConfirmedDelete = controller.commands::dispatch,
+    validate = controller.commands::validate,
     onUsageSelected = { usage ->
         when (val owner = usage.placeOwner) {
             is RelationSubject.Type -> controller.selection.selectType(owner.name)

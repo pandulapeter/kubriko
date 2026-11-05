@@ -19,10 +19,12 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 
 /**
- * Creates what the sidebar names in place, each through its command, and shows it once it exists.
+ * Creates what the sidebar names in place, each through its command, and shows it once it exists; moves a document so
+ * that it stays shown wherever it goes.
  */
 public class WorkspaceCreation internal constructor(
     private val commands: CommandExecutor,
@@ -67,5 +69,16 @@ public class WorkspaceCreation internal constructor(
     public fun createDocument(folder: String, name: String): Rejection? {
         val path = DocumentNaming.pathOf(folder, name)
         return commands.dispatchIfValid(Invocation(CreateDocument, CreateDocument.Input(path, "# ${DocumentNaming.nameOf(path)}\n"))) { selection.openDocument(path) }
+    }
+
+    /**
+     * Moves the document at [path] to [newPath], showing it there if it was shown, since the move takes its old path
+     * away (which closes what shows it) before the move's result comes back.
+     *
+     * @return Why it can't be moved there, or null if it is being moved.
+     */
+    public fun moveDocument(path: String, newPath: String): Rejection? {
+        val wasShown = selection.current.value == WorkspaceSelection.Document(path)
+        return commands.dispatchIfValid(Invocation(MoveDocument, MoveDocument.Input(path, newPath))) { if (wasShown) selection.openDocument(newPath) }
     }
 }

@@ -52,6 +52,7 @@ internal class DocumentActions(
  * folder, a band, or another document moves into that one's folder, in any module.
  *
  * @param selectedDocument The path of the document shown in the center, if any.
+ * @param flashedPath The path of the document the AI just changed, which lights up with every new [flashKey].
  */
 internal fun LazyListScope.documentRows(
     module: SidebarModule,
@@ -62,6 +63,8 @@ internal fun LazyListScope.documentRows(
     onNamingChange: (SidebarNaming?) -> Unit,
     selectedDocument: String?,
     onSelectionCleared: () -> Unit,
+    flashedPath: String?,
+    flashKey: Any?,
 ) {
     val documentsKey = SidebarKeys.documents(module.path)
     val indent = module.depth
@@ -106,6 +109,7 @@ internal fun LazyListScope.documentRows(
                 path = row.name,
                 depth = row.depth + indent,
                 isSelected = row.name == selectedDocument,
+                flashKey = flashKey?.takeIf { row.name == flashedPath },
                 actions = actions,
                 dragState = dragState,
                 naming = naming,
@@ -164,6 +168,7 @@ private fun DocumentItem(
     path: String,
     depth: Int,
     isSelected: Boolean,
+    flashKey: Any?,
     actions: DocumentActions,
     dragState: SidebarDragState,
     naming: SidebarNaming?,
@@ -190,6 +195,7 @@ private fun DocumentItem(
             text = fileName,
             depth = depth,
             isSelected = isSelected,
+            flashKey = flashKey,
             onClick = {
                 when {
                     dragState.isClickAfterDrag -> Unit

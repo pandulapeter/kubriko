@@ -140,6 +140,8 @@ internal fun ProjectSidebar(
                     onNamingChange = { naming = it },
                     selectedDocument = selectedDocument,
                     onSelectionCleared = folderActions.onSelectionCleared,
+                    flashedPath = flashedName,
+                    flashKey = flashKey,
                 )
             }
         }

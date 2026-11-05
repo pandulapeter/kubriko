@@ -76,4 +76,19 @@ class WorkspaceDocumentsTest {
         assertEquals(CommandProblem.DOCUMENT_PATH_INVALID, controller.creation.createDocument("", ".hidden")?.reason)
         assertNull(controller.commands.history.value.nextUndoCommandName)
     }
+
+    @Test
+    fun aShownDocumentStaysShownWhereverItIsMovedAndAnotherDoesntOpen() = runTest {
+        File(rootDirectory, "README.md").writeText("# Game\n")
+        File(rootDirectory, "notes.md").writeText("# Notes\n")
+        val controller = createController()
+        controller.selection.openDocument("README.md")
+        assertNull(controller.creation.moveDocument("README.md", "docs/README.md"))
+        runCurrent()
+        assertEquals(WorkspaceSelection.Document("docs/README.md"), controller.selection.current.value)
+        assertNull(controller.creation.moveDocument("notes.md", "docs/notes.md"))
+        runCurrent()
+        assertEquals(WorkspaceSelection.Document("docs/README.md"), controller.selection.current.value)
+        assertEquals(CommandProblem.DOCUMENT_TAKEN, controller.creation.moveDocument("docs/notes.md", "docs/README.md")?.reason)
+    }
 }

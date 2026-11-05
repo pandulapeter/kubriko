@@ -594,6 +594,7 @@
     <string name="document_delete_title">Delete %1$s?</string>
     <string name="document_delete_text">The file is deleted from the project. Undo brings it back as it was.</string>
     <string name="document_add_to_screenplay_title">Add %1$s to the screenplay?</string>
+    <string name="document_add_to_screenplay_page">Page name</string>
     <string name="document_add_to_screenplay_text">The file moves to %1$s and becomes a page of the game's design. Undo moves it back.</string>
     <string name="page_add_paragraph">Add a paragraph</string>
     <string name="page_empty">This page is empty. Add a paragraph to start it.</string>

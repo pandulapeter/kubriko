@@ -13,11 +13,13 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 
 /**
  * A change to one of the user's documents waiting for the user to confirm it ([DocumentChangeConfirmation]): deleting it,
- * or moving it into the screenplay. It compares by identity, so asking again for the same change asks again.
+ * or moving it into the screenplay, whose page name the user may still change. It compares by identity, so asking again
+ * for the same change asks again.
  *
- * @param onSuccess What runs once the change was applied, never when it was rejected.
+ * @param onSuccess What runs once the change was applied, with the change as the user confirmed it, never when it was
+ *   rejected.
  */
 internal class PendingDocumentChange(
     val invocation: Invocation<*>,
-    val onSuccess: () -> Unit = {},
+    val onSuccess: (Invocation<*>) -> Unit = {},
 )

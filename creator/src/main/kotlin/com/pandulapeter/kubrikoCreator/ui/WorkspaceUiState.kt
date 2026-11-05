@@ -126,7 +126,7 @@ internal class WorkspaceUiState {
     fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit, dispatch: (Invocation<*>, () -> Unit) -> Unit) {
         when (invocation.command) {
             is DeletingCommand<*> -> pendingDelete = PendingDelete(invocation, onSuccess)
-            DeleteDocument, AddDocumentToScreenplay -> pendingDocumentChange = PendingDocumentChange(invocation, onSuccess)
+            DeleteDocument, AddDocumentToScreenplay -> confirmDocumentChange(invocation) { onSuccess() }
             else -> dispatch(invocation, onSuccess)
         }
     }
@@ -136,6 +136,14 @@ internal class WorkspaceUiState {
      */
     fun finishDeleting() {
         pendingDelete = null
+    }
+
+    /**
+     * Asks the user to confirm [invocation], a change to one of their documents, running [onSuccess] with the change as
+     * confirmed once it was applied.
+     */
+    fun confirmDocumentChange(invocation: Invocation<*>, onSuccess: (Invocation<*>) -> Unit) {
+        pendingDocumentChange = PendingDocumentChange(invocation, onSuccess)
     }
 
     /**

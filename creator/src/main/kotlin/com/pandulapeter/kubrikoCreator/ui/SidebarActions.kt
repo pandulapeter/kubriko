@@ -28,7 +28,6 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
-import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
@@ -39,17 +38,15 @@ import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
  * Where the sidebar's items are dragged: a dropped one moves to its folder through a command.
  */
 @Composable
-internal fun rememberSidebarDragState(commands: CommandExecutor) = remember(commands) {
+internal fun rememberSidebarDragState(commands: CommandExecutor, creation: WorkspaceCreation) = remember(commands, creation) {
     SidebarDragState().apply {
         onMoveToFolder = { group, name, folder ->
-            commands.dispatch(
-                when (group) {
-                    FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name))))
-                    FolderGroup.PAGES -> Invocation(MovePage, MovePage.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name))))
-                    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> Invocation(MoveToFolder, MoveToFolder.Input(name, folder))
-                    null -> Invocation(MoveDocument, MoveDocument.Input(name, DocumentNaming.pathOf(folder, name.substringAfterLast('/'))))
-                },
-            )
+            when (group) {
+                FolderGroup.SCENES -> commands.dispatch(Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name)))))
+                FolderGroup.PAGES -> commands.dispatch(Invocation(MovePage, MovePage.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name)))))
+                FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> commands.dispatch(Invocation(MoveToFolder, MoveToFolder.Input(name, folder)))
+                null -> creation.moveDocument(name, DocumentNaming.pathOf(folder, name.substringAfterLast('/')))
+            }
         }
     }
 }
@@ -112,7 +109,8 @@ internal fun rememberFolderTreeActions(
 
 /**
  * What the sidebar's documents do, each through the command for it; deleting one, or adding it to the screenplay, waits
- * for its confirmation ([WorkspaceUiState.dispatch]). A document renamed while it is shown stays shown.
+ * for its confirmation ([WorkspaceUiState.dispatch]), where the page a document becomes can still be renamed. A document
+ * moved while it is shown stays shown, and one added to the screenplay is shown as its page.
  */
 @Composable
 internal fun rememberDocumentActions(
@@ -124,20 +122,21 @@ internal fun rememberDocumentActions(
     DocumentActions(
         onOpen = selection::openDocument,
         onCreate = creation::createDocument,
-        onRename = { path, newName ->
-            val newPath = DocumentNaming.pathOf(DocumentNaming.folderOf(path), newName)
-            commands.dispatchIfValid(Invocation(MoveDocument, MoveDocument.Input(path, newPath))) {
-                if (selection.current.value == WorkspaceSelection.Document(path)) selection.openDocument(newPath)
-            }
-        },
+        onRename = { path, newName -> creation.moveDocument(path, DocumentNaming.pathOf(DocumentNaming.folderOf(path), newName)) },
         onDelete = { path -> uiState.dispatch(Invocation(DeleteDocument, DeleteDocument.Input(path)), onSuccess = {}, dispatch = commands::dispatch) },
         onAddToScreenplay = { path ->
-            val page = DocumentNaming.pageNameOf(path)
-            uiState.dispatch(
-                invocation = Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input(path, page)),
-                onSuccess = { if (selection.current.value == WorkspaceSelection.Document(path)) selection.openPage(page) },
-                dispatch = commands::dispatch,
-            )
+            val wasShown = selection.current.value == WorkspaceSelection.Document(path)
+            val page = freePageName(DocumentNaming.pageNameOf(path)) { commands.context.screenplay.existingName(it) != null }
+            uiState.confirmDocumentChange(Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input(path, page))) { confirmed ->
+                if (wasShown) (confirmed.input as? AddDocumentToScreenplay.Input)?.let { selection.openPage(it.page) }
+            }
         },
     )
 }
+
+/**
+ * [name], or the first of `name 2`, `name 3`, and so on that [isTaken] doesn't take, as a page a document becomes is
+ * offered under (a project's `README.md` meets the screenplay's own first page).
+ */
+internal fun freePageName(name: String, isTaken: (String) -> Boolean): String =
+    generateSequence(1) { it + 1 }.map { if (it == 1) name else "$name $it" }.first { !isTaken(it) }
