@@ -42,7 +42,8 @@ public class DocumentStore(
     private val _structureRevision = MutableStateFlow(0)
 
     /**
-     * Raised by every write and by [onChangedOutside], so that what shows a document reads it again.
+     * Raised by every write, by [onChangedOutside], and by a [refresh] that changed the paths, so that what shows a
+     * document reads it again, or closes it once it is gone.
      */
     public val revision: StateFlow<Int> = _revision.asStateFlow()
 
@@ -66,10 +67,11 @@ public class DocumentStore(
     public fun existingPath(path: String): String? = knownPaths.firstOrNull { it.equals(path, ignoreCase = true) }
 
     /**
-     * Takes the paths a resource scan found.
+     * Takes the paths a resource scan found, raising [revision] if they changed.
      */
     public fun refresh(paths: List<String>) {
-        synchronized(pathsLock) { knownPaths = paths }
+        val isChanged = synchronized(pathsLock) { (knownPaths != paths).also { knownPaths = paths } }
+        if (isChanged) _revision.update { it + 1 }
     }
 
     /**

@@ -23,7 +23,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -49,7 +48,6 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
-import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
@@ -69,14 +67,14 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownEditOf
+import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberOpenMarkdownText
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import com.pandulapeter.kubrikoCreator.workspace.captureGameScreen
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * An open project: the toolbar, the sidebar with the project's contents, the editor of what is selected, and the console.
@@ -138,7 +136,7 @@ private fun WorkspaceContent(
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
     val openPageName = (selection as? WorkspaceSelection.Page)?.name
-    val pageText = rememberPageText(controller, openPageName)
+    val markdownText = rememberOpenMarkdownText(controller.commands.context.screenplay, controller.commands.context.documents, selection, controller.selection::clear)
     WorkspaceDialogsOf(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
     FollowingAiSteps(controller = controller, followedAiStep = followedAiStep, selection = selection)
     RefreshingGitOnWindowFocus(controller.git::refresh)
@@ -196,7 +194,7 @@ private fun WorkspaceContent(
                         shownAiStep = shownAiStep,
                         sidebarDragState = sidebarDragState,
                         panelLayout = panelLayout,
-                        pageText = pageText,
+                        markdownText = markdownText,
                     )
                     WorkspaceSidePanel(
                         panel = uiState.openPanel?.takeIf { it != SidePanel.AI || isAiEnabled },
@@ -410,6 +408,7 @@ private fun WorkspaceAiSidePanelOf(
     onTypeSelected = { controller.selection.selectType(it) },
     onSceneSelected = { controller.selection.openScene(it) },
     onPageSelected = controller.selection::openPage,
+    onDocumentSelected = controller.selection::openDocument,
     captureScreen = controller::captureGameScreen,
     width = width,
     row = row,
@@ -434,27 +433,10 @@ private fun FollowingAiSteps(
             is WorkspaceSelection.BlockType -> controller.selection.selectType(target.name)
             is WorkspaceSelection.Scene -> controller.selection.openScene(target.name)
             is WorkspaceSelection.Page -> controller.selection.openPage(target.name)
+            is WorkspaceSelection.Document -> controller.selection.openDocument(target.path)
             WorkspaceSelection.None, null -> Unit
         }
     }
-}
-
-/**
- * The text of the page [name] of [controller]'s screenplay, read off the main thread again after every change to the
- * pages, or null until it is read or if it can't be (another program holds it). A page that is gone (deleted, or moved by
- * its name) closes.
- */
-@Composable
-private fun rememberPageText(controller: WorkspaceController, name: String?): String? {
-    val screenplay = controller.commands.context.screenplay
-    val revision by screenplay.revision.collectAsState()
-    val names by screenplay.current.collectAsState()
-    LaunchedEffect(name, names) { if (name != null && name !in names) controller.selection.clear() }
-    val read = produceState<Pair<String, String?>?>(null, name, revision) {
-        value = name?.let { page -> page to withContext(Dispatchers.IO) { runCatching { screenplay.read(page) }.getOrNull() } }
-    }.value
-    // A text read for the page shown before is never handed to this one.
-    return read?.takeIf { it.first == name }?.second
 }
 
 /**
@@ -473,7 +455,7 @@ private fun WorkspaceCenterOf(
     shownAiStep: ShownAiStep?,
     sidebarDragState: SidebarDragState,
     panelLayout: PanelLayout,
-    pageText: String?,
+    markdownText: String?,
 ) = WorkspaceCenter(
     modifier = modifier,
     selection = selection,
@@ -494,6 +476,6 @@ private fun WorkspaceCenterOf(
     onReloadScene = controller.sceneEditing::reload,
     onCloseScene = controller.selection::clear,
     onSceneViewFailed = controller.sceneEditing::onViewFailed,
-    pageText = pageText,
-    onPageTextChange = { name, text -> controller.commands.dispatch(Invocation(EditPage, EditPage.Input(name, text))) },
+    markdownText = markdownText,
+    onMarkdownTextChange = { text -> markdownEditOf(selection, text)?.let(controller.commands::dispatch) },
 )

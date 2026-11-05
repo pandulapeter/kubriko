@@ -97,6 +97,20 @@ class SelectionControllerTest {
     }
 
     @Test
+    fun openingADocumentTakesThePagesPlaceAndClosesTheScene() = runTest {
+        val controller = createController()
+        controller.selection.openPage("hero")
+        controller.selection.openDocument("docs/combat.md")
+        assertEquals(WorkspaceSelection.Document("docs/combat.md"), controller.selection.current.value)
+        controller.selection.openScene("level")
+        controller.selection.openDocument("docs/combat.md")
+        assertEquals(SceneEditingState.Closed, controller.sceneEditing.state.value)
+        assertEquals(WorkspaceSelection.Document("docs/combat.md"), controller.selection.current.value)
+        assertTrue(controller.selection.selectType("Player"))
+        assertEquals(WorkspaceSelection.BlockType("Player"), controller.selection.current.value)
+    }
+
+    @Test
     fun anUnknownTypeOrSceneChangesNothing() = runTest {
         val controller = createController()
         controller.selection.selectType("Player")

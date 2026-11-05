@@ -36,13 +36,15 @@ import com.pandulapeter.kubrikoCreator.ui.components.fadeInOnChange
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageEditor
+import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_preparing
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The middle of the workspace: the Scene shown, the editor of the selected type, or the hint when nothing is selected.
+ * The middle of the workspace: the Scene shown, the editor of the selected type, the page editor showing a page or a
+ * document, or the hint when nothing is selected.
  *
  * @param modifier Applied to whichever of them is shown, which the workspace's row places.
  * @param changedByHand The names of the types whose generated code was changed by hand.
@@ -50,8 +52,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
- * @param pageText The text of the page shown, once it is read, or null.
- * @param onPageTextChange Saves the page shown.
+ * @param markdownText The text of the page or document shown, once it is read, or null.
+ * @param onMarkdownTextChange Saves the page or document shown.
  */
 @Composable
 internal fun WorkspaceCenter(
@@ -74,10 +76,11 @@ internal fun WorkspaceCenter(
     onReloadScene: () -> Unit,
     onCloseScene: () -> Unit,
     onSceneViewFailed: (revision: Int, exception: Throwable, isShowingOlderClasses: Boolean) -> Unit,
-    pageText: String? = null,
-    onPageTextChange: (name: String, text: String) -> Unit = { _, _ -> },
+    markdownText: String? = null,
+    onMarkdownTextChange: (text: String) -> Unit = {},
 ) {
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
+    val markdownTitle = markdownTitleOf(selection)
     val actorTypes = remember(blockTypes) { blockTypes.filterIsInstance<ActorTypeDefinition>() }
     val family = remember(actorTypes) { ActorTypeFamily(actorTypes) }
     when (sceneEditing) {
@@ -146,13 +149,13 @@ internal fun WorkspaceCenter(
                 highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
             )
         }
-    } else if (selection is WorkspaceSelection.Page && sceneEditing == SceneEditingState.Closed) {
-        if (pageText != null) {
+    } else if (markdownTitle != null && sceneEditing == SceneEditingState.Closed) {
+        if (markdownText != null) {
             PageEditor(
                 modifier = contentModifier,
-                name = selection.name,
-                text = pageText,
-                onTextChange = { onPageTextChange(selection.name, it) },
+                name = markdownTitle,
+                text = markdownText,
+                onTextChange = onMarkdownTextChange,
             )
         }
     } else if (selection == WorkspaceSelection.None) {

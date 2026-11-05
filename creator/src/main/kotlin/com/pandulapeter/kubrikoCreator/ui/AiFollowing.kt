@@ -32,7 +32,8 @@ internal fun AiStep.selectionToFollow(): WorkspaceSelection? = when (val target 
     is CommandTarget.BlockType -> WorkspaceSelection.BlockType(target.name)
     is CommandTarget.Scene -> WorkspaceSelection.Scene(target.name)
     is CommandTarget.Page -> WorkspaceSelection.Page(target.name)
-    is CommandTarget.Document, CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
+    is CommandTarget.Document -> WorkspaceSelection.Document(target.path)
+    CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
 }
 
 /**
@@ -56,9 +57,9 @@ internal fun AiStep.sidebarName() = when (val target = target) {
 }
 
 /**
- * Whether the editor has a place to go to for this step: an Actor type, a Manager type, a Scene, or a page.
+ * Whether the editor has a place to go to for this step: an Actor type, a Manager type, a Scene, a page, or a document.
  */
-internal fun AiStep.canBeShown() = target is CommandTarget.BlockType || target is CommandTarget.Scene || target is CommandTarget.Page
+internal fun AiStep.canBeShown() = target.let { it is CommandTarget.BlockType || it is CommandTarget.Scene || it is CommandTarget.Page || it is CommandTarget.Document }
 
 /**
  * A step the user went back to from the assistant panel, which the editor shows until the AI makes another change. It

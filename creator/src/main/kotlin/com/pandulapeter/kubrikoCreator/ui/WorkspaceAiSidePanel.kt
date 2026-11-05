@@ -60,6 +60,7 @@ internal fun WorkspaceAiSidePanel(
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     onPageSelected: (String) -> Unit,
+    onDocumentSelected: (String) -> Unit,
     captureScreen: suspend () -> ByteArray?,
     width: PanelWidthState,
     row: PanelRow,
@@ -93,6 +94,7 @@ internal fun WorkspaceAiSidePanel(
                 is CommandTarget.BlockType -> onTypeSelected(target.name)
                 is CommandTarget.Scene -> onSceneSelected(target.name)
                 is CommandTarget.Page -> onPageSelected(target.name)
+                is CommandTarget.Document -> onDocumentSelected(target.path)
                 else -> Unit
             }
         },

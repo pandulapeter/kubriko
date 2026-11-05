@@ -23,6 +23,7 @@ import kotlin.test.assertTrue
 class DocumentStoreTest {
     private val root = testDirectory()
     private val store = DocumentStore(root, OwnWrites()).apply { refresh(listOf("README.md", "docs/guide.md")) }
+    private val scanned = store.revision.value
 
     @Test
     fun onlyTheScannedDocumentsAreKnown() {
@@ -37,7 +38,7 @@ class DocumentStoreTest {
         File(root, "README.md").writeText("# Game\r\n\r\nOld.\r\n")
         store.write("README.md", "# Game\n\nNew.\n")
         assertEquals("# Game\r\n\r\nNew.\r\n", File(root, "README.md").readText())
-        assertEquals(1, store.revision.value)
+        assertEquals(scanned + 1, store.revision.value)
         assertEquals(0, store.structureRevision.value)
         assertEquals("# Game\r\n\r\nNew.\r\n", store.read("README.md"))
         assertNull(store.read("missing.md"))
@@ -90,8 +91,17 @@ class DocumentStoreTest {
     }
 
     @Test
+    fun aScanRaisesTheRevisionOnlyWhenThePathsChanged() {
+        store.refresh(listOf("README.md", "docs/guide.md"))
+        assertEquals(scanned, store.revision.value)
+        store.refresh(listOf("README.md"))
+        assertEquals(scanned + 1, store.revision.value)
+        assertFalse(store.isKnown("docs/guide.md"))
+    }
+
+    @Test
     fun aChangeOutsideRaisesTheRevision() {
         store.onChangedOutside()
-        assertEquals(1, store.revision.value)
+        assertEquals(scanned + 1, store.revision.value)
     }
 }

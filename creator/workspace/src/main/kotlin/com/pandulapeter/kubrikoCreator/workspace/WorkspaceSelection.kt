@@ -13,8 +13,8 @@ import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 
 /**
- * What the workspace's center shows: one type, one Scene (being prepared, open, or failed), one page of the screenplay, or
- * nothing.
+ * What the workspace's center shows: one type, one Scene (being prepared, open, or failed), one page of the screenplay, one
+ * other Markdown document, or nothing.
  */
 public sealed interface WorkspaceSelection {
 
@@ -42,6 +42,13 @@ public sealed interface WorkspaceSelection {
      */
     public data class Page(
         public val name: String,
+    ) : WorkspaceSelection
+
+    /**
+     * The document at [path] (from the project's root) is shown in the page editor.
+     */
+    public data class Document(
+        public val path: String,
     ) : WorkspaceSelection
 }
 

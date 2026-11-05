@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 
 /**
- * The only place that pairs selecting a type with closing the Scene shown, and opening a Scene or a page with deselecting
+ * The only place that pairs selecting a type with closing the Scene shown, and opening a Scene, a page, or a document with deselecting
  * the rest, so that the workspace's center shows one of them at most.
  *
  * @param sceneOf The Scene file of the given name, or null if there is none.
@@ -32,13 +32,13 @@ public class SelectionController internal constructor(
     private val sceneOf: (name: String) -> ProjectResource?,
     scope: CoroutineScope,
 ) {
-    private val openPage = MutableStateFlow<String?>(null)
+    private val openText = MutableStateFlow<WorkspaceSelection?>(null)
 
     /**
      * One value for the center, the sidebar highlight, and the AI panel. A shown Scene wins over a type name left behind.
      */
-    public val current: StateFlow<WorkspaceSelection> = combine(blockTypes?.selectedName ?: flowOf(null), sceneEditing.state, openPage, ::selectionOf)
-        .stateIn(scope, SharingStarted.Eagerly, selectionOf(blockTypes?.selectedName?.value, sceneEditing.state.value, openPage.value))
+    public val current: StateFlow<WorkspaceSelection> = combine(blockTypes?.selectedName ?: flowOf(null), sceneEditing.state, openText, ::selectionOf)
+        .stateIn(scope, SharingStarted.Eagerly, selectionOf(blockTypes?.selectedName?.value, sceneEditing.state.value, openText.value))
 
     /**
      * Shows the type [name], closing the Scene shown.
@@ -48,7 +48,7 @@ public class SelectionController internal constructor(
     public fun selectType(name: String): Boolean {
         if (blockTypes?.get(name) == null) return false
         sceneEditing.close()
-        openPage.value = null
+        openText.value = null
         blockTypes.select(name)
         return true
     }
@@ -62,7 +62,7 @@ public class SelectionController internal constructor(
         val scene = sceneOf(name) ?: return false
         if (sceneEditing.state.value.sceneName == name) return true
         blockTypes?.select(null)
-        openPage.value = null
+        openText.value = null
         sceneEditing.open(scene)
         return true
     }
@@ -70,11 +70,12 @@ public class SelectionController internal constructor(
     /**
      * Shows the page [name] of the screenplay, closing the Scene and deselecting the type.
      */
-    public fun openPage(name: String) {
-        sceneEditing.close()
-        blockTypes?.select(null)
-        openPage.value = name
-    }
+    public fun openPage(name: String): Unit = openText(WorkspaceSelection.Page(name))
+
+    /**
+     * Shows the document at [path] in the page editor, closing the Scene and deselecting the type.
+     */
+    public fun openDocument(path: String): Unit = openText(WorkspaceSelection.Document(path))
 
     /**
      * Shows nothing: closes the Scene and deselects the type.
@@ -82,9 +83,15 @@ public class SelectionController internal constructor(
     public fun clear() {
         sceneEditing.close()
         blockTypes?.select(null)
-        openPage.value = null
+        openText.value = null
     }
 
-    private fun selectionOf(selectedName: String?, state: SceneEditingState, page: String?): WorkspaceSelection =
-        state.sceneName?.let(WorkspaceSelection::Scene) ?: page?.let(WorkspaceSelection::Page) ?: selectedName?.let(WorkspaceSelection::BlockType) ?: WorkspaceSelection.None
+    private fun openText(selection: WorkspaceSelection) {
+        sceneEditing.close()
+        blockTypes?.select(null)
+        openText.value = selection
+    }
+
+    private fun selectionOf(selectedName: String?, state: SceneEditingState, text: WorkspaceSelection?): WorkspaceSelection =
+        state.sceneName?.let(WorkspaceSelection::Scene) ?: text ?: selectedName?.let(WorkspaceSelection::BlockType) ?: WorkspaceSelection.None
 }
