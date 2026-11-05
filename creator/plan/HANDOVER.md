@@ -25,45 +25,29 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `04-screenplay.md` with the Documents group, then mentions and images (its Order), then the AI's side of pages, keeping them up to date, and the
-writers' room. Pages, their commands and tools, the Screenplay group, and the page editor exist (`0954d5ef2..f82ba8008`, not
-reviewed in `6c082fbff` and `52083d116`). What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds, music,
-Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s Release, Icons,
-and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s
-new iOS simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its
-Android emulator dialog waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s
-engine and sprite atlas parts touch only `engine/` and `plugins/sprites`, so they can run beside `04` and `05` in a session of
-their own; its Creator part follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other
-plans (Traits, UI elements, git) or for the benchmarks.
+Continue `04-screenplay.md` with mentions and images (its Order), then the AI's side of pages, keeping them up to date, and
+the writers' room. What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds,
+music, Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s
+Release, Icons, and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS devices can
+follow Signing. `03`'s new iOS simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it
+can go in between; its Android emulator dialog waits for `15-onboarding.md`'s download of the SDK's command-line tools.
+`06-batched-rendering.md`'s engine and sprite atlas parts touch only `engine/` and `plugins/sprites`, so they can run beside
+`04` and `05` in a session of their own; its Creator part follows them. Then `06` to `10` in order. What is left in
+`01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
 
-What the last session did (the web font and its review fixes, `181108f26` and `566b80b6e`, are taken back by the commit
-that replaces them; the rest reviewed only by its own tests and snapshots):
+What the last session did (`d9830a6e2..ef26c81c1`, reviewed with `/code-review` high, its ten findings fixed in
+`73036046e..81aef654f`):
 
-- **Texts on the web** (template versions 12 and 13): Breakout's texts never drew in the browser because the web (and
-  Android) entry point handed `Game` a `Modifier.fillMaxSize()`, which under Breakout's fixed aspect ratio keeps the viewport
-  from letterboxing and the Manager types' texts from drawing (`GameSizeUpgrade`: `Game()`, as desktop and iOS have it).
-  Found by loading builds in a Linux container (colima on this Mac, a Playwright probe in `creator/build/linux-probe`), which
-  also showed that a browser reporting `en-US@posix` draws no text at all (`WebLocaleUpgrade` guards against it). Compose for
-  Web 1.12 has a font of its own, so the bundled font tried first fixed nothing and was taken out with its binary-copy
-  machinery. `WebGameIntegrationTest` plays a fixed viewport with the POSIX language (`HeadlessChrome.reportLanguages`) and
-  fails without either fix on any machine. The engine now lays out a fixed aspect ratio's letterbox before `KubrikoViewport`'s
-  modifier (`05ecc2900`, approved by the user), so a modifier sizing the viewport no longer breaks it; a change of public
-  behaviour for the next library release notes. CI's end-to-end job passes with all of it.
-- **Play waits for builds** (`8b0176507`): Play is disabled with a spinner while a build the console reports runs
-  (`CreatorTaskRunner.runningBuilds`, not the warm-up or a session's own build).
-- **Configure platforms** (`c4e3611dc`): the Play menu's link to the Targets page, which still fits once every platform is on.
-- **Menus and choice lists** (`d57a966da`, `a213c8a24`): as tall as the window, fading into the menu's color at an edge
-  with more beyond it (`scrollEdgeFades`, painted over the content, since a masking layer rendered differently on Linux and
-  Windows).
-- **A flaky Android player test** (`a2bf3d512`): `builtAlongside` starts the build before the device check.
-- **Documents, first step:** `04-screenplay.md`'s Documents are scanned and watched as `ResourceGroup.DOCUMENTS` (every
-  Markdown file outside `screenplay/`, `ProjectChange.DOCUMENTS`), with a `DocumentStore` in `CommandContext` (through
-  `ScannedFiles`, which keeps its constructor at twelve parameters). The sidebar still lists them as a Documents group in
-  the module that owns them, which the plan replaced: they become rows in the band of the folder they are in,
-  with document folders as folder rows, and the group goes. Next: their commands (`read_documents`, `create_document`,
-  `edit_document`, rename, delete, move, and `add_document_to_screenplay`, whose undo needs an internal command moving the
-  page back), opening one in the page editor (`WorkspaceSelection.Document`), and the rows in place (clickable, with New
-  document on every band and document folder, and Add to the screenplay behind a confirmation).
+- **Documents**, `04-screenplay.md`'s first step, done: `read_documents`, `create_document`, `edit_document`,
+  `move_document`, `delete_document`, and `add_document_to_screenplay` (undone by the internal `MovePageToDocument`);
+  documents open in the page editor (`WorkspaceSelection.Document`), are rows in the band of the folder they are in
+  (no Documents group), and are created, renamed, dragged, deleted, and added to the screenplay from the sidebar, the
+  last two behind `DocumentChangeConfirmation`, where the page's name can still be changed. `AGENTS.md` is a document
+  too, so it opens in the page editor.
+- **One New menu** (asked for by the user): a + beside the sidebar's filter offers every kind the project can make and a
+  document always, and the + of every group header is gone (their ⋮ still offers it).
+- **Case-only renames** of Scenes and pages kept the old name on macOS and could write over another file on Linux; all
+  moves now go through `moveWithoutReplacing`.
 - A physical iPhone isn't offered by Play yet: that is `03`'s iOS devices, after `05`'s Signing.
 
 ## Before a release

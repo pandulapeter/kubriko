@@ -38,30 +38,6 @@ health checks.
   `CLAUDE.md` holding only `@AGENTS.md` when the project has none, since Claude Code doesn't read `AGENTS.md` by itself; pages are
   plain Markdown with no vendor's file, and `AGENTS.md` points every agent at `screenplay/`. No part of this is Claude's alone.
 
-## Documents
-
-Every other Markdown file of the project (the root `README.md`, `docs/`, `AGENTS.md`, a changelog), found by the project walk
-(`ProjectTree.walk`, so build output, `.gradle`, and `node_modules` stay out), opened in the page editor, and edited with undo
-through commands of their own. Creator never checks them against the page shape or the writing rules, never follows renames into
-them, and doesn't hand them to every conversation; the AI finds and reads them through a small read tool when asked.
-
-- **Where they lie, not in a group:** a document's folder is part of what it is, so documents get no group of their own (the
-  Screenplay stays the one group of Markdown). Each is a row in the sidebar band of the folder it is in, after that band's
-  groups: a module's band, or the band of a folder that only holds modules (`editor/README.md` in `editor`'s band, never in the
-  root module's), and at the top of the sidebar in a project of one module, which has no bands. A plain folder of documents
-  (`docs/`) is a folder row of its own, closed at first, so many documents don't spread over the band. This is for Markdown
-  only: sprites, sounds, and Kotlin stay grouped by kind, since there the folder is a technical detail.
-- **New documents in any folder:** every band and document folder row offers New document in its ⋮ and right-click menu, the
-  name typed in place as the other groups' names are (`.md` added), and the AI does the same through a tool taking the folder.
-  A folder holding no Markdown yet can be chosen too, so New document on a band also offers a subfolder of it. Undoing the
-  creation deletes the file only while it is still as it was made.
-- **Rename, delete, and move** work as for the other sidebar items: in place, behind the usual delete confirmation, and by
-  dragging onto another band or folder row, each one undo step that brings the file back byte for byte.
-- **Add to the screenplay** moves a document into `screenplay/` as a confirmed change, since the file is the user's.
-
-It comes before mentions and images, since it reuses the page editor as it is; `AGENTS.md` opening there is
-`02-ai-assistant.md`'s "The game's notes in the editor".
-
 ## Pages
 
 Pages exist (`../CLAUDE.md` → Files and ownership, and UI): plain Markdown in `screenplay/`, the page commands and tools, the
@@ -132,8 +108,8 @@ dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is le
   - Pages under a length limit, and one topic per page; a page past it is split.
 - **The game's notes and the screenplay:** `AGENTS.md` stays the AI's working rules for this project (conventions, what to avoid),
   and the design moves to pages. `set_game_notes`' description and the system prompt say which goes where; a project whose notes
-  hold design gets the move offered once by the agent. The page editor opens `AGENTS.md` too, which is `02-ai-assistant.md`'s item
-  "The game's notes in the editor". The template's `AGENTS.md` points outside agents (Claude Code in a terminal) at `screenplay/`.
+  hold design gets the move offered once by the agent. The template's `AGENTS.md` points outside agents (Claude Code in a
+  terminal) at `screenplay/`.
 - **The Game map** shows the pages beside the cast, the crew, and the Scenes.
 
 ## Keeping it up to date
@@ -179,7 +155,7 @@ and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite ed
 
 ## Order
 
-Documents next, then mentions and images (what is left of deleting what is referred to comes with each kind's delete), then the AI's side
+Mentions and images next (what is left of deleting what is referred to comes with each kind's delete), then the AI's side
 of them, then keeping them up to date, then the writers' room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
 and `search_project` include their mentions and text.
 
