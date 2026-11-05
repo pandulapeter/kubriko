@@ -119,19 +119,6 @@ class ProjectSidebarTest {
         assertEquals(listOf("Ball" to "enemies", "Bat" to "", "Bat" to ""), moves)
     }
 
-    private fun ComposeUiTest.dragOnto(item: String, target: String) {
-        val from = onNodeWithText(item).fetchSemanticsNode().boundsInRoot
-        val to = onNodeWithText(target).fetchSemanticsNode().boundsInRoot.center
-        onNodeWithText(item).performMouseInput {
-            moveTo(center)
-            press()
-            moveBy(Offset(0f, 30f))
-            moveTo(to - from.topLeft)
-            release()
-        }
-        waitForIdle()
-    }
-
     @Test
     fun everyRowsMoreOptionsButtonLinesUpWithTheHeadersAddButtonAndStaysThereWhileAMenuIsOpen() = uiTest(width = 300, height = 600) {
         showing {

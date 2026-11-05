@@ -55,7 +55,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param layout Where the types and new Scenes are kept, which decides the modules they are shown in.
  * @param gameModule The folder of the module chosen as the game's in the toolbar, whose branch opens first in a project
  *   that isn't opted in.
- * @param dragState Where types and Scenes are dragged to: folders, and the open Scene.
+ * @param dragState Where types, Scenes, pages, and documents are dragged to: folders (bands too, for documents), and
+ *   the open Scene.
  * @param documentActions What the documents listed in each band do ([documentRows]); a band offers New document too.
  * @param selectedDocument The path of the document shown in the center, if any.
  */
@@ -103,7 +104,7 @@ internal fun ProjectSidebar(
             if (isGrouped) {
                 item(key = moduleKey) {
                     SidebarModuleHeader(
-                        modifier = sidebarItemMotion(),
+                        modifier = sidebarItemMotion().folderDropTarget(dragState, SidebarDragState.FolderKey(group = null, path = module.path)),
                         path = module.path,
                         depth = module.depth,
                         isExpanded = tree.isExpanded(moduleKey),
@@ -133,6 +134,7 @@ internal fun ProjectSidebar(
                 documentRows(
                     module = module,
                     actions = documentActions,
+                    dragState = dragState,
                     tree = tree,
                     naming = naming,
                     onNamingChange = { naming = it },

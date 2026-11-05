@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
@@ -47,13 +48,15 @@ internal class DocumentActions(
 /**
  * The documents of [module], after its groups, each plain folder of them a folder row, closed at first. Every document
  * and folder row offers New document in its ⋮ and right-click menu, with the name typed in place (folders in it too, as
- * `notes/combat`), and a document also Rename, Add to the screenplay, and Delete.
+ * `notes/combat`), and a document also Rename, Add to the screenplay, and Delete. A document dragged onto a document
+ * folder, a band, or another document moves into that one's folder, in any module.
  *
  * @param selectedDocument The path of the document shown in the center, if any.
  */
 internal fun LazyListScope.documentRows(
     module: SidebarModule,
     actions: DocumentActions,
+    dragState: SidebarDragState,
     tree: SidebarTree,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
@@ -93,6 +96,7 @@ internal fun LazyListScope.documentRows(
                 row = row,
                 tree = tree,
                 actions = actions,
+                dragState = dragState,
                 naming = naming,
                 onNamingChange = onNamingChange,
             )
@@ -103,6 +107,7 @@ internal fun LazyListScope.documentRows(
                 depth = row.depth + indent,
                 isSelected = row.name == selectedDocument,
                 actions = actions,
+                dragState = dragState,
                 naming = naming,
                 onNamingChange = onNamingChange,
                 onSelectionCleared = onSelectionCleared,
@@ -120,12 +125,14 @@ private fun DocumentFolder(
     row: FolderTreeRow.Folder,
     tree: SidebarTree,
     actions: DocumentActions,
+    dragState: SidebarDragState,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(modifier) {
     val key = SidebarKeys.folder(SidebarKeys.documents(module.path), row.path)
     SidebarFolderRow(
+        modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group = null, path = module.documentFolderPath(row.path))),
         name = row.name,
         depth = row.depth + module.depth,
         isExpanded = row.isExpanded,
@@ -158,6 +165,7 @@ private fun DocumentItem(
     depth: Int,
     isSelected: Boolean,
     actions: DocumentActions,
+    dragState: SidebarDragState,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
     onSelectionCleared: () -> Unit,
@@ -172,13 +180,23 @@ private fun DocumentItem(
             onNamingChange = onNamingChange,
         )
     } else {
+        val folder = DocumentNaming.folderOf(path)
         SidebarItem(
+            modifier = Modifier
+                .itemDropTarget(dragState, SidebarDragState.FolderKey(group = null, path = folder), id = "document" to path)
+                .sidebarDragSource(dragState, SidebarDragState.Dragged(path, group = null, folder = folder)),
             icon = Res.drawable.ic_file,
             accent = Accent.CODE,
             text = fileName,
             depth = depth,
             isSelected = isSelected,
-            onClick = { if (isSelected) onSelectionCleared() else actions.onOpen(path) },
+            onClick = {
+                when {
+                    dragState.isClickAfterDrag -> Unit
+                    isSelected -> onSelectionCleared()
+                    else -> actions.onOpen(path)
+                }
+            },
             actions = listOf(
                 newDocumentAction { onNamingChange(SidebarNaming.NewDocument(module.path, module.documentFolderOf(path))) },
                 ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedDocument(path)) },

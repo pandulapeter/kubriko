@@ -18,9 +18,9 @@ import androidx.compose.ui.geometry.Rect
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 
 /**
- * An Actor type, Manager type, or Scene being dragged in the sidebar, in the window's root coordinates: into a folder of
- * its group (or onto the group's header, out of every folder), or for an Actor type, into the open Scene, which
- * registers itself as [sceneTarget].
+ * An Actor type, Manager type, Scene, page, or document being dragged in the sidebar, in the window's root coordinates:
+ * into a folder of its group (or onto the group's header, out of every folder), a document into a document folder or a
+ * band of any module, or for an Actor type, into the open Scene, which registers itself as [sceneTarget].
  */
 @Stable
 internal class SidebarDragState(
@@ -29,21 +29,24 @@ internal class SidebarDragState(
     private var lastDragEndedAt = Long.MIN_VALUE / 2
 
     /**
-     * @param folder The folder it is in now.
-     * @param module The module its group is shown in, which it can't be moved out of.
+     * @param name Its name, or for a document, its path from the project's root.
+     * @param group Its group, or null for a document.
+     * @param folder The folder it is in now, for a document from the project's root.
+     * @param module The module its group is shown in, which it can't be moved out of (unlike a document).
      */
     data class Dragged(
         val name: String,
-        val group: FolderGroup,
+        val group: FolderGroup?,
         val folder: String,
         val module: String = "",
     )
 
     /**
-     * A folder row of the sidebar, or a group's header for an empty [path], in the group of [module].
+     * A folder row of the sidebar, or a group's header for an empty [path], in the group of [module]; for a null [group],
+     * a document folder or a band, by its [path] from the project's root.
      */
     data class FolderKey(
-        val group: FolderGroup,
+        val group: FolderGroup?,
         val path: String,
         val module: String = "",
     )
@@ -75,9 +78,9 @@ internal class SidebarDragState(
     val dropTargets = HashMap<Any, DropTarget>()
 
     /**
-     * Moves the type or Scene called [name] of [group] to [folder].
+     * Moves the type, Scene, or page called [name] of [group], or the document at [name] for a null group, to [folder].
      */
-    var onMoveToFolder: (group: FolderGroup, name: String, folder: String) -> Unit = { _, _, _ -> }
+    var onMoveToFolder: (group: FolderGroup?, name: String, folder: String) -> Unit = { _, _, _ -> }
 
     val isOverScene get() = dragged?.group == FolderGroup.ACTOR_TYPES && sceneTarget?.bounds?.contains(pointer) == true
 
@@ -87,7 +90,9 @@ internal class SidebarDragState(
     val hoveredFolder: FolderKey?
         get() {
             val dragged = dragged ?: return null
-            return dropTargets.values.firstOrNull { it.folder.group == dragged.group && it.folder.module == dragged.module && it.bounds.contains(pointer) }?.folder
+            return dropTargets.values.firstOrNull { target ->
+                target.folder.group == dragged.group && (dragged.group == null || target.folder.module == dragged.module) && target.bounds.contains(pointer)
+            }?.folder
         }
 
     fun start(dragged: Dragged, at: Offset) {

@@ -47,6 +47,7 @@ internal fun rememberSidebarDragState(commands: CommandExecutor) = remember(comm
                     FolderGroup.SCENES -> Invocation(RenameScene, RenameScene.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name))))
                     FolderGroup.PAGES -> Invocation(MovePage, MovePage.Input(name, FolderPaths.child(folder, FolderPaths.nameOf(name))))
                     FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> Invocation(MoveToFolder, MoveToFolder.Input(name, folder))
+                    null -> Invocation(MoveDocument, MoveDocument.Input(name, DocumentNaming.pathOf(folder, name.substringAfterLast('/'))))
                 },
             )
         }

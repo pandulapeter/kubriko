@@ -126,6 +126,28 @@ class SidebarDocumentsTest {
     }
 
     @Test
+    fun aDocumentDraggedOntoAFolderABandOrAnotherDocumentMovesIntoItsFolderInAnyModule() = uiTest(width = 300, height = 600) {
+        val moves = mutableListOf<Pair<String, String>>()
+        val dragState = SidebarDragState().apply { onMoveToFolder = { group, name, folder -> if (group == null) moves += name to folder } }
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = resources,
+                folderGroups = emptyMap(),
+                folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { _, _ -> null }, { _, _, _ -> null }, { _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
+                dragState = dragState,
+                documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
+                layout = severalModules,
+            )
+        }
+        onNodeWithText(ROOT_MODULE).performClick()
+        dragOnto("README.md", "docs")
+        dragOnto("NOTES.md", "editor")
+        dragOnto("NOTES.md", ROOT_MODULE)
+        assertEquals(listOf("README.md" to "docs", "game/NOTES.md" to "editor", "game/NOTES.md" to ""), moves)
+    }
+
+    @Test
     fun aBandOffersANewDocumentInItsFolder() = uiTest(width = 300, height = 600) {
         val created = mutableListOf<Pair<String, String>>()
         showing {
@@ -144,5 +166,9 @@ class SidebarDocumentsTest {
         onNode(hasSetTextAction() and isFocused()).performTextInput("plan")
         onNode(hasSetTextAction() and isFocused()).performKeyInput { pressKey(Key.Enter) }
         assertEquals(listOf("editor" to "plan"), created)
+    }
+
+    private companion object {
+        const val ROOT_MODULE = "Root module"
     }
 }

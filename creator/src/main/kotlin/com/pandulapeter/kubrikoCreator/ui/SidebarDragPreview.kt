@@ -12,6 +12,8 @@ package com.pandulapeter.kubrikoCreator.ui
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.ic_file
 
 /**
  * What is being dragged from the sidebar, following the pointer.
@@ -21,7 +23,7 @@ internal fun SidebarDragPreview(state: SidebarDragState) {
     val dragged = state.dragged ?: return
     DragPreviewChip(
         pointer = { state.pointer },
-        icon = dragged.group.icon,
+        icon = dragged.group?.icon ?: Res.drawable.ic_file,
         tint = MaterialTheme.colorScheme.tertiary,
         text = dragged.name,
     )

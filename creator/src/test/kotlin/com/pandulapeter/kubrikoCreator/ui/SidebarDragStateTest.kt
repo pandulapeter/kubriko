@@ -106,4 +106,21 @@ class SidebarDragStateTest {
         now += 1_000_000_000L
         assertFalse(state.isClickAfterDrag)
     }
+
+    @Test
+    fun aDocumentMovesIntoADocumentFolderOrBandOfAnyModuleButNeverIntoAGroup() {
+        val state = SidebarDragState()
+        val moved = mutableListOf<Triple<FolderGroup?, String, String>>()
+        state.onMoveToFolder = { group, name, folder -> moved += Triple(group, name, folder) }
+        state.target(SidebarDragState.FolderKey(FolderGroup.PAGES, ""), Rect(0f, 0f, 260f, 30f))
+        state.target(SidebarDragState.FolderKey(group = null, path = "editor"), Rect(0f, 30f, 260f, 60f))
+        state.start(SidebarDragState.Dragged("game/NOTES.md", group = null, folder = "game", module = "game"), Offset(10f, 10f))
+        assertNull(state.hoveredFolder)
+        state.moveTo(Offset(10f, 40f))
+        assertEquals(SidebarDragState.FolderKey(group = null, path = "editor"), state.hoveredFolder)
+        state.end()
+        assertEquals(listOf(Triple<FolderGroup?, String, String>(null, "game/NOTES.md", "editor")), moved)
+        state.start(ball, Offset(10f, 40f))
+        assertNull(state.hoveredFolder)
+    }
 }
