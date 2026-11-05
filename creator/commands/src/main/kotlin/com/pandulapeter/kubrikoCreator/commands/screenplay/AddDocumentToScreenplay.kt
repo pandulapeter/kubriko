@@ -43,7 +43,9 @@ public object AddDocumentToScreenplay : WriteCommand<AddDocumentToScreenplay.Inp
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         if (context.screenplay.scanExistingName(input.page) != null) return@withContext Applied.failed(Rejection(CommandProblem.PAGE_TAKEN, input.page))
-        if (!context.documents.move(input.document, pagePathOf(input.page))) return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_NOT_MOVED, input.document))
+        val text = context.documents.read(input.document) ?: return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_UNREADABLE, input.document))
+        validatePageText(text)?.let { return@withContext Applied.failed(it) }
+        if (!context.documents.move(input.document, PageNaming.pathOf(input.page))) return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_NOT_MOVED, input.document))
         context.screenplay.refresh()
         Applied(inverse = Invocation(MovePageToDocument, MovePageToDocument.Input(page = input.page, document = input.document)))
     }
@@ -56,8 +58,3 @@ public object AddDocumentToScreenplay : WriteCommand<AddDocumentToScreenplay.Inp
         @SerialName("page") val page: String,
     )
 }
-
-/**
- * The path of the page [page] from the project's root.
- */
-internal fun pagePathOf(page: String) = "${PageNaming.FOLDER}/$page.${PageNaming.EXTENSION}"

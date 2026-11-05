@@ -32,20 +32,19 @@ public object EditDocument : WriteCommand<EditDocument.Input> {
 
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Document(input.document)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateDocument(input.document) ?: validateDocumentText(input.text)
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateDocument(input.document)
 
     /**
-     * Brings back what the document held, however long it was.
+     * Refuses a text past [DOCUMENT_MAXIMUM_LENGTH] only when it is longer than the document was, so the user's own
+     * longer document can still be edited, and what undo brings back is never refused.
      */
-    override fun validateRestoring(context: CommandContext, input: Input): Rejection? = context.validateDocument(input.document)
-
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val previous = context.documents.read(input.document) ?: return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_UNREADABLE, input.document))
         val text = input.section?.let { section ->
             PageText.withSectionReplaced(previous, section, input.text)
                 ?: return@withContext Applied.failed(Rejection(CommandProblem.PAGE_SECTION_MISSING, input.document, section))
         } ?: input.text
-        if (input.section != null) validateDocumentText(text)?.let { return@withContext Applied.failed(it) }
+        if (text.length > previous.length) validateDocumentText(text)?.let { return@withContext Applied.failed(it) }
         context.documents.write(input.document, text)
         Applied(inverse = Invocation(EditDocument, Input(input.document, previous)))
     }

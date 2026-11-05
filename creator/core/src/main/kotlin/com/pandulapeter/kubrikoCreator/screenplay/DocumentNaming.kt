@@ -22,17 +22,15 @@ public object DocumentNaming {
     private const val MAXIMUM_LENGTH = 200
 
     /**
-     * Whether Kubriko Creator may create a document at [path]: a Markdown file outside the screenplay and outside every
+     * Whether Kubriko Creator may create a document at [path]: a Markdown file (`.md` in any case) outside the screenplay and outside every
      * folder the project walk leaves out, each part starting with a letter or a digit, so it is never hidden, and ending
      * in neither a space nor a dot, which Windows drops.
      */
     public fun isValid(path: String): Boolean = path.length <= MAXIMUM_LENGTH &&
-        path.endsWith(".${PageNaming.EXTENSION}") &&
         ResourceScanner.isDocument(path) &&
         path.split('/').let { parts ->
             parts.all { part -> namePattern.matches(part) && !part.endsWith(' ') && !part.endsWith('.') } &&
-                parts.dropLast(1).none { ProjectTree.isLeftOut(it) } &&
-                parts.last() != ".${PageNaming.EXTENSION}"
+                parts.dropLast(1).none { ProjectTree.isLeftOut(it) }
         }
 
     /**

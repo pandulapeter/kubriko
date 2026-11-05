@@ -18,10 +18,9 @@ class DocumentNamingTest {
 
     @Test
     fun documentsCreatorMakesAreMarkdownOutsideTheScreenplayAndTheBuildFolders() {
-        listOf("README.md", "docs/combat.md", "editor/docs/v1.2 notes.md", "CHANGELOG.md").forEach { assertTrue(DocumentNaming.isValid(it), it) }
+        listOf("README.md", "docs/combat.md", "editor/docs/v1.2 notes.md", "CHANGELOG.md", "NOTES.MD").forEach { assertTrue(DocumentNaming.isValid(it), it) }
         listOf(
             "notes.txt",
-            "notes.MD",
             ".md",
             "docs/.hidden.md",
             ".github/notes.md",

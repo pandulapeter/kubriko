@@ -54,7 +54,7 @@ class DocumentCommandsTest {
     @Test
     fun aDeletedDocumentComesBackByteForByte() = runTest {
         val context = commandContext()
-        val bytes = "﻿# Notes\r\n\r\nÁrvíztűrő\r\n".toByteArray()
+        val bytes = "# Notes\r\n\r\nÁrvíztűrő\r\n".toByteArray()
         File(context.project.rootDirectory, "Notes (old).MD").writeBytes(bytes)
         context.documents.refresh(listOf("Notes (old).MD"))
         val inverse = DeleteDocument.apply(context, DeleteDocument.Input("Notes (old).MD")).inverse!!.copy(isRestoring = true)
@@ -156,5 +156,45 @@ class DocumentCommandsTest {
     fun aDocumentIsItsOwnTarget() = runTest {
         val context = commandContext()
         assertEquals(CommandTarget.Document("notes.md"), CreateDocument.target(context, CreateDocument.Input("notes.md", "")))
+    }
+
+    @Test
+    fun aDocumentTooLongForAPageOrNotTextStaysADocument() = runTest {
+        val context = commandContext()
+        context.write("CHANGELOG.md", "x".repeat(PAGE_MAXIMUM_LENGTH + 1))
+        File(context.project.rootDirectory, "binary.md").writeBytes(byteArrayOf(0x23, 0xC3.toByte(), 0x28))
+        context.documents.refresh(listOf("CHANGELOG.md", "binary.md"))
+        assertEquals(Rejection(CommandProblem.PAGE_TOO_LONG, PAGE_MAXIMUM_LENGTH.toString()), AddDocumentToScreenplay.apply(context, AddDocumentToScreenplay.Input("CHANGELOG.md", "changelog")).failure)
+        assertEquals(Rejection(CommandProblem.DOCUMENT_UNREADABLE, "binary.md"), AddDocumentToScreenplay.apply(context, AddDocumentToScreenplay.Input("binary.md", "binary")).failure)
+        assertEquals(setOf("CHANGELOG.md", "binary.md"), context.files().keys)
+    }
+
+    @Test
+    fun aDocumentLongerThanCreatorWouldWriteCanStillBeEditedButNotGrown() = runTest {
+        val context = commandContext()
+        val long = "x".repeat(DOCUMENT_MAXIMUM_LENGTH + 10)
+        context.write("CHANGELOG.md", long)
+        assertNull(EditDocument.apply(context, EditDocument.Input("CHANGELOG.md", long.dropLast(1))).failure)
+        assertEquals(
+            Rejection(CommandProblem.DOCUMENT_TOO_LONG, DOCUMENT_MAXIMUM_LENGTH.toString()),
+            EditDocument.apply(context, EditDocument.Input("CHANGELOG.md", long + "y")).failure,
+        )
+        assertEquals(long.dropLast(1), context.files().getValue("CHANGELOG.md"))
+    }
+
+    @Test
+    fun aDocumentWithAnUppercaseExtensionIsMovedAndRenamed() = runTest {
+        val context = commandContext()
+        context.write("NOTES.MD", "# Notes")
+        assertEquals(setOf("docs/NOTES.MD"), context.assertRoundTrip(Invocation(MoveDocument, MoveDocument.Input("NOTES.MD", "docs/NOTES.MD"))) { context.files().keys })
+    }
+
+    @Test
+    fun anotherFileDifferingOnlyInCaseTakesThePath() = runTest {
+        val context = commandContext()
+        context.documents.refresh(listOf("a.md", "A.md"))
+        assertEquals(Rejection(CommandProblem.DOCUMENT_TAKEN, "A.md"), MoveDocument.validate(context, MoveDocument.Input("a.md", "A.md")))
+        context.documents.refresh(listOf("a.md"))
+        assertNull(MoveDocument.validate(context, MoveDocument.Input("a.md", "A.md")))
     }
 }

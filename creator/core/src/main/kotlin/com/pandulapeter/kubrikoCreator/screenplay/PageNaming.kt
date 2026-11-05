@@ -31,6 +31,11 @@ public object PageNaming {
 
     private const val MAXIMUM_LENGTH = 120
 
+    /**
+     * The path of the page [name] from the project's root.
+     */
+    public fun pathOf(name: String): String = "$FOLDER/$name.$EXTENSION"
+
     public fun isValid(name: String): Boolean = name.isNotEmpty() && name.length <= MAXIMUM_LENGTH && FolderPaths.isValid(name)
 
     /**

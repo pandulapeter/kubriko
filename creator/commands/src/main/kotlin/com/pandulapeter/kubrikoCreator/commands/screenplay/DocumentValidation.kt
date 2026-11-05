@@ -37,7 +37,7 @@ internal fun CommandContext.validateNewDocumentPath(path: String, moved: String?
  * checks, since the user may have named the file in a way Kubriko Creator wouldn't.
  */
 internal fun CommandContext.validateFreeDocumentPath(path: String, moved: String? = null): Rejection? =
-    documents.existingPath(path)?.takeIf { it != moved }?.let { Rejection(CommandProblem.DOCUMENT_TAKEN, path) }
+    if (documents.paths().any { it.equals(path, ignoreCase = true) && it != moved }) Rejection(CommandProblem.DOCUMENT_TAKEN, path) else null
 
 internal fun validateDocumentText(text: String): Rejection? =
     if (text.length > DOCUMENT_MAXIMUM_LENGTH) Rejection(CommandProblem.DOCUMENT_TOO_LONG, DOCUMENT_MAXIMUM_LENGTH.toString()) else null
