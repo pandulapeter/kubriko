@@ -148,6 +148,33 @@ class SidebarDocumentsTest {
     }
 
     @Test
+    fun aDocumentBesideTheGroupsLinesUpWithTheirHeadersAndOneInAFolderWithTheirFiles() = uiTest(width = 300, height = 600) {
+        val breakout = ProjectLayout(typeModule = "", sceneModule = "", modules = mapOf("" to ProjectModule(true), "androidApp" to ProjectModule(false)))
+        showing {
+            ProjectSidebar(
+                modifier = Modifier.fillMaxSize(),
+                resources = mapOf(
+                    ResourceGroup.DOCUMENTS to listOf(document("README.md"), document("docs/combat.md")),
+                    ResourceGroup.KOTLIN to listOf(ProjectResource(ResourceGroup.KOTLIN, File("src/commonMain/kotlin/Game.kt"), "src/commonMain/kotlin/Game.kt", "")),
+                    ResourceGroup.SPRITES to listOf(ProjectResource(ResourceGroup.SPRITES, File("hero.png"), "src/commonMain/composeResources/drawable/hero.png")),
+                ),
+                folderGroups = emptyMap(),
+                folderActions = FolderTreeActions({ _, _ -> }, {}, { _, _ -> null }, { _, _ -> null }, { _, _, _ -> null }, { _, _ -> }, { _, _, _ -> null }, { _, _ -> }),
+                dragState = SidebarDragState(),
+                documentActions = DocumentActions(onOpen = {}, onCreate = { _, _ -> null }, onRename = { _, _ -> null }, onDelete = {}, onAddToScreenplay = {}),
+                layout = breakout,
+            )
+        }
+        onNodeWithText("docs").performClick()
+        saveSnapshot("sidebar-documents-beside-groups")
+        fun left(text: String) = onNodeWithText(text, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.left
+        assertEquals(left("Sprites"), left("README.md"), "A document beside the groups starts where their names do")
+        assertEquals(left("Sprites"), left("docs"))
+        assertEquals(left("hero.png"), left("combat.md"), "A document in a folder is as far in as a group's files")
+        assertEquals(listOf(0, 0, 1, 2), listOf(documentDepth(0, 0), documentDepth(1, 0), documentDepth(0, 1), documentDepth(2, 1)))
+    }
+
+    @Test
     fun aBandOffersANewDocumentInItsFolder() = uiTest(width = 300, height = 600) {
         val created = mutableListOf<Pair<String, String>>()
         showing {

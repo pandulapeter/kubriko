@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentNaming
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
@@ -73,6 +74,7 @@ internal fun LazyListScope.documentRows(
             DocumentNameField(
                 modifier = sidebarItemMotion(),
                 depth = indent,
+                isTopLevel = true,
                 onName = { name -> actions.onCreate(module.documentFolderPath(""), name) },
                 onNamingChange = onNamingChange,
             )
@@ -107,7 +109,8 @@ internal fun LazyListScope.documentRows(
                 modifier = sidebarItemMotion(),
                 module = module,
                 path = row.name,
-                depth = row.depth + indent,
+                depth = documentDepth(row.depth, indent),
+                isTopLevel = row.depth == 0,
                 isSelected = row.name == selectedDocument,
                 flashKey = flashKey?.takeIf { row.name == flashedPath },
                 actions = actions,
@@ -129,6 +132,7 @@ internal fun LazyListScope.newProjectDocumentRow(naming: SidebarNaming?, actions
         DocumentNameField(
             modifier = sidebarItemMotion(),
             depth = 0,
+            isTopLevel = true,
             onName = { name -> actions.onCreate("", name) },
             onNamingChange = onNamingChange,
         )
@@ -153,7 +157,8 @@ private fun DocumentFolder(
     SidebarFolderRow(
         modifier = Modifier.folderDropTarget(dragState, SidebarDragState.FolderKey(group = null, path = module.documentFolderPath(row.path))),
         name = row.name,
-        depth = row.depth + module.depth,
+        depth = documentDepth(row.depth, module.depth),
+        isTopLevel = row.depth == 0,
         isExpanded = row.isExpanded,
         onToggle = { tree.toggle(key) },
         actions = listOf(
@@ -166,7 +171,8 @@ private fun DocumentFolder(
     )
     if (naming == SidebarNaming.NewDocument(module.path, row.path)) {
         DocumentNameField(
-            depth = row.depth + module.depth + 1,
+            depth = documentDepth(row.depth + 1, module.depth),
+            isTopLevel = false,
             onName = { name -> actions.onCreate(module.documentFolderPath(row.path), name) },
             onNamingChange = onNamingChange,
         )
@@ -182,6 +188,7 @@ private fun DocumentItem(
     module: SidebarModule,
     path: String,
     depth: Int,
+    isTopLevel: Boolean,
     isSelected: Boolean,
     flashKey: Any?,
     actions: DocumentActions,
@@ -195,6 +202,7 @@ private fun DocumentItem(
     if (naming == SidebarNaming.RenamedDocument(path)) {
         DocumentNameField(
             depth = depth,
+            isTopLevel = isTopLevel,
             initialName = fileName,
             onName = { name -> actions.onRename(path, name) },
             onNamingChange = onNamingChange,
@@ -209,6 +217,7 @@ private fun DocumentItem(
             accent = Accent.CODE,
             text = fileName,
             depth = depth,
+            isTopLevel = isTopLevel,
             isSelected = isSelected,
             flashKey = flashKey,
             onClick = {
@@ -232,12 +241,20 @@ private fun DocumentItem(
 internal fun newDocumentAction(onClick: () -> Unit) = ContextAction(stringResource(Res.string.action_new_document), Res.drawable.ic_add, onClick = onClick)
 
 /**
- * A document's name being typed at [depth], looking like its row. [onName] says why a name can't be used, or null once it
- * is used, which ends the naming.
+ * How far in a document row at [treeDepth] in its band's tree is: one directly in the band is at the headers' level
+ * ([SidebarItem]'s `isTopLevel`, so it reads as their sibling, not as one of the last group's files), and what is in its
+ * folders as far in as a group's items are.
+ */
+internal fun documentDepth(treeDepth: Int, moduleDepth: Int) = if (treeDepth == 0) moduleDepth else moduleDepth + treeDepth - 1
+
+/**
+ * A document's name being typed at [depth], looking like its row (at the headers' level while [isTopLevel]). [onName]
+ * says why a name can't be used, or null once it is used, which ends the naming.
  */
 @Composable
 private fun DocumentNameField(
     depth: Int,
+    isTopLevel: Boolean,
     onName: (String) -> Rejection?,
     onNamingChange: (SidebarNaming?) -> Unit,
     modifier: Modifier = Modifier,
@@ -246,7 +263,7 @@ private fun DocumentNameField(
     NewNameField(
         placeholder = Res.string.new_document_hint,
         initialName = initialName,
-        indent = SIDEBAR_ROW_START + SIDEBAR_INDENT * depth,
+        indent = (if (isTopLevel) SIDEBAR_HEADER_START + (SIDEBAR_HEADER_ICON - 16.dp) / 2 else SIDEBAR_ROW_START) + SIDEBAR_INDENT * depth,
         confirmLabel = if (initialName.isEmpty()) Res.string.action_add else Res.string.action_rename,
         icon = Res.drawable.ic_file,
         iconTint = Accent.CODE.color,

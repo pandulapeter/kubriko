@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,9 +43,10 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 /**
- * One row of the sidebar: an icon and a name, indented by its [depth] in the folders it is in. The icon, and the row
- * while it is selected, take the [accent] of what the row is. Its [actions] are offered by a ⋮ button that shows while
- * it is pointed at, and by its right-click menu.
+ * One row of the sidebar: an icon and a name, indented by its [depth] in the folders it is in, or while [isTopLevel] (a
+ * document beside the groups rather than in one), lined up with the group headers. The icon, and the row while it is
+ * selected, take the [accent] of what the row is. Its [actions] are offered by a ⋮ button that shows while it is
+ * pointed at, and by its right-click menu.
  */
 @Composable
 internal fun SidebarItem(
@@ -57,6 +59,7 @@ internal fun SidebarItem(
     depth: Int = 0,
     accent: Accent? = null,
     actions: List<ContextAction> = emptyList(),
+    isTopLevel: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val menu = rememberRightClickMenuState()
@@ -71,17 +74,22 @@ internal fun SidebarItem(
             .rightClickMenu(menu)
             .hoverReveal(hover)
             .semantics { selected = isSelected }
-            .padding(start = SIDEBAR_ROW_START + SIDEBAR_INDENT * depth, end = if (actions.isEmpty()) 12.dp else SIDEBAR_ROW_END),
+            .padding(start = (if (isTopLevel) SIDEBAR_HEADER_START else SIDEBAR_ROW_START) + SIDEBAR_INDENT * depth, end = if (actions.isEmpty()) 12.dp else SIDEBAR_ROW_END),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val color = if (isSelected && accent == null) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-        Icon(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = accent?.color ?: color.copy(alpha = 0.7f),
-        )
+        Box(
+            modifier = if (isTopLevel) Modifier.size(SIDEBAR_HEADER_ICON) else Modifier,
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = accent?.color ?: color.copy(alpha = 0.7f),
+            )
+        }
         Row(
             modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -119,6 +127,17 @@ internal fun SidebarItem(
  * How much further a row is indented for every folder it is in.
  */
 internal val SIDEBAR_INDENT = 14.dp
+
+/**
+ * Where a group header's icon tile starts, and with it a row at the headers' level.
+ */
+internal val SIDEBAR_HEADER_START = 12.dp
+
+/**
+ * The size of a group header's icon tile, the room a row at the headers' level gives its icon, so its name lines up
+ * with theirs.
+ */
+internal val SIDEBAR_HEADER_ICON = 22.dp
 
 /**
  * Where a row's icon starts outside every folder.

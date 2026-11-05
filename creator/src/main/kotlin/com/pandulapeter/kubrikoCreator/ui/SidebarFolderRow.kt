@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,7 +46,8 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * A folder of the sidebar, opened and closed by a click, drawn with [icon]. Its [actions], if any, are offered by its ⋮
  * (shown while it is pointed at) and its right-click menu, and its [subfolderActions], if it holds folders, by the
- * buttons laid over the end of its name while it is pointed at.
+ * buttons laid over the end of its name while it is pointed at. While [isTopLevel] (a folder of documents beside the
+ * groups), it is laid out as a group header is: lined up with them, its chevron at the end.
  */
 @Composable
 internal fun SidebarFolderRow(
@@ -57,6 +59,7 @@ internal fun SidebarFolderRow(
     icon: DrawableResource = Res.drawable.ic_folder_open,
     actions: List<ContextAction> = emptyList(),
     subfolderActions: SubfolderActions? = null,
+    isTopLevel: Boolean = false,
 ) {
     val hover = rememberHoverRevealState()
     val menu = rememberRightClickMenuState()
@@ -67,22 +70,32 @@ internal fun SidebarFolderRow(
             .clickable(onClick = onToggle)
             .hoverReveal(hover)
             .rightClickMenu(menu)
-            .padding(start = SIDEBAR_ROW_START - CHEVRON_ROOM + SIDEBAR_INDENT * depth, end = if (actions.isEmpty() && subfolderActions == null) 12.dp else SIDEBAR_ROW_END),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(
+                start = (if (isTopLevel) SIDEBAR_HEADER_START else SIDEBAR_ROW_START - CHEVRON_ROOM) + SIDEBAR_INDENT * depth,
+                end = if (actions.isEmpty() && subfolderActions == null && !isTopLevel) 12.dp else SIDEBAR_ROW_END,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(if (isTopLevel) 8.dp else 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SidebarChevron(
-            modifier = Modifier.size(14.dp),
-            isExpanded = isExpanded,
-        )
-        Icon(
-            modifier = Modifier.size(16.dp),
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (!isTopLevel) {
+            SidebarChevron(
+                modifier = Modifier.size(14.dp),
+                isExpanded = isExpanded,
+            )
+        }
+        Box(
+            modifier = if (isTopLevel) Modifier.size(SIDEBAR_HEADER_ICON) else Modifier,
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         SidebarRowTitle(
-            modifier = Modifier.padding(start = 4.dp).weight(1f),
+            modifier = Modifier.padding(start = if (isTopLevel) 0.dp else 4.dp).weight(1f),
             text = name,
             style = MaterialTheme.typography.bodyMedium,
             isPointedAt = hover.isActive || menu.isOpen,
@@ -95,6 +108,12 @@ internal fun SidebarFolderRow(
                 menu = menu,
                 actions = actions,
                 label = Res.string.action_more_options,
+            )
+        }
+        if (isTopLevel) {
+            SidebarChevron(
+                modifier = Modifier.padding(end = 8.dp).size(16.dp),
+                isExpanded = isExpanded,
             )
         }
     }
