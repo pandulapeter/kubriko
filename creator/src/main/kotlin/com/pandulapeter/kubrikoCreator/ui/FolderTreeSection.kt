@@ -80,7 +80,8 @@ internal class FolderTreeActions(
 /**
  * A name being typed in the sidebar: in a group, a new item, a new folder (in [NewFolder.parent], empty for none), or a new
  * name for a folder or an item; among the documents, a new one (in the folder of [NewDocument.module] at
- * [NewDocument.folder], empty for the module's own) or a new name for one.
+ * [NewDocument.folder], empty for the module's own; [NewProjectDocument] at the top of the sidebar, in the project's own)
+ * or a new name for one.
  */
 internal sealed interface SidebarNaming {
 
@@ -95,6 +96,8 @@ internal sealed interface SidebarNaming {
     data class NewDocument(val module: String, val folder: String) : SidebarNaming
 
     data class RenamedDocument(val path: String) : SidebarNaming
+
+    data object NewProjectDocument : SidebarNaming
 }
 
 /**
@@ -138,7 +141,7 @@ internal fun LazyListScope.folderTreeSection(
         )
     }
     if (isCreating && naming == SidebarNaming.NewItem(group)) {
-        item(key = "$groupKey-new") {
+        item(key = newItemKey(groupKey)) {
             SidebarNameField(
                 modifier = sidebarItemMotion(),
                 group = group,

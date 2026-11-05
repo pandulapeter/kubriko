@@ -511,7 +511,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - The workspace keeps the focus when nothing in it is focused, so Cmd/Ctrl+Z always reaches the undo history.
 - The sidebar's groups, folders, and items all work alike: the same ⋮ and right-click menu (new item, new folder, rename,
   delete, as each allows), names typed in place as a field looking like the row it becomes, and an item dropped on any row
-  moves into that row's folder (onto the header or an item outside every folder, out of them all).
+  moves into that row's folder (onto the header or an item outside every folder, out of them all). Headers have no + of
+  their own: the one + is the New menu beside the filter field, offering every kind the project can make (a document
+  always, at the project's top, so a project without bands or documents can still start one), which opens the band
+  the new thing goes in and scrolls its name field into view (`revealItem`, since a lazy list knows only what it laid out).
 - A field above the sidebar's groups filters everything in it by name, showing the folders that hold matches opened; the folders
   the user collapsed are left as they were and come back once the filter is cleared.
 - Opening a closed folder, Kotlin container, group, or module opens it with every folder in it closed, so a deep tree opens
@@ -542,8 +545,7 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - Documents (every Markdown file outside `screenplay/`) have no group: each is a row in the band of the folder it is
   in (`SidebarModules`' `bandOf`: the nearest module, or folder holding only modules, above it), after the band's
   groups, a plain folder of them a folder row closed at first, so where a document lies stays visible. Every band,
-  document folder, and document offers New document (a document's in its own folder, which is how one is started at
-  the top of a project of one module, having no bands). Deleting one or adding it to the screenplay waits for its own
+  document folder, and document offers New document in its own place. Deleting one or adding it to the screenplay waits for its own
   confirmation (`DocumentChangeConfirmation`), since the file is the user's and has no usages to list.
 - The sidebar's Kotlin files are read-only and grouped by what the code is, not where it lies: the shared source sets
   (`commonMain`, `main`) at the top, each platform's in a container with its Play menu icon (closed at first), and a folder

@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
-import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
@@ -31,9 +30,9 @@ import kubriko.creator.generated.resources.ic_create_new_folder
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The header of a sidebar group with folders in [module]: while it [isCreating], its + (at the end, as every panel
- * header's is) adds an item, and its ⋮ (shown while it is pointed at) and its right-click menu offer that and a new
- * folder, as a folder row's do; in a module Kubriko Creator doesn't add to, it offers neither, and is faded while it
+ * The header of a sidebar group with folders in [module]: while it [isCreating], its ⋮ (shown while it is pointed at)
+ * and its right-click menu offer a new item and a new folder, as a folder row's do (the sidebar's New menu offers the
+ * item too); in a module Kubriko Creator doesn't add to, it offers neither, and is faded while it
  * [isEmpty], as an empty group of files is. Its [subfolderActions], if
  * it holds folders, are the buttons before them. Dropping an item on it moves it out of its folder. Its content is
  * [indent] levels in, as the module it belongs to is.
@@ -79,11 +78,6 @@ internal fun SidebarGroupHeader(
                 ContextAction(stringResource(Res.string.action_new_folder), Res.drawable.ic_create_new_folder, onClick = onNewFolder),
             ),
             label = Res.string.action_more_options,
-        )
-        IconActionButton(
-            icon = Res.drawable.ic_add,
-            label = group.newItemLabel,
-            onClick = onNewItem,
         )
     }
 }

@@ -11,12 +11,14 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -37,9 +40,14 @@ import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.workspace.ProjectLayout
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_new
+import kubriko.creator.generated.resources.action_new_document
 import kubriko.creator.generated.resources.choice_none_found
+import kubriko.creator.generated.resources.ic_add
+import kubriko.creator.generated.resources.ic_file
 import kubriko.creator.generated.resources.sidebar_filter
 import org.jetbrains.compose.resources.stringResource
 
@@ -87,16 +95,33 @@ internal fun ProjectSidebar(
     LaunchedEffect(outline) { expansion.forgetAllBut(outline) }
     val shownModules = remember(query, modules) { if (isFiltering) filteredModules(modules, query) else modules }
     val tree = remember(outline, expansion, isFiltering) { SidebarTree(outline, expansion, isFiltering) }
-    SidebarFilterField(
+    val listState = rememberLazyListState()
+    var revealedKey by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(revealedKey) {
+        revealedKey?.let { listState.revealItem(it) }
+        revealedKey = null
+    }
+    SidebarTopRow(
         query = query,
         onQueryChange = { query = it },
+        newItems = remember(modules) { sidebarNewItems(modules) },
+        onNew = { item ->
+            item.target(modules)?.let { target ->
+                query = ""
+                target.openedKeys.forEach(tree::expand)
+                naming = target.naming
+                revealedKey = target.revealKey
+            }
+        },
     )
     LazyColumn(
         modifier = Modifier.weight(1f).pointerInput(folderActions) { detectTapGestures { folderActions.onSelectionCleared() } },
+        state = listState,
     ) {
         // A first row that is always there, so the list keeps its top in place, not whatever row came first: module bands
         // that appear once the project is read are inserted above that row, and would otherwise be scrolled out of view.
         item(key = "sidebar-top") { Spacer(Modifier.height(1.dp)) }
+        newProjectDocumentRow(naming, documentActions, onNamingChange = { naming = it })
         val openModules = HashSet<String>()
         shownModules.forEach { module ->
             if (module.parent != null && module.parent !in openModules) return@forEach
@@ -187,14 +212,51 @@ private fun LazyListScope.moduleSections(
     module.resourceGroups.forEach { group -> resourceGroupSection(module, group, tree) }
 }
 
+/**
+ * The filter field, and the New menu after it, offering [newItems].
+ */
+@Composable
+private fun SidebarTopRow(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    newItems: List<SidebarNewItem>,
+    onNew: (SidebarNewItem) -> Unit,
+) = Row(
+    modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    SidebarFilterField(
+        modifier = Modifier.weight(1f),
+        query = query,
+        onQueryChange = onQueryChange,
+    )
+    MenuIconButton(
+        icon = Res.drawable.ic_add,
+        label = Res.string.action_new,
+        options = newItems,
+        optionText = { item ->
+            when (item) {
+                is SidebarNewItem.GroupItem -> stringResource(item.group.newItemLabel)
+                SidebarNewItem.Document -> stringResource(Res.string.action_new_document)
+            }
+        },
+        optionIcon = { item ->
+            when (item) {
+                is SidebarNewItem.GroupItem -> item.group.icon
+                SidebarNewItem.Document -> Res.drawable.ic_file
+            }
+        },
+        onSelected = onNew,
+    )
+}
+
 @Composable
 private fun SidebarFilterField(
     query: String,
     onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) = CompactTextField(
-    modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)
+    modifier = modifier
         .onPreviewKeyEvent { event ->
             if (event.type == KeyEventType.KeyDown && event.key == Key.Escape && query.isNotEmpty()) {
                 onQueryChange("")

@@ -121,6 +121,21 @@ internal fun LazyListScope.documentRows(
 }
 
 /**
+ * The field naming a new document at the top of the sidebar, in the project's own folder, while [naming] says so.
+ */
+internal fun LazyListScope.newProjectDocumentRow(naming: SidebarNaming?, actions: DocumentActions, onNamingChange: (SidebarNaming?) -> Unit) {
+    if (naming != SidebarNaming.NewProjectDocument) return
+    item(key = NEW_PROJECT_DOCUMENT_KEY) {
+        DocumentNameField(
+            modifier = sidebarItemMotion(),
+            depth = 0,
+            onName = { name -> actions.onCreate("", name) },
+            onNamingChange = onNamingChange,
+        )
+    }
+}
+
+/**
  * A folder of [module]'s documents, followed by the field naming a new document in it while one is.
  */
 @Composable

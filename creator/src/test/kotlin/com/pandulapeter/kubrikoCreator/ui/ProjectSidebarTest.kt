@@ -120,7 +120,7 @@ class ProjectSidebarTest {
     }
 
     @Test
-    fun everyRowsMoreOptionsButtonLinesUpWithTheHeadersAddButtonAndStaysThereWhileAMenuIsOpen() = uiTest(width = 300, height = 600) {
+    fun everyRowsMoreOptionsButtonLinesUpWithTheHeadersAndStaysThereWhileAMenuIsOpen() = uiTest(width = 300, height = 600) {
         showing {
             ProjectSidebar(
                 modifier = Modifier.fillMaxSize(),
@@ -131,10 +131,9 @@ class ProjectSidebarTest {
                 dragState = SidebarDragState(),
             )
         }
-        val add = onNodeWithContentDescription("New Actor type").fetchSemanticsNode().boundsInRoot
         val edges = onAllNodesWithContentDescription("More options").fetchSemanticsNodes().map { it.boundsInRoot.right }
         assertTrue(edges.size >= 3, "Only ${edges.size} rows offer more options")
-        assertEquals(setOf(add.right, add.left), edges.toSet(), "A row's more options button lines up with a header's +, which a header's own is just before")
+        assertEquals(1, edges.toSet().size, "A row's more options button lines up with a header's: $edges")
         val before = onAllNodesWithContentDescription("More options").fetchSemanticsNodes().map { it.boundsInRoot }
         onNodeWithText("Level").performMouseInput { rightClick() }
         onNodeWithText("Delete Scene").assertExists()
@@ -286,7 +285,6 @@ class ProjectSidebarTest {
         listOf("Sandbox", "grid.png").forEach { onNodeWithText(it).assertExists() }
         onAllNodesWithText(":tools", substring = true).assertCountEquals(0)
         onAllNodesWithText("Scenes").assertCountEquals(2)
-        onAllNodesWithContentDescription("New Scene").assertCountEquals(1)
         onAllNodesWithText("Kotlin files").assertCountEquals(2)
         onAllNodesWithText("Sounds").assertCountEquals(1)
         saveSnapshot("sidebar-modules")
