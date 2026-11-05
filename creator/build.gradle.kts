@@ -7,6 +7,8 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
 plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
@@ -118,8 +120,33 @@ compose.desktop {
         nativeDistributions {
             packageName = "Kubriko Creator"
             packageVersion = "1.0.0"
+            description = "Game editor for the Kubriko game engine"
+            copyright = "© 2025-2026 Pandula Péter. All rights reserved."
+            vendor = "Pandula Péter"
             // The assistant downloads the ACP Registry's agent list and agents.
             modules("java.net.http")
+            // The macOS icon is also the one :creator:run puts in the Dock (-Xdock:icon), as there is no app bundle to take it from.
+            macOS {
+                targetFormats(TargetFormat.Dmg)
+                iconFile.set(project.file("icon.icns"))
+                bundleID = "com.pandulapeter.kubrikoCreator"
+                dockName = "Kubriko Creator"
+                appCategory = "public.app-category.developer-tools"
+            }
+            windows {
+                targetFormats(TargetFormat.Exe)
+                iconFile.set(project.file("icon.ico"))
+                menuGroup = "Kubriko"
+                shortcut = true
+            }
+            linux {
+                targetFormats(TargetFormat.Deb)
+                iconFile.set(project.file("icon.png"))
+                debMaintainer = "pandulapeter@gmail.com"
+                menuGroup = "kubriko-creator"
+                appCategory = "Development"
+                shortcut = true
+            }
         }
     }
 }
