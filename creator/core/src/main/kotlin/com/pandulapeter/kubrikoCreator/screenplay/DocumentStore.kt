@@ -37,6 +37,7 @@ public class DocumentStore(
 ) {
     @Volatile
     private var knownPaths: List<String> = emptyList()
+    private val ownChanges = ArrayList<OwnChange>()
     private val pathsLock = Any()
     private val _revision = MutableStateFlow(0)
     private val _structureRevision = MutableStateFlow(0)
@@ -61,16 +62,16 @@ public class DocumentStore(
     public fun isKnown(path: String): Boolean = path in knownPaths
 
     /**
-     * The path of the document [path] names ignoring case, if there is one: where a new document may not go, since macOS
-     * and Windows tell no difference.
+     * Takes the paths a resource scan found, raising [revision] if they changed. Kubriko Creator's own creations, deletes,
+     * and moves after [scannedAt] (the [OwnWrites.generation] when the scan started), which a scan that started before
+     * them can't know of, are kept on top of them.
      */
-    public fun existingPath(path: String): String? = knownPaths.firstOrNull { it.equals(path, ignoreCase = true) }
-
-    /**
-     * Takes the paths a resource scan found, raising [revision] if they changed.
-     */
-    public fun refresh(paths: List<String>) {
-        val isChanged = synchronized(pathsLock) { (knownPaths != paths).also { knownPaths = paths } }
+    public fun refresh(paths: List<String>, scannedAt: Long = ownWrites.generation) {
+        val isChanged = synchronized(pathsLock) {
+            ownChanges.removeAll { it.generation <= scannedAt }
+            val current = ownChanges.fold(paths.toSet()) { known, change -> if (change.exists) known + change.path else known - change.path }.sorted()
+            (knownPaths != current).also { knownPaths = current }
+        }
         if (isChanged) _revision.update { it + 1 }
     }
 
@@ -105,7 +106,7 @@ public class DocumentStore(
         file.parentFile?.mkdirs()
         file.writeTextAtomically(text)
         ownWrites.record(file)
-        updatePaths { it + path }
+        updatePaths(OwnChange(ownWrites.generation, path, exists = true))
         return true
     }
 
@@ -129,7 +130,7 @@ public class DocumentStore(
         val file = fileOf(path)
         if (!file.delete() && file.exists()) throw IOException("${file.path} couldn't be deleted.")
         ownWrites.record(file)
-        updatePaths { it - path }
+        updatePaths(OwnChange(ownWrites.generation, path, exists = false))
     }
 
     /**
@@ -146,7 +147,8 @@ public class DocumentStore(
         if (!source.moveWithoutReplacing(target)) return false
         ownWrites.record(source)
         ownWrites.record(target)
-        updatePaths { paths -> (paths - from).let { if (ResourceScanner.isDocument(to)) it + to else it } }
+        val generation = ownWrites.generation
+        updatePaths(listOfNotNull(OwnChange(generation, from, exists = false), OwnChange(generation, to, exists = true).takeIf { ResourceScanner.isDocument(to) }))
         return true
     }
 
@@ -159,9 +161,19 @@ public class DocumentStore(
 
     public fun fileOf(path: String): File = File(rootDirectory, path)
 
-    private fun updatePaths(transform: (List<String>) -> List<String>) {
-        synchronized(pathsLock) { knownPaths = transform(knownPaths).distinct().sorted() }
+    private fun updatePaths(change: OwnChange) = updatePaths(listOf(change))
+
+    private fun updatePaths(changes: List<OwnChange>) {
+        synchronized(pathsLock) {
+            ownChanges += changes
+            knownPaths = changes.fold(knownPaths.toSet()) { known, change -> if (change.exists) known + change.path else known - change.path }.sorted()
+        }
         _revision.update { it + 1 }
         _structureRevision.update { it + 1 }
     }
+
+    /**
+     * A document Kubriko Creator created ([exists]) or deleted at [path], recorded as [OwnWrites.generation] was then.
+     */
+    private class OwnChange(val generation: Long, val path: String, val exists: Boolean)
 }

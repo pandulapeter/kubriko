@@ -402,11 +402,12 @@ public class WorkspaceController(
      * the watcher would then never report, or by walking the project.
      */
     private suspend fun scanResourcesNow(snapshot: ProjectSnapshot?) {
-        val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == files.ownWrites.generation }
+        val scannedAt = files.ownWrites.generation
+        val currentSnapshot = snapshot?.takeIf { it.ownWriteGeneration == scannedAt }
         val (resources, layout) = withContext(ioDispatcher) {
             files.scanResources(project.rootDirectory, currentSnapshot).let { it to ProjectLayout.of(project.rootDirectory, it, generatedPath, sceneHome, currentSnapshot) }
         }
-        commands.context.documents.refresh(resources[ResourceGroup.DOCUMENTS].orEmpty().map { it.relativePath })
+        commands.context.documents.refresh(resources[ResourceGroup.DOCUMENTS].orEmpty().map { it.relativePath }, scannedAt)
         _resources.value = resources
         _layout.value = layout
         // After the new resources are in, so that Scenes outside the Scenes folder are found too.

@@ -29,7 +29,6 @@ class DocumentStoreTest {
     fun onlyTheScannedDocumentsAreKnown() {
         assertTrue(store.isKnown("docs/guide.md"))
         assertFalse(store.isKnown("notes.md"))
-        assertEquals("README.md", store.existingPath("readme.md"))
         assertEquals(listOf("README.md", "docs/guide.md"), store.paths())
     }
 
@@ -97,6 +96,20 @@ class DocumentStoreTest {
         store.refresh(listOf("README.md"))
         assertEquals(scanned + 1, store.revision.value)
         assertFalse(store.isKnown("docs/guide.md"))
+    }
+
+    @Test
+    fun aScanThatStartedBeforeAnOwnChangeKeepsIt() {
+        val ownWrites = OwnWrites()
+        val store = DocumentStore(root, ownWrites).apply { refresh(listOf("README.md")) }
+        val scannedAt = ownWrites.generation
+        store.create("docs/combat.md", "# Combat\n")
+        store.delete("README.md")
+        store.refresh(listOf("README.md"), scannedAt)
+        assertEquals(listOf("docs/combat.md"), store.paths())
+        File(root, "docs/combat.md").delete()
+        store.refresh(emptyList(), ownWrites.generation)
+        assertEquals(emptyList(), store.paths(), "A scan after the own changes is taken as it is")
     }
 
     @Test
