@@ -83,6 +83,15 @@ class EvalSetTest {
                 "add_text" to """{"managerType": "Game", "text": {"text": "Score: {score}", "position": "topLeft", "size": 24}}""",
             ),
         ) { context -> assertTrue(context.managerType("Game").texts.any { it.text == "Score: {score}" }) },
+        Request(
+            text = "write the first page of the screenplay, then make the ball faster and say so there",
+            calls = listOf(
+                "create_page" to """{"page": "README", "text": "# Breakout\n\nBreak every brick with the ball.\n\n## The ball\n\nThe [ball](../.kubriko/actors/Ball.json) bounces off the paddle and the walls.\n"}""",
+                "edit_block" to """{"actorType": "Ball", "eventIndex": 0, "blockIndex": 0, "block": {"type": "setVelocity", "x": 300, "y": -450}}""",
+                "read_pages" to """{"pages": ["README"]}""",
+                "edit_page" to """{"page": "README", "section": "The ball", "text": "## The ball\n\nThe [ball](../.kubriko/actors/Ball.json) flies fast, and bounces off the paddle and the walls."}""",
+            ),
+        ) { context -> assertTrue("flies fast" in context.screenplay.read("README").orEmpty()) },
     )
 
     @Test

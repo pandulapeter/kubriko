@@ -41,6 +41,8 @@ class TokenBudgetTest {
         assertUnder(ACTOR_TYPE_JSON_BUDGET, "read_actor_type of Ball as JSON", executor.read("read_actor_type", buildJsonObject { put("actorType", "Ball"); put("detail", "json") }))
         assertUnder(SCENE_BUDGET, "read_scene of level-1", executor.read("read_scene", buildJsonObject { put("scene", "level-1") }))
         assertUnder(SCENE_SUMMARY_BUDGET, "The summary of level-1", executor.read("read_scene", buildJsonObject { put("scene", "level-1"); put("summary", true) }))
+        executor.call("create_page", buildJsonObject { put("page", "README"); put("text", "# Breakout\n\n" + "The ball breaks the bricks it hits. ".repeat(28)) })
+        assertUnder(READ_PAGES_BUDGET, "read_pages of a page of 1,000 characters", executor.read("read_pages", buildJsonObject {}))
     }
 
     @Test
@@ -97,5 +99,10 @@ class TokenBudgetTest {
 
         const val SCENE_BUDGET = 2_000
         const val SCENE_SUMMARY_BUDGET = 100
+
+        /**
+         * What read_pages adds to the page's own text, which the page's length limit (ScreenplayStyle) keeps in bounds.
+         */
+        const val READ_PAGES_BUDGET = 270
     }
 }
