@@ -705,6 +705,7 @@
     <string name="command_move_document">Move a document</string>
     <string name="command_delete_document">Delete a document</string>
     <string name="command_add_document_to_screenplay">Add a document to the screenplay</string>
+    <string name="command_set_screenplay_reminders">Turn the screenplay's reminders on or off</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>
     <string name="command_build">Build the project</string>
@@ -727,6 +728,11 @@
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
     <string name="game_map_worth_a_look">Worth a look</string>
+    <string name="health_unmentioned">%1$s: no page of the screenplay mentions it.</string>
+    <string name="health_mention_missing">%1$s mentions %2$s, which is gone.</string>
+    <string name="health_page_no_title">%1$s has no title.</string>
+    <string name="health_page_no_summary">%1$s has no one-sentence summary under its title.</string>
+    <string name="health_planned_may_be_built">%1$s: “%2$s” is Planned, but what it mentions already exists, so it may be built.</string>
     <string name="health_unused_page_image">%1$s: no page or document shows it.</string>
     <string name="health_page_image_missing">%1$s shows %2$s, which is gone.</string>
     <string name="health_unused_actor_type">%1$s: no Scene places it and no Block adds it.</string>

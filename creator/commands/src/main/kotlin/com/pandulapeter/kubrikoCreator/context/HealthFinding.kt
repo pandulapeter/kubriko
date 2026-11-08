@@ -72,6 +72,31 @@ public data class HealthFinding(
          * A page showing the image at [usage], whose file is gone ([PageImageChecks]).
          */
         PAGE_IMAGE_MISSING,
+
+        /**
+         * An Actor type, Manager type, or Scene no page of the screenplay mentions ([ScreenplayChecks]).
+         */
+        UNMENTIONED,
+
+        /**
+         * A page mentioning the file at [usage], which is gone ([ScreenplayChecks]).
+         */
+        MENTION_MISSING,
+
+        /**
+         * A page without its `#` title ([ScreenplayChecks]).
+         */
+        PAGE_WITHOUT_TITLE,
+
+        /**
+         * A page without its one-sentence summary under its title ([ScreenplayChecks]).
+         */
+        PAGE_WITHOUT_SUMMARY,
+
+        /**
+         * A Planned item of a page, [detail], mentioning what already exists, so it may be built ([ScreenplayChecks]).
+         */
+        PLANNED_MAY_BE_BUILT,
     }
 
     override fun toString(): String = when (kind) {
@@ -83,6 +108,11 @@ public data class HealthFinding(
         Kind.REFERENCE_MISSING -> "$detail: names $usage, which no longer exists."
         Kind.UNUSED_PAGE_IMAGE -> "$subject: no page or document shows it."
         Kind.PAGE_IMAGE_MISSING -> "$subject: shows $usage, which is gone."
+        Kind.UNMENTIONED -> "$subject: no page of the screenplay mentions it."
+        Kind.MENTION_MISSING -> "$subject: mentions $usage, which is gone."
+        Kind.PAGE_WITHOUT_TITLE -> "$subject: has no # title."
+        Kind.PAGE_WITHOUT_SUMMARY -> "$subject: has no one-sentence summary under its title."
+        Kind.PLANNED_MAY_BE_BUILT -> "$subject: the Planned item \"$detail\" mentions what already exists, so it may be built."
         Kind.KOTLIN_BLOCK_SCOPE_CHANGED -> if (usage == KotlinBlockScopeChecks.RETURN) {
             "$detail: return in this Kotlin Block now ends only this Event's Blocks (and those of the type's later Events of the same kind), not the rest of the frame or the other collisions."
         } else {

@@ -75,9 +75,9 @@ public class CommandContext(
     public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites, movedFiles)
 
     /**
-     * The health checks of the screenplay's images as last worked out ([pageImageFindings]).
+     * The health checks of the screenplay as last worked out ([com.pandulapeter.kubrikoCreator.context.screenplayFindings]).
      */
-    internal val pageImageFindingsCache = KeyedCache<List<HealthFinding>>()
+    internal val screenplayFindingsCache = KeyedCache<List<HealthFinding>>()
 
     /**
      * Which pages mention what, as last read ([mentionIndex]).

@@ -17,5 +17,5 @@ import kotlinx.coroutines.withContext
  */
 public suspend fun CommandContext.digestAndHealthFindings(): Pair<ProjectDigest, List<HealthFinding>> {
     val sceneCounts = sceneTypeCounts()
-    return projectDigest(sceneCounts) to healthFindings(sceneCounts) + withContext(ioDispatcher) { pageImageFindings() }
+    return projectDigest(sceneCounts) to healthFindings(sceneCounts) + withContext(ioDispatcher) { screenplayFindings() }
 }

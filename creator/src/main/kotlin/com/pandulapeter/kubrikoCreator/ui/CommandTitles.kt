@@ -105,6 +105,7 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadDocuments
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.SetScreenplayReminders
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ViewPageImage
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_add_block
@@ -195,6 +196,7 @@ import kubriko.creator.generated.resources.command_set_kotlin_ui
 import kubriko.creator.generated.resources.command_set_parent
 import kubriko.creator.generated.resources.command_set_project_settings
 import kubriko.creator.generated.resources.command_set_scene_settings
+import kubriko.creator.generated.resources.command_set_screenplay_reminders
 import kubriko.creator.generated.resources.command_set_target
 import kubriko.creator.generated.resources.command_start_game
 import kubriko.creator.generated.resources.command_start_version_control
@@ -298,6 +300,7 @@ private val commandTitles = mapOf(
     MoveDocument.name to Res.string.command_move_document,
     DeleteDocument.name to Res.string.command_delete_document,
     AddDocumentToScreenplay.name to Res.string.command_add_document_to_screenplay,
+    SetScreenplayReminders.name to Res.string.command_set_screenplay_reminders,
     SetProjectSettings.name to Res.string.command_set_project_settings,
     SetTarget.name to Res.string.command_set_target,
     UpgradeProject.name to Res.string.command_upgrade_project,

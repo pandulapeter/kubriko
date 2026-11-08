@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PageImageChecksTest {
+    private val imageKinds = setOf(HealthFinding.Kind.UNUSED_PAGE_IMAGE, HealthFinding.Kind.PAGE_IMAGE_MISSING)
 
     @Test
     fun `images no page shows and images a page shows that are gone are named`() {
@@ -51,11 +52,11 @@ class PageImageChecksTest {
                 HealthFinding(HealthFinding.Kind.UNUSED_PAGE_IMAGE, RelationSubject.Image("screenplay/y.PNG")),
                 HealthFinding(HealthFinding.Kind.PAGE_IMAGE_MISSING, RelationSubject.Page("README"), usage = "screenplay/x.png"),
             ),
-            context.healthFindings(),
+            context.healthFindings().filter { it.kind in imageKinds },
         )
         File(context.project.rootDirectory, "screenplay/y.PNG").delete()
-        assertEquals(2, context.healthFindings().size, "Worked out again only once the screenplay changed.")
+        assertEquals(2, context.healthFindings().count { it.kind in imageKinds }, "Worked out again only once the screenplay changed.")
         context.screenplay.refresh()
-        assertEquals(1, context.healthFindings().size)
+        assertEquals(1, context.healthFindings().count { it.kind in imageKinds })
     }
 }

@@ -104,6 +104,7 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadDocuments
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.SetScreenplayReminders
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ViewPageImage
 
 /**
@@ -184,6 +185,7 @@ public class CommandRegistry(
                 MoveDocument,
                 DeleteDocument,
                 AddDocumentToScreenplay,
+                SetScreenplayReminders,
                 SetProjectSettings,
                 SetTarget,
                 CreateManagerType,
