@@ -92,7 +92,7 @@ public object PageImages {
         val folder = File(rootDirectory, pagePath).parentFile ?: return emptyList()
         val pattern = Regex(Regex.escape(base) + "-(\\d+)\\.([A-Za-z]+)")
         return folder.listFiles().orEmpty()
-            .mapNotNull { file -> pattern.matchEntire(file.name)?.takeIf { file.isFile && it.groupValues[2].lowercase() in EXTENSIONS }?.let { file to it.groupValues[1].toInt() } }
+            .mapNotNull { file -> pattern.matchEntire(file.name)?.takeIf { file.isFile && it.groupValues[2].lowercase() in EXTENSIONS }?.let { file to it.groupValues[1].toBigInteger() } }
             .sortedBy { it.second }
             .map { (file, _) -> pagePath.substringBeforeLast('/', "").let { if (it.isEmpty()) file.name else "$it/${file.name}" } }
     }

@@ -9,8 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.screenplay
 
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -58,6 +60,18 @@ class PageImagesTest {
         val taken = setOf("screenplay/levels/cave-1.png", "screenplay/levels/cave-2.png")
         assertEquals("screenplay/levels/cave-3.png", PageImages.nextPathOf("levels/cave", "png") { it in taken })
         assertEquals("screenplay/README-1.jpg", PageImages.nextPathOf("README", "jpg") { false })
+    }
+
+    @Test
+    fun `a page's own images are the numbered images next to it, in the order of their numbers`() {
+        val root = testDirectory()
+        val folder = File(root, "screenplay/levels").apply { mkdirs() }
+        listOf("cave-10.png", "cave-2.GIF", "cave-20261108123045123456.png", "cave-x.png", "cave-3.txt", "caves-1.png", "cave.md").forEach { File(folder, it).writeText("x") }
+        assertEquals(
+            listOf("screenplay/levels/cave-2.GIF", "screenplay/levels/cave-10.png", "screenplay/levels/cave-20261108123045123456.png"),
+            PageImages.ownImagesOf(root, "levels/cave"),
+        )
+        assertEquals("screenplay/areas/den-10.png", PageImages.movedImagePathOf("screenplay/levels/cave-10.png", "levels/cave", "areas/den"))
     }
 
     @Test

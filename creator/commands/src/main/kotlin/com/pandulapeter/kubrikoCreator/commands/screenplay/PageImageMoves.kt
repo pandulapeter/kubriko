@@ -27,12 +27,17 @@ import java.nio.file.Files
 @EditorMutation
 internal fun CommandContext.movePageImages(page: String, newPage: String): List<PathMove> {
     val root = project.rootDirectory
-    return PageImages.ownImagesOf(root, page).mapNotNull { path ->
+    val images = runCatching { PageImages.ownImagesOf(root, page) }.getOrDefault(emptyList())
+    return images.mapNotNull { path ->
         val newPath = PageImages.movedImagePathOf(path, page, newPage)
         val source = File(root, path)
         val target = File(root, newPath)
-        val isTaken = target.exists() && !Files.isSameFile(source.toPath(), target.toPath())
-        if (newPath == path || isTaken || !source.moveWithoutReplacing(target)) return@mapNotNull null
+        // The page has moved already, so an image that can't be moved is left where it is rather than failing the move.
+        val isMoved = runCatching {
+            val isTaken = target.exists() && !Files.isSameFile(source.toPath(), target.toPath())
+            newPath != path && !isTaken && source.moveWithoutReplacing(target)
+        }.getOrDefault(false)
+        if (!isMoved) return@mapNotNull null
         scenes.ownWrites.record(source)
         scenes.ownWrites.record(target)
         PathMove(path, newPath)
