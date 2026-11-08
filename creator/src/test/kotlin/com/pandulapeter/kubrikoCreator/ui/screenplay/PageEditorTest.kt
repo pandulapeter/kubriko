@@ -205,6 +205,7 @@ class PageEditorTest {
         waitForIdle()
         saveSnapshot("page-editor-build-planned")
         onAllNodesWithText("Double jump").onLast().performClick()
+        waitForIdle()
         assertEquals(listOf("Let's build this Planned item of the page hero in the writers' room: Double jump"), prompts)
     }
 }

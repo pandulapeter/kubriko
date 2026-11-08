@@ -31,6 +31,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,12 +50,14 @@ import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_build_with_assistant
 import kubriko.creator.generated.resources.assistant_prompt_build_planned_item
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.page_add_paragraph
 import kubriko.creator.generated.resources.page_empty
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -188,12 +191,15 @@ private fun RenderedChunk(
 private fun rememberBuildActions(name: String, text: String, chunks: List<PageChunks.Chunk>): Map<Int, List<ContextAction>> {
     val writersRoom = LocalWritersRoom.current?.takeIf { LocalIsAiEnabled.current } ?: return emptyMap()
     val label = stringResource(Res.string.action_build_with_assistant)
-    val prompt = stringResource(Res.string.assistant_prompt_build_planned_item, name, "%2\$s")
+    val scope = rememberCoroutineScope()
     val items = remember(text) { PageText.plannedItemsOf(text) }
-    return remember(items, chunks, writersRoom, label, prompt) {
+    return remember(items, chunks, writersRoom, label, name) {
         chunks.withIndex().associate { (index, chunk) ->
             val chunkItems = items.filter { it.line in chunk.lines }
-            val start = { item: PageText.PlannedItem -> writersRoom(prompt.replace("%2\$s", item.text)) }
+            val start = { item: PageText.PlannedItem ->
+                scope.launch { writersRoom(getString(Res.string.assistant_prompt_build_planned_item, name, item.text)) }
+                Unit
+            }
             index to when (chunkItems.size) {
                 0 -> emptyList()
                 1 -> listOf(ContextAction(label) { start(chunkItems.single()) })
