@@ -16,9 +16,12 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -37,10 +40,13 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import com.pandulapeter.kubriko.uiComponents.Panel
+import com.pandulapeter.kubriko.uiComponents.SmallSwitch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kubriko.examples.demo_performance.generated.resources.Res
+import kubriko.examples.demo_performance.generated.resources.batched_rendering
 import kubriko.examples.demo_performance.generated.resources.description
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun PerformanceDemoOverlay(
@@ -54,6 +60,8 @@ internal fun PerformanceDemoOverlay(
     getAllVisibleActorsWithinViewport: () -> List<Visible>,
     getAllActiveDynamicActors: () -> List<Visible>,
     sceneEditorConnection: SceneEditorConnection?,
+    isBatched: Boolean,
+    onIsBatchedChanged: () -> Unit,
 ) = Box {
     LoadingOverlay(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -75,19 +83,27 @@ internal fun PerformanceDemoOverlay(
             exit = scaleOut() + fadeOut(),
         ) {
             Panel {
-                MiniMap(
-                    miniMapSize = 120.dp,
-                    dotRadius = 1.5.dp,
-                    gameTime = remember(totalRuntimeInMilliseconds) { totalRuntimeInMilliseconds.filter { it % 2 == 0L } }.collectAsState(0L).value,
-                    visibleActorColor = MaterialTheme.colorScheme.primary,
-                    invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.6f),
-                    inactiveActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.9f),
-                    getViewportTopLeft = getViewportTopLeft,
-                    getViewportBottomRight = getViewportBottomRight,
-                    getAllVisibleActors = getAllVisibleActors,
-                    getAllVisibleActorsWithinViewport = getAllVisibleActorsWithinViewport,
-                    getAllActiveDynamicActors = getAllActiveDynamicActors,
-                )
+                Column(modifier = Modifier.width(IntrinsicSize.Min)) {
+                    MiniMap(
+                        miniMapSize = 120.dp,
+                        dotRadius = 1.5.dp,
+                        gameTime = remember(totalRuntimeInMilliseconds) { totalRuntimeInMilliseconds.filter { it % 2 == 0L } }.collectAsState(0L).value,
+                        visibleActorColor = MaterialTheme.colorScheme.primary,
+                        invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.6f),
+                        inactiveActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.9f),
+                        getViewportTopLeft = getViewportTopLeft,
+                        getViewportBottomRight = getViewportBottomRight,
+                        getAllVisibleActors = getAllVisibleActors,
+                        getAllVisibleActorsWithinViewport = getAllVisibleActorsWithinViewport,
+                        getAllActiveDynamicActors = getAllActiveDynamicActors,
+                    )
+                    SmallSwitch(
+                        modifier = Modifier.height(IntrinsicSize.Min),
+                        title = stringResource(Res.string.batched_rendering),
+                        isChecked = isBatched,
+                        onCheckedChanged = onIsBatchedChanged,
+                    )
+                }
             }
         }
     }

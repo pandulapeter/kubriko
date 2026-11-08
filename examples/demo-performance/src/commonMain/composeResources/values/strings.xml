@@ -10,6 +10,7 @@
 -->
 <resources>
 
-    <string name="description">This example demonstrates how the engine optimizes the rendering pipeline by only working with the visible subset of the large number of Actors that are present in this scene. On the mini map below, the highlighted dots represent Actors that are actually rendered. The semi-transparent dots represent dormant Actors that are not even updated.</string>
+    <string name="description">This example demonstrates how the engine optimizes the rendering pipeline by only working with the visible subset of the large number of Actors that are present in this scene. On the mini map below, the highlighted dots represent Actors that are actually rendered. The semi-transparent dots represent dormant Actors that are not even updated. With batched rendering on, the boxes describe their look instead of drawing it, so the engine draws them together in a few calls rather than one by one.</string>
+    <string name="batched_rendering">Batched rendering</string>
 
 </resources>

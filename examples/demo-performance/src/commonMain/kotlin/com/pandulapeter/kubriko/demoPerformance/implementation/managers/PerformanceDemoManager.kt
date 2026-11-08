@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.inRenderingMode
 import com.pandulapeter.kubriko.demoPerformance.implementation.ui.PerformanceDemoOverlay
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -45,6 +46,8 @@ internal class PerformanceDemoManager(
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
+    private val _isBatched = MutableStateFlow(false)
+    private val isBatched = _isBatched.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.allActors.dismissLoadingWhen(
@@ -68,7 +71,18 @@ internal class PerformanceDemoManager(
         getAllVisibleActorsWithinViewport = { actorManager.visibleActorsWithinViewport.value },
         getAllActiveDynamicActors = { actorManager.activeDynamicActors.value.filterIsInstance<Visible>() },
         sceneEditorConnection = sceneEditorConnection?.takeIf { isSceneEditorEnabled },
+        isBatched = isBatched.collectAsState().value,
+        onIsBatchedChanged = ::toggleBatching,
     )
+
+    /** Replaces every box with its counterpart of the other kind, plain or batched, in the same state. */
+    private fun toggleBatching() {
+        val isBatched = !_isBatched.value
+        _isBatched.value = isBatched
+        val actors = actorManager.allActors.value
+        actorManager.removeAll()
+        actorManager.add(actors.map { it.inRenderingMode(isBatched) })
+    }
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap() = scope.launch {
@@ -82,8 +96,8 @@ internal class PerformanceDemoManager(
     private fun processJson(json: String) {
         _shouldShowLoadingIndicator.update { true }
         actorManager.removeAll()
-        val deserializedActors = serializationManager.deserializeActors(json)
-        actorManager.add(deserializedActors)
+        val isBatched = _isBatched.value
+        actorManager.add(serializationManager.deserializeActors(json).map { it.inRenderingMode(isBatched) })
     }
 
     companion object {

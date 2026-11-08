@@ -36,6 +36,14 @@ so the scene can be saved/loaded from the Scene Editor.
 **`BoxWithCircle`** (`Visible`, `Dynamic`, `Editable`) — simpler variant: constant rotation only,
 no position drift. Draws a rectangle and an inscribed circle.
 
+**Plain and batched.** Each box kind keeps its state and behavior in a base class (`MovingBoxBase`,
+`BoxWithCircleBase`) with two drawing subclasses: the plain `Visible` one (`MovingBox`, `BoxWithCircle`, the only ones
+the serialization metadata and the Scene Editor know) and a `Batched` one (`BatchedMovingBox`, `BatchedBoxWithCircle`)
+whose `CustomLook` emits the same picture (`OutlinedShapes.kt`) and is invalidated by the base's
+`onAppearanceChanged()`. Kotlin cannot call an interface's default member extension through `super`, so a batched
+actor cannot inherit a plain one's class. The overlay's switch has `PerformanceDemoManager` swap every box for its
+counterpart in the same state (`inRenderingMode`), and freshly deserialized scenes follow the current mode.
+
 **`Camera`** (`Unique`, `Dynamic`, `Positionable`, `Editable`) — the single camera actor. It moves
 the viewport in a circular orbit of radius 2500 su around the origin, computed as
 `pos = SceneOffset(cos(acc/5000), sin(acc/5000)) * PATH_RADIUS`, then calls

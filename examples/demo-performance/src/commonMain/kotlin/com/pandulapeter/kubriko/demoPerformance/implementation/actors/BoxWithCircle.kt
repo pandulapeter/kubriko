@@ -13,11 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
-import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.helpers.extensions.rad
-import com.pandulapeter.kubriko.sceneEditor.Editable
-import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
@@ -26,27 +22,9 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-internal class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editable<BoxWithCircle> {
-    override val body = state.body
+internal class BoxWithCircle(state: State) : BoxWithCircleBase(state), Visible {
 
-    @set:Exposed(name = "isRotatingClockwise")
-    var isRotatingClockwise = state.isRotatingClockwise
-
-    @set:Exposed(name = "boxColor")
-    var boxColor: Color = state.boxColor
-
-    @set:Exposed(name = "circleRadius")
-    var circleRadius: SceneUnit = state.circleRadius
-
-    @set:Exposed(name = "circleColor")
-    var circleColor: Color = state.circleColor
-
-    override val layerIndex = 0
-    override var drawingOrder = 0f
-
-    override fun update(deltaTimeInMilliseconds: Int) {
-        body.rotation += 0.001f.rad * deltaTimeInMilliseconds * (if (isRotatingClockwise) 1 else -1)
-    }
+    override fun onAppearanceChanged() = Unit
 
     override fun DrawScope.draw() {
         drawRect(
@@ -70,14 +48,6 @@ internal class BoxWithCircle private constructor(state: State) : Visible, Dynami
             style = Stroke(),
         )
     }
-
-    override fun save() = State(
-        body = body,
-        boxColor = boxColor,
-        circleColor = circleColor,
-        circleRadius = circleRadius,
-        isRotatingClockwise = isRotatingClockwise,
-    )
 
     @kotlinx.serialization.Serializable
     data class State(
