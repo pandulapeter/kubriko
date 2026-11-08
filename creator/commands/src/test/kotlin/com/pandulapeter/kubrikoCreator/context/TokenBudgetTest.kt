@@ -87,7 +87,7 @@ class TokenBudgetTest {
         /**
          * The tools that take a Block list only the Blocks' names, so get_block_catalog describes them once.
          */
-        const val TOOL_LIST_BUDGET = 20_000
+        const val TOOL_LIST_BUDGET = 20_150
         const val DIGEST_BUDGET = 300
 
         /**

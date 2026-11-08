@@ -416,6 +416,7 @@ private fun WorkspaceAiSidePanelOf(
     captureScreen = controller::captureGameScreen,
     width = width,
     screenplayOffer = controller.screenplayOffer,
+    questions = controller.commands.context.questions,
     row = row,
 )
 

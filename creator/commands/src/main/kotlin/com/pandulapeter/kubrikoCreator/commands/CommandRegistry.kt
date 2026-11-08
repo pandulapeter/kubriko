@@ -54,6 +54,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.ReadManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
+import com.pandulapeter.kubrikoCreator.commands.project.AskUser
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.CheckChange
 import com.pandulapeter.kubrikoCreator.commands.project.GetHealthChecks
@@ -186,6 +187,7 @@ public class CommandRegistry(
                 DeleteDocument,
                 AddDocumentToScreenplay,
                 SetScreenplayReminders,
+                AskUser,
                 SetProjectSettings,
                 SetTarget,
                 CreateManagerType,

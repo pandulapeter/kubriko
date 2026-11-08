@@ -55,6 +55,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.ReadManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
+import com.pandulapeter.kubrikoCreator.commands.project.AskUser
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.CheckChange
 import com.pandulapeter.kubrikoCreator.commands.project.GetHealthChecks
@@ -114,6 +115,7 @@ import kubriko.creator.generated.resources.command_add_event
 import kubriko.creator.generated.resources.command_add_page_image
 import kubriko.creator.generated.resources.command_add_property
 import kubriko.creator.generated.resources.command_add_text
+import kubriko.creator.generated.resources.command_ask_user
 import kubriko.creator.generated.resources.command_build
 import kubriko.creator.generated.resources.command_check_change
 import kubriko.creator.generated.resources.command_commit
@@ -301,6 +303,7 @@ private val commandTitles = mapOf(
     DeleteDocument.name to Res.string.command_delete_document,
     AddDocumentToScreenplay.name to Res.string.command_add_document_to_screenplay,
     SetScreenplayReminders.name to Res.string.command_set_screenplay_reminders,
+    AskUser.name to Res.string.command_ask_user,
     SetProjectSettings.name to Res.string.command_set_project_settings,
     SetTarget.name to Res.string.command_set_target,
     UpgradeProject.name to Res.string.command_upgrade_project,

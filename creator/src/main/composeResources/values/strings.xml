@@ -443,6 +443,8 @@
     <string name="git_branch">On branch %1$s</string>
     <string name="git_changes">Changes (%1$d)</string>
     <string name="git_no_changes">Everything is committed.</string>
+    <string name="question_other_answer">Another answer</string>
+    <string name="action_answer">Answer</string>
     <string name="action_write_screenplay">Write the screenplay</string>
     <string name="action_write_screenplay_description">The assistant reads the game and proposes its pages, for you to keep page by page.</string>
     <string name="action_no_thanks">No, thanks</string>
@@ -495,6 +497,7 @@
     <string name="error_command_page_missing">There's no page called %1$s.</string>
     <string name="error_command_page_name_invalid">%1$s can't be a page's name: use letters, digits, spaces, dashes, and underscores, with a / between folders.</string>
     <string name="error_command_page_not_moved">Kubriko Creator couldn't move the page %1$s, so nothing changed. Another program may have its file open.</string>
+    <string name="error_command_question_invalid">Ask a question with two to four different answers, each at most %1$s characters long.</string>
     <string name="error_command_screenplay_settings_unreadable">Kubriko Creator can't read %1$s, so it left it alone. Fix or delete it, and try again.</string>
     <string name="error_command_screenplay_style">This page doesn't keep the screenplay's writing rules, so change it and try again: %1$s</string>
     <string name="error_command_page_image_not_viewable">Kubriko Creator can't show %1$s: it shows PNG, JPEG, GIF, and BMP images, not WebP ones.</string>
@@ -714,6 +717,7 @@
     <string name="command_move_document">Move a document</string>
     <string name="command_delete_document">Delete a document</string>
     <string name="command_add_document_to_screenplay">Add a document to the screenplay</string>
+    <string name="command_ask_user">Ask you a question</string>
     <string name="command_set_screenplay_reminders">Turn the screenplay's reminders on or off</string>
     <string name="command_read_console">Read the console</string>
     <string name="command_get_version_control_status">Check version control</string>

@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.PageSummary
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
@@ -36,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantForms
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantHeaderActions
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantPanel
+import com.pandulapeter.kubrikoCreator.ui.assistant.QuestionCards
 import com.pandulapeter.kubrikoCreator.ui.assistant.ScreenplayOfferCard
 import com.pandulapeter.kubrikoCreator.ui.assistant.rememberAssistantForms
 import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
@@ -71,6 +73,8 @@ internal fun AiPanel(
     modifier: Modifier = Modifier,
     isScreenplayOffered: Boolean = false,
     onScreenplayOfferAnswered: () -> Unit = {},
+    questions: List<UserQuestions.Question> = emptyList(),
+    onAnswer: (id: Long, answer: String) -> Unit = { _, _ -> },
 ) = Column(
     modifier = modifier,
 ) {
@@ -82,6 +86,7 @@ internal fun AiPanel(
     )
     HorizontalDivider()
     ScreenplayOfferCard(isShown = isScreenplayOffered && view == AiPanelView.ASSISTANT, onAnswered = onScreenplayOfferAnswered)
+    QuestionCards(questions = questions, onAnswer = onAnswer)
     var shownDigest by remember { mutableStateOf(digest) }
     var shownFindings by remember { mutableStateOf(findings) }
     if (view == AiPanelView.GAME_MAP) {

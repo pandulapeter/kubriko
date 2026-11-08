@@ -23,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
+import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -65,6 +66,7 @@ internal fun WorkspaceAiSidePanel(
     captureScreen: suspend () -> ByteArray?,
     width: PanelWidthState,
     screenplayOffer: ScreenplayOffer? = null,
+    questions: UserQuestions? = null,
     row: PanelRow,
 ) {
     PanelSplitter(width, row)
@@ -110,5 +112,7 @@ internal fun WorkspaceAiSidePanel(
         captureScreen = captureScreen,
         isScreenplayOffered = screenplayOffer?.isShown?.collectAsState()?.value == true,
         onScreenplayOfferAnswered = { screenplayOffer?.answer() },
+        questions = questions?.pending?.collectAsState()?.value.orEmpty(),
+        onAnswer = { id, answer -> questions?.answer(id, answer) },
     )
 }

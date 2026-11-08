@@ -78,6 +78,7 @@ import kubriko.creator.generated.resources.error_command_property_kind_in_descen
 import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_property_value_invalid
+import kubriko.creator.generated.resources.error_command_question_invalid
 import kubriko.creator.generated.resources.error_command_relations_property_missing
 import kubriko.creator.generated.resources.error_command_relations_subject
 import kubriko.creator.generated.resources.error_command_scene_actor_missing
@@ -176,6 +177,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PAGE_IMAGE_NOT_VIEWABLE -> Res.string.error_command_page_image_not_viewable
     CommandProblem.SCREENPLAY_STYLE -> Res.string.error_command_screenplay_style
     CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE -> Res.string.error_command_screenplay_settings_unreadable
+    CommandProblem.QUESTION_INVALID -> Res.string.error_command_question_invalid
     CommandProblem.PAGE_SECTION_MISSING -> Res.string.error_command_page_section_missing
     CommandProblem.PAGE_TAKEN -> Res.string.error_command_page_taken
     CommandProblem.PAGE_TOO_LONG -> Res.string.error_command_page_too_long

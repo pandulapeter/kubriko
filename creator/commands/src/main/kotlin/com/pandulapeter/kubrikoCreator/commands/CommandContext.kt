@@ -49,6 +49,11 @@ public class CommandContext(
     public val rejectChanges: () -> Rejection? = { null },
 ) {
     /**
+     * The questions an AI asks the user ([com.pandulapeter.kubrikoCreator.commands.project.AskUser]) that wait for an answer.
+     */
+    public val questions: UserQuestions = UserQuestions()
+
+    /**
      * Where Kubriko Creator moved pages and documents to, so that the page editor follows them.
      */
     public val movedFiles: MovedFiles = MovedFiles()
