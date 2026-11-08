@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
@@ -27,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.workspace.IosSimulatorOptions
 import kotlinx.coroutines.CompletableDeferred
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class NewIosSimulatorDialogTest {
@@ -72,6 +74,17 @@ class NewIosSimulatorDialogTest {
         waitForIdle()
         assertEquals(listOf(Triple("iPad mini (6th generation)", iPad, ios18)), made)
         assertEquals(1, closings)
+    }
+
+    @Test
+    fun aNarrowWindowShrinksTheDialogRatherThanCuttingItOff() = uiTest(width = 360, height = 640) {
+        showingDialog()
+        onNodeWithText("iPhone 18 Pro 2").assertIsDisplayed()
+        onNodeWithText("iOS version").assertIsDisplayed()
+        onNodeWithText("Create").assertIsDisplayed()
+        val createEnd = onNodeWithText("Create").fetchSemanticsNode().boundsInWindow.right
+        assertTrue(createEnd <= 360f, "Create ends at $createEnd, past the window's edge")
+        saveSnapshot("new-ios-simulator-narrow")
     }
 
     @Test
