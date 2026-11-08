@@ -37,8 +37,8 @@ internal object WasmPixelBridge {
         }
     }
 
-    fun write(bitmap: Bitmap, pixels: IntArray, width: Int, height: Int): Boolean {
-        val pixmap = bitmap.peekPixels() ?: return false
+    fun write(bitmap: Bitmap, pixels: IntArray, width: Int, height: Int) {
+        val pixmap = checkNotNull(bitmap.peekPixels()) { "An allocated bitmap has pixels to write into." }
         try {
             val address = pixmap.addr
             val rowBytes = pixmap.rowBytes
@@ -55,7 +55,6 @@ internal object WasmPixelBridge {
         } finally {
             pixmap.close()
         }
-        return true
     }
 
     private fun copyRows(pixels: IntArray, width: Int, height: Int, targetAddress: Int, targetRowBytes: Int): Boolean {

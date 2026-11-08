@@ -11,4 +11,4 @@ package com.pandulapeter.kubriko.implementation
 
 import org.jetbrains.skia.Bitmap
 
-internal actual fun Bitmap.writeArgbPixelsThroughFastPath(pixels: IntArray, width: Int, height: Int) = false
+internal actual fun createArgbBitmapThroughFastPath(pixels: IntArray, width: Int, height: Int): Bitmap? = null

@@ -10,5 +10,12 @@
 package com.pandulapeter.kubriko.implementation
 
 import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.ColorAlphaType
+import org.jetbrains.skia.ImageInfo
 
-internal actual fun Bitmap.writeArgbPixelsThroughFastPath(pixels: IntArray, width: Int, height: Int) = WasmPixelBridge.write(this, pixels, width, height)
+internal actual fun createArgbBitmapThroughFastPath(pixels: IntArray, width: Int, height: Int): Bitmap? {
+    val bitmap = Bitmap()
+    check(bitmap.allocPixels(ImageInfo.makeS32(width, height, ColorAlphaType.UNPREMUL))) { "Skia could not allocate a $width × $height bitmap." }
+    WasmPixelBridge.write(bitmap, pixels, width, height)
+    return bitmap
+}

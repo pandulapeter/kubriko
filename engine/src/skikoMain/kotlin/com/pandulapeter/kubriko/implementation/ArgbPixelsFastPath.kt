@@ -12,8 +12,8 @@ package com.pandulapeter.kubriko.implementation
 import org.jetbrains.skia.Bitmap
 
 /**
- * Writes the first `width * height` unpremultiplied ARGB [pixels] into this freshly allocated N32 bitmap without going
- * through `Bitmap.installPixels`, returning false when the platform has no such path (or it is not available yet), in
- * which case the caller installs them itself. Only the web has one (`WasmPixelBridge`).
+ * Creates a bitmap of the first `width * height` unpremultiplied ARGB [pixels] without going through
+ * `Bitmap.installPixels`, returning null when the platform has no such path, in which case the caller installs them
+ * itself. Only the web has one (`WasmPixelBridge`).
  */
-internal expect fun Bitmap.writeArgbPixelsThroughFastPath(pixels: IntArray, width: Int, height: Int): Boolean
+internal expect fun createArgbBitmapThroughFastPath(pixels: IntArray, width: Int, height: Int): Bitmap?

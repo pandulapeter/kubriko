@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.helpers.extensions
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
-import com.pandulapeter.kubriko.implementation.writeArgbPixelsThroughFastPath
+import com.pandulapeter.kubriko.implementation.createArgbBitmapThroughFastPath
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ImageInfo
@@ -24,10 +24,10 @@ actual fun ImageBitmap.markImmutable(): ImageBitmap {
 
 actual fun imageBitmapFromArgb(pixels: IntArray, width: Int, height: Int, isDrawOnly: Boolean): ImageBitmap {
     requireArgbPixels(pixels, width, height)
-    val bitmap = Bitmap()
-    check(bitmap.allocPixels(ImageInfo.makeS32(width, height, ColorAlphaType.UNPREMUL))) { "Skia could not allocate a $width × $height bitmap." }
-    if (!bitmap.writeArgbPixelsThroughFastPath(pixels, width, height)) {
-        check(bitmap.installPixels(pixels.toSkiaPixelBytes(width * height))) { "Skia could not take the pixels of a $width × $height bitmap." }
+    val bitmap = createArgbBitmapThroughFastPath(pixels, width, height) ?: Bitmap().also { bitmap ->
+        check(bitmap.installPixels(ImageInfo.makeS32(width, height, ColorAlphaType.UNPREMUL), pixels.toSkiaPixelBytes(width * height), width * Int.SIZE_BYTES)) {
+            "Skia could not take the pixels of a $width × $height bitmap."
+        }
     }
     bitmap.setImmutable()
     return bitmap.asComposeImageBitmap()
