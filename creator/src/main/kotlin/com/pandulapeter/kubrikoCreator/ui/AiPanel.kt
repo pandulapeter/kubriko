@@ -86,7 +86,7 @@ internal fun AiPanel(
     )
     HorizontalDivider()
     ScreenplayOfferCard(isShown = isScreenplayOffered && view == AiPanelView.ASSISTANT, onAnswered = onScreenplayOfferAnswered)
-    QuestionCards(questions = questions, onAnswer = onAnswer)
+    QuestionCards(questions = remember(questions) { questions.filter { it.origin == null } }, onAnswer = onAnswer)
     var shownDigest by remember { mutableStateOf(digest) }
     var shownFindings by remember { mutableStateOf(findings) }
     if (view == AiPanelView.GAME_MAP) {
@@ -114,6 +114,8 @@ internal fun AiPanel(
             onPageSelected = onPageSelected,
             attention = attention,
             captureScreen = captureScreen,
+            questions = questions,
+            onAnswer = onAnswer,
         )
     }
 }
@@ -135,6 +137,8 @@ private fun AiPanelContent(
     onPageSelected: (String) -> Unit,
     attention: List<AttentionChip>,
     captureScreen: suspend () -> ByteArray?,
+    questions: List<UserQuestions.Question>,
+    onAnswer: (id: Long, answer: String) -> Unit,
 ) {
     val content = Modifier.fillMaxSize()
     when (view) {
@@ -146,6 +150,8 @@ private fun AiPanelContent(
             onShowStep = onShowStep,
             attention = attention,
             captureScreen = captureScreen,
+            questions = questions,
+            onAnswer = onAnswer,
         )
         AiPanelView.OWN_TOOL -> AiConnectionPanel(
             modifier = content,

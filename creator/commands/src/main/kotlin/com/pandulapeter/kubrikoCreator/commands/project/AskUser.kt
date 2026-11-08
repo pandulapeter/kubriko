@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
+import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
@@ -27,12 +28,14 @@ public object AskUser : ActionCommand<AskUser.Input> {
         "any other answer, and returns the answer once given. Ask in the game's terms, one question at a time."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
-    override suspend fun run(context: CommandContext, input: Input): CommandOutcome {
+    override suspend fun run(context: CommandContext, input: Input): CommandOutcome = run(context, input, origin = null)
+
+    override suspend fun run(context: CommandContext, input: Input, origin: AiStepOrigin?): CommandOutcome {
         val answers = input.answers.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
         if (input.question.isBlank() || answers.size !in MINIMUM_ANSWERS..MAXIMUM_ANSWERS || answers.any { it.length > MAXIMUM_ANSWER_LENGTH }) {
             return CommandOutcome.Rejected(Rejection(CommandProblem.QUESTION_INVALID, MAXIMUM_ANSWER_LENGTH.toString()))
         }
-        val answer = context.questions.ask(input.question.trim(), answers)
+        val answer = context.questions.ask(input.question.trim(), answers, origin)
         return CommandOutcome.Success(buildJsonObject { put("answer", answer) })
     }
 

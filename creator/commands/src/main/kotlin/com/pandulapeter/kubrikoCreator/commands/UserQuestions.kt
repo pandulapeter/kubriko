@@ -23,11 +23,14 @@ public class UserQuestions {
 
     /**
      * A question waiting for its answer: one of [answers], or anything the user types.
+     *
+     * @param origin The assistant's conversation and tool call that asked it, or null for an outside client.
      */
     public data class Question(
         val id: Long,
         val text: String,
         val answers: List<String>,
+        val origin: AiStepOrigin? = null,
     )
 
     private class Pending(
@@ -49,8 +52,8 @@ public class UserQuestions {
      * Asks [text] with [answers] to choose from, returning the answer once the user gives one. A caller that is cancelled
      * (its turn stopped) takes its question away.
      */
-    public suspend fun ask(text: String, answers: List<String>): String {
-        val pending = Pending(Question(ids.incrementAndGet(), text, answers), CompletableDeferred())
+    public suspend fun ask(text: String, answers: List<String>, origin: AiStepOrigin? = null): String {
+        val pending = Pending(Question(ids.incrementAndGet(), text, answers, origin), CompletableDeferred())
         synchronized(lock) {
             waiting += pending
             publish()

@@ -34,6 +34,8 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.ClaudeConfiguration
 import com.pandulapeter.kubrikoCreator.ai.assistant.FakeAgentLauncher
 import com.pandulapeter.kubrikoCreator.ai.assistant.RegistryAgent
+import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
+import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.testing.PANEL_WIDTH
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -95,6 +97,7 @@ class AssistantPanelTest {
                 parentScope = scope,
                 start = { permissions, _ -> acpAgent.newConversation(File("/projects/breakout"), permissions = permissions) },
                 end = { it.close() },
+                toolsIdOf = { TOOLS_ID },
             )
         }
         withTimeout(10.seconds) { chat.state.first { it == ChatState.Ready } }
@@ -261,5 +264,24 @@ class AssistantPanelTest {
         val layout = layouts.single()
         assertFalse(layout.hasVisualOverflow)
         checkLayout(layout)
+    }
+
+    @Test
+    fun anAnswerTheAgentStoppedWaitingForGoesToItAsTheNextMessage() = uiTest {
+        val chat = readyChat()
+        val model = FakeAssistantPanelModel().apply { currentChat.value = chat }
+        val question = UserQuestions.Question(1, "How does the hero get around?", listOf("Runs and jumps", "Flies"), AiStepOrigin(TOOLS_ID))
+        val answered = mutableListOf<Pair<Long, String>>()
+        showing {
+            AssistantPanel(model = model, aiSteps = emptyList(), onShowStep = {}, questions = listOf(question), onAnswer = { id, answer -> answered += id to answer })
+        }
+        onNodeWithText("Flies").performClick()
+        waitUntil(timeoutMillis = 10_000) { launcher.agents.single().prompts.isNotEmpty() }
+        assertEquals(listOf(1L to "Flies"), answered)
+        assertEquals(listOf("My answer to \"How does the hero get around?\": Flies"), launcher.agents.single().prompts)
+    }
+
+    private companion object {
+        const val TOOLS_ID = "tools"
     }
 }

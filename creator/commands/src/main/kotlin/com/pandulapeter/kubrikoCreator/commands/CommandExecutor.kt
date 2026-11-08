@@ -231,7 +231,7 @@ public class CommandExecutor(
             val outcome = when (command) {
                 is ReadCommand -> if (command.readsProject) changes.withLock { command.read(context, input) } else command.read(context, input)
                 is WriteCommand -> execute(Invocation(command, input), origin, isByAi = true)
-                is ActionCommand -> command.run(context, input)
+                is ActionCommand -> command.run(context, input, origin)
             }
             rejection = (outcome as? CommandOutcome.Rejected)?.rejection
             return outcome

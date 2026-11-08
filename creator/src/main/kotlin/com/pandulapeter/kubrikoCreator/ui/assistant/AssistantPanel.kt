@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -40,13 +41,17 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.ChatState
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.SignInMethod
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.ui.LocalAiActivitySettings
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
+import kotlinx.coroutines.launch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_empty
 import kubriko.creator.generated.resources.assistant_note
 import kubriko.creator.generated.resources.assistant_note_untested
+import kubriko.creator.generated.resources.assistant_question_late_answer
 import kubriko.creator.generated.resources.assistant_setup_agent
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -58,6 +63,8 @@ import kotlin.time.Duration.Companion.milliseconds
  * @param onShowStep Goes to what a step worked on, in the editor.
  * @param attention What the user is looking at, offered with the next message.
  * @param captureScreen Takes a screenshot of the running game, for [AttentionChip.GameScreen].
+ * @param questions The questions waiting for an answer, which the conversation that asked shows.
+ * @param onAnswer Answers a question.
  */
 @Composable
 internal fun AssistantPanel(
@@ -68,6 +75,8 @@ internal fun AssistantPanel(
     attention: List<AttentionChip> = emptyList(),
     captureScreen: suspend () -> ByteArray? = { null },
     forms: AssistantForms = rememberAssistantForms(),
+    questions: List<UserQuestions.Question> = emptyList(),
+    onAnswer: (id: Long, answer: String) -> Unit = { _, _ -> },
 ) {
     val agent by model.agent.collectAsState()
     CompositionLocalProvider(LocalAgent provides agent) {
@@ -79,6 +88,8 @@ internal fun AssistantPanel(
             attention = attention,
             captureScreen = captureScreen,
             modifier = modifier,
+            questions = questions,
+            onAnswer = onAnswer,
         )
     }
 }
@@ -92,6 +103,8 @@ private fun AssistantPanelContent(
     attention: List<AttentionChip>,
     captureScreen: suspend () -> ByteArray?,
     modifier: Modifier = Modifier,
+    questions: List<UserQuestions.Question>,
+    onAnswer: (id: Long, answer: String) -> Unit,
 ) = Column(
     modifier = modifier,
 ) {
@@ -143,6 +156,8 @@ private fun AssistantPanelContent(
             onOpenLog = model.errorLogFile?.let { file -> { if (file.isFile) openInSystemEditor(file) } },
             aiSteps = aiSteps,
             onShowStep = onShowStep,
+            questions = questions,
+            onAnswer = onAnswer,
         ) { isPromptRefused ->
             AssistantSignInArea(
                 session = session,
@@ -177,6 +192,8 @@ private fun ChatContent(
     onOpenLog: (() -> Unit)?,
     aiSteps: List<AiStep>,
     onShowStep: (AiStep) -> Unit,
+    questions: List<UserQuestions.Question>,
+    onAnswer: (id: Long, answer: String) -> Unit,
     modifier: Modifier = Modifier,
     signInArea: @Composable (isPromptRefused: Boolean) -> Unit,
 ) = Column(
@@ -188,11 +205,13 @@ private fun ChatContent(
     val permissionRequest by chat.permissionRequest.collectAsState()
     val toolsId by chat.toolsId.collectAsState()
     val steps = remember(transcript.items, aiSteps, toolsId) { aiStepsOf(transcript.items, aiSteps, toolsId) }
+    val transcriptQuestions = remember(transcript.items, questions, toolsId) { questionsOf(transcript.items, questions, toolsId) }
+    val answering = rememberCoroutineScope()
     Box(
         modifier = Modifier.weight(1f).fillMaxWidth(),
     ) {
         when {
-            transcript.items.isNotEmpty() -> AssistantTranscriptList(
+            transcript.items.isNotEmpty() || transcriptQuestions.trailing.isNotEmpty() -> AssistantTranscriptList(
                 modifier = Modifier.fillMaxSize(),
                 items = transcript.items,
                 isBusy = isBusy,
@@ -201,6 +220,12 @@ private fun ChatContent(
                 isTurnReviewShown = LocalAiActivitySettings.current.isTurnReviewShown,
                 onKeepChanges = chat::keepChanges,
                 onUndoChanges = chat::undoChanges,
+                questions = transcriptQuestions,
+                canSendMessage = state == ChatState.Ready && !isBusy,
+                onAnswer = { question, answer, isLate ->
+                    onAnswer(question.id, answer)
+                    if (isLate) answering.launch { chat.send(getString(Res.string.assistant_question_late_answer, question.text, answer)) }
+                },
             )
             state is ChatState.Ready -> Hint(stringResource(Res.string.assistant_empty))
             state is ChatState.Starting || download != null -> AssistantStarting(download)

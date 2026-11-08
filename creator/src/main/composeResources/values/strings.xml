@@ -465,6 +465,8 @@
     <string name="git_no_changes">Everything is committed.</string>
     <string name="question_other_answer">Another answer</string>
     <string name="action_answer">Answer</string>
+    <string name="question_late">The agent stopped waiting for this answer, so it goes to the agent as your next message.</string>
+    <string name="assistant_question_late_answer">My answer to "%1$s": %2$s</string>
     <string name="action_write_screenplay">Write the screenplay</string>
     <string name="action_write_screenplay_description">The assistant reads the game and proposes its pages, for you to keep page by page.</string>
     <string name="action_no_thanks">No, thanks</string>

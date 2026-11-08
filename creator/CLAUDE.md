@@ -464,8 +464,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
 - **The writers' room** is a conversation with rules of its own (`AssistantSystemPrompt.WRITERS_ROOM`, after the project's
   context, so the other conversations' cached prefix stays the same), started with a prompt (`startWritersRoom`), not a wizard:
   the agent leads, and everything goes through the usual tools, Keep, and Undo. Its questions go through `ask_user`, an
-  `ActionCommand` that waits in `UserQuestions` without holding up changes, until the AI panel answers it or its turn is
-  stopped, which takes the question away.
+  `ActionCommand` that waits in `UserQuestions` without holding up changes, until the user answers it or its turn is
+  stopped, which takes the question away. A question shows as a card under the call that asked it in its conversation
+  (`questionsOf`; an outside client's at the top of the AI panel). An agent may stop waiting without telling the server (Claude
+  Code's timeout sends no cancellation), so a question whose call or turn ended (`isLate`) is answered as the user's next
+  message, never into a call nobody reads.
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
   without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
   cost.

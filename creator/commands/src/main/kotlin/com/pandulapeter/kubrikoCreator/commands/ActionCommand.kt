@@ -16,4 +16,9 @@ package com.pandulapeter.kubrikoCreator.commands
 public interface ActionCommand<I> : EditorCommand<I> {
 
     public suspend fun run(context: CommandContext, input: I): CommandOutcome
+
+    /**
+     * Runs the command for the AI tool call [origin] names, or for no conversation when it is null.
+     */
+    public suspend fun run(context: CommandContext, input: I, origin: AiStepOrigin?): CommandOutcome = run(context, input)
 }

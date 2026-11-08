@@ -9,15 +9,22 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.project
 
+import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
+import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.commandContext
+import com.pandulapeter.kubrikoCreator.commands.testScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -35,6 +42,17 @@ class AskUserTest {
         context.questions.answer(question.id, "Swims")
         assertEquals("Swims", assertIs<CommandOutcome.Success>(asking.await()).result.jsonObject.getValue("answer").jsonPrimitive.content)
         assertEquals(emptyList(), context.questions.pending.value)
+    }
+
+    @Test
+    fun `a question asked through the executor names the conversation and the tool call that asked it`() = runTest {
+        val context = commandContext()
+        val origin = AiStepOrigin(conversationId = "conversation", toolCallId = "toolu_1")
+        val executor = CommandExecutor(context, testScope())
+        val asking = async { executor.call(AskUser.name, buildJsonObject { put("question", "Which?"); putJsonArray("answers") { add("A"); add("B") } }, origin) }
+        runCurrent()
+        assertEquals(origin, context.questions.pending.value.single().origin)
+        asking.cancel()
     }
 
     @Test

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +49,7 @@ import com.agentclientprotocol.model.ToolCallStatus
 import com.pandulapeter.kubrikoCreator.ai.assistant.FailureReason
 import com.pandulapeter.kubrikoCreator.ai.assistant.TranscriptItem
 import com.pandulapeter.kubrikoCreator.commands.AiStep
+import com.pandulapeter.kubrikoCreator.commands.UserQuestions
 import com.pandulapeter.kubrikoCreator.ui.canBeShown
 import com.pandulapeter.kubrikoCreator.ui.commandTitle
 import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
@@ -86,6 +88,9 @@ import org.jetbrains.compose.resources.stringResource
  * @param isTurnReviewShown Whether turns that changed the project end with Keep and Undo.
  * @param onKeepChanges Keeps what the turn that began at a revision changed.
  * @param onUndoChanges Reverts what the turn that began at a revision changed.
+ * @param questions The agent's questions waiting for an answer, each under the tool call that asked it ([questionsOf]).
+ * @param canSendMessage Whether the conversation takes a message now, which a late answer ([isLate]) is sent as.
+ * @param onAnswer Answers a question, telling whether the agent stopped waiting for it.
  */
 @Composable
 internal fun AssistantTranscriptList(
@@ -97,6 +102,9 @@ internal fun AssistantTranscriptList(
     isTurnReviewShown: Boolean = false,
     onKeepChanges: (sinceRevision: Int) -> Unit = {},
     onUndoChanges: (sinceRevision: Int) -> Unit = {},
+    questions: TranscriptQuestions = TranscriptQuestions.None,
+    canSendMessage: Boolean = false,
+    onAnswer: (question: UserQuestions.Question, answer: String, isLate: Boolean) -> Unit = { _, _, _ -> },
 ) {
     val shownItems = remember(items, isTurnReviewShown) { if (isTurnReviewShown) items else items.filterNot { it is TranscriptItem.TurnReview } }
     val listState = rememberLazyListState()
@@ -110,7 +118,7 @@ internal fun AssistantTranscriptList(
                 previous = current
             }
     }
-    LaunchedEffect(shownItems.size, (last as? TranscriptItem.AgentMessage)?.text?.length, isBusy) {
+    LaunchedEffect(shownItems.size, (last as? TranscriptItem.AgentMessage)?.text?.length, isBusy, questions) {
         if (isFollowing && shownItems.isNotEmpty()) listState.scrollToItem(shownItems.lastIndex + if (isBusy) 1 else 0, Int.MAX_VALUE)
     }
     LazyColumn(
@@ -126,11 +134,18 @@ internal fun AssistantTranscriptList(
                 is TranscriptItem.UserMessage -> UserMessage(item.text)
                 is TranscriptItem.AgentMessage -> SelectionContainer { MarkdownText(item.text) }
                 is TranscriptItem.Thought -> Thought(item.text)
-                is TranscriptItem.ToolCall -> ToolCallCard(
-                    toolCall = item,
-                    step = steps[item.id],
-                    onShowStep = onShowStep,
-                )
+                is TranscriptItem.ToolCall -> Column(
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    ToolCallCard(
+                        toolCall = item,
+                        step = steps[item.id],
+                        onShowStep = onShowStep,
+                    )
+                    questions.byToolCall[item.id]?.let { question ->
+                        TranscriptQuestion(question, isLate(item, isBusy), canSendMessage, onAnswer)
+                    }
+                }
                 is TranscriptItem.TurnChanges -> TurnChangesCard(changes = item)
                 is TranscriptItem.TurnReview -> TurnReviewCard(
                     review = item,
@@ -144,11 +159,27 @@ internal fun AssistantTranscriptList(
                 )
             }
         }
-        if (isBusy && last !is TranscriptItem.AgentMessage) {
+        items(questions.trailing, key = { "question-${it.id}" }) { question ->
+            TranscriptQuestion(question, isLate(toolCall = null, isBusy = isBusy), canSendMessage, onAnswer)
+        }
+        if (isBusy && last !is TranscriptItem.AgentMessage && !questions.isWaitingForAnswer(shownItems, isBusy)) {
             item { Working() }
         }
     }
 }
+
+@Composable
+private fun TranscriptQuestion(
+    question: UserQuestions.Question,
+    isLate: Boolean,
+    canSendMessage: Boolean,
+    onAnswer: (question: UserQuestions.Question, answer: String, isLate: Boolean) -> Unit,
+) = QuestionCard(
+    question = question,
+    onAnswer = { onAnswer(question, it, isLate) },
+    isLate = isLate,
+    isEnabled = !isLate || canSendMessage,
+)
 
 @Composable
 private fun UserMessage(
