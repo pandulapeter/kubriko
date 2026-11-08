@@ -33,6 +33,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assume.assumeTrue
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -144,6 +145,16 @@ class MentionFollowingTest {
         val added = context.assertRoundTrip(Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input("notes/old/combat.md", "combat"))) { context.files() }
         assertEquals("See [combat](combat.md).", added.getValue("screenplay/README.md"))
         assertEquals("[Bat](../.kubriko/actors/enemies/Bat.json)", added.getValue("screenplay/combat.md"))
+    }
+
+    @Test
+    fun `a document that isn't UTF-8 text moves as it is`() = runTest {
+        val context = context()
+        val bytes = "[Bat](../.kubriko/actors/enemies/Bat.json) caf\u00e9".toByteArray(Charsets.ISO_8859_1)
+        File(context.project.rootDirectory, "docs/latin.md").apply { parentFile.mkdirs() }.writeBytes(bytes)
+        context.documents.refresh(listOf("docs/latin.md"))
+        MoveDocument.apply(context, MoveDocument.Input("docs/latin.md", "notes/old/latin.md"))
+        assertContentEquals(bytes, File(context.project.rootDirectory, "notes/old/latin.md").readBytes())
     }
 
     @Test

@@ -20,12 +20,10 @@ internal fun pageOf(path: String): String? = path.removePrefix("${PageNaming.FOL
     ?.removeSuffix(".${PageNaming.EXTENSION}")
 
 /**
- * The text of the page or document at [path], a path from the project's root, or null if there is none.
+ * The text of the page or document at [path], a path from the project's root, or null if there is none or it isn't
+ * UTF-8 text, which writing it back would change.
  */
-internal fun CommandContext.readMarkdown(path: String): String? = when (val page = pageOf(path)) {
-    null -> documents.fileOf(path).takeIf { it.isFile }?.readText()
-    else -> screenplay.read(page)
-}
+internal fun CommandContext.readMarkdown(path: String): String? = documents.read(path)
 
 /**
  * Writes the page or document at [path], a path from the project's root, through the store it belongs to.

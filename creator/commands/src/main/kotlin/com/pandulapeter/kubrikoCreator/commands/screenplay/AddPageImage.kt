@@ -68,7 +68,7 @@ public object AddPageImage : WriteCommand<AddPageImage.Input> {
 
     private fun addImage(context: CommandContext, input: Input, image: PageImages.Encoded?): Applied {
         val pagePath = PageNaming.pathOf(input.page)
-        val text = context.screenplay.read(input.page) ?: return Applied.failed(Rejection(CommandProblem.PAGE_MISSING, input.page))
+        val text = context.readMarkdown(pagePath) ?: return Applied.failed(Rejection(CommandProblem.PAGE_MISSING, input.page))
         val root = context.project.rootDirectory
         val imagePath = if (image == null) {
             context.spriteFiles()?.files?.get(input.sprite)?.let(context::projectPathOf) ?: return Applied.failed(Rejection(CommandProblem.SPRITE_MISSING, input.sprite.orEmpty()))
