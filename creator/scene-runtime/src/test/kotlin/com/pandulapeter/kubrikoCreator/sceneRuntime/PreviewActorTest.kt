@@ -61,11 +61,11 @@ class PreviewActorTest {
         assertEquals(Color(0xFF00FF00), assertIs<RectangleLook>(PreviewActor(state, look).look).color)
         assertEquals(Color(0xFFE0605A), assertIs<EllipseLook>(PreviewActor("{}", look.copy(shape = ActorShape.CIRCLE)).look).color)
         val sprite = ImageBitmap(4, 2)
-        val spriteLook = assertIs<SpriteLook>(PreviewActor("{}", look.copy(spriteFile = File("ball.png")), sprite).look)
+        val spriteLook = assertIs<SpriteLook>(PreviewActor("{}", look.copy(spriteFile = File("ball.png"), isSprite = true), sprite).look)
         assertSame(sprite, spriteLook.texture)
         assertEquals(FilterQuality.None, spriteLook.filterQuality)
         assertEquals(Color.White, spriteLook.tint)
-        assertNull(assertIs<SpriteLook>(PreviewActor("{}", look.copy(spriteFile = File("ball.png"))).look).texture, "nothing is drawn until the sprite is read")
+        assertNull(assertIs<SpriteLook>(PreviewActor("{}", look.copy(isSprite = true)).look).texture, "nothing is drawn while the image is missing, as in the game")
     }
 
     @Test

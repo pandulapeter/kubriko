@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import java.io.File
 
 /**
@@ -19,7 +20,9 @@ import java.io.File
  *
  * @param color As `0xAARRGGBB`, for Actors whose state has no color of their own.
  * @param width The size of an Actor whose state has none, as a newly placed one gets it.
- * @param spriteFile The image drawn instead of the shape, or null for the shape.
+ * @param isSprite Whether the type is drawn as a sprite rather than its shape, as its generated class decides it (a
+ *   sprite with a resource accessor), whether or not its image is there.
+ * @param spriteFile The sprite's image, or null while it isn't there (the Actors draw nothing then, as in the game).
  */
 public data class ActorTypeLook(
     val shape: ActorShape,
@@ -27,6 +30,7 @@ public data class ActorTypeLook(
     val width: Float,
     val height: Float,
     val spriteFile: File? = null,
+    val isSprite: Boolean = spriteFile != null,
 ) {
     public companion object {
 
@@ -40,6 +44,7 @@ public data class ActorTypeLook(
                 width = type.width,
                 height = type.height,
                 spriteFile = type.sprite?.let(spriteFiles::get),
+                isSprite = type.sprite?.let(SpriteFiles::accessorOf) != null,
             )
         }
 

@@ -26,10 +26,19 @@ class ActorTypeLookTest {
             listOf(
                 ActorTypeDefinition(name = "Ball", color = 0xFFFFFFFF, width = 20f, height = 20f, sprite = "drawable/ball.png"),
                 ActorTypeDefinition(name = "Brick", shape = ActorShape.RECTANGLE, color = 0xFFE0605A, width = 100f, height = 36f, sprite = "drawable/missing.png"),
+                ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE, color = 0xFFE0605A, width = 100f, height = 36f, sprite = "files/wall.png"),
             ),
             spriteFiles = mapOf("drawable/ball.png" to sprite),
         )
-        assertEquals(mapOf("Ball" to ball.copy(spriteFile = sprite), "Brick" to brick), looks)
+        assertEquals(
+            mapOf(
+                "Ball" to ball.copy(spriteFile = sprite, isSprite = true),
+                // Drawn as a sprite by its generated class even while its image is missing, so as nothing.
+                "Brick" to brick.copy(isSprite = true),
+                "Wall" to brick,
+            ),
+            looks,
+        )
     }
 
     @Test

@@ -59,7 +59,7 @@ internal class PreviewActor(
      * The look the type's generated class has: its sprite, its pixels kept sharp, or its shape in the Actor's color.
      */
     override val look: Look = when {
-        typeLook.spriteFile != null -> SpriteLook(texture = sprite, filterQuality = FilterQuality.None)
+        typeLook.isSprite -> SpriteLook(texture = sprite, filterQuality = FilterQuality.None)
         typeLook.shape == ActorShape.CIRCLE -> EllipseLook(color)
         else -> RectangleLook(color)
     }
