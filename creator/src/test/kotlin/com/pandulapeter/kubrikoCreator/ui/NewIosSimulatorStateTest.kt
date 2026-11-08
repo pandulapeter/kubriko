@@ -88,6 +88,16 @@ class NewIosSimulatorStateTest {
     }
 
     @Test
+    fun aPastedNameHasSpacesForItsLineBreaksAndTabs() = runTest {
+        val state = state()
+        state.changeName("My\r\nPhone\t2\r\n")
+        assertEquals("My  Phone 2  ", state.name)
+        state.create()
+        advanceUntilIdle()
+        assertEquals("My  Phone 2  ", created.single().first)
+    }
+
+    @Test
     fun aBlankNameCanNotBeCreated() = runTest {
         val state = state()
         state.changeName("   ")

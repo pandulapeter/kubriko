@@ -118,8 +118,11 @@ internal class NewIosSimulatorState(
         this.runtime = runtime
     }
 
+    /**
+     * Names the simulator [text], with the line breaks, tabs, and other control characters a paste may bring as spaces.
+     */
     fun changeName(text: String) {
-        name = text.replace('\n', ' ')
+        name = text.map { if (it.isISOControl()) ' ' else it }.joinToString("")
         isNameTyped = true
         nameError = null
     }
