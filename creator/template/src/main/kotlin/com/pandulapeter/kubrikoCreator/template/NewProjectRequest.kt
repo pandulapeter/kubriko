@@ -18,6 +18,7 @@ import java.io.File
  * @param packageName The package of the project's code.
  * @param parentDirectory The folder the project's own folder is created in.
  * @param isUnderVersionControl Whether the project starts as a git repository with everything committed.
+ * @param targets The platforms the game is built for besides the desktop, or null for the ones its template has.
  * @param pitch The idea the project is created from ("Start from an idea"), which its writers' room starts from, or null.
  */
 public data class NewProjectRequest(
@@ -26,6 +27,7 @@ public data class NewProjectRequest(
     public val parentDirectory: File,
     public val template: ProjectTemplate = ProjectTemplate.STARTER,
     public val isUnderVersionControl: Boolean = true,
+    public val targets: Set<GameTarget>? = null,
     public val pitch: String? = null,
 ) {
     internal val projectId get() = ProjectNaming.projectId(name)

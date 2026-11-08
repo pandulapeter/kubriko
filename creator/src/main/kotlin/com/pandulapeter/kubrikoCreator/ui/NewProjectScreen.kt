@@ -27,15 +27,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.template.TargetHost
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_browse
 import kubriko.creator.generated.resources.action_cancel
@@ -78,6 +83,7 @@ internal fun NewProjectScreen(
                 style = MaterialTheme.typography.headlineSmall,
             )
             ProjectStartChoice(form = form, onFormChange = { form = it })
+            NewProjectTargets(form = form, canBuild = rememberBuildableTargets(form.parentDirectory), onFormChange = { form = it })
             ValidatedTextField(
                 label = Res.string.new_project_name,
                 value = form.name,
@@ -179,3 +185,22 @@ private fun ValidatedTextField(
     supportingText = error?.let { { Text(it.text()) } },
     singleLine = true,
 )
+
+/**
+ * Which targets this computer can build a new project in [parentDirectory] for, read off the main thread; none but the
+ * desktop and the web until that is known.
+ */
+@Composable
+private fun rememberBuildableTargets(parentDirectory: File): (GameTarget) -> Boolean {
+    val buildable = produceState(setOf(GameTarget.DESKTOP, GameTarget.WEB), parentDirectory) {
+        value = withContext(Dispatchers.IO) {
+            setOfNotNull(
+                GameTarget.DESKTOP,
+                GameTarget.WEB,
+                GameTarget.ANDROID.takeIf { TargetHost.System.androidSdk(parentDirectory) != null },
+                GameTarget.IOS.takeIf { TargetHost.System.canBuildIos },
+            )
+        }
+    }.value
+    return { it in buildable }
+}

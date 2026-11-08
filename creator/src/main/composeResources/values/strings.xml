@@ -41,6 +41,7 @@
     <string name="new_project_version_control">Start version control (a git repository with a first commit)</string>
     <string name="new_project_folder">The project will be created in %1$s.</string>
     <string name="creating_project">Creating %1$s… The first project takes a while, as Gradle downloads itself.</string>
+    <string name="new_project_targets">Built for</string>
     <string name="new_project_from_idea">Start from an idea</string>
     <string name="new_project_from_idea_description">Say what the game is in a paragraph. The assistant asks about it, writes its first pages with you, and builds the smallest playable version of them, then the next.</string>
     <string name="new_project_pitch">Your idea</string>
@@ -53,6 +54,7 @@
     <string name="error_package_name_invalid">Use at least two parts separated by dots, like com.example.mygame, each starting with a lowercase letter.</string>
     <string name="error_project_folder_not_empty">That folder already exists and isn't empty.</string>
     <string name="error_project_not_created">Kubriko Creator couldn't create the project.</string>
+    <string name="error_project_target_not_set_up">The project couldn't be built for %1$s on this computer, so it wasn't created.</string>
     <string name="error_project_kubriko_unavailable">Kubriko %1$s, the version of this Kubriko Creator, can't be downloaded, so a project made with it wouldn't build. A Kubriko Creator run from its repository needs ./gradlew :creator:run, which publishes the libraries to Maven Local first.</string>
     <string name="welcome_subtitle">Make games with Kubriko: build Actor types from Events and Blocks, place them in Scenes, and play.</string>
     <string name="prototype_banner">Early prototype – not ready for serious use.</string>

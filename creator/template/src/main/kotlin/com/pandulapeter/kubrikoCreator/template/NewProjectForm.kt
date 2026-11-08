@@ -22,7 +22,13 @@ public data class NewProjectForm(
     public val isUnderVersionControl: Boolean = true,
     public val template: ProjectTemplate = ProjectTemplate.STARTER,
     public val pitch: String? = null,
+    public val targets: Set<GameTarget>? = null,
 ) {
+    /**
+     * The targets the project is built for, as chosen or as the templates have them: the desktop and the web.
+     */
+    public val shownTargets: Set<GameTarget> get() = targets ?: TEMPLATE_TARGETS
+
     /**
      * Whether the project is created from an idea ([pitch]): from the Blank template, its writers' room starting from it.
      */
@@ -49,6 +55,7 @@ public data class NewProjectForm(
                 parentDirectory = parentDirectory,
                 template = if (isFromIdea) ProjectTemplate.BLANK else template,
                 isUnderVersionControl = isUnderVersionControl,
+                targets = targets?.minus(GameTarget.DESKTOP),
                 pitch = pitch?.trim(),
             )
         } else {
@@ -70,4 +77,14 @@ public data class NewProjectForm(
         packageName = packageName,
         isPackageNameEdited = true,
     )
+
+    /**
+     * The form with [target] turned on or off, which the desktop never is.
+     */
+    public fun withTarget(target: GameTarget, isOn: Boolean): NewProjectForm =
+        if (target == GameTarget.DESKTOP) this else copy(targets = if (isOn) shownTargets + target else shownTargets - target)
+
+    private companion object {
+        val TEMPLATE_TARGETS = setOf(GameTarget.DESKTOP, GameTarget.WEB)
+    }
 }

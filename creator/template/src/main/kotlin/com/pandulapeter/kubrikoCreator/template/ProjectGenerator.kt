@@ -30,6 +30,7 @@ public class ProjectGenerator(
     private val loadTemplate: (ProjectTemplate) -> List<TemplateFile> = TemplateFiles::load,
     private val startVersionControl: (directory: File, message: String) -> Unit = { directory, message -> JGitRepository.create(directory, message) },
     private val isKubrikoAvailable: (String) -> Boolean = { true },
+    private val targetHost: TargetHost = TargetHost.System,
 ) : ProjectCreator {
 
     /**
@@ -54,8 +55,15 @@ public class ProjectGenerator(
             }
             BlockTypeStore.open(directory)?.regenerateAll()
             KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
+            request.targets?.let { targets ->
+                setTargets(directory, targets)
+                KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
+            }
             wrapperInstaller.install(directory, configuration.gradleVersion)
             if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
+        } catch (exception: ProjectCreationException) {
+            notCreated(directory, didExist, exception)
+            throw exception
         } catch (exception: IOException) {
             throw notCreated(directory, didExist, exception)
         } catch (exception: RuntimeException) {
@@ -64,6 +72,34 @@ public class ProjectGenerator(
             throw notCreated(directory, didExist, exception)
         }
         return directory
+    }
+
+    /**
+     * Turns the targets of the new project in [directory] on or off to match [targets] (the desktop is always on), with the
+     * changes Project settings would make, written as the template's files are, since the project is still being made.
+     *
+     * @throws ProjectCreationException If one can't be set up on this computer.
+     */
+    private fun setTargets(directory: File, targets: Set<GameTarget>) {
+        val gameTargets = GameTargets(directory, configuration.android, targetHost)
+        GameTarget.entries.filter { it != GameTarget.DESKTOP }.forEach { target ->
+            when (val change = gameTargets.change(target, isOn = target in targets)) {
+                is TargetChange.Proposed -> change.changes.forEach { file ->
+                    File(directory, file.path).apply {
+                        val text = file.after
+                        if (text == null) {
+                            delete()
+                        } else {
+                            parentFile?.mkdirs()
+                            writeText(text)
+                        }
+                    }
+                }
+                is TargetChange.Refused -> if (change.problem != TargetProblem.ALREADY_ON && change.problem != TargetProblem.ALREADY_OFF) {
+                    throw ProjectCreationException(TemplateProblem.TARGET_NOT_SET_UP, arguments = listOf(target.key))
+                }
+            }
+        }
     }
 
     /**

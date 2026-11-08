@@ -67,4 +67,14 @@ class NewProjectFormTest {
         assertEquals("A cat who herds sheep.", request.pitch)
         assertEquals(ProjectTemplate.STARTER to null, named.copy(pitch = null).request?.let { it.template to it.pitch })
     }
+
+    @Test
+    fun theTargetsAreTheTemplatesUntilChosenAndTheDesktopStaysOn() {
+        val named = emptyForm.withName("My Game")
+        assertNull(named.request?.targets)
+        assertEquals(setOf(GameTarget.DESKTOP, GameTarget.WEB), named.shownTargets)
+        val chosen = named.withTarget(GameTarget.WEB, isOn = false).withTarget(GameTarget.ANDROID, isOn = true).withTarget(GameTarget.DESKTOP, isOn = false)
+        assertEquals(setOf(GameTarget.DESKTOP, GameTarget.ANDROID), chosen.shownTargets)
+        assertEquals(setOf(GameTarget.ANDROID), chosen.request?.targets)
+    }
 }

@@ -14,11 +14,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.pandulapeter.kubrikoCreator.WritersRoomRequest
+import com.pandulapeter.kubrikoCreator.template.GameTarget
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.ProjectTemplate
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
@@ -70,5 +72,16 @@ class ProjectStartChoiceTest {
         waitForIdle()
         assertEquals(listOf("Let's make a game in the writers' room. My idea: A cat who herds sheep."), started)
         assertEquals(1, shown)
+    }
+
+    @Test
+    fun theTargetsThisComputerCantBuildForCantBeChosen() = uiTest(width = 600, height = 120) {
+        var form by mutableStateOf(NewProjectForm(name = "My Game", packageName = "com.example.mygame", parentDirectory = File("/projects")))
+        showing { NewProjectTargets(form = form, canBuild = { it != GameTarget.ANDROID }, onFormChange = { form = it }) }
+        saveSnapshot("new-project-targets")
+        onNodeWithText("Android").assertIsNotEnabled()
+        onNodeWithText("Web").performClick()
+        onNodeWithText("iOS").performClick()
+        assertEquals(setOf(GameTarget.IOS), form.request?.targets)
     }
 }

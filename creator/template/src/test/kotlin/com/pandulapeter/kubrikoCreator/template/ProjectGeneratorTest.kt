@@ -163,4 +163,32 @@ class ProjectGeneratorTest {
         generator().create(request.copy(isUnderVersionControl = false))
         assertTrue(versionControlStarts.isEmpty())
     }
+
+    private val noTargetsHost = object : TargetHost {
+        override fun androidSdk(rootDirectory: File): File? = null
+
+        override val canBuildIos: Boolean = false
+    }
+
+    private fun starterGenerator() = ProjectGenerator(
+        configuration = configuration,
+        wrapperInstaller = { _, _ -> },
+        startVersionControl = { _, _ -> },
+        targetHost = noTargetsHost,
+    )
+
+    @Test
+    fun aProjectIsCreatedForTheTargetsAskedFor() {
+        val directory = starterGenerator().create(request.copy(targets = emptySet()))
+        val targets = GameTargets(directory, configuration.android, noTargetsHost).read()!!
+        assertEquals(listOf(GameTarget.DESKTOP), targets.filter { it.isOn }.map { it.target })
+    }
+
+    @Test
+    fun aTargetThisComputerCantBuildForCreatesNoProject() {
+        val exception = assertFailsWith<ProjectCreationException> { starterGenerator().create(request.copy(targets = setOf(GameTarget.ANDROID))) }
+        assertEquals(TemplateProblem.TARGET_NOT_SET_UP, exception.reason)
+        assertEquals(listOf("android"), exception.arguments)
+        assertFalse(File(parentDirectory, "my-game").exists())
+    }
 }
