@@ -148,6 +148,16 @@ class MentionFollowingTest {
     }
 
     @Test
+    fun `a mention written escaped or encoded is followed too`() = runTest {
+        val context = context()
+        File(context.project.rootDirectory, "docs/my notes (old).md").apply { parentFile.mkdirs() }.writeText("Notes.")
+        context.documents.refresh(listOf("docs/my notes (old).md"))
+        context.page("README", "[a](../docs/my%20notes%20%28old%29.md) [b](<../docs/my notes (old).md>)")
+        MoveDocument.apply(context, MoveDocument.Input("docs/my notes (old).md", "docs/new.md"))
+        assertEquals("[a](../docs/new.md) [b](<../docs/new.md>)", context.files().getValue("screenplay/README.md"))
+    }
+
+    @Test
     fun `a document that isn't UTF-8 text moves as it is`() = runTest {
         val context = context()
         val bytes = "[Bat](../.kubriko/actors/enemies/Bat.json) caf\u00e9".toByteArray(Charsets.ISO_8859_1)

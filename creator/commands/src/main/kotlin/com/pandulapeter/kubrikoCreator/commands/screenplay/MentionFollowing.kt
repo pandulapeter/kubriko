@@ -60,12 +60,17 @@ private fun CommandContext.followMentions(moves: List<PathMove>): Map<String, St
         move.to.takeIf { it.endsWith(".${PageNaming.EXTENSION}") && pageOf(it) == null && documents.fileOf(it).isFile }
     }
     val paths = (screenplay.scanNames().map(PageNaming::pathOf) + movedDocuments).distinct()
+    // A page that holds no move's name can't mention what moved, so it isn't parsed. Letters and digits survive however
+    // a destination is escaped or encoded, so the longest run of them is looked for; a name without one is never skipped.
+    val needles = moves.map { move -> asciiRun.findAll(move.from.substringAfterLast('/').substringBeforeLast('.')).maxByOrNull { it.value.length }?.value }
+        .takeIf { null !in it }?.filterNotNull()
     val previous = LinkedHashMap<String, String>()
     val written = LinkedHashMap<String, String>()
     paths.forEach { path ->
         try {
             val text = readMarkdown(path) ?: return@forEach
             val oldPath = reversed.applyTo(path) ?: path
+            if (oldPath == path && needles != null && needles.none { it in text }) return@forEach
             val followed = PageLinks.withMovesFollowed(text, oldPath, moves)
             if (followed != text) {
                 writeMarkdown(path, followed)
@@ -94,6 +99,8 @@ internal fun CommandContext.typeMoves(type: String, newName: String = type, newF
  * The path of [file] from the project's root, as mentions name it.
  */
 internal fun CommandContext.projectPathOf(file: File): String = file.relativeTo(project.rootDirectory).invariantSeparatorsPath
+
+private val asciiRun = Regex("[A-Za-z0-9]+")
 
 /**
  * The key of a change's result that names the pages whose links followed it.
