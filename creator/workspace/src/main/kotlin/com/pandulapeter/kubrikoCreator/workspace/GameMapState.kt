@@ -11,8 +11,10 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypesController
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.PageSummary
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.context.digestAndHealthFindings
+import com.pandulapeter.kubrikoCreator.context.pageSummaries
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import kotlinx.coroutines.CancellationException
@@ -41,6 +43,7 @@ import kotlinx.coroutines.withContext
 public data class GameMap(
     public val digest: ProjectDigest,
     public val findings: List<HealthFinding>,
+    public val pages: List<PageSummary> = emptyList(),
 )
 
 /**
@@ -107,7 +110,10 @@ public class GameMapState internal constructor(
                 commands.context.screenplay.revision.drop(1),
                 commands.context.documents.revision.drop(1),
             ),
-            compute = { commands.context.digestAndHealthFindings().let { (digest, findings) -> GameMap(digest, findings) } },
+            compute = {
+                val (digest, findings) = commands.context.digestAndHealthFindings()
+                GameMap(digest, findings, withContext(commands.context.ioDispatcher) { commands.context.pageSummaries() })
+            },
             scope = scope,
             report = report,
         )

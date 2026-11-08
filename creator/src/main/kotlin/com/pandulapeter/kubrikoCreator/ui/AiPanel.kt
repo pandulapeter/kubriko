@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantPanelModel
 import com.pandulapeter.kubrikoCreator.ai.assistant.AttentionChip
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.PageSummary
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
@@ -60,6 +61,7 @@ internal fun AiPanel(
     onShowStep: (AiStep) -> Unit,
     digest: ProjectDigest?,
     findings: List<HealthFinding>,
+    pages: List<PageSummary>,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     onPageSelected: (String) -> Unit,
@@ -97,6 +99,7 @@ internal fun AiPanel(
             onShowStep = onShowStep,
             digest = shownDigest,
             findings = shownFindings,
+            pages = pages,
             onTypeSelected = onTypeSelected,
             onSceneSelected = onSceneSelected,
             onPageSelected = onPageSelected,
@@ -117,6 +120,7 @@ private fun AiPanelContent(
     onShowStep: (AiStep) -> Unit,
     digest: ProjectDigest?,
     findings: List<HealthFinding>,
+    pages: List<PageSummary>,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
     onPageSelected: (String) -> Unit,
@@ -156,6 +160,7 @@ private fun AiPanelContent(
             modifier = content,
             digest = digest,
             findings = findings,
+            pages = pages,
             onTypeSelected = onTypeSelected,
             onSceneSelected = onSceneSelected,
             onPageSelected = onPageSelected,

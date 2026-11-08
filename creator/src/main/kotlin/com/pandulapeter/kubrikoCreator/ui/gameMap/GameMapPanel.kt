@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.PageSummary
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
@@ -42,10 +43,13 @@ import kubriko.creator.generated.resources.game_map_hint
 import kubriko.creator.generated.resources.game_map_inherits_from
 import kubriko.creator.generated.resources.game_map_manager_types
 import kubriko.creator.generated.resources.game_map_no_description
+import kubriko.creator.generated.resources.game_map_page_title
+import kubriko.creator.generated.resources.game_map_pages
 import kubriko.creator.generated.resources.game_map_places
 import kubriko.creator.generated.resources.game_map_scenes
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_manager_type
+import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_scene
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -57,7 +61,8 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param digest The digest of the open project, or null while it is worked out.
  * @param findings What about the game is worth a look, shown first.
- * @param onPageSelected Opens a page a finding is about.
+ * @param pages The screenplay's pages, listed first, since they are the game's design.
+ * @param onPageSelected Opens a page.
  */
 @Composable
 internal fun GameMapPanel(
@@ -66,6 +71,7 @@ internal fun GameMapPanel(
     onSceneSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     findings: List<HealthFinding> = emptyList(),
+    pages: List<PageSummary> = emptyList(),
     onPageSelected: (String) -> Unit = {},
 ) = Column(
     modifier = modifier,
@@ -85,8 +91,21 @@ internal fun GameMapPanel(
         }
         if (digest == null) return@LazyColumn
         healthSection(findings, onTypeSelected, onSceneSelected, onPageSelected)
-        if (digest.actorTypes.isEmpty() && digest.managerTypes.isEmpty() && digest.scenes.isEmpty()) {
+        if (pages.isEmpty() && digest.actorTypes.isEmpty() && digest.managerTypes.isEmpty() && digest.scenes.isEmpty()) {
             item { Text(stringResource(Res.string.game_map_empty), style = MaterialTheme.typography.bodySmall) }
+        }
+        if (pages.isNotEmpty()) {
+            item(key = "pages") { SectionTitle(Res.string.game_map_pages) }
+            items(pages, key = { "page:${it.name}" }) { page ->
+                MapEntry(
+                    icon = Res.drawable.ic_page,
+                    accent = Accent.SCREENPLAY,
+                    name = page.title?.let { stringResource(Res.string.game_map_page_title, page.name, it) } ?: page.name,
+                    description = page.summary,
+                    details = emptyList(),
+                    onClick = { onPageSelected(page.name) },
+                )
+            }
         }
         typeSection(Res.string.game_map_actor_types, Res.drawable.ic_actor_type, Accent.CAST, digest.actorTypes, references, onTypeSelected)
         typeSection(Res.string.game_map_manager_types, Res.drawable.ic_manager_type, Accent.CREW, digest.managerTypes, references, onTypeSelected)

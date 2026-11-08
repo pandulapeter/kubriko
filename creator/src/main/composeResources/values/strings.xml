@@ -754,6 +754,8 @@
     <string name="assistant_prompt_describe_scene">Write the description of the Scene %1$s from what is placed in it, or improve the one it has. Change nothing else.</string>
     <string name="game_map_actor_types">Actor types</string>
     <string name="game_map_manager_types">Manager types</string>
+    <string name="game_map_pages">The screenplay</string>
+    <string name="game_map_page_title">%1$s: %2$s</string>
     <string name="game_map_scenes">Scenes</string>
     <string name="game_map_places">Places %1$s</string>
     <string name="game_map_inherits_from">Based on %1$s</string>

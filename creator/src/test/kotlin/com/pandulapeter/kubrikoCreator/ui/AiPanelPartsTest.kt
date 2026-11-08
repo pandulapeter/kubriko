@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.commands.AiStepOrigin
 import com.pandulapeter.kubrikoCreator.commands.ChangeRecord
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.PageSummary
 import com.pandulapeter.kubrikoCreator.context.ProjectDigest
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
@@ -156,5 +157,25 @@ class AiPanelPartsTest {
         onNodeWithText("the Timer spawn never starts", substring = true).performClick()
         assertEquals(listOf("Ball"), opened)
         saveSnapshot("map-worth-a-look")
+    }
+
+    @Test
+    fun theMapListsThePagesFirstAndAPageFindingOpensItsPage() = uiTest {
+        val opened = mutableListOf<String>()
+        showing {
+            GameMapPanel(
+                digest = ProjectDigest(projectName = "breakout", actorTypes = emptyList(), managerTypes = emptyList(), scenes = emptyList(), relations = emptyList()),
+                onTypeSelected = {},
+                onSceneSelected = {},
+                findings = listOf(HealthFinding(HealthFinding.Kind.PAGE_IMAGE_MISSING, RelationSubject.Page("hero"), usage = "screenplay/hero-1.png")),
+                pages = listOf(PageSummary("README", "Breakout", "Bounce the ball off the paddle."), PageSummary("hero", null, null)),
+                onPageSelected = { opened += it },
+            )
+        }
+        onNodeWithText("The screenplay").assertExists()
+        onNodeWithText("README: Breakout").performClick()
+        onNodeWithText("hero shows screenplay/hero-1.png, which is gone.").performClick()
+        assertEquals(listOf("README", "hero"), opened)
+        saveSnapshot("map-pages")
     }
 }
