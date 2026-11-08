@@ -25,30 +25,43 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `04-screenplay.md` with mentions and images (its Order), then the AI's side of pages, keeping them up to date, and
-the writers' room. What is left of its "Deleting what is referred to" comes with each kind's own delete (sprites, sounds,
-music, Timers, folders with contents, pages) and with renames reading `ProjectReferences`. After `04`, `05-settings.md`'s
-Release, Icons, and Signing, each extending the Project settings dialog and its tools, after which `03`'s iOS devices can
-follow Signing. `03`'s new iOS simulator dialog (Setting up emulators and simulators) is small and waits for nothing, so it
-can go in between; its Android emulator dialog waits for `15-onboarding.md`'s download of the SDK's command-line tools.
-`06-batched-rendering.md`'s engine and sprite atlas parts touch only `engine/` and `plugins/sprites`, so they can run beside
-`04` and `05` in a session of their own; its Creator part follows them. Then `06` to `10` in order. What is left in
-`01-large-projects.md` waits for other plans (Traits, UI elements, git) or for the benchmarks.
+`04-screenplay.md` is done except what waits for other work: each remaining kind's delete (sprites, sounds, music, Timers,
+folders with contents) comes with that kind's own delete, a deleted sprite's page images with sprite deletes, and the live
+writers' room scenario is written but not run (below). Next is `05-settings.md`'s Release, Icons, and Signing, each extending
+the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s new iOS simulator dialog
+(Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its Android emulator dialog
+waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s engine and sprite atlas
+parts touch only `engine/` and `plugins/sprites`, so they can run beside `05` in a session of their own; its Creator part
+follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements,
+git) or for the benchmarks.
 
-What the last session did (`d9830a6e2..ef26c81c1`, reviewed with `/code-review` high, its ten findings fixed in
-`73036046e..81aef654f`):
+What the last session did (`e60f4dfd3..HEAD`, unattended, every item reviewed with `/code-review` and every finding
+fixed in its own commit, `:creator:allTests` green at every commit):
 
-- **Documents**, `04-screenplay.md`'s first step, done: `read_documents`, `create_document`, `edit_document`,
-  `move_document`, `delete_document`, and `add_document_to_screenplay` (undone by the internal `MovePageToDocument`);
-  documents open in the page editor (`WorkspaceSelection.Document`), are rows in the band of the folder they are in
-  (no Documents group), and are created, renamed, dragged, deleted, and added to the screenplay from the sidebar, the
-  last two behind `DocumentChangeConfirmation`, where the page's name can still be changed. `AGENTS.md` is a document
-  too, so it opens in the page editor.
-- **One New menu** (asked for by the user): a + beside the sidebar's filter offers every kind the project can make and a
-  document always, and the + of every group header is gone (their ⋮ still offers it).
-- **Case-only renames** of Scenes and pages kept the old name on macOS and could write over another file on Linux; all
-  moves now go through `moveWithoutReplacing`.
-- A physical iPhone isn't offered by Play yet: that is `03`'s iOS devices, after `05`'s Signing.
+- **Mentions and images:** links between pages and into the project show as chips that open what they name (only a web or
+  mail address opens outside, after it is shown), the `@` suggestions, pictures pasted, dropped, or chosen, scaled down and
+  moved with their page, renames and moves following every mention (`withMentionsFollowed`), and "Mentioned in" on what pages
+  mention.
+- **The AI's side of pages:** the page index at a conversation's start, `ScreenplayStyle` holding what the AI writes (shown to
+  the user only as quiet hints), `mentionedIn` on every write's result, the screenplay's health checks (as dots in the
+  sidebar), the reminders and the offer to write the screenplay, and Project settings → Screenplay.
+- **The writers' room:** the Blank template, "Start from an idea" on the new project form with its targets (only those this
+  computer can build), `ask_user`, the room's own rules (kept when a conversation is continued, and its unanswered idea kept
+  when the agent is replaced), and its ways in from the AI panel's menu and a Planned item's right-click menu.
+- **The AI's changes to a page as a diff** in the page editor until its turn is kept or undone (`PageReview`), always what the
+  turn's Undo would bring back.
+- **Deleting what is mentioned:** a deleted type's, Scene's, or page's mentions in pages become plain text in the delete's undo
+  step (documents are the user's, so theirs are left, as renames leave them); deleting a page goes through `deleteWithUsages`
+  like every other delete and confirms when it would change other pages, listing them; `RenamingFollowsReferencesTest` holds
+  every rename to what a delete would clean up.
+
+Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
+
+- The live writers' room scenario: `KUBRIKO_CREATOR_CLAUDE_AGENT=true ./gradlew :creator:ai:test --tests "*AssistantLiveScenariosTest.aPitchInTheWritersRoom*"`
+  (it spends a real Claude subscription's requests, up to an hour), then tune `AssistantSystemPrompt.WRITERS_ROOM` by what it does.
+- A project created from an idea, through to the room's first questions, in the real app (an end-to-end scenario could cover
+  it under Xvfb, but it needs a signed-in agent).
+- Pasting an image from the system clipboard, and dropping one from Finder, onto a page.
 
 ## Before a release
 
