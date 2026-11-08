@@ -57,8 +57,8 @@ pages once it lands: quick open lists them, and find usages and `search_project`
 
 ## Testing
 
-- A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape `../CLAUDE.md` gives them, and
-  passes `ScreenplayStyle`.
+- Run the live writers' room scenario (`AssistantLiveScenariosTest`, `KUBRIKO_CREATOR_CLAUDE_AGENT=true`), written but not run
+  yet, and tune the room's rules by what it shows.
 - Unit tests for deleting each remaining kind as `DeletingWithUsagesTest` and `DeletingEveryThingTest` have them for types,
   Scenes, and Properties: every usage, its cleanup, and a byte-for-byte undo.
 - Unit tests for a page's sprite images after a sprite rename, once sprites can be renamed.

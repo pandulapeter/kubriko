@@ -17,14 +17,19 @@ import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
 import com.pandulapeter.kubrikoCreator.context.BreakoutFixture
+import com.pandulapeter.kubrikoCreator.context.screenplayTexts
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.mcp.clients.ShellProcessRunner
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.screenplay.PageText
+import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -38,6 +43,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -97,10 +103,35 @@ class AssistantLiveScenariosTest {
         assertEquals(BlockDefinition.Log("hit"), collision.blocks.last())
     }
 
-    private fun live(block: suspend TestScope.(LiveSession) -> Unit) {
+    @Test
+    fun aPitchInTheWritersRoomBecomesAPlayableSliceWithPagesThatKeepTheRules() = live(isBlank = true) { session ->
+        val questions = session.context.questions
+        // Whatever the room asks is answered with its first suggestion, as a user who agrees with everything would.
+        val answering = launch(Dispatchers.Default) {
+            questions.pending.collect { pending -> pending.forEach { questions.answer(it.id, it.answers.firstOrNull() ?: "Your call: whatever fits the game best.") } }
+        }
+        val chat = session.chat(rules = AssistantSystemPrompt.WRITERS_ROOM)
+        chat.ask("Let's make a game in the writers' room. My idea: a sheepdog herds sheep into a pen before the sun sets, while foxes try to snatch them.", timeout = 20.minutes)
+        repeat(FOLLOW_UPS) {
+            if (session.context.blockTypes!!.types.value.isEmpty()) chat.ask("Go on: build the first playable slice.", timeout = 20.minutes)
+        }
+        answering.cancel()
+        val pages = session.context.screenplayTexts().pages
+        assertTrue(pages.isNotEmpty(), "No page was written.")
+        pages.forEach { (name, text) ->
+            assertNotNull(PageText.titleOf(text), "The page $name has no title.")
+            assertNotNull(PageText.summaryOf(text), "The page $name has no summary.")
+            assertEquals(emptyList(), ScreenplayStyle.problemsOf(text, PageNaming.pathOf(name)), "The page $name breaks the writing rules.")
+        }
+        assertTrue(session.context.blockTypes!!.types.value.isNotEmpty(), "No type was made.")
+        val scenes = withContext(Dispatchers.IO) { session.context.scenes.names().mapNotNull { session.context.scenes.actors(it) } }
+        assertTrue(scenes.any { it.isNotEmpty() }, "No Scene places an Actor.")
+    }
+
+    private fun live(isBlank: Boolean = false, block: suspend TestScope.(LiveSession) -> Unit) {
         assumeTrue(isEnabled)
-        runTest(timeout = 15.minutes) {
-            val session = newSession()
+        runTest(timeout = if (isBlank) 90.minutes else 15.minutes) {
+            val session = newSession(isBlank)
             try {
                 block(session)
             } finally {
@@ -112,8 +143,8 @@ class AssistantLiveScenariosTest {
     /**
      * Sends [text] and waits for the turn to end, in real time: [runTest]'s own clock would let the timeout pass at once.
      */
-    private suspend fun AssistantChat.ask(text: String) = withContext(Dispatchers.Default) {
-        withTimeout(5.minutes) {
+    private suspend fun AssistantChat.ask(text: String, timeout: Duration = 5.minutes) = withContext(Dispatchers.Default) {
+        withTimeout(timeout) {
             state.first { it == ChatState.Ready }
             send(text)
             isBusy.first { it }
@@ -140,9 +171,9 @@ class AssistantLiveScenariosTest {
         private var assistant = newAssistant()
 
         @OptIn(EditorMutation::class)
-        fun TestScope.prepare() {
-            context = commandContext(*BreakoutFixture.types.toTypedArray(), rootDirectory = projectDirectory)
-            context.scenes.write("level-1", BreakoutFixture.level)
+        fun TestScope.prepare(isBlank: Boolean) {
+            context = commandContext(*if (isBlank) emptyArray() else BreakoutFixture.types.toTypedArray(), rootDirectory = projectDirectory)
+            if (!isBlank) context.scenes.write("level-1", BreakoutFixture.level)
             executor = CommandExecutor(context, testScope())
         }
 
@@ -160,12 +191,16 @@ class AssistantLiveScenariosTest {
             systemPrompt = AssistantSystemPrompt::withProject,
         )
 
-        suspend fun chat(resuming: String? = null) = withContext(mainThread) {
+        suspend fun chat(resuming: String? = null, rules: String? = null) = withContext(mainThread) {
             val owner = assistant
             AssistantChat(
                 parentScope = scope,
                 start = { permissions, onHistory ->
-                    if (resuming == null) owner.newConversation(projectDirectory, permissions) else owner.resumeConversation(projectDirectory, resuming, permissions, onHistory)
+                    if (resuming == null) {
+                        owner.newConversation(projectDirectory, permissions, rules = rules)
+                    } else {
+                        owner.resumeConversation(projectDirectory, resuming, permissions, onHistory, rules)
+                    }
                 },
                 end = owner::closeConversation,
                 toolsIdOf = owner::toolsIdOf,
@@ -186,5 +221,12 @@ class AssistantLiveScenariosTest {
         }
     }
 
-    private fun TestScope.newSession() = LiveSession().apply { prepare() }
+    private fun TestScope.newSession(isBlank: Boolean) = LiveSession().apply { prepare(isBlank) }
+
+    private companion object {
+        /**
+         * How many times the writers' room is asked to go on when it stops before building anything, waiting to be told.
+         */
+        const val FOLLOW_UPS = 2
+    }
 }
