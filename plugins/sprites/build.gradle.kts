@@ -25,5 +25,9 @@ kotlin {
             api(projects.engine)
             api(libs.compose.resources)
         }
+        // Copying sprites onto atlas pages is tested with real bitmaps, which need Skia's native library.
+        desktopTest.dependencies {
+            implementation(compose.desktop.currentOs)
+        }
     }
 }
