@@ -451,6 +451,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (`ui/CommandTitles.kt`, `ui/actorTypes/KindTitles.kt`). The AI reads `DomainText.english`, never a UI string; a new error
   or status is an entry of its owner's enum with its English, and a string in `strings.xml` mapped in `ui/texts` (which
   `ui/DomainTexts.kt` dispatches to).
+- **The writers' room** is a conversation with rules of its own (`AssistantSystemPrompt.WRITERS_ROOM`, after the project's
+  context, so the other conversations' cached prefix stays the same), started with a prompt (`startWritersRoom`), not a wizard:
+  the agent leads, and everything goes through the usual tools, Keep, and Undo. Its questions go through `ask_user`, an
+  `ActionCommand` that waits in `UserQuestions` without holding up changes, until the AI panel answers it or its turn is
+  stopped, which takes the question away.
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
   without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
   cost.

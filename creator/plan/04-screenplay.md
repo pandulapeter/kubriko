@@ -67,47 +67,26 @@ dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is le
 
 ## The writers' room
 
-Creating a project with the assistant: it asks what the game is, writes the first pages with the user, and builds the smallest
-playable version of them, then the next, playing and showing each one.
+The writers' room exists (`../CLAUDE.md` → AI): "Start from an idea" on the new project screen, the Blank template, `ask_user`,
+the conversation's own rules (`AssistantSystemPrompt.WRITERS_ROOM`), and its ways in from the AI panel's menu and a Planned
+item's right-click menu. What is left:
 
-1. **Starting:** the new project screen offers "Start from an idea" beside the templates (only while AI features are on): a
-   paragraph pitch, the name, and the targets. The project is created from a new Blank template (one empty Scene, no Ball), and the
-   workspace opens on the assistant in the writers' room.
-2. **Questions:** the agent asks a few at a time, through a new tool, `ask_user` (a question, two to four answers, and an "Other"
-   field), whose answers the panel shows as buttons; the tool returns the choice. Creator owns it, so every agent gets it, not only
-   ones with a question tool of their own. The order: the core loop, controls, winning and losing, the cast, the look, and what the
-   first version leaves out.
-3. **Pages first:** the agent writes "The game" (the pitch, the core loop, who plays it and on what, and the look, plus a
-   **Words** list mapping the game's own names to the project's, "the hero" is `Player`) and a page per main part, with everything not yet built under Planned, before any
-   Actor type. The user sees them appear and can edit them before the next step.
-4. **Slices:** the agent picks the smallest playable slice from the Planned items, lays it out as a plan to approve
-   (`PlanChecklist`), builds it with Blocks rather than Kotlin Blocks where the Block set allows, plays it (`start_game`,
-   `take_screenshot`), and shows the result. The built items leave Planned in the same turn.
-5. **Rounds:** after each slice the agent asks what to change or build next; the user can stop at any time, and "Continue in the
-   writers' room" (the assistant panel's menu, and every Planned item's right-click menu as "Build this with the assistant") starts
-   again from the pages, in a new conversation.
-6. **Not only new games:** "Plan a feature" runs the same questions for one new page in an existing game.
-
-The writers' room is a conversation with extra rules (`AssistantSystemPrompt` gains a section, sent only to these conversations)
-and the `ask_user` tool, not a wizard of its own: the agent leads, and everything it does goes through the usual commands, Keep,
-and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite editor (`10-sprite-editor.md`) exists.
+- **The targets** on the idea's form, beside the pitch and the name, turned on as the project is created, as Project settings →
+  Targets turns them on afterwards today.
 
 ## Order
 
-The writers' room next, `ask_user` and the Blank template first (what is left of deleting what is referred to comes with each
-kind's delete). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages and
-`search_project` include their mentions and text.
+The writers' room's targets next (what is left of deleting what is referred to comes with each kind's delete). Search
+(`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages and `search_project` include
+their mentions and text.
 
 ## Testing
 
-- A `FakeAgent` run through the writers' room, with `ask_user` answered by the test, from pitch to a project that builds; the
-  Blank template in `ProjectTemplateIntegrationTest`.
 - A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape above, and
   passes `ScreenplayStyle`.
 - Unit tests for deleting each remaining kind as `DeletingWithUsagesTest` and `DeletingEveryThingTest` have them for types,
   Scenes, and Properties: every usage, its cleanup, and a byte-for-byte undo.
 - Unit tests for a page's sprite images after a sprite rename, once sprites can be renamed.
-- Offscreen snapshots of the `ask_user` buttons.
 
 ## Open questions
 
