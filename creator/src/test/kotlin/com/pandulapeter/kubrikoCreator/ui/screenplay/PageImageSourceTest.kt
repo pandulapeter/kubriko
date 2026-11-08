@@ -13,6 +13,9 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddPageImage
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -22,6 +25,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class PageImageSourceTest {
@@ -41,15 +45,29 @@ class PageImageSourceTest {
     }
 
     @Test
-    fun `copied image files are pasted, copied text isn't, and a copied image is saved as a PNG first`() {
+    fun `copied image files are pasted, copied text isn't, and a copied image is read later as a PNG`() {
         val image = File(directory, "Cave map.png").apply { ImageIO.write(BufferedImage(4, 2, BufferedImage.TYPE_INT_ARGB), "png", this) }
         val notes = File(directory, "notes.txt").apply { writeText("x") }
-        assertEquals(listOf(PageImageSource.ImageFile(image, "Cave map")), imagesOnClipboard(clipboardHolding(DataFlavor.javaFileListFlavor, listOf(image, notes))))
-        assertEquals(emptyList(), imagesOnClipboard(Clipboard("test").apply { setContents(StringSelection("text"), null) }))
-        val pasted = imagesOnClipboard(clipboardHolding(DataFlavor.imageFlavor, BufferedImage(6, 3, BufferedImage.TYPE_INT_ARGB))).single()
+        assertEquals(PastedImages.Files(listOf(PageImageSource.ImageFile(image, "Cave map"))), pastedImagesOf(clipboardHolding(DataFlavor.javaFileListFlavor, listOf(image, notes))))
+        assertEquals(PastedImages.Files(emptyList()), pastedImagesOf(Clipboard("test").apply { setContents(StringSelection("text"), null) }))
+        val pasted = assertIs<PastedImages.Image>(pastedImagesOf(clipboardHolding(DataFlavor.imageFlavor, BufferedImage(6, 3, BufferedImage.TYPE_INT_ARGB)))).read()!!
         assertEquals("", pasted.description)
         assertEquals(6 to 3, ImageIO.read(pasted.file).let { it.width to it.height })
-        assertEquals(emptyList(), imagesOnClipboard(Clipboard("empty")))
+        assertEquals(PastedImages.Files(emptyList()), pastedImagesOf(Clipboard("empty")))
+    }
+
+    @Test
+    fun `a paste of images ends up on the page, and a paste of text is left to the field`() = runTest {
+        val chosen = mutableListOf<PageImageSource>()
+        var starts = 0
+        val choices = PageImageChoices(emptyList(), onStart = { starts++ }, onChoose = { chosen += it })
+        assertEquals(false, choices.paste(PastedImages.Files(emptyList()), this))
+        val file = PageImageSource.ImageFile(File(directory, "a.png"))
+        assertEquals(true, choices.paste(PastedImages.Files(listOf(file)), this))
+        assertEquals(true, choices.paste(PastedImages.Image(clipboardHolding(DataFlavor.imageFlavor, BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB))), this, UnconfinedTestDispatcher(testScheduler)))
+        advanceUntilIdle()
+        assertEquals(2, starts)
+        assertEquals(file, chosen.first())
     }
 
     @Test

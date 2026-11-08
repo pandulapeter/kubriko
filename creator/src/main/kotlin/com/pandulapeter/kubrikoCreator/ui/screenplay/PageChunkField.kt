@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -84,6 +85,7 @@ internal fun PageChunkField(
     verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     val currentValue by rememberUpdatedState(value)
+    val scope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
     var hasBeenFocused by remember { mutableStateOf(false) }
     var dismissedAt by remember { mutableStateOf<Int?>(null) }
@@ -122,13 +124,8 @@ internal fun PageChunkField(
                         onDone()
                         return@onPreviewKeyEvent true
                     }
-                    if (images != null && (event.isMetaPressed || event.isCtrlPressed) && event.key == Key.V) {
-                        val pasted = imagesOnClipboard()
-                        if (pasted.isNotEmpty()) {
-                            images.onStart()
-                            pasted.forEach(images.onChoose)
-                            return@onPreviewKeyEvent true
-                        }
+                    if (images != null && (event.isMetaPressed || event.isCtrlPressed) && event.key == Key.V && images.paste(pastedImagesOf(), scope)) {
+                        return@onPreviewKeyEvent true
                     }
                     val format = if (event.isMetaPressed || event.isCtrlPressed) shortcuts[event.key] else null
                     format?.let { onValueChange(it(currentValue)) } != null
