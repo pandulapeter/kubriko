@@ -58,14 +58,20 @@ public object PageLinks {
      * (a path from the project's root too), or null if it names none: a web address, a path outside the project or from
      * the root of the disk, or only a place in the page itself (`#heading`).
      */
-    public fun resolve(pagePath: String, destination: String): String? {
+    public fun resolve(pagePath: String, destination: String): String? = pathOf(pagePath, destination)?.takeIf { !it.startsWith("..") }
+
+    /**
+     * Where [destination], written in the page at [pagePath], points from the project's root, starting with `..` for a
+     * place above the project, or null if it isn't a relative path.
+     */
+    private fun pathOf(pagePath: String, destination: String): String? {
         val path = destination.take(suffixStartOf(destination))
         if (path.isEmpty() || path.startsWith('/') || path.startsWith('\\') || scheme.containsMatchIn(path)) return null
         val segments = ArrayList(folderSegmentsOf(pagePath))
-        decode(path).split('/').forEach { segment ->
+        decode(unescaped(path)).split('/').forEach { segment ->
             when (segment) {
                 "", "." -> Unit
-                ".." -> if (segments.isEmpty()) return null else segments.removeAt(segments.lastIndex)
+                ".." -> if (segments.isEmpty() || segments.last() == "..") segments += ".." else segments.removeAt(segments.lastIndex)
                 else -> segments += segment
             }
         }
@@ -86,7 +92,7 @@ public object PageLinks {
         val newPagePath = moves.applyTo(pagePath) ?: pagePath
         val result = StringBuilder(text)
         linksOf(text).asReversed().forEach { link ->
-            val resolved = resolve(pagePath, link.destination) ?: return@forEach
+            val resolved = pathOf(pagePath, link.destination) ?: return@forEach
             val moved = moves.applyTo(resolved)
             if (moved == null && newPagePath == pagePath) return@forEach
             val relative = relativePath(newPagePath, moved ?: resolved)
@@ -229,6 +235,11 @@ public object PageLinks {
      */
     private fun suffixStartOf(destination: String) = destination.indexOfFirst { it == '#' || it == '?' }.takeIf { it >= 0 } ?: destination.length
 
+    /**
+     * [path] without the backslashes Markdown lets a destination escape punctuation with (`my\\_page.md`).
+     */
+    private fun unescaped(path: String) = if ('\\' !in path) path else escapedPunctuation.replace(path) { it.groupValues[1] }
+
     private fun encode(path: String) = buildString {
         path.forEach { character ->
             if (character in escaped) append('%').append(character.code.toString(16).uppercase().padStart(2, '0')) else append(character)
@@ -252,6 +263,7 @@ public object PageLinks {
         return bytes.toString(Charsets.UTF_8)
     }
 
+    private val escapedPunctuation = Regex("\\\\([!-/:-@\\[-`{-~])")
     private val scheme = Regex("^[A-Za-z][A-Za-z0-9+.-]*:")
     private val escaped = setOf(' ', '%', '(', ')', '<', '>', '#', '?', '\\', '[', ']')
     private val titleOpeners = setOf('"', '\'', '(')

@@ -99,7 +99,15 @@ class PageLinksTest {
     fun `a moved page's own links are written again from where it is now`() {
         val text = "[Hero](../.kubriko/actors/Player.json), [me](hero.md#top), [web](https://example.com), [up](../../x.md)"
         val moved = PageLinks.withMovesFollowed(text, "screenplay/hero.md", listOf(PathMove("screenplay/hero.md", "screenplay/cast/hero.md")))
-        assertEquals("[Hero](../../.kubriko/actors/Player.json), [me](hero.md#top), [web](https://example.com), [up](../../x.md)", moved)
+        assertEquals("[Hero](../../.kubriko/actors/Player.json), [me](hero.md#top), [web](https://example.com), [up](../../../x.md)", moved)
+    }
+
+    @Test
+    fun `a moved page keeps its links above the project and its escaped ones pointing where they did`() {
+        val text = "[x](../../shared/notes.md) [y](my\\_page.md) [z](<../a b.md>)"
+        val moved = PageLinks.withMovesFollowed(text, "screenplay/a.md", listOf(PathMove("screenplay/a.md", "screenplay/deep/er/a.md")))
+        assertEquals("[x](../../../../shared/notes.md) [y](../../my_page.md) [z](<../../../a b.md>)", moved)
+        assertEquals("screenplay/my_page.md", PageLinks.resolve("screenplay/a.md", "my\\_page.md"))
     }
 
     @Test
