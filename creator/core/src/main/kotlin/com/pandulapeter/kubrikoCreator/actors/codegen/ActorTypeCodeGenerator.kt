@@ -88,14 +88,15 @@ public object ActorTypeCodeGenerator {
     }
 
     /**
-     * The draw function of an Actor type's final class: its shape in its color, or its sprite.
+     * The look of an Actor type's final class, which Kubriko draws together with the batched Actors around it: its shape
+     * in its color, or its sprite. The look is brought up to date with the Actor whenever Kubriko reads it, so a color
+     * changed by a Block or in the Scene editor shows on the next frame.
      */
-    internal fun StringBuilder.appendDrawFunction(definition: ActorTypeDefinition, imports: MutableSet<String>) {
+    internal fun StringBuilder.appendLook(definition: ActorTypeDefinition, imports: MutableSet<String>) {
         val isSprite = definition.sprite?.let(SpriteFiles::accessorOf) != null
-        imports += "androidx.compose.ui.graphics.drawscope.DrawScope"
-        if (isSprite) imports += SPRITE_DRAW_IMPORTS
+        imports += if (isSprite) SPRITE_LOOK_IMPORTS else listOf(LOOKS_PACKAGE + lookClassOf(definition.shape))
         appendLine()
-        appendLine(if (isSprite) SPRITE_DRAW_FUNCTION else drawFunction(definition.shape))
+        appendLine(if (isSprite) SPRITE_LOOK else shapeLook(definition.shape))
     }
 
     /**
@@ -157,42 +158,45 @@ public object ActorTypeCodeGenerator {
         appendLine("}")
     })
 
-    private fun drawFunction(shape: ActorShape) = when (shape) {
-        ActorShape.CIRCLE -> """
-            |    override fun DrawScope.draw() = drawCircle(
-            |        color = color,
-            |        radius = body.size.width.raw / 2,
-            |        center = body.size.center.raw,
-            |    )
-        """.trimMargin()
-        ActorShape.RECTANGLE -> """
-            |    override fun DrawScope.draw() = drawRect(
-            |        color = color,
-            |        size = body.size.raw,
-            |    )
-        """.trimMargin()
+    private fun lookClassOf(shape: ActorShape) = when (shape) {
+        ActorShape.CIRCLE -> "EllipseLook"
+        ActorShape.RECTANGLE -> "RectangleLook"
     }
+
+    private fun shapeLook(shape: ActorShape) = """
+        |    /**
+        |     * Its shape in its color.
+        |     */
+        |    override val look = ${lookClassOf(shape)}(color)
+        |        get() {
+        |            field.color = color
+        |            return field
+        |        }
+    """.trimMargin()
 
     internal const val SPRITE_MANAGER_FIELD = "spriteManager"
 
+    private const val LOOKS_PACKAGE = "com.pandulapeter.kubriko.actor.looks."
+
     /**
-     * Draws the sprite stretched over the body, its pixels kept sharp, as pixel art wants them.
+     * The sprite stretched over the body, its pixels kept sharp, as pixel art wants them: a part of the shared images the
+     * game's sprites are loaded onto ([SpritesCodeGenerator]), so nothing is drawn until they are loaded.
      */
-    private val SPRITE_DRAW_FUNCTION = """
-        |    override fun DrawScope.draw() {
-        |        val image = sprite?.let { $SPRITE_MANAGER_FIELD.get(it) } ?: return
-        |        drawImage(
-        |            image = image,
-        |            dstSize = IntSize(body.size.width.raw.roundToInt(), body.size.height.raw.roundToInt()),
-        |            filterQuality = FilterQuality.None,
-        |        )
-        |    }
+    private val SPRITE_LOOK = """
+        |    /**
+        |     * Its sprite, once the game's sprites are loaded.
+        |     */
+        |    override val look = SpriteLook(texture = null, filterQuality = FilterQuality.None)
+        |        get() {
+        |            field.setRegion(sprite?.let { $SPRITE_MANAGER_FIELD.getRegion(it) })
+        |            return field
+        |        }
     """.trimMargin()
 
-    private val SPRITE_DRAW_IMPORTS = listOf(
+    private val SPRITE_LOOK_IMPORTS = listOf(
         "androidx.compose.ui.graphics.FilterQuality",
-        "androidx.compose.ui.unit.IntSize",
-        "kotlin.math.roundToInt",
+        "${LOOKS_PACKAGE}SpriteLook",
+        "com.pandulapeter.kubriko.sprites.setRegion",
     )
 
     /**

@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.AudioCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
 import org.junit.Assume.assumeFalse
 import java.io.File
 import kotlin.io.path.createTempDirectory
@@ -108,7 +109,7 @@ class BlockTypeStoreTest {
         store.saveAndRegenerate(ball)
         store.saveAndRegenerate(ball.copy(shape = ActorShape.RECTANGLE))
         assertEquals(listOf(ball.copy(shape = ActorShape.RECTANGLE)), store.load().types)
-        assertContains(File(generated, "Ball.kt").readText(), "drawRect(")
+        assertContains(File(generated, "Ball.kt").readText(), "RectangleLook(")
     }
 
     @Test
@@ -355,6 +356,24 @@ class BlockTypeStoreTest {
     }
 
     @Test
+    fun theSpritesManagerIsWrittenWhileAnActorTypeHasASpriteAndRemovedAfterwards() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val sprites = File(generated, "GeneratedSprites.kt")
+        store.saveAndRegenerate(ball)
+        assertFalse(sprites.exists())
+        store.saveAndRegenerate(ball.copy(sprite = "drawable/ball.png"))
+        store.saveAndRegenerate(ActorTypeDefinition("Brick", sprite = "drawable/ball.png"))
+        assertEquals(SpritesCodeGenerator.generate("com.example.game", setOf("ball")), sprites.readText())
+        assertContains(File(generated, "KubrikoWiring.kt").readText(), "SpriteManager.newInstance(), GeneratedSprites()")
+        store.saveAndRegenerate(ball)
+        store.delete("Brick")
+        store.regenerateAll()
+        assertFalse(sprites.exists())
+        assertFalse("SpriteManager" in File(generated, "KubrikoWiring.kt").readText())
+    }
+
+    @Test
     fun aSceneWithMusicMakesTheGamePlayAudio() {
         optIn()
         val store = BlockTypeStore.open(root)!!
@@ -410,7 +429,7 @@ class BlockTypeStoreTest {
         assertEquals(lastModified, file.lastModified())
         store.save(ball.copy(shape = ActorShape.RECTANGLE))
         store.regenerate(store.load().types)
-        assertContains(file.readText(), "drawRect")
+        assertContains(file.readText(), "RectangleLook")
     }
 
     @Test
@@ -425,7 +444,7 @@ class BlockTypeStoreTest {
         assertFails { store.regenerate(listOf(changed)) }
         generated.setWritable(true)
         store.regenerate(listOf(changed))
-        assertContains(file.readText(), "drawRect")
+        assertContains(file.readText(), "RectangleLook")
     }
 
     @Test

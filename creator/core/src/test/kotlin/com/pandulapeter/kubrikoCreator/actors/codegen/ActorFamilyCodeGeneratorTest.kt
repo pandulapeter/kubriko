@@ -51,7 +51,7 @@ class ActorFamilyCodeGeneratorTest {
     @Test
     fun theTopmostTypeOfAFamilyGetsABaseClassWithItsEventsAsHooks() {
         val code = generate(enemy)
-        assertContains(code, "abstract class EnemyBase(\n    final override val body: BoxBody,\n    color: Color,\n    hp: Float,\n    final override val collisionMask: CollisionMask,\n) : Visible, Dynamic, CollisionDetector {")
+        assertContains(code, "abstract class EnemyBase(\n    final override val body: BoxBody,\n    color: Color,\n    hp: Float,\n    final override val collisionMask: CollisionMask,\n) : Batched, Dynamic, CollisionDetector {")
         assertContains(code, "    override fun update(deltaTimeInMilliseconds: Int) {\n        if (isRemoved) return\n        onEveryFrame(deltaTimeInMilliseconds)\n")
         assertContains(code, "                is Wall -> if (!other.isRemoved) onCollisionWithWall(other)\n")
         assertContains(code, "    protected open fun onEveryFrame(deltaTimeInMilliseconds: Int) {\n        hp += -1f\n    }\n")

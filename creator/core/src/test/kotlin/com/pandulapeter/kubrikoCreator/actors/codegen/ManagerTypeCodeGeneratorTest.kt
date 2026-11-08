@@ -280,10 +280,10 @@ class ManagerTypeCodeGeneratorTest {
     }
 
     @Test
-    fun theWiringCreatesTheSpriteManagerAlsoForTheSceneEditorWhichHasNone() {
-        val wiring = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(usesSprites = true))
+    fun theWiringCreatesTheSpriteManagerAlsoForTheSceneEditorWhichHasNoneAndTheManagerLoadingTheSpritesAfterIt() {
+        val wiring = ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game", PluginManagers(sprites = setOf("ball")))
         assertContains(wiring, "import com.pandulapeter.kubriko.sprites.SpriteManager\n")
-        assertContains(wiring, "        return listOf(GeneratedScenes(firstSceneOverride ?: firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()), SpriteManager.newInstance()) + managers\n")
+        assertContains(wiring, "        return listOf(GeneratedScenes(firstSceneOverride ?: firstScene, isInSceneEditor, managers.filterIsInstance<Actor>()), SpriteManager.newInstance(), GeneratedSprites()) + managers\n")
         assertFalse("SpriteManager" in ManagerTypeCodeGenerator.generateWiring(emptyList(), "com.example.game"))
     }
 

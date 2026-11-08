@@ -36,7 +36,7 @@
   with `Manager` after it (`BlockScope.managerField`), so no Property may end with `Manager` and no Manager type may be called
   `Viewport`, `KeyboardInput`, or `Sprite`.
 - Parent Actor types are real Kotlin inheritance (`ActorFamilyCodeGenerator`): the family's topmost type gets an abstract
-  `<Name>Base` with each Event as an `open` hook, and every type a final class that keeps its state and draws itself, since
+  `<Name>Base` with each Event as an `open` hook, and every type a final class that keeps its state and holds its look, since
   Kubriko registers saveable types as `T : Editable<T>`, which a subclass can't implement again. Names ending in `Base` are
   reserved. The topmost type's base class is written by the same `ActorClassEmitter` as a type without a family, so the two
   can't drift, and each generated file imports only what its own classes use.
@@ -49,6 +49,20 @@
   is already loading, so goToScene every frame doesn't restart the load forever.
 - `GeneratedAudio` exists only while the game plays audio. It starts music on the next frame, since the music player exists only
   once the viewport is composed, and resumes it when the game is focused again, since `MusicManager` doesn't.
+- Generated Actor types are `Batched`, so the engine draws runs of them in one call: each final class's `look` (its shape in
+  its color, or its sprite) is a property whose getter brings it up to date with the Actor (the color, the sprite's region)
+  whenever Kubriko reads it, so a color set by a Kotlin Block or the Scene editor shows without a hook in every setter, and a
+  family's base class needn't know its children's looks. Every appearance feature to come (sprite sheets and frames, tinting,
+  drawing order, layer, the visible toggle) is a property of the look; a type that draws with code of its own (a Kotlin Block
+  in a drawing Event) becomes a plain `Visible`, which ends the run it sits in. A circle fills a body that isn't square as an
+  ellipse (`EllipseLook`), as an unevenly scaled one always looked, while its collision mask stays a circle as wide as the
+  body, since Kubriko has no elliptic mask. `look` is a reserved Property name (format
+  version 3 renamed existing ones). `PreviewActor` builds the same look classes, so the Scene editor's preview and the game
+  match.
+- Every Actor type's sprite is a region of one atlas that `GeneratedSprites` declares (`SpriteManager.loadAtlas`, which splits
+  it into pages when it doesn't fit), loaded in the Scene editor too (through Creator's `SpriteManager`), so sprites draw
+  nothing until all of them are loaded. A sprite sheet joins it whole (`AnimatedSprite.fromAtlas`). The generated code relies
+  on the library's batched API, which is why opted-in projects are raised to Creator's own Kubriko version.
 - Sprites are found through `Res.allDrawableResources[accessor]` rather than their accessor, so a deleted image doesn't break the
   build; images in qualified folders aren't offered, since the sprite plugin doesn't scale them back.
 - `BlockTypeStore` writes only files whose code changed, never writes over a generated file changed by hand, and deletes the

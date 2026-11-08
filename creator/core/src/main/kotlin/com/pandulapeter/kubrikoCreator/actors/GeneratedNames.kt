@@ -18,4 +18,5 @@ internal object GeneratedNames {
     const val SCENES = "GeneratedScenes"
     const val SCENE_SETTINGS = "SceneSettings"
     const val AUDIO = "GeneratedAudio"
+    const val SPRITES = "GeneratedSprites"
 }

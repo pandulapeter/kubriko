@@ -32,7 +32,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendVeloc
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.collisionTargetOrder
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendDrawFunction
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.ABSOLUTE_VALUE_IMPORT
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.REMOVED_FIELD
@@ -115,7 +115,7 @@ internal class ActorClassEmitter(
             imports += BOUNCE_OFF_IMPORTS
             appendBounceOffFunction(visibility)
         }
-        if (role == Role.STANDALONE) appendDrawFunction(definition, imports)
+        if (role == Role.STANDALONE) appendLook(definition, imports)
         if (features.usesNumberText) appendNumberTextFunction(visibility)
         if (role == Role.STANDALONE) appendSavedState(definition, properties, packageName, imports)
         appendLine("}")
@@ -123,7 +123,7 @@ internal class ActorClassEmitter(
 
     private fun StringBuilder.appendHeader(definition: ActorTypeDefinition, properties: List<PropertyDefinition>) {
         val traits = listOfNotNull(
-            "Visible",
+            "Batched",
             "Dynamic".takeIf { features.isDynamic },
             if (features.collisionEvents.isNotEmpty()) "CollisionDetector" else "Collidable".takeIf { features.isCollidable },
             "Editable<${definition.name}>".takeIf { role == Role.STANDALONE },
@@ -274,7 +274,7 @@ internal class ActorClassEmitter(
         const val SCENE_UNIT_IMPORT = "com.pandulapeter.kubriko.types.SceneUnit"
         const val KEY_IMPORT = "androidx.compose.ui.input.key.Key"
         val TRAIT_IMPORTS = mapOf(
-            "Visible" to "com.pandulapeter.kubriko.actor.traits.Visible",
+            "Batched" to "com.pandulapeter.kubriko.actor.traits.Batched",
             "Dynamic" to "com.pandulapeter.kubriko.actor.traits.Dynamic",
             "CollisionDetector" to "com.pandulapeter.kubriko.collision.CollisionDetector",
             "Collidable" to COLLIDABLE_IMPORT,

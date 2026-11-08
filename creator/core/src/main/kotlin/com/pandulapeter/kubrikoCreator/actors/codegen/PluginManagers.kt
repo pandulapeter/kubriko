@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.audioFile
 import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
 
@@ -27,7 +28,8 @@ import com.pandulapeter.kubrikoCreator.project.KubrikoArtifact
  * @param usesAudio Whether any type plays a sound or music, or stops the music, or any Scene has music.
  * @param sounds The sound files the Blocks play, by their path from `composeResources`.
  * @param music The music files the Blocks and the Scenes play, by their path from `composeResources`.
- * @param usesSprites Whether any Actor type is drawn as a sprite.
+ * @param sprites The resource accessors of the sprites the Actor types are drawn as ([SpritesCodeGenerator]); the game uses
+ *   the sprites plugin when there are any.
  */
 internal data class PluginManagers(
     val collidableActorTypeNames: Set<String> = emptySet(),
@@ -35,9 +37,10 @@ internal data class PluginManagers(
     val usesAudio: Boolean = false,
     val sounds: Set<String> = emptySet(),
     val music: Set<String> = emptySet(),
-    val usesSprites: Boolean = false,
+    val sprites: Set<String> = emptySet(),
 ) {
     val usesCollisions get() = collidableActorTypeNames.isNotEmpty()
+    val usesSprites get() = sprites.isNotEmpty()
 
     companion object {
         /**
@@ -61,7 +64,7 @@ internal data class PluginManagers(
                 usesAudio = sceneMusic.isNotEmpty() || KubrikoArtifact.AUDIO_PLAYBACK in pluginsInUse,
                 sounds = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlaySound)?.audioFile },
                 music = blocks.mapNotNullTo(sortedSetOf()) { (it as? BlockDefinition.PlayMusic)?.audioFile } + sceneMusic,
-                usesSprites = KubrikoArtifact.SPRITES in pluginsInUse,
+                sprites = actorTypes.mapNotNullTo(sortedSetOf()) { type -> type.sprite?.let(SpriteFiles::accessorOf) },
             )
         }
     }

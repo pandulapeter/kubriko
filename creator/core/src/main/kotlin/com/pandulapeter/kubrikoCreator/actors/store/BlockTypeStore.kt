@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.PluginManagers
 import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.ScenesCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.SpritesCodeGenerator
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
@@ -239,6 +240,10 @@ public class BlockTypeStore private constructor(
             AudioCodeGenerator.AUDIO_NAME,
             if (pluginManagers.usesAudio) AudioCodeGenerator.generate(settings.packageName, pluginManagers.sounds, pluginManagers.music) else null,
         )
+        writeUnlessChangedByHand(
+            SpritesCodeGenerator.SPRITES_NAME,
+            if (pluginManagers.usesSprites) SpritesCodeGenerator.generate(settings.packageName, pluginManagers.sprites) else null,
+        )
         val removedLeftovers = removeLeftovers(typeNames)
         lastGeneration = definitions to sceneMusic
         return found(typeNames, removedLeftovers)
@@ -380,6 +385,7 @@ public class BlockTypeStore private constructor(
             SceneSettingsCodeGenerator.SETTINGS_NAME,
             ManagerTypeCodeGenerator.WIRING_NAME,
             AudioCodeGenerator.AUDIO_NAME,
+            SpritesCodeGenerator.SPRITES_NAME,
         )
 
         private val json = Json {

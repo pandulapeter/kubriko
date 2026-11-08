@@ -24,7 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPrope
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.GENERATED_PACKAGE
-import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendDrawFunction
+import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendLook
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator.appendSavedState
 import com.pandulapeter.kubrikoCreator.actors.codegen.BlockCodeGenerator.eventCode
 import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunction
@@ -33,7 +33,7 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunct
  * Turns an Actor type that has a parent or children into Kotlin that inherits as the Actor types do. The topmost Actor
  * type of a family gets an abstract base class (`EnemyBase`) with everything the whole family does, each Event an `open`
  * hook; a type with children gets a base class of its own that overrides the hooks of its Events; and every type gets a
- * final class that keeps its state, draws it, and builds its collision mask. "Run the parent's Event" is the `super`
+ * final class that keeps its state, holds its look, and builds its collision mask. "Run the parent's Event" is the `super`
  * call of the hook.
  */
 internal object ActorFamilyCodeGenerator {
@@ -155,7 +155,7 @@ internal object ActorFamilyCodeGenerator {
             appendPropertyFields(newProperties, source = "state.")
             appendOverrides(definition, hookOf, imports, scopeOf)
         }
-        appendDrawFunction(definition, imports)
+        appendLook(definition, imports)
         appendSavedState(definition, family.propertiesOf(name), packageName, imports)
         appendLine("}")
     }

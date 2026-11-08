@@ -60,4 +60,15 @@ class PluginManagersTest {
         assertFalse(PluginManagers.of(listOf(ActorTypeDefinition(name = "Ball"))).usesSprites)
         assertFalse(PluginManagers.of(listOf(ActorTypeDefinition(name = "Ball", sprite = "files/ball.png"))).usesSprites)
     }
+
+    @Test
+    fun theSpritesAreEveryActorTypesSpriteOnceByAccessor() {
+        val types = listOf(
+            ActorTypeDefinition(name = "Ball", sprite = "drawable/ball-1.png"),
+            ActorTypeDefinition(name = "Ghost", sprite = "drawable/ball-1.png"),
+            ActorTypeDefinition(name = "Brick", sprite = "drawable/brick.png"),
+            ActorTypeDefinition(name = "Paddle"),
+        )
+        assertEquals(setOf("ball_1", "brick"), PluginManagers.of(types).sprites)
+    }
 }
