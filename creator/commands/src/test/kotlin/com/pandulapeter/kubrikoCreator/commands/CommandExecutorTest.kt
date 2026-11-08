@@ -45,6 +45,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import java.io.File
 import java.io.IOException
@@ -225,6 +228,19 @@ class CommandExecutorTest {
         assertEquals(listOf(false, true, false), executor.changeLog.since(0).map { it.isByAi })
         assertEquals(ChangeRecord.Step.UNDO, executor.changeLog.since(0).last().step)
         assertEquals(3, executor.changeLog.revision)
+    }
+
+    @OptIn(EditorMutation::class)
+    @Test
+    fun aWriteToolNamesThePagesMentioningWhatItChanged() = runTest {
+        val (executor, context) = executor(ball)
+        context.screenplay.write("README", "The [ball](../.kubriko/actors/Ball.json) bounces.")
+        context.screenplay.write("other", "Nothing about it.")
+        val result = assertIs<CommandOutcome.Success>(executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("width", 40) })).result.jsonObject
+        assertEquals(listOf("screenplay/README.md"), result.getValue("mentionedIn").jsonArray.map { it.jsonPrimitive.content })
+        context.screenplay.write("README", "No mention any more.")
+        val after = assertIs<CommandOutcome.Success>(executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("width", 30) })).result.jsonObject
+        assertEquals(null, after["mentionedIn"])
     }
 
     @Test

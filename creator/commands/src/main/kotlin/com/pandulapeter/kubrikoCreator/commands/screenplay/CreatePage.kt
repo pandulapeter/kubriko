@@ -29,7 +29,7 @@ public object CreatePage : WriteCommand<CreatePage.Input> {
     override val description: String = "Creates a page of the screenplay, the game's design as Markdown in screenplay/: a # title, a one-sentence summary, " +
         "sections under ## headings, and an optional ## Planned list. A game starts as one page, README.md; give a topic a page of its own " +
         "only when the page has grown too long to read in one go, never one page per Actor type, Manager type, or Scene. Describe what " +
-        "the player meets and link to the types, rather than restating their Properties or Events."
+        "the player meets and link to the types (a relative link to their file), rather than restating their Properties or Events."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Page(input.page)

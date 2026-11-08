@@ -11,7 +11,9 @@ package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -29,12 +31,14 @@ internal fun CommandTarget.notation(): String = when (this) {
 }
 
 /**
- * What a write tool returns: the revision the change made, what it changed, and the Event it changed as it is now, so
- * that the agent needn't read it again.
+ * What a write tool returns: the revision the change made, what it changed, the Event it changed as it is now, so that
+ * the agent needn't read it again, and the pages that mention what it changed ([mentionedIn]), which may need the same
+ * change.
  */
-internal fun CommandContext.writeSummary(revision: Int, commandName: String, target: CommandTarget?): JsonObject = buildJsonObject {
+internal fun CommandContext.writeSummary(revision: Int, commandName: String, target: CommandTarget?, mentionedIn: List<String> = emptyList()): JsonObject = buildJsonObject {
     put("revision", revision)
     put("changed", commandName + (target?.let { " at " + it.notation() } ?: ""))
+    if (mentionedIn.isNotEmpty()) put("mentionedIn", JsonArray(mentionedIn.map(::JsonPrimitive)))
     val type = target as? CommandTarget.BlockType ?: return@buildJsonObject
     val eventIndex = type.eventIndex ?: return@buildJsonObject
     blockTypes?.get(type.name)?.events?.getOrNull(eventIndex)?.let { event -> put("event", TypeNotation.of(eventIndex, event, ReadDetail.BLOCKS)) }

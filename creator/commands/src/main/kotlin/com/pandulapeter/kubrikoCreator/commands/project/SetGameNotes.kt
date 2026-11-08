@@ -27,9 +27,9 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object SetGameNotes : WriteCommand<SetGameNotes.Input> {
     override val name: String = "set_game_notes"
-    override val description: String = "Replaces the game's design notes (AGENTS.md at the project's root, Markdown) with text, or deletes them for none. Keep them " +
-        "short: mechanics, naming, and decisions worth knowing in the next conversation, not what the project digest already says. Propose a change " +
-        "in your answer first; the user keeps or undoes it."
+    override val description: String = "Replaces the game's notes (AGENTS.md at the project's root, Markdown) with text, or deletes them for none: how to " +
+        "work on this project (conventions, what to avoid), for every agent. The game's design goes in the screenplay's pages instead. Keep them short, " +
+        "and propose a change in your answer first; the user keeps or undoes it."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Project

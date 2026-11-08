@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.context.Usage
+import com.pandulapeter.kubrikoCreator.context.pagesMentioning
 import com.pandulapeter.kubrikoCreator.context.writeSummary
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CancellationException
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
@@ -112,7 +114,9 @@ public class CommandExecutor(
         applied.inverse?.let { inverse ->
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
-        return CommandOutcome.Success(if (isByAi && applied.result == JsonNull) JsonObject(context.writeSummary(revision, invocation.commandName, target) + applied.details.orEmpty()) else applied.result)
+        if (!isByAi || applied.result != JsonNull) return CommandOutcome.Success(applied.result)
+        val mentionedIn = runCatching { withContext(context.ioDispatcher) { context.pagesMentioning(invocation.targets(context)) } }.getOrDefault(emptyList())
+        return CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn) + applied.details.orEmpty()))
     }
 
     /**

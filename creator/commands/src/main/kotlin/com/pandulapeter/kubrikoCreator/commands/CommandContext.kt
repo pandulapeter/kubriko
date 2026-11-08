@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
+import com.pandulapeter.kubrikoCreator.screenplay.MentionIndex
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import kotlinx.coroutines.CoroutineDispatcher
@@ -77,6 +78,11 @@ public class CommandContext(
      * The health checks of the screenplay's images as last worked out ([pageImageFindings]).
      */
     internal val pageImageFindingsCache = KeyedCache<List<HealthFinding>>()
+
+    /**
+     * Which pages mention what, as last read ([mentionIndex]).
+     */
+    internal val mentionIndexCache = KeyedCache<MentionIndex>()
 
     /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);
