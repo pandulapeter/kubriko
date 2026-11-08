@@ -23,12 +23,12 @@ import kotlinx.serialization.json.longOrNull
 /**
  * Makes new iOS simulators through Xcode's `simctl`, so a beginner never leaves Kubriko Creator for one.
  *
- * @param onCreated Makes a new simulator the place Play uses.
+ * @param onCreated Makes a new simulator the place Play uses, without waiting for Play's places to be looked for again.
  */
 public class IosSimulatorSetup internal constructor(
     private val tools: ToolProcesses,
     private val ioDispatcher: CoroutineDispatcher,
-    private val onCreated: suspend (PlayTarget) -> Unit,
+    private val onCreated: (PlayTarget) -> Unit,
 ) {
     /**
      * What a new simulator can be made of now, listed off the main thread.

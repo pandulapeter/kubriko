@@ -224,7 +224,7 @@ public class WorkspaceController(
     /** Makes new iOS simulators, each chosen in Play's menu once it is made. */
     public val iosSimulatorSetup: IosSimulatorSetup = IosSimulatorSetup(processes.tools, ioDispatcher) { target ->
         playTargets.choose(target)
-        playTargets.refresh()
+        playTargets.startRefresh()
     }
     private val gameBuilds = GameBuilds(
         rootDirectory = project.rootDirectory,

@@ -27,6 +27,7 @@ import com.pandulapeter.kubrikoCreator.testing.testAndroidVersions
 import com.pandulapeter.kubrikoCreator.testing.testConfiguration
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.workspace.FakeToolProcesses.Companion.ok
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -127,6 +128,8 @@ class WorkspaceDevicePlayTest {
             ok("""{ "devices": { "com.apple.CoreSimulator.SimRuntime.iOS-27-2": [{ "udid": "6F1E2C3A-9B8D-4E5F-A1B2-C3D4E5F60718", "isAvailable": true, "state": "Shutdown", "name": "My Phone" }] } }"""),
         )
         tools.answer("simctl create My Phone com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-2", ok(SimctlRecordings.CREATED))
+        val listing = CompletableDeferred<Unit>()
+        tools.onRun = { command -> if ("devices" in command) listing.await() }
         val controller = controller()
         val created = controller.iosSimulatorSetup.create(
             name = "My Phone",
@@ -134,6 +137,7 @@ class WorkspaceDevicePlayTest {
             runtime = IosRuntime("com.apple.CoreSimulator.SimRuntime.iOS-27-2", "iOS 27.2", "24B8117", emptySet()),
         )
         val target = assertIs<IosSimulatorCreation.Created>(created).target
+        listing.complete(Unit)
         assertTrue(target in controller.playTargets.targets.first { it.chosen == target }.available)
     }
 }
