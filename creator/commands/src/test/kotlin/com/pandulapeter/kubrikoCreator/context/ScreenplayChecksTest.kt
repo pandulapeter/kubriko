@@ -10,9 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.screenplay.SetScreenplayReminders

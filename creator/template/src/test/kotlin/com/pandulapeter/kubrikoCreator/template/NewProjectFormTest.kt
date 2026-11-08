@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.template
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class NewProjectFormTest {
@@ -55,5 +56,15 @@ class NewProjectFormTest {
     fun versionControlIsOnUnlessTurnedOff() {
         assertEquals(true, emptyForm.withName("Game").request?.isUnderVersionControl)
         assertEquals(false, emptyForm.withName("Game").copy(isUnderVersionControl = false).request?.isUnderVersionControl)
+    }
+
+    @Test
+    fun aProjectFromAnIdeaNeedsTheIdeaAndStartsFromTheBlankTemplate() {
+        val named = emptyForm.withName("My Game").copy(template = ProjectTemplate.STARTER, pitch = "  ")
+        assertNull(named.request)
+        val request = assertNotNull(named.copy(pitch = " A cat who herds sheep. ").request)
+        assertEquals(ProjectTemplate.BLANK, request.template)
+        assertEquals("A cat who herds sheep.", request.pitch)
+        assertEquals(ProjectTemplate.STARTER to null, named.copy(pitch = null).request?.let { it.template to it.pitch })
     }
 }

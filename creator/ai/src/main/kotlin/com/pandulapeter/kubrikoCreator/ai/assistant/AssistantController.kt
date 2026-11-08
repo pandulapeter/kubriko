@@ -150,8 +150,19 @@ public class AssistantController(
         if (directory == project) return
         project = directory
         endChats()
-        if (directory != null) startIfSetUp(directory)
+        if (directory == null) {
+            pendingWritersRoom = null
+            return
+        }
+        val writersRoom = pendingWritersRoom
+        pendingWritersRoom = null
+        if (writersRoom != null) startWritersRoom(writersRoom) else startIfSetUp(directory)
     }
+
+    /**
+     * The writers' room asked for before the project reached the assistant, started once it does.
+     */
+    private var pendingWritersRoom: String? = null
 
     /**
      * Opens a conversation about [directory] while the panel may still be hidden, so that what needs one taking prompts
@@ -179,6 +190,11 @@ public class AssistantController(
 
     override fun startWritersRoom(prompt: String) {
         if (!host.isOn) return
+        if (project == null) {
+            // The workspace that asks may be shown just before the project reaches the assistant.
+            pendingWritersRoom = prompt
+            return
+        }
         openChat(firstPrompt = prompt) { owner, directory, permissions, _ ->
             owner.newConversation(directory, permissions, LastConversation.withProject(openProject.digest(), null), rules = AssistantSystemPrompt.WRITERS_ROOM)
         }

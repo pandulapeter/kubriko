@@ -157,6 +157,7 @@ private fun ScreenContent(
             panelLayout = panelLayout,
             onCloseProject = onCloseProject,
             onOpenSettings = onOpenSettings,
+            writersRoom = screen.writersRoom,
         )
     }
 }

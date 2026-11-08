@@ -36,7 +36,11 @@ internal sealed interface AppScreen {
         val directory: File,
     ) : AppScreen
 
+    /**
+     * @param writersRoom The idea the project was just created from, which its writers' room starts from.
+     */
     data class Workspace(
         val controller: WorkspaceController,
+        val writersRoom: WritersRoomRequest? = null,
     ) : AppScreen
 }

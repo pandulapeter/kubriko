@@ -35,7 +35,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
-import com.pandulapeter.kubrikoCreator.template.ProjectTemplate
 import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_browse
@@ -78,7 +77,7 @@ internal fun NewProjectScreen(
                 text = stringResource(Res.string.new_project_title),
                 style = MaterialTheme.typography.headlineSmall,
             )
-            TemplateDescription(ProjectTemplate.STARTER)
+            ProjectStartChoice(form = form, onFormChange = { form = it })
             ValidatedTextField(
                 label = Res.string.new_project_name,
                 value = form.name,
@@ -162,20 +161,6 @@ internal fun NewProjectScreen(
             }
         }
     }
-}
-
-@Composable
-private fun TemplateDescription(
-    template: ProjectTemplate,
-) = Column {
-    Text(
-        text = stringResource(template.title),
-        style = MaterialTheme.typography.titleSmall,
-    )
-    Text(
-        text = stringResource(template.description),
-        style = MaterialTheme.typography.bodyMedium,
-    )
 }
 
 @Composable

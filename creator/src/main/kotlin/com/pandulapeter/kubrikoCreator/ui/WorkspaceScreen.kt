@@ -31,6 +31,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.WritersRoomRequest
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.ai.assistant.AssistantController
 import com.pandulapeter.kubrikoCreator.commands.AiStep
@@ -46,6 +47,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import com.pandulapeter.kubrikoCreator.ui.assistant.StartingTheWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.components.AnimatedSidePanel
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
@@ -76,6 +78,7 @@ import kotlinx.coroutines.withContext
  * An open project: the toolbar, the sidebar with the project's contents, the editor of what is selected, and the console.
  *
  * @param panelLayout The side panels' widths, which the user drags at their edges.
+ * @param writersRoom The idea the project was just created from, which its writers' room starts from.
  */
 @Composable
 internal fun WorkspaceScreen(
@@ -86,8 +89,10 @@ internal fun WorkspaceScreen(
     panelLayout: PanelLayout,
     onCloseProject: () -> Unit,
     onOpenSettings: () -> Unit,
+    writersRoom: WritersRoomRequest? = null,
 ) {
     val uiState = rememberWorkspaceUiState(controller)
+    StartingTheWritersRoom(writersRoom, uiState::showAssistant, assistant::startWritersRoom)
     CompositionLocalProvider(
         LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
         LocalMentionedIn provides rememberMentionedIn(controller.commands.context, controller.selection),

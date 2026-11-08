@@ -151,6 +151,16 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun aWritersRoomAskedForBeforeTheProjectStartsOnceTheProjectArrives() = blockingTest {
+        val controller = controller()
+        onMain { controller.startWritersRoom("hello") }
+        assertNull(controller.currentChat.value)
+        onMain { controller.setProject(projectDirectory) }
+        controller.currentChat.value!!.transcript.first { it.items.lastOrNull() == TranscriptItem.AgentMessage("Hi there") }
+        assertEquals(listOf("hello"), launcher.agents.single().prompts)
+    }
+
+    @Test
     fun conversationsNeedAnOpenProject() = blockingTest {
         val controller = controller()
         onMain { controller.newChat() }

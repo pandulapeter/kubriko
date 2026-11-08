@@ -109,11 +109,14 @@ internal class AppController(
                 return@launchOperation
             }
             ensureActive()
-            openProject(directory)
+            openProject(directory, writersRoomPitch = request.pitch)
         }
     }
 
-    fun openProject(directory: File) {
+    /**
+     * Opens the project in [directory], starting its writers' room from [writersRoomPitch] if there is one.
+     */
+    fun openProject(directory: File, writersRoomPitch: String? = null) {
         closeProject()
         _screen.value = AppScreen.Opening(directory)
         launchOperation {
@@ -126,7 +129,7 @@ internal class AppController(
                     workspace.close()
                     throw exception
                 }
-                AppScreen.Workspace(workspace)
+                AppScreen.Workspace(workspace, writersRoomPitch?.let(::WritersRoomRequest))
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: ProjectInspectionException) {

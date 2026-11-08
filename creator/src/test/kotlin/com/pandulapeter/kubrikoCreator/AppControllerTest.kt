@@ -293,6 +293,17 @@ class AppControllerTest {
     }
 
     @Test
+    fun aProjectCreatedFromAnIdeaOpensWithItsWritersRoomRequestedOnce() = runTest {
+        val controller = createController(creator = { File("/projects/my-game") })
+        controller.createProject(request.copy(pitch = "A cat who herds sheep."))
+        val workspace = assertIs<AppScreen.Workspace>(controller.screen.value)
+        assertEquals("A cat who herds sheep.", workspace.writersRoom?.take())
+        assertEquals(null, workspace.writersRoom?.take())
+        controller.openProject(File("/projects/my-game"))
+        assertEquals(null, assertIs<AppScreen.Workspace>(controller.screen.value).writersRoom)
+    }
+
+    @Test
     fun aProjectThatCantBeCreatedReturnsToTheFormWithItsReason() = runTest {
         val controller = createController(creator = { throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY) })
         controller.createProject(request)

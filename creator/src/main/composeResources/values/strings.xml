@@ -41,6 +41,9 @@
     <string name="new_project_version_control">Start version control (a git repository with a first commit)</string>
     <string name="new_project_folder">The project will be created in %1$s.</string>
     <string name="creating_project">Creating %1$s… The first project takes a while, as Gradle downloads itself.</string>
+    <string name="new_project_from_idea">Start from an idea</string>
+    <string name="new_project_from_idea_description">Say what the game is in a paragraph. The assistant asks about it, writes its first pages with you, and builds the smallest playable version of them, then the next.</string>
+    <string name="new_project_pitch">Your idea</string>
     <string name="template_blank_title">Blank</string>
     <string name="template_blank_description">One empty Scene and nothing in it, for a game designed from scratch.</string>
     <string name="template_starter_title">Starter</string>
@@ -451,6 +454,7 @@
     <string name="action_write_screenplay_description">The assistant reads the game and proposes its pages, for you to keep page by page.</string>
     <string name="action_no_thanks">No, thanks</string>
     <string name="screenplay_offer_text">This game has no screenplay yet: no pages saying what it is, for you and the assistant. The assistant can read the game and propose its first pages.</string>
+    <string name="assistant_prompt_writers_room_idea">Let's make a game in the writers' room. My idea: %1$s</string>
     <string name="assistant_prompt_write_screenplay">Write this game's screenplay. Read the game (its types, Scenes, and code), then propose its pages in screenplay/: README.md first, "The game" (the pitch, the core loop, who plays it and on what, and the look, with a Words list of the game's own names for the project's), and a page of its own only for a part one page can't hold. Create them one at a time, so that I can keep or undo each.</string>
     <string name="git_screenplay_reminder">The game changed, but no page of the screenplay did.</string>
     <string name="action_update_screenplay_with_ai">Ask the assistant to update the screenplay</string>

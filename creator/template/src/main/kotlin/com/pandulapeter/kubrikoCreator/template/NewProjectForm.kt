@@ -20,7 +20,14 @@ public data class NewProjectForm(
     public val parentDirectory: File,
     public val isPackageNameEdited: Boolean = false,
     public val isUnderVersionControl: Boolean = true,
+    public val template: ProjectTemplate = ProjectTemplate.STARTER,
+    public val pitch: String? = null,
 ) {
+    /**
+     * Whether the project is created from an idea ([pitch]): from the Blank template, its writers' room starting from it.
+     */
+    public val isFromIdea: Boolean get() = pitch != null
+
     /**
      * Why [name] can't be used, or null while it is empty or valid.
      */
@@ -35,8 +42,15 @@ public data class NewProjectForm(
      * What to create, or null while the form is incomplete or invalid.
      */
     public val request: NewProjectRequest?
-        get() = if (ProjectNaming.validateName(name) == null && ProjectNaming.validatePackageName(packageName) == null) {
-            NewProjectRequest(name = name.trim(), packageName = packageName, parentDirectory = parentDirectory, isUnderVersionControl = isUnderVersionControl)
+        get() = if (ProjectNaming.validateName(name) == null && ProjectNaming.validatePackageName(packageName) == null && pitch?.isBlank() != true) {
+            NewProjectRequest(
+                name = name.trim(),
+                packageName = packageName,
+                parentDirectory = parentDirectory,
+                template = if (isFromIdea) ProjectTemplate.BLANK else template,
+                isUnderVersionControl = isUnderVersionControl,
+                pitch = pitch?.trim(),
+            )
         } else {
             null
         }
