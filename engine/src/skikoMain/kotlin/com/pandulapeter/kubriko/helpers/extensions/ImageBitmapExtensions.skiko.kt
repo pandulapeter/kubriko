@@ -25,9 +25,9 @@ actual fun ImageBitmap.markImmutable(): ImageBitmap {
 actual fun imageBitmapFromArgb(pixels: IntArray, width: Int, height: Int, isDrawOnly: Boolean): ImageBitmap {
     requireArgbPixels(pixels, width, height)
     val bitmap = Bitmap()
-    bitmap.allocPixels(ImageInfo.makeS32(width, height, ColorAlphaType.UNPREMUL))
+    check(bitmap.allocPixels(ImageInfo.makeS32(width, height, ColorAlphaType.UNPREMUL))) { "Skia could not allocate a $width × $height bitmap." }
     if (!bitmap.writeArgbPixelsThroughFastPath(pixels, width, height)) {
-        bitmap.installPixels(pixels.toSkiaPixelBytes(width * height))
+        check(bitmap.installPixels(pixels.toSkiaPixelBytes(width * height))) { "Skia could not take the pixels of a $width × $height bitmap." }
     }
     bitmap.setImmutable()
     return bitmap.asComposeImageBitmap()

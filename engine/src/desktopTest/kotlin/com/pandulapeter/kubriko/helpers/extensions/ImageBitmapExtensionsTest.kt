@@ -109,5 +109,6 @@ class ImageBitmapExtensionsTest {
     fun `too few pixels or an empty size are refused`() {
         assertFailsWith<IllegalArgumentException> { imageBitmapFromArgb(IntArray(3), width = 2, height = 2) }
         assertFailsWith<IllegalArgumentException> { imageBitmapFromArgb(IntArray(0), width = 0, height = 2) }
+        assertFailsWith<IllegalArgumentException> { imageBitmapFromArgb(IntArray(0), width = 65536, height = 65536) }
     }
 }

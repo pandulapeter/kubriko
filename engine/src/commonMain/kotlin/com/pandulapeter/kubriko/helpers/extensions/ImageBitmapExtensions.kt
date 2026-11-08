@@ -32,14 +32,17 @@ expect fun ImageBitmap.markImmutable(): ImageBitmap
  * pixels on the GPU alone (a hardware bitmap) instead of also in memory; the Skia targets keep their own texture cache
  * and ignore it. Allocates, so it belongs in setup code rather than in a frame.
  *
- * @throws IllegalArgumentException if [width] or [height] is not positive, or [pixels] holds fewer than
- * `width * height` values.
+ * @throws IllegalArgumentException if [width] or [height] is not positive, the bitmap would hold more than
+ * [Int.MAX_VALUE] bytes, or [pixels] holds fewer than `width * height` values.
+ * @throws IllegalStateException if the platform cannot allocate the bitmap.
  */
 expect fun imageBitmapFromArgb(pixels: IntArray, width: Int, height: Int, isDrawOnly: Boolean = false): ImageBitmap
 
 internal fun requireArgbPixels(pixels: IntArray, width: Int, height: Int) {
     require(width > 0 && height > 0) { "The bitmap must be at least 1 × 1 pixels, not $width × $height." }
-    require(pixels.size >= width * height) { "A $width × $height bitmap needs ${width * height} pixels, but only ${pixels.size} were given." }
+    val pixelCount = width.toLong() * height
+    require(pixelCount * Int.SIZE_BYTES <= Int.MAX_VALUE) { "A $width × $height bitmap is too large to create from an array." }
+    require(pixels.size >= pixelCount) { "A $width × $height bitmap needs $pixelCount pixels, but only ${pixels.size} were given." }
 }
 
 /**
