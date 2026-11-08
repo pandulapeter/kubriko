@@ -48,4 +48,10 @@ class MentionTest {
             ).map(Mention::of),
         )
     }
+
+    @Test
+    fun `only a Markdown file in the screenplay folder is a page`() {
+        assertEquals("levels/cave", PageNaming.nameOf("screenplay/levels/cave.md"))
+        listOf("screenplay/cave.MD", "screenplay/cave.txt", "docs/screenplay/cave.md", "screenplay.md").forEach { assertEquals(null, PageNaming.nameOf(it), it) }
+    }
 }

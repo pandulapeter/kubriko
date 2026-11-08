@@ -91,7 +91,7 @@ public sealed interface Mention {
             return when {
                 extension == "json" && path.startsWith(DefinitionPaths.folderPath(BlockTypeKind.ACTOR, "") + "/") -> ActorType(nameOf(path), path)
                 extension == "json" && path.startsWith(DefinitionPaths.folderPath(BlockTypeKind.MANAGER, "") + "/") -> ManagerType(nameOf(path), path)
-                extension == PageNaming.EXTENSION && path.startsWith("${PageNaming.FOLDER}/") -> Page(path.removePrefix("${PageNaming.FOLDER}/").removeSuffix(".${PageNaming.EXTENSION}"), path)
+                PageNaming.nameOf(path) != null -> Page(checkNotNull(PageNaming.nameOf(path)), path)
                 extension == PageNaming.EXTENSION -> Document(path)
                 extension == "json" && composeResource?.startsWith("$SCENES/") == true -> Scene(SceneStore.nameOf(File(path)), path)
                 composeResource != null && SpriteFiles.accessorOf(composeResource) != null -> Sprite(path)

@@ -115,7 +115,7 @@ internal fun markdownPathOf(selection: WorkspaceSelection): String? = when (sele
  * What shows the page or document at [path], a path from the project's root.
  */
 internal fun markdownSelectionOf(path: String): WorkspaceSelection {
-    val page = path.removePrefix("${PageNaming.FOLDER}/").takeIf { it != path && path.endsWith(".${PageNaming.EXTENSION}") }?.removeSuffix(".${PageNaming.EXTENSION}")
+    val page = PageNaming.nameOf(path)
     return if (page != null) WorkspaceSelection.Page(page) else WorkspaceSelection.Document(path)
 }
 

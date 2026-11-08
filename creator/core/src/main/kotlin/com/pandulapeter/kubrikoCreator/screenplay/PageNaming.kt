@@ -36,6 +36,11 @@ public object PageNaming {
      */
     public fun pathOf(name: String): String = "$FOLDER/$name.$EXTENSION"
 
+    /**
+     * The name of the page at [path], a path from the project's root, or null if no page is there.
+     */
+    public fun nameOf(path: String): String? = path.removePrefix("$FOLDER/").takeIf { it != path && it.endsWith(".$EXTENSION") }?.removeSuffix(".$EXTENSION")
+
     public fun isValid(name: String): Boolean = name.isNotEmpty() && name.length <= MAXIMUM_LENGTH && FolderPaths.isValid(name)
 
     /**

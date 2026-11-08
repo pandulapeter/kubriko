@@ -16,8 +16,7 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 /**
  * The name of the page at [path], a path from the project's root, or null if no page is there.
  */
-internal fun pageOf(path: String): String? = path.removePrefix("${PageNaming.FOLDER}/").takeIf { it != path && path.endsWith(".${PageNaming.EXTENSION}") }
-    ?.removeSuffix(".${PageNaming.EXTENSION}")
+internal fun pageOf(path: String): String? = PageNaming.nameOf(path)
 
 /**
  * The text of the page or document at [path], a path from the project's root, or null if there is none or it isn't
