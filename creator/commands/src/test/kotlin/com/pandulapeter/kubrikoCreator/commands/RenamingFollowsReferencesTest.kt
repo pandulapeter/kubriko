@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
+import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
 import com.pandulapeter.kubrikoCreator.context.RelationKind
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
@@ -51,10 +52,11 @@ class RenamingFollowsReferencesTest {
     private val managerTypeKinds = setOf(RelationKind.CHANGES, RelationKind.READS, RelationKind.MENTIONS)
     private val sceneKinds = setOf(RelationKind.GOES_TO, RelationKind.STARTS_WITH, RelationKind.NAMES_IN_KOTLIN, RelationKind.MENTIONS)
     private val propertyKinds = setOf(RelationKind.READS, RelationKind.CHANGES)
+    private val pageKinds = setOf(RelationKind.MENTIONS)
 
     @Test
     fun everyKindOfReferenceIsCoveredByARename() {
-        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds)
+        assertEquals(RelationKind.entries.toSet(), actorTypeKinds + managerTypeKinds + sceneKinds + propertyKinds + pageKinds)
     }
 
     private fun CommandContext.writeFile(path: String, text: String) = File(project.rootDirectory, path).apply { parentFile.mkdirs() }.writeText(text)
@@ -134,6 +136,17 @@ class RenamingFollowsReferencesTest {
         val context = commandContext(enemy, boss)
         context.assertFollowed(RelationSubject.Property("Enemy", "hp"), RelationSubject.Property("Enemy", "health"), propertyKinds) {
             EditProperty.apply(context, EditProperty.Input("Enemy", "hp", PropertyDefinition.Number("health")))
+        }
+    }
+
+    @Test
+    fun movingAPageFollowsEveryReferenceToIt() = runTest {
+        val context = commandContext()
+        CreatePage.apply(context, CreatePage.Input("hero", "# The hero\n\nA knight.\n"))
+        CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nStarring the [hero](hero.md).\n"))
+        CreatePage.apply(context, CreatePage.Input("people/villain", "# The villain\n\nFights [the hero](../hero.md).\n"))
+        context.assertFollowed(RelationSubject.Page("hero"), RelationSubject.Page("people/hero"), pageKinds) {
+            MovePage.apply(context, MovePage.Input("hero", "people/hero"))
         }
     }
 }

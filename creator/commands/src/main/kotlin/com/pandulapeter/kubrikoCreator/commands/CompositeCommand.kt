@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Changes made as one step: its parts in order, undone in reverse. Kubriko Creator's own building block for changes no
@@ -39,6 +40,7 @@ internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
         val inverses = ArrayList<Invocation<*>?>(input.parts.size)
         var isRewritingFiles = false
         var result: JsonElement = JsonNull
+        val details = LinkedHashMap<String, JsonElement>()
         input.parts.forEach { part ->
             part.validate(context)?.let { rejection ->
                 rollBack(context, inverses)
@@ -57,9 +59,10 @@ internal object CompositeCommand : WriteCommand<CompositeCommand.Input> {
             inverses += applied.inverse?.copy(isRestoring = true)
             isRewritingFiles = isRewritingFiles || applied.isRewritingFiles
             result = applied.result
+            applied.details?.let(details::putAll)
         }
         val inverse = if (null in inverses) null else inverses.filterNotNull().asReversed().let { reverted -> reverted.singleOrNull() ?: Invocation(CompositeCommand, Input(reverted)) }
-        return Applied(inverse = inverse, result = result, isRewritingFiles = isRewritingFiles)
+        return Applied(inverse = inverse, result = result, isRewritingFiles = isRewritingFiles, details = details.takeIf { it.isNotEmpty() }?.let(::JsonObject))
     }
 
     /**

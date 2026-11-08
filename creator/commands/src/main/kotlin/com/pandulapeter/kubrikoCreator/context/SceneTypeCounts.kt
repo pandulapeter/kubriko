@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.scenes.firstSceneSettings
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import kotlinx.coroutines.withContext
 
 /**
@@ -39,7 +40,8 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
             sceneTypeCounts = sceneCounts,
             firstScene = firstSceneSettings(project.rootDirectory)?.firstScene,
             kotlinFiles = if (ProjectReferences.readsKotlinFiles(subject)) HandWrittenKotlin.read(project.rootDirectory) else emptyMap(),
-            markdown = screenplayTexts().markdown,
+            // Documents are the user's, which Creator changes only when asked to, so only pages are cleaned up.
+            markdown = screenplayTexts().markdown.filterKeys { PageNaming.nameOf(it) != null },
             mentionedPath = mentionedPathOf(subject),
         )
     }

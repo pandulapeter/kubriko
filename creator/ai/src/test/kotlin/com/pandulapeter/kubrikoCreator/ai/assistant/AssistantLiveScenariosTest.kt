@@ -108,12 +108,15 @@ class AssistantLiveScenariosTest {
         val questions = session.context.questions
         // Whatever the room asks is answered with its first suggestion, as a user who agrees with everything would.
         val answering = launch(Dispatchers.Default) {
-            questions.pending.collect { pending -> pending.forEach { questions.answer(it.id, it.answers.firstOrNull() ?: "Your call: whatever fits the game best.") } }
+            val answered = HashSet<Long>()
+            questions.pending.collect { pending ->
+                pending.filter { answered.add(it.id) }.forEach { questions.answer(it.id, it.answers.firstOrNull() ?: "Your call: whatever fits the game best.") }
+            }
         }
         val chat = session.chat(rules = AssistantSystemPrompt.WRITERS_ROOM)
         chat.ask("Let's make a game in the writers' room. My idea: a sheepdog herds sheep into a pen before the sun sets, while foxes try to snatch them.", timeout = 20.minutes)
         repeat(FOLLOW_UPS) {
-            if (session.context.blockTypes!!.types.value.isEmpty()) chat.ask("Go on: build the first playable slice.", timeout = 20.minutes)
+            if (!session.hasPlayableSlice()) chat.ask("Go on: build the first playable slice.", timeout = 20.minutes)
         }
         answering.cancel()
         val pages = session.context.screenplayTexts().pages
@@ -123,10 +126,14 @@ class AssistantLiveScenariosTest {
             assertNotNull(PageText.summaryOf(text), "The page $name has no summary.")
             assertEquals(emptyList(), ScreenplayStyle.problemsOf(text, PageNaming.pathOf(name)), "The page $name breaks the writing rules.")
         }
-        assertTrue(session.context.blockTypes!!.types.value.isNotEmpty(), "No type was made.")
-        val scenes = withContext(Dispatchers.IO) { session.context.scenes.names().mapNotNull { session.context.scenes.actors(it) } }
-        assertTrue(scenes.any { it.isNotEmpty() }, "No Scene places an Actor.")
+        assertTrue(session.hasPlayableSlice(), "No type was made, or no Scene places an Actor.")
     }
+
+    /**
+     * Whether the project has a type and a Scene placing an Actor: the least a slice that plays needs.
+     */
+    private suspend fun LiveSession.hasPlayableSlice() = context.blockTypes!!.types.value.isNotEmpty() &&
+        withContext(Dispatchers.IO) { context.scenes.names().any { context.scenes.actors(it)?.isNotEmpty() == true } }
 
     private fun live(isBlank: Boolean = false, block: suspend TestScope.(LiveSession) -> Unit) {
         assumeTrue(isEnabled)

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.screenplay
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
@@ -32,3 +33,8 @@ internal fun CommandContext.writeMarkdown(path: String, text: String) {
     val page = pageOf(path)
     if (page != null) screenplay.write(page, text) else documents.write(path, text)
 }
+
+/**
+ * What a change to the page or document at [path], a path from the project's root, is made to.
+ */
+internal fun markdownTargetOf(path: String): CommandTarget = pageOf(path)?.let { CommandTarget.Page(it) } ?: CommandTarget.Document(path)

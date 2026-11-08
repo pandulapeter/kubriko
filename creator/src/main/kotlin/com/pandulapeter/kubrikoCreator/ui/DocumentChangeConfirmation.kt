@@ -37,6 +37,8 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_to_screenplay
 import kubriko.creator.generated.resources.action_cancel
@@ -52,6 +54,7 @@ import kubriko.creator.generated.resources.page_delete_text
 import kubriko.creator.generated.resources.page_delete_title
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Asks before [pending] changes one of the user's documents: deleting it, or moving it into the screenplay as a page,
@@ -112,7 +115,7 @@ internal fun DocumentChangeConfirmation(
 
 /**
  * Deletes a page at once when it has no images only it shows and nothing mentions it, and otherwise asks, saying which pages
- * and documents mention it (their links become plain text) and whether its images go with it (they do unless the user
+ * mention it (their links become plain text) and whether its images go with it (they do unless the user
  * says otherwise).
  */
 @Composable
@@ -124,12 +127,22 @@ private fun PageDeleteConfirmation(
     onDismiss: () -> Unit,
 ) {
     val facts = produceState<PageDeleteFacts?>(null, input.page) {
-        value = PageDeleteFacts(
-            images = runCatching { unusedImagesOf(input.page) }.getOrDefault(emptyList()),
-            mentionedIn = runCatching { usagesOf(Invocation(DeletePage, input)).orEmpty() }.getOrDefault(emptyList()).mapNotNull { (it.place as? UsagePlace.Markdown)?.path },
-        )
+        value = coroutineScope {
+            val images = async { runCatching { unusedImagesOf(input.page) }.getOrDefault(emptyList()) }
+            val mentions = async {
+                try {
+                    usagesOf(Invocation(DeletePage, input)).orEmpty().mapNotNull { (it.place as? UsagePlace.Markdown)?.path }
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    null
+                }
+            }
+            PageDeleteFacts(images.await(), mentions.await())
+        }
     }.value ?: return
-    if (facts.images.isEmpty() && facts.mentionedIn.isEmpty()) {
+    // Unless nothing mentions it for sure, the user is asked, since the delete would change the pages mentioning it.
+    if (facts.images.isEmpty() && facts.mentionedIn?.isEmpty() == true) {
         LaunchedEffect(input) { onConfirm(Invocation(DeletePage, input.copy(deleteImages = false))) }
         return
     }
@@ -142,11 +155,12 @@ private fun PageDeleteConfirmation(
         onDismiss = onDismiss,
     ) {
         Text(text = stringResource(Res.string.page_delete_text), style = MaterialTheme.typography.bodyMedium)
-        if (facts.mentionedIn.isNotEmpty()) {
-            Text(
-                text = stringResource(Res.string.page_delete_mentioned_in, facts.mentionedIn.joinToString { PageNaming.nameOf(it) ?: it }),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+        val mentionedIn = facts.mentionedIn
+        if (!mentionedIn.isNullOrEmpty()) {
+            Text(text = stringResource(Res.string.page_delete_mentioned_in), style = MaterialTheme.typography.bodyMedium)
+            mentionedIn.forEach { path ->
+                Text(text = PageNaming.nameOf(path) ?: path, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         if (facts.images.isNotEmpty()) {
             LabeledSwitch(
@@ -160,12 +174,12 @@ private fun PageDeleteConfirmation(
 }
 
 /**
- * What deleting a page takes with it: the [images] only it shows, and the pages and documents whose links to it become
- * plain text ([mentionedIn], by their paths from the project's root).
+ * What deleting a page takes with it: the [images] only it shows, and the pages whose links to it become
+ * plain text ([mentionedIn], by their paths from the project's root, or null if they couldn't be read).
  */
 private class PageDeleteFacts(
     val images: List<String>,
-    val mentionedIn: List<String>,
+    val mentionedIn: List<String>?,
 )
 
 @Composable

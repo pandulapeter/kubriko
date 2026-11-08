@@ -9,8 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import com.pandulapeter.kubrikoCreator.commands.screenplay.RestoreMarkdown
-import com.pandulapeter.kubrikoCreator.commands.screenplay.readMarkdown
+import com.pandulapeter.kubrikoCreator.commands.screenplay.UnlinkMentions
 import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
@@ -19,28 +18,38 @@ import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.context.projectReferences
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.putJsonArray
 
 /**
  * Deletes [subject] by applying [delete], which deletes only it, after cleaning up what Kubriko Creator owns that refers
  * to it ([com.pandulapeter.kubrikoCreator.context.ProjectReferences]): the Actors of its type leave every Scene, Blocks and
  * Events that only mean something with it are removed, placeholders of its Properties become text, and so do the pages'
- * and documents' mentions of it. All of it is one step, undone together, and the AI hears every usage and what happened
+ * mentions of it. All of it is one step, undone together, and the AI hears every usage and what happened
  * to it, Kotlin left to change included.
  */
 internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, delete: Invocation<*>): Applied {
     val references = projectReferences(subject)
     val usages = references.usagesOf(subject)
+    val mentioning = usages.mapNotNull { (it.place as? UsagePlace.Markdown)?.path }.distinct()
     val parts = buildList {
         scenesWithout(subject, usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceScenes, ReplaceScenes.Input(it))) }
         references.typesAfterDeleting(usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceTypes, ReplaceTypes.Input(it))) }
         add(delete)
-        withContext(ioDispatcher) { references.markdownAfterDeleting(usages, ::readMarkdown) }.takeIf { it.isNotEmpty() }?.let { add(Invocation(RestoreMarkdown, RestoreMarkdown.Input(it))) }
+        references.mentionedPath?.takeIf { mentioning.isNotEmpty() }?.let { add(Invocation(UnlinkMentions, UnlinkMentions.Input(it, mentioning))) }
     }
     val applied = parts.singleOrNull()?.apply(this) ?: CompositeCommand.apply(this, CompositeCommand.Input(parts))
-    return if (applied.failure == null && usages.isNotEmpty()) applied.copy(details = usagesDetails(references.usagesAfterDeleting(usages))) else applied
+    if (applied.failure != null) return applied
+    val details = applied.details.orEmpty()
+    // A file that stopped mentioning it since the usages were read was left as it is, so it isn't reported either.
+    val unlinked = details[UnlinkMentions.UNLINKED]?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty()
+    val reported = references.usagesAfterDeleting(usages).filter { usage -> (usage.place as? UsagePlace.Markdown)?.path.let { it == null || it in unlinked } }
+    val kept = details - UnlinkMentions.UNLINKED
+    return applied.copy(details = if (reported.isEmpty()) kept.takeIf { it.isNotEmpty() }?.let(::JsonObject) else JsonObject(kept + usagesDetails(reported)))
 }
 
 /**

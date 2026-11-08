@@ -250,7 +250,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   that name of another kind.
 - **Deletes clean up what refers to them** (`deleteWithUsages`): deleting an Actor type, Manager type, Scene, or Property
   removes its type's Actors from every Scene and the Blocks and Events that only mean something with it (an if Block with its
-  section), turns placeholders of its Properties and the pages' and documents' mentions of it into text (`RestoreMarkdown`), and
+  section), turns placeholders of its Properties and the pages' mentions of it into text (`UnlinkMentions`; documents are the user's,
+  so theirs are left, as renames leave them), and
   leaves Kotlin alone (listed instead), as one undo step that brings it all back byte for byte (`ReplaceTypes`, `ReplaceScenes`,
   internal like `CompositeCommand`). Deleting a page turns the links to it into text the same way, and the AI still hears which
   pages mentioned what it deleted (`mentionedIn`), since their prose may still describe it. What it touches comes

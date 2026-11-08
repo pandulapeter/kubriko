@@ -48,14 +48,13 @@ class DeletingMentionedTest {
         CreateDocument.apply(context, CreateDocument.Input("notes.md", "See the [Brick](.kubriko/actors/Brick.json) and [the game](screenplay/README.md).\n"))
         assertEquals(
             listOf(
-                Usage(UsagePlace.Markdown("notes.md"), RelationKind.MENTIONS, RelationSubject.Type("Brick"), UsageEffect.MENTION_TO_TEXT),
                 Usage(UsagePlace.Markdown("screenplay/README.md"), RelationKind.MENTIONS, RelationSubject.Type("Brick"), UsageEffect.MENTION_TO_TEXT, count = 2),
             ),
             context.usagesOf(RelationSubject.Type("Brick")),
         )
         val after = context.assertRoundTrip(Invocation(DeleteActorType, DeleteActorType.Input("Brick"))) { context.files() }
         assertEquals("# Breakout\n\nThe ball breaks each brick, and bricks fall.\n", after.getValue("screenplay/README.md"))
-        assertEquals("See the Brick and [the game](screenplay/README.md).\n", after.getValue("notes.md"))
+        assertEquals("See the [Brick](.kubriko/actors/Brick.json) and [the game](screenplay/README.md).\n", after.getValue("notes.md"), "A document is the user's, so it is left as it is.")
     }
 
     @Test
@@ -99,5 +98,17 @@ class DeletingMentionedTest {
         assertContains(assertIs<CommandOutcome.Success>(check).result.jsonPrimitive.content, "screenplay/README.md mentions Page hero: the mention becomes plain text.")
         val result = assertIs<CommandOutcome.Success>(executor.call("delete_page", buildJsonObject { put("page", "hero") })).result.jsonObject
         assertEquals(listOf("screenplay/README.md"), result.getValue("mentionedIn").jsonArray.map { it.jsonPrimitive.content })
+        assertEquals(listOf("screenplay/README.md mentions Page hero: the mention becomes plain text."), result.getValue("usages").jsonArray.map { it.jsonPrimitive.content })
+    }
+
+    @Test
+    fun aPageThatStoppedMentioningItSinceItWasLastReadIsNeitherChangedNorReported() = runTest {
+        val context = commandContext(brick)
+        CreatePage.apply(context, CreatePage.Input("README", "# Breakout\n\nThe ball breaks each [brick](../.kubriko/actors/Brick.json).\n"))
+        context.screenplayTexts()
+        File(context.project.rootDirectory, "screenplay/README.md").writeText("# Breakout\n\nThe ball breaks everything.\n")
+        val applied = DeleteActorType.apply(context, DeleteActorType.Input("Brick"))
+        assertEquals(null, applied.details)
+        assertEquals("# Breakout\n\nThe ball breaks everything.\n", context.text("screenplay/README.md"))
     }
 }

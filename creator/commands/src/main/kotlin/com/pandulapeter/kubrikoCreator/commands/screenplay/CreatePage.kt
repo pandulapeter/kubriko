@@ -48,7 +48,7 @@ public object CreatePage : WriteCommand<CreatePage.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         if (context.screenplay.scanExistingName(input.page) != null) return@withContext Applied.failed(Rejection(CommandProblem.PAGE_TAKEN, input.page))
         context.screenplay.write(input.page, input.text)
-        Applied(inverse = Invocation(DeletePage, DeletePage.Input(input.page)))
+        Applied(inverse = Invocation(RemovePage, DeletePage.Input(input.page)))
     }
 
     @Serializable

@@ -31,7 +31,7 @@ public sealed interface UsagePlace {
     }
 
     /**
-     * A page of the screenplay or a document, by its path from the project's root.
+     * A page of the screenplay, by its path from the project's root.
      */
     public data class Markdown(
         val path: String,

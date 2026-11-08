@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.commands.screenplay
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
-import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.NotATool
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -22,9 +21,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 
 /**
- * Writes pages and documents as given, by their paths from the project's root: how a delete turns their mentions of what it
- * deleted into plain text ([com.pandulapeter.kubrikoCreator.commands.deleteWithUsages]), and how undoing a move puts back
- * the links that followed it ([withMentionsFollowed]), byte for byte.
+ * Writes pages and documents back as they were, by their paths from the project's root: how undoing a move puts back the
+ * links that followed it ([withMentionsFollowed]), and undoing a delete the mentions it turned into text ([UnlinkMentions]),
+ * byte for byte.
  */
 @OptIn(EditorMutation::class)
 internal object RestoreMarkdown : WriteCommand<RestoreMarkdown.Input> {
@@ -32,9 +31,9 @@ internal object RestoreMarkdown : WriteCommand<RestoreMarkdown.Input> {
     override val description = ""
     override val inputSerializer: KSerializer<Input> = NotATool("RestoreMarkdown")
 
-    override fun target(context: CommandContext, input: Input) = targetOf(input.contents.keys.first())
+    override fun target(context: CommandContext, input: Input) = markdownTargetOf(input.contents.keys.first())
 
-    override fun targets(context: CommandContext, input: Input) = input.contents.keys.mapTo(LinkedHashSet(), ::targetOf)
+    override fun targets(context: CommandContext, input: Input) = input.contents.keys.mapTo(LinkedHashSet(), ::markdownTargetOf)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = null
 
@@ -56,8 +55,6 @@ internal object RestoreMarkdown : WriteCommand<RestoreMarkdown.Input> {
         }
         Applied(inverse = Invocation(RestoreMarkdown, Input(previous)))
     }
-
-    private fun targetOf(path: String) = pageOf(path)?.let { CommandTarget.Page(it) } ?: CommandTarget.Document(path)
 
     /**
      * @param contents The whole text of each page or document, by its path from the project's root.

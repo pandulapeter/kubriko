@@ -29,7 +29,7 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
  * @param firstScene The Scene the game starts with, if its settings name one.
  * @param kotlinFiles The text of every hand-written Kotlin file, by its path from the project's root (only those
  *   [readsKotlinFiles] says the usages of a subject need).
- * @param markdown The text of every page and document, by its path from the project's root.
+ * @param markdown The text of every page, by its path from the project's root.
  * @param mentionedPath The file a page links to to mention the subject asked about, a path from the project's root, if it
  *   can be mentioned.
  */
@@ -39,14 +39,14 @@ internal class ProjectReferences(
     private val firstScene: String?,
     private val kotlinFiles: Map<String, String>,
     private val markdown: Map<String, String> = emptyMap(),
-    private val mentionedPath: String? = null,
+    val mentionedPath: String? = null,
 ) {
     val relations = ProjectRelations(types, sceneTypeCounts)
     private val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
 
     /**
      * Every usage of [subject] outside itself, in the order of the project: Kubriko Creator's model first, then the
-     * game's settings, then hand-written Kotlin, then the pages and documents mentioning it.
+     * game's settings, then hand-written Kotlin, then the pages mentioning it.
      */
     fun usagesOf(subject: RelationSubject): List<Usage> = buildList {
         relations.to(subject)
@@ -66,7 +66,7 @@ internal class ProjectReferences(
     }
 
     /**
-     * The pages and documents linking to [subject], each once with how many links it has.
+     * The pages linking to [subject], each once with how many links it has.
      */
     private fun mentionUsagesOf(subject: RelationSubject): List<Usage> {
         val path = mentionedPath ?: return emptyList()
@@ -74,19 +74,6 @@ internal class ProjectReferences(
             val count = PageLinks.linksOf(markdown.getValue(file)).count { !it.isImage && PageLinks.resolve(file, it.destination) == path }
             if (count == 0) null else Usage(UsagePlace.Markdown(file), RelationKind.MENTIONS, subject, UsageEffect.MENTION_TO_TEXT, count)
         }
-    }
-
-    /**
-     * The text of each page and document among [usages] once deleting has turned its mentions into plain text, by its path
-     * from the project's root: [read] as it is now (the texts usages are found in may be a moment old), leaving out those
-     * that are gone or no longer mention it.
-     */
-    fun markdownAfterDeleting(usages: List<Usage>, read: (path: String) -> String?): Map<String, String> {
-        val path = mentionedPath ?: return emptyMap()
-        return usages.mapNotNull { (it.place as? UsagePlace.Markdown)?.path }.distinct().mapNotNull { file ->
-            val text = read(file) ?: return@mapNotNull null
-            PageLinks.withLinksToPathAsText(text, file, path).takeIf { it != text }?.let { file to it }
-        }.toMap()
     }
 
     /**
@@ -230,7 +217,8 @@ internal class ProjectReferences(
 
         /**
          * Whether hand-written Kotlin can name [subject], so that its usages need [kotlinFiles]: a type's class, or a
-         * Scene's name in a string, but not a Property, whose name is an ordinary word.
+         * Scene's name in a string, but not a Property, whose name is an ordinary word, nor a page or an image, which the
+         * game's code doesn't name.
          */
         fun readsKotlinFiles(subject: RelationSubject) = subject is RelationSubject.Type || subject is RelationSubject.Scene
 

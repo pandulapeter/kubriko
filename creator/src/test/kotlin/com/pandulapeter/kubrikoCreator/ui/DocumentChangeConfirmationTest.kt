@@ -109,7 +109,7 @@ class DocumentChangeConfirmationTest {
     @Test
     fun deletingAPageThatIsMentionedSaysWhereItsLinksBecomeText() = uiTest(width = 700, height = 400) {
         val confirmed = mutableListOf<Invocation<*>>()
-        val mentions = listOf("screenplay/README.md", "docs/notes.md").map { Usage(UsagePlace.Markdown(it), RelationKind.MENTIONS, RelationSubject.Page("hero"), UsageEffect.MENTION_TO_TEXT) }
+        val mentions = listOf("screenplay/README.md", "screenplay/levels/cave.md").map { Usage(UsagePlace.Markdown(it), RelationKind.MENTIONS, RelationSubject.Page("hero"), UsageEffect.MENTION_TO_TEXT) }
         showing {
             DocumentChangeConfirmation(
                 PendingDocumentChange(Invocation(DeletePage, DeletePage.Input("hero"))),
@@ -120,10 +120,29 @@ class DocumentChangeConfirmationTest {
                 onDismiss = {},
             )
         }
-        onNodeWithText("Mentioned in: README, docs/notes.md. The links to it there become plain text.").assertExists()
+        onNodeWithText("The links to it in these pages become plain text:").assertExists()
+        onNodeWithText("README").assertExists()
+        onNodeWithText("levels/cave").assertExists()
         onNodeWithText("Also delete", substring = true).assertDoesNotExist()
         saveSnapshot("page-delete-mentioned-confirmation")
         onNodeWithText("Delete").performClick()
         assertEquals(listOf<Any>(DeletePage.Input("hero")), confirmed.map { it.input })
+    }
+
+    @Test
+    fun aPageWhoseMentionsCantBeReadIsDeletedOnlyOnceTheUserConfirms() = uiTest(width = 700, height = 400) {
+        val confirmed = mutableListOf<Invocation<*>>()
+        showing {
+            DocumentChangeConfirmation(
+                PendingDocumentChange(Invocation(DeletePage, DeletePage.Input("hero"))),
+                unusedImagesOf = { emptyList() },
+                usagesOf = { throw java.io.IOException("Unreadable.") },
+                validate = { null },
+                onConfirm = { confirmed += it },
+                onDismiss = {},
+            )
+        }
+        onNodeWithText("Delete the page hero?").assertExists()
+        assertEquals(emptyList(), confirmed)
     }
 }
