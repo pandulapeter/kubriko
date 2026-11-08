@@ -24,14 +24,14 @@ internal object ScreenplayChecks {
     private const val ITEM_LENGTH = 80
 
     /**
-     * @param pages Every page's text, by its name.
+     * @param pages Every page's text, by its name, in the order the findings name them.
      * @param index Which of [pages] mention what.
      * @param subjects The path from the project's root of each Actor type's, Manager type's, and Scene's file.
      * @param exists Whether a file is at a path from the project's root.
      * @param areRemindersShown Whether the reminders are on ([com.pandulapeter.kubrikoCreator.screenplay.ScreenplaySettings]).
      */
     fun of(pages: Map<String, String>, index: MentionIndex, subjects: Map<RelationSubject, String>, exists: (String) -> Boolean, areRemindersShown: Boolean): List<HealthFinding> = buildList {
-        val names = pages.keys.sortedWith(compareBy<String> { it != PageNaming.FIRST_PAGE }.thenBy { it.lowercase() })
+        val names = pages.keys
         names.forEach { name ->
             val pagePath = PageNaming.pathOf(name)
             PageLinks.linksOf(checkNotNull(pages[name])).filter { !it.isImage }.mapNotNullTo(LinkedHashSet()) { PageLinks.resolve(pagePath, it.destination) }

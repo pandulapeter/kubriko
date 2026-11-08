@@ -28,7 +28,7 @@ public class ScreenplayTexts(
     public val images: List<String>,
 ) {
     /**
-     * Every page's text, by its name.
+     * Every page's text, by its name, in the screenplay's order: the first page first, then by name.
      */
     public val pages: Map<String, String> = markdown.mapNotNull { (path, text) -> PageNaming.nameOf(path)?.let { it to text } }.toMap()
 
