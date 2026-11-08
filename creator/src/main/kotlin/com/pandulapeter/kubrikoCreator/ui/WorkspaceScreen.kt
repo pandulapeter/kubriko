@@ -487,12 +487,10 @@ private fun WorkspaceCenterOf(
         rootDirectory = controller.commands.context.project.rootDirectory,
         selection = selection,
         text = markdownText,
-        projectRevision = listOf(
-            blockTypes,
-            resources,
-            controller.commands.context.screenplay.current.collectAsState().value,
-            controller.commands.context.documents.structureRevision.collectAsState().value,
-        ),
+        blockTypes = blockTypes,
+        resources = resources,
+        pageNames = controller.commands.context.screenplay.current.collectAsState().value,
+        documentsRevision = controller.commands.context.documents.structureRevision.collectAsState().value,
         onOpen = controller.selection::open,
     ),
 )

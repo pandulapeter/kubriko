@@ -23,10 +23,18 @@ import java.io.File
  * What the links of the page or document the page editor shows point at: its mentions, drawn as chips in their kind's
  * accent that open what they name ([onOpen]), and its web addresses, shown first ([pendingAddress]) and only then
  * opened in the browser.
+ *
+ * @param pagePath The path of the page or document from the project's root, which its links are written from.
  */
 internal class PageLinksState(
+    val pagePath: String,
     private val onOpen: (Mention) -> Unit,
 ) : MarkdownLinks {
+
+    /**
+     * What the page can mention, which typing `@` offers.
+     */
+    var candidates: List<MentionCandidate> by mutableStateOf(emptyList())
 
     /**
      * What each destination of the page names, as last read ([mentionLooksOf]).
@@ -59,20 +67,25 @@ internal data class MentionLook(
  */
 internal fun chipOf(look: MentionLook, onOpen: (Mention) -> Unit): MarkdownChip? {
     val mention = look.mention
-    val accent = when (mention) {
-        is Mention.ActorType -> Accent.CAST
-        is Mention.ManagerType -> Accent.CREW
-        is Mention.Scene -> Accent.SCENE
-        is Mention.Page -> Accent.SCREENPLAY
-        is Mention.Audio -> Accent.AUDIO
-        is Mention.Document, is Mention.Sprite, is Mention.Kotlin -> Accent.CODE
-        is Mention.OtherFile -> return null
-    }
+    val accent = accentOf(mention) ?: return null
     val canOpen = look.exists && when (mention) {
         is Mention.ActorType, is Mention.ManagerType, is Mention.Scene, is Mention.Page, is Mention.Document -> true
         else -> false
     }
     return MarkdownChip(accent = accent, isMissing = !look.exists, onClick = if (canOpen) ({ onOpen(mention) }) else null)
+}
+
+/**
+ * The accent of [mention]'s kind, as the sidebar shows it, or null for a file of no kind Kubriko Creator knows.
+ */
+internal fun accentOf(mention: Mention): Accent? = when (mention) {
+    is Mention.ActorType -> Accent.CAST
+    is Mention.ManagerType -> Accent.CREW
+    is Mention.Scene -> Accent.SCENE
+    is Mention.Page -> Accent.SCREENPLAY
+    is Mention.Audio -> Accent.AUDIO
+    is Mention.Document, is Mention.Sprite, is Mention.Kotlin -> Accent.CODE
+    is Mention.OtherFile -> null
 }
 
 /**

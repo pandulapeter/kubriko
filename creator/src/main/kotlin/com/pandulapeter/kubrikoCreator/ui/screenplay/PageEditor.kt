@@ -94,6 +94,7 @@ internal fun PageEditor(
                     value = session.draft,
                     onValueChange = state::onDraftChange,
                     onDone = state::finish,
+                    links = links,
                 )
                 remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = true)) } }
             }

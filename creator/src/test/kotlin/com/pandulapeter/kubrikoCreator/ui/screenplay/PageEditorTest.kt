@@ -10,11 +10,16 @@
 package com.pandulapeter.kubrikoCreator.ui.screenplay
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pressKey
 import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -53,7 +58,7 @@ class PageEditorTest {
     @Test
     fun mentionsAreChipsThatOpenWhatTheyNameAndWebAddressesAreShownFirst() = uiTest(width = 900, height = 400) {
         val opened = mutableListOf<Mention>()
-        val links = PageLinksState { opened += it }
+        val links = PageLinksState("screenplay/README.md") { opened += it }
         links.looks = mapOf(
             "../.kubriko/actors/Player.json" to MentionLook(Mention.ActorType("Player", ".kubriko/actors/Player.json"), exists = true),
             "villain.md" to MentionLook(Mention.Page("villain", "screenplay/villain.md"), exists = false),
@@ -73,5 +78,25 @@ class PageEditorTest {
         onNodeWithText("Cancel").performClick()
         waitForIdle()
         assertNull(links.pendingAddress)
+    }
+
+    @Test
+    fun typingAnAtSignOffersWhatThePageCanMentionAndEnterWritesTheLink() = uiTest(width = 900, height = 500) {
+        val links = PageLinksState("screenplay/hero.md") {}
+        links.candidates = listOf("Ball", "Paddle", "Brick").map { MentionCandidate(it, null, Mention.ActorType(it, ".kubriko/actors/$it.json")) }
+        showing { PageEditor(name = "hero", text = page, onTextChange = {}, links = links) }
+        onNodeWithText("Moves").performClick()
+        waitForIdle()
+        onNode(hasSetTextAction()).performTextInput(" @b")
+        waitForIdle()
+        onNodeWithText("Ball").assertExists()
+        onNodeWithText("Brick").assertExists()
+        onNodeWithText("Paddle").assertDoesNotExist()
+        saveSnapshot("page-editor-mention-suggestions")
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.DirectionDown) }
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        waitForIdle()
+        onNodeWithText("## Moves [Brick](../.kubriko/actors/Brick.json)").assertExists()
+        onNodeWithText("Ball").assertDoesNotExist()
     }
 }

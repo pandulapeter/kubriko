@@ -608,6 +608,7 @@
     <string name="page_format_italic">Italic</string>
     <string name="page_format_list">List</string>
     <string name="page_format_link">Link</string>
+    <string name="page_format_mention">Mention</string>
     <string name="error_command_play_duration_invalid">Play for between 1 and %1$s seconds.</string>
     <string name="error_command_play_target_missing">The game can't be played on %1$s here. It can be played on: %2$s.</string>
     <string name="error_mcp_internal">Kubriko Creator ran into an internal error, so nothing was done: %1$s. This is a problem in Kubriko Creator, not in the request.</string>

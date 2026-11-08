@@ -48,18 +48,23 @@ import kubriko.creator.generated.resources.page_format_heading
 import kubriko.creator.generated.resources.page_format_italic
 import kubriko.creator.generated.resources.page_format_link
 import kubriko.creator.generated.resources.page_format_list
+import kubriko.creator.generated.resources.page_format_mention
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * The Markdown of one chunk of a page being typed into, focused as it opens, with a small toolbar and the usual shortcuts
  * (Cmd/Ctrl+B, I, and K) writing plain Markdown ([PageFormatting]). Escape, or leaving it, ends typing ([onDone]).
+ *
+ * Typing `@` (or the toolbar's Mention) offers what [links] says the page can mention, below the field: the arrow keys
+ * move through them, Enter or Tab writes the one lit as a link, and Escape closes them.
  */
 @Composable
 internal fun PageChunkField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     onDone: () -> Unit,
+    links: PageLinksState? = null,
 ) = Column(
     modifier = Modifier
         .fillMaxWidth()
@@ -70,36 +75,61 @@ internal fun PageChunkField(
     val currentValue by rememberUpdatedState(value)
     val focusRequester = remember { FocusRequester() }
     var hasBeenFocused by remember { mutableStateOf(false) }
+    var dismissedAt by remember { mutableStateOf<Int?>(null) }
+    val suggestions = links?.let { remember(value, it.candidates, dismissedAt) { mentionSuggestionsOf(value, it.candidates, dismissedAt) } }
+    var highlighted by remember(suggestions?.query) { mutableStateOf(0) }
+    fun choose(candidate: MentionCandidate) {
+        if (links != null && suggestions != null) onValueChange(withMention(currentValue, suggestions.query, candidate, links.pagePath))
+    }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
-    PageFormattingBar { format -> onValueChange(format(currentValue)) }
-    CompactTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester)
-            .onFocusChanged { focus ->
-                if (focus.isFocused) hasBeenFocused = true else if (hasBeenFocused) onDone()
-            }
-            .onPreviewKeyEvent { event ->
-                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                if (event.key == Key.Escape) {
-                    onDone()
-                    return@onPreviewKeyEvent true
+    PageFormattingBar(isMentionShown = links != null) { format -> onValueChange(format(currentValue)) }
+    MentionSuggestionsAnchor(
+        suggestions = suggestions,
+        highlighted = highlighted,
+        onChoose = ::choose,
+    ) {
+        CompactTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester)
+                .onFocusChanged { focus ->
+                    if (focus.isFocused) hasBeenFocused = true else if (hasBeenFocused) onDone()
                 }
-                val format = if (event.isMetaPressed || event.isCtrlPressed) shortcuts[event.key] else null
-                format?.let { onValueChange(it(currentValue)) } != null
-            },
-        value = value,
-        onValueChange = onValueChange,
-        isSingleLine = false,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-    )
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    if (suggestions != null) {
+                        when (event.key) {
+                            Key.DirectionDown -> highlighted = (highlighted + 1) % suggestions.matches.size
+                            Key.DirectionUp -> highlighted = (highlighted - 1 + suggestions.matches.size) % suggestions.matches.size
+                            Key.Enter, Key.NumPadEnter, Key.Tab -> choose(suggestions.matches[highlighted.coerceIn(suggestions.matches.indices)])
+                            Key.Escape -> dismissedAt = suggestions.query.start
+                            else -> return@onPreviewKeyEvent false
+                        }
+                        return@onPreviewKeyEvent true
+                    }
+                    if (event.key == Key.Escape) {
+                        onDone()
+                        return@onPreviewKeyEvent true
+                    }
+                    val format = if (event.isMetaPressed || event.isCtrlPressed) shortcuts[event.key] else null
+                    format?.let { onValueChange(it(currentValue)) } != null
+                },
+            value = value,
+            onValueChange = onValueChange,
+            isSingleLine = false,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+        )
+    }
 }
 
 @Composable
-private fun PageFormattingBar(onFormat: ((TextFieldValue) -> TextFieldValue) -> Unit) = Row(
+private fun PageFormattingBar(
+    isMentionShown: Boolean,
+    onFormat: ((TextFieldValue) -> TextFieldValue) -> Unit,
+) = Row(
     horizontalArrangement = Arrangement.spacedBy(2.dp),
 ) {
-    formats.forEach { (label, format) ->
+    (if (isMentionShown) formats + mention else formats).forEach { (label, format) ->
         TextButton(
             modifier = Modifier.focusProperties { canFocus = false },
             onClick = { onFormat(format) },
@@ -116,6 +146,8 @@ private val formats: List<Pair<StringResource, (TextFieldValue) -> TextFieldValu
     Res.string.page_format_list to { value -> PageFormatting.withLinePrefix(value, "- ") },
     Res.string.page_format_link to PageFormatting::linked,
 )
+
+private val mention: Pair<StringResource, (TextFieldValue) -> TextFieldValue> = Res.string.page_format_mention to ::withMentionStarted
 
 private val shortcuts: Map<Key, (TextFieldValue) -> TextFieldValue> = mapOf(
     Key.B to { value -> PageFormatting.wrapped(value, "**") },
