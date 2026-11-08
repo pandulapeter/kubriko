@@ -27,7 +27,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import java.io.File
 
 @OptIn(EditorMutation::class)
 public object DeletePage : WriteCommand<DeletePage.Input> {
@@ -41,9 +40,8 @@ public object DeletePage : WriteCommand<DeletePage.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val text = context.screenplay.read(input.page) ?: return@withContext Applied.failed(Rejection(CommandProblem.PAGE_MISSING, input.page))
-        val root = context.project.rootDirectory
-        val images = if (input.deleteImages) context.unusedImagesOf(input.page).associateWith { File(root, it).readBytes() } else emptyMap()
-        val removed = if (images.isEmpty()) null else ReplaceFiles.apply(context, ReplaceFiles.Input(images.mapValues { null }))
+        val images = if (input.deleteImages) context.unusedImagesOf(input.page) else emptyList()
+        val removed = if (images.isEmpty()) null else ReplaceFiles.apply(context, ReplaceFiles.Input(images.associateWith { null }))
         try {
             context.screenplay.delete(input.page)
         } catch (exception: Exception) {
@@ -54,7 +52,7 @@ public object DeletePage : WriteCommand<DeletePage.Input> {
         if (removed == null) return@withContext Applied(inverse = recreating)
         Applied(
             inverse = Invocation(CompositeCommand, CompositeCommand.Input(listOfNotNull(recreating, removed.inverse))),
-            details = buildJsonObject { put("deletedImages", JsonArray(images.keys.map(::JsonPrimitive))) },
+            details = buildJsonObject { put("deletedImages", JsonArray(images.map(::JsonPrimitive))) },
         )
     }
 
