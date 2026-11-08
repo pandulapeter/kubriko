@@ -68,6 +68,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.ui.git.RefreshingGitOnWindowFocus
 import com.pandulapeter.kubrikoCreator.ui.screenplay.LocalMentionedIn
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownEditOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberMarkdownIdentity
@@ -233,21 +234,6 @@ private fun WorkspaceContent(
             )
         }
         SidebarDragPreview(sidebarDragState)
-    }
-}
-
-/**
- * Reads the repository again whenever the window gets the focus back, as IntelliJ does, since the project watcher leaves
- * `.git` out and a commit or a checkout made in a terminal would otherwise go unseen.
- */
-@Composable
-private fun RefreshingGitOnWindowFocus(
-    refresh: () -> Unit,
-) {
-    val isWindowFocused = LocalWindowInfo.current.isWindowFocused
-    val currentRefresh by rememberUpdatedState(refresh)
-    LaunchedEffect(isWindowFocused) {
-        if (isWindowFocused) currentRefresh()
     }
 }
 
