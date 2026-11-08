@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
@@ -16,7 +17,9 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.pressKey
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -74,6 +77,18 @@ class NewIosSimulatorDialogTest {
         waitForIdle()
         assertEquals(listOf(Triple("iPad mini (6th generation)", iPad, ios18)), made)
         assertEquals(1, closings)
+    }
+
+    @Test
+    fun enterInTheNameMakesTheSimulatorAndEscapeLeavesTheDialog() = uiTest(width = 960, height = 640) {
+        showingDialog()
+        onNode(hasSetTextAction()).performClick()
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Escape) }
+        assertEquals(1, closings)
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Enter) }
+        waitForIdle()
+        assertEquals(listOf(Triple("iPhone 18 Pro 2", iPhone, ios27)), made)
+        assertEquals(2, closings)
     }
 
     @Test

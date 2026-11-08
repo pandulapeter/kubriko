@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,11 +29,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.uiComponents.generated.resources.Res
@@ -90,14 +84,7 @@ public fun NewNameField(
             modifier = Modifier
                 .weight(1f)
                 .focusRequester(focusRequester)
-                .onPreviewKeyEvent { event ->
-                    when {
-                        event.type != KeyEventType.KeyDown -> false
-                        event.key == Key.Enter -> true.also { create() }
-                        event.key == Key.Escape -> true.also { onCancel() }
-                        else -> false
-                    }
-                },
+                .confirmingOnEnter(onConfirm = create, onCancel = onCancel),
             value = name,
             onValueChange = {
                 name = it
@@ -118,12 +105,5 @@ public fun NewNameField(
             onClick = onCancel,
         )
     }
-    error?.let {
-        Text(
-            modifier = Modifier.padding(top = 2.dp),
-            text = stringResource(it.text, *it.arguments.toTypedArray()),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error,
-        )
-    }
+    error?.let { FieldErrorText(it, Modifier.padding(top = 2.dp)) }
 }

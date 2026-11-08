@@ -24,17 +24,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import com.pandulapeter.kubrikoCreator.ui.components.FailureDetails
+import com.pandulapeter.kubrikoCreator.ui.components.FieldErrorText
 import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
+import com.pandulapeter.kubrikoCreator.ui.components.confirmingOnEnter
 import com.pandulapeter.kubrikoCreator.ui.components.fadeInOnChange
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import com.pandulapeter.kubrikoCreator.workspace.IosSimulatorCreation
@@ -97,7 +94,7 @@ internal fun NewIosSimulatorDialog(
                     Text(stringResource(Res.string.new_ios_simulator_unreadable))
                     options.reason?.let { FailureDetails(it) }
                 }
-                is IosSimulatorOptions.Ready -> NewIosSimulatorFields(state, options)
+                is IosSimulatorOptions.Ready -> NewIosSimulatorFields(state, options, onCancel = { if (!state.isCreating) onDismiss() })
             }
         }
     },
@@ -107,6 +104,7 @@ internal fun NewIosSimulatorDialog(
 private fun NewIosSimulatorFields(
     state: NewIosSimulatorState,
     options: IosSimulatorOptions.Ready,
+    onCancel: () -> Unit,
 ) {
     QuietText(Res.string.new_ios_simulator_description)
     FieldRow(Res.string.new_ios_simulator_name) {
@@ -114,18 +112,12 @@ private fun NewIosSimulatorFields(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = CONTROL_HEIGHT)
-                .onPreviewKeyEvent { event -> (event.type == KeyEventType.KeyDown && event.key == Key.Enter).also { if (it) state.create() } },
+                .confirmingOnEnter(onConfirm = state::create, onCancel = onCancel),
             value = state.name,
             onValueChange = state::changeName,
             isError = state.nameError != null,
         )
-        state.nameError?.let { error ->
-            Text(
-                text = stringResource(error.text, *error.arguments.toTypedArray()),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
+        state.nameError?.let { FieldErrorText(it) }
     }
     FieldRow(Res.string.new_ios_simulator_device) {
         SearchableChoiceButton(

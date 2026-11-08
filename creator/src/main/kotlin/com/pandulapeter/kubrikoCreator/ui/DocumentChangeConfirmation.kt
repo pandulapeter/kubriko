@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
+import com.pandulapeter.kubrikoCreator.ui.components.FieldErrorText
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -103,7 +104,7 @@ internal fun DocumentChangeConfirmation(
                 )
                 val error = rejection?.toFieldError()
                 if (error != null) {
-                    Text(text = stringResource(error.text, *error.arguments.toTypedArray()), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    FieldErrorText(error)
                 }
                 Text(text = stringResource(Res.string.document_add_to_screenplay_text, PageNaming.pathOf(page.trim())), style = MaterialTheme.typography.bodyMedium)
             }
