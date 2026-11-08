@@ -12,13 +12,12 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
-import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.context.KeyedCache
+import com.pandulapeter.kubrikoCreator.context.ScreenplayTexts
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
-import com.pandulapeter.kubrikoCreator.screenplay.MentionIndex
 import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import kotlinx.coroutines.CoroutineDispatcher
@@ -75,14 +74,9 @@ public class CommandContext(
     public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites, movedFiles)
 
     /**
-     * The health checks of the screenplay as last worked out ([com.pandulapeter.kubrikoCreator.context.screenplayFindings]).
+     * The project's Markdown as last read ([com.pandulapeter.kubrikoCreator.context.screenplayTexts]).
      */
-    internal val screenplayFindingsCache = KeyedCache<List<HealthFinding>>()
-
-    /**
-     * Which pages mention what, as last read ([mentionIndex]).
-     */
-    internal val mentionIndexCache = KeyedCache<MentionIndex>()
+    internal val screenplayTextsCache = KeyedCache<ScreenplayTexts>()
 
     /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);

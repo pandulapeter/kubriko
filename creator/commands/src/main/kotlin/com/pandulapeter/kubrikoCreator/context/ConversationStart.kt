@@ -22,7 +22,7 @@ public object ConversationStart {
 
     public suspend fun of(context: CommandContext): String {
         val notes = withContext(context.ioDispatcher) { GameNotes.read(context.project.rootDirectory) }?.trim()?.takeIf { it.isNotEmpty() }
-        val pages = withContext(context.ioDispatcher) { context.screenplay.scanNames().mapNotNull { name -> context.screenplay.read(name)?.let { name to it } }.toMap() }
+        val pages = withContext(context.ioDispatcher) { context.screenplayTexts().pages }
         return DigestText.of(context.projectDigest()) + PageIndexText.of(pages)?.let { "\n\n$it" }.orEmpty() + notes?.let { "\n\nThe game's notes (${GameNotes.FILE_NAME}):\n" + it.take(NOTES_LIMIT) + if (it.length > NOTES_LIMIT) "\n…(read_game_notes reads the rest)" else "" }.orEmpty()
     }
 }

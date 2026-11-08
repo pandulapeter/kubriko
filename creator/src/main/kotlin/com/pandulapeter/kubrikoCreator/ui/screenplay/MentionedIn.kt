@@ -14,10 +14,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.context.mentionIndex
 import com.pandulapeter.kubrikoCreator.screenplay.MentionIndex
-import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
+import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -41,16 +45,27 @@ internal class MentionedIn(
 internal val LocalMentionedIn = compositionLocalOf<MentionedIn?> { null }
 
 /**
- * The [MentionedIn] of the pages of [screenplay], read off the main thread again after every change to them.
+ * The [MentionedIn] of the project of [context], opening pages through [selectionController].
  */
 @Composable
-internal fun rememberMentionedIn(screenplay: ScreenplayStore, onPageSelected: (String) -> Unit): MentionedIn {
+internal fun rememberMentionedIn(context: CommandContext, selectionController: SelectionController): MentionedIn =
+    rememberMentionedIn(context.project.rootDirectory, context.screenplay.revision, context::mentionIndex, selectionController::openPage)
+
+/**
+ * The [MentionedIn] of the project in [rootDirectory], whose index [readIndex] reads (blocking, so off the main thread)
+ * again after every change to its pages ([revision]), the same instance while the index stays the same.
+ */
+@Composable
+internal fun rememberMentionedIn(
+    rootDirectory: File,
+    revision: StateFlow<Int>,
+    readIndex: () -> MentionIndex,
+    onPageSelected: (String) -> Unit,
+): MentionedIn {
     val currentOnPageSelected by rememberUpdatedState(onPageSelected)
-    val revision by screenplay.revision.collectAsState()
-    val index = produceState(MentionIndex(), revision) {
-        value = withContext(Dispatchers.IO) {
-            runCatching { MentionIndex.of(screenplay.scanNames().mapNotNull { name -> screenplay.read(name)?.let { name to it } }.toMap()) }.getOrDefault(value)
-        }
+    val currentRevision by revision.collectAsState()
+    val index = produceState(MentionIndex(), currentRevision) {
+        value = withContext(Dispatchers.IO) { runCatching(readIndex).getOrDefault(value) }
     }.value
-    return MentionedIn(screenplay.rootDirectory, index) { currentOnPageSelected(it) }
+    return remember(rootDirectory, index) { MentionedIn(rootDirectory, index) { currentOnPageSelected(it) } }
 }

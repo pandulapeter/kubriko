@@ -11,10 +11,7 @@ package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
-import com.pandulapeter.kubrikoCreator.commands.screenplay.markdownTexts
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
-import com.pandulapeter.kubrikoCreator.project.ProjectTree
-import com.pandulapeter.kubrikoCreator.screenplay.PageImages
 import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplaySettings
@@ -48,23 +45,17 @@ internal object PageImageChecks {
 }
 
 /**
- * What about the open project's screenplay is worth a look: its images ([PageImageChecks]) and its pages ([ScreenplayChecks]),
- * worked out again only once a page, a document, a type, or a Scene changed, since every change Kubriko Creator or anyone
- * else makes to a page's images changes a page too. Reads the disk.
+ * What about the open project's screenplay is worth a look: its images ([PageImageChecks]) and its pages ([ScreenplayChecks]).
+ * The pages are read again only once one changed ([screenplayTexts]); whether what they link to is there is looked at every
+ * time, since a sprite or a sound they mention may be deleted without a page changing. Reads the disk.
  */
 internal fun CommandContext.screenplayFindings(): List<HealthFinding> {
-    val types = blockTypes?.types?.value.orEmpty()
-    val sceneNames = scenes.names()
-    val key = listOf(screenplay.revision.value, documents.revision.value, types, sceneNames, ScreenplaySettings.read(project.rootDirectory))
-    return screenplayFindingsCache.get(key) {
-        val root = project.rootDirectory
-        val pages = screenplay.scanNames().mapNotNull { name -> screenplay.read(name)?.let { name to it } }.toMap()
-        val subjects = LinkedHashMap<RelationSubject, String>()
-        types.sortedBy { it.name.lowercase() }.forEach { subjects[RelationSubject.Type(it.name)] = DefinitionPaths.definitionPath(it) }
-        sceneNames.sorted().forEach { scene -> subjects[RelationSubject.Scene(scene)] = projectPathOf(scenes.fileOf(scene)) }
-        val exists = { path: String -> File(root, path).exists() }
-        val folder = File(root, PageNaming.FOLDER)
-        val images = if (!folder.isDirectory) emptyList() else ProjectTree.walk(folder).filter { it.isFile && it.extension.lowercase() in PageImages.EXTENSIONS }.map { it.relativeTo(root).invariantSeparatorsPath }.toList()
-        PageImageChecks.of(markdownTexts(), images, exists) + ScreenplayChecks.of(pages, subjects, exists, ScreenplaySettings.read(root).areRemindersShown)
-    }
+    val root = project.rootDirectory
+    val texts = screenplayTexts()
+    val subjects = LinkedHashMap<RelationSubject, String>()
+    blockTypes?.types?.value.orEmpty().sortedBy { it.name.lowercase() }.forEach { subjects[RelationSubject.Type(it.name)] = DefinitionPaths.definitionPath(it) }
+    scenes.names().sorted().forEach { scene -> subjects[RelationSubject.Scene(scene)] = projectPathOf(scenes.fileOf(scene)) }
+    val exists = { path: String -> File(root, path).exists() }
+    return PageImageChecks.of(texts.markdown, texts.images, exists) +
+        ScreenplayChecks.of(texts.pages, texts.mentionIndex, subjects, exists, ScreenplaySettings.read(root).areRemindersShown)
 }

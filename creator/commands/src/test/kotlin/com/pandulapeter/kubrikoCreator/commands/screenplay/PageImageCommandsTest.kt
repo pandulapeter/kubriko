@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.screenplay
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.ReplaceFiles
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
@@ -89,5 +90,16 @@ class PageImageCommandsTest {
         assertEquals(emptyList(), documented.unusedImagesOf("levels/cave"))
         val applied = DeletePage.apply(context(), DeletePage.Input("levels/cave", deleteImages = true))
         assertEquals(listOf("screenplay/levels/cave-2.gif"), applied.details!!.getValue("deletedImages").jsonArray.map { it.jsonPrimitive.content })
+    }
+
+    @Test
+    fun `writing or moving an image among the pages tells what reads them to read them again`() = runTest {
+        val context = context()
+        val before = context.screenplay.revision.value
+        ReplaceFiles.apply(context, ReplaceFiles.Input(mapOf("screenplay/levels/cave-1.png" to null)))
+        val afterDelete = context.screenplay.revision.value
+        assertEquals(true, afterDelete > before)
+        ReplaceFiles.apply(context, ReplaceFiles.Input(mapOf("notes/other.png" to byteArrayOf(1))))
+        assertEquals(afterDelete, context.screenplay.revision.value)
     }
 }

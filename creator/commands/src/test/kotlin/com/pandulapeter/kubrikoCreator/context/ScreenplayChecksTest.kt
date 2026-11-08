@@ -15,8 +15,10 @@ import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.screenplay.SetScreenplayReminders
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.screenplay.MentionIndex
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplaySettings
 import kotlinx.coroutines.test.runTest
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -30,12 +32,14 @@ class ScreenplayChecksTest {
 
     @Test
     fun `what no page mentions, what pages mention that is gone, pages off the shape, and built Planned items are named`() {
-        val findings = ScreenplayChecks.of(
-            pages = mapOf(
+        val pages = mapOf(
                 "README" to "# Breakout\n\nBreak the bricks.\n\nThe [ball](../.kubriko/actors/Ball.json) and the [bat](../.kubriko/actors/Bat.json).\n\n" +
                     "## Planned\n\n- A faster [ball](../.kubriko/actors/Ball.json)\n- A [boss](../.kubriko/actors/Boss.json)\n",
                 "notes" to "Only a line, with an ![image](gone.png).",
-            ),
+        )
+        val findings = ScreenplayChecks.of(
+            pages = pages,
+            index = MentionIndex.of(pages),
             subjects = subjects,
             exists = { it in existing },
             areRemindersShown = true,
@@ -56,8 +60,8 @@ class ScreenplayChecksTest {
     @Test
     fun `with the reminders off, or no screenplay at all, only mentions of what is gone are named`() {
         val pages = mapOf("README" to "[Bat](../.kubriko/actors/Bat.json)")
-        assertEquals(listOf(HealthFinding.Kind.MENTION_MISSING), ScreenplayChecks.of(pages, subjects, { it in existing }, areRemindersShown = false).map { it.kind })
-        assertEquals(emptyList(), ScreenplayChecks.of(emptyMap(), subjects, { it in existing }, areRemindersShown = true))
+        assertEquals(listOf(HealthFinding.Kind.MENTION_MISSING), ScreenplayChecks.of(pages, MentionIndex.of(pages), subjects, { it in existing }, areRemindersShown = false).map { it.kind })
+        assertEquals(emptyList(), ScreenplayChecks.of(emptyMap(), MentionIndex(), subjects, { it in existing }, areRemindersShown = true))
     }
 
     @OptIn(EditorMutation::class)
@@ -68,5 +72,16 @@ class ScreenplayChecksTest {
         assertEquals(listOf(HealthFinding(HealthFinding.Kind.UNMENTIONED, RelationSubject.Type("Ball"))), context.healthFindings().filter { it.kind == HealthFinding.Kind.UNMENTIONED })
         context.assertRoundTrip(Invocation(SetScreenplayReminders, SetScreenplayReminders.Input(isOn = false))) { ScreenplaySettings.read(context.project.rootDirectory) }
         assertEquals(emptyList(), context.healthFindings().filter { it.kind == HealthFinding.Kind.UNMENTIONED })
+    }
+
+    @OptIn(EditorMutation::class)
+    @Test
+    fun `a file a page links to that is deleted without the page changing is noticed`() = runTest {
+        val context = commandContext()
+        val sprite = File(context.project.rootDirectory, "src/commonMain/composeResources/drawable/bat.png").apply { parentFile.mkdirs() }.apply { writeText("x") }
+        context.screenplay.write("README", "# Game\n\nA game.\n\n![Bat](../src/commonMain/composeResources/drawable/bat.png)\n")
+        assertEquals(emptyList(), context.healthFindings().filter { it.kind == HealthFinding.Kind.PAGE_IMAGE_MISSING })
+        sprite.delete()
+        assertEquals(1, context.healthFindings().count { it.kind == HealthFinding.Kind.PAGE_IMAGE_MISSING })
     }
 }

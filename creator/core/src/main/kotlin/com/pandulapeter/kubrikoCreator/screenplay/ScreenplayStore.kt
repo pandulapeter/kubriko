@@ -130,6 +130,14 @@ public class ScreenplayStore(
     }
 
     /**
+     * Follows Kubriko Creator's own write of another file among the pages (an image), so that what reads them reads them
+     * again.
+     */
+    public fun onFilesChanged() {
+        _revision.update { it + 1 }
+    }
+
+    /**
      * Creates the folder at [path] with its parents.
      */
     @EditorMutation

@@ -55,7 +55,7 @@ class MentionedInRowTest {
         File(root, "screenplay/hero.md").writeText("[Hero](../.kubriko/actors/Player.json)")
         screenplay.refresh()
         showing {
-            val mentionedIn = rememberMentionedIn(screenplay) {}
+            val mentionedIn = rememberMentionedIn(root, screenplay.revision, { MentionIndex.of(screenplay.scanNames().associateWith { screenplay.read(it).orEmpty() }) }) {}
             Text(mentionedIn.index.pagesMentioning(".kubriko/actors/Player.json").joinToString().ifEmpty { "None" })
         }
         waitUntil { onAllNodesWithText("hero").fetchSemanticsNodes().isNotEmpty() }

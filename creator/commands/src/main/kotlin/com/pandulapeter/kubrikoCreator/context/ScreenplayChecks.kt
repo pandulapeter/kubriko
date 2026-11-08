@@ -25,11 +25,12 @@ internal object ScreenplayChecks {
 
     /**
      * @param pages Every page's text, by its name.
+     * @param index Which of [pages] mention what.
      * @param subjects The path from the project's root of each Actor type's, Manager type's, and Scene's file.
      * @param exists Whether a file is at a path from the project's root.
      * @param areRemindersShown Whether the reminders are on ([com.pandulapeter.kubrikoCreator.screenplay.ScreenplaySettings]).
      */
-    fun of(pages: Map<String, String>, subjects: Map<RelationSubject, String>, exists: (String) -> Boolean, areRemindersShown: Boolean): List<HealthFinding> = buildList {
+    fun of(pages: Map<String, String>, index: MentionIndex, subjects: Map<RelationSubject, String>, exists: (String) -> Boolean, areRemindersShown: Boolean): List<HealthFinding> = buildList {
         val names = pages.keys.sortedWith(compareBy<String> { it != PageNaming.FIRST_PAGE }.thenBy { it.lowercase() })
         names.forEach { name ->
             val pagePath = PageNaming.pathOf(name)
@@ -38,7 +39,6 @@ internal object ScreenplayChecks {
                 .forEach { add(HealthFinding(HealthFinding.Kind.MENTION_MISSING, RelationSubject.Page(name), usage = it)) }
         }
         if (!areRemindersShown || pages.isEmpty()) return@buildList
-        val index = MentionIndex.of(pages)
         subjects.filterValues { index.pagesMentioning(it).isEmpty() }.keys.forEach { add(HealthFinding(HealthFinding.Kind.UNMENTIONED, it)) }
         names.forEach { name ->
             val text = checkNotNull(pages[name])

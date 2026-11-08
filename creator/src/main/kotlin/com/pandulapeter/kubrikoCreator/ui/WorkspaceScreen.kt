@@ -102,7 +102,7 @@ internal fun WorkspaceScreen(
     val uiState = rememberWorkspaceUiState(controller)
     CompositionLocalProvider(
         LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
-        LocalMentionedIn provides rememberMentionedIn(controller.commands.context.screenplay, controller.selection::openPage),
+        LocalMentionedIn provides rememberMentionedIn(controller.commands.context, controller.selection),
     ) {
         WorkspaceContent(
             controller = controller,

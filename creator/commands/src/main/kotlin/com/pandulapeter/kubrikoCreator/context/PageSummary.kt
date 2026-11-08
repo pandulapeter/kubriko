@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PageText
 
 /**
@@ -25,6 +26,6 @@ public data class PageSummary(
 /**
  * Every page of the open project's screenplay, the first page first. Reads the disk.
  */
-public fun CommandContext.pageSummaries(): List<PageSummary> = screenplay.scanNames().mapNotNull { name ->
-    screenplay.read(name)?.let { text -> PageSummary(name, PageText.titleOf(text), PageText.summaryOf(text)) }
-}
+public fun CommandContext.pageSummaries(): List<PageSummary> = screenplayTexts().pages.entries
+    .sortedWith(compareBy<Map.Entry<String, String>> { it.key != PageNaming.FIRST_PAGE }.thenBy { it.key.lowercase() })
+    .map { (name, text) -> PageSummary(name, PageText.titleOf(text), PageText.summaryOf(text)) }

@@ -99,4 +99,5 @@ private fun CommandContext.moveFilesLeft(from: File, to: File) {
             scenes.ownWrites.record(target)
         }
     }
+    screenplay.onFilesChanged()
 }

@@ -13,15 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
-import com.pandulapeter.kubrikoCreator.screenplay.MentionIndex
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
-
-/**
- * Which pages mention what ([MentionIndex]), read again only once a page changed. Reads the disk.
- */
-internal fun CommandContext.mentionIndex(): MentionIndex = mentionIndexCache.get(screenplay.revision.value) {
-    MentionIndex.of(screenplay.scanNames().mapNotNull { name -> screenplay.read(name)?.let { name to it } }.toMap())
-}
 
 /**
  * The paths from the project's root of the pages that mention the types and Scenes among [targets], so that the agent
