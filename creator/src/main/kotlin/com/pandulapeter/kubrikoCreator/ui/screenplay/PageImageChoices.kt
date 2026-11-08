@@ -10,11 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui.screenplay
 
 import com.pandulapeter.kubrikoCreator.screenplay.PageImages
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -33,11 +28,11 @@ internal class PageImageChoices(
     val onChoose: (PageImageSource) -> Unit,
 ) {
     /**
-     * Puts [pasted] on the page, reading a copied image on [ioDispatcher] in [scope].
+     * Puts [pasted] on the page.
      *
      * @return Whether the paste was images, so that it isn't pasted as text too.
      */
-    fun paste(pasted: PastedImages, scope: CoroutineScope, ioDispatcher: CoroutineDispatcher = Dispatchers.IO): Boolean = when (pasted) {
+    fun paste(pasted: PastedImages): Boolean = when (pasted) {
         is PastedImages.Files -> pasted.files.isNotEmpty().also { isImages ->
             if (isImages) {
                 onStart()
@@ -46,7 +41,7 @@ internal class PageImageChoices(
         }
         is PastedImages.Image -> true.also {
             onStart()
-            scope.launch { withContext(ioDispatcher) { pasted.read() }?.let(onChoose) }
+            onChoose(PageImageSource.Pasted(pasted))
         }
     }
 }

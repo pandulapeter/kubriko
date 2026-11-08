@@ -31,6 +31,13 @@ internal sealed interface PageImageSource {
     ) : PageImageSource
 
     /**
+     * An image copied to the clipboard, read off the main thread when it is put on the page.
+     */
+    data class Pasted(
+        val image: PastedImages.Image,
+    ) : PageImageSource
+
+    /**
      * A sprite, shown where it is: its path from `composeResources` (`drawable/ball.png`).
      */
     data class Sprite(

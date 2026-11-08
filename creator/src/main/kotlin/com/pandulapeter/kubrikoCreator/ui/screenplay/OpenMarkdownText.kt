@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -26,7 +27,10 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -139,20 +143,32 @@ internal fun markdownEditOf(selection: WorkspaceSelection, text: String): Invoca
 }
 
 /**
- * What puts an image on the page [selection] shows through [dispatch], or null if it shows no page: documents take no
- * images, since Kubriko Creator doesn't keep files next to them.
+ * [pageImageAdderOf] in a scope that lasts as long as the workspace's center.
  */
-internal fun pageImageAdderOf(selection: WorkspaceSelection, dispatch: (Invocation<*>) -> Unit): ((PageImageSource, String?) -> Unit)? {
+@Composable
+internal fun rememberPageImageAdder(selection: WorkspaceSelection, dispatch: (Invocation<*>) -> Unit): ((PageImageSource, String?) -> Unit)? =
+    pageImageAdderOf(selection, rememberCoroutineScope(), dispatch = dispatch)
+
+/**
+ * What puts an image on the page [selection] shows through [dispatch], or null if it shows no page: documents take no
+ * images, since Kubriko Creator doesn't keep files next to them. A pasted image is read off the main thread in [scope],
+ * which outlives the page editor, so that leaving the page meanwhile doesn't lose it.
+ */
+internal fun pageImageAdderOf(
+    selection: WorkspaceSelection,
+    scope: CoroutineScope,
+    ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    dispatch: (Invocation<*>) -> Unit,
+): ((PageImageSource, String?) -> Unit)? {
     val page = (selection as? WorkspaceSelection.Page)?.name ?: return null
+    fun add(file: PageImageSource.ImageFile, section: String?) = dispatch(Invocation(AddPageImage, AddPageImage.Input(page, file.description, file = file.file.path, section = section)))
     return { source, section ->
-        dispatch(
-            Invocation(
-                AddPageImage,
-                when (source) {
-                    is PageImageSource.ImageFile -> AddPageImage.Input(page, source.description, file = source.file.path, section = section)
-                    is PageImageSource.Sprite -> AddPageImage.Input(page, source.path.substringAfterLast('/').substringBeforeLast('.'), sprite = source.path, section = section)
-                },
-            ),
-        )
+        when (source) {
+            is PageImageSource.ImageFile -> add(source, section)
+            is PageImageSource.Pasted -> scope.launch { withContext(ioDispatcher) { source.image.read() }?.let { add(it, section) } }
+            is PageImageSource.Sprite -> dispatch(
+                Invocation(AddPageImage, AddPageImage.Input(page, source.path.substringAfterLast('/').substringBeforeLast('.'), sprite = source.path, section = section)),
+            )
+        }
     }
 }

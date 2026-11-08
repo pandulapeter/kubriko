@@ -57,26 +57,30 @@ class PageImageSourceTest {
     }
 
     @Test
-    fun `a paste of images ends up on the page, and a paste of text is left to the field`() = runTest {
+    fun `a paste of images ends up on the page, and a paste of text is left to the field`() {
         val chosen = mutableListOf<PageImageSource>()
         var starts = 0
         val choices = PageImageChoices(emptyList(), onStart = { starts++ }, onChoose = { chosen += it })
-        assertEquals(false, choices.paste(PastedImages.Files(emptyList()), this))
+        assertEquals(false, choices.paste(PastedImages.Files(emptyList())))
         val file = PageImageSource.ImageFile(File(directory, "a.png"))
-        assertEquals(true, choices.paste(PastedImages.Files(listOf(file)), this))
-        assertEquals(true, choices.paste(PastedImages.Image(clipboardHolding(DataFlavor.imageFlavor, BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB))), this, UnconfinedTestDispatcher(testScheduler)))
-        advanceUntilIdle()
+        assertEquals(true, choices.paste(PastedImages.Files(listOf(file))))
+        val image = PastedImages.Image(clipboardHolding(DataFlavor.imageFlavor, BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB)))
+        assertEquals(true, choices.paste(image))
         assertEquals(2, starts)
-        assertEquals(file, chosen.first())
+        assertEquals(listOf(file, PageImageSource.Pasted(image)), chosen)
     }
 
     @Test
-    fun `an image goes to the page shown as add_page_image, and a document takes none`() {
+    fun `an image goes to the page shown as add_page_image, and a document takes none`() = runTest {
         val dispatched = mutableListOf<Invocation<*>>()
-        assertNull(pageImageAdderOf(WorkspaceSelection.Document("docs/a.md"), dispatched::add))
-        val add = pageImageAdderOf(WorkspaceSelection.Page("levels/cave"), dispatched::add)!!
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        assertNull(pageImageAdderOf(WorkspaceSelection.Document("docs/a.md"), this, dispatcher, dispatched::add))
+        val add = pageImageAdderOf(WorkspaceSelection.Page("levels/cave"), this, dispatcher, dispatched::add)!!
         add(PageImageSource.ImageFile(File("/tmp/bat.png")), "Moves")
         add(PageImageSource.Sprite("drawable/bat.png"), null)
+        add(PageImageSource.Pasted(PastedImages.Image(clipboardHolding(DataFlavor.imageFlavor, BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB)))), "Moves")
+        advanceUntilIdle()
+        assertEquals("", (dispatched.removeAt(2).input as AddPageImage.Input).description)
         assertEquals(
             listOf(
                 AddPageImage.Input("levels/cave", "bat", file = File("/tmp/bat.png").path, section = "Moves"),
