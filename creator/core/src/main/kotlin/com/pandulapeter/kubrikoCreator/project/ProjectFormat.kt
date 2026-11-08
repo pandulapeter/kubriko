@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
+import com.pandulapeter.kubrikoCreator.actors.store.LookPropertyMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.json.Json
@@ -84,7 +85,7 @@ public class ProjectFormat(
         /**
          * Every change to the format so far, oldest first.
          */
-        internal val MIGRATIONS = listOf(ManagerFieldMigration, KotlinBlockImportsMigration)
+        internal val MIGRATIONS = listOf(ManagerFieldMigration, KotlinBlockImportsMigration, LookPropertyMigration)
 
         /**
          * The format version this Kubriko Creator reads and writes.

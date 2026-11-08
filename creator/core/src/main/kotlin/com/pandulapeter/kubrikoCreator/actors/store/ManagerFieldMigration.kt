@@ -23,7 +23,7 @@ internal object ManagerFieldMigration : FormatMigration {
 
     override fun migrate(rootDirectory: File) {
         val store = BlockTypeStore.open(rootDirectory) ?: return
-        val types = store.load().types
+        val types = store.load(isCheckingPropertyNames = false).types
         types.forEach { definition ->
             val migrated = definition.withManagerFieldsSuffixed(types)
             if (migrated != definition) store.save(migrated)

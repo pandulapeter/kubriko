@@ -69,11 +69,16 @@ public class BlockTypeStore private constructor(
     private val filesByName = HashMap<BlockTypeKind, HashMap<String, MutableSet<File>>>()
     private var isIndexed = false
 
+    override fun load(): LoadedBlockTypes = load(isCheckingPropertyNames = true)
+
     /**
      * Synchronized with [save] and [delete], which a write batch may run on another thread while a reload loads.
+     *
+     * @param isCheckingPropertyNames False for the format migrations, which read a type whose Property has a name an
+     *   older Kubriko Creator allowed in order to rename it.
      */
     @Synchronized
-    override fun load(): LoadedBlockTypes {
+    internal fun load(isCheckingPropertyNames: Boolean): LoadedBlockTypes {
         val readable = ArrayList<Pair<String, BlockTypeDefinition>>()
         val unreadable = ArrayList<UnreadableBlockTypeFile>()
         filesByName.clear()
@@ -92,7 +97,8 @@ public class BlockTypeStore private constructor(
                     definition.name != file.nameWithoutExtension -> BlockTypeFileProblem.NameMismatch(definition.name)
                     !BlockTypeNaming.isWellFormed(definition.name) -> BlockTypeFileProblem.InvalidName(definition.name)
                     BlockTypeNaming.isReserved(definition.name, kind) -> BlockTypeFileProblem.ReservedName(definition.name)
-                    else -> invalidPropertyNameOf(definition)?.let(BlockTypeFileProblem::InvalidPropertyName)
+                    isCheckingPropertyNames -> invalidPropertyNameOf(definition)?.let(BlockTypeFileProblem::InvalidPropertyName)
+                    else -> null
                 }?.let { unreadable += UnreadableBlockTypeFile(path, it) } ?: run { readable += path to definition }
             }
         }

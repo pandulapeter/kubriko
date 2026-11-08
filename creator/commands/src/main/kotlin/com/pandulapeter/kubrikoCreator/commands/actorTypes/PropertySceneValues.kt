@@ -36,15 +36,6 @@ internal fun JsonObject.withoutMismatchedValue(name: String, kind: PropertyKind)
     if (value.fits(kind)) this else JsonObject(this - name)
 } ?: this
 
-/**
- * [this] state with the value of the Property called [oldName] stored as [newName], in the same place.
- */
-internal fun JsonObject.withValueRenamed(oldName: String, newName: String) = if (oldName in this) {
-    JsonObject(entries.filter { it.key != newName }.associate { (key, value) -> (if (key == oldName) newName else key) to value })
-} else {
-    this
-}
-
 internal fun JsonElement.fits(kind: PropertyKind) = this is JsonPrimitive && when (kind) {
     PropertyKind.NUMBER -> !isString && floatOrNull != null
     PropertyKind.TEXT -> isString

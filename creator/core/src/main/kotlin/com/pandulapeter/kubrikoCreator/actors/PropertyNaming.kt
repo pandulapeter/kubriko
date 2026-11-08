@@ -25,6 +25,7 @@ public object PropertyNaming {
         "shouldClip", "state", "stateManager", "topLeft", "velocity", "viewportManager",
         "box", "isRemoved", "sceneSettings", "sprite", "spriteManager",
         "isInSceneEditor", "isInitialized", "isLoggingEnabled", "scope",
+        "look",
     )
 
     /**
