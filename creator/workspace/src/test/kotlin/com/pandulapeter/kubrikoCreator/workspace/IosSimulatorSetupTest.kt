@@ -21,6 +21,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -69,6 +70,18 @@ class IosSimulatorSetupTest {
             listOf(ios272, "$ios272-iPhone19-4", "com.apple.CoreSimulator.SimRuntime.iOS-27-1", "com.apple.CoreSimulator.SimRuntime.iOS-18-2"),
             options.runtimes.map { it.identifier },
         )
+    }
+
+    @Test
+    fun theThreeListsAreAskedForSideBySide() = blockingTest {
+        answerLists()
+        val started = AtomicInteger()
+        val allStarted = CompletableDeferred<Unit>()
+        tools.onRun = {
+            if (started.incrementAndGet() == 3) allStarted.complete(Unit)
+            allStarted.await()
+        }
+        ready()
     }
 
     @Test

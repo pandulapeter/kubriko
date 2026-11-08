@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -36,14 +37,12 @@ public class IosSimulatorSetup internal constructor(
     private val onCreated: (PlayTarget) -> Unit,
 ) {
     /**
-     * What a new simulator can be made of now, listed off the main thread.
+     * What a new simulator can be made of now, listed off the main thread, with the three lists asked for side by side.
      */
     public suspend fun options(): IosSimulatorOptions = withContext(ioDispatcher) {
-        val (deviceTypes, runtimes, simulators) = listOf(LIST_DEVICE_TYPES, LIST_RUNTIMES, IosSimulators.LIST_AVAILABLE).map { command ->
-            val result = tools.run(command, LIST_TIMEOUT_IN_MILLISECONDS)
-            if (!result.isSuccessful) return@withContext IosSimulatorOptions.Unreadable(failureReasonOf(result.output, result.exitCode))
-            result.output
-        }
+        val results = listOf(LIST_DEVICE_TYPES, LIST_RUNTIMES, IosSimulators.LIST_AVAILABLE).map { command -> async { tools.run(command, LIST_TIMEOUT_IN_MILLISECONDS) } }.awaitAll()
+        results.firstOrNull { !it.isSuccessful }?.let { return@withContext IosSimulatorOptions.Unreadable(failureReasonOf(it.output, it.exitCode)) }
+        val (deviceTypes, runtimes, simulators) = results.map { it.output }
         optionsOf(deviceTypes, runtimes, IosSimulators.parse(simulators).mapTo(mutableSetOf()) { it.name })
     }
 
