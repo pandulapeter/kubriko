@@ -19,6 +19,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.template.NewProjectForm
@@ -42,6 +45,10 @@ internal fun ProjectStartChoice(
     verticalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     val isAiEnabled = LocalIsAiEnabled.current
+    val currentForm by rememberUpdatedState(form)
+    val currentOnFormChange by rememberUpdatedState(onFormChange)
+    // An idea chosen before AI features were turned off can't be seen anymore, so the template shown is created instead.
+    LaunchedEffect(isAiEnabled) { if (!isAiEnabled && currentForm.isFromIdea) currentOnFormChange(currentForm.copy(pitch = null)) }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ProjectTemplate.entries.forEach { template ->
             FilterChip(

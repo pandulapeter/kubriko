@@ -59,6 +59,21 @@ class ProjectStartChoiceTest {
     }
 
     @Test
+    fun anIdeaChosenBeforeAiFeaturesWereTurnedOffGivesWayToTheTemplate() = uiTest(width = 600, height = 200) {
+        var form by mutableStateOf(NewProjectForm(name = "My Game", packageName = "com.example.mygame", parentDirectory = File("/projects"), pitch = ""))
+        var isAiEnabled by mutableStateOf(true)
+        showing {
+            CompositionLocalProvider(LocalIsAiEnabled provides isAiEnabled) {
+                ProjectStartChoice(form = form, onFormChange = { form = it })
+            }
+        }
+        isAiEnabled = false
+        waitForIdle()
+        assertEquals(null, form.pitch)
+        assertEquals(form.template, form.request?.template)
+    }
+
+    @Test
     fun theWritersRoomStartsOnceFromTheIdea() = uiTest {
         val started = mutableListOf<String>()
         var shown = 0
