@@ -179,6 +179,16 @@ class SpriteAtlasTest {
     }
 
     @Test
+    fun `loading progress never goes back when parallel loads report out of order`() {
+        val atlas = SpriteAtlas(listOf(spriteResource("first"), spriteResource("second"), spriteResource("third")), maximumPageSize = 64, paddingInPixels = 0)
+
+        atlas.reportLoadedSprites(2)
+        atlas.reportLoadedSprites(1)
+
+        assertEquals(2f / 4f, atlas.loadingProgress.value)
+    }
+
+    @Test
     fun `a region on no loaded atlas has no mip chain`() {
         assertNull(spriteManager.getMipChain(SpriteRegion(FakeImageBitmap(4, 4), IntOffset.Zero, IntSize(4, 4))))
     }

@@ -72,7 +72,8 @@ class SpriteAtlas internal constructor(
     internal val packedAtlas get() = state.value as? PackedAtlas
 
     internal fun reportLoadedSprites(loadedCount: Int) {
-        if (state.value == AtlasState.Loading) _loadingProgress.value = loadedCount.toFloat() / (resources.size + 1)
+        val progress = loadedCount.toFloat() / (resources.size + 1)
+        _loadingProgress.update { if (state.value == AtlasState.Loading) maxOf(it, progress) else it }
     }
 
     /** Publishes [packedAtlas] unless the atlas was unloaded meanwhile, and returns whether it did. */
