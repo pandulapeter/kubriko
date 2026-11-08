@@ -65,21 +65,6 @@ dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is le
 - **Renames read `ProjectReferences` too** (each kind follows its own rename code today), so a rename can't miss what a delete
   sees; find usages (`07-resource-organization.md`) reads it as well.
 
-## Keeping it up to date
-
-Creator can't write the design for the user, but it makes a missing or stale page visible everywhere it matters:
-
-- **Health checks** (the Game map's, and in the sidebar beside their subject): an Actor type, Manager type, or Scene no page
-  mentions; a mention of something deleted; a page off the shape above; and a Planned item whose subject already exists, which may
-  be built.
-- **Committing** (`ui/git`): when the staged changes touch the game but no page, the commit form says so, with "Ask the assistant
-  to update the screenplay" one click away. It never refuses the commit.
-- **Project settings → Screenplay:** these reminders on or off per project, on for new ones.
-- **Writing one for an existing game:** "Write the screenplay" (the assistant panel's menu, and the opt-in of
-  `14-project-upkeep.md`) has the agent read the game and propose pages for what it finds, for the user to keep page by page. The
-  first time a game without a screenplay opens while AI features are on, the assistant offers it once; declining is remembered.
-- **Every template and demo game** ships with its screenplay, which is also what its tour shows (`15-onboarding.md`).
-
 ## The writers' room
 
 Creating a project with the assistant: it asks what the game is, writes the first pages with the user, and builds the smallest
@@ -109,13 +94,12 @@ and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite ed
 
 ## Order
 
-Keeping pages up to date next (what is left of deleting what is referred to comes with each kind's delete), then the writers'
-room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
-and `search_project` include their mentions and text.
+The writers' room next, `ask_user` and the Blank template first (what is left of deleting what is referred to comes with each
+kind's delete). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages and
+`search_project` include their mentions and text.
 
 ## Testing
 
-- Unit tests for deleting what mentions point at, the health checks, and the commands with undo, as for the other kinds.
 - A `FakeAgent` run through the writers' room, with `ask_user` answered by the test, from pitch to a project that builds; the
   Blank template in `ProjectTemplateIntegrationTest`.
 - A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape above, and

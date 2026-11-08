@@ -33,8 +33,9 @@ Multi-module projects (a shared module plus platform apps) need it to find the m
 ## Existing projects
 
 A clear "level" per project (any project: build, play, export; with `Editable` Actor types and a `CreatorEntryPoint`: Scene editing; opted
-in: Actor types), an opt-in flow that generates the entry point, its service file, and `.kubriko/project.json` as a confirmed diff, and
-explanations instead of failures for layouts Creator can't interpret.
+in: Actor types), an opt-in flow that generates the entry point, its service file, and `.kubriko/project.json` as a confirmed diff (and,
+while AI features are on, offers the assistant's Write the screenplay for a game without pages), and explanations instead of failures
+for layouts Creator can't interpret.
 
 - **Every entry point** and **several editions:** see Entry points and Editions below, which every layout but the template's waits for.
 - **The code's module.** Generated code, the build file sync, and the sources Creator scans need the module that holds the game's code,
