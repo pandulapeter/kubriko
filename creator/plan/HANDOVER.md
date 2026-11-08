@@ -30,8 +30,7 @@ folders with contents) comes with that kind's own delete, a deleted sprite's pag
 writers' room scenario is written but not run (below). Next is `05-settings.md`'s Release, Icons, and Signing, each extending
 the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s Android emulator dialog (Setting up
 emulators and simulators) waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s engine and sprite atlas
-parts touch only `engine/` and `plugins/sprites`, so they can run beside `05` in a session of their own; its Creator part
-follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements,
+parts are done, leaving its Creator part. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements,
 git) or for the benchmarks.
 
 What the last session did (`e60f4dfd3..HEAD`, unattended, every item reviewed with `/code-review` and every finding

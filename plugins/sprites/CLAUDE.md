@@ -84,4 +84,25 @@ allocation-free when the bitmap is cached.
 `TextureMipChainCache` (one chain per texture key, rebuilt only when the key's bitmap is replaced) moved here from
 Tesselar. `SpriteManager.getMipChain` hands every caller one shared chain per resource and drops it on `unload`. Chains
 are not thread-safe: build and read them from the drawing thread. Tests replace the downscale and the immutable marking
-through the internal constructor, since library test classpaths have no Skia runtime.
+through the internal constructor, so they need no Skia runtime.
+
+## Atlases
+`loadAtlas`/`loadSpriteAtlas` hand back a `SpriteAtlas` at once and do the rest on the manager's scope: every sprite is
+loaded for the atlas itself (through the same retrying `loadUntilLoaded` as `get`, but never through the cache, so the
+individual bitmaps are dropped once copied), then packed, then warmed up like a sprite (`pendingAtlases`, drawn by the same
+`Composable`), and only then published, so `getRegion` stays null until a page can be drawn without a hitch.
+- **Layout works on sizes alone** (`AtlasPacker`, a skyline packer, tallest first, first page with room): it is what the
+  pure tests cover. Pages are capped at 2048 (`DEFAULT_MAXIMUM_PAGE_SIZE`, the size every target takes as a texture) and
+  only as large as what they hold; a sprite too large keeps its own bitmap as its region.
+- **Padding is the sprite's own edge pixels** (`forEachAtlasBlit`: the sprite, four stretched edges, four stretched
+  corners), copied with nearest sampling and `BlendMode.Src` after clearing the page (a new Skia bitmap is not zeroed).
+  Two pixels by default, so level 1 of a page's mip chain doesn't mix neighbors either. A sheet is packed whole, so its
+  frames touch as they do in the file.
+- **Pages are marked immutable** once drawn; Skia would otherwise copy a drawn-into bitmap on every draw.
+- Drawing into a page fails on Android for a hardware bitmap (which a custom `imageLoader` may return); the atlas then
+  falls back to every sprite's own bitmap (`unpackedAtlas`) rather than never loading.
+- `SpriteAtlas`'s state is one `StateFlow` (`Loading`, a `PackedAtlas`, or `Unloaded`): `publish` only moves it from
+  `Loading`, so an `unloadAtlas` racing the warm-up always wins. `getMipChain(region)` caches a page's chain only while its
+  atlas is loaded; a stale region gets a chain that is not kept.
+- The pixel copy is tested with real Skia in this module's `desktopTest`, the one library test classpath besides the
+  engine's that has the native runtime.

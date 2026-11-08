@@ -67,6 +67,31 @@ playerIdle.stepForward(deltaTimeInMilliseconds, shouldLoop = true)
 playerIdle.draw(scope)
 ```
 
+### 4. Pack sprites into an atlas (optional)
+
+Batched actors (see the engine's `Batched` trait) showing sprites of the same bitmap draw together in one call. Declare
+the sprites that appear together as an atlas, and `SpriteManager` packs them onto shared pages in the background:
+
+```kotlin
+spriteManager.loadAtlas(listOf(Res.drawable.coin, Res.drawable.gem, Res.drawable.player_idle))
+
+// In a batched actor's update
+look.setRegion(spriteManager.getRegion(Res.drawable.coin)) // null (draws nothing) until the atlas is packed
+
+// A sprite sheet is packed whole, so its frames stay regions of one page
+val playerIdle = AnimatedSprite.fromAtlas(
+    getRegion = { spriteManager.getRegion(Res.drawable.player_idle) },
+    frameSize = IntSize(32, 32),
+    frameCount = 4,
+    framesPerRow = 4,
+)
+playerIdle.stepForward(deltaTimeInMilliseconds, shouldLoop = true)
+playerIdle.applyTo(playerLook)
+```
+
+Each sprite is surrounded by copies of its own edge pixels, so filtering never picks up a neighbor. Pages are at most
+2048 pixels wide and tall, a size every platform supports; a sprite too large for one keeps its own bitmap.
+
 ## Public Artifact
 
 The artifact for this module is:
