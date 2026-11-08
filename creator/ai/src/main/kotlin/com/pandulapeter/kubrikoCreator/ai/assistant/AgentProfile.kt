@@ -25,6 +25,7 @@ import kotlinx.serialization.json.JsonElement
  *   some agents write files of their own where they start (Google Antigravity its skills) without asking.
  * @param usesClaudeAccount Whether the agent signs in through a Claude Code configuration or the user's Anthropic API key
  *   ([ClaudeAccount]).
+ * @param environment Variables the agent is started with, under any the user's own configuration sets.
  */
 public data class AgentProfile(
     val sessionMeta: ((systemPrompt: String) -> JsonElement)?,
@@ -32,6 +33,7 @@ public data class AgentProfile(
     val keepsOffFiles: Boolean,
     val usesProjectFolder: Boolean,
     val usesClaudeAccount: Boolean,
+    val environment: Map<String, String> = emptyMap(),
 ) {
     internal companion object {
         internal val claude = AgentProfile(
@@ -40,6 +42,8 @@ public data class AgentProfile(
             keepsOffFiles = true,
             usesProjectFolder = true,
             usesClaudeAccount = true,
+            // Claude Code gives up on a tool call after a minute, and ask_user waits for as long as the user takes.
+            environment = mapOf("MCP_TOOL_TIMEOUT" to TOOL_CALL_TIMEOUT_IN_MILLISECONDS.toString()),
         )
         internal val fallback = AgentProfile(
             sessionMeta = null,
@@ -48,5 +52,11 @@ public data class AgentProfile(
             usesProjectFolder = false,
             usesClaudeAccount = false,
         )
+
+        /**
+         * How long Claude Agent waits for one of Kubriko Creator's tools: a day, as long as nobody could mean to leave a
+         * question unanswered and come back to it.
+         */
+        internal const val TOOL_CALL_TIMEOUT_IN_MILLISECONDS = 24L * 60 * 60 * 1000
     }
 }

@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -45,6 +46,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Real conversations with the real Claude Agent on the Breakout fixture, through the assistant's own chat and tools,
@@ -89,6 +91,20 @@ class AssistantLiveScenariosTest {
         assertTrue(resumed.transcript.value.items.isNotEmpty(), "Nothing of the conversation came back.")
         resumed.ask("Which word did I ask you to remember? Reply with that word alone.")
         assertContains(resumed.lastAnswer().lowercase(), "marmalade")
+    }
+
+    @Test
+    fun aQuestionAnsweredAfterMoreThanAMinuteReachesTheAgent() = live { session ->
+        val questions = session.context.questions
+        val answering = launch(Dispatchers.Default) {
+            val question = questions.pending.first { it.isNotEmpty() }.first()
+            delay(ANSWER_DELAY)
+            questions.answer(question.id, "Teal")
+        }
+        val chat = session.chat()
+        chat.ask("Ask me with ask_user which color I like, offering red and blue, then reply with my answer alone.")
+        answering.cancel()
+        assertContains(chat.lastAnswer().lowercase(), "teal")
     }
 
     @Test
@@ -186,7 +202,7 @@ class AssistantLiveScenariosTest {
 
         private fun newAssistant() = Assistant(
             agent = AcpAgent(
-                command = RegistryAgent.npxCommand(RegistryAgent.claude.distribution as AgentDistribution.Npx, npx, listOfNotNull(configDirectory?.let { "CLAUDE_CONFIG_DIR" to it }).toMap()),
+                command = RegistryAgent.npxCommand(RegistryAgent.claude.distribution as AgentDistribution.Npx, npx, AgentProfile.claude.environment + listOfNotNull(configDirectory?.let { "CLAUDE_CONFIG_DIR" to it })),
                 launcher = ProcessAgentLauncher(projectDirectory),
                 clientInfo = AcpAgent.clientInfo("1.0.0"),
                 scope = scope,
@@ -235,5 +251,10 @@ class AssistantLiveScenariosTest {
          * How many times the writers' room is asked to go on when it stops before building anything, waiting to be told.
          */
         const val FOLLOW_UPS = 2
+
+        /**
+         * How long the user takes to answer a question: longer than Claude Code waits for a tool call by default.
+         */
+        val ANSWER_DELAY = 70.seconds
     }
 }

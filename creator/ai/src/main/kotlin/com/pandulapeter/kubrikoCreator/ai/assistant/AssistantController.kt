@@ -72,7 +72,7 @@ public class AssistantController(
         selection.awaitLoaded()
         val choice = selection.agent.value
         val npx = commands.npx()
-        val environment = if (choice.isClaude) claude.environment() else signIns.environmentOf(choice)
+        val environment = choice.profile.environment + if (choice.isClaude) claude.environment() else signIns.environmentOf(choice)
         createAssistant(commands.of(choice, npx, environment), npx, choice.profile)
     }
     private val selection: AgentSelection = AgentSelection(scope, settings, sources.registry, ioDispatcher, isAiEnabled, isAgentRunning = { host.current.value != null })

@@ -621,6 +621,20 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun claudeAgentWaitsForCreatorsToolsAsLongAsTheUserTakesUnlessTheirConfigurationSaysOtherwise() = blockingTest {
+        runner.aliases["claude-patient"] = "MCP_TOOL_TIMEOUT=5000 claude"
+        val controller = controller()
+        controller.startChat().state.first { it == ChatState.Ready }
+        assertEquals("86400000", commands.single().environment["MCP_TOOL_TIMEOUT"])
+        onMain { controller.findConfigurations() }
+        val patient = controller.configurations.first { it.size == 2 }.last()
+        onMain { controller.selectConfiguration(patient) }
+        controller.currentChat.value!!.state.first { it == ChatState.Ready }
+        assertEquals(2, commands.size)
+        assertEquals("5000", commands.last().environment["MCP_TOOL_TIMEOUT"])
+    }
+
+    @Test
     fun aRememberedConfigurationWhoseAliasIsGoneFallsBackToTheDefault() = blockingTest {
         AssistantSettingsStore(File(settingsDirectory, "assistant.json")).save(AssistantSettings(claudeConfigurationAlias = "claude-gone"))
         val controller = controller()
