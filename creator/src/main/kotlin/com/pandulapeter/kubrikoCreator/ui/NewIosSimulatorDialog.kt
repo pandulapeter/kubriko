@@ -60,7 +60,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Makes a new iOS simulator from a name, a device type, and an iOS version Xcode offers ([state]), which Play then uses.
- * It can't be closed while the simulator is being made, since closing would stop `simctl` halfway.
+ * It can't be closed while the simulator is being made, so how that ends, a failure above all, is seen.
  */
 @Composable
 internal fun NewIosSimulatorDialog(

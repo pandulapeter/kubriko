@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -23,10 +25,13 @@ import kotlinx.serialization.json.longOrNull
 /**
  * Makes new iOS simulators through Xcode's `simctl`, so a beginner never leaves Kubriko Creator for one.
  *
+ * @param scope Where simulators are made, which outlives whoever asked for one, since stopping `simctl create` halfway may
+ *   leave a simulator that is never chosen.
  * @param onCreated Makes a new simulator the place Play uses, without waiting for Play's places to be looked for again.
  */
 public class IosSimulatorSetup internal constructor(
     private val tools: ToolProcesses,
+    private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val onCreated: (PlayTarget) -> Unit,
 ) {
@@ -43,9 +48,14 @@ public class IosSimulatorSetup internal constructor(
     }
 
     /**
-     * Makes a simulator called [name] (trimmed), a [deviceType] running [runtime], and has Play use it once it is made.
+     * Makes a simulator called [name] (trimmed), a [deviceType] running [runtime], and has Play use it once it is made, even
+     * if the caller is cancelled meanwhile.
      */
-    public suspend fun create(name: String, deviceType: IosDeviceType, runtime: IosRuntime): IosSimulatorCreation {
+    public suspend fun create(name: String, deviceType: IosDeviceType, runtime: IosRuntime): IosSimulatorCreation = scope.async(ioDispatcher) {
+        make(name, deviceType, runtime)
+    }.await()
+
+    private suspend fun make(name: String, deviceType: IosDeviceType, runtime: IosRuntime): IosSimulatorCreation {
         val trimmed = name.trim()
         val result = tools.run(listOf("xcrun", "simctl", "create", trimmed, deviceType.identifier, runtime.identifier), CREATE_TIMEOUT_IN_MILLISECONDS)
         if (result.hasTimedOut) return IosSimulatorCreation.TimedOut

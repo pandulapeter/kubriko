@@ -13,7 +13,15 @@ import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.testing.blockingTest
 import com.pandulapeter.kubrikoCreator.workspace.FakeToolProcesses.Companion.failed
 import com.pandulapeter.kubrikoCreator.workspace.FakeToolProcesses.Companion.ok
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -22,8 +30,18 @@ import kotlin.test.assertTrue
 
 class IosSimulatorSetupTest {
     private val tools = FakeToolProcesses()
-    private val chosen = mutableListOf<PlayTarget>()
-    private val setup = IosSimulatorSetup(tools, Dispatchers.IO) { chosen += it }
+    private val chosen = CopyOnWriteArrayList<PlayTarget>()
+    private val firstChosen = CompletableDeferred<PlayTarget>()
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val setup = IosSimulatorSetup(tools, scope, Dispatchers.IO) {
+        chosen += it
+        firstChosen.complete(it)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        scope.cancel()
+    }
 
     private fun type(identifier: String, name: String) = IosDeviceType("com.apple.CoreSimulator.SimDeviceType.$identifier", name)
 
@@ -160,6 +178,26 @@ class IosSimulatorSetupTest {
         )
         val created = assertIs<IosSimulatorCreation.Created>(setup.create("My Phone", iPhone18Pro, runtime))
         assertEquals("ios-simulator:6F1E2C3A-9B8D-4E5F-A1B2-C3D4E5F60718", created.target.id)
+    }
+
+    @Test
+    fun aSimulatorBeingMadeIsMadeAndChosenEvenIfWhoAskedForItGoesAway() = blockingTest {
+        answerLists()
+        val runtime = ready().runtimes.first()
+        val creating = CompletableDeferred<Unit>()
+        val finishing = CompletableDeferred<Unit>()
+        tools.onRun = { command ->
+            if ("create" in command) {
+                creating.complete(Unit)
+                finishing.await()
+            }
+        }
+        tools.answer("simctl create My Phone com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro $ios272", ok(SimctlRecordings.CREATED))
+        val caller = launch { setup.create("My Phone", iPhone18Pro, runtime) }
+        creating.await()
+        caller.cancelAndJoin()
+        finishing.complete(Unit)
+        assertEquals("ios-simulator:6F1E2C3A-9B8D-4E5F-A1B2-C3D4E5F60718", firstChosen.await().id)
     }
 
     @Test

@@ -379,8 +379,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   until then. Stop is `simctl terminate`. New simulators are made in Creator's own dialog (`IosSimulatorSetup`, through
   `simctl create`): only iPhones and iPads an installed iOS version runs are offered, the newest first by the oldest version
   they run, since `simctl`'s own order changes between Xcode versions, and the iPod touch calls itself an iPhone. A name any
-  iOS simulator has is refused, since Play's menu would show two alike, and the dialog can't be closed while `create` runs,
-  which closing would stop halfway. The new simulator is chosen before Play's places are looked for again, so whichever
+  iOS simulator has is refused, since Play's menu would show two alike, and `create` runs in the workspace's scope rather
+  than the dialog's, since stopping it halfway may leave a simulator that is never chosen. The new simulator is chosen before Play's places are looked for again, so whichever
   look ends last keeps it chosen.
 - **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so a Log Block also
   prints what it logs (on one line, as `[source] message`), and the Scene loader its failures: Creator reads them back from a
