@@ -36,8 +36,29 @@ an optional drawing primitive for scenes made of many small shapes: triangles, q
 rasterized with a single native call rather than one canvas operation each. On the Web the upload goes through an adapter that hands Skia the whole mesh in one
 copy, which for a large batch is the difference between a playable and an unplayable frame rate.
 
-It is opt-in. A `Visible` actor still draws through a plain `DrawScope`, and ordinary `drawRect` / `drawCircle` / `drawPath` calls are unaffected by any of this —
-a game benefits only where it builds its geometry into a batch instead. See `demo-isometric-graphics` for a scene that does.
+A `Visible` actor still draws through a plain `DrawScope`, exactly as before. An actor that implements `Batched` instead describes its look, and the engine
+draws consecutive batched actors of a layer together, one native call per run, rebuilding an actor's geometry only when its body or look changes:
+
+```kotlin
+class Coin(position: SceneOffset, texture: ImageBitmap) : Actor, Batched {
+    override val body = BoxBody(initialPosition = position, initialSize = SceneSize(16.sceneUnit, 16.sceneUnit))
+    override val look = SpriteLook(texture, filterQuality = FilterQuality.None)
+}
+
+class Bubble(position: SceneOffset) : Actor, Batched, Dynamic {
+    override val body = BoxBody(initialPosition = position, initialSize = SceneSize(24.sceneUnit, 24.sceneUnit))
+    override val look = EllipseLook(Color.Cyan)
+
+    override fun update(deltaTimeInMilliseconds: Int) {
+        body.rotation += (deltaTimeInMilliseconds * 0.001f).rad
+    }
+}
+```
+
+`RectangleLook`, `EllipseLook`, and `SpriteLook` cover shapes and sprites; a `CustomLook` emits its own geometry into a `TriangleBatch`. Plain and batched
+actors mix freely and draw in the order their `drawingOrder` says. `demo-performance` switches between the two, and `demo-isometric-graphics` builds a whole
+scene into batches by hand. The engine also offers `RenderWarmUp`, which times a game's drawing until it stops getting faster so a loading screen can wait for
+it, and `BackgroundPass`, for computing a heavy field off the frame thread.
 
 Check out the [documentation](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md) for more details about these components.
 
@@ -55,6 +76,7 @@ The `ViewportManager` handles the conversion between these two systems based on 
 ### Trait-based Actor System
 Instead of a complex inheritance hierarchy, `Actor` behavior is defined by implementing **Traits**. Examples include:
 - `Visible`: For actors that should be rendered.
+- `Batched`: For actors that describe their look instead of drawing it, so that the engine can draw many of them together.
 - `Dynamic`: For actors that need to update their state every frame.
 - `Positionable`: For actors with a location in the scene.
 - `Disposable`: For actors that need to clean up resources when removed.

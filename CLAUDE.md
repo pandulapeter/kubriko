@@ -175,6 +175,7 @@ In-game objects or responsibilities. Added/removed at runtime via `ActorManager`
 | `Group` | Contains `actors: List<Actor>`; adding/removing a `Group` adds/removes all its children simultaneously. |
 | `Identifiable` | Optional `name: String?`; auto-assigned if null when added. Names are **not** enforced unique. |
 | `Unique` | Marker interface — ensures only one instance of this type exists at a time. Adding a second automatically removes the first. |
+| `Batched : Visible` | Describes a `look` instead of drawing: `RectangleLook`, `EllipseLook`, `SpriteLook` (texture region, tint, filter), or a `CustomLook` emitting into a `TriangleBatch` in body coordinates. Consecutive batched actors of a layer draw as runs, one native call each, in the exact `drawingOrder`; geometry is rebuilt only when the body or the look's `revision` changes (`CustomLook.invalidate()`). Give each actor its own look. `draw()` still works for direct callers (the scene editor). |
 
 ### Actor Bodies
 
@@ -218,17 +219,19 @@ A repeating timer carries the overshoot into its next period (firing at most onc
 ### `TriangleBatch` (`helpers/TriangleBatch.kt`)
 Accumulates triangles, quads, lines and strokes from many actors into flat vertex/index arrays and rasterizes them with a single native `drawVertices` call, instead of one canvas operation per shape. A scene built from many small shapes is the case this exists for — per-shape canvas calls are what makes such a scene unusable on the web and expensive on Android.
 
-**This is opt-in, not an engine-wide speedup.** `Visible.draw()` still hands each actor a plain `DrawScope`, and ordinary `drawRect`/`drawCircle`/`drawPath` calls go straight to Compose and Skia as they always have. Nothing gets faster by upgrading; a game benefits only by restructuring its drawing to fill a batch. `demo-isometric-graphics` is the in-repo example of a game that does.
+**Every game reaches it through `Batched` actors** (see the Actor Traits), which need no batch code at all: the engine fills one reused batch per run of them. A plain `Visible` still draws through its own `DrawScope` exactly as before, so nothing changes for a game that doesn't opt in. Filling a batch by hand stays available for geometry a look cannot express, as in `demo-isometric-graphics`; `demo-performance` switches between plain and batched actors.
 
 - Fill it during `draw`, then `flush(canvas)`; painter's order is emission order, so anything that has to go through another code path (a bitmap, a different paint) means flushing first.
 - Buffers are reused across frames and steady-state filling does not allocate. Vertices are shared through an index array; `addVertex`/`addTexturedVertex` return indices for geometry whose shapes share corners.
-- `texture` modulates the vertex colors by a tiling pattern sampled per vertex; `TriangleBatchSupport.isTextureSampledPerVertex()` reports whether the device honors that at all (some Android drivers silently drop the coordinates — the probe is the only way to know, and it is cached per process).
+- `texture` modulates the vertex colors by a texture sampled per vertex, tiled or clamped (`textureTileMode`), filtered, nearest-neighbor, or mipmapped (`textureFilterQuality`); `TriangleBatchSupport.isTextureSampledPerVertex()` reports whether the device honors that at all (some Android drivers silently drop the coordinates — the probe is the only way to know, and it is cached per process).
 - A batch holds at most `TriangleBatch.MAX_INDEXED_VERTICES` unique vertices between resets. An owner that keeps one persistent batch instead of flushing per frame must check `willOverflow` and roll over.
 - `replace = true` composites source-replace instead of source-over, for a translucent group drawn into its own offscreen layer.
 
 Platform draw paths live in `implementation/TriangleMesh.android.kt` and, shared by the Skia targets, `TriangleMesh.skiko.kt`; the web adds its fast path in `TriangleMesh.web.kt`: Android passes counts and draws straight from the batch's arrays; the Skia targets have no count parameter, so `TriangleMeshBuffers` trims into per-size bucket mirrors. **Web additionally routes through `WasmTriangleBridge`**, which stages the mesh in linear memory and copies it into Skia's heap in one call — Skiko's public path crosses the Wasm boundary once per scalar, which dominates the frame on any real batch. The bridge validates Skiko's expected exports and draw arity and falls back to the public path, so a Skiko upgrade degrades rather than breaks; it cannot detect a same-signature semantic change, so re-verify it (and confirm the fast path is still taken) whenever Skiko or Kotlin/Wasm is bumped. `engine/src/webMain/checkTriangleBridge.mjs` exercises the JavaScript it embeds without any dependencies; `engine/src/webMain/README.md` says when it is worth running and what it cannot catch.
 
 The bridge is the only place in the engine that calls `drawVertices`, so it accelerates batched drawing and nothing else.
+
+Alongside it: `ImageBitmap.markImmutable()` (mark every bitmap you draw into once it is finished, or Skia copies it on every draw), `ImageBitmap.meanArgb()`, `RenderWarmUp` (times the drawing until its cost stops falling, so a loading screen can wait for a smooth game), and `BackgroundPass` (a heavy field computed off the frame thread from a snapshot of what it reads).
 
 ## Plugins
 
@@ -258,7 +261,7 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 
 **Persistence**: Returns `MutableStateFlow`s that auto-persist on value change. Types: `boolean`, `int`, `float`, `string`, `generic(serializer, deserializer)`.
 
-**Sprites**: `SpriteManager.get(resource)` returns null while loading (triggers load on first call). `AnimatedSprite` handles frame-based animation from sprite sheets. Preload with `spriteManager.preload(...)`. `SpriteManager.newInstance(imageLoader = …)` replaces the loading itself, for resources Compose can't reach (Kubriko Creator's embedded Scene editor).
+**Sprites**: `SpriteManager.get(resource)` returns null while loading (triggers load on first call). `AnimatedSprite` handles frame-based animation from sprite sheets. Preload with `spriteManager.preload(...)`. `SpriteManager.newInstance(imageLoader = …)` replaces the loading itself, for resources Compose can't reach (Kubriko Creator's embedded Scene editor). `SpriteManager.getMipChain(resource)` (or a `TextureMipChainCache` keyed by anything) hands out one shared `TextureMipChain` per texture, whose `forScale(scale)` picks a pre-halved level, so a sprite drawn smaller than its size neither shimmers nor samples more than it shows.
 
 **Physics**: Based on KPhysics/JPhysics. Bodies can be circular or polygonal. Supports joints, ray casting, and explosion forces.
 
@@ -312,6 +315,18 @@ class MyActor : Actor, Visible, Dynamic, Unique {
 }
 ```
 
+**Typical batched Actor** (no `draw()`; the engine draws its look in a run with its neighbors):
+```kotlin
+class Coin(position: SceneOffset, texture: ImageBitmap) : Actor, Batched, Dynamic {
+    override val body = BoxBody(initialPosition = position, initialSize = SceneSize(16f.sceneUnit, 16f.sceneUnit))
+    override val look = SpriteLook(texture, filterQuality = FilterQuality.None)
+
+    override fun update(deltaTimeInMilliseconds: Int) {
+        body.rotation += (deltaTimeInMilliseconds * 0.002f).rad
+    }
+}
+```
+
 **Typical custom Manager**:
 ```kotlin
 class MyManager : Manager() {
@@ -334,6 +349,7 @@ Concrete rules:
 - **Zero per-frame allocation in hot paths.** Code that executes every tick (inside `onUpdate`, `draw`, comparators, filters on actor lists) must not allocate heap objects. This rules out lambdas that capture, boxed primitives (e.g. `List<Int>` instead of `IntArray`, `List<Float>` instead of `FloatArray`), unnecessary `map`/`filter` chains that produce intermediate lists, and any approach that trades allocations for code simplicity.
 - **Sort in place.** Prefer `sortWith` on existing `ArrayList`s over `sortedWith`/`sortedByDescending`, which always allocate a new list.
 - **Prefer primitives.** Use `FloatArray`, `IntArray`, etc. wherever a sequence of primitive values is needed. Kotlin generic collections box primitives.
+- **Per-frame scalar providers are primitive-returning `fun interface`s**, never Kotlin function types: a `() -> Float` is generic underneath and boxes its result on every call, while `fun interface FloatSource { fun value(): Float }` returns a raw `float`.
 - **Snapshot keys correctly without boxing.** When a sort key must be captured once (e.g. to fix a `-0.0f` vs `+0.0f` comparator inconsistency), prefer a targeted fix (e.g. `+ 0f` inside the comparator) over a snapshot approach that allocates intermediate collections.
 
 ## Known platform limitations

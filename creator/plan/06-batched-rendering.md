@@ -16,49 +16,13 @@ geometry is recomputed only when it changes, bitmaps are marked immutable, and t
 general parts of that the engine's own, so that every Kubriko game can use them, Creator's generated Actor types use them without the user
 knowing, and Tesselar can drop its copies, a step toward working on Tesselar entirely inside Creator (`14-project-upkeep.md`).
 
-**What moves and what stays.** Moving to the engine: batching, change-gated geometry, immutable bitmaps, texture mip chains and the
-mean-color stand-in for tiny textures, the render warm-up, and background passes for heavy fields. Staying in Tesselar, since they are
-about cuboids and its world, not drawing in general: painter-order refinement, the terrain mesh, shadows, water, and weather.
+**Builds on** the engine's `Batched` Trait and its looks (`SpriteLook` for sprites), `TriangleBatch`'s sampling
+(`textureTileMode`, `textureFilterQuality`), `ImageBitmap.markImmutable()`, and the sprites plugin's `TextureMipChain`.
 
-**Order.** The engine and sprites sections touch only `engine/`, `plugins/sprites`, and the Showcase, so they wait for nothing in Creator
-and can run in a session of their own beside `04` and `05`. The Creator section follows them and comes before `08`'s Visible Trait and
-`09`'s appearance features (sprite sheets, tinting), so those are built on batched looks rather than moved onto them later. Everything
-here only adds to the public API: existing `Visible` Actors draw exactly as before. The engine and sprites parts are general engine
-features with users of their own (Tesselar and the Showcase), not library changes made for Creator (`../CLAUDE.md` → Library side), so
-they ship with the library's next release whenever they are ready.
-
-## Engine
-
-- **Batched Actors:** a new Trait extending `Visible` (its name decided by the item) whose Actors describe their look instead of drawing it.
-  Two levels:
-  - Declarative looks: a rectangle, an ellipse, or a sprite region, each with a color or tint, which the engine turns into geometry.
-  - Custom emission into a `TriangleBatch`, for game-specific geometry such as Tesselar's cuboids.
-
-  The layer loop fills one reused batch per layer with consecutive batched Actors in their existing sort order, and draws it before any
-  plain `Visible` Actor, which then draws as today, so the paint order stays exactly what the sort says. Where the sort leaves batched
-  Actors of the same drawing order unordered, they are grouped by texture for longer runs. Each Actor's corners are transformed by its
-  body on the CPU (position, rotation, scale, and pivot), replacing the per-Actor `save`, transform, and `restore`. A look lies inside the
-  body by construction, so it needs no clip. Runs roll over at `TriangleBatch.willOverflow`. The Trait implements `draw()` through a
-  one-off batch, so anything that draws a `Visible` directly (the scene editor, debug tools, Creator's preview) keeps working. Steady
-  state allocates nothing.
-- **Change-gated geometry:** an Actor's vertices are recomputed only when its body or look changes (`BoxBody` already tracks changes;
-  a look carries a revision, as Tesselar's shared states do), and appended from the cache otherwise. A run whose members neither changed
-  nor reordered redraws the previous frame's arrays without filling them again, so a mostly static Scene (a tile map) costs one native
-  draw per run. This is Tesselar's terrain-mesh rule made general.
-- **Textured batches:** `TriangleBatch` gains clamped sampling and nearest-neighbor filtering (it only repeats with the default filter today),
-  as pixel art and atlases need. Where `TriangleBatchSupport.isTextureSampledPerVertex()` is false (some Android drivers), sprite runs
-  fall back to one `drawImageRect` per sprite from the same atlas page, which Android's renderer still merges. A sprite too small on
-  screen to show its texture is drawn in its texture's mean color, as Tesselar's faces are.
-- **Texture mip chains:** Tesselar's `TextureMipChainCache` (each level built once per texture, shared by everything using it) moves
-  to the sprites plugin, so sprites shown smaller than their size neither shimmer nor sample more than they show.
-- **Render warm-up and background passes:** Tesselar's `RenderWarmUp` (times the frame until its cost stops falling, so a loading
-  screen can wait for the game to run smoothly) and `BackgroundPass` (computes a heavy field off the frame thread from a snapshot of what
-  it reads) become engine helpers, each with its own KDoc and tests.
-- **Rules and documentation:** the root `CLAUDE.md` → Performance gains Tesselar's rule that per-frame scalar providers are
-  primitive-returning `fun interface`s, never Kotlin function types, which box; its `TriangleBatch` section stops calling batching
-  something no game gets without restructuring; the engine's README shows batched Actors. Since Creator's AI reads those sections
-  (`KubrikoApi`), it learns batched Actors from the same change.
-- **Showcase:** `demo-performance` switches between plain and batched Actors, as the in-repo example of both.
+**Order.** The sprites section touches only `engine/`, `plugins/sprites`, and the Showcase, so it waits for nothing in
+Creator. The Creator section follows it and comes before `08`'s Visible Trait and `09`'s appearance features (sprite
+sheets, tinting), so those are built on batched looks rather than moved onto them later. Everything here only adds to the
+public API: existing `Visible` Actors draw exactly as before.
 
 ## Sprite atlases
 
@@ -67,9 +31,9 @@ they ship with the library's next release whenever they are ready.
   `AnimatedSprite`'s frames stay regions of one page. Batched sprite looks name a region, and a run continues while its page stays the
   same.
 - **Pages are marked immutable.** On the Skia targets, Compose turns a mutable bitmap into an image on every draw, re-copying its pixels.
-  Decoded sprites are already immutable (`toComposeImageBitmap` marks them), but a page is a bitmap drawn into, as Tesselar's bakes and
-  mip levels are, which is why Tesselar marks every finished bitmap (`ImageBitmap.markImmutable()`, a no-op on Android). That helper
-  becomes public engine API with the atlas, its first engine user, and so do mip levels (Texture mip chains above).
+  Decoded sprites are already immutable (`toComposeImageBitmap` marks them), but a page is a bitmap drawn into, so it is marked with the
+  engine's `ImageBitmap.markImmutable()` once packed. A page's mip levels come from the sprites plugin's `TextureMipChain`, and a
+  `SpriteLook` naming a region of a page joins the runs of every other sprite on that page.
 - **At load, not at build time,** so that hand-written games benefit too and projects keep no generated images in version control;
   Creator only decides what goes together. Build-time packing can follow if loading times ever ask for it.
 - The packer works on sizes alone, so the layout, padding, and pages are unit tested without images; only copying pixels needs Skia.
@@ -89,22 +53,26 @@ they ship with the library's next release whenever they are ready.
 ## Tesselar
 
 - **Every item here that unlocks a change in Tesselar makes that change as part of the item**, never as a follow-up: the item is done
-  only once `~/Projects/Tesselar` uses what it added, built and run against a `publishToMavenLocal` of this repository (which shadows
-  Maven Central for its pinned version), in commits of its own following that repository's conventions. Its pinned Kubriko version is
-  raised once the library release holds the change. The Showcase's `demo-isometric-graphics`, a copy of Tesselar, takes the same
-  change where it has the code it replaces.
-- What that means per item: its scene pass becomes a client of the engine's custom emission and change gating; its copies of
-  `markImmutable`, `TextureMipChainCache`, `RenderWarmUp`, and `BackgroundPass` are deleted in favor of the engine's; and textured batch
-  improvements (sampling, the mean-color stand-in) replace its own workarounds. Its cuboid, terrain, shadow, water, and weather code
-  stays its own.
-- Whatever it still had to keep private for speed is either moved up as well or written down in this file with the reason, so the
-  engine keeps up with what Tesselar learns.
+  only once `~/Projects/Tesselar` uses what it added, built and run against a `publishToMavenLocal` of this repository, in commits of
+  its own following that repository's conventions. Its pinned Kubriko version is already `0.8.1`, the release that holds the engine
+  part; it builds only against a local publish until that release is out. The Showcase's `demo-isometric-graphics`, a copy of
+  Tesselar, takes the same change where it has the code it replaces.
+- **Its scene pass is not yet a client of the engine's custom emission and change gating**, for three reasons the engine part could not
+  remove on its own. Its textured faces are drawn one by one through a parallelogram `drawImage` with a shading `ColorFilter`, each
+  flushing the batch, because faces of different textures cannot share one batch until they share an atlas page (Sprite atlases above).
+  Its geometry follows the camera (orbit, tilt, and zoom are baked into the projection), not an engine body, so a body-and-revision
+  gate would rebuild every cuboid on every camera move; its own gates key on the camera basis instead. And the always-visible overlay
+  draws a second time into an offscreen `saveLayer`, which a run of a layer cannot express. Once atlases exist, each `VolumetricCuboidRenderer`
+  can become a `CustomLook` whose revision folds in the camera basis, the shared states, and its own animation, with the scene pass
+  keeping only the painter-order refinement, the terrain merge, and the overlay.
+- **Textured batch improvements replace no workaround there yet.** Its batch texture is the repeating ground grain, which wants the
+  default sampling, and its mean-color stand-in now reads the sprites plugin's `TextureMipChain.meanArgb`; the size test that picks
+  it stays its own, since its faces are not sprite looks.
+- Its cuboid, terrain, shadow, water, and weather code stays its own.
 
 ## Testing
 
-- Without Skia: the vertices emitted for rotated, scaled, and pivoted bodies match the canvas path's transform; a layer of batched,
-  plain, and batched Actors draws as two runs around one plain draw, in order; rollover; no refill while nothing changed; and
-  `:tools:test-fixtures`' allocation measurement shows a steady-state frame allocates nothing.
-- The same Scene drawn plain and batched compared as images where Skia runs (the Showcase's desktop app, or Creator's end-to-end harness
-  under Xvfb for a generated game), with a tolerance for edge smoothing on ellipses.
+- A generated game's Scene drawn plain and batched compared as images in Creator's end-to-end harness under Xvfb, with a tolerance for
+  edge smoothing on ellipses (the engine's own comparison is `BatchedRenderingComparisonTest`).
+- The atlas packer's layout, padding, and pages, without images.
 - Creator: generated code for every shape and for sprites, the preview's look, and the atlas declaration, in `:creator:core`'s tests.
