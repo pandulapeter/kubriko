@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
@@ -69,6 +70,19 @@ class WorkspaceUiStateTest {
         uiState.showAssistant()
         assertEquals(SidePanel.AI, uiState.openPanel)
         assertEquals(AiPanelView.ASSISTANT, uiState.aiPanelView)
+    }
+
+    @Test
+    fun moreIosSimulatorsAreMadeInADialogAndAndroidsEmulatorsFollowTheGuide() {
+        var guides = 0
+        uiState.setUpMoreDevices(PlayTarget.Kind.ANDROID) { guides++ }
+        assertEquals(1, guides)
+        assertFalse(uiState.isMakingIosSimulator)
+        uiState.setUpMoreDevices(PlayTarget.Kind.IOS) { guides++ }
+        assertEquals(1, guides)
+        assertTrue(uiState.isMakingIosSimulator)
+        uiState.finishMakingIosSimulator()
+        assertFalse(uiState.isMakingIosSimulator)
     }
 
     @Test

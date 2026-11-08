@@ -29,6 +29,10 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.GameTargets
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettings
+import com.pandulapeter.kubrikoCreator.workspace.IosDeviceType
+import com.pandulapeter.kubrikoCreator.workspace.IosRuntime
+import com.pandulapeter.kubrikoCreator.workspace.IosSimulatorCreation
+import com.pandulapeter.kubrikoCreator.workspace.IosSimulatorOptions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kubriko.creator.generated.resources.Res
@@ -37,7 +41,7 @@ import org.jetbrains.compose.resources.stringResource
 import java.io.File
 
 /**
- * The workspace's dialogs: Project settings and the template upgrade, while [uiState] shows them.
+ * The workspace's dialogs: Project settings, the template upgrade, and a new iOS simulator, while [uiState] shows them.
  *
  * @param projectUpgrade The template upgrade the project needs, if any.
  * @param rootDirectory The project's folder, whose settings Project settings shows.
@@ -53,6 +57,8 @@ import java.io.File
  *   applied.
  * @param validate Why a change can't be made, or null, for what a confirmation lets the user still change.
  * @param onUsageSelected Goes to the place of a usage the delete's confirmation lists.
+ * @param iosSimulatorOptions Lists what a new iOS simulator can be made of.
+ * @param createIosSimulator Makes a new iOS simulator, which Play then uses.
  */
 @Composable
 internal fun WorkspaceDialogs(
@@ -70,6 +76,8 @@ internal fun WorkspaceDialogs(
     onConfirmedDelete: (Invocation<*>, () -> Unit) -> Unit,
     validate: (Invocation<*>) -> Rejection?,
     onUsageSelected: (Usage) -> Unit,
+    iosSimulatorOptions: suspend () -> IosSimulatorOptions,
+    createIosSimulator: suspend (name: String, deviceType: IosDeviceType, runtime: IosRuntime) -> IosSimulatorCreation,
 ) {
     uiState.pendingDocumentChange?.let { pending ->
         DocumentChangeConfirmation(
@@ -110,6 +118,12 @@ internal fun WorkspaceDialogs(
             onReviewUpgrade = projectUpgrade?.let { uiState::reviewUpgrade },
             onDismiss = uiState::hideProjectSettings,
             initialPage = uiState.projectSettingsPage,
+        )
+    }
+    if (uiState.isMakingIosSimulator) {
+        NewIosSimulatorDialog(
+            state = rememberNewIosSimulatorState(iosSimulatorOptions, createIosSimulator, onCreated = uiState::finishMakingIosSimulator),
+            onDismiss = uiState::finishMakingIosSimulator,
         )
     }
     val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)

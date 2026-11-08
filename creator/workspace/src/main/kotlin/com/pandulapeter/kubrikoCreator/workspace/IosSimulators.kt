@@ -50,12 +50,13 @@ internal class IosSimulators(
      * The simulators `simctl` lists now, or null if it can't list them.
      */
     suspend fun available(): List<Simulator>? {
-        val result = tools.run(listOf("xcrun", "simctl", "list", "devices", "available", "--json"), TIMEOUT_IN_MILLISECONDS)
+        val result = tools.run(LIST_AVAILABLE, TIMEOUT_IN_MILLISECONDS)
         return if (result.isSuccessful) parse(result.output) else null
     }
 
     companion object {
         const val PREFIX = "ios-simulator:"
+        val LIST_AVAILABLE = listOf("xcrun", "simctl", "list", "devices", "available", "--json")
         private const val TIMEOUT_IN_MILLISECONDS = 30_000L
         private val runtimePattern = Regex("""SimRuntime\.iOS-(\d+)-(\d+)""")
 
@@ -81,7 +82,10 @@ internal class IosSimulators(
             }
         }
 
-        private fun compareVersions(first: List<Int>, second: List<Int>): Int {
+        /**
+         * Compares two versions part by part, a longer one being newer when the rest is the same.
+         */
+        fun compareVersions(first: List<Int>, second: List<Int>): Int {
             first.zip(second).forEach { (a, b) -> if (a != b) return a.compareTo(b) }
             return first.size.compareTo(second.size)
         }

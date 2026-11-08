@@ -50,7 +50,6 @@ import kubriko.creator.generated.resources.status_ios_game_exited
 import kubriko.creator.generated.resources.status_ios_game_started
 import kubriko.creator.generated.resources.status_ios_install_failed
 import kubriko.creator.generated.resources.status_ios_not_started
-import kubriko.creator.generated.resources.status_ios_simulator_apps_missing
 import kubriko.creator.generated.resources.status_ios_simulator_booting
 import kubriko.creator.generated.resources.status_ios_simulator_missing
 import kubriko.creator.generated.resources.status_ios_simulator_not_booted
@@ -110,7 +109,6 @@ internal fun WorkspaceStatus.toResource(): StringResource = when (this) {
     WorkspaceStatus.IOS_GAME_STARTED -> Res.string.status_ios_game_started
     WorkspaceStatus.IOS_INSTALL_FAILED -> Res.string.status_ios_install_failed
     WorkspaceStatus.IOS_NOT_STARTED -> Res.string.status_ios_not_started
-    WorkspaceStatus.IOS_SIMULATOR_APPS_MISSING -> Res.string.status_ios_simulator_apps_missing
     WorkspaceStatus.IOS_SIMULATOR_BOOTING -> Res.string.status_ios_simulator_booting
     WorkspaceStatus.IOS_SIMULATOR_MISSING -> Res.string.status_ios_simulator_missing
     WorkspaceStatus.IOS_SIMULATOR_NOT_BOOTED -> Res.string.status_ios_simulator_not_booted

@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.commands.AiStep
 import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.PlayTarget
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
@@ -35,6 +36,12 @@ internal class WorkspaceUiState {
     var isReviewingUpgrade by mutableStateOf(false)
         private set
     var isShowingProjectSettings by mutableStateOf(false)
+        private set
+
+    /**
+     * Whether the dialog making a new iOS simulator is open.
+     */
+    var isMakingIosSimulator by mutableStateOf(false)
         private set
 
     /**
@@ -117,6 +124,25 @@ internal class WorkspaceUiState {
 
     fun hideProjectSettings() {
         isShowingProjectSettings = false
+    }
+
+    /**
+     * Sets up more places of [kind] to play on: iOS simulators in Kubriko Creator's own dialog, Android emulators through
+     * [openAndroidEmulatorGuide].
+     */
+    fun setUpMoreDevices(kind: PlayTarget.Kind, openAndroidEmulatorGuide: () -> Unit) {
+        when (kind) {
+            PlayTarget.Kind.IOS -> isMakingIosSimulator = true
+            PlayTarget.Kind.ANDROID -> openAndroidEmulatorGuide()
+            PlayTarget.Kind.DESKTOP, PlayTarget.Kind.WEB -> Unit
+        }
+    }
+
+    /**
+     * Closes the dialog making a new iOS simulator, made or not.
+     */
+    fun finishMakingIosSimulator() {
+        isMakingIosSimulator = false
     }
 
     /**

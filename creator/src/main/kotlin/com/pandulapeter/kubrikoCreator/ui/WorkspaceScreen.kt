@@ -263,7 +263,7 @@ private fun WorkspaceToolbarOf(
     onStop = controller::stopSession,
     onOpenProjectSettings = { uiState.showProjectSettings() },
     onOpenTargets = { uiState.showProjectSettings(ProjectSettingsPage.TARGETS) },
-    onSetUpMoreDevices = controller::openDeviceSetup,
+    onSetUpMoreDevices = { kind -> uiState.setUpMoreDevices(kind, controller::openAndroidEmulatorGuide) },
     onOpenSettings = onOpenSettings,
     onCloseProject = onCloseProject,
 )
@@ -316,6 +316,8 @@ private fun WorkspaceDialogsOf(
     unusedImagesOf = { page -> withContext(Dispatchers.IO) { controller.commands.context.unusedImagesOf(page) } },
     onConfirmedDelete = controller.commands::dispatch,
     validate = controller.commands::validate,
+    iosSimulatorOptions = controller.iosSimulatorSetup::options,
+    createIosSimulator = controller.iosSimulatorSetup::create,
     onUsageSelected = { usage ->
         when (val owner = usage.placeOwner) {
             is RelationSubject.Type -> controller.selection.selectType(owner.name)

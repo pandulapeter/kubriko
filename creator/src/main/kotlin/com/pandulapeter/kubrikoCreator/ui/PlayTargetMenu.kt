@@ -30,8 +30,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_choose_play_target
 import kubriko.creator.generated.resources.action_configure_platforms
+import kubriko.creator.generated.resources.action_new_ios_simulator
 import kubriko.creator.generated.resources.action_set_up_android_emulators
-import kubriko.creator.generated.resources.action_set_up_ios_simulators
 import kubriko.creator.generated.resources.ic_android
 import kubriko.creator.generated.resources.ic_apple
 import kubriko.creator.generated.resources.ic_chevron
@@ -111,7 +111,7 @@ private fun kindText(kind: PlayTarget.Kind) = when (kind) {
 }
 
 @Composable
-private fun setUpText(kind: PlayTarget.Kind) = stringResource(if (kind == PlayTarget.Kind.IOS) Res.string.action_set_up_ios_simulators else Res.string.action_set_up_android_emulators)
+private fun setUpText(kind: PlayTarget.Kind) = stringResource(if (kind == PlayTarget.Kind.IOS) Res.string.action_new_ios_simulator else Res.string.action_set_up_android_emulators)
 
 private fun iconOf(kind: PlayTarget.Kind) = when (kind) {
     PlayTarget.Kind.DESKTOP -> Res.drawable.ic_desktop

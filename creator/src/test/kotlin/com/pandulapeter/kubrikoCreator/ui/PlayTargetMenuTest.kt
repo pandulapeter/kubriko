@@ -74,7 +74,7 @@ class PlayTargetMenuTest {
         waitForIdle()
         onNodeWithText("iOS").performClick()
         waitForIdle()
-        onNodeWithText("Set up more simulators…").performClick()
+        onNodeWithText("New simulator…").performClick()
         waitForIdle()
         assertEquals(listOf("chose android-emulator:Medium_Phone", "set up IOS"), events)
     }

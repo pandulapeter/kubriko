@@ -118,4 +118,22 @@ class WorkspaceDevicePlayTest {
             controller.playTargets.refresh().available,
         )
     }
+
+    @Test
+    fun aSimulatorMadeInCreatorIsChosenForPlay() = blockingTest {
+        turnOn(GameTarget.IOS)
+        tools.answer(
+            "simctl list devices available --json",
+            ok("""{ "devices": { "com.apple.CoreSimulator.SimRuntime.iOS-27-2": [{ "udid": "6F1E2C3A-9B8D-4E5F-A1B2-C3D4E5F60718", "isAvailable": true, "state": "Shutdown", "name": "My Phone" }] } }"""),
+        )
+        tools.answer("simctl create My Phone com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-2", ok(SimctlRecordings.CREATED))
+        val controller = controller()
+        val created = controller.iosSimulatorSetup.create(
+            name = "My Phone",
+            deviceType = IosDeviceType("com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro", "iPhone 18 Pro"),
+            runtime = IosRuntime("com.apple.CoreSimulator.SimRuntime.iOS-27-2", "iOS 27.2", "24B8117", emptySet()),
+        )
+        val target = assertIs<IosSimulatorCreation.Created>(created).target
+        assertTrue(target in controller.playTargets.targets.first { it.chosen == target }.available)
+    }
 }

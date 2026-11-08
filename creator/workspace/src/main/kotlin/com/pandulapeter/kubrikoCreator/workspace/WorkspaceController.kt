@@ -220,6 +220,12 @@ public class WorkspaceController(
         scope = scope,
         ioDispatcher = ioDispatcher,
     )
+
+    /** Makes new iOS simulators, each chosen in Play's menu once it is made. */
+    public val iosSimulatorSetup: IosSimulatorSetup = IosSimulatorSetup(processes.tools, ioDispatcher) { target ->
+        playTargets.choose(target)
+        playTargets.refresh()
+    }
     private val gameBuilds = GameBuilds(
         rootDirectory = project.rootDirectory,
         sessions = sessions,
@@ -441,10 +447,10 @@ public class WorkspaceController(
     private fun iosSimulators() = IosSimulators(processes.tools).takeIf { files.targets?.canBuildIos ?: TargetHost.System.canBuildIos }
 
     /**
-     * Opens where more places of [kind] to play on are set up (emulators, simulators), off the main thread.
+     * Opens Android's guide to creating emulators in the browser, off the main thread.
      */
-    public fun openDeviceSetup(kind: PlayTarget.Kind) {
-        scope.launch(ioDispatcher) { DeviceSetup(processes.openBrowser, processes.tools, consoleLog).open(kind) }
+    public fun openAndroidEmulatorGuide() {
+        scope.launch(ioDispatcher) { AndroidEmulatorGuide(processes.openBrowser, consoleLog).open() }
     }
 
     /** Stops the session process, if one runs. */
