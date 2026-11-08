@@ -116,7 +116,14 @@ public class CommandExecutor(
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
         if (!isByAi || applied.result != JsonNull) return CommandOutcome.Success(applied.result)
-        val mentionedIn = runCatching { withContext(context.ioDispatcher) { context.pagesMentioning(invocation.targets(context)) } }.getOrDefault(emptyList())
+        val mentionedIn = try {
+            withContext(context.ioDispatcher) { context.pagesMentioning(invocation.targets(context)) }
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            // Which pages mention the change only helps the agent; the change is made all the same.
+            emptyList()
+        }
         return CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn) + applied.details.orEmpty()))
     }
 
