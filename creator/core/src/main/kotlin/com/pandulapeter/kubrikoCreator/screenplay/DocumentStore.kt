@@ -34,6 +34,7 @@ import java.nio.charset.CodingErrorAction
 public class DocumentStore(
     private val rootDirectory: File,
     private val ownWrites: OwnWrites = OwnWrites(),
+    private val movedFiles: MovedFiles = MovedFiles(),
 ) {
     @Volatile
     private var knownPaths: List<String> = emptyList()
@@ -147,6 +148,7 @@ public class DocumentStore(
         if (!source.moveWithoutReplacing(target)) return false
         ownWrites.record(source)
         ownWrites.record(target)
+        movedFiles.record(from, to)
         val generation = ownWrites.generation
         updatePaths(listOfNotNull(OwnChange(generation, from, exists = false), OwnChange(generation, to, exists = true).takeIf { ResourceScanner.isDocument(to) }))
         return true

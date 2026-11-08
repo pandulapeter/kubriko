@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
+import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
@@ -46,9 +47,14 @@ public class CommandContext(
     public val rejectChanges: () -> Rejection? = { null },
 ) {
     /**
+     * Where Kubriko Creator moved pages and documents to, so that the page editor follows them.
+     */
+    public val movedFiles: MovedFiles = MovedFiles()
+
+    /**
      * The screenplay's pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */
-    public val screenplay: ScreenplayStore = ScreenplayStore(project.rootDirectory, scenes.ownWrites)
+    public val screenplay: ScreenplayStore = ScreenplayStore(project.rootDirectory, scenes.ownWrites, movedFiles)
 
     /**
      * The sounds and music of the project, or null if they aren't known, so they aren't checked.
@@ -63,7 +69,7 @@ public class CommandContext(
     /**
      * The project's Markdown files that aren't pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */
-    public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites)
+    public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites, movedFiles)
 
     /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);

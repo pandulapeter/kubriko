@@ -15,38 +15,70 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberUpdatedState
+import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.screenplay.EditDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
+import com.pandulapeter.kubrikoCreator.screenplay.MovedFiles
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStore
+import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
+
+/**
+ * [rememberOpenMarkdownText] for the project of [context], following moves and closing what is gone through
+ * [selectionController].
+ */
+@Composable
+internal fun rememberOpenMarkdownText(context: CommandContext, selectionController: SelectionController, selection: WorkspaceSelection): String? = rememberOpenMarkdownText(
+    screenplay = context.screenplay,
+    documents = context.documents,
+    movedFiles = context.movedFiles,
+    selection = selection,
+    onMoved = selectionController::open,
+    onGone = selectionController::clear,
+)
 
 /**
  * The text of the page or document [selection] shows, read off the main thread again after every change to them, or null
- * until it is read, if it can't be (another program holds it), or if [selection] shows neither. One that is gone (deleted,
- * or moved away) calls [onGone].
+ * until it is read, if it can't be (another program holds it), or if [selection] shows neither. One that Kubriko Creator
+ * moved ([MovedFiles]) calls [onMoved] with where it is now, and one that is gone otherwise (deleted, or moved outside
+ * Kubriko Creator) calls [onGone].
  */
 @Composable
 internal fun rememberOpenMarkdownText(
     screenplay: ScreenplayStore,
     documents: DocumentStore,
+    movedFiles: MovedFiles,
     selection: WorkspaceSelection,
+    onMoved: (WorkspaceSelection) -> Unit,
     onGone: () -> Unit,
 ): String? {
+    val currentOnMoved by rememberUpdatedState(onMoved)
     val currentOnGone by rememberUpdatedState(onGone)
     val pageRevision by screenplay.revision.collectAsState()
     val documentRevision by documents.revision.collectAsState()
     val pageNames by screenplay.current.collectAsState()
     LaunchedEffect(selection, pageNames, documentRevision) {
-        val isGone = when (selection) {
-            is WorkspaceSelection.Page -> selection.name !in pageNames
-            is WorkspaceSelection.Document -> !documents.isKnown(selection.path)
-            else -> false
+        val path = markdownPathOf(selection) ?: return@LaunchedEffect
+        val isKnown = when (selection) {
+            is WorkspaceSelection.Page -> selection.name in pageNames
+            else -> documents.isKnown(path)
         }
-        if (isGone) currentOnGone()
+        if (isKnown) return@LaunchedEffect
+        val root = screenplay.rootDirectory
+        val (isOnDisk, moved) = withContext(Dispatchers.IO) {
+            File(root, path).isFile to movedFiles.whereIs(path)?.takeIf { File(root, it).isFile }
+        }
+        when {
+            isOnDisk -> Unit
+            moved != null -> currentOnMoved(markdownSelectionOf(moved))
+            else -> currentOnGone()
+        }
     }
     val revision = when (selection) {
         is WorkspaceSelection.Page -> pageRevision
@@ -67,6 +99,23 @@ internal fun rememberOpenMarkdownText(
     }.value
     // A text read for what was shown before is never handed to what is shown now.
     return read?.takeIf { it.first == selection }?.second
+}
+
+/**
+ * The path from the project's root of the page or document [selection] shows, or null if it shows neither.
+ */
+internal fun markdownPathOf(selection: WorkspaceSelection): String? = when (selection) {
+    is WorkspaceSelection.Page -> PageNaming.pathOf(selection.name)
+    is WorkspaceSelection.Document -> selection.path
+    else -> null
+}
+
+/**
+ * What shows the page or document at [path], a path from the project's root.
+ */
+internal fun markdownSelectionOf(path: String): WorkspaceSelection {
+    val page = path.removePrefix("${PageNaming.FOLDER}/").takeIf { it != path && path.endsWith(".${PageNaming.EXTENSION}") }?.removeSuffix(".${PageNaming.EXTENSION}")
+    return if (page != null) WorkspaceSelection.Page(page) else WorkspaceSelection.Document(path)
 }
 
 /**

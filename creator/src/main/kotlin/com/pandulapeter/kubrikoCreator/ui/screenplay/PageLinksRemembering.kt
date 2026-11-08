@@ -11,18 +11,42 @@ package com.pandulapeter.kubrikoCreator.ui.screenplay
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.screenplay.Mention
-import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+
+/**
+ * [rememberPageLinks] for the project of [context], opening mentions through [selectionController].
+ */
+@Composable
+internal fun rememberPageLinks(
+    context: CommandContext,
+    selectionController: SelectionController,
+    selection: WorkspaceSelection,
+    text: String?,
+    blockTypes: List<BlockTypeDefinition>,
+    resources: Map<ResourceGroup, List<ProjectResource>>,
+): PageLinksState? = rememberPageLinks(
+    rootDirectory = context.project.rootDirectory,
+    selection = selection,
+    text = text,
+    blockTypes = blockTypes,
+    resources = resources,
+    pageNames = context.screenplay.current.collectAsState().value,
+    documentsRevision = context.documents.structureRevision.collectAsState().value,
+    onOpen = selectionController::open,
+)
 
 /**
  * The links of [text], the page or document [selection] shows, read off the main thread again whenever the text or
@@ -50,13 +74,4 @@ internal fun rememberPageLinks(
         state.looks = if (text == null) emptyMap() else withContext(Dispatchers.IO) { runCatching { mentionLooksOf(rootDirectory, pagePath, text) }.getOrDefault(emptyMap()) }
     }
     return state
-}
-
-/**
- * The path from the project's root of the page or document [selection] shows, or null if it shows neither.
- */
-internal fun markdownPathOf(selection: WorkspaceSelection): String? = when (selection) {
-    is WorkspaceSelection.Page -> PageNaming.pathOf(selection.name)
-    is WorkspaceSelection.Document -> selection.path
-    else -> null
 }

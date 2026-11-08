@@ -29,8 +29,9 @@ import java.io.IOException
  * the folder as it is, since the user changes it too.
  */
 public class ScreenplayStore(
-    private val rootDirectory: File,
+    public val rootDirectory: File,
     private val ownWrites: OwnWrites = OwnWrites(),
+    private val movedFiles: MovedFiles = MovedFiles(),
 ) {
     private val folder get() = File(rootDirectory, PageNaming.FOLDER)
 
@@ -168,6 +169,7 @@ public class ScreenplayStore(
         if (!source.moveWithoutReplacing(target)) return false
         ownWrites.record(source)
         ownWrites.record(target)
+        movedFiles.record(PageNaming.pathOf(oldName), PageNaming.pathOf(newName))
         refresh()
         return true
     }

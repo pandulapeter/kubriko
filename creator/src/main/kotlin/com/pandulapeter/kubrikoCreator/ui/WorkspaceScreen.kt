@@ -68,7 +68,6 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownEditOf
-import com.pandulapeter.kubrikoCreator.ui.screenplay.open
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberOpenMarkdownText
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageLinks
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
@@ -138,7 +137,7 @@ private fun WorkspaceContent(
     val sceneNames = remember(resources) { resources[ResourceGroup.SCENES].orEmpty().map { SceneStore.nameOf(it.file) }.distinct().sorted() }
     val openSceneName = (selection as? WorkspaceSelection.Scene)?.name
     val openPageName = (selection as? WorkspaceSelection.Page)?.name
-    val markdownText = rememberOpenMarkdownText(controller.commands.context.screenplay, controller.commands.context.documents, selection, controller.selection::clear)
+    val markdownText = rememberOpenMarkdownText(controller.commands.context, controller.selection, selection)
     WorkspaceDialogsOf(controller = controller, uiState = uiState, projectUpgrade = projectUpgrade)
     FollowingAiSteps(controller = controller, followedAiStep = followedAiStep, selection = selection)
     RefreshingGitOnWindowFocus(controller.git::refresh)
@@ -483,14 +482,5 @@ private fun WorkspaceCenterOf(
     onSceneViewFailed = controller.sceneEditing::onViewFailed,
     markdownText = markdownText,
     onMarkdownTextChange = { text -> markdownEditOf(selection, text)?.let(controller.commands::dispatch) },
-    markdownLinks = rememberPageLinks(
-        rootDirectory = controller.commands.context.project.rootDirectory,
-        selection = selection,
-        text = markdownText,
-        blockTypes = blockTypes,
-        resources = resources,
-        pageNames = controller.commands.context.screenplay.current.collectAsState().value,
-        documentsRevision = controller.commands.context.documents.structureRevision.collectAsState().value,
-        onOpen = controller.selection::open,
-    ),
+    markdownLinks = rememberPageLinks(controller.commands.context, controller.selection, selection, markdownText, blockTypes, resources),
 )
