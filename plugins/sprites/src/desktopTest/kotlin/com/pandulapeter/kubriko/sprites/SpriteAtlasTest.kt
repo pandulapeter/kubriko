@@ -122,8 +122,10 @@ class SpriteAtlasTest {
         finishLoading(large, largeBitmap)
         awaitCondition { atlas.isLoaded }
 
-        assertEquals(SpriteRegion(largeBitmap, IntOffset.Zero, IntSize(100, 10)), atlas.getRegion(large))
+        val largeRegion = assertNotNull(atlas.getRegion(large))
+        assertEquals(SpriteRegion(largeBitmap, IntOffset.Zero, IntSize(100, 10)), largeRegion)
         assertSame(builtPages.single().bitmap, atlas.getRegion(small)?.page)
+        assertSame(largeBitmap, spriteManager.getMipChain(largeRegion)?.base)
     }
 
     @Test
@@ -163,7 +165,7 @@ class SpriteAtlasTest {
         finishLoading(second, FakeImageBitmap(8, 8))
         awaitCondition { atlas.isLoaded }
         val firstRegion = assertNotNull(atlas.getRegion(first))
-        val chain = spriteManager.getMipChain(firstRegion)
+        val chain = assertNotNull(spriteManager.getMipChain(firstRegion))
 
         assertSame(chain, spriteManager.getMipChain(assertNotNull(atlas.getRegion(second))))
         assertSame(firstRegion.page, chain.base)
@@ -173,7 +175,12 @@ class SpriteAtlasTest {
         assertNull(atlas.getRegion(first))
         assertNull(spriteManager.getRegion(first))
         assertEquals(emptyList(), atlas.pages)
-        assertNotSame(spriteManager.getMipChain(firstRegion), spriteManager.getMipChain(firstRegion))
+        assertNull(spriteManager.getMipChain(firstRegion))
+    }
+
+    @Test
+    fun `a region on no loaded atlas has no mip chain`() {
+        assertNull(spriteManager.getMipChain(SpriteRegion(FakeImageBitmap(4, 4), IntOffset.Zero, IntSize(4, 4))))
     }
 
     @Test

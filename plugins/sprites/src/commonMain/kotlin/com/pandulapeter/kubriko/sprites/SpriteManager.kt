@@ -111,10 +111,11 @@ sealed class SpriteManager(
 
     /**
      * The [TextureMipChain] of the bitmap [region] lies on (an atlas page, usually), shared by every region of that
-     * bitmap, so each level is built only once. Divide a region by `2^k` to find it on level `k`. It is dropped when
-     * the atlas is [unloadAtlas]ed.
+     * bitmap, so each level is built only once, or null when no loaded atlas holds that bitmap (a region kept after
+     * [unloadAtlas], for example). Divide a region by `2^k` to find it on level `k`. The chain goes with its atlas when
+     * that is unloaded. Allocates nothing once the chain exists, so it can be called every frame.
      */
-    abstract fun getMipChain(region: SpriteRegion): TextureMipChain
+    abstract fun getMipChain(region: SpriteRegion): TextureMipChain?
 
     /**
      * Declares the unrotated sprites of [drawableResources] as belonging together, and packs them onto shared pages
@@ -147,8 +148,8 @@ sealed class SpriteManager(
     ): SpriteAtlas
 
     /**
-     * Stops loading [atlas], or releases its pages once loaded: its regions turn null, and the mip chains of its pages
-     * are dropped.
+     * Stops loading [atlas], or releases its pages once loaded: its regions turn null, and the mip chains of its
+     * bitmaps go with it.
      */
     abstract fun unloadAtlas(atlas: SpriteAtlas)
 

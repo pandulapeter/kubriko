@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.pandulapeter.kubriko.sprites.SpriteResource
+import com.pandulapeter.kubriko.sprites.TextureMipChainCache
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.skia.Bitmap
@@ -33,7 +34,7 @@ class CanvasAtlasPageBuilderTest {
         val resources = sprites.indices.map { spriteResource("sprite$it") }
         val padding = 2
 
-        val packedAtlas = packAtlas(resources, sprites, maximumPageSize = 64, padding = padding, pageBuilder = CanvasAtlasPageBuilder)
+        val packedAtlas = packAtlas(resources, sprites, maximumPageSize = 64, padding = padding, pageBuilder = CanvasAtlasPageBuilder, mipChains = TextureMipChainCache())
 
         val page = packedAtlas.pages.single()
         val expected = IntArray(page.width * page.height)

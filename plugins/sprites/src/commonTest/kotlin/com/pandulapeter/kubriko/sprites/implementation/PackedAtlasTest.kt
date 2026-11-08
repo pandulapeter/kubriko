@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.sprites.implementation
 import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.sprites.FakeImageBitmap
 import com.pandulapeter.kubriko.sprites.SpriteResource
+import com.pandulapeter.kubriko.sprites.TextureMipChainCache
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.InternalResourceApi
 import kotlin.test.Test
@@ -27,14 +28,14 @@ class PackedAtlasTest {
 
     @Test
     fun bitmapsHoldThePagesAndTheSpritesTooLargeForThem() {
-        val packedAtlas = packAtlas(resources, listOf(small, large), maximumPageSize = 64, padding = 1, pageBuilder = pageBuilder)
+        val packedAtlas = packAtlas(resources, listOf(small, large), maximumPageSize = 64, padding = 1, pageBuilder = pageBuilder, mipChains = TextureMipChainCache())
 
         assertEquals(setOf<ImageBitmap>(packedAtlas.pages.single(), large), packedAtlas.bitmaps)
     }
 
     @Test
     fun bitmapsOfAnUnpackedAtlasAreEverySprite() {
-        val packedAtlas = unpackedAtlas(resources, listOf(small, large))
+        val packedAtlas = unpackedAtlas(resources, listOf(small, large), TextureMipChainCache())
 
         assertEquals(setOf<ImageBitmap>(small, large), packedAtlas.bitmaps)
     }

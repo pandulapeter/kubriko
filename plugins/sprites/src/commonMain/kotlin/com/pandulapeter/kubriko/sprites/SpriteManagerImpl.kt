@@ -179,10 +179,13 @@ internal class SpriteManagerImpl(
 
     override fun getMipChain(resource: SpriteResource) = get(resource)?.let { mipChains.get(resource, it) }
 
-    override fun getMipChain(region: SpriteRegion): TextureMipChain = if (isOnLoadedAtlas(region.page)) {
-        mipChains.get(region.page, region.page)
-    } else {
-        mipChains.createChain(region.page)
+    override fun getMipChain(region: SpriteRegion): TextureMipChain? {
+        val loadedAtlases = atlases.value
+        for (index in loadedAtlases.indices) {
+            val packedAtlas = loadedAtlases[index].packedAtlas ?: continue
+            if (region.page in packedAtlas.bitmaps) return packedAtlas.mipChains.get(region.page, region.page)
+        }
+        return null
     }
 
     override fun loadAtlas(
@@ -218,13 +221,13 @@ internal class SpriteManagerImpl(
         if (atlas.isUnloaded || bitmaps.any { it == null }) return
         val loadedBitmaps = bitmaps.requireNoNulls()
         val packedAtlas = try {
-            packAtlas(atlas.resources, loadedBitmaps, atlas.maximumPageSize, atlas.paddingInPixels, atlasPageBuilder)
+            packAtlas(atlas.resources, loadedBitmaps, atlas.maximumPageSize, atlas.paddingInPixels, atlasPageBuilder, newAtlasMipChains())
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
             // Android cannot draw a hardware bitmap (which a custom image loader may return) into a page.
             log(message = "Failed to pack an atlas, its sprites keep their own bitmaps", details = exception.message)
-            unpackedAtlas(atlas.resources, loadedBitmaps)
+            unpackedAtlas(atlas.resources, loadedBitmaps, newAtlasMipChains())
         }
         pendingAtlases.update { it.putting(atlas, packedAtlas) }
         delay(WARM_UP_TIMEOUT_MS.milliseconds)
@@ -240,9 +243,7 @@ internal class SpriteManagerImpl(
     override fun unloadAtlas(atlas: SpriteAtlas) {
         atlases.update { it - atlas }
         pendingAtlases.update { it.removing(atlas) }
-        val packedAtlas = atlas.packedAtlas
         atlas.markUnloaded()
-        packedAtlas?.bitmaps?.forEach { mipChains.remove(it) }
     }
 
     override fun getRegion(drawableResource: DrawableResource): SpriteRegion? {
@@ -261,13 +262,8 @@ internal class SpriteManagerImpl(
         return null
     }
 
-    private fun isOnLoadedAtlas(bitmap: ImageBitmap): Boolean {
-        val loadedAtlases = atlases.value
-        for (index in loadedAtlases.indices) {
-            if (loadedAtlases[index].packedAtlas?.bitmaps?.contains(bitmap) == true) return true
-        }
-        return false
-    }
+    /** The mip chains of one atlas's bitmaps, which go with it when it is unloaded, built as this manager's other chains are. */
+    private fun newAtlasMipChains() = TextureMipChainCache(mipChains.createChain)
 
     /**
      * Loads [resource], retrying a failed load with a growing delay, until it loads or [isStillWanted] turns false

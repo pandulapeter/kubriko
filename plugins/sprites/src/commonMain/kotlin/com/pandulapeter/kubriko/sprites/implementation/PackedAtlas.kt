@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.sprites.SpriteRegion
 import com.pandulapeter.kubriko.sprites.SpriteResource
+import com.pandulapeter.kubriko.sprites.TextureMipChainCache
 import org.jetbrains.compose.resources.DrawableResource
 
 /** Where a [com.pandulapeter.kubriko.sprites.SpriteAtlas] is in its life. */
@@ -22,10 +23,14 @@ internal sealed interface AtlasState {
     data object Unloaded : AtlasState
 }
 
-/** A finished atlas: its pages, and the region of every sprite it holds. */
+/**
+ * A finished atlas: its pages, the region of every sprite it holds, and the mip chains of the bitmaps those lie on, which
+ * live exactly as long as the atlas does.
+ */
 internal class PackedAtlas(
     val pages: List<ImageBitmap>,
     val regions: Map<SpriteResource, SpriteRegion>,
+    val mipChains: TextureMipChainCache,
 ) : AtlasState {
     val unrotatedRegions: Map<DrawableResource, SpriteRegion> = regions.entries
         .filter { it.key.rotation == SpriteResource.Rotation.NONE }
@@ -45,6 +50,7 @@ internal fun packAtlas(
     maximumPageSize: Int,
     padding: Int,
     pageBuilder: AtlasPageBuilder,
+    mipChains: TextureMipChainCache,
 ): PackedAtlas {
     val layout = AtlasPacker.pack(
         widths = IntArray(bitmaps.size) { bitmaps[it].width },
@@ -72,14 +78,15 @@ internal fun packAtlas(
             SpriteRegion(pages[pageIndex], IntOffset(layout.xs[index], layout.ys[index]), IntSize(bitmap.width, bitmap.height))
         }
     }
-    return PackedAtlas(pages, regions)
+    return PackedAtlas(pages, regions, mipChains)
 }
 
 /** An atlas whose sprites each keep their own bitmap, for when packing them onto pages failed. */
-internal fun unpackedAtlas(resources: List<SpriteResource>, bitmaps: List<ImageBitmap>) = PackedAtlas(
+internal fun unpackedAtlas(resources: List<SpriteResource>, bitmaps: List<ImageBitmap>, mipChains: TextureMipChainCache) = PackedAtlas(
     pages = emptyList(),
     regions = resources.indices.associate { index ->
         val bitmap = bitmaps[index]
         resources[index] to SpriteRegion(bitmap, IntOffset.Zero, IntSize(bitmap.width, bitmap.height))
     },
+    mipChains = mipChains,
 )

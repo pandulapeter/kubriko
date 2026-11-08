@@ -102,7 +102,8 @@ individual bitmaps are dropped once copied), then packed, then warmed up like a 
 - Drawing into a page fails on Android for a hardware bitmap (which a custom `imageLoader` may return); the atlas then
   falls back to every sprite's own bitmap (`unpackedAtlas`) rather than never loading.
 - `SpriteAtlas`'s state is one `StateFlow` (`Loading`, a `PackedAtlas`, or `Unloaded`): `publish` only moves it from
-  `Loading`, so an `unloadAtlas` racing the warm-up always wins. `getMipChain(region)` caches a page's chain only while its
-  atlas is loaded; a stale region gets a chain that is not kept.
+  `Loading`, so an `unloadAtlas` racing the warm-up always wins. The mip chains of an atlas's bitmaps live in its
+  `PackedAtlas`, not in the manager's cache, so they go with it however an unload races a draw; `getMipChain(region)` of
+  a region on no loaded atlas is null rather than a chain built anew on every call.
 - The pixel copy is tested with real Skia in this module's `desktopTest`, the one library test classpath besides the
   engine's that has the native runtime.
