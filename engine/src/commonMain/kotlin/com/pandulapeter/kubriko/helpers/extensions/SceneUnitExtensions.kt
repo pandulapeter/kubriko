@@ -42,3 +42,14 @@ fun min(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw).sceneUnit
  * Returns the larger of two [SceneUnit] values.
  */
 fun max(a: SceneUnit, b: SceneUnit) = max(a.raw, b.raw).sceneUnit
+
+/**
+ * Linearly interpolates between [start] and [stop]: [start] at a [fraction] of 0, [stop] at 1, and beyond them outside
+ * that range. Equal ends give [start] back exactly whatever the [fraction], so interpolating a value onto itself never
+ * changes it (at a [fraction] of 1 the result may instead differ from [stop] by a rounding error).
+ */
+fun lerp(
+    start: SceneUnit,
+    stop: SceneUnit,
+    fraction: Float,
+) = (start.raw + fraction * (stop.raw - start.raw)).sceneUnit

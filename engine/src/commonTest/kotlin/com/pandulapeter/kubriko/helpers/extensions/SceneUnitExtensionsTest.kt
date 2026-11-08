@@ -29,4 +29,21 @@ class SceneUnitExtensionsTest {
     fun invertedBoundsLetTheMinimumWin() {
         assertEquals(5f, 7f.sceneUnit.clamp(min = 5f.sceneUnit, max = 1f.sceneUnit).raw)
     }
+
+    @Test
+    fun lerpInterpolatesLinearly() {
+        assertEquals(2f, lerp(2f.sceneUnit, 10f.sceneUnit, 0f).raw)
+        assertEquals(6f, lerp(2f.sceneUnit, 10f.sceneUnit, 0.5f).raw)
+        assertEquals(10f, lerp(2f.sceneUnit, 10f.sceneUnit, 1f).raw)
+        assertEquals(14f, lerp(2f.sceneUnit, 10f.sceneUnit, 1.5f).raw)
+    }
+
+    @Test
+    fun lerpBetweenEqualEndsGivesTheValueBackExactly() {
+        val value = 0.1f.sceneUnit
+
+        for (fraction in listOf(0f, 0.3f, 0.7f, 1f)) {
+            assertEquals(value, lerp(value, value, fraction))
+        }
+    }
 }

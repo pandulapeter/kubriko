@@ -72,4 +72,17 @@ class AngleRadiansExtensionsTest {
 
         assertEquals(target, 90f.deg.rad.rotateTowards(target = target, maxDelta = 10f.deg.rad))
     }
+
+    @Test
+    fun lerpInterpolatesBetweenNearbyAngles() {
+        assertEquals(10f, lerp(10f.deg.rad, 50f.deg.rad, 0f).deg.raw, absoluteTolerance = 1e-3f)
+        assertEquals(30f, lerp(10f.deg.rad, 50f.deg.rad, 0.5f).deg.raw, absoluteTolerance = 1e-3f)
+        assertEquals(50f, lerp(10f.deg.rad, 50f.deg.rad, 1f).deg.raw, absoluteTolerance = 1e-3f)
+    }
+
+    @Test
+    fun lerpTurnsTheShortWayAcrossAFullTurn() {
+        assertEquals(360f, lerp(350f.deg.rad, 10f.deg.rad, 0.5f).deg.raw, absoluteTolerance = 1e-3f)
+        assertEquals(0f, lerp(10f.deg.rad, 350f.deg.rad, 0.5f).deg.raw, absoluteTolerance = 1e-3f)
+    }
 }

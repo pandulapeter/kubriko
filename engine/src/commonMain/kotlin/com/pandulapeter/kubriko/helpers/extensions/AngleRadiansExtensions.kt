@@ -63,3 +63,14 @@ fun AngleRadians.shortestDeltaTo(target: AngleRadians): AngleRadians {
         else -> diff
     }.rad
 }
+
+/**
+ * Interpolates from [start] at a [fraction] of 0 to [stop] at 1 along the shorter way around the circle (see
+ * [shortestDeltaTo]), so turning from just below a full turn to just above zero never sweeps back through every angle
+ * between. The result is not normalized: it continues from [start]'s raw value.
+ */
+fun lerp(
+    start: AngleRadians,
+    stop: AngleRadians,
+    fraction: Float,
+) = (start.raw + fraction * start.shortestDeltaTo(stop).raw).rad
