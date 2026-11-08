@@ -130,6 +130,35 @@ class NewIosSimulatorStateTest {
     }
 
     @Test
+    fun aFailedTryReadsTheNamesAgainSinceItMayHaveMadeOneAfterAll() = runTest {
+        var options: IosSimulatorOptions = ready
+        creation = { IosSimulatorCreation.TimedOut }
+        val state = state { options }
+        options = ready.copy(takenNames = setOf("iPhone 18 Pro", "iPhone 18 Pro 2"))
+        state.create()
+        advanceUntilIdle()
+        assertEquals(IosSimulatorCreation.TimedOut, state.failure)
+        assertEquals(iPhone, state.deviceType)
+        state.create()
+        advanceUntilIdle()
+        assertEquals(FieldError(Res.string.new_ios_simulator_name_taken, listOf("iPhone 18 Pro 2")), state.nameError)
+        assertEquals(1, created.size)
+    }
+
+    @Test
+    fun theNameAsCreateWasPressedIsTheOneMadeWhateverIsTypedMeanwhile() = runTest {
+        val finish = CompletableDeferred<IosSimulatorCreation>()
+        creation = { finish.await() }
+        val state = state()
+        state.create()
+        advanceUntilIdle()
+        state.changeName("Another")
+        finish.complete(IosSimulatorCreation.TimedOut)
+        advanceUntilIdle()
+        assertEquals("iPhone 18 Pro 2", created.single().first)
+    }
+
+    @Test
     fun checkingAgainReadsWhatXcodeOffersAfresh() = runTest {
         var options: IosSimulatorOptions = IosSimulatorOptions.NoRuntime
         val state = state { options }

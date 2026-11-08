@@ -136,22 +136,44 @@ internal class NewIosSimulatorState(
             nameError = FieldError(Res.string.new_ios_simulator_name_taken, listOf(name.trim()))
             return
         }
+        val requested = name
         isCreating = true
         failure = null
         scope.launch {
             try {
-                when (val result = create(name, type, runtime)) {
-                    is IosSimulatorCreation.Created -> onCreated()
-                    is IosSimulatorCreation.Refused, IosSimulatorCreation.TimedOut -> failure = result
-                }
-            } catch (exception: CancellationException) {
-                throw exception
-            } catch (exception: Exception) {
-                failure = IosSimulatorCreation.Refused(exception.message ?: exception.toString())
+                failure = made(requested, type, runtime)
+                if (failure == null) onCreated() else refreshTakenNames()
             } finally {
                 isCreating = false
             }
         }
+    }
+
+    /**
+     * Makes the simulator, returning how it failed, or null once it is made.
+     */
+    private suspend fun made(name: String, type: IosDeviceType, runtime: IosRuntime) = try {
+        create(name, type, runtime).takeUnless { it is IosSimulatorCreation.Created }
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (exception: Exception) {
+        IosSimulatorCreation.Refused(exception.message ?: exception.toString())
+    }
+
+    /**
+     * Reads the simulators' names again after a try that failed, which may still have made one (`simctl` stopped for taking
+     * too long, for one), so another try under the same name is refused rather than making a second.
+     */
+    private suspend fun refreshTakenNames() {
+        val found = try {
+            read()
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            return
+        }
+        val current = options as? IosSimulatorOptions.Ready ?: return
+        if (found is IosSimulatorOptions.Ready) options = current.copy(takenNames = found.takenNames)
     }
 }
 
