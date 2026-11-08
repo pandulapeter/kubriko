@@ -107,12 +107,13 @@ public class Assistant(
         id: String,
         permissions: PermissionHandler = PermissionHandler.Reject,
         onHistory: suspend (SessionUpdate) -> Unit = {},
+        rules: String? = null,
     ): AgentConversation = withTools(projectDirectory, permissions) { workingDirectory, mcpServers, guarded ->
         agent.resumeConversation(
             id = SessionId(id),
             workingDirectory = workingDirectory,
             mcpServers = mcpServers,
-            meta = systemPrompt(null)?.let { profile.sessionMeta?.invoke(it) },
+            meta = listOfNotNull(systemPrompt(null), rules).joinToString("\n\n").ifEmpty { null }?.let { profile.sessionMeta?.invoke(it) },
             permissions = guarded,
             onHistory = onHistory,
         )

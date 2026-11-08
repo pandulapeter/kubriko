@@ -99,6 +99,7 @@ public class FakeAgent(
     val clientInfos = CopyOnWriteArrayList<ClientInfo>()
     val newSessions = CopyOnWriteArrayList<SessionCreationParameters>()
     val loadedSessions = CopyOnWriteArrayList<SessionId>()
+    val loadedSessionParameters = CopyOnWriteArrayList<SessionCreationParameters>()
     val prompts = CopyOnWriteArrayList<String>()
 
     /**
@@ -154,6 +155,7 @@ public class FakeAgent(
 
         override suspend fun loadSession(sessionId: SessionId, sessionParameters: SessionCreationParameters): AgentSession {
             loadedSessions += sessionId
+            loadedSessionParameters += sessionParameters
             return Session(sessionId, channel, isLoaded = true)
         }
     }

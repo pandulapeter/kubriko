@@ -75,6 +75,13 @@ public class AssistantChat(
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
     private var pendingFirstPrompt = firstPrompt
+
+    /**
+     * What the conversation was started with, while the agent hasn't answered it (not sent yet, or refused for want of a
+     * sign-in), which a conversation started again in its place sends.
+     */
+    internal val unansweredFirstPrompt: String? = firstPrompt
+        get() = field?.takeIf { _transcript.value.items.none { it is TranscriptItem.AgentMessage } }
     private val _state = MutableStateFlow<ChatState>(ChatState.Starting)
     /**
      * Whether the conversation is starting, ready, or failed.

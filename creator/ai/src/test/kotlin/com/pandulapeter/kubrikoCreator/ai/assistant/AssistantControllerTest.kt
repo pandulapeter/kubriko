@@ -161,6 +161,41 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun aContinuedWritersRoomIsToldItsRulesAgain() = blockingTest {
+        val earlier = controller()
+        onMain { earlier.setProject(projectDirectory) }
+        onMain { earlier.startWritersRoom("hello") }
+        val room = earlier.currentChat.value!!
+        room.transcript.first { it.items.lastOrNull() == TranscriptItem.AgentMessage("Hi there") }
+        room.isBusy.first { !it }
+        val controller = controller()
+        onMain { controller.setProject(projectDirectory) }
+        val saved = controller.savedConversations.first { it.isNotEmpty() }.single()
+        assertTrue(saved.isWritersRoom)
+        onMain { controller.resume(saved) }
+        controller.currentChat.value!!.state.first { it == ChatState.Ready }
+        assertTrue("This conversation is the writers' room" in launcher.agents.last().loadedSessionParameters.single()._meta.toString())
+    }
+
+    @Test
+    fun aWritersRoomWhoseIdeaWasntAnsweredStartsAgainWithItWhenTheAgentIsReplaced() = blockingTest {
+        isSignedIn.set(false)
+        val controller = controller()
+        onMain { controller.setProject(projectDirectory) }
+        onMain { controller.startWritersRoom("hello") }
+        val room = controller.currentChat.value!!
+        room.transcript.first { it.needsSignIn }
+        val isKept = CompletableDeferred<Unit>()
+        isSignedIn.set(true)
+        onMain { controller.setApiKey("sk-ant-key") { isKept.complete(Unit) } }
+        isKept.await()
+        val again = controller.currentChat.first { it != null && it !== room }!!
+        again.transcript.first { it.items.lastOrNull() == TranscriptItem.AgentMessage("Hi there") }
+        assertEquals(listOf("hello"), launcher.agents.last().prompts)
+        assertTrue(launcher.agents.last().newSessions.single()._meta.toString().contains("This conversation is the writers' room"))
+    }
+
+    @Test
     fun conversationsNeedAnOpenProject() = blockingTest {
         val controller = controller()
         onMain { controller.newChat() }

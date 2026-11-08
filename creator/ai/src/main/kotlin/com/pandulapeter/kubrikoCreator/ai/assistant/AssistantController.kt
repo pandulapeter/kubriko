@@ -195,7 +195,7 @@ public class AssistantController(
             pendingWritersRoom = prompt
             return
         }
-        openChat(firstPrompt = prompt) { owner, directory, permissions, _ ->
+        openChat(firstPrompt = prompt, isWritersRoom = true) { owner, directory, permissions, _ ->
             owner.newConversation(directory, permissions, LastConversation.withProject(openProject.digest(), null), rules = AssistantSystemPrompt.WRITERS_ROOM)
         }
     }
@@ -205,10 +205,12 @@ public class AssistantController(
     override fun resume(conversation: SavedConversation) {
         if (!host.isOn) return
         chatList.onResumed(conversation.id)
-        openChat(lastMessageAt = conversation.updatedAt) { owner, directory, permissions, onHistory -> owner.resumeConversation(directory, conversation.id, permissions, onHistory) }
+        openChat(lastMessageAt = conversation.updatedAt, isWritersRoom = conversation.isWritersRoom) { owner, directory, permissions, onHistory ->
+            owner.resumeConversation(directory, conversation.id, permissions, onHistory, rules = AssistantSystemPrompt.WRITERS_ROOM.takeIf { conversation.isWritersRoom })
+        }
     }
 
-    private fun openChat(lastMessageAt: Long? = null, firstPrompt: String? = null, start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
+    private fun openChat(lastMessageAt: Long? = null, firstPrompt: String? = null, isWritersRoom: Boolean = false, start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
         val directory = project ?: return
         val agentId = selection.agent.value.id
         var owner: Assistant? = null
@@ -221,7 +223,7 @@ public class AssistantController(
             changeLog = { openProject.changeLog() },
             undoTurn = { toolsId, sinceRevision -> openProject.undoTurn(toolsId, sinceRevision) },
             onTurnEnded = { id, title, lastAnswer ->
-                withContext(ioDispatcher) { storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH))) }
+                withContext(ioDispatcher) { storage.conversations?.save(SavedConversation(directory.absolutePath, agentId, id, title, clock(), lastAnswer?.take(LastConversation.ANSWER_LENGTH), isWritersRoom)) }
             },
             lastMessageAt = lastMessageAt,
             clock = clock,
@@ -299,9 +301,14 @@ public class AssistantController(
         }
     }
 
+    /**
+     * Ends every conversation and opens a new one with the agent as it is now; a writers' room whose idea the agent hasn't
+     * answered is started again with it, so the idea isn't lost.
+     */
     private fun restartAgent() {
+        val unansweredWritersRooms = chatList.open.value.mapNotNull { it.unansweredFirstPrompt }
         endChats(isAgentReplaced = true)
-        newChat()
+        if (unansweredWritersRooms.isEmpty()) newChat() else unansweredWritersRooms.forEach(::startWritersRoom)
     }
 
     private fun endChats(isAgentReplaced: Boolean = false) {
