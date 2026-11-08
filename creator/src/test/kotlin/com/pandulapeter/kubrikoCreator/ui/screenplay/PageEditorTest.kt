@@ -172,4 +172,16 @@ class PageEditorTest {
         waitForIdle()
         assertEquals(listOf<Pair<PageImageSource, String?>>(PageImageSource.Sprite("drawable/bat.png") to "Moves and more"), added)
     }
+
+    @Test
+    fun aPageThatBreaksTheWritingRulesShowsQuietHintsButADocumentDoesnt() = uiTest(width = 900, height = 420) {
+        var isPage by mutableStateOf(true)
+        showing { PageEditor(name = "hero", text = "# The hero\n\nThe hero used to fly.\n", onTextChange = {}, showsWritingHints = isPage) }
+        onNodeWithText("Writing hints").assertExists()
+        onNodeWithText("Line 3, “used to”: Describe the game as it is, in the present tense, without its history.").assertExists()
+        saveSnapshot("page-editor-writing-hints")
+        isPage = false
+        waitForIdle()
+        onNodeWithText("Writing hints").assertDoesNotExist()
+    }
 }

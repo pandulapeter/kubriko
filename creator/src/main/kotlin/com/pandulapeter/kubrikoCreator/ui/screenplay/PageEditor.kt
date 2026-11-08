@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.screenplay.PageChunks
+import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.MarkdownText
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
@@ -58,6 +59,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onAddImage Puts an image on the page, at the end of the section given (or of the page), or null if this page can't
  *   take images. Images dropped onto it, pasted, or chosen in the toolbar go at the end of the section of the chunk being
  *   typed into, which is saved first.
+ * @param showsWritingHints Whether it is a page of the screenplay, whose writing rules are hinted at under it.
  * @param identity What tells the page apart from the one shown before ([MarkdownIdentity]), so that a page moved meanwhile
  *   keeps what is being typed.
  */
@@ -71,6 +73,7 @@ internal fun PageEditor(
     identity: Any = name,
     sprites: List<String> = emptyList(),
     onAddImage: ((PageImageSource, section: String?) -> Unit)? = null,
+    showsWritingHints: Boolean = false,
 ) {
     val state = remember(identity) { PageEditorState(text, onTextChange) }
     val currentOnAddImage by rememberUpdatedState(onAddImage)
@@ -116,6 +119,7 @@ internal fun PageEditor(
                 remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = true)) } }
             }
             TextButton(onClick = state::append) { Text(stringResource(Res.string.page_add_paragraph)) }
+            if (showsWritingHints) WritingHints(remember(state.text) { ScreenplayStyle.problemsOf(state.text) })
         }
     }
     links?.pendingAddress?.let { address ->

@@ -43,6 +43,12 @@ public interface WriteCommand<I> : EditorCommand<I> {
     public fun validateRestoring(context: CommandContext, input: I): Rejection? = validate(context, input)
 
     /**
+     * Why an AI may not make the change [input] describes though the user may, or null if it may: what keeps the AI's
+     * writing to rules the user's own isn't held to, such as the screenplay's. Checked after [validate], for AI calls only.
+     */
+    public fun validateByAi(context: CommandContext, input: I): Rejection? = null
+
+    /**
      * Makes the change [input] describes, which [validate] has accepted.
      */
     public suspend fun apply(context: CommandContext, input: I): Applied

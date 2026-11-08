@@ -102,6 +102,7 @@ public class CommandExecutor(
 
     private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome {
         validate(invocation)?.let { return CommandOutcome.Rejected(it) }
+        if (isByAi) invocation.validateByAi(context)?.let { return CommandOutcome.Rejected(it) }
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {

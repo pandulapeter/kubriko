@@ -43,6 +43,8 @@ public data class Invocation<I>(
 
     internal fun validate(context: CommandContext) = if (isRestoring) command.validateRestoring(context, input) else command.validate(context, input)
 
+    internal fun validateByAi(context: CommandContext) = if (isRestoring) null else command.validateByAi(context, input)
+
     internal suspend fun apply(context: CommandContext) = command.apply(context, input)
 
     /**

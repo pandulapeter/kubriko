@@ -50,7 +50,7 @@ public object CheckChange : ReadCommand<CheckChange.Input> {
         } catch (exception: IllegalArgumentException) {
             return CommandOutcome.Rejected(Rejection(CommandProblem.INPUT_INVALID, InputProblem.describe(exception.message)))
         }
-        command.validate(context, decoded)?.let { return CommandOutcome.Rejected(it) }
+        (command.validate(context, decoded) ?: command.validateByAi(context, decoded))?.let { return CommandOutcome.Rejected(it) }
         val usages = Invocation(command, decoded).deletedSubject?.let { context.usagesOf(it) }.orEmpty()
         return CommandOutcome.Success(JsonPrimitive(if (usages.isEmpty()) ACCEPTED else ACCEPTED + USAGES + usages.joinToString("\n")))
     }

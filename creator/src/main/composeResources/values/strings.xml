@@ -487,6 +487,7 @@
     <string name="error_command_page_missing">There's no page called %1$s.</string>
     <string name="error_command_page_name_invalid">%1$s can't be a page's name: use letters, digits, spaces, dashes, and underscores, with a / between folders.</string>
     <string name="error_command_page_not_moved">Kubriko Creator couldn't move the page %1$s, so nothing changed. Another program may have its file open.</string>
+    <string name="error_command_screenplay_style">This page doesn't keep the screenplay's writing rules, so change it and try again: %1$s</string>
     <string name="error_command_page_image_not_viewable">Kubriko Creator can't show %1$s: it shows PNG, JPEG, GIF, and BMP images, not WebP ones.</string>
     <string name="error_command_page_image_unreadable">%1$s isn't an image Kubriko Creator can read: use a PNG, JPEG, GIF, WebP, or BMP file.</string>
     <string name="error_command_page_image_source">Give exactly one of sprite, screenshot, and file.</string>
@@ -611,6 +612,15 @@
     <string name="document_add_to_screenplay_page">Page name</string>
     <string name="document_add_to_screenplay_text">The file moves to %1$s and becomes a page of the game's design. Undo moves it back.</string>
     <string name="page_add_paragraph">Add a paragraph</string>
+    <string name="page_writing_hints">Writing hints</string>
+    <string name="page_writing_hint">Line %1$d, “%2$s”: %3$s</string>
+    <string name="screenplay_style_history">Describe the game as it is, in the present tense, without its history.</string>
+    <string name="screenplay_style_narration">Leave out the conversation and the work; say what the game is.</string>
+    <string name="screenplay_style_code">Describe the design, not the code: link to what does it instead.</string>
+    <string name="screenplay_style_copied_number">Name this number by a mention of its Property rather than copying it, so it can't drift.</string>
+    <string name="screenplay_style_long_planned_item">Keep each Planned item short: one line, or a subheading.</string>
+    <string name="screenplay_style_prose_in_planned">Write Planned as a list of short items.</string>
+    <string name="screenplay_style_too_long">Split this page: it is past the length one page holds.</string>
     <string name="page_address_title">Open this address?</string>
     <string name="action_open_address">Open</string>
     <string name="page_empty">This page is empty. Add a paragraph to start it.</string>

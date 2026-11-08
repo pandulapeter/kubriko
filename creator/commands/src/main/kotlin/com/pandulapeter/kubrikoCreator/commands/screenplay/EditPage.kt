@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PageText
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
@@ -33,6 +34,8 @@ public object EditPage : WriteCommand<EditPage.Input> {
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Page(input.page)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validatePage(input.page) ?: validatePageText(input.text)
+
+    override fun validateByAi(context: CommandContext, input: Input): Rejection? = context.validatePageStyle(PageNaming.pathOf(input.page), input.text, isWholePage = input.section == null)
 
     /**
      * Brings back what the page held, however long it was.

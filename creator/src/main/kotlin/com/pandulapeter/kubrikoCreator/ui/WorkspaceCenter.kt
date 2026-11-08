@@ -169,6 +169,7 @@ internal fun WorkspaceCenter(
                 identity = markdownIdentity ?: markdownTitle,
                 sprites = remember(resources) { SpriteFiles.of(resources).paths },
                 onAddImage = onAddPageImage,
+                showsWritingHints = selection is WorkspaceSelection.Page,
             )
         }
     } else if (selection == WorkspaceSelection.None) {

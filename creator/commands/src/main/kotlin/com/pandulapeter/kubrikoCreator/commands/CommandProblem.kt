@@ -71,6 +71,7 @@ public enum class CommandProblem(override val english: String) : DomainText {
     PAGE_IMAGE_SOURCE("Give exactly one of sprite, screenshot, and file."),
     PAGE_IMAGE_UNREADABLE("%1\$s isn't an image Kubriko Creator can read: use a PNG, JPEG, GIF, WebP, or BMP file."),
     PAGE_IMAGE_NOT_VIEWABLE("Kubriko Creator can't show %1\$s: it shows PNG, JPEG, GIF, and BMP images, not WebP ones."),
+    SCREENPLAY_STYLE("This page doesn't keep the screenplay's writing rules, so change it and try again: %1\$s"),
     PAGE_SECTION_MISSING("%1\$s has no section headed %2\$s."),
     PAGE_TAKEN("There's already a page called %1\$s."),
     PAGE_TOO_LONG("A page can be at most %1\$s characters long. Split it into pages of one topic each."),
