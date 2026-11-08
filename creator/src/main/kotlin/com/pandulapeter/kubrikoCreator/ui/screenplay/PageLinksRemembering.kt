@@ -45,7 +45,7 @@ internal fun rememberPageLinks(
     resources = resources,
     pageNames = context.screenplay.current.collectAsState().value,
     documentsRevision = context.documents.structureRevision.collectAsState().value,
-    onOpen = selectionController::open,
+    onOpen = { selectionController.open(it, context.project.rootDirectory) },
 )
 
 /**

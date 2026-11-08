@@ -10,21 +10,25 @@
 package com.pandulapeter.kubrikoCreator.ui.screenplay
 
 import com.pandulapeter.kubrikoCreator.screenplay.Mention
+import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import com.pandulapeter.kubrikoCreator.workspace.SelectionController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
+import java.io.File
 
 /**
- * Shows what [mention] names in the workspace's center: its type, Scene, page, or document. Other kinds have nothing
- * to show it in, so nothing happens for them.
+ * Shows what [mention] names: its type, Scene, page, or document in the workspace's center, or a file Kubriko Creator has
+ * no view of in the system's app for it, if that is safe ([canOpenOutside]).
  */
-internal fun SelectionController.open(mention: Mention) {
+internal fun SelectionController.open(mention: Mention, rootDirectory: File) {
     when (mention) {
         is Mention.ActorType -> selectType(mention.name)
         is Mention.ManagerType -> selectType(mention.name)
         is Mention.Scene -> openScene(mention.name)
         is Mention.Page -> openPage(mention.name)
         is Mention.Document -> openDocument(mention.path)
-        is Mention.Sprite, is Mention.Audio, is Mention.Kotlin, is Mention.OtherFile -> Unit
+        is Mention.Sprite, is Mention.Audio, is Mention.Kotlin, is Mention.OtherFile -> if (canOpenOutside(mention)) {
+            runCatching { openInSystemEditor(File(rootDirectory, mention.path)) }
+        }
     }
 }
 

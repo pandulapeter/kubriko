@@ -602,8 +602,8 @@
     <string name="document_add_to_screenplay_page">Page name</string>
     <string name="document_add_to_screenplay_text">The file moves to %1$s and becomes a page of the game's design. Undo moves it back.</string>
     <string name="page_add_paragraph">Add a paragraph</string>
-    <string name="page_address_title">Open this address in the browser?</string>
-    <string name="action_open_in_browser">Open in the browser</string>
+    <string name="page_address_title">Open this address?</string>
+    <string name="action_open_address">Open</string>
     <string name="page_empty">This page is empty. Add a paragraph to start it.</string>
     <string name="page_format_heading">Heading</string>
     <string name="page_format_bold">Bold</string>

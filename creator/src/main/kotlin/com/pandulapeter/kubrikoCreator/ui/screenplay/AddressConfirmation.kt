@@ -20,13 +20,13 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_cancel
-import kubriko.creator.generated.resources.action_open_in_browser
+import kubriko.creator.generated.resources.action_open_address
 import kubriko.creator.generated.resources.page_address_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Shows the web [address] a page's link points at before it is opened, since a page's text may say one thing and link
- * to another.
+ * Shows the [address] a page's link points at before the system opens it, since a page's text may say one thing and
+ * link to another.
  */
 @Composable
 internal fun AddressConfirmation(
@@ -37,7 +37,7 @@ internal fun AddressConfirmation(
     title = stringResource(Res.string.page_address_title),
     maxWidth = 520.dp,
     onDismiss = onDismiss,
-    confirmButton = { Button(onClick = onOpen) { Text(stringResource(Res.string.action_open_in_browser)) } },
+    confirmButton = { Button(onClick = onOpen) { Text(stringResource(Res.string.action_open_address)) } },
     dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
 ) {
     SelectionContainer {

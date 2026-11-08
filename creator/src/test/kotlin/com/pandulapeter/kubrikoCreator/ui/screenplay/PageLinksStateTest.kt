@@ -29,7 +29,8 @@ class PageLinksStateTest {
         assertEquals(Accent.SCENE, chip(Mention.Scene("main", "files/scenes/main.json"))?.accent)
         assertEquals(Accent.SCREENPLAY, chip(Mention.Page("hero", "screenplay/hero.md"))?.accent)
         assertEquals(Accent.AUDIO, chip(Mention.Audio("composeResources/files/hit.wav"))?.accent)
-        assertNull(chip(Mention.Sprite("composeResources/drawable/ball.png"))?.onClick)
+        assertNotNull(chip(Mention.Sprite("composeResources/drawable/ball.png"))?.onClick)
+        assertNull(chip(Mention.Sprite("composeResources/drawable/ball.png"), exists = false)?.onClick)
         assertNull(chip(Mention.OtherFile("gradle.properties")))
         val missing = assertNotNull(chip(Mention.Page("villain", "screenplay/villain.md"), exists = false))
         assertEquals(true, missing.isMissing)
@@ -53,12 +54,22 @@ class PageLinksStateTest {
     }
 
     @Test
-    fun `only web addresses wait to be opened`() {
-        val state = PageLinksState("screenplay/README.md", File(".")) {}
-        state.looks = mapOf("README.md" to MentionLook(Mention.Page("README", "screenplay/README.md"), exists = true))
-        state.onLinkClick("README.md")
-        state.onLinkClick("ftp://example.com")
+    fun `addresses wait to be shown, and project files open outside only when that is safe`() {
+        val opened = mutableListOf<Mention>()
+        val state = PageLinksState("screenplay/README.md", File(".")) { opened += it }
+        state.looks = mapOf(
+            "README.md" to MentionLook(Mention.Page("README", "screenplay/README.md"), exists = true),
+            "../notes.txt" to MentionLook(Mention.OtherFile("notes.txt"), exists = true),
+            "../run.command" to MentionLook(Mention.OtherFile("run.command"), exists = true),
+            "../gone.txt" to MentionLook(Mention.OtherFile("gone.txt"), exists = false),
+        )
+        listOf("README.md", "../run.command", "../gone.txt", "#planned").forEach(state::onLinkClick)
+        assertEquals(emptyList(), opened)
         assertNull(state.pendingAddress)
+        state.onLinkClick("../notes.txt")
+        assertEquals(listOf<Mention>(Mention.OtherFile("notes.txt")), opened)
+        state.onLinkClick("ftp://example.com")
+        assertEquals("ftp://example.com", state.pendingAddress)
         state.onLinkClick("HTTPS://example.com/a")
         assertEquals("HTTPS://example.com/a", state.pendingAddress)
     }

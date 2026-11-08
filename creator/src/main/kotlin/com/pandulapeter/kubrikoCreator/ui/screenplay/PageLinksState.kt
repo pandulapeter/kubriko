@@ -21,8 +21,7 @@ import java.io.File
 
 /**
  * What the links of the page or document the page editor shows point at: its mentions, drawn as chips in their kind's
- * accent that open what they name ([onOpen]), and its web addresses, shown first ([pendingAddress]) and only then
- * opened in the browser.
+ * accent that open what they name ([onOpen]), and its addresses, shown first ([pendingAddress]) and only then opened.
  *
  * @param pagePath The path of the page or document from the project's root, which its links are written from.
  * @param rootDirectory The project's folder, which images are read from.
@@ -54,8 +53,15 @@ internal class PageLinksState(
         ?.takeIf { it.exists && it.mention.path.substringAfterLast('.').lowercase() in imageExtensions }
         ?.let { File(rootDirectory, it.mention.path) }
 
+    /**
+     * Opens a project file no chip stands for, if the system can open it safely, or shows an address before it is opened.
+     */
     override fun onLinkClick(destination: String) {
-        if (looks[destination] == null && isWebAddress(destination)) pendingAddress = destination
+        val look = looks[destination]
+        when {
+            look != null -> if (look.exists && canOpenOutside(look.mention)) onOpen(look.mention)
+            hasScheme(destination) -> pendingAddress = destination
+        }
     }
 }
 
@@ -68,15 +74,16 @@ internal data class MentionLook(
 )
 
 /**
- * The chip a mention is drawn as: in the accent of its kind, opening what it names if Kubriko Creator can show that
- * and it is there, or null for a file of no kind Kubriko Creator knows, which stays an ordinary link.
+ * The chip a mention is drawn as: in the accent of its kind, opening what it names if it is there (in Kubriko Creator, or
+ * in the system's app for it, [canOpenOutside]), or null for a file of no kind Kubriko Creator knows, which stays an
+ * ordinary link.
  */
 internal fun chipOf(look: MentionLook, onOpen: (Mention) -> Unit): MarkdownChip? {
     val mention = look.mention
     val accent = accentOf(mention) ?: return null
     val canOpen = look.exists && when (mention) {
         is Mention.ActorType, is Mention.ManagerType, is Mention.Scene, is Mention.Page, is Mention.Document -> true
-        else -> false
+        else -> canOpenOutside(mention)
     }
     return MarkdownChip(accent = accent, isMissing = !look.exists, onClick = if (canOpen) ({ onOpen(mention) }) else null)
 }
@@ -104,9 +111,20 @@ internal fun mentionLooksOf(rootDirectory: File, pagePath: String, text: String)
     .associate { (destination, path) -> destination to MentionLook(Mention.of(path), File(rootDirectory, path).exists()) }
 
 /**
- * Whether [destination] is an address the browser opens.
+ * Whether [destination] is an address with a scheme (`https:`, `mailto:`), which the system opens after it is shown.
  */
-internal fun isWebAddress(destination: String): Boolean = webAddress.containsMatchIn(destination)
+internal fun hasScheme(destination: String): Boolean = scheme.containsMatchIn(destination)
+
+/**
+ * Whether [mention], a file Kubriko Creator has no view of, may be opened in the app the system opens its kind of file
+ * with: only images, sounds, and text, since a page may come from anyone and the system runs some files it opens.
+ */
+internal fun canOpenOutside(mention: Mention): Boolean = when (mention) {
+    is Mention.Sprite, is Mention.Audio, is Mention.Kotlin -> true
+    is Mention.OtherFile -> mention.path.substringAfterLast('/').substringAfterLast('.', "").lowercase() in openableExtensions
+    else -> false
+}
 
 private val imageExtensions = setOf("png", "jpg", "jpeg", "gif", "webp", "bmp")
-private val webAddress = Regex("^(https?://|mailto:)", RegexOption.IGNORE_CASE)
+private val scheme = Regex("^[A-Za-z][A-Za-z0-9+.-]*:")
+private val openableExtensions = imageExtensions + setOf("txt", "json", "properties", "toml", "xml", "yaml", "yml", "csv", "wav", "mp3", "ogg", "kt", "kts", "gradle")
