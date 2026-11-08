@@ -24,6 +24,7 @@ import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -58,7 +59,7 @@ class PageEditorTest {
     @Test
     fun mentionsAreChipsThatOpenWhatTheyNameAndWebAddressesAreShownFirst() = uiTest(width = 900, height = 400) {
         val opened = mutableListOf<Mention>()
-        val links = PageLinksState("screenplay/README.md") { opened += it }
+        val links = PageLinksState("screenplay/README.md", File(".")) { opened += it }
         links.looks = mapOf(
             "../.kubriko/actors/Player.json" to MentionLook(Mention.ActorType("Player", ".kubriko/actors/Player.json"), exists = true),
             "villain.md" to MentionLook(Mention.Page("villain", "screenplay/villain.md"), exists = false),
@@ -82,7 +83,7 @@ class PageEditorTest {
 
     @Test
     fun typingAnAtSignOffersWhatThePageCanMentionAndEnterWritesTheLink() = uiTest(width = 900, height = 500) {
-        val links = PageLinksState("screenplay/hero.md") {}
+        val links = PageLinksState("screenplay/hero.md", File(".")) {}
         links.candidates = listOf("Ball", "Paddle", "Brick").map { MentionCandidate(it, null, Mention.ActorType(it, ".kubriko/actors/$it.json")) }
         showing { PageEditor(name = "hero", text = page, onTextChange = {}, links = links) }
         onNodeWithText("Moves").performClick()

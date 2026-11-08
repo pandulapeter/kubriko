@@ -24,11 +24,19 @@ import java.awt.event.KeyEvent
  */
 internal suspend fun GameStep.toOutcome() = when (this) {
     is GameStep.Done -> CommandOutcome.Success(result = buildJsonObject { put("console", console.toJsonArray()) }, image = png)
-    GameStep.NotPlaying -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NOT_RUNNING))
-    GameStep.Unsupported -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_UNSUPPORTED))
-    GameStep.NoAnswer -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NO_ANSWER))
-    is GameStep.Elsewhere -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_NOT_ON_DESKTOP, target.id))
-    is GameStep.Failed -> CommandOutcome.Rejected(Rejection(CommandProblem.GAME_COMMAND_FAILED, message))
+    else -> CommandOutcome.Rejected(checkNotNull(rejection()))
+}
+
+/**
+ * Why the running game couldn't do what was asked, or null if it did.
+ */
+internal fun GameStep.rejection(): Rejection? = when (this) {
+    is GameStep.Done -> null
+    GameStep.NotPlaying -> Rejection(CommandProblem.GAME_NOT_RUNNING)
+    GameStep.Unsupported -> Rejection(CommandProblem.GAME_UNSUPPORTED)
+    GameStep.NoAnswer -> Rejection(CommandProblem.GAME_NO_ANSWER)
+    is GameStep.Elsewhere -> Rejection(CommandProblem.GAME_NOT_ON_DESKTOP, target.id)
+    is GameStep.Failed -> Rejection(CommandProblem.GAME_COMMAND_FAILED, message)
 }
 
 /**

@@ -485,6 +485,8 @@
     <string name="error_command_page_missing">There's no page called %1$s.</string>
     <string name="error_command_page_name_invalid">%1$s can't be a page's name: use letters, digits, spaces, dashes, and underscores, with a / between folders.</string>
     <string name="error_command_page_not_moved">Kubriko Creator couldn't move the page %1$s, so nothing changed. Another program may have its file open.</string>
+    <string name="error_command_page_image_unreadable">%1$s isn't an image Kubriko Creator can read: use a PNG, JPEG, GIF, WebP, or BMP file.</string>
+    <string name="error_command_page_image_source">Give exactly one of sprite, screenshot, and file.</string>
     <string name="error_command_markdown_missing">There is no page or document at %1$s any more, so its links couldn't be put back.</string>
     <string name="error_command_mentions_not_followed">The links in %1$s still point at where things were, since the page couldn't be written: %2$s</string>
     <string name="error_command_page_section_missing">%1$s has no section headed %2$s.</string>
@@ -671,6 +673,7 @@
     <string name="command_create_page">Create a page</string>
     <string name="command_edit_page">Change a page</string>
     <string name="command_move_page">Move a page</string>
+    <string name="command_add_page_image">Add an image to a page</string>
     <string name="command_delete_page">Delete a page</string>
     <string name="command_read_documents">Read the project's documents</string>
     <string name="command_create_document">Create a document</string>

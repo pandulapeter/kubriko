@@ -54,7 +54,7 @@ class PageLinksStateTest {
 
     @Test
     fun `only web addresses wait to be opened`() {
-        val state = PageLinksState("screenplay/README.md") {}
+        val state = PageLinksState("screenplay/README.md", File(".")) {}
         state.looks = mapOf("README.md" to MentionLook(Mention.Page("README", "screenplay/README.md"), exists = true))
         state.onLinkClick("README.md")
         state.onLinkClick("ftp://example.com")

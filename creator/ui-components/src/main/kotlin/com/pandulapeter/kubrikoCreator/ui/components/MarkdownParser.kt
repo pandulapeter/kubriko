@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.components
 
 /**
- * Reads the Markdown agents write (headings, lists, quotes, fenced code, tables, rules, and paragraphs) into blocks. A code
+ * Reads the Markdown agents write (headings, lists, quotes, fenced code, tables, rules, images on a line of their own, and paragraphs) into blocks. A code
  * fence that isn't closed yet, as while a message streams in, holds the rest of the text.
  */
 internal object MarkdownParser {
@@ -18,6 +18,7 @@ internal object MarkdownParser {
     private val bullet = Regex("^(\\s*)[-*+]\\s+(.*)$")
     private val numbered = Regex("^(\\s*)(\\d{1,9})[.)]\\s+(.*)$")
     private val rule = Regex("^\\s{0,3}([-*_])(\\s*\\1){2,}\\s*$")
+    private val image = Regex("^!\\[([^\\]]*)]\\(\\s*(<[^>]+>|[^\\s)]+)(\\s+\"[^\"]*\")?\\s*\\)$")
     private val tableSeparator = Regex("^\\s*\\|?(\\s*:?-+:?\\s*\\|)+(\\s*:?-+:?\\s*)?\\|?\\s*$")
 
     fun parse(text: String): List<MarkdownBlock> {
@@ -65,6 +66,7 @@ internal object MarkdownParser {
                 continue
             }
             val block = rule.matchEntire(line)?.let { MarkdownBlock.Rule }
+                ?: image.matchEntire(trimmed)?.let { MarkdownBlock.Image(it.groupValues[1], it.groupValues[2].removePrefix("<").removeSuffix(">")) }
                 ?: heading.matchEntire(trimmed)?.let { MarkdownBlock.Heading(it.groupValues[1].length, it.groupValues[2].trimEnd('#', ' ')) }
                 ?: bullet.matchEntire(line)?.let { MarkdownBlock.ListItem(it.groupValues[2], depth = depthOf(it.groupValues[1])) }
                 ?: numbered.matchEntire(line)?.let { MarkdownBlock.ListItem(it.groupValues[3], it.groupValues[2], depthOf(it.groupValues[1])) }

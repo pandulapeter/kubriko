@@ -62,7 +62,11 @@ public fun MarkdownText(
             is MarkdownBlock.Paragraph -> InlineText(block.text, body, codeBackground, linkColor, links)
             is MarkdownBlock.Heading -> InlineText(
                 text = block.text,
-                style = if (block.level <= 2) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
+                style = when (block.level) {
+                    1 -> MaterialTheme.typography.titleLarge
+                    2 -> MaterialTheme.typography.titleMedium
+                    else -> MaterialTheme.typography.titleSmall
+                },
                 codeBackground = codeBackground,
                 linkColor = linkColor,
                 links = links,
@@ -101,6 +105,9 @@ public fun MarkdownText(
                 softWrap = false,
             )
             MarkdownBlock.Rule -> HorizontalDivider()
+            is MarkdownBlock.Image -> MarkdownImage(block, links?.imageFileOf(block.destination)) {
+                InlineText("[${block.alt.ifBlank { block.destination }.replace("]", "\\]")}](${block.destination})", body, codeBackground, linkColor, links)
+            }
             is MarkdownBlock.Table -> Table(block, body, codeBackground, linkColor, links)
         }
     }

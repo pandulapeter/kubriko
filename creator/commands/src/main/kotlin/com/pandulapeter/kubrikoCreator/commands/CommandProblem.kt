@@ -68,6 +68,8 @@ public enum class CommandProblem(override val english: String) : DomainText {
     PAGE_NOT_MOVED("Kubriko Creator couldn't move the page %1\$s, so nothing changed. Another program may have its file open."),
     MENTIONS_NOT_FOLLOWED("The links in %1\$s still point at where things were, since the page couldn't be written: %2\$s"),
     MARKDOWN_MISSING("There is no page or document at %1\$s any more, so its links couldn't be put back."),
+    PAGE_IMAGE_SOURCE("Give exactly one of sprite, screenshot, and file."),
+    PAGE_IMAGE_UNREADABLE("%1\$s isn't an image Kubriko Creator can read: use a PNG, JPEG, GIF, WebP, or BMP file."),
     PAGE_SECTION_MISSING("%1\$s has no section headed %2\$s."),
     PAGE_TAKEN("There's already a page called %1\$s."),
     PAGE_TOO_LONG("A page can be at most %1\$s characters long. Split it into pages of one topic each."),

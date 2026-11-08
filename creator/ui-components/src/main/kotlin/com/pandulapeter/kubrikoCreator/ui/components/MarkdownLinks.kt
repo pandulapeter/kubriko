@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import java.io.File
+
 /**
  * How [MarkdownText] draws and follows the links of a text that knows what they point at, such as a page's mentions.
  */
@@ -23,6 +25,12 @@ public interface MarkdownLinks {
      * Follows a click on an ordinary link to [destination], instead of opening it in the browser right away.
      */
     public fun onLinkClick(destination: String)
+
+    /**
+     * The file an image on a line of its own shows, or null to show its description as a link instead (an address on
+     * the web, which is never fetched, or a file that isn't there).
+     */
+    public fun imageFileOf(destination: String): File? = null
 }
 
 /**

@@ -33,7 +33,8 @@ internal data class InlineMarkdown(
     companion object {
 
         /**
-         * Reads `**bold**`, `*italic*` (or with underscores), `` `code` ``, and `[links](url)`. A marker without its
+         * Reads `**bold**`, `*italic*` (or with underscores), `` `code` ``, and `[links](url)`; an image inside a line,
+         * `![alt](url)`, is a link showing its alt text. A marker without its
          * closing one, as while a message streams in, stays as it is.
          */
         fun parse(source: String): InlineMarkdown {
@@ -55,6 +56,7 @@ internal data class InlineMarkdown(
                     character == '`' -> code(source, index, text, spans)
                     source.startsWith("**", index) || source.startsWith("__", index) -> emphasis(source, index, 2, Style.BOLD, text, spans)
                     (character == '*' || character == '_') && isEmphasisStart(source, index) -> emphasis(source, index, 1, Style.ITALIC, text, spans)
+                    character == '!' && source.startsWith("![", index) -> link(source, index + 1, text, spans)
                     character == '[' -> link(source, index, text, spans)
                     else -> null
                 }

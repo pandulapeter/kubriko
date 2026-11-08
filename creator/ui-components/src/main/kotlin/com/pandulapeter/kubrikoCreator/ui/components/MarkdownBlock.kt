@@ -44,6 +44,14 @@ internal sealed interface MarkdownBlock {
     data object Rule : MarkdownBlock
 
     /**
+     * An image on a line of its own: [alt] describes it, [destination] is where it is, as written.
+     */
+    data class Image(
+        val alt: String,
+        val destination: String,
+    ) : MarkdownBlock
+
+    /**
      * @param rows The rows under the [header], each with as many cells as the header (missing ones empty, extra ones dropped).
      */
     data class Table(

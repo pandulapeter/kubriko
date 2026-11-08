@@ -92,6 +92,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddPageImage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
@@ -174,6 +175,7 @@ public class CommandRegistry(
                 CreatePage,
                 EditPage,
                 MovePage,
+                AddPageImage,
                 DeletePage,
                 CreateDocument,
                 EditDocument,

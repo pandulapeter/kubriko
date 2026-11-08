@@ -68,7 +68,7 @@ internal fun rememberPageLinks(
 ): PageLinksState? {
     val pagePath = markdownPathOf(selection) ?: return null
     val currentOnOpen by rememberUpdatedState(onOpen)
-    val state = remember(selection) { PageLinksState(pagePath) { currentOnOpen(it) } }
+    val state = remember(selection) { PageLinksState(pagePath, rootDirectory) { currentOnOpen(it) } }
     state.candidates = remember(state, blockTypes, resources, pageNames) { mentionCandidatesOf(blockTypes, resources, pageNames, pagePath) }
     LaunchedEffect(state, text, blockTypes, resources, pageNames, documentsRevision) {
         state.looks = if (text == null) emptyMap() else withContext(Dispatchers.IO) { runCatching { mentionLooksOf(rootDirectory, pagePath, text) }.getOrDefault(emptyMap()) }

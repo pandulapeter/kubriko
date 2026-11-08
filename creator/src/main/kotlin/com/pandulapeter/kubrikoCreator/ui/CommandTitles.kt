@@ -93,6 +93,7 @@ import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsState
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorsValues
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddPageImage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
@@ -108,6 +109,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_add_block
 import kubriko.creator.generated.resources.command_add_document_to_screenplay
 import kubriko.creator.generated.resources.command_add_event
+import kubriko.creator.generated.resources.command_add_page_image
 import kubriko.creator.generated.resources.command_add_property
 import kubriko.creator.generated.resources.command_add_text
 import kubriko.creator.generated.resources.command_build
@@ -285,6 +287,7 @@ private val commandTitles = mapOf(
     CreatePage.name to Res.string.command_create_page,
     EditPage.name to Res.string.command_edit_page,
     MovePage.name to Res.string.command_move_page,
+    AddPageImage.name to Res.string.command_add_page_image,
     DeletePage.name to Res.string.command_delete_page,
     ReadDocuments.name to Res.string.command_read_documents,
     CreateDocument.name to Res.string.command_create_document,

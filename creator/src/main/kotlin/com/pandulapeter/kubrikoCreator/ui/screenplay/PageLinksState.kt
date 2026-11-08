@@ -25,9 +25,11 @@ import java.io.File
  * opened in the browser.
  *
  * @param pagePath The path of the page or document from the project's root, which its links are written from.
+ * @param rootDirectory The project's folder, which images are read from.
  */
 internal class PageLinksState(
     val pagePath: String,
+    private val rootDirectory: File,
     private val onOpen: (Mention) -> Unit,
 ) : MarkdownLinks {
 
@@ -47,6 +49,10 @@ internal class PageLinksState(
     var pendingAddress: String? by mutableStateOf(null)
 
     override fun chipOf(destination: String): MarkdownChip? = looks[destination]?.let { chipOf(it, onOpen) }
+
+    override fun imageFileOf(destination: String): File? = looks[destination]
+        ?.takeIf { it.exists && it.mention.path.substringAfterLast('.').lowercase() in imageExtensions }
+        ?.let { File(rootDirectory, it.mention.path) }
 
     override fun onLinkClick(destination: String) {
         if (looks[destination] == null && isWebAddress(destination)) pendingAddress = destination
@@ -102,4 +108,5 @@ internal fun mentionLooksOf(rootDirectory: File, pagePath: String, text: String)
  */
 internal fun isWebAddress(destination: String): Boolean = webAddress.containsMatchIn(destination)
 
+private val imageExtensions = setOf("png", "jpg", "jpeg", "gif", "webp", "bmp")
 private val webAddress = Regex("^(https?://|mailto:)", RegexOption.IGNORE_CASE)
