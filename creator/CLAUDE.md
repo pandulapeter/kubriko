@@ -168,6 +168,7 @@ Besides its tests passing, a change:
 | The `game.*` keys of `gradle.properties` (the game's identity and settings) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
 | A target's own files (`androidApp/`, `iosApp/`, `src/androidMain`, `src/iosMain`) | User after creation | Created by turning the target on when missing, never rewritten, and kept when it is turned off. |
 | The `PRODUCT_BUNDLE_IDENTIFIER` line of `iosApp/Configuration/Config.xcconfig` | Creator | Follows `game.applicationId`; the Xcode build fails, naming both, while they differ. |
+| `.kubriko/screenplay.json` | Creator | How the screenplay is kept (`ScreenplaySettings`, its reminders), in a file of its own rather than `project.json`, so an older Creator just keeps reminding and no format raise is needed; one that can't be read is never written over. |
 | `.kubriko/local/` | Creator | Git-ignored, by a `.gitignore` of its own (`LocalProjectStore`), since a project Creator didn't make doesn't ignore it. |
 
 ## Threads, writes, and failures
@@ -228,6 +229,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
 - **Undo and redo restore:** their steps are `isRestoring` and validated by `WriteCommand.validateRestoring`, since what they bring
   back may name types, Scenes, or sounds deleted since; restoring checks only the structure (the type, Event, or Block exists, the
   name is free).
+- **The AI's own rules:** `WriteCommand.validateByAi` holds the AI, and only the AI (and `check_change`), to rules the user isn't:
+  the pages it writes keep the screenplay's writing rules (`ScreenplayStyle`), which the user sees only as quiet hints, since
+  the design is theirs. A write's result names the pages mentioning what it changed (`mentionedIn`), looked up before the change
+  too, since a delete leaves nothing to find them by.
 - **AI input:** an input that doesn't decode is rejected with `InputProblem`'s one sentence rather than kotlinx.serialization's
   message, and `check_change` runs a write tool's decoding and validation without applying it. A sealed type marked
   `@SummarizedSchema` (`BlockDefinition`) lists only its subclasses' names, which `get_block_catalog` describes once.
@@ -551,6 +556,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   may come from anyone, so only a web or mail address opens, after it is shown, and a project file Creator has no view of opens
   in the system's app only for kinds it can't run (`canOpenOutside`). Creator's own moves are recorded (`MovedFiles`) so the
   open page follows them, keeping what is being typed (`MarkdownIdentity`).
+- The screenplay's findings (`ScreenplayHealth`, kept up to date only while the sidebar collects them) show as a quiet dot
+  on the row they are about (`SidebarHints`); the rest of the health checks stay in the Game map. The project's Markdown is
+  read once per change to a page or document (`screenplayTexts`, keyed by their revisions, which every write Creator makes
+  among the pages raises, images included), while what the pages link to is looked at afresh every time.
 - Documents (every Markdown file outside `screenplay/`) have no group: each is a row in the band of the folder it is
   in (`SidebarModules`' `bandOf`: the nearest module, or folder holding only modules, above it), after the band's
   groups, a plain folder of them a folder row closed at first, so where a document lies stays visible. Every band,
