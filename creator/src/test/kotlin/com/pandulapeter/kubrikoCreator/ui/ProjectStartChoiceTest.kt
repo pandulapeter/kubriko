@@ -28,6 +28,7 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.assistant.StartingTheWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
+import kotlinx.coroutines.CompletableDeferred
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -80,13 +81,36 @@ class ProjectStartChoiceTest {
         val request = WritersRoomRequest("A cat who herds sheep.")
         var isShown by mutableStateOf(true)
         showing { if (isShown) StartingTheWritersRoom(request, onShowAssistant = { shown++ }, onStart = { started += it }) }
-        waitForIdle()
+        waitUntil(timeoutMillis = 5_000) { started.isNotEmpty() }
         isShown = false
         waitForIdle()
         isShown = true
         waitForIdle()
         assertEquals(listOf("Let's make a game in the writers' room. My idea: A cat who herds sheep."), started)
         assertEquals(1, shown)
+    }
+
+    @Test
+    fun theIdeaIsKeptWhenTheWritersRoomIsHiddenWhileItsPromptLoads() = uiTest {
+        val started = mutableListOf<String>()
+        val firstLoad = CompletableDeferred<Unit>()
+        var loads = 0
+        val request = WritersRoomRequest("A cat who herds sheep.")
+        var isShown by mutableStateOf(true)
+        showing {
+            if (isShown) {
+                StartingTheWritersRoom(request, onShowAssistant = {}, onStart = { started += it }) { pitch ->
+                    if (loads++ == 0) firstLoad.await()
+                    pitch
+                }
+            }
+        }
+        waitUntil(timeoutMillis = 5_000) { loads == 1 }
+        isShown = false
+        waitForIdle()
+        isShown = true
+        waitUntil(timeoutMillis = 5_000) { started.isNotEmpty() }
+        assertEquals(listOf("A cat who herds sheep."), started)
     }
 
     @Test

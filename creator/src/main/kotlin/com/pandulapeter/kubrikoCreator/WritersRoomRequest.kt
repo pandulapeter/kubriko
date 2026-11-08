@@ -9,17 +9,17 @@
  */
 package com.pandulapeter.kubrikoCreator
 
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The idea a project was created from ("Start from an idea"), which the writers' room starts from once its workspace is
  * shown: [take] hands it over only once, so a workspace shown again doesn't start another.
  */
-internal class WritersRoomRequest(pitch: String) {
-    private val pitch = AtomicReference<String?>(pitch)
+internal class WritersRoomRequest(val pitch: String) {
+    private val isTaken = AtomicBoolean(false)
 
     /**
      * The idea, the first time it is asked for, and null after.
      */
-    fun take(): String? = pitch.getAndSet(null)
+    fun take(): String? = if (isTaken.compareAndSet(false, true)) pitch else null
 }

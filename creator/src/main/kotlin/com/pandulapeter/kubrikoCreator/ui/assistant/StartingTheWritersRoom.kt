@@ -27,12 +27,16 @@ internal fun StartingTheWritersRoom(
     request: WritersRoomRequest?,
     onShowAssistant: () -> Unit,
     onStart: (prompt: String) -> Unit,
+    loadPrompt: suspend (pitch: String) -> String = { getString(Res.string.assistant_prompt_writers_room_idea, it) },
 ) {
     val currentOnShowAssistant by rememberUpdatedState(onShowAssistant)
     val currentOnStart by rememberUpdatedState(onStart)
     LaunchedEffect(request) {
-        val pitch = request?.take() ?: return@LaunchedEffect
+        if (request == null) return@LaunchedEffect
+        // Taken only once the prompt is ready, so leaving composition while it loads doesn't lose the idea.
+        val prompt = loadPrompt(request.pitch)
+        if (request.take() == null) return@LaunchedEffect
         currentOnShowAssistant()
-        currentOnStart(getString(Res.string.assistant_prompt_writers_room_idea, pitch))
+        currentOnStart(prompt)
     }
 }
