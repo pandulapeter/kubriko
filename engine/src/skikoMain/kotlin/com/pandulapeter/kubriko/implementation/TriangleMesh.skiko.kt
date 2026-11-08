@@ -10,7 +10,9 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.skiaCanvas
 import org.jetbrains.skia.BlendMode
@@ -29,37 +31,51 @@ private val trianglePaint = Paint().apply { color = -1 }
 private val replaceTrianglePaint = Paint().apply { color = -1; blendMode = BlendMode.SRC }
 
 /**
- * A handful of identity-keyed slots, so textured batches drawn in a stable A, B order don't evict each other and
- * rebuild the image wrapper and shader on every draw. The fixed size keeps native resources bounded.
+ * A handful of slots keyed by texture identity and sampling, so textured batches drawn in a stable A, B order don't
+ * evict each other and rebuild the image wrapper and shader on every draw. The fixed size keeps native resources
+ * bounded.
  */
 private const val TEXTURE_PAINT_CACHE_SIZE = 4
 private val texturePaintSources = arrayOfNulls<ImageBitmap>(TEXTURE_PAINT_CACHE_SIZE)
+private val texturePaintSamplings = IntArray(TEXTURE_PAINT_CACHE_SIZE)
 private val texturePaints = arrayOfNulls<Paint>(TEXTURE_PAINT_CACHE_SIZE)
 private var nextTexturePaintSlot = 0
 
-/**
- * Mipmapped sampling is what lets a pattern average itself away as the camera pulls back instead of aliasing
- * into a shimmer.
- */
-private fun texturePaintFor(texture: ImageBitmap, replace: Boolean): Paint {
+private fun texturePaintFor(texture: ImageBitmap, replace: Boolean, tileMode: TileMode, filterQuality: FilterQuality): Paint {
+    val sampling = samplingKey(tileMode, filterQuality)
     for (i in texturePaintSources.indices) {
-        if (texturePaintSources[i] === texture) {
+        if (texturePaintSources[i] === texture && texturePaintSamplings[i] == sampling) {
             return texturePaints[i]!!.apply { blendMode = if (replace) BlendMode.SRC else BlendMode.SRC_OVER }
         }
     }
     val image = Image.makeFromBitmap(texture.asSkiaBitmap())
+    val skiaTileMode = tileMode.toSkiaTileMode()
     val paint = Paint().apply {
         color = -1
-        shader = image.makeShader(
-            FilterTileMode.REPEAT,
-            FilterTileMode.REPEAT,
-            FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR),
-        )
+        shader = image.makeShader(skiaTileMode, skiaTileMode, filterQuality.toSamplingMode())
     }
     texturePaintSources[nextTexturePaintSlot] = texture
+    texturePaintSamplings[nextTexturePaintSlot] = sampling
     texturePaints[nextTexturePaintSlot] = paint
     nextTexturePaintSlot = (nextTexturePaintSlot + 1) % TEXTURE_PAINT_CACHE_SIZE
     return paint.apply { blendMode = if (replace) BlendMode.SRC else BlendMode.SRC_OVER }
+}
+
+private fun TileMode.toSkiaTileMode() = when (this) {
+    TileMode.Clamp -> FilterTileMode.CLAMP
+    TileMode.Mirror -> FilterTileMode.MIRROR
+    TileMode.Decal -> FilterTileMode.DECAL
+    else -> FilterTileMode.REPEAT
+}
+
+/**
+ * Mipmapped sampling, from [FilterQuality.Medium] up, is what lets a texture average itself away as the camera pulls
+ * back instead of aliasing into a shimmer.
+ */
+private fun FilterQuality.toSamplingMode() = when (this) {
+    FilterQuality.None -> FilterMipmap(FilterMode.NEAREST, MipmapMode.NONE)
+    FilterQuality.Low -> FilterMipmap(FilterMode.LINEAR, MipmapMode.NONE)
+    else -> FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR)
 }
 
 /**
@@ -89,9 +105,11 @@ internal actual fun drawTriangles(
     texture: ImageBitmap?,
     replace: Boolean,
     isAntiAlias: Boolean,
+    tileMode: TileMode,
+    filterQuality: FilterQuality,
 ) {
     val paint = if (texture != null) {
-        texturePaintFor(texture, replace)
+        texturePaintFor(texture, replace, tileMode, filterQuality)
     } else {
         if (replace) replaceTrianglePaint else trianglePaint
     }

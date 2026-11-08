@@ -10,7 +10,9 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.TileMode
 import com.pandulapeter.kubriko.helpers.TriangleBatch
 
 /**
@@ -23,7 +25,8 @@ import com.pandulapeter.kubriko.helpers.TriangleBatch
  * beyond what [TriangleBatch.addLine]'s geometric fringes provide). With [replace] the triangles use
  * source-replace compositing instead of the default source-over. [texCoords] and [texture] are either both
  * present — the vertex colors are then modulated by the pattern sampled at each vertex's own coordinate, in
- * texels — or both absent, which is the plain color-only path.
+ * texels — or both absent, which is the plain color-only path. [tileMode] and [filterQuality] say how the texture is
+ * sampled (see [TriangleBatch.textureTileMode] and [TriangleBatch.textureFilterQuality]).
  */
 internal expect fun drawTriangles(
     canvas: Canvas,
@@ -36,4 +39,23 @@ internal expect fun drawTriangles(
     texture: ImageBitmap? = null,
     replace: Boolean = false,
     isAntiAlias: Boolean = false,
+    tileMode: TileMode = TileMode.Repeated,
+    filterQuality: FilterQuality = FilterQuality.Medium,
 )
+
+/** One integer per combination of [tileMode] and [filterQuality], so a paint cache can key on it without boxing. */
+internal fun samplingKey(tileMode: TileMode, filterQuality: FilterQuality): Int {
+    val tileModeIndex = when (tileMode) {
+        TileMode.Clamp -> 0
+        TileMode.Mirror -> 1
+        TileMode.Decal -> 2
+        else -> 3
+    }
+    val filterQualityIndex = when (filterQuality) {
+        FilterQuality.None -> 0
+        FilterQuality.Low -> 1
+        FilterQuality.Medium -> 2
+        else -> 3
+    }
+    return tileModeIndex * 4 + filterQualityIndex
+}

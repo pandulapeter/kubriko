@@ -14,7 +14,9 @@ import android.graphics.Paint
 import android.graphics.Shader
 import android.os.Build
 import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.nativeCanvas
 
@@ -40,38 +42,50 @@ private val replaceTrianglePaint = Paint().apply {
 private const val MAX_ANISOTROPY = 4
 
 /**
- * A handful of identity-keyed slots, so textured batches drawn in a stable A, B order don't evict each other and
- * rebuild the Paint and BitmapShader on every draw. The fixed size keeps native resources bounded.
+ * A handful of slots keyed by texture identity and sampling, so textured batches drawn in a stable A, B order don't
+ * evict each other and rebuild the Paint and BitmapShader on every draw. The fixed size keeps native resources bounded.
  */
 private const val TEXTURE_PAINT_CACHE_SIZE = 4
 private val texturePaintSources = arrayOfNulls<ImageBitmap>(TEXTURE_PAINT_CACHE_SIZE)
+private val texturePaintSamplings = IntArray(TEXTURE_PAINT_CACHE_SIZE)
 private val texturePaints = arrayOfNulls<Paint>(TEXTURE_PAINT_CACHE_SIZE)
 private var nextTexturePaintSlot = 0
 
-private fun texturePaintFor(texture: ImageBitmap, replace: Boolean): Paint {
+private fun texturePaintFor(texture: ImageBitmap, replace: Boolean, tileMode: TileMode, filterQuality: FilterQuality): Paint {
+    val sampling = samplingKey(tileMode, filterQuality)
     for (i in texturePaintSources.indices) {
-        if (texturePaintSources[i] === texture) {
+        if (texturePaintSources[i] === texture && texturePaintSamplings[i] == sampling) {
             return texturePaints[i]!!.withBlendMode(replace)
         }
     }
-    val bitmap = texture.asAndroidBitmap().apply { setHasMipMap(true) }
+    val isMipmapped = filterQuality != FilterQuality.None && filterQuality != FilterQuality.Low
+    val bitmap = texture.asAndroidBitmap().apply { if (isMipmapped) setHasMipMap(true) }
+    val androidTileMode = tileMode.toAndroidTileMode()
     val paint = Paint().apply {
         color = android.graphics.Color.WHITE
-        // The fallback sampling wherever the anisotropic path is not honoured; a shader built with
-        // FILTER_MODE_DEFAULT takes its filter from the paint.
-        isFilterBitmap = true
-        shader = BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        // The fallback sampling wherever the shader's own filter mode is unavailable or not honoured; a shader
+        // built with FILTER_MODE_DEFAULT takes its filter from the paint.
+        isFilterBitmap = filterQuality != FilterQuality.None
+        shader = BitmapShader(bitmap, androidTileMode, androidTileMode).apply {
+            if (isMipmapped && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 maxAnisotropy = MAX_ANISOTROPY
-            } else {
-                filterMode = BitmapShader.FILTER_MODE_LINEAR
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                filterMode = if (filterQuality == FilterQuality.None) BitmapShader.FILTER_MODE_NEAREST else BitmapShader.FILTER_MODE_LINEAR
             }
         }
     }
     texturePaintSources[nextTexturePaintSlot] = texture
+    texturePaintSamplings[nextTexturePaintSlot] = sampling
     texturePaints[nextTexturePaintSlot] = paint
     nextTexturePaintSlot = (nextTexturePaintSlot + 1) % TEXTURE_PAINT_CACHE_SIZE
     return paint.withBlendMode(replace)
+}
+
+private fun TileMode.toAndroidTileMode() = when (this) {
+    TileMode.Clamp -> Shader.TileMode.CLAMP
+    TileMode.Mirror -> Shader.TileMode.MIRROR
+    TileMode.Decal -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Shader.TileMode.DECAL else Shader.TileMode.CLAMP
+    else -> Shader.TileMode.REPEAT
 }
 
 private fun Paint.withBlendMode(replace: Boolean) = apply {
@@ -89,9 +103,11 @@ internal actual fun drawTriangles(
     texture: ImageBitmap?,
     replace: Boolean,
     isAntiAlias: Boolean,
+    tileMode: TileMode,
+    filterQuality: FilterQuality,
 ) {
     val paint = if (texture != null) {
-        texturePaintFor(texture, replace)
+        texturePaintFor(texture, replace, tileMode, filterQuality)
     } else {
         if (replace) replaceTrianglePaint else trianglePaint
     }

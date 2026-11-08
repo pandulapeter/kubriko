@@ -10,7 +10,9 @@
 package com.pandulapeter.kubriko.helpers
 
 import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.TileMode
 import com.pandulapeter.kubriko.implementation.drawTriangles
 import kotlin.math.sqrt
 
@@ -30,11 +32,11 @@ import kotlin.math.sqrt
  */
 class TriangleBatch {
 
-    private var positions = FloatArray(INITIAL_VERTEX_CAPACITY * 2)
-    private var colors = IntArray(INITIAL_VERTEX_CAPACITY)
-    private var indices = ShortArray(INITIAL_INDEX_CAPACITY)
-    private var vertexCount = 0
-    private var indexCount = 0
+    internal var positions = FloatArray(INITIAL_VERTEX_CAPACITY * 2)
+    internal var colors = IntArray(INITIAL_VERTEX_CAPACITY)
+    internal var indices = ShortArray(INITIAL_INDEX_CAPACITY)
+    internal var vertexCount = 0
+    internal var indexCount = 0
 
     /**
      * The tiling pattern the vertex colors are modulated by, or null (the default) for the plain color-only
@@ -54,12 +56,27 @@ class TriangleBatch {
     var defaultV = 0f
 
     /**
+     * How [texture] continues past its own edges. [TileMode.Repeated], the default, tiles it, as a pattern wants.
+     * [TileMode.Clamp] stretches its edge texels instead, as a sprite or an atlas region wants: a repeating texture
+     * blends its opposite edge into the filtered texels along each border. [TileMode.Mirror] and [TileMode.Decal] are
+     * honored too, Decal falling back to Clamp on Android below API 31.
+     */
+    var textureTileMode = TileMode.Repeated
+
+    /**
+     * How [texture] is filtered. [FilterQuality.None] samples the nearest texel, as pixel art wants;
+     * [FilterQuality.Low] interpolates between texels; [FilterQuality.Medium] (the default) and [FilterQuality.High]
+     * also sample mipmaps, so a texture shown smaller than its size averages out instead of shimmering.
+     */
+    var textureFilterQuality = FilterQuality.Medium
+
+    /**
      * Texture coordinates are written only where a caller supplies them, and the gaps between those runs are
      * filled with the default in one pass at draw time - so appending a vertex that samples nothing costs
      * nothing at all, however many of them a frame holds (outlines alone are most of the batch).
      */
-    private var texCoords = FloatArray(0)
-    private var texCoordsWritten = 0
+    internal var texCoords = FloatArray(0)
+    internal var texCoordsWritten = 0
 
     /** Whether nothing has been appended since the last [reset]. */
     val isEmpty: Boolean get() = vertexCount == 0
@@ -443,6 +460,8 @@ class TriangleBatch {
             texture = if (hasTexCoords) texture else null,
             replace = replace,
             isAntiAlias = isAntiAlias,
+            tileMode = textureTileMode,
+            filterQuality = textureFilterQuality,
         )
     }
 
@@ -458,52 +477,6 @@ class TriangleBatch {
     fun flush(canvas: Canvas, replace: Boolean = false, isAntiAlias: Boolean = false) {
         draw(canvas, replace, isAntiAlias)
         reset()
-    }
-
-    /**
-     * Brings the written run up to [end] with the default coordinates. When both defaults are equal the gap - which is
-     * most of the batch - closes with a single fill rather than a strided walk.
-     */
-    private fun padTexCoordsTo(end: Int) {
-        if (texCoords.size < vertexCount * 2) texCoords = texCoords.copyOf(maxOf(vertexCount, colors.size) * 2)
-        if (texCoordsWritten >= end) return
-        if (defaultU == defaultV) {
-            texCoords.fill(defaultU, texCoordsWritten * 2, end * 2)
-        } else {
-            var i = texCoordsWritten * 2
-            val stop = end * 2
-            while (i < stop) {
-                texCoords[i] = defaultU
-                texCoords[i + 1] = defaultV
-                i += 2
-            }
-        }
-        texCoordsWritten = end
-    }
-
-    private fun writeQuadIndices(base: Int) {
-        val indices = indices
-        var i = indexCount
-        indices[i++] = base.toShort(); indices[i++] = (base + 1).toShort(); indices[i++] = (base + 2).toShort()
-        indices[i++] = base.toShort(); indices[i++] = (base + 2).toShort(); indices[i] = (base + 3).toShort()
-    }
-
-    private fun ensureVertexCapacity(requiredVertexCount: Int) {
-        check(requiredVertexCount <= MAX_INDEXED_VERTICES) {
-            "TriangleBatch cannot hold more than $MAX_INDEXED_VERTICES unique vertices between flushes " +
-                "(index range overflow) — the batch owner must flush more often."
-        }
-        if (colors.size < requiredVertexCount) {
-            val newSize = maxOf(requiredVertexCount, colors.size * 2)
-            positions = positions.copyOf(newSize * 2)
-            colors = colors.copyOf(newSize)
-        }
-    }
-
-    private fun ensureIndexCapacity(requiredIndexCount: Int) {
-        if (indices.size < requiredIndexCount) {
-            indices = indices.copyOf(maxOf(requiredIndexCount, indices.size * 2))
-        }
     }
 
     companion object {
