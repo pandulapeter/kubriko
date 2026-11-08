@@ -33,7 +33,7 @@ public object PageLinks {
     )
 
     /**
-     * Every link and image of [text], in order, outside fenced code blocks and code spans.
+     * Every link and image of [text], in the order of their destinations, outside fenced code blocks and code spans.
      */
     public fun linksOf(text: String): List<Link> {
         val links = ArrayList<Link>()
@@ -49,7 +49,8 @@ public object PageLinks {
             }
             offset += line.length + 1
         }
-        return links
+        // A linked picture's image is found after the link around it, but comes first in the text.
+        return links.sortedBy { it.destinationRange.first }
     }
 
     /**

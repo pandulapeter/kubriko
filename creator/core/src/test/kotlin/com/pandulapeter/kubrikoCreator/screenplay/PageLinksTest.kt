@@ -48,9 +48,9 @@ class PageLinksTest {
     fun `angle brackets, parentheses, and a linked image are read`() {
         val text = "[a](<my file.md>) [b](wiki/Foo_(bar).md) [![logo](logo.png)](https://example.com)"
         val links = PageLinks.linksOf(text)
-        assertEquals(listOf("my file.md", "wiki/Foo_(bar).md", "https://example.com", "logo.png"), links.map { it.destination })
+        assertEquals(listOf("my file.md", "wiki/Foo_(bar).md", "logo.png", "https://example.com"), links.map { it.destination })
         assertEquals(listOf(true, false, false, false), links.map { it.isInAngleBrackets })
-        assertTrue(links.last().isImage)
+        assertTrue(links[2].isImage)
     }
 
     @Test
@@ -100,6 +100,13 @@ class PageLinksTest {
         val text = "[Hero](../.kubriko/actors/Player.json), [me](hero.md#top), [web](https://example.com), [up](../../x.md)"
         val moved = PageLinks.withMovesFollowed(text, "screenplay/hero.md", listOf(PathMove("screenplay/hero.md", "screenplay/cast/hero.md")))
         assertEquals("[Hero](../../.kubriko/actors/Player.json), [me](hero.md#top), [web](https://example.com), [up](../../x.md)", moved)
+    }
+
+    @Test
+    fun `a moved page's linked picture keeps both its links whole`() {
+        val text = "[![logo](logo.png)](other.md) after"
+        val moved = PageLinks.withMovesFollowed(text, "screenplay/a.md", listOf(PathMove("screenplay/a.md", "screenplay/deep/a.md")))
+        assertEquals("[![logo](../logo.png)](../other.md) after", moved)
     }
 
     @Test
