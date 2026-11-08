@@ -9,8 +9,13 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.actor.looks.EllipseLook
 import com.pandulapeter.kubriko.actor.looks.RectangleLook
 import com.pandulapeter.kubriko.actor.looks.SpriteLook
@@ -223,6 +228,20 @@ class BatchedLayerDrawerTest {
 
         assertEquals(listOf("run:${rectangleVertices * 2}"), target.events)
         assertNull(target.runBatches.single().texture)
+    }
+
+    @Test
+    fun `a stand-in takes the mean color of its own region, not of the whole texture`() {
+        val texture = ImageBitmap(2, 1).also { bitmap ->
+            val canvas = Canvas(bitmap)
+            canvas.drawRect(0f, 0f, 1f, 1f, Paint().apply { color = Color.Red })
+            canvas.drawRect(1f, 0f, 2f, 1f, Paint().apply { color = Color.Green })
+        }
+        val look = SpriteLook(texture, srcOffset = IntOffset(1, 0), srcSize = IntSize(1, 1))
+
+        draw(listOf(TestBatched(look, size = 2f)))
+
+        assertEquals(Color.Green.toArgb(), target.runBatches.single().colors[0])
     }
 
     @Test

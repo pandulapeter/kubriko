@@ -13,9 +13,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.helpers.extensions.meanArgb
 
 /**
- * The mean colors of the textures sprites have recently been too small to show, so each is read back once rather than
- * once per sprite. Keyed by identity in a fixed number of slots, which bounds what it keeps alive. Used from the
- * drawing thread only.
+ * The mean colors of the texture regions sprites have recently been too small to show, so each is read back once
+ * rather than once per sprite. Keyed by texture identity and region in a fixed number of slots, which bounds what it
+ * keeps alive. Used from the drawing thread only.
  */
 internal object TextureMeanColors {
     private const val SLOT_COUNT = 32
@@ -24,19 +24,31 @@ internal object TextureMeanColors {
     private const val UNREADABLE_ARGB = 0xFF808080.toInt()
 
     private val textures = arrayOfNulls<ImageBitmap>(SLOT_COUNT)
+    private val regions = IntArray(SLOT_COUNT * 4)
     private val meanArgbs = IntArray(SLOT_COUNT)
     private var nextSlot = 0
 
-    fun argbOf(texture: ImageBitmap): Int {
+    fun argbOf(texture: ImageBitmap, left: Int, top: Int, width: Int, height: Int): Int {
         for (i in textures.indices) {
-            if (textures[i] === texture) return meanArgbs[i]
+            if (textures[i] === texture &&
+                regions[i * 4] == left &&
+                regions[i * 4 + 1] == top &&
+                regions[i * 4 + 2] == width &&
+                regions[i * 4 + 3] == height
+            ) {
+                return meanArgbs[i]
+            }
         }
         val argb = try {
-            texture.meanArgb()
+            texture.meanArgb(left, top, width, height)
         } catch (_: Exception) {
             UNREADABLE_ARGB
         }
         textures[nextSlot] = texture
+        regions[nextSlot * 4] = left
+        regions[nextSlot * 4 + 1] = top
+        regions[nextSlot * 4 + 2] = width
+        regions[nextSlot * 4 + 3] = height
         meanArgbs[nextSlot] = argb
         nextSlot = (nextSlot + 1) % SLOT_COUNT
         return argb

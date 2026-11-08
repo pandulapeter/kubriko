@@ -57,6 +57,15 @@ class ImageBitmapExtensionsTest {
     }
 
     @Test
+    fun `the mean of a region reads only that region`() {
+        val bitmap = bitmapOf(4, 2) { x, _ -> if (x < 2) 0xFFFF0000.toInt() else 0xFF00FF00.toInt() }
+
+        assertEquals(0xFF00FF00.toInt(), bitmap.meanArgb(left = 2, top = 0, width = 2, height = 2))
+        assertEquals(0xFFFF0000.toInt(), bitmap.meanArgb(left = -5, top = 0, width = 7, height = 9))
+        assertEquals(0, bitmap.meanArgb(left = 4, top = 0, width = 2, height = 2))
+    }
+
+    @Test
     fun `a fully transparent bitmap has no mean color`() {
         assertEquals(0, bitmapOf(3, 3) { _, _ -> 0 }.meanArgb())
     }

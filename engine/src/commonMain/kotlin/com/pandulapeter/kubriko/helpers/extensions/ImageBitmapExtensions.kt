@@ -23,24 +23,29 @@ import androidx.compose.ui.graphics.ImageBitmap
 expect fun ImageBitmap.markImmutable(): ImageBitmap
 
 /**
- * The alpha-weighted mean color of this bitmap as an ARGB integer: what it reads as when shown too small to make out
- * any detail. Transparent pixels contribute nothing to the color but lower the alpha, and a fully transparent bitmap
- * gives 0.
+ * The alpha-weighted mean color of this bitmap, or of the region of it starting at ([left], [top]) and spanning
+ * [width] × [height] pixels (clamped to the bitmap), as an ARGB integer: what it reads as when shown too small to make
+ * out any detail. Transparent pixels contribute nothing to the color but lower the alpha, and a fully transparent or
+ * empty region gives 0.
  *
- * Large bitmaps are sampled on an evenly spaced grid of at most [MEAN_COLOR_SAMPLES_PER_AXIS] pixels per axis rather
- * than read whole. It still reads pixels back, so callers should compute it once per bitmap and keep the result.
+ * Large regions are sampled on an evenly spaced grid of at most [MEAN_COLOR_SAMPLES_PER_AXIS] pixels per axis rather
+ * than read whole. It still reads pixels back, so callers should compute it once and keep the result.
  */
-fun ImageBitmap.meanArgb(): Int {
-    if (width <= 0 || height <= 0) return 0
-    val columnStep = (width + MEAN_COLOR_SAMPLES_PER_AXIS - 1) / MEAN_COLOR_SAMPLES_PER_AXIS
-    val rowStep = (height + MEAN_COLOR_SAMPLES_PER_AXIS - 1) / MEAN_COLOR_SAMPLES_PER_AXIS
-    val row = IntArray(width)
+fun ImageBitmap.meanArgb(left: Int = 0, top: Int = 0, width: Int = this.width, height: Int = this.height): Int {
+    val startX = maxOf(left, 0)
+    val startY = maxOf(top, 0)
+    val regionWidth = minOf(left + width, this.width) - startX
+    val regionHeight = minOf(top + height, this.height) - startY
+    if (regionWidth <= 0 || regionHeight <= 0) return 0
+    val columnStep = (regionWidth + MEAN_COLOR_SAMPLES_PER_AXIS - 1) / MEAN_COLOR_SAMPLES_PER_AXIS
+    val rowStep = (regionHeight + MEAN_COLOR_SAMPLES_PER_AXIS - 1) / MEAN_COLOR_SAMPLES_PER_AXIS
+    val row = IntArray(regionWidth)
     val accumulator = MeanColorAccumulator()
     var y = 0
-    while (y < height) {
-        readPixels(row, startX = 0, startY = y, width = width, height = 1)
+    while (y < regionHeight) {
+        readPixels(row, startX = startX, startY = startY + y, width = regionWidth, height = 1)
         var x = 0
-        while (x < width) {
+        while (x < regionWidth) {
             accumulator.add(row[x])
             x += columnStep
         }

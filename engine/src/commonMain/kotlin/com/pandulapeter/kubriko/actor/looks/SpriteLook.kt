@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.IntSize
  *
  * Sprites sharing a texture (a sprite sheet, or an atlas page) and a [filterQuality] are drawn together in one call.
  * A sprite too small on screen to show anything of its texture (under [STAND_IN_SIZE_IN_PIXELS] in both directions) is
- * drawn in the texture's mean color instead, tinted the same way, which keeps it among the untextured looks. Where a
+ * drawn in the mean color of its region instead, tinted the same way, which keeps it among the untextured looks. Where a
  * device cannot sample textures per vertex ([com.pandulapeter.kubriko.helpers.TriangleBatchSupport]), each sprite is
  * drawn on its own through `drawImageRect` instead.
  *
@@ -110,7 +110,7 @@ class SpriteLook(
     companion object {
         /**
          * Below this many screen pixels in both directions a sprite shows nothing of its texture, so it is drawn in the
-         * texture's mean color instead.
+         * mean color of its region instead.
          */
         const val STAND_IN_SIZE_IN_PIXELS = 4f
 

@@ -91,14 +91,17 @@ internal object LookEmitter {
     ) {
         val texture = look.texture ?: return
         setRectangleRing(width, height, transform)
+        val regionWidth = look.regionWidth(texture)
+        val regionHeight = look.regionHeight(texture)
         if (isStandIn) {
-            emitRing(batch, 4, modulateArgb(TextureMeanColors.argbOf(texture), look.tintArgb), halfFringe, isTextured = false)
+            val meanArgb = TextureMeanColors.argbOf(texture, look.srcOffset.x, look.srcOffset.y, regionWidth, regionHeight)
+            emitRing(batch, 4, modulateArgb(meanArgb, look.tintArgb), halfFringe, isTextured = false)
             return
         }
         val left = look.srcOffset.x.toFloat()
         val top = look.srcOffset.y.toFloat()
-        val right = left + look.regionWidth(texture)
-        val bottom = top + look.regionHeight(texture)
+        val right = left + regionWidth
+        val bottom = top + regionHeight
         ringU[0] = left; ringV[0] = top
         ringU[1] = right; ringV[1] = top
         ringU[2] = right; ringV[2] = bottom
