@@ -98,10 +98,11 @@ public object PageImages {
     }
 
     /**
-     * The page [page]'s own images ([ownImagesOf]) that none of [otherPages] (their names and texts) shows or links to.
+     * The page [page]'s own images ([ownImagesOf]) that none of [otherFiles] shows or links to: the project's other pages
+     * and documents, their texts by their paths from the project's root.
      */
-    public fun unusedImagesOf(rootDirectory: File, page: String, otherPages: Map<String, String>): List<String> {
-        val used = otherPages.flatMapTo(HashSet()) { (name, text) -> PageLinks.linksOf(text).mapNotNull { PageLinks.resolve(PageNaming.pathOf(name), it.destination) } }
+    public fun unusedImagesOf(rootDirectory: File, page: String, otherFiles: Map<String, String>): List<String> {
+        val used = otherFiles.flatMapTo(HashSet()) { (path, text) -> PageLinks.linksOf(text).mapNotNull { PageLinks.resolve(path, it.destination) } }
         return ownImagesOf(rootDirectory, page).filter { it !in used }
     }
 

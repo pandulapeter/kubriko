@@ -64,7 +64,7 @@ public data class HealthFinding(
         REFERENCE_MISSING,
 
         /**
-         * An image among the pages that no page shows or links to ([PageImageChecks]).
+         * An image among the pages that no page or document shows or links to ([PageImageChecks]).
          */
         UNUSED_PAGE_IMAGE,
 
@@ -81,7 +81,7 @@ public data class HealthFinding(
         Kind.TIMER_NEVER_STARTED -> "$subject: the timerFinished Event of $detail never fires, since no startTimer Block of its family starts it."
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."
         Kind.REFERENCE_MISSING -> "$detail: names $usage, which no longer exists."
-        Kind.UNUSED_PAGE_IMAGE -> "$subject: no page shows it."
+        Kind.UNUSED_PAGE_IMAGE -> "$subject: no page or document shows it."
         Kind.PAGE_IMAGE_MISSING -> "$subject: shows $usage, which is gone."
         Kind.KOTLIN_BLOCK_SCOPE_CHANGED -> if (usage == KotlinBlockScopeChecks.RETURN) {
             "$detail: return in this Kotlin Block now ends only this Event's Blocks (and those of the type's later Events of the same kind), not the rest of the frame or the other collisions."

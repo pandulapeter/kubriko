@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
 import com.pandulapeter.kubrikoCreator.screenplay.PageImages
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.screenplay.PathMove
 import java.io.File
 import java.nio.file.Files
@@ -39,10 +40,19 @@ internal fun CommandContext.movePageImages(page: String, newPage: String): List<
 }
 
 /**
- * The page [page]'s own images ([PageImages.ownImagesOf]) that no other page shows or links to, which deleting it offers
- * to delete too. Reads the disk, so it runs off the main thread.
+ * The page [page]'s own images ([PageImages.ownImagesOf]) that no other page and no document shows or links to, which
+ * deleting it offers to delete too. Reads the disk, so it runs off the main thread.
  */
 public fun CommandContext.unusedImagesOf(page: String): List<String> {
-    val others = screenplay.scanNames().filter { it != page }.mapNotNull { name -> screenplay.read(name)?.let { name to it } }.toMap()
-    return PageImages.unusedImagesOf(project.rootDirectory, page, others)
+    val pagePath = PageNaming.pathOf(page)
+    return PageImages.unusedImagesOf(project.rootDirectory, page, markdownTexts().filterKeys { it != pagePath })
 }
+
+/**
+ * The text of every page and document of the project, by its path from the project's root, leaving out what can't be
+ * read as text. Reads the disk.
+ */
+internal fun CommandContext.markdownTexts(): Map<String, String> = (screenplay.scanNames().map(PageNaming::pathOf) + documents.paths())
+    .distinct()
+    .mapNotNull { path -> readMarkdown(path)?.let { path to it } }
+    .toMap()

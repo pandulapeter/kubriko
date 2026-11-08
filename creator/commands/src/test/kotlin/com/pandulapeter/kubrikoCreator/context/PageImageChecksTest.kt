@@ -20,12 +20,13 @@ class PageImageChecksTest {
     @Test
     fun `images no page shows and images a page shows that are gone are named`() {
         val findings = PageImageChecks.of(
-            pages = mapOf(
-                "levels/cave" to "![Map](cave-1.png) ![Gone](cave-2.png) [plan](../plan.png)\n```\n![code](cave-9.png)\n```",
-                "README" to "![Map again](levels/cave-1.png)",
+            files = mapOf(
+                "screenplay/levels/cave.md" to "![Map](cave-1.png) ![Gone](cave-2.png) [plan](../plan.png)\n```\n![code](cave-9.png)\n```",
+                "screenplay/README.md" to "![Map again](levels/cave-1.png)",
+                "docs/design.md" to "![Kept by a document](../screenplay/levels/kept.png) ![Gone, but not a page's](../screenplay/gone.png)",
             ),
-            imageFiles = listOf("screenplay/levels/cave-1.png", "screenplay/plan.png", "screenplay/levels/old.png", "screenplay/levels/cave-9.png"),
-            exists = { it != "screenplay/levels/cave-2.png" },
+            imageFiles = listOf("screenplay/levels/cave-1.png", "screenplay/plan.png", "screenplay/levels/old.png", "screenplay/levels/cave-9.png", "screenplay/levels/kept.png"),
+            exists = { it != "screenplay/levels/cave-2.png" && it != "screenplay/gone.png" },
         )
         assertEquals(
             listOf(
@@ -36,6 +37,7 @@ class PageImageChecksTest {
             findings,
         )
         assertEquals("Page levels/cave: shows screenplay/levels/cave-2.png, which is gone.", findings.last().toString())
+        assertEquals("screenplay/levels/old.png: no page or document shows it.", findings[1].toString())
     }
 
     @Test

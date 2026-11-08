@@ -83,6 +83,10 @@ class PageImageCommandsTest {
         val deleting = context()
         val after = deleting.assertRoundTrip(Invocation(DeletePage, DeletePage.Input("levels/cave", deleteImages = true))) { deleting.files() }
         assertEquals(setOf("screenplay/README.md", "screenplay/levels/cave-1.png", "screenplay/levels/cave-3.txt", "screenplay/levels/other-1.png"), after.keys)
+        val documented = context()
+        documented.file("docs/bats.md", "![Bats](../screenplay/levels/cave-2.gif)")
+        documented.documents.refresh(listOf("docs/bats.md"))
+        assertEquals(emptyList(), documented.unusedImagesOf("levels/cave"))
         val applied = DeletePage.apply(context(), DeletePage.Input("levels/cave", deleteImages = true))
         assertEquals(listOf("screenplay/levels/cave-2.gif"), applied.details!!.getValue("deletedImages").jsonArray.map { it.jsonPrimitive.content })
     }

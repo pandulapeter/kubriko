@@ -602,8 +602,8 @@
     <string name="page_delete_title">Delete the page %1$s?</string>
     <string name="page_delete_text">The page is deleted from the screenplay. Undo brings it back as it was, with its images.</string>
     <plurals name="page_delete_images">
-        <item quantity="one">Also delete the image only this page shows</item>
-        <item quantity="other">Also delete the %1$d images only this page shows</item>
+        <item quantity="one">Also delete the image nothing else shows</item>
+        <item quantity="other">Also delete the %1$d images nothing else shows</item>
     </plurals>
     <string name="document_delete_text">The file is deleted from the project. Undo brings it back as it was.</string>
     <string name="document_add_to_screenplay_title">Add %1$s to the screenplay?</string>
@@ -716,7 +716,7 @@
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
     <string name="game_map_worth_a_look">Worth a look</string>
-    <string name="health_unused_page_image">%1$s: no page shows it.</string>
+    <string name="health_unused_page_image">%1$s: no page or document shows it.</string>
     <string name="health_page_image_missing">%1$s shows %2$s, which is gone.</string>
     <string name="health_unused_actor_type">%1$s: no Scene places it and no Block adds it.</string>
     <string name="health_unreached_scene">%1$s: nothing goes to it, which is fine if the game starts with it.</string>

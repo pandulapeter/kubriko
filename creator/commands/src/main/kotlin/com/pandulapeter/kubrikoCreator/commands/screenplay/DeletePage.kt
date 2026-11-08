@@ -62,7 +62,7 @@ public object DeletePage : WriteCommand<DeletePage.Input> {
     public data class Input(
         @Description(PAGE_NAME_DESCRIPTION)
         @SerialName("page") val page: String,
-        @Description("Whether to delete the page's own images too (next to it and named after it) that no other page shows.")
+        @Description("Whether to delete the page's own images too (next to it and named after it) that no other page or document shows.")
         @SerialName("deleteImages") val deleteImages: Boolean = false,
     )
 }

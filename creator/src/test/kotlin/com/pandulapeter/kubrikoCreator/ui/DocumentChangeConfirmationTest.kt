@@ -89,9 +89,9 @@ class DocumentChangeConfirmationTest {
                 onDismiss = {},
             )
         }
-        onNodeWithText("Also delete the 2 images only this page shows").assertExists()
+        onNodeWithText("Also delete the 2 images nothing else shows").assertExists()
         saveSnapshot("page-delete-confirmation")
-        onNodeWithText("Also delete the 2 images only this page shows").performClick()
+        onNodeWithText("Also delete the 2 images nothing else shows").performClick()
         onNodeWithText("Delete").performClick()
         assertEquals(listOf<Any>(DeletePage.Input("hero", deleteImages = false)), confirmed.map { it.input })
         page = "villain"
