@@ -1,0 +1,74 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubriko.actor.looks
+
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.unit.IntSize
+import com.pandulapeter.kubriko.helpers.TriangleBatch
+import com.pandulapeter.kubriko.helpers.TriangleBatchSupport
+
+/** The one-off batch [drawLook] fills, reused across calls; drawing-thread only. */
+private val directBatch = TriangleBatch()
+private val identityTransform = LookTransform()
+
+/**
+ * Draws [look] over a [width] × [height] body into this [DrawScope], which is already transformed to the body: the
+ * path for anything drawing a batched actor directly rather than through the layers. One screen pixel is taken to be
+ * one unit of the body, which sizes the edge smoothing.
+ */
+internal fun DrawScope.drawLook(look: Look, width: Float, height: Float) {
+    if (look is SpriteLook && TriangleBatchSupport.knownResult != true) {
+        drawSpriteIndividually(look, width, height)
+        return
+    }
+    val batch = directBatch
+    batch.reset()
+    identityTransform.setToIdentity()
+    LookEmitter.emit(look, batch, width, height, identityTransform, pixelsPerUnit = 1f, isStandIn = false)
+    when (look) {
+        is SpriteLook -> {
+            batch.texture = look.texture
+            batch.textureTileMode = TileMode.Clamp
+            batch.textureFilterQuality = look.filterQuality
+        }
+        is CustomLook -> {
+            batch.texture = look.texture
+            batch.textureTileMode = look.textureTileMode
+            batch.textureFilterQuality = look.textureFilterQuality
+        }
+        is RectangleLook, is EllipseLook -> batch.texture = null
+    }
+    batch.flush(drawContext.canvas)
+    batch.texture = null
+}
+
+/**
+ * Draws a sprite through `drawImage`, stretched over a [width] × [height] body: for devices that cannot sample a
+ * batch's texture per vertex, where Android's renderer still merges consecutive draws from the same image.
+ */
+internal fun DrawScope.drawSpriteIndividually(look: SpriteLook, width: Float, height: Float) {
+    val texture = look.texture ?: return
+    val regionWidth = look.regionWidth(texture)
+    val regionHeight = look.regionHeight(texture)
+    if (regionWidth <= 0 || regionHeight <= 0) return
+    scale(scaleX = width / regionWidth, scaleY = height / regionHeight, pivot = Offset.Zero) {
+        drawImage(
+            image = texture,
+            srcOffset = look.srcOffset,
+            srcSize = IntSize(regionWidth, regionHeight),
+            dstSize = IntSize(regionWidth, regionHeight),
+            colorFilter = look.colorFilterForTint(),
+            filterQuality = look.filterQuality,
+        )
+    }
+}

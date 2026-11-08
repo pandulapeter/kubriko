@@ -9,6 +9,10 @@
  */
 package com.pandulapeter.kubriko.helpers
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlin.concurrent.Volatile
+
 /**
  * Whether this device draws a [TriangleBatch] carrying both per-vertex colours and a tiling pattern the way
  * every other one does.
@@ -24,7 +28,14 @@ package com.pandulapeter.kubriko.helpers
  */
 object TriangleBatchSupport {
 
+    @Volatile
     private var cachedResult: Boolean? = null
+
+    @Volatile
+    private var isProbing = false
+
+    /** The answer once [isTextureSampledPerVertex] has settled it, null before. */
+    internal val knownResult get() = cachedResult
 
     /**
      * Draws the probe and reports whether the pattern varied across it. The answer belongs to the device, so it
@@ -33,6 +44,13 @@ object TriangleBatchSupport {
      * than one of the few that do not.
      */
     suspend fun isTextureSampledPerVertex() = cachedResult ?: probeTextureSampling().also { cachedResult = it }
+
+    /** Settles the answer on [scope] unless it is known or being settled already, for callers that cannot wait. */
+    internal fun probeInBackground(scope: CoroutineScope) {
+        if (cachedResult != null || isProbing) return
+        isProbing = true
+        scope.launch { isTextureSampledPerVertex() }
+    }
 }
 
 /**

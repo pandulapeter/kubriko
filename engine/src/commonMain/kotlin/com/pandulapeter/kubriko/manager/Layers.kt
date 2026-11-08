@@ -15,14 +15,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.drawscope.withTransform
+import com.pandulapeter.kubriko.helpers.TriangleBatchSupport
 import com.pandulapeter.kubriko.helpers.extensions.minus
-import com.pandulapeter.kubriko.helpers.extensions.transformForViewport
 import com.pandulapeter.kubriko.helpers.extensions.transformViewport
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 /**
  * A scope of its own, so that a layer coming or going recomposes only the layers rather than rebuilding the
@@ -36,6 +40,7 @@ internal fun Layers(
     managers: List<Manager>,
     viewportManager: ViewportManagerImpl,
     culler: ActorCuller,
+    scope: CoroutineScope,
 ) {
     val layers = layerIndices.collectAsState().value
     layers.forEach { layerIndex ->
@@ -46,6 +51,7 @@ internal fun Layers(
                 managers = managers,
                 viewportManager = viewportManager,
                 culler = culler,
+                scope = scope,
             )
         }
     }
@@ -58,7 +64,10 @@ private fun Layer(
     managers: List<Manager>,
     viewportManager: ViewportManagerImpl,
     culler: ActorCuller,
+    scope: CoroutineScope,
 ) {
+    val drawer = remember { BatchedLayerDrawer() }
+    val target = remember { CanvasLayerTarget() }
     Canvas(
         modifier = if (layerIndex == null) {
             Modifier.fillMaxSize().clipToBounds()
@@ -74,6 +83,8 @@ private fun Layer(
                 val viewportCenter = viewportManager.cameraPosition.value
                 val viewportSize = viewportManager.size.value
                 val scaleFactor = viewportManager.currentScaleFactor()
+                val isTextureSampledPerVertex = TriangleBatchSupport.knownResult
+                if (isTextureSampledPerVertex == null) TriangleBatchSupport.probeInBackground(scope)
                 withTransform(
                     transformBlock = {
                         transformViewport(
@@ -83,27 +94,14 @@ private fun Layer(
                         )
                     },
                     drawBlock = {
-                        val canvas = drawContext.canvas
-                        val transform = drawContext.transform
-                        for (i in visibles.indices) {
-                            val visible = visibles[i]
-                            if (visible.isVisible) {
-                                canvas.save()
-                                visible.body.transformForViewport(transform)
-                                with(visible) {
-                                    if (shouldClip) {
-                                        transform.clipRect(
-                                            left = 0f,
-                                            top = 0f,
-                                            right = body.size.width.raw,
-                                            bottom = body.size.height.raw,
-                                        )
-                                    }
-                                    draw()
-                                }
-                                canvas.restore()
-                            }
-                        }
+                        target.drawScope = this
+                        drawer.draw(
+                            visibles = visibles,
+                            target = target,
+                            pixelsPerUnit = sqrt(abs(scaleFactor.horizontal * scaleFactor.vertical)),
+                            isTextureSampledPerVertex = isTextureSampledPerVertex == true,
+                        )
+                        target.drawScope = null
                     },
                 )
             }

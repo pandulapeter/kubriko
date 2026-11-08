@@ -40,6 +40,17 @@ open class PointBody internal constructor(
             return cachedAxisAlignedBoundingBox
         }
     protected var isAxisAlignedBoundingBoxDirty = true
+        set(value) {
+            if (value) revision++
+            field = value
+        }
+
+    /**
+     * Grows by one with every change to the body, so geometry derived from it (a batched actor's) can tell that it is
+     * stale without comparing every property. Unlike the bounding box's dirty flag, reading the bounds does not reset it.
+     */
+    internal var revision = 0
+        private set
 
     /**
      * The current position of the body in the scene.

@@ -165,6 +165,7 @@ internal class ActorManagerImpl(
                 managers = kubrikoImpl.managers,
                 viewportManager = viewportManager,
                 culler = culler,
+                scope = scope,
             )
         }
     }
