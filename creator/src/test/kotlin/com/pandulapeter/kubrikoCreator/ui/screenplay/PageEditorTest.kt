@@ -17,6 +17,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -26,8 +27,11 @@ import androidx.compose.ui.test.pressKey
 import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import java.awt.image.BufferedImage
 import java.io.File
+import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -130,5 +134,38 @@ class PageEditorTest {
         waitForIdle()
         assertEquals(listOf("cast/hero"), saved.map { it.first }.distinct())
         assertEquals(page.replace("## Moves", "## Moves fast"), saved.last().second)
+    }
+
+    @Test
+    fun imagesShowOnThePageAndTheToolbarPutsASpriteAfterTheChunkTypedInto() = uiTest(width = 900, height = 520) {
+        val root = testDirectory()
+        File(root, "screenplay").mkdirs()
+        ImageIO.write(BufferedImage(240, 90, BufferedImage.TYPE_INT_RGB).apply { createGraphics().apply { color = java.awt.Color(0x4A90D9); fillRect(0, 0, 240, 90) } }, "png", File(root, "screenplay/hero-1.png"))
+        val links = PageLinksState("screenplay/hero.md", root) {}
+        links.looks = mapOf("hero-1.png" to MentionLook(Mention.OtherFile("screenplay/hero-1.png"), exists = true))
+        val added = mutableListOf<Pair<PageImageSource, String?>>()
+        showing {
+            PageEditor(
+                name = "hero",
+                text = page.replace("## Planned", "![The hero](hero-1.png)\n\n## Planned"),
+                onTextChange = {},
+                links = links,
+                sprites = listOf("drawable/bat.png"),
+                onAddImage = { source, section -> added += source to section },
+            )
+        }
+        waitUntil { onAllNodesWithContentDescription("The hero").fetchSemanticsNodes().isNotEmpty() }
+        saveSnapshot("page-editor-image")
+        onNodeWithText("Moves").performClick()
+        waitForIdle()
+        onNodeWithText("Image").performClick()
+        waitForIdle()
+        onNodeWithText("From a file…").assertExists()
+        onNodeWithText("A sprite").performClick()
+        waitForIdle()
+        saveSnapshot("page-editor-image-menu")
+        onNodeWithText("bat.png").performClick()
+        waitForIdle()
+        assertEquals(listOf<Pair<PageImageSource, String?>>(PageImageSource.Sprite("drawable/bat.png") to "Moves"), added)
     }
 }

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.screenplay
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,13 +43,21 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.rememberMenuAnchor
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.page_format_bold
 import kubriko.creator.generated.resources.page_format_heading
+import kubriko.creator.generated.resources.page_format_image
 import kubriko.creator.generated.resources.page_format_italic
 import kubriko.creator.generated.resources.page_format_link
 import kubriko.creator.generated.resources.page_format_list
 import kubriko.creator.generated.resources.page_format_mention
+import kubriko.creator.generated.resources.page_image_choose
+import kubriko.creator.generated.resources.page_image_from_file
+import kubriko.creator.generated.resources.page_image_sprite
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -57,7 +66,8 @@ import org.jetbrains.compose.resources.stringResource
  * (Cmd/Ctrl+B, I, and K) writing plain Markdown ([PageFormatting]). Escape, or leaving it, ends typing ([onDone]).
  *
  * Typing `@` (or the toolbar's Mention) offers what [links] says the page can mention, below the field: the arrow keys
- * move through them, Enter or Tab writes the one lit as a link, and Escape closes them.
+ * move through them, Enter or Tab writes the one lit as a link, and Escape closes them. The toolbar's Image, and pasting
+ * an image or image files, put images on the page through [images].
  */
 @Composable
 internal fun PageChunkField(
@@ -65,6 +75,7 @@ internal fun PageChunkField(
     onValueChange: (TextFieldValue) -> Unit,
     onDone: () -> Unit,
     links: PageLinksState? = null,
+    images: PageImageChoices? = null,
 ) = Column(
     modifier = Modifier
         .fillMaxWidth()
@@ -82,7 +93,7 @@ internal fun PageChunkField(
         if (links != null && suggestions != null) onValueChange(withMention(currentValue, suggestions.query, candidate, links.pagePath))
     }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
-    PageFormattingBar(isMentionShown = links != null) { format -> onValueChange(format(currentValue)) }
+    PageFormattingBar(isMentionShown = links != null, images = images) { format -> onValueChange(format(currentValue)) }
     MentionSuggestionsAnchor(
         suggestions = suggestions,
         highlighted = highlighted,
@@ -111,6 +122,14 @@ internal fun PageChunkField(
                         onDone()
                         return@onPreviewKeyEvent true
                     }
+                    if (images != null && (event.isMetaPressed || event.isCtrlPressed) && event.key == Key.V) {
+                        val pasted = imagesOnClipboard()
+                        if (pasted.isNotEmpty()) {
+                            images.onStart()
+                            pasted.forEach(images.onChoose)
+                            return@onPreviewKeyEvent true
+                        }
+                    }
                     val format = if (event.isMetaPressed || event.isCtrlPressed) shortcuts[event.key] else null
                     format?.let { onValueChange(it(currentValue)) } != null
                 },
@@ -129,6 +148,7 @@ internal fun PageChunkField(
 @Composable
 private fun PageFormattingBar(
     isMentionShown: Boolean,
+    images: PageImageChoices?,
     onFormat: ((TextFieldValue) -> TextFieldValue) -> Unit,
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -141,6 +161,35 @@ private fun PageFormattingBar(
             Text(stringResource(label), style = MaterialTheme.typography.labelMedium)
         }
     }
+    if (images != null) PageImageButton(images)
+}
+
+@Composable
+private fun PageImageButton(images: PageImageChoices) = Box {
+    val menu = rememberRightClickMenuState()
+    val anchor = rememberMenuAnchor(menu)
+    val chooseTitle = stringResource(Res.string.page_image_choose)
+    TextButton(
+        modifier = anchor.modifier.focusProperties { canFocus = false },
+        onClick = {
+            images.onStart()
+            anchor.open()
+        },
+    ) {
+        Text(stringResource(Res.string.page_format_image), style = MaterialTheme.typography.labelMedium)
+    }
+    RightClickMenu(
+        state = menu,
+        actions = listOfNotNull(
+            ContextAction(label = stringResource(Res.string.page_image_from_file)) { pickImageFile(chooseTitle)?.let { images.onChoose(PageImageSource.ImageFile(it)) } },
+            images.sprites.takeIf { it.isNotEmpty() }?.let { sprites ->
+                ContextAction(
+                    label = stringResource(Res.string.page_image_sprite),
+                    children = sprites.map { sprite -> ContextAction(label = sprite.substringAfterLast('/')) { images.onChoose(PageImageSource.Sprite(sprite)) } },
+                )
+            },
+        ),
+    )
 }
 
 private val formats: List<Pair<StringResource, (TextFieldValue) -> TextFieldValue>> = listOf(

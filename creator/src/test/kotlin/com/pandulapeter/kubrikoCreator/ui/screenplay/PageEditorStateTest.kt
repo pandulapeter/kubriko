@@ -20,6 +20,17 @@ class PageEditorStateTest {
     private val state = PageEditorState(page) { saved += it }
 
     @Test
+    fun anImageGoesIntoTheSectionOfTheChunkTypedInto() {
+        assertNull(state.currentSection())
+        state.edit(1)
+        assertNull(state.currentSection())
+        state.edit(3)
+        assertEquals("Moves", state.currentSection())
+        state.finish()
+        assertNull(state.currentSection())
+    }
+
+    @Test
     fun aChunkIsTypedIntoInItsFrameAndSavedWhole() {
         state.edit(1)
         assertEquals("A knight.", state.session?.draft?.text)

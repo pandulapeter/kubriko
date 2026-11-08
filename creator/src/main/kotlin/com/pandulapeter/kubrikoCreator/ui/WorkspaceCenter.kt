@@ -37,6 +37,7 @@ import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
 import com.pandulapeter.kubrikoCreator.ui.screenplay.MarkdownIdentity
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageEditor
+import com.pandulapeter.kubrikoCreator.ui.screenplay.PageImageSource
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageLinksState
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
@@ -57,6 +58,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param markdownText The text of the page or document shown, once it is read, or null.
  * @param onMarkdownTextChange Saves the page or document shown.
  * @param markdownLinks What the links of the page or document shown point at.
+ * @param onAddPageImage Puts an image on the page shown, or null if a document is shown.
  * @param markdownIdentity What tells the page or document shown apart from the one before ([MarkdownIdentity]).
  */
 @Composable
@@ -84,6 +86,7 @@ internal fun WorkspaceCenter(
     onMarkdownTextChange: (text: String) -> Unit = {},
     markdownLinks: PageLinksState? = null,
     markdownIdentity: Any? = null,
+    onAddPageImage: ((PageImageSource, section: String?) -> Unit)? = null,
 ) {
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val markdownTitle = markdownTitleOf(selection)
@@ -164,6 +167,8 @@ internal fun WorkspaceCenter(
                 onTextChange = onMarkdownTextChange,
                 links = markdownLinks,
                 identity = markdownIdentity ?: markdownTitle,
+                sprites = remember(resources) { SpriteFiles.of(resources).paths },
+                onAddImage = onAddPageImage,
             )
         }
     } else if (selection == WorkspaceSelection.None) {

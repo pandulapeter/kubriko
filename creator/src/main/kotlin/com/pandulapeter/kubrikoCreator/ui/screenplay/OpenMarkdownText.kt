@@ -17,6 +17,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberUpdatedState
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.screenplay.AddPageImage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.EditDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.EditPage
 import com.pandulapeter.kubrikoCreator.screenplay.DocumentStore
@@ -135,4 +136,23 @@ internal fun markdownEditOf(selection: WorkspaceSelection, text: String): Invoca
     is WorkspaceSelection.Page -> Invocation(EditPage, EditPage.Input(selection.name, text))
     is WorkspaceSelection.Document -> Invocation(EditDocument, EditDocument.Input(selection.path, text))
     else -> null
+}
+
+/**
+ * What puts an image on the page [selection] shows through [dispatch], or null if it shows no page: documents take no
+ * images, since Kubriko Creator doesn't keep files next to them.
+ */
+internal fun pageImageAdderOf(selection: WorkspaceSelection, dispatch: (Invocation<*>) -> Unit): ((PageImageSource, String?) -> Unit)? {
+    val page = (selection as? WorkspaceSelection.Page)?.name ?: return null
+    return { source, section ->
+        dispatch(
+            Invocation(
+                AddPageImage,
+                when (source) {
+                    is PageImageSource.ImageFile -> AddPageImage.Input(page, source.description, file = source.file.path, section = section)
+                    is PageImageSource.Sprite -> AddPageImage.Input(page, source.path.substringAfterLast('/').substringBeforeLast('.'), sprite = source.path, section = section)
+                },
+            ),
+        )
+    }
 }

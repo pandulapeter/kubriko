@@ -16,6 +16,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.pandulapeter.kubrikoCreator.project.withUnixLineBreaks
 import com.pandulapeter.kubrikoCreator.screenplay.PageChunks
+import com.pandulapeter.kubrikoCreator.screenplay.PageText
 
 /**
  * What the page editor edits: the page as last known, and the one chunk being typed into ([Session]), framed by the text
@@ -97,6 +98,15 @@ internal class PageEditorState(
     fun finish() {
         save()
         session = null
+    }
+
+    /**
+     * The heading of the section the chunk being typed into is in, or null when none is being typed into or it is in
+     * none: where an image put on the page now goes.
+     */
+    fun currentSection(): String? {
+        val current = session ?: return null
+        return PageText.sectionsOf(current.frame.before + current.draft.text).lastOrNull()?.heading
     }
 
     /**

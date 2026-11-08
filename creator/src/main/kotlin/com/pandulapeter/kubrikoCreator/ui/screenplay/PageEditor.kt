@@ -29,7 +29,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +54,9 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param text The page as it is on disk.
  * @param links What its links point at, drawing its mentions as chips.
+ * @param sprites The sprites the page can show, by their paths from `composeResources`.
+ * @param onAddImage Puts an image on the page, at the end of the section given (or of the page), or null if this page can't
+ *   take images. Images dropped onto it, pasted, or chosen in the toolbar go after the chunk being typed into.
  * @param identity What tells the page apart from the one shown before ([MarkdownIdentity]), so that a page moved meanwhile
  *   keeps what is being typed.
  */
@@ -63,8 +68,12 @@ internal fun PageEditor(
     modifier: Modifier = Modifier,
     links: PageLinksState? = null,
     identity: Any = name,
+    sprites: List<String> = emptyList(),
+    onAddImage: ((PageImageSource, section: String?) -> Unit)? = null,
 ) {
     val state = remember(identity) { PageEditorState(text, onTextChange) }
+    val currentOnAddImage by rememberUpdatedState(onAddImage)
+    val images = rememberPageImageChoices(state, sprites, isShown = onAddImage != null) { source, section -> currentOnAddImage?.invoke(source, section) }
     state.onTextChange = onTextChange
     LaunchedEffect(text) { state.onPageChanged(text) }
     // What was typed in the last moment before the editor goes (another page or type is shown) is saved too.
@@ -77,7 +86,10 @@ internal fun PageEditor(
         }
     }
     Box(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier = modifier
+            .fillMaxSize()
+            .then(if (images == null) Modifier else Modifier.pageImageDropTarget { files -> images.onStart(); files.forEach { images.onChoose(PageImageSource.ImageFile(it)) } })
+            .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.TopCenter,
     ) {
         Column(
@@ -98,6 +110,7 @@ internal fun PageEditor(
                     onValueChange = state::onDraftChange,
                     onDone = state::finish,
                     links = links,
+                    images = images,
                 )
                 remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = true)) } }
             }
@@ -145,6 +158,31 @@ private fun RenderedChunk(
     text = text,
     links = links,
 )
+
+/**
+ * What the toolbar's Image menu and pasting offer for the page [state] edits, or null when the page can't take images
+ * ([isShown]); an image goes at the end of the section being typed into when it is chosen.
+ */
+@Composable
+private fun rememberPageImageChoices(
+    state: PageEditorState,
+    sprites: List<String>,
+    isShown: Boolean,
+    onAddImage: (PageImageSource, section: String?) -> Unit,
+): PageImageChoices? {
+    val section = remember(state) { arrayOfNulls<String>(1) }
+    return if (!isShown) {
+        null
+    } else {
+        remember(state, sprites) {
+            PageImageChoices(
+                sprites = sprites,
+                onStart = { section[0] = state.currentSection() },
+                onChoose = { source -> onAddImage(source, section[0]) },
+            )
+        }
+    }
+}
 
 private const val SAVE_DELAY_IN_MILLISECONDS = 600L
 private val PAGE_WIDTH = 760.dp
