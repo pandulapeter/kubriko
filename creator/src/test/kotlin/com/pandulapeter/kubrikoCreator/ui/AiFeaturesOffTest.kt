@@ -40,7 +40,6 @@ import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kubriko.creator.generated.resources.Res
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals

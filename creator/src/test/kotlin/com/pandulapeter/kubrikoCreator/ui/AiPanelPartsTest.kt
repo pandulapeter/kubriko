@@ -30,7 +30,6 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantTranscriptList
 import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
-import kubriko.creator.generated.resources.Res
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

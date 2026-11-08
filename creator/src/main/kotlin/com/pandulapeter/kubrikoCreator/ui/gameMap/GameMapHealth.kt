@@ -14,30 +14,12 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.context.HealthFinding
-import com.pandulapeter.kubrikoCreator.context.KotlinBlockScopeChecks
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.block_property_of_manager
 import kubriko.creator.generated.resources.game_map_worth_a_look
-import kubriko.creator.generated.resources.health_collision_with_absent_type
-import kubriko.creator.generated.resources.health_kotlin_block_removed_local
-import kubriko.creator.generated.resources.health_kotlin_block_return
-import kubriko.creator.generated.resources.health_mention_missing
-import kubriko.creator.generated.resources.health_page_image_missing
-import kubriko.creator.generated.resources.health_page_no_summary
-import kubriko.creator.generated.resources.health_page_no_title
-import kubriko.creator.generated.resources.health_planned_may_be_built
-import kubriko.creator.generated.resources.health_reference_missing
-import kubriko.creator.generated.resources.health_timer_never_started
-import kubriko.creator.generated.resources.health_unmentioned
-import kubriko.creator.generated.resources.health_unreached_scene
-import kubriko.creator.generated.resources.health_unread_property
-import kubriko.creator.generated.resources.health_unused_actor_type
-import kubriko.creator.generated.resources.health_unused_page_image
 import org.jetbrains.compose.resources.stringResource
 
 /**
