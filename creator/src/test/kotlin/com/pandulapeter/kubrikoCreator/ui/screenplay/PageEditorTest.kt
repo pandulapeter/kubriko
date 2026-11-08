@@ -102,6 +102,18 @@ class PageEditorTest {
         waitForIdle()
         onNodeWithText("## Moves [Brick](../.kubriko/actors/Brick.json)").assertExists()
         onNodeWithText("Ball").assertDoesNotExist()
+        onNode(hasSetTextAction()).performTextInput(" @b")
+        waitForIdle()
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Escape) }
+        waitForIdle()
+        onNodeWithText("Ball").assertDoesNotExist()
+        onNode(hasSetTextAction()).performKeyInput {
+            pressKey(Key.Backspace)
+            pressKey(Key.Backspace)
+        }
+        onNode(hasSetTextAction()).performTextInput("@b")
+        waitForIdle()
+        onNodeWithText("Ball").assertExists()
     }
 
     @Test

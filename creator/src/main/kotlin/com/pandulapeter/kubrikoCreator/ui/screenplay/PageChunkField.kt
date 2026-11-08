@@ -115,7 +115,11 @@ internal fun PageChunkField(
                     format?.let { onValueChange(it(currentValue)) } != null
                 },
             value = value,
-            onValueChange = onValueChange,
+            onValueChange = { changed ->
+                // Closing the suggestions lasts only as long as the mention they were for.
+                if (dismissedAt != null && mentionQueryOf(changed)?.start != dismissedAt) dismissedAt = null
+                onValueChange(changed)
+            },
             isSingleLine = false,
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
         )
