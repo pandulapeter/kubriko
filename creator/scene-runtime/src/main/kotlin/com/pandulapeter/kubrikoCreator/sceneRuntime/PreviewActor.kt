@@ -11,10 +11,12 @@ package com.pandulapeter.kubrikoCreator.sceneRuntime
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.actor.body.BoxBody
-import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.actor.looks.EllipseLook
+import com.pandulapeter.kubriko.actor.looks.Look
+import com.pandulapeter.kubriko.actor.looks.RectangleLook
+import com.pandulapeter.kubriko.actor.looks.SpriteLook
+import com.pandulapeter.kubriko.actor.traits.Batched
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -28,23 +30,22 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.floatOrNull
-import kotlin.math.roundToInt
 
 /**
- * An Actor of a block-built type drawn by Kubriko Creator from the type's [look] and the Actor's saved [state], as the
- * type's generated class draws it, for while a change to the type is being compiled. It is selected, moved, and
- * inspected like the Actor it stands for.
+ * An Actor of a block-built type drawn by Kubriko Creator from the type's [typeLook] and the Actor's saved [state], for
+ * while a change to the type is being compiled. It is drawn through the same batched [look] as the type's generated class,
+ * so the preview and the game always match. It is selected, moved, and inspected like the Actor it stands for.
  *
  * @param sprite The look's sprite, or null while it is not loaded (nothing is drawn then, as in the game).
  */
 internal class PreviewActor(
     private val state: String,
-    private val look: ActorTypeLook,
+    private val typeLook: ActorTypeLook,
     private val sprite: ImageBitmap? = null,
-) : Editable<PreviewActor>, Visible {
+) : Editable<PreviewActor>, Batched {
     private val bodyObject = SceneDocument.stateObject(state)?.get("body") as? JsonObject
     private val size = bodyObject.pair("size", "width", "height")?.let { (width, height) -> SceneSize(width.sceneUnit, height.sceneUnit) }
-        ?: SceneSize(look.width.sceneUnit, look.height.sceneUnit)
+        ?: SceneSize(typeLook.width.sceneUnit, typeLook.height.sceneUnit)
     override val body = BoxBody(
         initialPosition = bodyObject.pair("position", "x", "y")?.let { (x, y) -> SceneOffset(x.sceneUnit, y.sceneUnit) } ?: SceneOffset.Zero,
         initialSize = size,
@@ -52,34 +53,29 @@ internal class PreviewActor(
         initialScale = bodyObject.pair("scale", "horizontal", "vertical")?.let { (horizontal, vertical) -> Scale(horizontal, vertical) } ?: Scale.Unit,
         initialRotation = ((bodyObject?.get("rotation") as? JsonPrimitive)?.floatOrNull ?: 0f).rad,
     )
-    val color = Color(ActorStateEdits.colorOf(state) ?: look.color)
+    val color = Color(ActorStateEdits.colorOf(state) ?: typeLook.color)
 
-    override fun DrawScope.draw() {
-        when {
-            look.spriteFile != null -> sprite?.let {
-                drawImage(
-                    image = it,
-                    dstSize = IntSize(body.size.width.raw.roundToInt(), body.size.height.raw.roundToInt()),
-                    filterQuality = FilterQuality.None,
-                )
-            }
-            look.shape == ActorShape.CIRCLE -> drawCircle(color = color, radius = body.size.width.raw / 2, center = body.size.center.raw)
-            else -> drawRect(color = color, size = body.size.raw)
-        }
+    /**
+     * The look the type's generated class has: its sprite, its pixels kept sharp, or its shape in the Actor's color.
+     */
+    override val look: Look = when {
+        typeLook.spriteFile != null -> SpriteLook(texture = sprite, filterQuality = FilterQuality.None)
+        typeLook.shape == ActorShape.CIRCLE -> EllipseLook(color)
+        else -> RectangleLook(color)
     }
 
     override fun save(): Serializable.State<PreviewActor> = PreviewState(
         ActorStateEdits.withChanges(state, ActorStateEdits.Changes(x = body.position.x.raw, y = body.position.y.raw)) ?: state,
-        look,
+        typeLook,
         sprite,
     )
 
     private class PreviewState(
         private val state: String,
-        private val look: ActorTypeLook,
+        private val typeLook: ActorTypeLook,
         private val sprite: ImageBitmap?,
     ) : Serializable.State<PreviewActor> {
-        override fun restore() = PreviewActor(state, look, sprite)
+        override fun restore() = PreviewActor(state, typeLook, sprite)
 
         override fun serialize() = state
     }

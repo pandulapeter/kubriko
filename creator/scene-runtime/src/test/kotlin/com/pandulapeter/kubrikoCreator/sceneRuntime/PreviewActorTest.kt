@@ -9,6 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.sceneRuntime
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import com.pandulapeter.kubriko.actor.looks.EllipseLook
+import com.pandulapeter.kubriko.actor.looks.RectangleLook
+import com.pandulapeter.kubriko.actor.looks.SpriteLook
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -16,8 +21,12 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.scenes.ActorStateEdits
 import com.pandulapeter.kubrikoCreator.scenes.SceneDocument
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 
 class PreviewActorTest {
     private val look = ActorTypeLook(ActorShape.RECTANGLE, color = 0xFFE0605A, width = 100f, height = 36f)
@@ -44,6 +53,19 @@ class PreviewActorTest {
         assertEquals(SceneSize(100f.sceneUnit, 36f.sceneUnit), actor.body.size)
         assertEquals(SceneOffset(50f.sceneUnit, 18f.sceneUnit), actor.body.pivot)
         assertEquals(Color(0xFFE0605A), actor.color)
+    }
+
+    @Test
+    fun itIsDrawnThroughTheLookTheGeneratedClassHas() {
+        val state = ActorStateEdits.withChanges(SceneDocument.blockBuiltState(0f, 0f, 40f, 30f), ActorStateEdits.Changes(color = 0xFF00FF00))!!
+        assertEquals(Color(0xFF00FF00), assertIs<RectangleLook>(PreviewActor(state, look).look).color)
+        assertEquals(Color(0xFFE0605A), assertIs<EllipseLook>(PreviewActor("{}", look.copy(shape = ActorShape.CIRCLE)).look).color)
+        val sprite = ImageBitmap(4, 2)
+        val spriteLook = assertIs<SpriteLook>(PreviewActor("{}", look.copy(spriteFile = File("ball.png")), sprite).look)
+        assertSame(sprite, spriteLook.texture)
+        assertEquals(FilterQuality.None, spriteLook.filterQuality)
+        assertEquals(Color.White, spriteLook.tint)
+        assertNull(assertIs<SpriteLook>(PreviewActor("{}", look.copy(spriteFile = File("ball.png"))).look).texture, "nothing is drawn until the sprite is read")
     }
 
     @Test

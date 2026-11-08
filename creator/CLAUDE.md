@@ -417,7 +417,8 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   cancelling it; the new `SceneView` creates its Actors while the old one is still shown, then takes over its camera. A failed
   build keeps the old classes until a build works.
 - Until newer classes are swapped in, Actors of block-built types whose look (`ActorTypeLook`) changed are drawn by Creator itself
-  (`PreviewActor`), following the types in memory, so a change shows before it is even written.
+  (`PreviewActor`, through the same batched look as their generated class), following the types in memory, so a change shows
+  before it is even written.
 - The editor's instance ticks without the focus (`shouldPauseOnFocusLoss = false`), since a Scene swapped in while Creator is in
   the background would otherwise draw nothing until it is focused.
 
