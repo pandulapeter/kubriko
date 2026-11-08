@@ -23,6 +23,26 @@ import androidx.compose.ui.graphics.ImageBitmap
 expect fun ImageBitmap.markImmutable(): ImageBitmap
 
 /**
+ * Creates a [width] × [height] bitmap from [pixels], a row-major array of unpremultiplied ARGB integers (the format
+ * `Color.toArgb()` produces and `ImageBitmap.readPixels` fills), in one call rather than drawing it pixel by pixel:
+ * the way to turn a procedurally generated texture into something drawable.
+ *
+ * The result is immutable (see [markImmutable]): nothing may draw into it. With [isDrawOnly], the bitmap is promised to
+ * be only ever drawn, never read back, sampled by a shader, or drawn into a software canvas, which lets Android keep its
+ * pixels on the GPU alone (a hardware bitmap) instead of also in memory; the Skia targets keep their own texture cache
+ * and ignore it. Allocates, so it belongs in setup code rather than in a frame.
+ *
+ * @throws IllegalArgumentException if [width] or [height] is not positive, or [pixels] holds fewer than
+ * `width * height` values.
+ */
+expect fun imageBitmapFromArgb(pixels: IntArray, width: Int, height: Int, isDrawOnly: Boolean = false): ImageBitmap
+
+internal fun requireArgbPixels(pixels: IntArray, width: Int, height: Int) {
+    require(width > 0 && height > 0) { "The bitmap must be at least 1 × 1 pixels, not $width × $height." }
+    require(pixels.size >= width * height) { "A $width × $height bitmap needs ${width * height} pixels, but only ${pixels.size} were given." }
+}
+
+/**
  * The alpha-weighted mean color of this bitmap, or of the region of it starting at ([left], [top]) and spanning
  * [width] × [height] pixels (clamped to the bitmap), as an ARGB integer: what it reads as when shown too small to make
  * out any detail. Transparent pixels contribute nothing to the color but lower the alpha, and a fully transparent or

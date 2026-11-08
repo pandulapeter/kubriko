@@ -18,6 +18,7 @@ import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -84,5 +85,29 @@ class ImageBitmapExtensionsTest {
 
         assertSame(bitmap, bitmap.markImmutable())
         assertTrue(bitmap.asSkiaBitmap().isImmutable)
+    }
+
+    @Test
+    fun `a bitmap created from ARGB pixels reads them back`() {
+        val pixels = intArrayOf(0xFFFF0000.toInt(), 0x8000FF00.toInt(), 0x00000000, 0xFF123456.toInt(), 0xFFFFFFFF.toInt(), 0xFF000000.toInt())
+        val bitmap = imageBitmapFromArgb(pixels, width = 3, height = 2)
+
+        assertEquals(3, bitmap.width)
+        assertEquals(2, bitmap.height)
+        val readBack = IntArray(pixels.size)
+        bitmap.readPixels(readBack)
+        assertEquals(pixels.toList(), readBack.toList())
+    }
+
+    @Test
+    fun `a bitmap created from ARGB pixels is immutable`() {
+        assertTrue(imageBitmapFromArgb(IntArray(4), width = 2, height = 2).asSkiaBitmap().isImmutable)
+        assertTrue(imageBitmapFromArgb(IntArray(4), width = 2, height = 2, isDrawOnly = true).asSkiaBitmap().isImmutable)
+    }
+
+    @Test
+    fun `too few pixels or an empty size are refused`() {
+        assertFailsWith<IllegalArgumentException> { imageBitmapFromArgb(IntArray(3), width = 2, height = 2) }
+        assertFailsWith<IllegalArgumentException> { imageBitmapFromArgb(IntArray(0), width = 0, height = 2) }
     }
 }

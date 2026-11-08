@@ -25,7 +25,7 @@ The sealed-interface core of Kubriko: wires Managers, Actors, the tick loop, and
 - `PlatformEffects.kt` (+ actuals) — `PlatformFocusEffect` (Android, desktop and iOS delegate to the shared `LifecycleFocusEffect` in `LifecycleFocusEffect.kt`), `PlatformFrameRateHint`, `PlatformMaximumDisplayRefreshRateEffect`
 - `WindowState.desktop.kt` — the public `windowState` that `plugin-pointer-input` reads on desktop; keeps the JVM facade `PlatformUtils_desktopKt` through `@file:JvmName`
 - `BrowserDetection.kt` (web) — the public `Window.isRunningOnAndroid/Iphone/Ipad()` checks the Showcase's web shell uses; the iPhone/iPad decision is the pure `classifyAppleDevice` in `AppleDeviceDetection.kt` (common, so it is unit-tested)
-- `skikoMain/` — the actuals shared by desktop, iOS and web (Skia through Skiko): `TriangleMesh.skiko.kt` (whose `drawTrianglesThroughFastPath` only the web implements, with `WasmTriangleBridge`) and `TriangleBatchSupport.skiko.kt`
+- `skikoMain/` — the actuals shared by desktop, iOS and web (Skia through Skiko): `TriangleMesh.skiko.kt` (whose `drawTrianglesThroughFastPath` only the web implements, with `WasmTriangleBridge`), `ImageBitmapExtensions.skiko.kt` (whose `writeArgbPixelsThroughFastPath` only the web implements, with `WasmPixelBridge`, which writes `imageBitmapFromArgb`'s pixels straight into Skia's memory and so needs the same recheck as `WasmTriangleBridge` on a Skiko or Kotlin/Wasm bump) and `TriangleBatchSupport.skiko.kt`
 - `AxisAlignedBoundingBox.kt` — four `Float` bounds, mutated in place by the owning body or collision mask, so per-frame updates allocate nothing; full `Float` range and precision
 
 ## Initialization Order

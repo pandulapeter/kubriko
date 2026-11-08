@@ -231,7 +231,7 @@ Platform draw paths live in `implementation/TriangleMesh.android.kt` and, shared
 
 The bridge is the only place in the engine that calls `drawVertices`, so it accelerates batched drawing and nothing else.
 
-Alongside it: `ImageBitmap.markImmutable()` (mark every bitmap you draw into once it is finished, or Skia copies it on every draw), `ImageBitmap.meanArgb()`, `RenderWarmUp` (times the drawing until its cost stops falling, so a loading screen can wait for a smooth game), and `BackgroundPass` (a heavy field computed off the frame thread from a snapshot of what it reads).
+Alongside it: `ImageBitmap.markImmutable()` (mark every bitmap you draw into once it is finished, or Skia copies it on every draw), `ImageBitmap.meanArgb()`, `imageBitmapFromArgb` (an immutable bitmap from a procedurally generated ARGB `IntArray` in one call; written straight into Skia's memory on the web), `RenderWarmUp` (times the drawing until its cost stops falling, so a loading screen can wait for a smooth game), and `BackgroundPass` (a heavy field computed off the frame thread from a snapshot of what it reads).
 
 ## Plugins
 
