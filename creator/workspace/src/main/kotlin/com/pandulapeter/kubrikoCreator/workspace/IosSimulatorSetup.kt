@@ -49,7 +49,8 @@ public class IosSimulatorSetup internal constructor(
         val trimmed = name.trim()
         val result = tools.run(listOf("xcrun", "simctl", "create", trimmed, deviceType.identifier, runtime.identifier), CREATE_TIMEOUT_IN_MILLISECONDS)
         if (result.hasTimedOut) return IosSimulatorCreation.TimedOut
-        val udid = result.output.lines().map(String::trim).lastOrNull(String::isNotEmpty)?.takeIf { result.isSuccessful && udidPattern.matches(it) }
+        // What it prints is its errors too, so a warning may come after the UDID.
+        val udid = result.output.lines().map(String::trim).lastOrNull(udidPattern::matches)?.takeIf { result.isSuccessful }
             ?: return IosSimulatorCreation.Refused(failureReasonOf(result.output, result.exitCode))
         val target = PlayTarget(id = IosSimulators.PREFIX + udid, kind = PlayTarget.Kind.IOS, name = "$trimmed (${runtime.name})", isVirtual = true)
         onCreated(target)

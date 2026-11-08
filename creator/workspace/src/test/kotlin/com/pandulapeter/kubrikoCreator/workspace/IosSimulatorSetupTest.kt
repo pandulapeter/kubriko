@@ -151,6 +151,18 @@ class IosSimulatorSetupTest {
     }
 
     @Test
+    fun aSimulatorIsFoundByItsUdidWhateverWarningsFollowIt() = blockingTest {
+        answerLists()
+        val runtime = ready().runtimes.first()
+        tools.answer(
+            "simctl create My Phone com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro $ios272",
+            ok(SimctlRecordings.CREATED + "objc[4321]: Class SimServiceContext is implemented in both CoreSimulator and SimulatorKit.\n"),
+        )
+        val created = assertIs<IosSimulatorCreation.Created>(setup.create("My Phone", iPhone18Pro, runtime))
+        assertEquals("ios-simulator:6F1E2C3A-9B8D-4E5F-A1B2-C3D4E5F60718", created.target.id)
+    }
+
+    @Test
     fun aRefusedCreationSaysWhyInSimctlsWordsAndChoosesNothing() = blockingTest {
         answerLists()
         val runtime = ready().runtimes.first()
