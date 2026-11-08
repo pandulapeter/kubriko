@@ -50,8 +50,6 @@ Screenplay group in the sidebar, and a page editor that edits one chunk at a tim
 - **The first page** holds the pitch, the core loop, who plays it and on what, and the look, plus an optional **Words** list that maps
   the game's own names to the project's ("the hero" is `Player`), which the AI then speaks in.
 - **The page editor** still lacks the AI's edits shown as a diff before Keep.
-- **Mentioned in:** an open Actor type, Manager type, or Scene shows the pages that mention it, so the design is one click away
-  from the Events.
 - **AI features off** changes nothing here: pages, mentions, and their checks are the editor's, not the AI's.
 
 ## Deleting what is referred to
@@ -136,8 +134,8 @@ and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite ed
 
 ## Order
 
-Mentioned in next (what is left of deleting what is referred to comes with each kind's delete), then the AI's side
-of them, then keeping them up to date, then the writers' room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
+The AI's side of pages next (what is left of deleting what is referred to comes with each kind's delete), then keeping them
+up to date, then the writers' room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
 and `search_project` include their mentions and text.
 
 ## Testing

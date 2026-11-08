@@ -14,14 +14,15 @@ import com.pandulapeter.kubrikoCreator.project.GameNotes
 import kotlinx.coroutines.withContext
 
 /**
- * What an assistant conversation is told about the project at its start: the digest, then the game's notes, cut short
- * past [NOTES_LIMIT] characters.
+ * What an assistant conversation is told about the project at its start: the digest, then the screenplay's page index
+ * ([PageIndexText]), then the game's notes, cut short past [NOTES_LIMIT] characters.
  */
 public object ConversationStart {
     private const val NOTES_LIMIT = 6_000
 
     public suspend fun of(context: CommandContext): String {
         val notes = withContext(context.ioDispatcher) { GameNotes.read(context.project.rootDirectory) }?.trim()?.takeIf { it.isNotEmpty() }
-        return DigestText.of(context.projectDigest()) + notes?.let { "\n\nThe game's notes (${GameNotes.FILE_NAME}):\n" + it.take(NOTES_LIMIT) + if (it.length > NOTES_LIMIT) "\n…(read_game_notes reads the rest)" else "" }.orEmpty()
+        val pages = withContext(context.ioDispatcher) { context.screenplay.scanNames().mapNotNull { name -> context.screenplay.read(name)?.let { name to it } }.toMap() }
+        return DigestText.of(context.projectDigest()) + PageIndexText.of(pages)?.let { "\n\n$it" }.orEmpty() + notes?.let { "\n\nThe game's notes (${GameNotes.FILE_NAME}):\n" + it.take(NOTES_LIMIT) + if (it.length > NOTES_LIMIT) "\n…(read_game_notes reads the rest)" else "" }.orEmpty()
     }
 }

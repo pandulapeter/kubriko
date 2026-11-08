@@ -43,6 +43,14 @@ class TokenBudgetTest {
         assertUnder(SCENE_SUMMARY_BUDGET, "The summary of level-1", executor.read("read_scene", buildJsonObject { put("scene", "level-1"); put("summary", true) }))
     }
 
+    @Test
+    fun thePageIndexStaysUnderItsBudgetHoweverManyPagesThereAre() {
+        listOf(5, 30, 1_000).forEach { count ->
+            val pages = (1..count).associate { "part-${it % 7}/page-$it" to "# Page $it\n\n" + "What this part of the game does, for the player. ".repeat(4) }
+            assertUnder(PAGE_INDEX_BUDGET, "The index of $count pages", checkNotNull(PageIndexText.of(pages)))
+        }
+    }
+
     @OptIn(EditorMutation::class)
     private fun TestScope.breakout(): CommandExecutor {
         val context = commandContext(*BreakoutFixture.types.toTypedArray())
@@ -79,6 +87,11 @@ class TokenBudgetTest {
          */
         const val TOOL_LIST_BUDGET = 20_000
         const val DIGEST_BUDGET = 300
+
+        /**
+         * A conversation starts with it, so a screenplay too large for it lists its folders instead ([PageIndexText]).
+         */
+        const val PAGE_INDEX_BUDGET = 1_030
         const val ACTOR_TYPE_BUDGET = 200
         const val ACTOR_TYPE_JSON_BUDGET = 300
 
