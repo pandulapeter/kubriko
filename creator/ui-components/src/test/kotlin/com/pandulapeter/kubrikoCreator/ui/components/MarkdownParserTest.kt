@@ -53,6 +53,18 @@ class MarkdownParserTest {
     }
 
     @Test
+    fun anImageOnALineOfItsOwnIsReadWithItsDescriptionUnescaped() {
+        assertEquals(
+            listOf(
+                MarkdownBlock.Image("Level [1] start", "hero-1.png"),
+                MarkdownBlock.Image("", "my map.png"),
+                MarkdownBlock.Paragraph("An ![inline](a.png) one."),
+            ),
+            MarkdownParser.parse("![Level \\[1\\] start](hero-1.png \"Title\")\n\n![](<my map.png>)\n\nAn ![inline](a.png) one."),
+        )
+    }
+
+    @Test
     fun aFenceStillStreamingInHoldsTheRest() {
         assertEquals(
             listOf(MarkdownBlock.Paragraph("Here:"), MarkdownBlock.Code("fun a()\n# not a heading")),
