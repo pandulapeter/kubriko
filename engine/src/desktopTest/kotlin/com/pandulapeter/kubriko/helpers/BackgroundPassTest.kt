@@ -10,10 +10,12 @@
 package com.pandulapeter.kubriko.helpers
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -29,6 +31,7 @@ class BackgroundPassTest {
         var result = 0
         var runs = 0
         var gate: CompletableDeferred<Unit>? = null
+        var failure: Exception? = null
 
         fun submit(numbers: IntArray) {
             if (isBusy) return
@@ -39,12 +42,14 @@ class BackgroundPassTest {
         override suspend fun run() {
             runs++
             gate?.await()
+            failure?.let { throw it }
             result = captured.sum()
         }
     }
 
     private val dispatcher = StandardTestDispatcher()
-    private val scope = TestScope(dispatcher)
+    private val reportedFailures = mutableListOf<Throwable>()
+    private val scope = CoroutineScope(dispatcher + SupervisorJob() + CoroutineExceptionHandler { _, exception -> reportedFailures += exception })
     private val pass = SumPass().also { it.start(scope, dispatcher) }
 
     @AfterTest
@@ -89,6 +94,24 @@ class BackgroundPassTest {
         assertFalse(pass.collect())
         assertFalse(pass.isBusy)
         pass.submit(intArrayOf(5))
+        dispatcher.scheduler.runCurrent()
+        assertTrue(pass.collect())
+        assertEquals(5, pass.result)
+    }
+
+    @Test
+    fun `a failing pass is dropped, reported, and leaves the worker running`() {
+        val failure = IllegalStateException("Bad snapshot")
+        pass.failure = failure
+        pass.submit(intArrayOf(1))
+        dispatcher.scheduler.runCurrent()
+
+        assertFalse(pass.collect())
+        assertFalse(pass.isBusy)
+        assertEquals(listOf<Throwable>(failure), reportedFailures)
+
+        pass.failure = null
+        pass.submit(intArrayOf(2, 3))
         dispatcher.scheduler.runCurrent()
         assertTrue(pass.collect())
         assertEquals(5, pass.result)

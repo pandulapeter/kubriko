@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.helpers
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,18 +43,28 @@ abstract class BackgroundPass {
         private set
 
     private val requests = Channel<Unit>(capacity = 1)
-    private val results = Channel<Unit>(capacity = 1)
+    private val results = Channel<Boolean>(capacity = 1)
     private var isAbandoned = false
 
     /**
      * Starts the worker on [scope] (typically the Kubriko instance's own, so the worker ends with it), running passes
-     * on [dispatcher]. No pass runs before this is called.
+     * on [dispatcher]. No pass runs before this is called. A pass whose [run] throws is dropped like an [abandon]ed one,
+     * frees this for the next, and its exception is rethrown on [scope], where any other failure of the instance goes;
+     * the worker carries on.
      */
     fun start(scope: CoroutineScope, dispatcher: CoroutineDispatcher = Dispatchers.Default) {
         scope.launch(dispatcher) {
             for (request in requests) {
-                run()
-                results.send(Unit)
+                val failure = try {
+                    run()
+                    null
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (exception: Throwable) {
+                    exception
+                }
+                results.send(failure == null)
+                if (failure != null) scope.launch { throw failure }
             }
         }
     }
@@ -71,14 +82,15 @@ abstract class BackgroundPass {
 
     /**
      * Whether a finished pass is waiting, which also frees this for the next one. False while one is still running,
-     * and false for one that was [abandon]ed, whose result is dropped here.
+     * and false for one that was [abandon]ed or failed, whose result is dropped here.
      */
     fun collect(): Boolean {
-        if (!isBusy || results.tryReceive().isFailure) return false
+        if (!isBusy) return false
+        val hasSucceeded = results.tryReceive().getOrNull() ?: return false
         isBusy = false
-        if (!isAbandoned) return true
+        val wasAbandoned = isAbandoned
         isAbandoned = false
-        return false
+        return hasSucceeded && !wasAbandoned
     }
 
     /** Drops the pass in flight, if there is one: what it was started from no longer describes anything. */
