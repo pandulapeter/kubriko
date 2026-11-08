@@ -104,8 +104,8 @@ public class CommandExecutor(
     private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome {
         validate(invocation)?.let { return CommandOutcome.Rejected(it) }
         if (isByAi) invocation.validateByAi(context)?.let { return CommandOutcome.Rejected(it) }
-        // Read before the change too, since a delete leaves nothing to find the pages that still mention it by.
-        val mentionedBefore = if (isByAi) mentionPathsOrNone { context.mentionPathsOf(invocation.targets(context)) } else emptySet()
+        // A delete leaves nothing to find the pages that still mention it by, so they are found before it.
+        val mentionedBefore = if (isByAi && invocation.command is DeletingCommand<*>) mentionPathsOrNone { context.mentionPathsOf(invocation.targets(context)) } else emptySet()
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
