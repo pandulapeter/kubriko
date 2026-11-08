@@ -112,9 +112,13 @@ public object ScreenplayStyle {
     private val linkDestination = Regex("]\\([^)]*\\)")
     private val link = Regex("!?\\[[^\\]]*]")
     private val listItem = Regex("([-*+]|\\d+[.)])\\s.*")
+    /**
+     * Words only history uses: "now" and "no longer" also describe the game as it is ("the door is now open"), so they
+     * aren't among them.
+     */
     private val history = Regex(
-        "\\b(used to|no longer|any ?more|previously|formerly|originally|(was|were|has been|have been|got) (changed|fixed|renamed|removed|added|replaced)|" +
-            "fixed (a|an|the) (bug|crash|problem|issue)|now)\\b|\\b(19|20)\\d{2}-\\d{2}-\\d{2}\\b|" +
+        "\\b(used to|previously|formerly|originally|(was|were|has been|have been|got) (changed|fixed|renamed|removed|added|replaced)|" +
+            "fixed (a|an|the) (bug|crash|problem|issue))\\b|\\b(19|20)\\d{2}-\\d{2}-\\d{2}\\b|" +
             "\\b(January|February|March|April|May|June|July|August|September|October|November|December) \\d{1,2}(st|nd|rd|th)?,? (19|20)\\d{2}\\b",
         RegexOption.IGNORE_CASE,
     )

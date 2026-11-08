@@ -44,10 +44,13 @@ class ScreenplayStyleTest {
     @Test
     fun `history and dates are named, but not the same words meaning something else`() {
         assertEquals(
-            listOf(Rule.HISTORY to "used to", Rule.HISTORY to "now", Rule.HISTORY to "was changed", Rule.HISTORY to "no longer", Rule.HISTORY to "2026-11-08", Rule.HISTORY to "fixed the bug"),
-            rulesOf("It used to fly.\nThe hero now jumps twice.\nThe speed was changed.\nIt no longer flies.\nSince 2026-11-08.\nWe fixed the bug in it.").filter { it.first == Rule.HISTORY },
+            listOf(Rule.HISTORY to "used to", Rule.HISTORY to "was changed", Rule.HISTORY to "previously", Rule.HISTORY to "2026-11-08", Rule.HISTORY to "fixed the bug"),
+            rulesOf("It used to fly.\nThe speed was changed.\nIt previously flew.\nSince 2026-11-08.\nWe fixed the bug in it.").filter { it.first == Rule.HISTORY },
         )
-        assertEquals(emptyList(), rulesOf("A fixed camera. The known world. Snow falls. `now` in code. [A page](now.md)"))
+        assertEquals(
+            emptyList(),
+            rulesOf("A fixed camera. Once the key is found, the door is now open, and enemies no longer chase a hidden hero. `used to` in code. [A page](used-to.md)"),
+        )
     }
 
     @Test
