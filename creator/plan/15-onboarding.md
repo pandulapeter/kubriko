@@ -50,6 +50,16 @@ every one, and each comes with a short tour of what to look at first, told by it
 Original games in common genres, with their own art and sounds (licensed for reuse, so users may ship games made from them). More can follow
 once these five work, such as one exported to every platform.
 
+**How they are made.** Each game is built 100% in Kubriko Creator: through its own UI and its assistant's tools, the screenplay
+included, and never by editing the project's files by hand or with anything outside Creator (the hand-written Kotlin of game 5 is
+written in Creator too). The games are made one after the other, each by an agent of its own driving Creator headlessly (its tools,
+and the end-to-end harness under Xvfb, never on the user's Mac). **The moment that agent meets anything in Creator that could be
+better** (a missing Block or tool, an awkward or slow step, a bug, an unclear message or hint, something a beginner wouldn't find), **it
+stops working on the game, makes that improvement in Creator first** (its tests, review, and commit, as any plan item gets), and only
+then continues the game from where it left off, through the improved Creator. A game is done only once it was built this way from
+start to finish. The improvements are the real output, and the game is their proof, so the next game's agent starts from a better
+Creator, and the order of the table is the order of the work.
+
 ## Mistakes and failures in the first hour
 
 What someone who knows neither Kotlin nor Gradle meets when something goes wrong, found in review:
