@@ -21,7 +21,8 @@ import kotlin.wasm.unsafe.withScopedMemoryAllocator
  * memory with one cross-module call per byte, and then copies it once more. Skia's N32 byte order (blue, green, red,
  * alpha) is exactly how WebAssembly's little-endian memory lays out a packed ARGB integer, so each row is staged in
  * Kotlin's own memory and copied across in one JavaScript call, with one store per pixel as the fallback while Skiko's
- * module is unavailable.
+ * module is unavailable. The module only arrives through a promise this object subscribes to when it is first used, so
+ * the first write of a page, and any other made before control returns to the event loop, takes the fallback.
  *
  * Like `WasmTriangleBridge`, it reaches Skiko's module and Kotlin's generated `wasmExports` binding directly, so it
  * depends on that layout: recheck it when Skiko or Kotlin/Wasm is bumped. Only one row is staged at a time, since Wasm
