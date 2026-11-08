@@ -86,7 +86,7 @@ public class GameMapState internal constructor(
 
         /**
          * The Game map of a workspace, which may change with its types, resources, Scene descriptions, undo history, AI
-         * steps, and shown Scene.
+         * steps, shown Scene, pages, and documents.
          */
         fun of(
             blockTypes: BlockTypesController?,
@@ -104,6 +104,8 @@ public class GameMapState internal constructor(
                 commands.history.drop(1),
                 commands.aiSteps.drop(1),
                 sceneEditing.state.drop(1),
+                commands.context.screenplay.revision.drop(1),
+                commands.context.documents.revision.drop(1),
             ),
             compute = { commands.context.digestAndHealthFindings().let { (digest, findings) -> GameMap(digest, findings) } },
             scope = scope,

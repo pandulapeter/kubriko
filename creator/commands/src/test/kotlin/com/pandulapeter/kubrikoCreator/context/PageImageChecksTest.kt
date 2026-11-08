@@ -53,5 +53,9 @@ class PageImageChecksTest {
             ),
             context.healthFindings(),
         )
+        File(context.project.rootDirectory, "screenplay/y.PNG").delete()
+        assertEquals(2, context.healthFindings().size, "Worked out again only once the screenplay changed.")
+        context.screenplay.refresh()
+        assertEquals(1, context.healthFindings().size)
     }
 }

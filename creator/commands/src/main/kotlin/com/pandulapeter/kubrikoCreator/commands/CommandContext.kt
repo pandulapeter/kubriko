@@ -12,6 +12,8 @@ import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypes
 import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
+import com.pandulapeter.kubrikoCreator.context.KeyedCache
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
@@ -70,6 +72,11 @@ public class CommandContext(
      * The project's Markdown files that aren't pages, whose writes are recorded as Kubriko Creator's own with the Scenes'.
      */
     public val documents: DocumentStore = DocumentStore(project.rootDirectory, scenes.ownWrites, movedFiles)
+
+    /**
+     * The health checks of the screenplay's images as last worked out ([pageImageFindings]).
+     */
+    internal val pageImageFindingsCache = KeyedCache<List<HealthFinding>>()
 
     /**
      * Returns once every change made so far is on disk, or writing them failed, for what reads the files (git, and builds);

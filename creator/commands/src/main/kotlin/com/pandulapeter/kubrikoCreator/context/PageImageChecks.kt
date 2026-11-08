@@ -45,11 +45,13 @@ internal object PageImageChecks {
 }
 
 /**
- * What about the open project's screenplay images is worth a look ([PageImageChecks]). Reads the disk.
+ * What about the open project's screenplay images is worth a look ([PageImageChecks]), worked out again only once a page
+ * or document changed, since every change Kubriko Creator or anyone else makes to a page's images changes one of them too.
+ * Reads the disk.
  */
-internal fun CommandContext.pageImageFindings(): List<HealthFinding> {
+internal fun CommandContext.pageImageFindings(): List<HealthFinding> = pageImageFindingsCache.get(screenplay.revision.value to documents.revision.value) {
     val root = project.rootDirectory
-    val folder = File(root, PageNaming.FOLDER).takeIf { it.isDirectory } ?: return emptyList()
+    val folder = File(root, PageNaming.FOLDER).takeIf { it.isDirectory } ?: return@get emptyList()
     val images = ProjectTree.walk(folder).filter { it.isFile && it.extension.lowercase() in PageImages.EXTENSIONS }.map { it.relativeTo(root).invariantSeparatorsPath }.toList()
-    return PageImageChecks.of(markdownTexts(), images) { File(root, it).exists() }
+    PageImageChecks.of(markdownTexts(), images) { File(root, it).exists() }
 }
