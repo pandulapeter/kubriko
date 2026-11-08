@@ -37,6 +37,7 @@ open class VolumetricCuboidRenderer(
     val id: String,
     private val renderableCuboid: RenderableCuboid,
     private val textureResolver: (String) -> ImageBitmap?,
+    private val textureMipChains: TextureMipChainCache,
     initialWorldRotation: AngleRadians,
     initialWorldZoom: Float,
     initialWorldTilt: Float,
@@ -450,9 +451,6 @@ open class VolumetricCuboidRenderer(
     }
 
     companion object {
-        /** Shared by every renderer, so cuboids sharing a face texture build each of its mip levels once. */
-        private val textureMipChains = TextureMipChainCache()
-
         const val STROKE_WIDTH = 4f
         private const val OUTLINE_MIN_SIZE_PX = 12f
         private const val OUTLINE_ARGB = 0xFF000000.toInt()

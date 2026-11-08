@@ -90,4 +90,15 @@ class TextureMipChainTest {
         cache.remove("grass")
         assertNotSame(replacement, cache.get("grass", replacement.base))
     }
+
+    @Test
+    fun `clearing the cache lets go of every chain`() {
+        val cache = TextureMipChainCache { chainOf(it) }
+        val texture = FakeImageBitmap(8, 8)
+        val chain = cache.get("grass", texture)
+
+        cache.clear()
+
+        assertNotSame(chain, cache.get("grass", texture))
+    }
 }

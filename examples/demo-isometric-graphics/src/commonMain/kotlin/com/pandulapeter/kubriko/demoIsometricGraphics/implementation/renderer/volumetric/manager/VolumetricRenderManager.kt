@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.sprites.TextureMipChainCache
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.Dispatchers
@@ -73,6 +74,9 @@ class VolumetricRenderManager(
     // Only touched from the diff below, which runs sequentially on Dispatchers.Default.
     private var lastHolders: List<RenderableCuboidHolder> = emptyList()
 
+    /** Shared by every renderer, so cuboids sharing a face texture build each of its mip levels once, and let go with the scene. */
+    private val textureMipChains = TextureMipChainCache()
+
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(batchRenderer)
         actorsJob?.cancel()
@@ -98,6 +102,7 @@ class VolumetricRenderManager(
                             id = holder.id,
                             renderableCuboid = holder.renderableCuboid,
                             textureResolver = holder.textureResolver,
+                            textureMipChains = textureMipChains,
                             initialWorldRotation = worldRotation.value,
                             initialWorldZoom = zoom.value,
                             initialWorldTilt = tilt.value,
@@ -109,6 +114,8 @@ class VolumetricRenderManager(
             .flowOn(Dispatchers.Default)
             .launchIn(scope)
     }
+
+    override fun onDispose() = textureMipChains.clear()
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         val currentRotation = worldRotation.value
