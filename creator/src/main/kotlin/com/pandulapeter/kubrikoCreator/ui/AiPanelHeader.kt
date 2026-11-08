@@ -38,14 +38,18 @@ import kubriko.creator.generated.resources.action_ai_panel_more
 import kubriko.creator.generated.resources.action_back_to_assistant
 import kubriko.creator.generated.resources.action_use_own_ai_tool
 import kubriko.creator.generated.resources.action_use_own_ai_tool_description
+import kubriko.creator.generated.resources.action_write_screenplay
+import kubriko.creator.generated.resources.action_write_screenplay_description
 import kubriko.creator.generated.resources.ai_panel_assistant
 import kubriko.creator.generated.resources.ai_panel_own_tool
+import kubriko.creator.generated.resources.assistant_prompt_write_screenplay
 import kubriko.creator.generated.resources.game_map_description
 import kubriko.creator.generated.resources.game_map_title
 import kubriko.creator.generated.resources.ic_ai
 import kubriko.creator.generated.resources.ic_arrow_back
 import kubriko.creator.generated.resources.ic_map
 import kubriko.creator.generated.resources.ic_open_in_new
+import kubriko.creator.generated.resources.ic_page
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -119,7 +123,8 @@ private fun MoreAiOptions(
     RowActionsButton(
         menu = menu,
         label = Res.string.action_ai_panel_more,
-        actions = listOf(
+        actions = listOfNotNull(
+            writeScreenplayAction(),
             ContextAction(
                 label = stringResource(Res.string.game_map_title),
                 description = stringResource(Res.string.game_map_description),
@@ -133,5 +138,20 @@ private fun MoreAiOptions(
                 onClick = { onViewSelected(AiPanelView.OWN_TOOL) },
             ),
         ),
+    )
+}
+
+/**
+ * "Write the screenplay", which has the assistant read the game and propose its pages, while a conversation takes prompts.
+ */
+@Composable
+private fun writeScreenplayAction(): ContextAction? {
+    val writer = LocalDescriptionWriter.current?.takeIf { !it.isBusy } ?: return null
+    val prompt = stringResource(Res.string.assistant_prompt_write_screenplay)
+    return ContextAction(
+        label = stringResource(Res.string.action_write_screenplay),
+        description = stringResource(Res.string.action_write_screenplay_description),
+        icon = Res.drawable.ic_page,
+        onClick = { writer.write(prompt) },
     )
 }

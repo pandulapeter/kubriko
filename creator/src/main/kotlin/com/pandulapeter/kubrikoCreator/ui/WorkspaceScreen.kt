@@ -415,6 +415,7 @@ private fun WorkspaceAiSidePanelOf(
     onDocumentSelected = controller.selection::openDocument,
     captureScreen = controller::captureGameScreen,
     width = width,
+    screenplayOffer = controller.screenplayOffer,
     row = row,
 )
 

@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantForms
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantHeaderActions
 import com.pandulapeter.kubrikoCreator.ui.assistant.AssistantPanel
+import com.pandulapeter.kubrikoCreator.ui.assistant.ScreenplayOfferCard
 import com.pandulapeter.kubrikoCreator.ui.assistant.rememberAssistantForms
 import com.pandulapeter.kubrikoCreator.ui.gameMap.GameMapPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
@@ -68,6 +69,8 @@ internal fun AiPanel(
     attention: List<AttentionChip>,
     captureScreen: suspend () -> ByteArray?,
     modifier: Modifier = Modifier,
+    isScreenplayOffered: Boolean = false,
+    onScreenplayOfferAnswered: () -> Unit = {},
 ) = Column(
     modifier = modifier,
 ) {
@@ -78,6 +81,7 @@ internal fun AiPanel(
         assistantActions = { AssistantHeaderActions(model = assistant, forms = assistantForms) },
     )
     HorizontalDivider()
+    ScreenplayOfferCard(isShown = isScreenplayOffered && view == AiPanelView.ASSISTANT, onAnswered = onScreenplayOfferAnswered)
     var shownDigest by remember { mutableStateOf(digest) }
     var shownFindings by remember { mutableStateOf(findings) }
     if (view == AiPanelView.GAME_MAP) {

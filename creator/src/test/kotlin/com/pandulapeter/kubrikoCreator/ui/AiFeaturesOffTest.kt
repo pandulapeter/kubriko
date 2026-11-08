@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.settings.CreatorSettings
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import com.pandulapeter.kubrikoCreator.ui.assistant.ScreenplayOfferCard
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.git.ScreenplayReminder
@@ -89,6 +90,7 @@ class AiFeaturesOffTest {
         WorkspaceHint(Modifier.height(240.dp))
         CompositionLocalProvider(LocalDescriptionWriter provides DescriptionWriter(isBusy = false) {}) {
             ScreenplayReminder()
+            ScreenplayOfferCard(isShown = true, onAnswered = {})
         }
     }
 

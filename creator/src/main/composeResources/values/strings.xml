@@ -443,6 +443,11 @@
     <string name="git_branch">On branch %1$s</string>
     <string name="git_changes">Changes (%1$d)</string>
     <string name="git_no_changes">Everything is committed.</string>
+    <string name="action_write_screenplay">Write the screenplay</string>
+    <string name="action_write_screenplay_description">The assistant reads the game and proposes its pages, for you to keep page by page.</string>
+    <string name="action_no_thanks">No, thanks</string>
+    <string name="screenplay_offer_text">This game has no screenplay yet: no pages saying what it is, for you and the assistant. The assistant can read the game and propose its first pages.</string>
+    <string name="assistant_prompt_write_screenplay">Write this game's screenplay. Read the game (its types, Scenes, and code), then propose its pages in screenplay/: README.md first, "The game" (the pitch, the core loop, who plays it and on what, and the look, with a Words list of the game's own names for the project's), and a page of its own only for a part one page can't hold. Create them one at a time, so that I can keep or undo each.</string>
     <string name="git_screenplay_reminder">The game changed, but no page of the screenplay did.</string>
     <string name="action_update_screenplay_with_ai">Ask the assistant to update the screenplay</string>
     <string name="assistant_prompt_update_screenplay">The game changed since the last commit, but the screenplay didn't. Read what changed and the pages that mention it, and bring the pages up to date with the game as it is now.</string>

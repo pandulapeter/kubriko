@@ -327,6 +327,11 @@ public class WorkspaceController(
      * What about the screenplay is worth a look, for the sidebar.
      */
     public val screenplayHealth: ScreenplayHealth = ScreenplayHealth.of(blockTypes, resources, commands, scope, ::reportUnexpectedProblem)
+
+    /**
+     * The assistant's one offer to write the screenplay of a game that has none.
+     */
+    public val screenplayOffer: ScreenplayOffer = ScreenplayOffer(project.rootDirectory, commands.context.screenplay.current, commands.context.screenplay.revision, scope, ioDispatcher)
     private val missingReferences = MissingReferencesReport.of(blockTypes, resources, commands, scope, ::appendToConsole, ::reportUnexpectedProblem)
 
     private val watching = files.startWatching(::onProjectChanged)

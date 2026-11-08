@@ -31,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelSplitter
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.workspace.GameMap
+import com.pandulapeter.kubrikoCreator.workspace.ScreenplayOffer
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import kotlinx.coroutines.flow.StateFlow
 
@@ -63,6 +64,7 @@ internal fun WorkspaceAiSidePanel(
     onDocumentSelected: (String) -> Unit,
     captureScreen: suspend () -> ByteArray?,
     width: PanelWidthState,
+    screenplayOffer: ScreenplayOffer? = null,
     row: PanelRow,
 ) {
     PanelSplitter(width, row)
@@ -106,5 +108,7 @@ internal fun WorkspaceAiSidePanel(
         onPageSelected = onPageSelected,
         attention = attention,
         captureScreen = captureScreen,
+        isScreenplayOffered = screenplayOffer?.isShown?.collectAsState()?.value == true,
+        onScreenplayOfferAnswered = { screenplayOffer?.answer() },
     )
 }
