@@ -52,6 +52,8 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param text The page as it is on disk.
  * @param links What its links point at, drawing its mentions as chips.
+ * @param identity What tells the page apart from the one shown before ([MarkdownIdentity]), so that a page moved meanwhile
+ *   keeps what is being typed.
  */
 @Composable
 internal fun PageEditor(
@@ -60,8 +62,9 @@ internal fun PageEditor(
     onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     links: PageLinksState? = null,
+    identity: Any = name,
 ) {
-    val state = remember(name) { PageEditorState(text, onTextChange) }
+    val state = remember(identity) { PageEditorState(text, onTextChange) }
     state.onTextChange = onTextChange
     LaunchedEffect(text) { state.onPageChanged(text) }
     // What was typed in the last moment before the editor goes (another page or type is shown) is saved too.

@@ -35,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.components.fadeInOnChange
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
+import com.pandulapeter.kubrikoCreator.ui.screenplay.MarkdownIdentity
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageEditor
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageLinksState
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
@@ -56,6 +57,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param markdownText The text of the page or document shown, once it is read, or null.
  * @param onMarkdownTextChange Saves the page or document shown.
  * @param markdownLinks What the links of the page or document shown point at.
+ * @param markdownIdentity What tells the page or document shown apart from the one before ([MarkdownIdentity]).
  */
 @Composable
 internal fun WorkspaceCenter(
@@ -81,6 +83,7 @@ internal fun WorkspaceCenter(
     markdownText: String? = null,
     onMarkdownTextChange: (text: String) -> Unit = {},
     markdownLinks: PageLinksState? = null,
+    markdownIdentity: Any? = null,
 ) {
     val contentModifier = modifier.fadeInOnChange(shownContentKey(selection, sceneEditing))
     val markdownTitle = markdownTitleOf(selection)
@@ -160,6 +163,7 @@ internal fun WorkspaceCenter(
                 text = markdownText,
                 onTextChange = onMarkdownTextChange,
                 links = markdownLinks,
+                identity = markdownIdentity ?: markdownTitle,
             )
         }
     } else if (selection == WorkspaceSelection.None) {

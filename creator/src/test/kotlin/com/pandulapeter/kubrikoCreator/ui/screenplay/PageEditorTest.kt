@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.screenplay
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -99,5 +102,21 @@ class PageEditorTest {
         waitForIdle()
         onNodeWithText("## Moves [Brick](../.kubriko/actors/Brick.json)").assertExists()
         onNodeWithText("Ball").assertDoesNotExist()
+    }
+
+    @Test
+    fun aPageMovedWhileItIsTypedIntoKeepsTheTypingAndSavesUnderItsNewName() = uiTest(width = 900, height = 500) {
+        val saved = mutableListOf<Pair<String, String>>()
+        var name by mutableStateOf("hero")
+        showing { PageEditor(name = name, text = page, onTextChange = { saved += name to it }, identity = "the same page") }
+        onNodeWithText("Moves").performClick()
+        waitForIdle()
+        onNode(hasSetTextAction()).performTextInput(" fast")
+        name = "cast/hero"
+        waitForIdle()
+        onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Escape) }
+        waitForIdle()
+        assertEquals(listOf("cast/hero"), saved.map { it.first }.distinct())
+        assertEquals(page.replace("## Moves", "## Moves fast"), saved.last().second)
     }
 }

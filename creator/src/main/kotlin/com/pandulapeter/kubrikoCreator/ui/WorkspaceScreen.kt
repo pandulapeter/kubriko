@@ -68,6 +68,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownEditOf
+import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberMarkdownIdentity
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberOpenMarkdownText
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageLinks
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
@@ -483,4 +484,5 @@ private fun WorkspaceCenterOf(
     markdownText = markdownText,
     onMarkdownTextChange = { text -> markdownEditOf(selection, text)?.let(controller.commands::dispatch) },
     markdownLinks = rememberPageLinks(controller.commands.context, controller.selection, selection, markdownText, blockTypes, resources),
+    markdownIdentity = rememberMarkdownIdentity(selection, controller.commands.context.movedFiles),
 )
