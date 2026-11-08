@@ -16,7 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
  *
  * Changes to the flow's value will be automatically saved to local storage. A stored name that no longer matches any
  * entry (one that was renamed or removed since) reads as [defaultValue], so renaming an entry loses the choices saved
- * under its old name.
+ * under its old name. Like every other value, it is cached by [key] alone, so a key must not be shared with a value of
+ * another type, another enum included.
  *
  * @param key The unique key for this value.
  * @param defaultValue The value to return if no value is found in storage, or if the stored one names no entry.
