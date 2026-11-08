@@ -128,7 +128,7 @@ public object PageImages {
         val end = if (section != null) {
             sections.firstOrNull { it.heading.equals(section.trim(), ignoreCase = true) }?.lines?.last?.plus(1) ?: return null
         } else {
-            sections.lastOrNull { it.level == 2 && it.heading.equals(PageText.PLANNED, ignoreCase = true) }?.lines?.first ?: lines.size
+            PageText.plannedSectionOf(text)?.lines?.first ?: lines.size
         }
         var insertAt = end.coerceAtMost(lines.size)
         while (insertAt > 0 && lines[insertAt - 1].isBlank()) insertAt--

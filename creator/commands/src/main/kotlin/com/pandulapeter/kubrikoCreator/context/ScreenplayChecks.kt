@@ -40,18 +40,19 @@ internal object ScreenplayChecks {
         }
         if (!areRemindersShown || pages.isEmpty()) return@buildList
         subjects.filterValues { index.pagesMentioning(it).isEmpty() }.keys.forEach { add(HealthFinding(HealthFinding.Kind.UNMENTIONED, it)) }
+        val subjectPaths = subjects.values.toSet()
         names.forEach { name ->
             val text = checkNotNull(pages[name])
             if (PageText.titleOf(text) == null) add(HealthFinding(HealthFinding.Kind.PAGE_WITHOUT_TITLE, RelationSubject.Page(name)))
             if (PageText.summaryOf(text) == null) add(HealthFinding(HealthFinding.Kind.PAGE_WITHOUT_SUMMARY, RelationSubject.Page(name)))
-            plannedItemsMentioningWhatExists(name, text, subjects.values.toSet()).forEach { item ->
+            plannedItemsMentioningWhatExists(name, text, subjectPaths).forEach { item ->
                 add(HealthFinding(HealthFinding.Kind.PLANNED_MAY_BE_BUILT, RelationSubject.Page(name), detail = item))
             }
         }
     }
 
     private fun plannedItemsMentioningWhatExists(name: String, text: String, subjectPaths: Set<String>): List<String> {
-        val planned = PageText.sectionsOf(text).firstOrNull { it.level == 2 && it.heading.equals(PageText.PLANNED, ignoreCase = true) } ?: return emptyList()
+        val planned = PageText.plannedSectionOf(text) ?: return emptyList()
         val lines = text.lines()
         return planned.lines.drop(1).map { lines[it].trim() }.filter { it.startsWith("- ") || it.startsWith("* ") }.filter { item ->
             PageLinks.linksOf(item).any { link -> PageLinks.resolve(PageNaming.pathOf(name), link.destination) in subjectPaths }

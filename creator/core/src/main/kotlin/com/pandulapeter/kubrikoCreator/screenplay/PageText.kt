@@ -62,6 +62,11 @@ public object PageText {
     }
 
     /**
+     * The page's `## Planned` section, the first if it has several, or null if it has none.
+     */
+    public fun plannedSectionOf(text: String): Section? = sectionsOf(text).firstOrNull { it.level == 2 && it.heading.equals(PLANNED, ignoreCase = true) }
+
+    /**
      * [text] with the first section headed [heading] (ignoring case) replaced by [replacement], which brings its own
      * heading, or null if there is no such section. The line breaks of [text] are kept.
      */

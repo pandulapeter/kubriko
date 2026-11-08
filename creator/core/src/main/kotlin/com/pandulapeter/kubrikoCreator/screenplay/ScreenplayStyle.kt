@@ -63,7 +63,7 @@ public object ScreenplayStyle {
     public fun problemsOf(text: String, pagePath: String? = null, tunableNumbers: Map<String, Set<String>> = emptyMap(), isWholePage: Boolean = true): List<Problem> {
         val problems = ArrayList<Problem>()
         val lines = text.lines()
-        val planned = PageText.sectionsOf(text).firstOrNull { it.level == 2 && it.heading.equals(PageText.PLANNED, ignoreCase = true) }?.lines
+        val planned = PageText.plannedSectionOf(text)?.lines
         var isInCode = false
         val numberPatterns = tunableNumbers.values.flatten().distinct().associateWith { number -> Regex("(?<![\\w.])" + Regex.escape(number) + "(?![\\w]|\\.\\d)") }
         lines.forEachIndexed { index, line ->

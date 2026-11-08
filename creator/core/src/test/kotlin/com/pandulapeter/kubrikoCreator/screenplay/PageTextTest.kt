@@ -86,4 +86,10 @@ class PageTextTest {
     @Test
     fun replacingTheLastSectionKeepsTheFinalLineBreak() =
         assertEquals("# T\n\n## Planned\n\n- b\n", PageText.withSectionReplaced("# T\n\n## Planned\n\n- a\n", "Planned", "## Planned\n\n- b"))
+
+    @Test
+    fun thePlannedSectionIsFoundByItsHeadingAtLevelTwoOnly() {
+        assertEquals("Planned", PageText.plannedSectionOf(hero)?.heading)
+        assertNull(PageText.plannedSectionOf("# Game\n\n### Planned\n\n- Not this one"))
+    }
 }
