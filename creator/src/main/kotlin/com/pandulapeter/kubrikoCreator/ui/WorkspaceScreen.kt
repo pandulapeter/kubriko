@@ -98,7 +98,12 @@ internal fun WorkspaceScreen(
         LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
         LocalMentionedIn provides rememberMentionedIn(controller.commands.context, controller.selection),
         LocalSidebarHints provides rememberSidebarHints(controller.screenplayHealth.findings, controller.blockTypes?.types),
-        LocalWritersRoom provides assistant::startWritersRoom,
+        LocalWritersRoom provides remember(uiState, assistant) {
+            { prompt ->
+                uiState.showAssistant()
+                assistant.startWritersRoom(prompt)
+            }
+        },
     ) {
         WorkspaceContent(
             controller = controller,

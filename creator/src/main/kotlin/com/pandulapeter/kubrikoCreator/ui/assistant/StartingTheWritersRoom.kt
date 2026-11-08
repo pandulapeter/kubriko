@@ -12,12 +12,11 @@ package com.pandulapeter.kubrikoCreator.ui.assistant
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import com.pandulapeter.kubrikoCreator.WritersRoomRequest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.assistant_prompt_writers_room_idea
-import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.getString
 
 /**
  * Starts the writers' room with the idea [request] holds, once, showing the assistant: what a project created from an
@@ -29,12 +28,11 @@ internal fun StartingTheWritersRoom(
     onShowAssistant: () -> Unit,
     onStart: (prompt: String) -> Unit,
 ) {
-    val pitch = remember(request) { request?.take() } ?: return
-    val prompt = stringResource(Res.string.assistant_prompt_writers_room_idea, pitch)
     val currentOnShowAssistant by rememberUpdatedState(onShowAssistant)
     val currentOnStart by rememberUpdatedState(onStart)
-    LaunchedEffect(prompt) {
+    LaunchedEffect(request) {
+        val pitch = request?.take() ?: return@LaunchedEffect
         currentOnShowAssistant()
-        currentOnStart(prompt)
+        currentOnStart(getString(Res.string.assistant_prompt_writers_room_idea, pitch))
     }
 }
