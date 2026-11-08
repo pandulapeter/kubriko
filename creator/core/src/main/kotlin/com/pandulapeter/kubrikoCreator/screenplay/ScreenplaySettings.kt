@@ -40,9 +40,16 @@ public data class ScreenplaySettings(
         /**
          * The settings of the project in [rootDirectory]; the defaults when it has none, or they can't be read. Blocks.
          */
-        public fun read(rootDirectory: File): ScreenplaySettings = File(rootDirectory, FILE).takeIf { it.isFile }
-            ?.let { file -> runCatching { json.decodeFromString(serializer(), file.readText()) }.getOrNull() }
-            ?: ScreenplaySettings()
+        public fun read(rootDirectory: File): ScreenplaySettings = readOrNull(rootDirectory) ?: ScreenplaySettings()
+
+        /**
+         * The settings of the project in [rootDirectory]: the defaults when it has none, or null when its file can't be
+         * read, which nothing may write over. Blocks.
+         */
+        public fun readOrNull(rootDirectory: File): ScreenplaySettings? {
+            val file = File(rootDirectory, FILE).takeIf { it.exists() } ?: return ScreenplaySettings()
+            return runCatching { json.decodeFromString(serializer(), file.readText()) }.getOrNull()
+        }
 
         /**
          * Writes [settings] for the project in [rootDirectory]. Blocks.

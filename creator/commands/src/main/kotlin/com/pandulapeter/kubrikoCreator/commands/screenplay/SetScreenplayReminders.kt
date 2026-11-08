@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.screenplay
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -36,7 +37,7 @@ public object SetScreenplayReminders : WriteCommand<SetScreenplayReminders.Input
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val root = context.project.rootDirectory
-        val previous = ScreenplaySettings.read(root)
+        val previous = ScreenplaySettings.readOrNull(root) ?: return@withContext Applied.failed(Rejection(CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE, ScreenplaySettings.FILE))
         ScreenplaySettings.write(root, previous.copy(areRemindersShown = input.isOn))
         context.scenes.ownWrites.record(File(root, ScreenplaySettings.FILE))
         Applied(inverse = Invocation(SetScreenplayReminders, Input(previous.areRemindersShown)))

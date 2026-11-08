@@ -10,7 +10,9 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.screenplay.SetScreenplayReminders
@@ -72,6 +74,18 @@ class ScreenplayChecksTest {
         assertEquals(listOf(HealthFinding(HealthFinding.Kind.UNMENTIONED, RelationSubject.Type("Ball"))), context.healthFindings().filter { it.kind == HealthFinding.Kind.UNMENTIONED })
         context.assertRoundTrip(Invocation(SetScreenplayReminders, SetScreenplayReminders.Input(isOn = false))) { ScreenplaySettings.read(context.project.rootDirectory) }
         assertEquals(emptyList(), context.healthFindings().filter { it.kind == HealthFinding.Kind.UNMENTIONED })
+    }
+
+    @Test
+    fun `a settings file that can't be read is left alone`() = runTest {
+        val context = commandContext()
+        val file = File(context.project.rootDirectory, ScreenplaySettings.FILE).apply { parentFile.mkdirs() }.apply { writeText("{ not json") }
+        assertEquals(
+            Rejection(CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE, ScreenplaySettings.FILE),
+            SetScreenplayReminders.apply(context, SetScreenplayReminders.Input(isOn = false)).failure,
+        )
+        assertEquals("{ not json", file.readText())
+        assertEquals(true, ScreenplaySettings.read(context.project.rootDirectory).areRemindersShown)
     }
 
     @OptIn(EditorMutation::class)
