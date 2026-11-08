@@ -18,6 +18,7 @@ import kubriko.creator.generated.resources.game_map_changes
 import kubriko.creator.generated.resources.game_map_collides_with
 import kubriko.creator.generated.resources.game_map_goes_to
 import kubriko.creator.generated.resources.game_map_inherits_from
+import kubriko.creator.generated.resources.game_map_mentions
 import kubriko.creator.generated.resources.game_map_moves_towards
 import kubriko.creator.generated.resources.game_map_names_in_kotlin
 import kubriko.creator.generated.resources.game_map_places
@@ -44,6 +45,7 @@ internal val RelationKind.label
         RelationKind.CHANGES -> Res.string.game_map_changes
         RelationKind.NAMES_IN_KOTLIN -> Res.string.game_map_names_in_kotlin
         RelationKind.STARTS_WITH -> Res.string.game_map_starts_with
+        RelationKind.MENTIONS -> Res.string.game_map_mentions
     }
 
 /**

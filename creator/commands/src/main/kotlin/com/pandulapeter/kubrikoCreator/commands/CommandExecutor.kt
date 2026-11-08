@@ -104,8 +104,8 @@ public class CommandExecutor(
     private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome {
         validate(invocation)?.let { return CommandOutcome.Rejected(it) }
         if (isByAi) invocation.validateByAi(context)?.let { return CommandOutcome.Rejected(it) }
-        // A delete leaves nothing to find the pages that still mention it by, so they are found before it.
-        val mentionedBefore = if (isByAi && invocation.command is DeletingCommand<*>) mentionPathsOrNone { context.mentionPathsOf(invocation.targets(context)) } else emptySet()
+        // A delete leaves nothing to find the pages that mentioned it by (its mentions become plain text), so they are found before it.
+        val mentionedBefore = if (isByAi && invocation.command is DeletingCommand<*>) mentionPathsOrNone { context.pagesMentioning(context.mentionPathsOf(invocation.targets(context))) } else emptyList()
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
@@ -119,8 +119,8 @@ public class CommandExecutor(
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
         if (!isByAi || applied.result != JsonNull) return CommandOutcome.Success(applied.result)
-        val mentionedIn = mentionPathsOrNone { context.pagesMentioning(mentionedBefore + context.mentionPathsOf(invocation.targets(context))) }
-        return CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn.toList()) + applied.details.orEmpty()))
+        val mentionedIn = mentionedBefore + mentionPathsOrNone { context.pagesMentioning(context.mentionPathsOf(invocation.targets(context))) }
+        return CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn.distinct()) + applied.details.orEmpty()))
     }
 
     /**

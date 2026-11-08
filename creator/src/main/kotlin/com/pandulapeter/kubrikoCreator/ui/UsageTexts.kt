@@ -15,6 +15,7 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsageEffect
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.ui.gameMap.label
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.delete_confirmation_title_property
@@ -26,6 +27,7 @@ import kubriko.creator.generated.resources.usage_effect_actors_removed
 import kubriko.creator.generated.resources.usage_effect_block_removed
 import kubriko.creator.generated.resources.usage_effect_event_removed
 import kubriko.creator.generated.resources.usage_effect_kotlin_to_change
+import kubriko.creator.generated.resources.usage_effect_mention_to_text
 import kubriko.creator.generated.resources.usage_effect_placeholder_to_text
 import kubriko.creator.generated.resources.usage_effect_prevents_deleting
 import kubriko.creator.generated.resources.usage_effect_section_removed
@@ -33,6 +35,7 @@ import kubriko.creator.generated.resources.usage_place_block
 import kubriko.creator.generated.resources.usage_place_event
 import kubriko.creator.generated.resources.usage_place_game_settings
 import kubriko.creator.generated.resources.usage_place_kotlin_ui
+import kubriko.creator.generated.resources.usage_place_page
 import kubriko.creator.generated.resources.usage_place_scene
 import kubriko.creator.generated.resources.usage_place_text
 import org.jetbrains.compose.resources.stringResource
@@ -69,6 +72,7 @@ internal fun Usage.placeText() = when (val place = place) {
         is RelationPlace.Scene -> stringResource(Res.string.usage_place_scene, inModel.name)
     }
     is UsagePlace.KotlinFile -> place.path
+    is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let { stringResource(Res.string.usage_place_page, it) } ?: place.path
     UsagePlace.GameSettings -> stringResource(Res.string.usage_place_game_settings)
 }
 
@@ -87,14 +91,20 @@ internal fun UsageEffect.text() = stringResource(
         UsageEffect.ACTORS_REMOVED -> Res.string.usage_effect_actors_removed
         UsageEffect.PLACEHOLDER_TO_TEXT -> Res.string.usage_effect_placeholder_to_text
         UsageEffect.KOTLIN_TO_CHANGE -> Res.string.usage_effect_kotlin_to_change
+        UsageEffect.MENTION_TO_TEXT -> Res.string.usage_effect_mention_to_text
         UsageEffect.PREVENTS_DELETING -> Res.string.usage_effect_prevents_deleting
     },
 )
 
 /**
- * The Actor type, Manager type, or Scene [this] usage is in, if it is in Kubriko Creator's model.
+ * The Actor type, Manager type, Scene, or page [this] usage is in, if it is in Kubriko Creator's model or a page.
  */
-internal val Usage.placeOwner get() = (place as? UsagePlace.InModel)?.place?.owner
+internal val Usage.placeOwner
+    get() = when (val place = place) {
+        is UsagePlace.InModel -> place.place.owner
+        is UsagePlace.Markdown -> PageNaming.nameOf(place.path)?.let(RelationSubject::Page)
+        is UsagePlace.KotlinFile, UsagePlace.GameSettings -> null
+    }
 
 /**
  * Whether [this] usage is something the user still has to deal with: Kotlin to change, or what refuses the delete.

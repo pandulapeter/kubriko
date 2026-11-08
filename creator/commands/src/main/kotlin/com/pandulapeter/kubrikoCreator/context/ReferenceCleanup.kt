@@ -71,7 +71,7 @@ internal class ReferenceCleanup(
                             val blocks = types.first { it.name == place.name }.events[eventIndex].blocks
                             removal.blocks.getOrPut(eventIndex, ::HashSet) += ProjectReferences.sectionOf(blocks, checkNotNull(blockIndex))
                         }
-                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING -> Unit
+                        UsageEffect.PLACEHOLDER_TO_TEXT, UsageEffect.ACTORS_REMOVED, UsageEffect.KOTLIN_TO_CHANGE, UsageEffect.PREVENTS_DELETING, UsageEffect.MENTION_TO_TEXT -> Unit
                     }
                 }
                 is RelationPlace.Text -> if (usage.effect == UsageEffect.PLACEHOLDER_TO_TEXT) removal.texts += place.textIndex

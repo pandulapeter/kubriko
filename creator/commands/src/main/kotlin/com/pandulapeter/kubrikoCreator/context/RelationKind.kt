@@ -29,4 +29,9 @@ public enum class RelationKind(
      * The game's settings starting with a Scene, which only [ProjectReferences] reports.
      */
     STARTS_WITH("starts with"),
+
+    /**
+     * A page's or document's link to what it names, which only [ProjectReferences] reports.
+     */
+    MENTIONS("mentions"),
 }

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
+import com.pandulapeter.kubrikoCreator.commands.screenplay.RestoreMarkdown
 import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
@@ -24,8 +25,9 @@ import kotlinx.serialization.json.putJsonArray
 /**
  * Deletes [subject] by applying [delete], which deletes only it, after cleaning up what Kubriko Creator owns that refers
  * to it ([com.pandulapeter.kubrikoCreator.context.ProjectReferences]): the Actors of its type leave every Scene, Blocks and
- * Events that only mean something with it are removed, and placeholders of its Properties become text. All of it is
- * one step, undone together, and the AI hears every usage and what happened to it, Kotlin left to change included.
+ * Events that only mean something with it are removed, placeholders of its Properties become text, and so do the pages'
+ * and documents' mentions of it. All of it is one step, undone together, and the AI hears every usage and what happened
+ * to it, Kotlin left to change included.
  */
 internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, delete: Invocation<*>): Applied {
     val references = projectReferences(subject)
@@ -34,6 +36,7 @@ internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, d
         scenesWithout(subject, usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceScenes, ReplaceScenes.Input(it))) }
         references.typesAfterDeleting(usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceTypes, ReplaceTypes.Input(it))) }
         add(delete)
+        references.markdownAfterDeleting(usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(RestoreMarkdown, RestoreMarkdown.Input(it))) }
     }
     val applied = parts.singleOrNull()?.apply(this) ?: CompositeCommand.apply(this, CompositeCommand.Input(parts))
     return if (applied.failure == null && usages.isNotEmpty()) applied.copy(details = usagesDetails(references.usagesAfterDeleting(usages))) else applied

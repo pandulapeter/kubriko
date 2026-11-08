@@ -22,8 +22,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 
 /**
- * Writes pages and documents back as they were, by their paths from the project's root: how undoing a move puts back the
- * links that followed it ([withMentionsFollowed]), byte for byte.
+ * Writes pages and documents as given, by their paths from the project's root: how a delete turns their mentions of what it
+ * deleted into plain text ([com.pandulapeter.kubrikoCreator.commands.deleteWithUsages]), and how undoing a move puts back
+ * the links that followed it ([withMentionsFollowed]), byte for byte.
  */
 @OptIn(EditorMutation::class)
 internal object RestoreMarkdown : WriteCommand<RestoreMarkdown.Input> {

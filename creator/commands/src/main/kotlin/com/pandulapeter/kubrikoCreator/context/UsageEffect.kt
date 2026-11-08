@@ -29,6 +29,7 @@ public enum class UsageEffect(
      * Kotlin Kubriko Creator never rewrites, so the build fails until it is changed by hand.
      */
     KOTLIN_TO_CHANGE("left as it is, so the build fails until it is changed"),
+    MENTION_TO_TEXT("the mention becomes plain text"),
 
     /**
      * What makes the delete refused: a child Actor type, or the game starting with the Scene.

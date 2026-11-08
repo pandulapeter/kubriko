@@ -28,6 +28,17 @@ internal fun CommandContext.mentionPathsOf(targets: Collection<CommandTarget>): 
 }
 
 /**
+ * The file a page links to to mention [subject], a path from the project's root, if it exists and can be mentioned. Reads
+ * the disk.
+ */
+internal fun CommandContext.mentionedPathOf(subject: RelationSubject): String? = when (subject) {
+    is RelationSubject.Type -> mentionPathsOf(listOf(CommandTarget.BlockType(subject.name))).firstOrNull()
+    is RelationSubject.Scene -> mentionPathsOf(listOf(CommandTarget.Scene(subject.name))).firstOrNull()
+    is RelationSubject.Page -> PageNaming.pathOf(subject.name)
+    is RelationSubject.Property, is RelationSubject.Image -> null
+}
+
+/**
  * The paths from the project's root of the pages that mention any of [paths], so that the agent that changed what is
  * there knows which pages may need the same change. Reads the disk.
  */

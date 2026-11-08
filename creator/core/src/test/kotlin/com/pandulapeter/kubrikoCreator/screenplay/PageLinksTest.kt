@@ -131,4 +131,15 @@ class PageLinksTest {
         assertEquals(move, move.reversed().reversed())
         assertFalse(PageLinks.linksOf("[x](levels/cave.md)").first().isImage)
     }
+
+    @Test
+    fun `links to a deleted path become their labels, and nothing else changes`() {
+        val page = "The [ball](../.kubriko/actors/Ball.json) and the <[paddle](../.kubriko/actors/Paddle.json)>, " +
+            "a [linked ![picture](ball.png)](../.kubriko/actors/Ball.json), `[code](../.kubriko/actors/Ball.json)`, and [Ball](<../.kubriko/actors/Ball.json#speed>)."
+        assertEquals(
+            "The ball and the <[paddle](../.kubriko/actors/Paddle.json)>, a linked ![picture](ball.png), `[code](../.kubriko/actors/Ball.json)`, and Ball.",
+            PageLinks.withLinksToPathAsText(page, "screenplay/README.md", ".kubriko/actors/Ball.json"),
+        )
+        assertEquals("Line one.\n![Ball](ball.png)\n", PageLinks.withLinksToPathAsText("Line one.\n![Ball](ball.png)\n", "screenplay/README.md", "screenplay/ball.png"))
+    }
 }

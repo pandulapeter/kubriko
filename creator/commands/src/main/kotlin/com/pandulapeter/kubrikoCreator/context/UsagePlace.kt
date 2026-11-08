@@ -30,6 +30,15 @@ public sealed interface UsagePlace {
         override fun toString(): String = path
     }
 
+    /**
+     * A page of the screenplay or a document, by its path from the project's root.
+     */
+    public data class Markdown(
+        val path: String,
+    ) : UsagePlace {
+        override fun toString(): String = path
+    }
+
     public data object GameSettings : UsagePlace {
         override fun toString(): String = "The game's settings"
     }

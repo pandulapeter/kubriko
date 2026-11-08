@@ -44,20 +44,18 @@ Deleting an Actor type, Manager type, Scene, or Property cleans up what refers t
 dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is left:
 
 - **The other kinds,** once each can be deleted at all: sprites, sounds, and music (their Blocks removed, an Actor type's
-  sprite cleared; dangling ones already show on their cards), a Timer (its start and stop Blocks and its Event), a folder with
-  what is in it (`delete_folder` takes only an empty one today), and a page. `ProjectReferences` gains each, so the
-  confirmation, `check_change`, and the AI's result show them too.
-- **Pages:** `ProjectReferences` finds their mentions and images. Deleting turns a mention into its plain text, copies an image
-  of a deleted sprite next to the page first, so the page keeps what it showed, and turns a link to a deleted page into plain
-  text; undo brings back the links and removes the copies, and a dangling mention chip is marked missing.
+  sprite cleared; dangling ones already show on their cards), a Timer (its start and stop Blocks and its Event), and a folder
+  with what is in it (`delete_folder` takes only an empty one today). `ProjectReferences` gains each, so the confirmation,
+  `check_change`, and the AI's result show them too.
+- **Pages:** an image of a deleted sprite is copied next to the page first, so that the page keeps what it showed (undo
+  removes the copy), once sprites can be deleted.
 - **Renames read `ProjectReferences` too** (each kind follows its own rename code today), so a rename can't miss what a delete
   sees; find usages (`07-resource-organization.md`) reads it as well.
 
 ## Order
 
 What is left of deleting what is referred to comes with each kind's delete. Search (`07-resource-organization.md`) covers
-pages once it lands: quick open lists them, and find usages and `search_project` include
-their mentions and text.
+pages once it lands: quick open lists them, and find usages and `search_project` include their mentions and text.
 
 ## Testing
 

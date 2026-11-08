@@ -80,7 +80,8 @@ class PageImageCommandsTest {
     @Test
     fun `deleting a page deletes its own images no other page shows only when asked, and undo brings back every byte`() = runTest {
         val keeping = context()
-        assertEquals(keeping.files() - "screenplay/levels/cave.md", keeping.assertRoundTrip(Invocation(DeletePage, DeletePage.Input("levels/cave"))) { keeping.files() })
+        val unlinked = keeping.files() - "screenplay/levels/cave.md" + ("screenplay/README.md" to "Start in the cave, ![map](levels/cave-1.png).\n")
+        assertEquals(unlinked, keeping.assertRoundTrip(Invocation(DeletePage, DeletePage.Input("levels/cave"))) { keeping.files() })
         val deleting = context()
         val after = deleting.assertRoundTrip(Invocation(DeletePage, DeletePage.Input("levels/cave", deleteImages = true))) { deleting.files() }
         assertEquals(setOf("screenplay/README.md", "screenplay/levels/cave-1.png", "screenplay/levels/cave-3.txt", "screenplay/levels/other-1.png"), after.keys)

@@ -249,8 +249,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   that name of another kind.
 - **Deletes clean up what refers to them** (`deleteWithUsages`): deleting an Actor type, Manager type, Scene, or Property
   removes its type's Actors from every Scene and the Blocks and Events that only mean something with it (an if Block with its
-  section), turns placeholders of its Properties into text, and leaves Kotlin alone (listed instead), as one undo step that
-  brings it all back byte for byte (`ReplaceTypes`, `ReplaceScenes`, internal like `CompositeCommand`). What it touches comes
+  section), turns placeholders of its Properties and the pages' and documents' mentions of it into text (`RestoreMarkdown`), and
+  leaves Kotlin alone (listed instead), as one undo step that brings it all back byte for byte (`ReplaceTypes`, `ReplaceScenes`,
+  internal like `CompositeCommand`). Deleting a page turns the links to it into text the same way, and the AI still hears which
+  pages mentioned what it deleted (`mentionedIn`), since their prose may still describe it. What it touches comes
   from `ProjectReferences`, which `check_change`, the AI's result (`Applied.details`), and the confirmation every delete from the UI waits for (`WorkspaceUiState.dispatch`) read too, so
   none sees less than the delete does. What still dangles after a change outside Creator (a file deleted in a terminal, a
   git checkout) shows where it is: on the Block's card (`isMissingChoice`), in the health checks (`MissingReferenceChecks`),

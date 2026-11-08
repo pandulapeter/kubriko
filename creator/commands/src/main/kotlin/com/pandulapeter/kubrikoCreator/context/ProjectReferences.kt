@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.KotlinIdentifiers
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
 
 /**
  * Everything that refers to a part of the game, read from Kubriko Creator's model ([ProjectRelations]), the game's first
@@ -28,12 +29,17 @@ import com.pandulapeter.kubrikoCreator.actors.propertyReference
  * @param firstScene The Scene the game starts with, if its settings name one.
  * @param kotlinFiles The text of every hand-written Kotlin file, by its path from the project's root (only those
  *   [readsKotlinFiles] says the usages of a subject need).
+ * @param markdown The text of every page and document, by its path from the project's root.
+ * @param mentionedPath The file a page links to to mention the subject asked about, a path from the project's root, if it
+ *   can be mentioned.
  */
 internal class ProjectReferences(
     private val types: List<BlockTypeDefinition>,
     sceneTypeCounts: Map<String, Map<String, Int>>,
     private val firstScene: String?,
     private val kotlinFiles: Map<String, String>,
+    private val markdown: Map<String, String> = emptyMap(),
+    private val mentionedPath: String? = null,
 ) {
     val relations = ProjectRelations(types, sceneTypeCounts)
     private val family = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>())
@@ -55,6 +61,29 @@ internal class ProjectReferences(
         val isNamedIn = fileNaming(subject)
         kotlinFiles.keys.sorted().filter { path -> isNamedIn(kotlinFiles.getValue(path)) }.forEach { path ->
             add(Usage(UsagePlace.KotlinFile(path), RelationKind.NAMES_IN_KOTLIN, subject, UsageEffect.KOTLIN_TO_CHANGE))
+        }
+        addAll(mentionUsagesOf(subject))
+    }
+
+    /**
+     * The pages and documents linking to [subject], each once with how many links it has.
+     */
+    private fun mentionUsagesOf(subject: RelationSubject): List<Usage> {
+        val path = mentionedPath ?: return emptyList()
+        return markdown.keys.sorted().filter { it != path }.mapNotNull { file ->
+            val count = PageLinks.linksOf(markdown.getValue(file)).count { !it.isImage && PageLinks.resolve(file, it.destination) == path }
+            if (count == 0) null else Usage(UsagePlace.Markdown(file), RelationKind.MENTIONS, subject, UsageEffect.MENTION_TO_TEXT, count)
+        }
+    }
+
+    /**
+     * The text of each page and document among [usages] once deleting has turned its mentions into plain text, by its path
+     * from the project's root.
+     */
+    fun markdownAfterDeleting(usages: List<Usage>): Map<String, String> {
+        val path = mentionedPath ?: return emptyMap()
+        return usages.mapNotNull { (it.place as? UsagePlace.Markdown)?.path }.distinct().associateWith { file ->
+            PageLinks.withLinksToPathAsText(markdown.getValue(file), file, path)
         }
     }
 
@@ -80,6 +109,7 @@ internal class ProjectReferences(
             RelationKind.NAMES_IN_KOTLIN -> usage(UsageEffect.KOTLIN_TO_CHANGE)
             RelationKind.ADDS, RelationKind.MOVES_TOWARDS, RelationKind.GOES_TO, RelationKind.CHANGES -> usage(UsageEffect.BLOCK_REMOVED)
             RelationKind.STARTS_WITH -> usage(UsageEffect.PREVENTS_DELETING)
+            RelationKind.MENTIONS -> usage(UsageEffect.MENTION_TO_TEXT)
             RelationKind.READS -> when (val block = blockAt(relation.place)) {
                 is BlockDefinition.If -> usage(UsageEffect.SECTION_REMOVED, sectionOf(relation.place as RelationPlace.Type).count() - 1)
                 null, is BlockDefinition.Log -> usage(UsageEffect.PLACEHOLDER_TO_TEXT)

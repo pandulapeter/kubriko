@@ -38,6 +38,8 @@ internal suspend fun CommandContext.projectReferences(subject: RelationSubject):
             sceneTypeCounts = sceneCounts,
             firstScene = firstSceneSettings(project.rootDirectory)?.firstScene,
             kotlinFiles = if (ProjectReferences.readsKotlinFiles(subject)) HandWrittenKotlin.read(project.rootDirectory) else emptyMap(),
+            markdown = screenplayTexts().markdown,
+            mentionedPath = mentionedPathOf(subject),
         )
     }
 }

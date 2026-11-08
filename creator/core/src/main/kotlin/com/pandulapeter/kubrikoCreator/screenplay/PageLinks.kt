@@ -23,6 +23,7 @@ public object PageLinks {
      * @param destination The destination as written, without the angle brackets it may be written in.
      * @param destinationRange Where [destination] is in the page's text.
      * @param isInAngleBrackets Whether the destination is written as `<destination>`, which needs no escaping.
+     * @param range Where the whole link is in the page's text, the `!` of an image included.
      */
     public data class Link(
         val label: String,
@@ -30,6 +31,7 @@ public object PageLinks {
         val destinationRange: IntRange,
         val isImage: Boolean,
         val isInAngleBrackets: Boolean,
+        val range: IntRange = destinationRange,
     )
 
     /**
@@ -103,6 +105,22 @@ public object PageLinks {
         return result.toString()
     }
 
+    /**
+     * [text], the page at [pagePath], with each link to the project's file at [path] (a path from the project's root)
+     * written as its label alone, as what something deleted leaves of its mentions. Its images are left as they are.
+     */
+    public fun withLinksToPathAsText(text: String, pagePath: String, path: String): String {
+        val result = StringBuilder(text)
+        var end = Int.MAX_VALUE
+        linksOf(text).asReversed().forEach { link ->
+            // A link inside another's label (a linked picture's image) is replaced with the link around it, or not at all.
+            if (link.isImage || link.range.last >= end || resolve(pagePath, link.destination) != path) return@forEach
+            result.replace(link.range.first, link.range.last + 1, link.label)
+            end = link.range.first
+        }
+        return result.toString()
+    }
+
     private fun scanInline(line: String, start: Int, end: Int, offset: Int, links: MutableList<Link>) {
         var index = start
         while (index < end) {
@@ -121,6 +139,7 @@ public object PageLinks {
                             destinationRange = (offset + parsed.destinationStart) until (offset + parsed.destinationEnd),
                             isImage = isImage,
                             isInAngleBrackets = parsed.isInAngleBrackets,
+                            range = (offset + if (isImage) index - 1 else index) until (offset + parsed.end),
                         )
                         // A label may hold an image of its own, as a linked picture does.
                         scanInline(line, index + 1, parsed.labelEnd, offset, links)
