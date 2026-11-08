@@ -29,8 +29,9 @@ files where the format allows it, so the project stays readable in IntelliJ and 
 - **Quick open** (Cmd/Ctrl+P, or Shift twice): a list over everything (types, Scenes, sprites, sounds, Kotlin files, and Properties and
   functions by their type) that opens the chosen one.
 - **Find usages:** from a type, Property, sprite, sound, or Scene, every Block, condition, text, Scene, and collision Event that refers
-  to it, each one clickable (opening the type at that Event and Block, or the Scene with that Actor selected). The rename logic already
-  finds these (`KotlinIdentifiers`, the Block reference edits); this lists them instead of changing them.
+  to it, each one clickable (opening the type at that Event and Block, or the Scene with that Actor selected), and the pages that
+  mention it. `ProjectReferences` already finds every one of them for deletes (the delete confirmation lists them), so this
+  reads it rather than finding them again.
 - **Search in Blocks:** texts in Log Blocks, screen texts, and Kotlin Blocks, from the same panel.
 - AI tools: `search_project` (names and Block texts, with paths) and `find_usages`, read-only; `find_usages` builds on
   `ProjectRelations`, which `get_relations` already reads types, Properties, and Scenes from (sprites and sounds are left).

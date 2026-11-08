@@ -243,7 +243,8 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   starts with are left alone), the Actors of every Scene, a Property's saved values in Scenes, and the screenplay's mentions
   and images of every file a rename or move moves (`withMentionsFollowed`, which also writes a moved page's or document's own
   links again from where it is now; undo moves back, then writes the files back byte for byte with `RestoreMarkdown`, so a
-  stale link isn't turned into another). Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
+  stale link isn't turned into another). Each kind follows its own rename code, and `RenamingFollowsReferencesTest` holds them
+  to what `ProjectReferences` finds (every `RelationKind`), so a rename can't miss what a delete sees. Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
   kind, which wouldn't load; a Property's kind can't change. Renaming a Property renames it through the family of the Actor type that
   declares it, and is refused on one that only inherits it; adding a Property or a parent is refused when a descendant has one of
   that name of another kind.

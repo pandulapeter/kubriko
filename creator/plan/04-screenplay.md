@@ -49,8 +49,6 @@ dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is le
   `check_change`, and the AI's result show them too.
 - **Pages:** an image of a deleted sprite is copied next to the page first, so that the page keeps what it showed (undo
   removes the copy), once sprites can be deleted.
-- **Renames read `ProjectReferences` too** (each kind follows its own rename code today), so a rename can't miss what a delete
-  sees; find usages (`07-resource-organization.md`) reads it as well.
 
 ## Order
 
