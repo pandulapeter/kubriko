@@ -102,6 +102,7 @@ internal fun WorkspaceAiSidePanel(
         findings = shownGameMap?.findings.orEmpty(),
         onTypeSelected = onTypeSelected,
         onSceneSelected = onSceneSelected,
+        onPageSelected = onPageSelected,
         attention = attention,
         captureScreen = captureScreen,
     )

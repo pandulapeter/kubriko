@@ -10,7 +10,8 @@
 package com.pandulapeter.kubrikoCreator.context
 
 /**
- * What a relation refers to: an Actor type or Manager type, one of their Properties, or a Scene.
+ * What a relation refers to: an Actor type or Manager type, one of their Properties, a Scene, a page of the screenplay,
+ * or an image next to the pages.
  */
 public sealed interface RelationSubject {
 
@@ -34,5 +35,23 @@ public sealed interface RelationSubject {
         val name: String,
     ) : RelationSubject {
         override fun toString(): String = "Scene $name"
+    }
+
+    /**
+     * A page of the screenplay, by its name (`levels/cave`).
+     */
+    public data class Page(
+        val name: String,
+    ) : RelationSubject {
+        override fun toString(): String = "Page $name"
+    }
+
+    /**
+     * An image file among the pages, by its path from the project's root.
+     */
+    public data class Image(
+        val path: String,
+    ) : RelationSubject {
+        override fun toString(): String = path
     }
 }

@@ -10,11 +10,12 @@
 package com.pandulapeter.kubrikoCreator.context
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import kotlinx.coroutines.withContext
 
 /**
  * The digest of the open project and what about it is worth a look, reading its Scenes once for both.
  */
 public suspend fun CommandContext.digestAndHealthFindings(): Pair<ProjectDigest, List<HealthFinding>> {
     val sceneCounts = sceneTypeCounts()
-    return projectDigest(sceneCounts) to healthFindings(sceneCounts)
+    return projectDigest(sceneCounts) to healthFindings(sceneCounts) + withContext(ioDispatcher) { pageImageFindings() }
 }

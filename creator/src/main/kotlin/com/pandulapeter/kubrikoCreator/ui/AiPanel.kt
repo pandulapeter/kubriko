@@ -62,6 +62,7 @@ internal fun AiPanel(
     findings: List<HealthFinding>,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
+    onPageSelected: (String) -> Unit,
     attention: List<AttentionChip>,
     captureScreen: suspend () -> ByteArray?,
     modifier: Modifier = Modifier,
@@ -98,6 +99,7 @@ internal fun AiPanel(
             findings = shownFindings,
             onTypeSelected = onTypeSelected,
             onSceneSelected = onSceneSelected,
+            onPageSelected = onPageSelected,
             attention = attention,
             captureScreen = captureScreen,
         )
@@ -117,6 +119,7 @@ private fun AiPanelContent(
     findings: List<HealthFinding>,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
+    onPageSelected: (String) -> Unit,
     attention: List<AttentionChip>,
     captureScreen: suspend () -> ByteArray?,
 ) {
@@ -155,6 +158,7 @@ private fun AiPanelContent(
             findings = findings,
             onTypeSelected = onTypeSelected,
             onSceneSelected = onSceneSelected,
+            onPageSelected = onPageSelected,
         )
     }
 }

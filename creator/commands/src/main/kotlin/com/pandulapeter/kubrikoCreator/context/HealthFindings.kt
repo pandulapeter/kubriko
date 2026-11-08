@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 /**
  * What about the open project is worth a look ([HealthChecks]).
  */
-internal suspend fun CommandContext.healthFindings(): List<HealthFinding> = healthFindings(sceneTypeCounts())
+internal suspend fun CommandContext.healthFindings(): List<HealthFinding> = healthFindings(sceneTypeCounts()) + withContext(ioDispatcher) { pageImageFindings() }
 
 /**
  * What about the open project is worth a look, with the Scenes' Actor counts [sceneCounts] already read ([sceneTypeCounts]),

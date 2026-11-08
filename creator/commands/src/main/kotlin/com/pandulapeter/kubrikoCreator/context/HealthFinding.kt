@@ -13,7 +13,7 @@ package com.pandulapeter.kubrikoCreator.context
  * Something about the game worth a look, found from Kubriko Creator's model of it ([HealthChecks]): not necessarily a
  * mistake, but often one.
  *
- * @param subject What it is about: an Actor type, a Property, or a Scene.
+ * @param subject What it is about: an Actor type, a Property, a Scene, a page, or an image.
  * @param detail The Timer or the other Actor type it names, or the place of the Block (`Ball#1.2`), for the kinds that
  *   name one.
  * @param usage What a Kotlin Block uses that changed (`return`, or the name of a local it no longer has), or what a
@@ -62,6 +62,16 @@ public data class HealthFinding(
          * ([MissingReferenceChecks]), at the place in [detail].
          */
         REFERENCE_MISSING,
+
+        /**
+         * An image among the pages that no page shows or links to ([PageImageChecks]).
+         */
+        UNUSED_PAGE_IMAGE,
+
+        /**
+         * A page showing the image at [usage], whose file is gone ([PageImageChecks]).
+         */
+        PAGE_IMAGE_MISSING,
     }
 
     override fun toString(): String = when (kind) {
@@ -71,6 +81,8 @@ public data class HealthFinding(
         Kind.TIMER_NEVER_STARTED -> "$subject: the timerFinished Event of $detail never fires, since no startTimer Block of its family starts it."
         Kind.COLLISION_WITH_ABSENT_TYPE -> "$subject: the collision Event with $detail never fires, since no Scene places $detail and no Block adds it."
         Kind.REFERENCE_MISSING -> "$detail: names $usage, which no longer exists."
+        Kind.UNUSED_PAGE_IMAGE -> "$subject: no page shows it."
+        Kind.PAGE_IMAGE_MISSING -> "$subject: shows $usage, which is gone."
         Kind.KOTLIN_BLOCK_SCOPE_CHANGED -> if (usage == KotlinBlockScopeChecks.RETURN) {
             "$detail: return in this Kotlin Block now ends only this Event's Blocks (and those of the type's later Events of the same kind), not the rest of the frame or the other collisions."
         } else {

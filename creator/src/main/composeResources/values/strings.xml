@@ -713,6 +713,8 @@
     <string name="ai_target_game">The game</string>
     <string name="ai_target_project">The template files</string>
     <string name="game_map_worth_a_look">Worth a look</string>
+    <string name="health_unused_page_image">%1$s: no page shows it.</string>
+    <string name="health_page_image_missing">%1$s shows %2$s, which is gone.</string>
     <string name="health_unused_actor_type">%1$s: no Scene places it and no Block adds it.</string>
     <string name="health_unreached_scene">%1$s: nothing goes to it, which is fine if the game starts with it.</string>
     <string name="health_unread_property">%1$s: nothing reads it.</string>

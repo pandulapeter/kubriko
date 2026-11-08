@@ -139,6 +139,7 @@ internal class ProjectReferences(
                 addAll(kotlinNamingScene(subject))
                 return@buildList
             }
+            is RelationSubject.Page, is RelationSubject.Image -> return@buildList
         }
         types.forEach { type ->
             if (subject is RelationSubject.Type && type.name == subject.name) return@forEach
@@ -181,7 +182,7 @@ internal class ProjectReferences(
     private fun fileNaming(subject: RelationSubject): (String) -> Boolean = when (subject) {
         is RelationSubject.Type -> Regex("\\b" + Regex.escape(subject.name) + "\\b")::containsMatchIn
         is RelationSubject.Scene -> sceneString(subject.name).let { quoted -> { text -> quoted in text } }
-        is RelationSubject.Property -> { _ -> false }
+        is RelationSubject.Property, is RelationSubject.Page, is RelationSubject.Image -> { _ -> false }
     }
 
     private fun blockAt(place: RelationPlace) = (place as? RelationPlace.Type)?.let { type ->

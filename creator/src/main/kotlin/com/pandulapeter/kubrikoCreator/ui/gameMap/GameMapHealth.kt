@@ -26,11 +26,13 @@ import kubriko.creator.generated.resources.game_map_worth_a_look
 import kubriko.creator.generated.resources.health_collision_with_absent_type
 import kubriko.creator.generated.resources.health_kotlin_block_removed_local
 import kubriko.creator.generated.resources.health_kotlin_block_return
+import kubriko.creator.generated.resources.health_page_image_missing
 import kubriko.creator.generated.resources.health_reference_missing
 import kubriko.creator.generated.resources.health_timer_never_started
 import kubriko.creator.generated.resources.health_unreached_scene
 import kubriko.creator.generated.resources.health_unread_property
 import kubriko.creator.generated.resources.health_unused_actor_type
+import kubriko.creator.generated.resources.health_unused_page_image
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -40,6 +42,7 @@ internal fun LazyListScope.healthSection(
     findings: List<HealthFinding>,
     onTypeSelected: (String) -> Unit,
     onSceneSelected: (String) -> Unit,
+    onPageSelected: (String) -> Unit,
 ) {
     if (findings.isEmpty()) return
     item(key = "health") {
@@ -56,6 +59,8 @@ internal fun LazyListScope.healthSection(
                     is RelationSubject.Type -> onTypeSelected(subject.name)
                     is RelationSubject.Property -> onTypeSelected(subject.owner)
                     is RelationSubject.Scene -> onSceneSelected(subject.name)
+                    is RelationSubject.Page -> onPageSelected(subject.name)
+                    is RelationSubject.Image -> Unit
                 }
             },
             text = finding.text(),
@@ -71,6 +76,8 @@ private fun HealthFinding.text(): String {
         is RelationSubject.Type -> subject.name
         is RelationSubject.Property -> stringResource(Res.string.block_property_of_manager, subject.name, subject.owner)
         is RelationSubject.Scene -> subject.name
+        is RelationSubject.Page -> subject.name
+        is RelationSubject.Image -> subject.path
     }
     return when (kind) {
         HealthFinding.Kind.UNUSED_ACTOR_TYPE -> stringResource(Res.string.health_unused_actor_type, subjectText)
@@ -78,6 +85,8 @@ private fun HealthFinding.text(): String {
         HealthFinding.Kind.UNREAD_PROPERTY -> stringResource(Res.string.health_unread_property, subjectText)
         HealthFinding.Kind.TIMER_NEVER_STARTED -> stringResource(Res.string.health_timer_never_started, subjectText, detail.orEmpty())
         HealthFinding.Kind.COLLISION_WITH_ABSENT_TYPE -> stringResource(Res.string.health_collision_with_absent_type, subjectText, detail.orEmpty())
+        HealthFinding.Kind.UNUSED_PAGE_IMAGE -> stringResource(Res.string.health_unused_page_image, subjectText)
+        HealthFinding.Kind.PAGE_IMAGE_MISSING -> stringResource(Res.string.health_page_image_missing, subjectText, usage.orEmpty())
         HealthFinding.Kind.REFERENCE_MISSING -> stringResource(Res.string.health_reference_missing, detail.orEmpty(), usage.orEmpty())
         HealthFinding.Kind.KOTLIN_BLOCK_SCOPE_CHANGED -> if (usage == KotlinBlockScopeChecks.RETURN) {
             stringResource(Res.string.health_kotlin_block_return, detail.orEmpty())

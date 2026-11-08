@@ -330,7 +330,8 @@ private fun WorkspaceDialogsOf(
         when (val owner = usage.placeOwner) {
             is RelationSubject.Type -> controller.selection.selectType(owner.name)
             is RelationSubject.Scene -> controller.selection.openScene(owner.name)
-            is RelationSubject.Property, null -> Unit
+            is RelationSubject.Page -> controller.selection.openPage(owner.name)
+            is RelationSubject.Property, is RelationSubject.Image, null -> Unit
         }
     },
 )

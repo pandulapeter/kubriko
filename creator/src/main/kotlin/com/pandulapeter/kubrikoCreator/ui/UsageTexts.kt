@@ -20,6 +20,8 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.delete_confirmation_title_property
 import kubriko.creator.generated.resources.delete_confirmation_title_scene
 import kubriko.creator.generated.resources.delete_confirmation_title_type
+import kubriko.creator.generated.resources.document_delete_title
+import kubriko.creator.generated.resources.page_delete_title
 import kubriko.creator.generated.resources.usage_effect_actors_removed
 import kubriko.creator.generated.resources.usage_effect_block_removed
 import kubriko.creator.generated.resources.usage_effect_event_removed
@@ -43,6 +45,8 @@ internal fun RelationSubject.deleteConfirmationTitle() = when (this) {
     is RelationSubject.Type -> stringResource(Res.string.delete_confirmation_title_type, name)
     is RelationSubject.Scene -> stringResource(Res.string.delete_confirmation_title_scene, name)
     is RelationSubject.Property -> stringResource(Res.string.delete_confirmation_title_property, name)
+    is RelationSubject.Page -> stringResource(Res.string.page_delete_title, name)
+    is RelationSubject.Image -> stringResource(Res.string.document_delete_title, path)
 }
 
 /**

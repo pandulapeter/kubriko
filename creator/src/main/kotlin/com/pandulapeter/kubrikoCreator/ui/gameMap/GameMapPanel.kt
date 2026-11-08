@@ -57,6 +57,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param digest The digest of the open project, or null while it is worked out.
  * @param findings What about the game is worth a look, shown first.
+ * @param onPageSelected Opens a page a finding is about.
  */
 @Composable
 internal fun GameMapPanel(
@@ -65,6 +66,7 @@ internal fun GameMapPanel(
     onSceneSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     findings: List<HealthFinding> = emptyList(),
+    onPageSelected: (String) -> Unit = {},
 ) = Column(
     modifier = modifier,
 ) {
@@ -82,7 +84,7 @@ internal fun GameMapPanel(
             )
         }
         if (digest == null) return@LazyColumn
-        healthSection(findings, onTypeSelected, onSceneSelected)
+        healthSection(findings, onTypeSelected, onSceneSelected, onPageSelected)
         if (digest.actorTypes.isEmpty() && digest.managerTypes.isEmpty() && digest.scenes.isEmpty()) {
             item { Text(stringResource(Res.string.game_map_empty), style = MaterialTheme.typography.bodySmall) }
         }
@@ -195,4 +197,6 @@ private fun subjectText(subject: RelationSubject) = when (subject) {
     is RelationSubject.Type -> subject.name
     is RelationSubject.Property -> stringResource(Res.string.block_property_of_manager, subject.name, subject.owner)
     is RelationSubject.Scene -> subject.name
+    is RelationSubject.Page -> subject.name
+    is RelationSubject.Image -> subject.path
 }
