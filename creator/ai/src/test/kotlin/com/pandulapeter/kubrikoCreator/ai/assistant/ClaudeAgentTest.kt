@@ -56,6 +56,7 @@ class ClaudeAgentTest {
     fun theSystemPromptExplainsCreatorAndCarriesTheBlockCatalog() {
         val prompt = AssistantSystemPrompt.text
         assertContains(prompt, "Make every change through these tools")
+        assertContains(prompt, "A Kotlin Block is only for what no combination of\nBlocks can do")
         assertContains(prompt, GetBlockCatalog.catalog.toString())
         assertTrue(prompt.length < SYSTEM_PROMPT_BUDGET_IN_CHARACTERS, "The system prompt grew to ${prompt.length} characters.")
     }
