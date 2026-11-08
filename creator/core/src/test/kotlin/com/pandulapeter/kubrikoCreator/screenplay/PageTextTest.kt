@@ -102,4 +102,10 @@ class PageTextTest {
         )
         assertEquals(emptyList(), PageText.plannedItemsOf("# Game\n\n- Nothing planned"))
     }
+
+    @Test
+    fun nestedItemsAndCodeBlocksArentPlannedItems() {
+        val page = "# Game\n\n## Planned\n\n- Wall jump\n  - from any wall\n\n```\n1. not an item\n```\n- Bosses\n"
+        assertEquals(listOf(PageText.PlannedItem(4, "Wall jump"), PageText.PlannedItem(10, "Bosses")), PageText.plannedItemsOf(page))
+    }
 }

@@ -75,14 +75,18 @@ public object PageText {
     )
 
     /**
-     * The items of the page's Planned list ([plannedSectionOf]), in order: its list items, outside its subheadings' own
-     * lines.
+     * The items of the page's Planned list ([plannedSectionOf]), in order: its top-level list items, outside code blocks
+     * (an indented line, a nested item among them, belongs to the item above it).
      */
     public fun plannedItemsOf(text: String): List<PlannedItem> {
         val section = plannedSectionOf(text) ?: return emptyList()
         val lines = text.lines()
-        return section.lines.drop(1).mapNotNull { index -> listMarker.find(lines[index])?.let { PlannedItem(index, lines[index].substring(it.range.last + 1).trim()) } }
-            .filter { it.text.isNotEmpty() }
+        var isInCode = false
+        return section.lines.drop(1).mapNotNull { index ->
+            val line = lines[index]
+            if (line.trimStart().startsWith("```") || line.trimStart().startsWith("~~~")) isInCode = !isInCode
+            if (isInCode) null else listMarker.find(line)?.let { PlannedItem(index, line.substring(it.range.last + 1).trim()) }
+        }.filter { it.text.isNotEmpty() }
     }
 
     /**
@@ -117,5 +121,5 @@ public object PageText {
     }
 
     private val heading = Regex("(#{1,6})\\s+(.*)")
-    private val listMarker = Regex("^\\s*([-*+]|\\d+[.)])\\s+")
+    private val listMarker = Regex("^([-*+]|\\d+[.)])\\s+")
 }
