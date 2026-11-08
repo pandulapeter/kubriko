@@ -33,6 +33,14 @@ class InlineMarkdownTest {
     }
 
     @Test
+    fun aLinkKeepsOnlyItsDestinationAndAnImageInALineIsALinkShowingItsDescription() {
+        assertEquals(
+            InlineMarkdown("a b c", listOf(Span(Style.LINK, 0, 1, "a.md"), Span(Style.LINK, 2, 3, "my b.md"), Span(Style.LINK, 4, 5, "c.png"))),
+            InlineMarkdown.parse("[a](a.md \"Title\") [b](<my b.md>) ![c]( c.png )"),
+        )
+    }
+
+    @Test
     fun stylesNest() {
         assertEquals(
             InlineMarkdown("a bold code", listOf(Span(Style.BOLD, 2, 11), Span(Style.CODE, 7, 11))),

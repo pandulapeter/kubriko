@@ -92,8 +92,17 @@ internal data class InlineMarkdown(
             val end = source.indexOf(')', middle + 2).takeIf { it > middle + 2 } ?: return null
             val spanStart = text.length
             parseInto(source.substring(start + 1, middle), text, spans)
-            spans += Span(Style.LINK, spanStart, text.length, source.substring(middle + 2, end))
+            spans += Span(Style.LINK, spanStart, text.length, destinationOf(source.substring(middle + 2, end)))
             return end + 1
+        }
+
+        /**
+         * A link's destination without what may surround it: the angle brackets it may be written in, or its title.
+         */
+        private fun destinationOf(inParentheses: String): String {
+            val trimmed = inParentheses.trim()
+            if (trimmed.startsWith('<')) return trimmed.substring(1).substringBefore('>')
+            return trimmed.substringBefore(' ').substringBefore('\t')
         }
 
         /**
