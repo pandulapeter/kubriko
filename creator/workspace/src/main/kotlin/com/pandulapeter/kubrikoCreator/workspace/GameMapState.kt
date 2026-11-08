@@ -17,24 +17,14 @@ import com.pandulapeter.kubrikoCreator.context.digestAndHealthFindings
 import com.pandulapeter.kubrikoCreator.context.pageSummaries
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 
 /**
@@ -56,33 +46,12 @@ public data class GameMap(
  */
 public class GameMapState internal constructor(
     changes: Flow<Any?>,
-    private val compute: suspend () -> GameMap,
+    compute: suspend () -> GameMap,
     scope: CoroutineScope,
-    private val report: (Throwable) -> Unit,
-    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    report: (Throwable) -> Unit,
+    computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
-    @OptIn(ExperimentalCoroutinesApi::class)
-    public val gameMap: StateFlow<GameMap?> = flow {
-        var isFirst = true
-        // A newer change cancels the delayed or running computation, which is the debounce; the first one isn't delayed, so
-        // opening the Game map shows it at once.
-        emitAll(
-            changes.onStart { emit(Unit) }.mapLatest {
-                if (!isFirst) delay(DEBOUNCE_IN_MILLISECONDS)
-                isFirst = false
-                computeReporting()
-            }.filterNotNull(),
-        )
-    }.stateIn(scope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0), null)
-
-    private suspend fun computeReporting(): GameMap? = try {
-        withContext(computeDispatcher) { compute() }
-    } catch (exception: CancellationException) {
-        throw exception
-    } catch (exception: Exception) {
-        report(exception)
-        null
-    }
+    public val gameMap: StateFlow<GameMap?> = debouncedComputation(changes, compute, scope, report, computeDispatcher, DEBOUNCE_IN_MILLISECONDS)
 
     internal companion object {
         const val DEBOUNCE_IN_MILLISECONDS = 250L
