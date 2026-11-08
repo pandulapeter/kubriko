@@ -38,6 +38,13 @@ internal class PackedAtlas(
 
     /** Every bitmap a region of this atlas lies on: its pages, and the sprites that kept their own. */
     val bitmaps: Set<ImageBitmap> = regions.values.mapTo(HashSet()) { it.page }
+
+    /** This atlas with [resource] added as a region of its own [bitmap], sharing the mip chains. */
+    fun withOwnBitmap(resource: SpriteResource, bitmap: ImageBitmap) = PackedAtlas(
+        pages = pages,
+        regions = regions + (resource to SpriteRegion(bitmap, IntOffset.Zero, IntSize(bitmap.width, bitmap.height))),
+        mipChains = mipChains,
+    )
 }
 
 /**

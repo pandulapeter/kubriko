@@ -121,8 +121,8 @@ sealed class SpriteManager(
      * Declares the unrotated sprites of [drawableResources] as belonging together, and packs them onto shared pages
      * in the background: see [SpriteAtlas]. Each call packs an atlas of its own, which stays loaded until
      * [unloadAtlas]; the sprites are loaded for it on their own, so [get] still loads a sprite separately if asked. A
-     * sprite that fails to load is retried as [get] retries it, and the atlas waits for it, since its pages are packed
-     * once, with every sprite.
+     * sprite that still fails after a few tries doesn't hold the others back: the atlas is packed without it, and it
+     * joins once a retry loads it, as a region of its own bitmap.
      *
      * @param drawableResources The sprites to pack. A drawable listed more than once is packed once.
      * @param maximumPageSize The largest width and height a page may have, in pixels. The default suits every target.
@@ -137,8 +137,9 @@ sealed class SpriteManager(
     /**
      * Declares the sprite [resources] as belonging together, and packs them onto shared pages in the background: see
      * [SpriteAtlas]. Each call packs an atlas of its own, which stays loaded until [unloadAtlas]; the sprites are
-     * loaded for it on their own, so [get] still loads a sprite separately if asked. A sprite that fails to load is
-     * retried as [get] retries it, and the atlas waits for it, since its pages are packed once, with every sprite.
+     * loaded for it on their own, so [get] still loads a sprite separately if asked. A sprite that still fails
+     * after a few tries doesn't hold the others back: the atlas is packed without it, and it joins once a retry loads
+     * it, as a region of its own bitmap.
      *
      * @param resources The sprites to pack. A sprite listed more than once is packed once.
      * @param maximumPageSize The largest width and height a page may have, in pixels. The default suits every target.

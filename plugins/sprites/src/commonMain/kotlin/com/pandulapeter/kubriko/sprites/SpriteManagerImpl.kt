@@ -212,26 +212,35 @@ internal class SpriteManagerImpl(
         val bitmaps = coroutineScope {
             atlas.resources.map { resource ->
                 async {
-                    loadUntilLoaded(resource) { !atlas.isUnloaded }?.also {
+                    loadUntilLoaded(resource, maximumAttempts = ATLAS_ATTEMPTS) { !atlas.isUnloaded }?.also {
                         atlas.reportLoadedSprites(loadedCount.updateAndGet { count -> count + 1 })
                     }
                 }
             }.awaitAll()
         }
-        if (atlas.isUnloaded || bitmaps.any { it == null }) return
-        val loadedBitmaps = bitmaps.requireNoNulls()
+        if (atlas.isUnloaded) return
+        val loadedIndices = bitmaps.indices.filter { bitmaps[it] != null }
+        val loadedResources = loadedIndices.map { atlas.resources[it] }
+        val loadedBitmaps = loadedIndices.map { checkNotNull(bitmaps[it]) }
         val packedAtlas = try {
-            packAtlas(atlas.resources, loadedBitmaps, atlas.maximumPageSize, atlas.paddingInPixels, atlasPageBuilder, newAtlasMipChains())
+            packAtlas(loadedResources, loadedBitmaps, atlas.maximumPageSize, atlas.paddingInPixels, atlasPageBuilder, newAtlasMipChains())
         } catch (exception: CancellationException) {
             throw exception
         } catch (exception: Exception) {
             // Android cannot draw a hardware bitmap (which a custom image loader may return) into a page.
             log(message = "Failed to pack an atlas, its sprites keep their own bitmaps", details = exception.message)
-            unpackedAtlas(atlas.resources, loadedBitmaps, newAtlasMipChains())
+            unpackedAtlas(loadedResources, loadedBitmaps, newAtlasMipChains())
         }
         pendingAtlases.update { it.putting(atlas, packedAtlas) }
         delay(WARM_UP_TIMEOUT_MS.milliseconds)
         promoteAtlas(atlas)
+        // One sprite that keeps failing doesn't hold back the others: it joins later, keeping a bitmap of its own.
+        atlas.resources.filterIndexed { index, _ -> bitmaps[index] == null }.forEach { resource ->
+            scope.launch {
+                val bitmap = loadUntilLoaded(resource) { !atlas.isUnloaded } ?: return@launch
+                atlas.addOwnBitmap(resource, bitmap)
+            }
+        }
     }
 
     internal fun promoteAtlas(atlas: SpriteAtlas) {
@@ -269,13 +278,15 @@ internal class SpriteManagerImpl(
      * Loads [resource], retrying a failed load with a growing delay, until it loads or [isStillWanted] turns false
      * (then it returns null).
      */
-    private suspend fun loadUntilLoaded(resource: SpriteResource, isStillWanted: () -> Boolean): ImageBitmap? {
+    private suspend fun loadUntilLoaded(resource: SpriteResource, maximumAttempts: Int = Int.MAX_VALUE, isStillWanted: () -> Boolean): ImageBitmap? {
         var retryDelayInMilliseconds = initialRetryDelayInMilliseconds
         var isFirstAttempt = true
+        var attempts = 0
         while (true) {
             val loadedBitmap = loadImage(resource, isFirstAttempt)
             if (!isStillWanted()) return null
             if (loadedBitmap != null) return loadedBitmap
+            if (++attempts >= maximumAttempts) return null
             isFirstAttempt = false
             delay(retryDelayInMilliseconds.milliseconds)
             if (!isStillWanted()) return null
@@ -317,5 +328,8 @@ internal class SpriteManagerImpl(
         private const val WARM_UP_ALPHA = 1f / 255f
         private const val INITIAL_RETRY_DELAY_MS = 500L
         private const val MAXIMUM_RETRY_DELAY_MS = 8_000L
+
+        /** How many times an atlas tries a sprite before it is packed without it, which then joins once it loads. */
+        private const val ATLAS_ATTEMPTS = 3
     }
 }

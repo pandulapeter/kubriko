@@ -91,8 +91,9 @@ through the internal constructor, so they need no Skia runtime.
 loaded for the atlas itself (through the same retrying `loadUntilLoaded` as `get`, but never through the cache, so the
 individual bitmaps are dropped once copied), then packed, then warmed up like a sprite (`pendingAtlases`, drawn by the same
 `Composable`), and only then published, so `getRegion` stays null until a page can be drawn without a hitch. Pages are
-packed once, with every sprite, so an atlas waits for a sprite that keeps failing, as its retries do: one that is
-skipped could only join by packing every page again.
+packed once, after each sprite had a few tries (`ATLAS_ATTEMPTS`): one that keeps failing (a corrupt image) would
+otherwise blank every sprite of the atlas, so it is packed without it, and the sprite keeps retrying and joins as a region
+of its own bitmap (`withOwnBitmap`), since putting it on a page would mean packing every page again.
 - **Layout works on sizes alone** (`AtlasPacker`, a skyline packer, tallest first, first page with room): it is what the
   pure tests cover. Pages are capped at 2048 (`DEFAULT_MAXIMUM_PAGE_SIZE`, the size every target takes as a texture) and
   only as large as what they hold; a sprite too large keeps its own bitmap as its region.

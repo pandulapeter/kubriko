@@ -91,6 +91,16 @@ class SpriteAtlas internal constructor(
         return isPublished
     }
 
+    /**
+     * Adds [resource], which failed to load before the atlas was packed, as a region of its own [bitmap], unless the
+     * atlas was unloaded meanwhile.
+     */
+    internal fun addOwnBitmap(resource: SpriteResource, bitmap: ImageBitmap) {
+        state.update { current ->
+            if (current is PackedAtlas) current.withOwnBitmap(resource, bitmap) else current
+        }
+    }
+
     internal fun markUnloaded() {
         state.value = AtlasState.Unloaded
     }

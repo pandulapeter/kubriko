@@ -23,6 +23,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.InternalResourceApi
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -237,6 +238,48 @@ class SpriteAtlasTest {
     }
 
     private class BuiltPage(val bitmap: ImageBitmap, val sprites: List<ImageBitmap>, val xs: List<Int>, val ys: List<Int>, val padding: Int)
+
+    @Test
+    fun `a sprite that keeps failing is left out of the pages and joins with its own bitmap once it loads`() {
+        val good = spriteResource("good")
+        val broken = spriteResource("broken")
+        val goodBitmap = FakeImageBitmap(8, 8)
+        val brokenBitmap = FakeImageBitmap(6, 6)
+        val isBrokenFixed = AtomicBoolean(false)
+        val failingManager = SpriteManagerImpl(
+            isLoggingEnabled = false,
+            instanceNameForLogging = null,
+            initialRetryDelayInMilliseconds = 1,
+            imageLoader = { resource ->
+                when {
+                    resource == good -> goodBitmap
+                    isBrokenFixed.get() -> brokenBitmap
+                    else -> throw IllegalStateException("Corrupt image.")
+                }
+            },
+            mipChains = TextureMipChainCache { base ->
+                TextureMipChain(base, TextureMipChain.DEFAULT_LEVEL_COUNT, downscale = { _, width, height -> FakeImageBitmap(width, height) }, finish = { it })
+            },
+            atlasPageBuilder = { width, height, sprites, xs, ys, padding -> pageBuilder.build(width, height, sprites, xs, ys, padding) },
+        )
+        val failingKubriko = newManualKubriko(failingManager)
+        try {
+            val atlas = failingManager.loadSpriteAtlas(listOf(good, broken))
+            awaitCondition { atlas.isLoaded }
+
+            assertEquals(listOf<ImageBitmap>(goodBitmap), builtPages.single().sprites)
+            assertNotNull(atlas.getRegion(good))
+            assertNull(atlas.getRegion(broken))
+            isBrokenFixed.set(true)
+            awaitCondition { atlas.getRegion(broken) != null }
+
+            assertEquals(SpriteRegion(brokenBitmap, IntOffset.Zero, IntSize(6, 6)), atlas.getRegion(broken))
+            assertNotNull(atlas.getRegion(good))
+            assertNotNull(failingManager.getMipChain(assertNotNull(atlas.getRegion(broken))))
+        } finally {
+            failingKubriko.dispose()
+        }
+    }
 
     private fun finishLoading(resource: SpriteResource, bitmap: ImageBitmap) {
         pendingLoadOf(resource).complete(bitmap)
