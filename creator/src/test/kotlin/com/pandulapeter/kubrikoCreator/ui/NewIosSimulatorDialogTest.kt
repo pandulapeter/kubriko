@@ -118,12 +118,16 @@ class NewIosSimulatorDialogTest {
     }
 
     @Test
-    fun aListXcodeCanNotGiveSaysWhy() = uiTest(width = 960, height = 640) {
-        showingDialog(read = { IosSimulatorOptions.Unreadable("xcrun: error: unable to find utility \"simctl\"") })
+    fun aListXcodeCanNotGiveSaysWhyAndChecksAgainOnceXcodeWasOpened() = uiTest(width = 960, height = 640) {
+        var reads = 0
+        showingDialog(read = { if (reads++ == 0) IosSimulatorOptions.Unreadable("xcrun: error: unable to find utility \"simctl\"") else ready })
         onNodeWithText("Xcode couldn't list what it can simulate.", substring = true).assertExists()
         onNodeWithText("xcrun: error: unable to find utility \"simctl\"").assertExists()
         saveSnapshot("new-ios-simulator-unreadable")
-        onNodeWithText("Close").performClick()
+        onNodeWithText("Check again").performClick()
+        waitForIdle()
+        onNodeWithText("iPhone 18 Pro 2").assertExists()
+        onNodeWithText("Cancel").performClick()
         assertEquals(1, closings)
     }
 }

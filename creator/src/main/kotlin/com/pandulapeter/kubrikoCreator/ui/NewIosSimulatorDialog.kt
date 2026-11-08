@@ -75,15 +75,15 @@ internal fun NewIosSimulatorDialog(
             is IosSimulatorOptions.Ready -> Button(onClick = state::create, enabled = state.canCreate) {
                 Text(stringResource(if (state.isCreating) Res.string.new_ios_simulator_creating else Res.string.action_create_simulator))
             }
-            IosSimulatorOptions.NoRuntime -> Button(onClick = state::reload) { Text(stringResource(Res.string.action_check_again)) }
-            is IosSimulatorOptions.Unreadable, null -> TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_close)) }
+            IosSimulatorOptions.NoRuntime, is IosSimulatorOptions.Unreadable -> Button(onClick = state::reload) { Text(stringResource(Res.string.action_check_again)) }
+            null -> TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_close)) }
         }
     },
     dismissButton = when (state.options) {
-        is IosSimulatorOptions.Ready, IosSimulatorOptions.NoRuntime -> {
+        is IosSimulatorOptions.Ready, IosSimulatorOptions.NoRuntime, is IosSimulatorOptions.Unreadable -> {
             { TextButton(onClick = onDismiss, enabled = !state.isCreating) { Text(stringResource(Res.string.action_cancel)) } }
         }
-        is IosSimulatorOptions.Unreadable, null -> null
+        null -> null
     },
     text = {
         Column(
