@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
-import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.ui.LocalDescriptionWriter
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import kubriko.creator.generated.resources.Res
@@ -55,12 +55,19 @@ internal fun ScreenplayReminder(
 }
 
 /**
- * Whether [changes] touch the game (its types, Scenes, resources, or Kotlin) but no page of the screenplay.
+ * Whether [changes] touch the game (its types, Scenes, sprites, sounds, or the Kotlin of a main source set, not its build
+ * or its tests) but no page of the screenplay.
  */
 internal fun isScreenplayReminderDue(changes: List<ChangeEntry>): Boolean {
-    val paths = changes.flatMap { it.paths }
-    val touchesGame = paths.any { path ->
-        path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") || "composeResources/" in path || (path.endsWith(".kt") && "src/" in path)
+    val mentions = changes.flatMap { it.paths }.map(Mention::of)
+    val touchesGame = mentions.any { mention ->
+        when (mention) {
+            is Mention.ActorType, is Mention.ManagerType, is Mention.Scene, is Mention.Sprite, is Mention.Audio -> true
+            is Mention.Kotlin -> mention.path.endsWith(".kt") && mainSourceSet.containsMatchIn(mention.path)
+            is Mention.Page, is Mention.Document, is Mention.OtherFile -> false
+        }
     }
-    return touchesGame && paths.none { PageNaming.nameOf(it) != null }
+    return touchesGame && mentions.none { it is Mention.Page }
 }
+
+private val mainSourceSet = Regex("(^|/)src/\\w*Main/")

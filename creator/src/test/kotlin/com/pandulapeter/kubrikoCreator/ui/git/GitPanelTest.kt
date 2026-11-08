@@ -79,5 +79,8 @@ class GitPanelTest {
         assertEquals(true, isScreenplayReminderDue(changed("src/commonMain/kotlin/Game.kt")))
         assertEquals(false, isScreenplayReminderDue(changed(".kubriko/actors/Ball.json", "screenplay/README.md")))
         assertEquals(false, isScreenplayReminderDue(changed("build.gradle.kts", "README.md", "gradle.properties")))
+        assertEquals(false, isScreenplayReminderDue(changed("gradle/build-logic/src/main/kotlin/Plugin.kt", "src/desktopTest/kotlin/GameTest.kt")))
+        assertEquals(true, isScreenplayReminderDue(changed("app/src/desktopMain/kotlin/Main.kt")))
+        assertEquals(true, isScreenplayReminderDue(changed("src/commonMain/composeResources/drawable/ball.png")))
     }
 }
