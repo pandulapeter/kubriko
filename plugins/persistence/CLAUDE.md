@@ -23,7 +23,7 @@ Key-value store with per-platform backends. Values are exposed as `MutableStateF
 
 ## Flow Creation and Caching
 
-Call `persistenceManager.boolean(key, default)` (or `int`, `float`, `string`, `generic`) during `Manager.onInitialize` — not inside hot paths. Each `key` maps to exactly one `PersistedPropertyWrapper` cached in `stateFlowMap`. Calling the same key+type twice returns the same `MutableStateFlow` instance.
+Call `persistenceManager.boolean(key, default)` (or `int`, `float`, `string`, `enum`, `generic`) during `Manager.onInitialize` — not inside hot paths. Each `key` maps to exactly one `PersistedPropertyWrapper` cached in `stateFlowMap`. Calling the same key+type twice returns the same `MutableStateFlow` instance.
 
 ## Auto-Persist Mechanism
 
@@ -48,7 +48,7 @@ Older iOS builds wrote strings (and so `generic` values) under the bare key. Whe
 persistenceManager.generic("key", defaultValue, serializer = { it.toJson() }, deserializer = { it.fromJson() })
 ```
 
-Stored as a `String`. The deserializer is only called with a previously stored string: nothing stored yields `defaultValue` without calling it, and a deserializer that returns null or throws also falls back to `defaultValue`. Every load and save is non-throwing — failures are logged (when logging is enabled) and a failed save leaves storage as it was, while the next change is attempted again. Prefer `kotlinx.serialization` JSON.
+Stored as a `String`. The deserializer is only called with a previously stored string: nothing stored yields `defaultValue` without calling it, and a deserializer that returns null or throws also falls back to `defaultValue`. Every load and save is non-throwing — failures are logged (when logging is enabled) and a failed save leaves storage as it was, while the next change is attempted again. Prefer `kotlinx.serialization` JSON. The `enum` extension is `generic` storing the entry's `name`, falling back to the default for a name no entry has.
 
 ## Typical Usage
 

@@ -14,7 +14,7 @@ The `persistence` plugin provides a simple way to persist game data across sessi
 ## Features
 
 - **Automatic Synchronization**: Changes to the provided `MutableStateFlow`s are automatically persisted to local storage.
-- **Type Safety**: Supports `Boolean`, `Int`, `Float`, `String`, and custom generic types.
+- **Type Safety**: Supports `Boolean`, `Int`, `Float`, `String`, enums, and custom generic types.
 - **Platform Agnostic**: Works across all supported Kubriko platforms.
 
 ## Usage
@@ -53,7 +53,15 @@ scope.launch {
 }
 ```
 
-### 3. Custom Types
+### 3. Enums
+
+An enum is stored by the name of its entry; a stored name that no longer matches any entry reads as the default:
+
+```kotlin
+val difficultyFlow = persistenceManager.enum("difficulty", Difficulty.NORMAL)
+```
+
+### 4. Custom Types
 
 For types not supported out of the box, use the `generic` function by providing a serializer and deserializer:
 

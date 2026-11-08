@@ -259,7 +259,7 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 
 **Shaders**: Written in SKSL. Built-in collection in `com.pandulapeter.kubriko.shaders.collection`: `BlurShader`, `ChromaticAberrationShader`, `RippleShader`, `VignetteShader`, `ComicShader`, `SmoothPixelationShader`. Shaders are Actors.
 
-**Persistence**: Returns `MutableStateFlow`s that auto-persist on value change. Types: `boolean`, `int`, `float`, `string`, `generic(serializer, deserializer)`.
+**Persistence**: Returns `MutableStateFlow`s that auto-persist on value change. Types: `boolean`, `int`, `float`, `string`, `enum` (stored by entry name), `generic(serializer, deserializer)`.
 
 **Sprites**: `SpriteManager.get(resource)` returns null while loading (triggers load on first call). `AnimatedSprite` handles frame-based animation from sprite sheets. Preload with `spriteManager.preload(...)`. `SpriteManager.newInstance(imageLoader = …)` replaces the loading itself, for resources Compose can't reach (Kubriko Creator's embedded Scene editor). `SpriteManager.getMipChain(resource)` (or a `TextureMipChainCache` keyed by anything) hands out one shared `TextureMipChain` per texture, whose `forScale(scale)` picks a pre-halved level, so a sprite drawn smaller than its size neither shimmers nor samples more than it shows. `SpriteManager.loadAtlas(resources)` packs sprites that belong together onto shared pages in the background (`SpriteAtlas`, regions null until packed): `SpriteManager.getRegion(resource)` names a sprite's `SpriteRegion`, `SpriteLook.setRegion(region)` shows it, and `AnimatedSprite.fromAtlas` / `applyTo(look)` animate a packed sheet, so batched sprites of one page draw in one run.
 
