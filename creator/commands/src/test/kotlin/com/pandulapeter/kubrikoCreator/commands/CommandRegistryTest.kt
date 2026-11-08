@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePageToDocument
+import com.pandulapeter.kubrikoCreator.commands.screenplay.RestoreMarkdown
 import com.pandulapeter.kubrikoCreator.testing.creatorSourceRoots
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -37,7 +38,7 @@ class CommandRegistryTest {
             .map { Class.forName(it, false, javaClass.classLoader) }
             .filter { EditorCommand::class.java.isAssignableFrom(it) && !it.isInterface && !Modifier.isAbstract(it.modifiers) }
             // Internal, not tools.
-            .filter { it != CompositeCommand::class.java && it != ReplaceTypes::class.java && it != ReplaceScenes::class.java && it != MovePageToDocument::class.java }
+            .filter { it != CompositeCommand::class.java && it != ReplaceTypes::class.java && it != ReplaceScenes::class.java && it != MovePageToDocument::class.java && it != RestoreMarkdown::class.java }
             .toSet()
         assertTrue(commandClasses.isNotEmpty())
         assertEquals(commandClasses.map { it.name }.sorted(), registry.commands.map { it.javaClass.name }.sorted())

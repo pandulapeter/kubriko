@@ -27,5 +27,16 @@ public object DefinitionPaths {
     /**
      * Where [definition] is saved, relative to the project's folder.
      */
-    internal fun definitionPath(definition: BlockTypeDefinition) = "$CREATOR_DIRECTORY/${definitionsFolder(definition.kind)}/" + "${definition.folder}/${definition.name}.json".removePrefix("/")
+    public fun definitionPath(definition: BlockTypeDefinition): String = definitionPath(definition.kind, definition.folder, definition.name)
+
+    /**
+     * Where a type of [kind] called [name] in [folder] is saved, relative to the project's folder.
+     */
+    public fun definitionPath(kind: BlockTypeKind, folder: String, name: String): String = "${folderPath(kind, folder)}/$name.json"
+
+    /**
+     * Where the folder [folder] of types of [kind] is, relative to the project's folder: the definitions folder itself for
+     * an empty path.
+     */
+    public fun folderPath(kind: BlockTypeKind, folder: String): String = "$CREATOR_DIRECTORY/${definitionsFolder(kind)}" + (if (folder.isEmpty()) "" else "/$folder")
 }

@@ -19,6 +19,8 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.validateType
+import com.pandulapeter.kubrikoCreator.commands.screenplay.typeMoves
+import com.pandulapeter.kubrikoCreator.commands.screenplay.withMentionsFollowed
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.serialization.KSerializer
@@ -29,7 +31,7 @@ import kotlinx.serialization.Serializable
 public object MoveToFolder : WriteCommand<MoveToFolder.Input> {
     override val name: String = "move_to_folder"
     override val description: String = "Moves an Actor type or a Manager type into a folder of its group, or out of every folder. Only the sidebar changes: " +
-        "the type keeps its name and everything that refers to it. Scenes move with rename_scene."
+        "the type keeps its name and everything that refers to it, and the screenplay's mentions of it follow. Scenes move with rename_scene."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(input.type)
@@ -39,8 +41,9 @@ public object MoveToFolder : WriteCommand<MoveToFolder.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireType(input.type)
+        val moves = context.typeMoves(input.type, newFolder = input.folder)
         context.requireBlockTypes.put(definition.withFolder(input.folder))
-        return Applied(inverse = Invocation(MoveToFolder, input.copy(folder = definition.folder)))
+        return context.withMentionsFollowed(moves, Applied(inverse = Invocation(MoveToFolder, input.copy(folder = definition.folder))))
     }
 
     @Serializable

@@ -17,9 +17,12 @@ import com.pandulapeter.kubrikoCreator.commands.Descriptions
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
+import com.pandulapeter.kubrikoCreator.commands.screenplay.withMentionsFollowed
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.scenes.SceneNaming
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.screenplay.PathMove
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -29,7 +32,7 @@ import kotlinx.serialization.Serializable
 public object RenameScene : WriteCommand<RenameScene.Input> {
     override val name: String = "rename_scene"
     override val description: String = "Renames a Scene, or moves it into another folder: a Scene's name is its path, like levels/1-1. Every goToScene Block " +
-        "follows; hand-written Kotlin that names the Scene doesn't, and the console says where it is."
+        "and mention in the screenplay follows; hand-written Kotlin that names the Scene doesn't, and the console says where it is."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.Scene(input.newName)
@@ -45,8 +48,10 @@ public object RenameScene : WriteCommand<RenameScene.Input> {
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val isTaken = withContext(context.ioDispatcher) { context.scenes.scanNames().any { it != input.scene && it.equals(input.newName, ignoreCase = true) } }
         if (isTaken) return Applied.failed(Rejection(CommandProblem.SCENE_NAME_TAKEN))
+        val from = withContext(context.ioDispatcher) { context.projectPathOf(context.scenes.fileOf(input.scene)) }
         if (!context.renameScene(input.scene, input.newName)) return Applied(inverse = null, failure = sceneNotMoved(input.scene))
-        return Applied(inverse = Invocation(RenameScene, Input(input.newName, input.scene)))
+        val to = withContext(context.ioDispatcher) { context.projectPathOf(context.scenes.fileOf(input.newName)) }
+        return context.withMentionsFollowed(listOf(PathMove(from, to)), Applied(inverse = Invocation(RenameScene, Input(input.newName, input.scene))))
     }
 
     @Serializable

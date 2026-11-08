@@ -16,6 +16,8 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
+import com.pandulapeter.kubrikoCreator.commands.screenplay.typeMoves
+import com.pandulapeter.kubrikoCreator.commands.screenplay.withMentionsFollowed
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import kotlinx.coroutines.withContext
@@ -26,7 +28,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object RenameActorType : WriteCommand<RenameActorType.Input> {
     override val name: String = "rename_actor_type"
-    override val description: String = "Renames a block-built Actor type, its generated Kotlin class, and every reference to it in collision Events and Scenes."
+    override val description: String = "Renames a block-built Actor type, its generated Kotlin class, and every reference to it in collision Events, Scenes, and the screenplay's mentions."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget? = CommandTarget.BlockType(if (context.blockTypes?.actorType(input.newName) != null) input.newName else input.actorType)
@@ -35,6 +37,7 @@ public object RenameActorType : WriteCommand<RenameActorType.Input> {
         ?: BlockTypeNaming.validate(input.newName, context.requireBlockTypes.takenNames)?.let(::Rejection)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
+        val moves = context.typeMoves(input.actorType, newName = input.newName)
         context.requireBlockTypes.rename(input.actorType, input.newName)
         try {
             withContext(context.ioDispatcher) { context.scenes.renameTypeId(input.actorType, input.newName) }
@@ -43,7 +46,7 @@ public object RenameActorType : WriteCommand<RenameActorType.Input> {
             context.requireBlockTypes.rename(input.newName, input.actorType)
             throw exception
         }
-        return Applied(inverse = Invocation(RenameActorType, Input(actorType = input.newName, newName = input.actorType)))
+        return context.withMentionsFollowed(moves, Applied(inverse = Invocation(RenameActorType, Input(actorType = input.newName, newName = input.actorType))))
     }
 
     @Serializable

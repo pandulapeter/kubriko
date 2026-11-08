@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.screenplay.PathMove
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 
@@ -43,7 +44,10 @@ internal object MovePageToDocument : WriteCommand<MovePageToDocument.Input> {
         if (context.documents.fileOf(input.document).exists()) return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_TAKEN, input.document))
         if (!context.documents.move(PageNaming.pathOf(input.page), input.document)) return@withContext Applied.failed(Rejection(CommandProblem.PAGE_NOT_MOVED, input.page))
         context.screenplay.refresh()
-        Applied(inverse = Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input(document = input.document, page = input.page)))
+        context.withMentionsFollowed(
+            moves = listOf(PathMove(PageNaming.pathOf(input.page), input.document)),
+            applied = Applied(inverse = Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input(document = input.document, page = input.page))),
+        )
     }
 
     data class Input(

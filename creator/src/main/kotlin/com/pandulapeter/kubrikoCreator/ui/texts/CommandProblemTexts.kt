@@ -46,6 +46,8 @@ import kubriko.creator.generated.resources.error_command_index_invalid
 import kubriko.creator.generated.resources.error_command_input_invalid
 import kubriko.creator.generated.resources.error_command_key_not_allowed
 import kubriko.creator.generated.resources.error_command_manager_type_missing
+import kubriko.creator.generated.resources.error_command_markdown_missing
+import kubriko.creator.generated.resources.error_command_mentions_not_followed
 import kubriko.creator.generated.resources.error_command_music_missing
 import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_no_repository
@@ -162,6 +164,8 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PAGE_MISSING -> Res.string.error_command_page_missing
     CommandProblem.PAGE_NAME_INVALID -> Res.string.error_command_page_name_invalid
     CommandProblem.PAGE_NOT_MOVED -> Res.string.error_command_page_not_moved
+    CommandProblem.MENTIONS_NOT_FOLLOWED -> Res.string.error_command_mentions_not_followed
+    CommandProblem.MARKDOWN_MISSING -> Res.string.error_command_markdown_missing
     CommandProblem.PAGE_SECTION_MISSING -> Res.string.error_command_page_section_missing
     CommandProblem.PAGE_TAKEN -> Res.string.error_command_page_taken
     CommandProblem.PAGE_TOO_LONG -> Res.string.error_command_page_too_long

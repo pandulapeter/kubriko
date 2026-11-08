@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.schema.Description
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.screenplay.PathMove
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -47,7 +48,10 @@ public object AddDocumentToScreenplay : WriteCommand<AddDocumentToScreenplay.Inp
         validatePageText(text)?.let { return@withContext Applied.failed(it) }
         if (!context.documents.move(input.document, PageNaming.pathOf(input.page))) return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_NOT_MOVED, input.document))
         context.screenplay.refresh()
-        Applied(inverse = Invocation(MovePageToDocument, MovePageToDocument.Input(page = input.page, document = input.document)))
+        context.withMentionsFollowed(
+            moves = listOf(PathMove(input.document, PageNaming.pathOf(input.page))),
+            applied = Applied(inverse = Invocation(MovePageToDocument, MovePageToDocument.Input(page = input.page, document = input.document))),
+        )
     }
 
     @Serializable

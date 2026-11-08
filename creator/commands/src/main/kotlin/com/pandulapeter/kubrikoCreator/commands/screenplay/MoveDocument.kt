@@ -19,6 +19,7 @@ import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.schema.Description
+import com.pandulapeter.kubrikoCreator.screenplay.PathMove
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -54,7 +55,7 @@ public object MoveDocument : WriteCommand<MoveDocument.Input> {
             return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_TAKEN, input.newDocument))
         }
         if (!context.documents.move(input.document, input.newDocument)) return@withContext Applied.failed(Rejection(CommandProblem.DOCUMENT_NOT_MOVED, input.document))
-        Applied(inverse = Invocation(MoveDocument, Input(input.newDocument, input.document)))
+        context.withMentionsFollowed(listOf(PathMove(input.document, input.newDocument)), Applied(inverse = Invocation(MoveDocument, Input(input.newDocument, input.document))))
     }
 
     @Serializable
