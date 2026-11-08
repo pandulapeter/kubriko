@@ -41,21 +41,30 @@ public object PageImages {
 
     /**
      * [bytes], an image file whose name ended in [extension], as a page keeps it: unchanged while it is no wider than
-     * [MAXIMUM_WIDTH] and of a kind the page can show, otherwise scaled down (or turned into a PNG); null if it isn't an
-     * image Java can read, or a WebP image, which is kept as it is.
+     * [MAXIMUM_WIDTH] and of a kind the page can show, otherwise scaled down (a JPEG staying one, anything else becoming
+     * a PNG); null if it isn't an image Java can read, or a WebP image, which is kept as it is.
      */
     public fun encoded(bytes: ByteArray, extension: String): Encoded? {
         val lowercase = extension.lowercase()
         val image = runCatching { ImageIO.read(bytes.inputStream()) }.getOrNull() ?: return Encoded(bytes, lowercase).takeIf { lowercase == "webp" && isWebP(bytes) }
         if (image.width <= MAXIMUM_WIDTH && lowercase in EXTENSIONS) return Encoded(bytes, lowercase)
-        val scale = (MAXIMUM_WIDTH.toFloat() / image.width).coerceAtMost(1f)
-        val result = BufferedImage((image.width * scale).toInt().coerceAtLeast(1), (image.height * scale).toInt().coerceAtLeast(1), BufferedImage.TYPE_INT_ARGB)
+        val isPhoto = lowercase == "jpg" || lowercase == "jpeg"
+        return Encoded(scaledDown(image, MAXIMUM_WIDTH, asJpeg = isPhoto), if (isPhoto) "jpg" else "png")
+    }
+
+    /**
+     * [image] no wider than [maximumWidth], keeping its shape, encoded as a JPEG when [asJpeg] (a photo, which a PNG would
+     * make several times larger) and as a PNG otherwise.
+     */
+    public fun scaledDown(image: BufferedImage, maximumWidth: Int, asJpeg: Boolean = false): ByteArray {
+        val scale = (maximumWidth.toFloat() / image.width).coerceAtMost(1f)
+        val result = BufferedImage((image.width * scale).toInt().coerceAtLeast(1), (image.height * scale).toInt().coerceAtLeast(1), if (asJpeg) BufferedImage.TYPE_INT_RGB else BufferedImage.TYPE_INT_ARGB)
         result.createGraphics().apply {
             setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
             drawImage(image, 0, 0, result.width, result.height, null)
             dispose()
         }
-        return Encoded(ByteArrayOutputStream().also { ImageIO.write(result, "png", it) }.toByteArray(), "png")
+        return ByteArrayOutputStream().also { ImageIO.write(result, if (asJpeg) "jpg" else "png", it) }.toByteArray()
     }
 
     /**

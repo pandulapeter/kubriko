@@ -37,6 +37,14 @@ class PageImagesTest {
     }
 
     @Test
+    fun `a wide photo stays a JPEG`() {
+        val jpeg = ByteArrayOutputStream().also { ImageIO.write(BufferedImage(3200, 800, BufferedImage.TYPE_INT_RGB), "jpg", it) }.toByteArray()
+        val encoded = assertNotNull(PageImages.encoded(jpeg, "jpeg"))
+        assertEquals("jpg", encoded.extension)
+        assertEquals(PageImages.MAXIMUM_WIDTH, ImageIO.read(encoded.bytes.inputStream()).width)
+    }
+
+    @Test
     fun `an image of a kind a page can't show becomes a PNG, and what isn't an image is refused`() {
         assertEquals("png", PageImages.encoded(png(10, 10), "tiff")?.extension)
         assertNull(PageImages.encoded("not an image".toByteArray(), "png"))
