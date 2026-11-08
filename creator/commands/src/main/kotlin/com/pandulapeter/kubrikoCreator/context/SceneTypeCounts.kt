@@ -31,7 +31,8 @@ internal suspend fun CommandContext.projectRelations() = ProjectRelations(types 
  */
 internal suspend fun CommandContext.projectReferences(subject: RelationSubject): ProjectReferences {
     val types = blockTypes?.types?.value.orEmpty()
-    val sceneCounts = sceneTypeCounts()
+    // Only Actors refer to Scenes' contents, so a page's references need none of them.
+    val sceneCounts = if (subject is RelationSubject.Page) emptyMap() else sceneTypeCounts()
     return withContext(ioDispatcher) {
         ProjectReferences(
             types = types,

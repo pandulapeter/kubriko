@@ -75,6 +75,7 @@ internal fun WorkspaceDialogs(
         DocumentChangeConfirmation(
             pending = pending,
             unusedImagesOf = unusedImagesOf,
+            usagesOf = usagesOf,
             validate = validate,
             onConfirm = { confirmed ->
                 uiState.finishDocumentChange()

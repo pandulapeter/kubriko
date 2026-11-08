@@ -24,6 +24,11 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.context.RelationKind
+import com.pandulapeter.kubrikoCreator.context.RelationSubject
+import com.pandulapeter.kubrikoCreator.context.Usage
+import com.pandulapeter.kubrikoCreator.context.UsageEffect
+import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -36,7 +41,7 @@ class DocumentChangeConfirmationTest {
     @Test
     fun deletingADocumentSaysWhatHappensToTheFile() = uiTest(width = 700, height = 400) {
         var confirmed = 0
-        showing { DocumentChangeConfirmation(PendingDocumentChange(Invocation(DeleteDocument, DeleteDocument.Input("docs/combat.md"))), unusedImagesOf = { emptyList() }, validate = { null }, onConfirm = { confirmed++ }, onDismiss = {}) }
+        showing { DocumentChangeConfirmation(PendingDocumentChange(Invocation(DeleteDocument, DeleteDocument.Input("docs/combat.md"))), unusedImagesOf = { emptyList() }, usagesOf = { null }, validate = { null }, onConfirm = { confirmed++ }, onDismiss = {}) }
         onNodeWithText("Delete docs/combat.md?").assertExists()
         saveSnapshot("document-delete-confirmation")
         onNodeWithText("Delete").performClick()
@@ -51,6 +56,7 @@ class DocumentChangeConfirmationTest {
             DocumentChangeConfirmation(
                 PendingDocumentChange(Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input("docs/combat.md", "combat"))),
                 unusedImagesOf = { emptyList() },
+                usagesOf = { null },
                 validate = { invocation -> (invocation.input as AddDocumentToScreenplay.Input).page.takeIf { it == "hero" }?.let { Rejection(CommandProblem.PAGE_TAKEN, it) } },
                 onConfirm = { confirmed += it },
                 onDismiss = { dismissed++ },
@@ -84,6 +90,7 @@ class DocumentChangeConfirmationTest {
             DocumentChangeConfirmation(
                 PendingDocumentChange(Invocation(DeletePage, DeletePage.Input(page))),
                 unusedImagesOf = { if (it == "hero") listOf("screenplay/hero-1.png", "screenplay/hero-2.png") else emptyList() },
+                usagesOf = { null },
                 validate = { null },
                 onConfirm = { confirmed += it },
                 onDismiss = {},
@@ -97,5 +104,26 @@ class DocumentChangeConfirmationTest {
         page = "villain"
         waitUntil { confirmed.size == 2 }
         assertEquals(DeletePage.Input("villain"), confirmed.last().input)
+    }
+
+    @Test
+    fun deletingAPageThatIsMentionedSaysWhereItsLinksBecomeText() = uiTest(width = 700, height = 400) {
+        val confirmed = mutableListOf<Invocation<*>>()
+        val mentions = listOf("screenplay/README.md", "docs/notes.md").map { Usage(UsagePlace.Markdown(it), RelationKind.MENTIONS, RelationSubject.Page("hero"), UsageEffect.MENTION_TO_TEXT) }
+        showing {
+            DocumentChangeConfirmation(
+                PendingDocumentChange(Invocation(DeletePage, DeletePage.Input("hero"))),
+                unusedImagesOf = { emptyList() },
+                usagesOf = { mentions },
+                validate = { null },
+                onConfirm = { confirmed += it },
+                onDismiss = {},
+            )
+        }
+        onNodeWithText("Mentioned in: README, docs/notes.md. The links to it there become plain text.").assertExists()
+        onNodeWithText("Also delete", substring = true).assertDoesNotExist()
+        saveSnapshot("page-delete-mentioned-confirmation")
+        onNodeWithText("Delete").performClick()
+        assertEquals(listOf<Any>(DeletePage.Input("hero")), confirmed.map { it.input })
     }
 }

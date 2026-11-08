@@ -140,6 +140,7 @@ class PageLinksTest {
             "The ball and the <[paddle](../.kubriko/actors/Paddle.json)>, a linked ![picture](ball.png), `[code](../.kubriko/actors/Ball.json)`, and Ball.",
             PageLinks.withLinksToPathAsText(page, "screenplay/README.md", ".kubriko/actors/Ball.json"),
         )
+        assertEquals("See Ball for more.", PageLinks.withLinksToPathAsText("See [](../.kubriko/actors/Ball.json) for more.", "screenplay/README.md", ".kubriko/actors/Ball.json"))
         assertEquals("Line one.\n![Ball](ball.png)\n", PageLinks.withLinksToPathAsText("Line one.\n![Ball](ball.png)\n", "screenplay/README.md", "screenplay/ball.png"))
     }
 }

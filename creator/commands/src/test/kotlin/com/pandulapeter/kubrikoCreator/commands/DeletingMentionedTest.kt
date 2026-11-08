@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.project.CheckChange
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreateDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.CreatePage
@@ -20,10 +21,18 @@ import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
 import com.pandulapeter.kubrikoCreator.context.UsageEffect
 import com.pandulapeter.kubrikoCreator.context.UsagePlace
+import com.pandulapeter.kubrikoCreator.context.screenplayTexts
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 class DeletingMentionedTest {
     private val brick = ActorTypeDefinition(name = "Brick")
@@ -68,5 +77,27 @@ class DeletingMentionedTest {
         val after = context.assertRoundTrip(Invocation(DeletePage, DeletePage.Input("hero"))) { context.files() }
         assertEquals("# Game\n\nStarring the hero and the hero again.\n", after.getValue("screenplay/README.md"))
         assertEquals(null, after["screenplay/hero.md"])
+    }
+
+    @Test
+    fun whatIsRewrittenIsTheTextAsItIsNowNotAsItWasLastRead() = runTest {
+        val context = commandContext(brick)
+        CreatePage.apply(context, CreatePage.Input("README", "# Breakout\n\nThe ball breaks each [brick](../.kubriko/actors/Brick.json).\n"))
+        context.screenplayTexts()
+        File(context.project.rootDirectory, "screenplay/README.md").appendText("\nA line typed in another editor a moment ago.\n")
+        DeleteActorType.apply(context, DeleteActorType.Input("Brick"))
+        assertEquals("# Breakout\n\nThe ball breaks each brick.\n\nA line typed in another editor a moment ago.\n", context.text("screenplay/README.md"))
+    }
+
+    @Test
+    fun anAiDeletingAPageHearsWhichPagesMentionedItAndCheckChangeListsThem() = runTest {
+        val context = commandContext()
+        val executor = CommandExecutor(context, testScope())
+        CreatePage.apply(context, CreatePage.Input("hero", "# The hero\n\nA knight.\n"))
+        CreatePage.apply(context, CreatePage.Input("README", "# Game\n\nStarring the [hero](hero.md).\n"))
+        val check = CheckChange.read(context, CheckChange.Input("delete_page", buildJsonObject { put("page", "hero") }))
+        assertContains(assertIs<CommandOutcome.Success>(check).result.jsonPrimitive.content, "screenplay/README.md mentions Page hero: the mention becomes plain text.")
+        val result = assertIs<CommandOutcome.Success>(executor.call("delete_page", buildJsonObject { put("page", "hero") })).result.jsonObject
+        assertEquals(listOf("screenplay/README.md"), result.getValue("mentionedIn").jsonArray.map { it.jsonPrimitive.content })
     }
 }

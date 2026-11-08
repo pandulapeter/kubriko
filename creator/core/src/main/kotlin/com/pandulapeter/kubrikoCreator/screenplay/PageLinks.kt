@@ -31,7 +31,7 @@ public object PageLinks {
         val destinationRange: IntRange,
         val isImage: Boolean,
         val isInAngleBrackets: Boolean,
-        val range: IntRange = destinationRange,
+        val range: IntRange,
     )
 
     /**
@@ -107,7 +107,8 @@ public object PageLinks {
 
     /**
      * [text], the page at [pagePath], with each link to the project's file at [path] (a path from the project's root)
-     * written as its label alone, as what something deleted leaves of its mentions. Its images are left as they are.
+     * written as its label alone (the file's name for a link without one), as what something deleted leaves of its
+     * mentions. Its images are left as they are.
      */
     public fun withLinksToPathAsText(text: String, pagePath: String, path: String): String {
         val result = StringBuilder(text)
@@ -115,7 +116,7 @@ public object PageLinks {
         linksOf(text).asReversed().forEach { link ->
             // A link inside another's label (a linked picture's image) is replaced with the link around it, or not at all.
             if (link.isImage || link.range.last >= end || resolve(pagePath, link.destination) != path) return@forEach
-            result.replace(link.range.first, link.range.last + 1, link.label)
+            result.replace(link.range.first, link.range.last + 1, link.label.ifBlank { path.substringAfterLast('/').substringBeforeLast('.') })
             end = link.range.first
         }
         return result.toString()

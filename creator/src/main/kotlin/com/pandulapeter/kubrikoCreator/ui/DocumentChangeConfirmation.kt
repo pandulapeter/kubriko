@@ -31,6 +31,8 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
+import com.pandulapeter.kubrikoCreator.context.Usage
+import com.pandulapeter.kubrikoCreator.context.UsagePlace
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
@@ -45,6 +47,7 @@ import kubriko.creator.generated.resources.document_add_to_screenplay_title
 import kubriko.creator.generated.resources.document_delete_text
 import kubriko.creator.generated.resources.document_delete_title
 import kubriko.creator.generated.resources.page_delete_images
+import kubriko.creator.generated.resources.page_delete_mentioned_in
 import kubriko.creator.generated.resources.page_delete_text
 import kubriko.creator.generated.resources.page_delete_title
 import org.jetbrains.compose.resources.pluralStringResource
@@ -61,6 +64,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun DocumentChangeConfirmation(
     pending: PendingDocumentChange,
     unusedImagesOf: suspend (page: String) -> List<String>,
+    usagesOf: suspend (Invocation<*>) -> List<Usage>?,
     validate: (Invocation<*>) -> Rejection?,
     onConfirm: (Invocation<*>) -> Unit,
     onDismiss: () -> Unit,
@@ -101,24 +105,31 @@ internal fun DocumentChangeConfirmation(
                 Text(text = stringResource(Res.string.document_add_to_screenplay_text, PageNaming.pathOf(page.trim())), style = MaterialTheme.typography.bodyMedium)
             }
         }
-        is DeletePage.Input -> PageDeleteConfirmation(input, unusedImagesOf, onConfirm, onDismiss)
+        is DeletePage.Input -> PageDeleteConfirmation(input, unusedImagesOf, usagesOf, onConfirm, onDismiss)
         else -> Unit
     }
 }
 
 /**
- * Deletes a page at once when it has no images only it shows, and otherwise asks whether they go with it (they do unless
- * the user says otherwise), saying how many there are.
+ * Deletes a page at once when it has no images only it shows and nothing mentions it, and otherwise asks, saying which pages
+ * and documents mention it (their links become plain text) and whether its images go with it (they do unless the user
+ * says otherwise).
  */
 @Composable
 private fun PageDeleteConfirmation(
     input: DeletePage.Input,
     unusedImagesOf: suspend (page: String) -> List<String>,
+    usagesOf: suspend (Invocation<*>) -> List<Usage>?,
     onConfirm: (Invocation<*>) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val images = produceState<List<String>?>(null, input.page) { value = runCatching { unusedImagesOf(input.page) }.getOrDefault(emptyList()) }.value ?: return
-    if (images.isEmpty()) {
+    val facts = produceState<PageDeleteFacts?>(null, input.page) {
+        value = PageDeleteFacts(
+            images = runCatching { unusedImagesOf(input.page) }.getOrDefault(emptyList()),
+            mentionedIn = runCatching { usagesOf(Invocation(DeletePage, input)).orEmpty() }.getOrDefault(emptyList()).mapNotNull { (it.place as? UsagePlace.Markdown)?.path },
+        )
+    }.value ?: return
+    if (facts.images.isEmpty() && facts.mentionedIn.isEmpty()) {
         LaunchedEffect(input) { onConfirm(Invocation(DeletePage, input.copy(deleteImages = false))) }
         return
     }
@@ -127,18 +138,35 @@ private fun PageDeleteConfirmation(
         title = stringResource(Res.string.page_delete_title, input.page),
         confirmLabel = stringResource(Res.string.action_delete),
         isDestructive = true,
-        onConfirm = { onConfirm(Invocation(DeletePage, input.copy(deleteImages = deletesImages))) },
+        onConfirm = { onConfirm(Invocation(DeletePage, input.copy(deleteImages = deletesImages && facts.images.isNotEmpty()))) },
         onDismiss = onDismiss,
     ) {
         Text(text = stringResource(Res.string.page_delete_text), style = MaterialTheme.typography.bodyMedium)
-        LabeledSwitch(
-            label = pluralStringResource(Res.plurals.page_delete_images, images.size, images.size),
-            checked = deletesImages,
-            onCheckedChange = { deletesImages = it },
-            labelStyle = MaterialTheme.typography.bodyMedium,
-        )
+        if (facts.mentionedIn.isNotEmpty()) {
+            Text(
+                text = stringResource(Res.string.page_delete_mentioned_in, facts.mentionedIn.joinToString { PageNaming.nameOf(it) ?: it }),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        if (facts.images.isNotEmpty()) {
+            LabeledSwitch(
+                label = pluralStringResource(Res.plurals.page_delete_images, facts.images.size, facts.images.size),
+                checked = deletesImages,
+                onCheckedChange = { deletesImages = it },
+                labelStyle = MaterialTheme.typography.bodyMedium,
+            )
+        }
     }
 }
+
+/**
+ * What deleting a page takes with it: the [images] only it shows, and the pages and documents whose links to it become
+ * plain text ([mentionedIn], by their paths from the project's root).
+ */
+private class PageDeleteFacts(
+    val images: List<String>,
+    val mentionedIn: List<String>,
+)
 
 @Composable
 private fun DocumentConfirmation(

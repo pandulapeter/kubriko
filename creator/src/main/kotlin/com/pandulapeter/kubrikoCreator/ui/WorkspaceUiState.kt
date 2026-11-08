@@ -126,8 +126,9 @@ internal class WorkspaceUiState {
      */
     fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit, dispatch: (Invocation<*>, () -> Unit) -> Unit) {
         when (invocation.command) {
-            is DeletingCommand<*> -> pendingDelete = PendingDelete(invocation, onSuccess)
+            // A page's delete is a delete too, but asks in its own confirmation, which offers to delete its images as well.
             DeleteDocument, AddDocumentToScreenplay, DeletePage -> confirmDocumentChange(invocation) { onSuccess() }
+            is DeletingCommand<*> -> pendingDelete = PendingDelete(invocation, onSuccess)
             else -> dispatch(invocation, onSuccess)
         }
     }

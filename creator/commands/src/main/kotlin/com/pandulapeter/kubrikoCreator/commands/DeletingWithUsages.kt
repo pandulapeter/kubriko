@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.commands.screenplay.RestoreMarkdown
+import com.pandulapeter.kubrikoCreator.commands.screenplay.readMarkdown
 import com.pandulapeter.kubrikoCreator.context.RelationPlace
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.Usage
@@ -36,7 +37,7 @@ internal suspend fun CommandContext.deleteWithUsages(subject: RelationSubject, d
         scenesWithout(subject, usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceScenes, ReplaceScenes.Input(it))) }
         references.typesAfterDeleting(usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(ReplaceTypes, ReplaceTypes.Input(it))) }
         add(delete)
-        references.markdownAfterDeleting(usages).takeIf { it.isNotEmpty() }?.let { add(Invocation(RestoreMarkdown, RestoreMarkdown.Input(it))) }
+        withContext(ioDispatcher) { references.markdownAfterDeleting(usages, ::readMarkdown) }.takeIf { it.isNotEmpty() }?.let { add(Invocation(RestoreMarkdown, RestoreMarkdown.Input(it))) }
     }
     val applied = parts.singleOrNull()?.apply(this) ?: CompositeCommand.apply(this, CompositeCommand.Input(parts))
     return if (applied.failure == null && usages.isNotEmpty()) applied.copy(details = usagesDetails(references.usagesAfterDeleting(usages))) else applied

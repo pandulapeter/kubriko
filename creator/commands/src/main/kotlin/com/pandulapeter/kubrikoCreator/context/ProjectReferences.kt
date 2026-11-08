@@ -46,7 +46,7 @@ internal class ProjectReferences(
 
     /**
      * Every usage of [subject] outside itself, in the order of the project: Kubriko Creator's model first, then the
-     * game's settings, then hand-written Kotlin.
+     * game's settings, then hand-written Kotlin, then the pages and documents mentioning it.
      */
     fun usagesOf(subject: RelationSubject): List<Usage> = buildList {
         relations.to(subject)
@@ -78,13 +78,15 @@ internal class ProjectReferences(
 
     /**
      * The text of each page and document among [usages] once deleting has turned its mentions into plain text, by its path
-     * from the project's root.
+     * from the project's root: [read] as it is now (the texts usages are found in may be a moment old), leaving out those
+     * that are gone or no longer mention it.
      */
-    fun markdownAfterDeleting(usages: List<Usage>): Map<String, String> {
+    fun markdownAfterDeleting(usages: List<Usage>, read: (path: String) -> String?): Map<String, String> {
         val path = mentionedPath ?: return emptyMap()
-        return usages.mapNotNull { (it.place as? UsagePlace.Markdown)?.path }.distinct().associateWith { file ->
-            PageLinks.withLinksToPathAsText(markdown.getValue(file), file, path)
-        }
+        return usages.mapNotNull { (it.place as? UsagePlace.Markdown)?.path }.distinct().mapNotNull { file ->
+            val text = read(file) ?: return@mapNotNull null
+            PageLinks.withLinksToPathAsText(text, file, path).takeIf { it != text }?.let { file to it }
+        }.toMap()
     }
 
     /**
@@ -230,7 +232,7 @@ internal class ProjectReferences(
          * Whether hand-written Kotlin can name [subject], so that its usages need [kotlinFiles]: a type's class, or a
          * Scene's name in a string, but not a Property, whose name is an ordinary word.
          */
-        fun readsKotlinFiles(subject: RelationSubject) = subject !is RelationSubject.Property
+        fun readsKotlinFiles(subject: RelationSubject) = subject is RelationSubject.Type || subject is RelationSubject.Scene
 
         /**
          * The indexes of the if or repeat Block at [index] of [blocks] and of every Block of its section: up to its end

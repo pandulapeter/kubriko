@@ -14,10 +14,10 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CompositeCommand
+import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.ReplaceFiles
-import com.pandulapeter.kubrikoCreator.commands.WriteCommand
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.context.projectReferences
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
@@ -31,36 +31,36 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
 @OptIn(EditorMutation::class)
-public object DeletePage : WriteCommand<DeletePage.Input> {
+public object DeletePage : DeletingCommand<DeletePage.Input> {
     override val name: String = "delete_page"
     override val description: String = "Deletes a page of the screenplay."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Page(input.page)
 
+    override fun subject(input: Input): RelationSubject = RelationSubject.Page(input.page)
+
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validatePage(input.page)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val references = context.projectReferences(RelationSubject.Page(input.page))
-        val unlinked = references.markdownAfterDeleting(references.usagesOf(RelationSubject.Page(input.page)))
+        val references = context.projectReferences(subject(input))
         return withContext(context.ioDispatcher) {
             val text = context.screenplay.read(input.page) ?: return@withContext Applied.failed(Rejection(CommandProblem.PAGE_MISSING, input.page))
+            val unlinked = references.markdownAfterDeleting(references.usagesOf(subject(input)), context::readMarkdown)
             val images = if (input.deleteImages) context.unusedImagesOf(input.page) else emptyList()
             val removed = if (images.isEmpty()) null else ReplaceFiles.apply(context, ReplaceFiles.Input(images.associateWith { null }))
             val unlinking = try {
                 context.screenplay.delete(input.page)
                 if (unlinked.isEmpty()) null else RestoreMarkdown.apply(context, RestoreMarkdown.Input(unlinked))
             } catch (exception: Exception) {
-                if (context.screenplay.read(input.page) == null) runCatching { CreatePage.apply(context, CreatePage.Input(input.page, text)) }.exceptionOrNull()?.let(exception::addSuppressed)
-                removed?.inverse?.let { restoring -> runCatching { restoring.apply(context) }.exceptionOrNull()?.let(exception::addSuppressed) }
+                restore(context, input.page, text, removed)?.let(exception::addSuppressed)
                 throw exception
             }
-            val recreating = Invocation(CreatePage, CreatePage.Input(input.page, text))
             unlinking?.failure?.let { failure ->
-                recreating.apply(context)
-                removed?.inverse?.apply(context)
+                restore(context, input.page, text, removed)?.let { throw it }
                 return@withContext Applied.failed(failure)
             }
+            val recreating = Invocation(CreatePage, CreatePage.Input(input.page, text))
             val inverses = listOfNotNull(unlinking?.inverse, recreating, removed?.inverse)
             Applied(
                 inverse = inverses.singleOrNull() ?: Invocation(CompositeCommand, CompositeCommand.Input(inverses)),
@@ -74,6 +74,28 @@ public object DeletePage : WriteCommand<DeletePage.Input> {
                 },
             )
         }
+    }
+
+    /**
+     * Brings back the page [page] with its [text] if it is gone, and the images [removed] deleted, after a delete that
+     * failed partway, returning what failed in doing so.
+     */
+    private suspend fun restore(context: CommandContext, page: String, text: String, removed: Applied?): Exception? {
+        var failure: Exception? = null
+        fun Exception.kept() {
+            failure?.addSuppressed(this) ?: run { failure = this }
+        }
+        try {
+            if (context.screenplay.read(page) == null) CreatePage.apply(context, CreatePage.Input(page, text))
+        } catch (exception: Exception) {
+            exception.kept()
+        }
+        try {
+            removed?.inverse?.apply(context)
+        } catch (exception: Exception) {
+            exception.kept()
+        }
+        return failure
     }
 
     @Serializable
