@@ -29,8 +29,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 folders with contents) comes with that kind's own delete, a deleted sprite's page images with sprite deletes, and the live
 writers' room scenario is written but not run (below). Next is `05-settings.md`'s Release, Icons, and Signing, each extending
 the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s Android emulator dialog (Setting up
-emulators and simulators) waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s engine and sprite atlas
-parts are done, leaving its Creator part. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements,
+emulators and simulators) waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md` is done except its Tesselar
+side and its end-to-end comparison under Xvfb. Then `07` to `10` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements,
 git) or for the benchmarks.
 
 What the last session did (`e60f4dfd3..HEAD`, unattended, every item reviewed with `/code-review` and every finding

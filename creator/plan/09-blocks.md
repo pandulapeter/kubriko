@@ -45,7 +45,9 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
   the size changes.
 - **Appearance:** sprite sheets with animation settings (static sprites exist), from `.kubriko/sprites/<name>.json` as the sprite
   editor (`10-sprite-editor.md`) plans it, Blocks to set the frame, speed, and looping, and a sprite thumbnail in the appearance
-  column; tinting a sprite with the color. Each is a property of the type's batched look (`06-batched-rendering.md`). Layer and drawing order are part of the Visible Trait (`08-reuse-and-traits.md`).
+  column; tinting a sprite with the color. Each is a property of the type's batched look (`core/.../actors/CLAUDE.md`), and a
+  sprite sheet joins the game's one atlas whole (`AnimatedSprite.fromAtlas`, `GeneratedSprites`). Layer and drawing order are
+  part of the Visible Trait (`08-reuse-and-traits.md`).
 - **More Events:** removed from the Scene, key released and held, left the
   Scene bounds (as opposed to touching the edge). Pointer and gamepad Events come with their Traits (`08-reuse-and-traits.md`).
 - **More drag and drop:** dragging a Block into another Event.

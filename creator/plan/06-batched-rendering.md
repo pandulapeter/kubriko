@@ -20,23 +20,6 @@ knowing, and Tesselar can drop its copies, a step toward working on Tesselar ent
 (`textureTileMode`, `textureFilterQuality`), `ImageBitmap.markImmutable()`, and the sprites plugin's `TextureMipChain` and
 atlases (`SpriteManager.loadAtlas`, `SpriteAtlas`, `SpriteRegion`, `SpriteLook.setRegion`, and `AnimatedSprite.fromAtlas`).
 
-**Order.** The Creator section comes before `08`'s Visible Trait and `09`'s appearance features (sprite sheets, tinting), so
-those are built on batched looks rather than moved onto them later. Everything here only adds to the public API: existing
-`Visible` Actors draw exactly as before.
-
-## Creator
-
-- Generated Actor types implement the batched Trait with a declarative look from their shape, color, and sprite
-  (`ActorTypeCodeGenerator.drawFunction` and its sprite counterpart stop generating `draw()`), and `PreviewActor` draws a not yet compiled
-  type through the same look, so the Scene editor's preview and the game always match. Hand-written Actor types are unchanged.
-- The generated wiring declares one atlas of every sprite the project's Actor types use (`SpriteManager.loadAtlas`, which splits
-  it into pages when it doesn't fit), so a beginner never sees the word atlas. Sprite sheets (`09-blocks.md` → Appearance,
-  `10-sprite-editor.md`) join it whole (`AnimatedSprite.fromAtlas`).
-- Every later appearance feature (sprite sheets and frames, tinting, drawing order, layer, the visible toggle) is a property of the look.
-  A type that one day draws with code of its own (a Kotlin Block in a drawing Event) becomes a plain `Visible`, ending the run it sits in.
-- Opted-in projects are raised to Creator's own Kubriko version (`../CLAUDE.md` → Project files), so the generated code may rely on the
-  new library API; the integration test builds every template with it.
-
 ## Tesselar
 
 - **Every item here that unlocks a change in Tesselar makes that change as part of the item**, never as a follow-up: the item is done
@@ -69,4 +52,3 @@ those are built on batched looks rather than moved onto them later. Everything h
 
 - A generated game's Scene drawn plain and batched compared as images in Creator's end-to-end harness under Xvfb, with a tolerance for
   edge smoothing on ellipses (the engine's own comparison is `BatchedRenderingComparisonTest`).
-- Creator: generated code for every shape and for sprites, the preview's look, and the atlas declaration, in `:creator:core`'s tests.

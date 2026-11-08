@@ -35,8 +35,8 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
    to date by the user and the AI, and a guided start that asks what the game is, writes its first pages, and builds its first
    playable version with the user.
 5. [Settings](05-settings.md) - the rest of Project settings (Release, Icons, and Signing) and of Creator settings.
-6. [Batched rendering](06-batched-rendering.md) - Tesselar's rendering optimizations made general in the engine: Actors that
-   describe their look are drawn in batches, sprites packed into atlases, and Creator's Actor types generated onto both.
+6. [Batched rendering](06-batched-rendering.md) - what Tesselar still needs before it can drop its own rendering for the
+   engine's batched looks and atlases, and an end-to-end comparison of a generated game drawn plain and batched.
 7. [Folders and search](07-resource-organization.md) - the rest of the sidebar filter, quick open, find usages, and the search AI tools.
 8. [Reuse, Traits, and bigger games](08-reuse-and-traits.md) - functions, Traits, and what bigger games need.
 9. [Blocks, Actor types, and Manager types](09-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
