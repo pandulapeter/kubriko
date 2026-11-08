@@ -22,11 +22,13 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboid
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.utility.TextureMipChain
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.utility.setParallelogramTransform
 import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
+import com.pandulapeter.kubriko.sprites.TextureMipChain
+import com.pandulapeter.kubriko.sprites.TextureMipChainCache
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -304,30 +306,11 @@ open class VolumetricCuboidRenderer(
         return true
     }
 
-    private fun applyParallelogramTransform(
-        p0x: Float, p0y: Float,
-        p1x: Float, p1y: Float,
-        p3x: Float, p3y: Float,
-        baseW: Float, baseH: Float
-    ) {
-        val v = transformMatrix.values
-        v[0] = (p1x - p0x) / baseW
-        v[1] = (p1y - p0y) / baseW
-        v[4] = (p3x - p0x) / baseH
-        v[5] = (p3y - p0y) / baseH
-        v[12] = p0x
-        v[13] = p0y
-        v[2] = 0f; v[3] = 0f
-        v[6] = 0f; v[7] = 0f
-        v[8] = 0f; v[9] = 0f; v[10] = 1f; v[11] = 0f
-        v[14] = 0f; v[15] = 1f
-    }
-
     // Texture names never change at runtime, so resolve each face once and cache its mip chain.
     // Faces with no texture stay null; unresolved faces retry until the bitmap loads. The returned
     // bitmap is the mip level matching the current zoom, so minified faces sample a smaller image.
     private fun resolveFaceTexture(faceId: Int): ImageBitmap? {
-        resolvedTextures[faceId]?.let { return it.forZoom(currentZoom) }
+        resolvedTextures[faceId]?.let { return it.forScale(currentZoom) }
         val name = when (faceId) {
             0 -> cuboid.textureZMinus
             1 -> cuboid.textureZPlus
@@ -337,8 +320,8 @@ open class VolumetricCuboidRenderer(
             else -> cuboid.textureXMinus
         } ?: return null
         return textureResolver(name)
-            ?.let { TextureMipChain(it).also { chain -> resolvedTextures[faceId] = chain } }
-            ?.forZoom(currentZoom)
+            ?.let { textureMipChains.get(name, it).also { chain -> resolvedTextures[faceId] = chain } }
+            ?.forScale(currentZoom)
     }
 
     // Batched drawing used by VolumetricCuboidBatchRenderer: solid faces and outlines become
@@ -383,7 +366,7 @@ open class VolumetricCuboidRenderer(
                 val canvas = drawContext.canvas
                 batch.flush(canvas)
                 canvas.save()
-                applyParallelogramTransform(
+                transformMatrix.setParallelogramTransform(
                     p0x = texP0x[i] + originX, p0y = texP0y[i] + originY,
                     p1x = texP1x[i] + originX, p1y = texP1y[i] + originY,
                     p3x = texP3x[i] + originX, p3y = texP3y[i] + originY,
@@ -439,14 +422,14 @@ open class VolumetricCuboidRenderer(
 
             canvas.save()
             if (texture != null) {
-                applyParallelogramTransform(
+                transformMatrix.setParallelogramTransform(
                     p0x, p0y, p1x, p1y, p3x, p3y,
                     texture.width.toFloat(), texture.height.toFloat()
                 )
                 canvas.concat(transformMatrix)
                 drawImage(image = texture, alpha = alphaMultiplier)
             } else {
-                applyParallelogramTransform(p0x, p0y, p1x, p1y, p3x, p3y, 1f, 1f)
+                transformMatrix.setParallelogramTransform(p0x, p0y, p1x, p1y, p3x, p3y, 1f, 1f)
                 canvas.concat(transformMatrix)
                 drawRect(color = faceColors[i], size = Size(1f, 1f), alpha = alphaMultiplier)
             }
@@ -467,6 +450,9 @@ open class VolumetricCuboidRenderer(
     }
 
     companion object {
+        /** Shared by every renderer, so cuboids sharing a face texture build each of its mip levels once. */
+        private val textureMipChains = TextureMipChainCache()
+
         const val STROKE_WIDTH = 4f
         private const val OUTLINE_MIN_SIZE_PX = 12f
         private const val OUTLINE_ARGB = 0xFF000000.toInt()
