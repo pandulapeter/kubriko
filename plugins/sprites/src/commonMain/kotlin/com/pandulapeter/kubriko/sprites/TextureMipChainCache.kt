@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.update
  * themselves are still not thread-safe (see [TextureMipChain]).
  */
 class TextureMipChainCache internal constructor(
-    private val createChain: (ImageBitmap) -> TextureMipChain,
+    internal val createChain: (ImageBitmap) -> TextureMipChain,
 ) {
 
     /**

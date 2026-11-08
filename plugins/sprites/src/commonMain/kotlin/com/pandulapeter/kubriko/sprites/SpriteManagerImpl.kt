@@ -17,12 +17,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.sprites.helpers.toSpriteResource
+import com.pandulapeter.kubriko.sprites.implementation.AtlasPageBuilder
+import com.pandulapeter.kubriko.sprites.implementation.CanvasAtlasPageBuilder
+import com.pandulapeter.kubriko.sprites.implementation.PackedAtlas
+import com.pandulapeter.kubriko.sprites.implementation.packAtlas
 import com.pandulapeter.kubriko.sprites.implementation.toImageBitmap
+import com.pandulapeter.kubriko.sprites.implementation.unpackedAtlas
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +39,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DensityQualifier
 import org.jetbrains.compose.resources.DrawableResource
@@ -45,10 +55,13 @@ internal class SpriteManagerImpl(
     private val initialRetryDelayInMilliseconds: Long = INITIAL_RETRY_DELAY_MS,
     private val imageLoader: (suspend (SpriteResource) -> ImageBitmap?)? = null,
     private val mipChains: TextureMipChainCache = TextureMipChainCache(),
+    private val atlasPageBuilder: AtlasPageBuilder = CanvasAtlasPageBuilder,
 ) : SpriteManager(isLoggingEnabled, instanceNameForLogging) {
 
     private val cache = MutableStateFlow(persistentMapOf<SpriteResource, ImageBitmap?>())
     private val pendingWarmingUp = MutableStateFlow(persistentMapOf<SpriteResource, ImageBitmap>())
+    private val atlases = MutableStateFlow<List<SpriteAtlas>>(emptyList())
+    private val pendingAtlases = MutableStateFlow(persistentMapOf<SpriteAtlas, PackedAtlas>())
 
     // One canonical SpriteResource per DrawableResource. Games reach cached sprites through the
     // DrawableResource overload from their drawing code and from AnimatedSprite callbacks, which
@@ -96,27 +109,32 @@ internal class SpriteManagerImpl(
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         val pending = pendingWarmingUp.collectAsState().value
-        if (pending.isNotEmpty()) {
+        val pendingAtlasPages = pendingAtlases.collectAsState().value
+        if (pending.isNotEmpty() || pendingAtlasPages.isNotEmpty()) {
             Canvas(
                 modifier = Modifier.fillMaxSize(),
                 onDraw = {
-                    pending.values.forEach { bitmap ->
-                        drawImage(
-                            image = bitmap,
-                            srcOffset = IntOffset.Zero,
-                            srcSize = IntSize(bitmap.width, bitmap.height),
-                            dstOffset = IntOffset.Zero,
-                            dstSize = IntSize(1, 1),
-                            alpha = WARM_UP_ALPHA,
-                        )
-                    }
-                }
+                    pending.values.forEach { warmUp(it) }
+                    pendingAtlasPages.values.forEach { packedAtlas -> packedAtlas.pages.forEach { warmUp(it) } }
+                },
             )
             LaunchedEffect(pending.keys) {
                 pending.keys.forEach { promoteToCache(it) }
             }
+            LaunchedEffect(pendingAtlasPages.keys) {
+                pendingAtlasPages.keys.forEach { promoteAtlas(it) }
+            }
         }
     }
+
+    private fun DrawScope.warmUp(bitmap: ImageBitmap) = drawImage(
+        image = bitmap,
+        srcOffset = IntOffset.Zero,
+        srcSize = IntSize(bitmap.width, bitmap.height),
+        dstOffset = IntOffset.Zero,
+        dstSize = IntSize(1, 1),
+        alpha = WARM_UP_ALPHA,
+    )
 
     override fun preloadSprites(vararg resources: SpriteResource) = preloadSprites(resources.toList())
 
@@ -130,30 +148,16 @@ internal class SpriteManagerImpl(
         if (resource in pendingWarmingUp.value) return null
         cache.update { it.putting(resource, null) }
         scope.launch {
-            var retryDelayInMilliseconds = initialRetryDelayInMilliseconds
-            var isFirstAttempt = true
-            while (true) {
-                val loadedBitmap = loadImage(resource, isFirstAttempt)
-                // A load that finishes after unload() is dropped, so the sprite does not become resident again.
-                if (resource !in cache.value) return@launch
-                if (loadedBitmap != null) {
-                    var isPublished = false
-                    pendingWarmingUp.update {
-                        isPublished = resource in cache.value
-                        if (isPublished) it.putting(resource, loadedBitmap) else it
-                    }
-                    if (isPublished) {
-                        launch {
-                            delay(WARM_UP_TIMEOUT_MS.milliseconds)
-                            promoteToCache(resource)
-                        }
-                    }
-                    return@launch
-                }
-                isFirstAttempt = false
-                delay(retryDelayInMilliseconds.milliseconds)
-                if (resource !in cache.value) return@launch
-                retryDelayInMilliseconds = (retryDelayInMilliseconds * 2).coerceAtMost(MAXIMUM_RETRY_DELAY_MS)
+            // A load that finishes after unload() is dropped, so the sprite does not become resident again.
+            val loadedBitmap = loadUntilLoaded(resource) { resource in cache.value } ?: return@launch
+            var isPublished = false
+            pendingWarmingUp.update {
+                isPublished = resource in cache.value
+                if (isPublished) it.putting(resource, loadedBitmap) else it
+            }
+            if (isPublished) {
+                delay(WARM_UP_TIMEOUT_MS.milliseconds)
+                promoteToCache(resource)
             }
         }
         return null
@@ -174,6 +178,114 @@ internal class SpriteManagerImpl(
     override fun getMipChain(drawableResource: DrawableResource) = getMipChain(drawableResource.asDefaultSpriteResource())
 
     override fun getMipChain(resource: SpriteResource) = get(resource)?.let { mipChains.get(resource, it) }
+
+    override fun getMipChain(region: SpriteRegion): TextureMipChain = if (isOnLoadedAtlas(region.page)) {
+        mipChains.get(region.page, region.page)
+    } else {
+        mipChains.createChain(region.page)
+    }
+
+    override fun loadAtlas(
+        drawableResources: Collection<DrawableResource>,
+        maximumPageSize: Int,
+        paddingInPixels: Int,
+    ) = loadSpriteAtlas(drawableResources.map { it.asDefaultSpriteResource() }, maximumPageSize, paddingInPixels)
+
+    override fun loadSpriteAtlas(
+        resources: Collection<SpriteResource>,
+        maximumPageSize: Int,
+        paddingInPixels: Int,
+    ): SpriteAtlas {
+        require(paddingInPixels >= 0) { "The padding can't be negative." }
+        require(maximumPageSize > paddingInPixels * 2) { "A page must have room for more than its padding." }
+        val atlas = SpriteAtlas(resources.distinct(), maximumPageSize, paddingInPixels)
+        atlases.update { it + atlas }
+        scope.launch { loadAndPack(atlas) }
+        return atlas
+    }
+
+    private suspend fun loadAndPack(atlas: SpriteAtlas) {
+        val loadedCount = MutableStateFlow(0)
+        val bitmaps = coroutineScope {
+            atlas.resources.map { resource ->
+                async {
+                    loadUntilLoaded(resource) { !atlas.isUnloaded }?.also {
+                        atlas.reportLoadedSprites(loadedCount.updateAndGet { count -> count + 1 })
+                    }
+                }
+            }.awaitAll()
+        }
+        if (atlas.isUnloaded || bitmaps.any { it == null }) return
+        val loadedBitmaps = bitmaps.requireNoNulls()
+        val packedAtlas = try {
+            packAtlas(atlas.resources, loadedBitmaps, atlas.maximumPageSize, atlas.paddingInPixels, atlasPageBuilder)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            // Android cannot draw a hardware bitmap (which a custom image loader may return) into a page.
+            log(message = "Failed to pack an atlas, its sprites keep their own bitmaps", details = exception.message)
+            unpackedAtlas(atlas.resources, loadedBitmaps)
+        }
+        pendingAtlases.update { it.putting(atlas, packedAtlas) }
+        delay(WARM_UP_TIMEOUT_MS.milliseconds)
+        promoteAtlas(atlas)
+    }
+
+    internal fun promoteAtlas(atlas: SpriteAtlas) {
+        val packedAtlas = pendingAtlases.value[atlas] ?: return
+        pendingAtlases.update { it.removing(atlas) }
+        atlas.publish(packedAtlas)
+    }
+
+    override fun unloadAtlas(atlas: SpriteAtlas) {
+        atlases.update { it - atlas }
+        pendingAtlases.update { it.removing(atlas) }
+        val packedAtlas = atlas.packedAtlas
+        atlas.markUnloaded()
+        packedAtlas?.bitmaps?.forEach { mipChains.remove(it) }
+    }
+
+    override fun getRegion(drawableResource: DrawableResource): SpriteRegion? {
+        val loadedAtlases = atlases.value
+        for (index in loadedAtlases.indices) {
+            loadedAtlases[index].getRegion(drawableResource)?.let { return it }
+        }
+        return null
+    }
+
+    override fun getRegion(resource: SpriteResource): SpriteRegion? {
+        val loadedAtlases = atlases.value
+        for (index in loadedAtlases.indices) {
+            loadedAtlases[index].getRegion(resource)?.let { return it }
+        }
+        return null
+    }
+
+    private fun isOnLoadedAtlas(bitmap: ImageBitmap): Boolean {
+        val loadedAtlases = atlases.value
+        for (index in loadedAtlases.indices) {
+            if (loadedAtlases[index].packedAtlas?.bitmaps?.contains(bitmap) == true) return true
+        }
+        return false
+    }
+
+    /**
+     * Loads [resource], retrying a failed load with a growing delay, until it loads or [isStillWanted] turns false
+     * (then it returns null).
+     */
+    private suspend fun loadUntilLoaded(resource: SpriteResource, isStillWanted: () -> Boolean): ImageBitmap? {
+        var retryDelayInMilliseconds = initialRetryDelayInMilliseconds
+        var isFirstAttempt = true
+        while (true) {
+            val loadedBitmap = loadImage(resource, isFirstAttempt)
+            if (!isStillWanted()) return null
+            if (loadedBitmap != null) return loadedBitmap
+            isFirstAttempt = false
+            delay(retryDelayInMilliseconds.milliseconds)
+            if (!isStillWanted()) return null
+            retryDelayInMilliseconds = (retryDelayInMilliseconds * 2).coerceAtMost(MAXIMUM_RETRY_DELAY_MS)
+        }
+    }
 
     private suspend fun loadImage(spriteResource: SpriteResource, isFirstAttempt: Boolean): ImageBitmap? = try {
         if (imageLoader == null) decodeImage(spriteResource) else imageLoader(spriteResource)

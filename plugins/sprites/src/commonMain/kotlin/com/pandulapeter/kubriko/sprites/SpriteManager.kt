@@ -109,6 +109,61 @@ sealed class SpriteManager(
      */
     abstract fun getMipChain(resource: SpriteResource): TextureMipChain?
 
+    /**
+     * The [TextureMipChain] of the bitmap [region] lies on (an atlas page, usually), shared by every region of that
+     * bitmap, so each level is built only once. Divide a region by `2^k` to find it on level `k`. It is dropped when
+     * the atlas is [unloadAtlas]ed.
+     */
+    abstract fun getMipChain(region: SpriteRegion): TextureMipChain
+
+    /**
+     * Declares the unrotated sprites of [drawableResources] as belonging together, and packs them onto shared pages
+     * in the background: see [SpriteAtlas]. Each call packs an atlas of its own, which stays loaded until
+     * [unloadAtlas]; the sprites are loaded for it on their own, so [get] still loads a sprite separately if asked.
+     *
+     * @param drawableResources The sprites to pack. A drawable listed more than once is packed once.
+     * @param maximumPageSize The largest width and height a page may have, in pixels. The default suits every target.
+     * @param paddingInPixels How many pixels of its own edges surround each sprite on its page.
+     */
+    abstract fun loadAtlas(
+        drawableResources: Collection<DrawableResource>,
+        maximumPageSize: Int = SpriteAtlas.DEFAULT_MAXIMUM_PAGE_SIZE,
+        paddingInPixels: Int = SpriteAtlas.DEFAULT_PADDING_IN_PIXELS,
+    ): SpriteAtlas
+
+    /**
+     * Declares the sprite [resources] as belonging together, and packs them onto shared pages in the background: see
+     * [SpriteAtlas]. Each call packs an atlas of its own, which stays loaded until [unloadAtlas]; the sprites are
+     * loaded for it on their own, so [get] still loads a sprite separately if asked.
+     *
+     * @param resources The sprites to pack. A sprite listed more than once is packed once.
+     * @param maximumPageSize The largest width and height a page may have, in pixels. The default suits every target.
+     * @param paddingInPixels How many pixels of its own edges surround each sprite on its page.
+     */
+    abstract fun loadSpriteAtlas(
+        resources: Collection<SpriteResource>,
+        maximumPageSize: Int = SpriteAtlas.DEFAULT_MAXIMUM_PAGE_SIZE,
+        paddingInPixels: Int = SpriteAtlas.DEFAULT_PADDING_IN_PIXELS,
+    ): SpriteAtlas
+
+    /**
+     * Stops loading [atlas], or releases its pages once loaded: its regions turn null, and the mip chains of its pages
+     * are dropped.
+     */
+    abstract fun unloadAtlas(atlas: SpriteAtlas)
+
+    /**
+     * Where the unrotated sprite of [drawableResource] lies in the first loaded atlas holding it, or null while no such
+     * atlas is loaded. Allocates nothing, so it can be called every frame.
+     */
+    abstract fun getRegion(drawableResource: DrawableResource): SpriteRegion?
+
+    /**
+     * Where the sprite [resource] lies in the first loaded atlas holding it, or null while no such atlas is loaded.
+     * Allocates nothing, so it can be called every frame.
+     */
+    abstract fun getRegion(resource: SpriteResource): SpriteRegion?
+
     companion object {
         /**
          * Creates a new [SpriteManager] instance.

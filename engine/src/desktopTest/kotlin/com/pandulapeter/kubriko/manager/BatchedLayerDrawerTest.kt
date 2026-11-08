@@ -177,6 +177,23 @@ class BatchedLayerDrawerTest {
     }
 
     @Test
+    fun `sprites showing different regions of one atlas page share a run`() {
+        val page = ImageBitmap(8, 4)
+        val scene = listOf(
+            TestBatched(SpriteLook(page, srcOffset = IntOffset(0, 0), srcSize = IntSize(4, 4))),
+            TestBatched(SpriteLook(page, srcOffset = IntOffset(4, 0), srcSize = IntSize(4, 4))),
+        )
+
+        draw(scene)
+
+        assertEquals(listOf("run:${rectangleVertices * 2}"), target.events)
+        val batch = target.runBatches.single()
+        assertSame(page, batch.texture)
+        assertEquals(0f, batch.texCoords[0])
+        assertEquals(4f, batch.texCoords[rectangleVertices * 2])
+    }
+
+    @Test
     fun `looks sampling one texture with different defaults for untextured vertices take runs of their own`() {
         val texture = ImageBitmap(4, 4)
         val scene = listOf(
