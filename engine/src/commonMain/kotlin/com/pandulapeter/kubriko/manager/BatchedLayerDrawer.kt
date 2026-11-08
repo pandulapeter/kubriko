@@ -42,6 +42,8 @@ internal class BatchedLayerDrawer {
     private val runs = ArrayList<BatchedRun>()
     private var runCount = 0
     private var currentRun: BatchedRun? = null
+    private var pixelsPerUnit = 1f
+    private var isTextureSampledPerVertex = true
 
     /**
      * Draws [visibles] into [target]. [pixelsPerUnit] is the screen pixels per scene unit, and
@@ -49,6 +51,8 @@ internal class BatchedLayerDrawer {
      */
     fun draw(visibles: List<Visible>, target: BatchedLayerTarget, pixelsPerUnit: Float, isTextureSampledPerVertex: Boolean) {
         runCount = 0
+        this.pixelsPerUnit = pixelsPerUnit
+        this.isTextureSampledPerVertex = isTextureSampledPerVertex
         for (i in visibles.indices) {
             val visible = visibles[i]
             if (!visible.isVisible) continue
@@ -100,10 +104,14 @@ internal class BatchedLayerDrawer {
         first.isDrawnIndividually == second.isDrawnIndividually && first.canShareRunWith(second)
 
     private fun drawActor(actor: Batched, target: BatchedLayerTarget) {
-        val geometry = actor.look.geometry
+        val look = actor.look
+        val geometry = look.geometry
+        // Updated again right before it is appended: a look shared between actors holds the last one's geometry
+        // otherwise. For a look of its own this only compares revisions.
+        geometry.update(look, actor.body, pixelsPerUnit, isTextureSampledPerVertex)
         if (geometry.isDrawnIndividually) {
             endRun(target)
-            target.drawSpriteIndividually(actor, actor.look as SpriteLook)
+            target.drawSpriteIndividually(actor, look as SpriteLook)
             return
         }
         val vertexCount = geometry.batch.vertexCount

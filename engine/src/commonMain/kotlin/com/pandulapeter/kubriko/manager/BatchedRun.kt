@@ -13,12 +13,14 @@ import com.pandulapeter.kubriko.actor.looks.LookGeometry
 import com.pandulapeter.kubriko.actor.traits.Batched
 import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.helpers.appendFrom
+import com.pandulapeter.kubriko.helpers.truncate
 
 /**
  * One run of batched actors drawn in a single call, kept from frame to frame in the same slot of its layer. While the
  * actors appended to it are the ones of the last frame, in the same order and with unchanged geometry, its batch is
- * not touched and draws last frame's arrays again; the first difference refills it from the members matched so far
- * onwards.
+ * not touched and draws last frame's arrays again; at the first difference it is cut back to where the matched members
+ * end, which is exactly what they appended last frame, and filled on from there. Nothing is re-read from a member's
+ * look, which a look shared between actors would have overwritten since.
  */
 internal class BatchedRun {
     val batch = TriangleBatch()
@@ -29,6 +31,8 @@ internal class BatchedRun {
 
     private val members = ArrayList<Batched?>()
     private var versions = IntArray(16)
+    private var vertexEnds = IntArray(16)
+    private var indexEnds = IntArray(16)
     private var memberCount = 0
     private var position = 0
     private var isReplaying = false
@@ -64,18 +68,24 @@ internal class BatchedRun {
                 return
             }
             isReplaying = false
-            refillUpTo(position)
+            truncateTo(position)
         }
         if (position == members.size) members.add(actor) else members[position] = actor
-        if (position == versions.size) versions = versions.copyOf(versions.size * 2)
+        if (position == versions.size) {
+            versions = versions.copyOf(versions.size * 2)
+            vertexEnds = vertexEnds.copyOf(versions.size)
+            indexEnds = indexEnds.copyOf(versions.size)
+        }
         versions[position] = geometry.version
         batch.appendFrom(geometry.batch)
+        vertexEnds[position] = batch.vertexCount
+        indexEnds[position] = batch.indexCount
         position++
     }
 
     /** Ends this frame's fill and returns the batch to draw. */
     fun end(): TriangleBatch {
-        if (isReplaying && position != memberCount) refillUpTo(position)
+        if (isReplaying && position != memberCount) truncateTo(position)
         isReplaying = false
         memberCount = position
         for (i in position until members.size) members[i] = null
@@ -89,8 +99,10 @@ internal class BatchedRun {
         batch.reset()
     }
 
-    private fun refillUpTo(count: Int) {
+    /** Keeps what the first [count] members appended, dropping everything after. */
+    private fun truncateTo(count: Int) = if (count == 0) {
         batch.reset()
-        for (i in 0 until count) batch.appendFrom(members[i]!!.look.geometry.batch)
+    } else {
+        batch.truncate(vertexEnds[count - 1], indexEnds[count - 1])
     }
 }

@@ -91,7 +91,7 @@ class BatchedLayerDrawerTest {
     }
 
     @Test
-    fun `a moved actor rebuilds only its own geometry and refills its run`() {
+    fun `a moved actor rebuilds only its own geometry and the run is filled on from it`() {
         val looks = List(3) { QuadsLook(2) }
         val scene = looks.map { TestBatched(it) }
         draw(scene)
@@ -101,13 +101,31 @@ class BatchedLayerDrawerTest {
         scene[1].body.position = SceneOffset(5f.sceneUnit, 0f.sceneUnit)
         draw(scene)
 
-        assertNotEquals(generation, batch.generation)
+        assertEquals(generation, batch.generation, "The unchanged first member is kept rather than appended again.")
         assertEquals(listOf(1, 2, 1), looks.map { it.emitCount })
-        assertEquals(0f, batch.positions[8 * 2], "The moved actor's top-left corner, which starts at its pivot's negative, follows it into the refilled run.")
+        assertEquals(24, batch.vertexCount)
+        assertEquals(-5f, batch.positions[0], "The first member, which did not move, keeps its vertices.")
+        assertEquals(0f, batch.positions[8 * 2], "The moved actor's top-left corner, which starts at its pivot's negative, follows it.")
+        assertEquals(-5f, batch.positions[16 * 2], "The third member is appended again after the moved one.")
     }
 
     @Test
-    fun `a reordered or shrunk run is refilled`() {
+    fun `actors sharing one look each draw where they are`() {
+        val look = QuadsLook(1)
+        val first = TestBatched(look)
+        val second = TestBatched(look).apply { body.position = SceneOffset(100f.sceneUnit, 0f.sceneUnit) }
+
+        repeat(2) {
+            draw(listOf(first, second))
+
+            val batch = target.runBatches.single()
+            assertEquals(-5f, batch.positions[0])
+            assertEquals(95f, batch.positions[4 * 2])
+        }
+    }
+
+    @Test
+    fun `a reordered run is refilled and a shrunk one cut back`() {
         val first = TestBatched(QuadsLook(1))
         val second = TestBatched(QuadsLook(1))
         draw(listOf(first, second))
@@ -117,9 +135,8 @@ class BatchedLayerDrawerTest {
         draw(listOf(second, first))
         assertNotEquals(generation, batch.generation)
 
-        generation = batch.generation
         draw(listOf(second))
-        assertNotEquals(generation, batch.generation)
+        assertEquals(4, batch.vertexCount)
         assertEquals(listOf("run:4"), target.events)
     }
 

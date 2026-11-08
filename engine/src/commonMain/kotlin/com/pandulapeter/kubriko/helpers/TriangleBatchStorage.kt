@@ -100,3 +100,14 @@ internal fun TriangleBatch.transformVertices(firstVertex: Int, a: Float, b: Floa
         p += 2
     }
 }
+
+/**
+ * Drops everything appended after the first [vertexCount] vertices and [indexCount] indices, keeping the rest as it
+ * is, as a batch filled in order up to that point held it.
+ */
+internal fun TriangleBatch.truncate(vertexCount: Int, indexCount: Int) {
+    if (vertexCount == this.vertexCount && indexCount == this.indexCount) return
+    this.vertexCount = vertexCount
+    this.indexCount = indexCount
+    if (texCoordsWritten > vertexCount) texCoordsWritten = vertexCount
+}
