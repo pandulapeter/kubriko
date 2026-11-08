@@ -38,7 +38,7 @@ internal interface BatchedLayerTarget {
  */
 internal class BatchedLayerDrawer {
     private val stretch = ArrayList<Batched>()
-    private var isEmitted = BooleanArray(64)
+    private val grouping = RunGrouping()
     private val runs = ArrayList<BatchedRun>()
     private var runCount = 0
     private var currentRun: BatchedRun? = null
@@ -72,8 +72,6 @@ internal class BatchedLayerDrawer {
     private fun drawStretch(target: BatchedLayerTarget) {
         val size = stretch.size
         if (size == 0) return
-        if (isEmitted.size < size) isEmitted = BooleanArray(maxOf(size, isEmitted.size * 2))
-        isEmitted.fill(false, 0, size)
         var start = 0
         while (start < size) {
             val drawingOrder = stretch[start].drawingOrder + 0f
@@ -88,20 +86,19 @@ internal class BatchedLayerDrawer {
 
     /** Draws the actors of one drawing order, grouped by texture in the order each group first appears. */
     private fun drawSegment(start: Int, end: Int, target: BatchedLayerTarget) {
-        for (i in start until end) {
-            if (isEmitted[i]) continue
-            val groupGeometry = stretch[i].look.geometry
-            for (j in i until end) {
-                if (!isEmitted[j] && isSameGroup(groupGeometry, stretch[j].look.geometry)) {
-                    drawActor(stretch[j], target)
-                    isEmitted[j] = true
-                }
+        if (end - start == 1) {
+            drawActor(stretch[start], target)
+            return
+        }
+        grouping.group(stretch, start, end)
+        for (group in 0 until grouping.groupCount) {
+            var member = grouping.firstMember(group)
+            while (member >= 0) {
+                drawActor(stretch[member], target)
+                member = grouping.memberAfter(member)
             }
         }
     }
-
-    private fun isSameGroup(first: LookGeometry, second: LookGeometry) =
-        first.isDrawnIndividually == second.isDrawnIndividually && first.canShareRunWith(second)
 
     private fun drawActor(actor: Batched, target: BatchedLayerTarget) {
         val look = actor.look
