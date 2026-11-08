@@ -115,7 +115,7 @@ internal class SpriteManagerImpl(
                 modifier = Modifier.fillMaxSize(),
                 onDraw = {
                     pending.values.forEach { warmUp(it) }
-                    pendingAtlasPages.values.forEach { packedAtlas -> packedAtlas.pages.forEach { warmUp(it) } }
+                    pendingAtlasPages.values.forEach { packedAtlas -> packedAtlas.bitmaps.forEach { warmUp(it) } }
                 },
             )
             LaunchedEffect(pending.keys) {
