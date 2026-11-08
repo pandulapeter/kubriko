@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
+import com.pandulapeter.kubrikoCreator.project.GameNotes
+import com.pandulapeter.kubrikoCreator.screenplay.PageLinks
+import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.template.TemplateFiles.root
 import java.io.File
 import kotlin.test.Test
@@ -46,6 +49,17 @@ class TemplateFilesTest {
             val rendered = TemplateRenderer.renderContent(file.content, values)
             assertTrue("{{" !in rendered, "${template.id}/${file.path}")
         }
+    }
+
+    @Test
+    fun everyTemplateShipsAScreenplayWhoseMentionsPointAtItsOwnFilesAndNotesPointingAtIt() = ProjectTemplate.entries.forEach { template ->
+        val files = TemplateFiles.load(template).associate { TemplateRenderer.renderPath(it.path, "com.example.mygame").replace("dot-", ".") to it.content }
+        val page = checkNotNull(files["${PageNaming.FOLDER}/${PageNaming.FIRST_PAGE}.${PageNaming.EXTENSION}"]) { template.id }
+        val mentions = PageLinks.linksOf(page).mapNotNull { PageLinks.resolve(PageNaming.pathOf(PageNaming.FIRST_PAGE), it.destination) }
+        assertTrue(mentions.isNotEmpty(), template.id)
+        mentions.forEach { assertTrue(it in files, "${template.id} mentions $it, which it doesn't ship.") }
+        assertTrue("screenplay/" in checkNotNull(files[GameNotes.FILE_NAME]), template.id)
+        assertEquals("@${GameNotes.FILE_NAME}\n", files["CLAUDE.md"], template.id)
     }
 
     @Test

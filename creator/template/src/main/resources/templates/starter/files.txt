@@ -1,3 +1,5 @@
+AGENTS.md
+CLAUDE.md
 README.md
 build.gradle.kts
 dot-gitignore
@@ -5,6 +7,7 @@ dot-kubriko/actors/Ball.json
 dot-kubriko/project.json
 gradle.properties
 gradle/libs.versions.toml
+screenplay/README.md
 settings.gradle.kts
 src/commonMain/composeResources/files/scenes/main.json
 src/commonMain/kotlin/__PACKAGE__/Game.kt

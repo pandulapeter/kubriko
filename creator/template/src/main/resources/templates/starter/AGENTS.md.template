@@ -1,0 +1,8 @@
+# Working on {{PROJECT_NAME}}
+
+This game is made with Kubriko Creator. Its design is in `screenplay/`, starting with `screenplay/README.md`: read it before
+changing the game, and keep its pages true to what the game does.
+
+- Actor types and Manager types are stored in `.kubriko/`, and their Kotlin is generated into the `generated` package: change
+  them in Kubriko Creator or through its tools, never in the generated files, which are written over.
+- Scenes are in `src/commonMain/composeResources/files/scenes`.

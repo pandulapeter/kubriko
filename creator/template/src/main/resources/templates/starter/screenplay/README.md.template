@@ -1,0 +1,12 @@
+# {{PROJECT_NAME}}
+
+A ball bounces around the screen.
+
+## The ball
+
+The [ball](../.kubriko/actors/Ball.json) flies off as the game starts and bounces off every edge of the screen, in the
+game's one Scene, [main](../src/commonMain/composeResources/files/scenes/main.json).
+
+## Planned
+
+- Something for the player to do: the game has no controls yet.

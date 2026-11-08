@@ -2,7 +2,8 @@
 
 A game made with [Kubriko](https://github.com/pandulapeter/kubriko), created by Kubriko Creator.
 
-This is a regular Kotlin Multiplatform project: open it in Kubriko Creator or in IntelliJ IDEA, whichever you prefer.
+This is a regular Kotlin Multiplatform project: open it in Kubriko Creator or in IntelliJ IDEA, whichever you prefer. The
+game's design is in [`screenplay/`](screenplay/README.md).
 
 - Run it on desktop: `./gradlew run`
 - Run it in a browser: `./gradlew wasmJsBrowserDevelopmentRun`
