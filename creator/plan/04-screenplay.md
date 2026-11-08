@@ -43,12 +43,10 @@ health checks.
 Pages exist (`../CLAUDE.md` → Files and ownership, and UI): plain Markdown in `screenplay/`, the page commands and tools, the
 Screenplay group in the sidebar, and a page editor that edits one chunk at a time in place. What is left:
 
-- **One shape per page,** checked but never forced on the user: a `# Title`, a one-sentence summary as the first paragraph (what the
-  page index shows), what is in the game as headed sections, and at the end an optional `## Planned` list (`PageText` reads them).
-  A page holding only Planned is a feature not started. When a planned item is built, it leaves Planned and the page describes it;
-  nothing records that it once was planned (as in this folder). A new project's `screenplay/README.md` is the first page, "The game".
-- **The first page** holds the pitch, the core loop, who plays it and on what, and the look, plus an optional **Words** list that maps
-  the game's own names to the project's ("the hero" is `Player`), which the AI then speaks in.
+- **One shape per page:** a `# Title`, a one-sentence summary as the first paragraph (what the page index shows), what is in
+  the game as headed sections, and at the end an optional `## Planned` list (`PageText` reads them), checked by the health
+  checks below but never forced on the user. A page holding only Planned is a feature not started; a built item leaves Planned,
+  and nothing records that it once was planned.
 - **The page editor** still lacks the AI's edits shown as a diff before Keep.
 - **AI features off** changes nothing here: pages, mentions, and their checks are the editor's, not the AI's.
 
@@ -66,30 +64,6 @@ dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is le
   text; undo brings back the links and removes the copies, and a dangling mention chip is marked missing.
 - **Renames read `ProjectReferences` too** (each kind follows its own rename code today), so a rename can't miss what a delete
   sees; find usages (`07-resource-organization.md`) reads it as well.
-
-## Pages and the AI
-
-- **Context:** the conversation start gains the page index (each page's path, title, and summary), right after the digest so the
-  cached prefix stays stable; whole pages come through `read_pages`. `TokenBudgetTest` gets a budget for the index, and an index
-  over it lists folders instead of pages.
-- **The game's language:** the system prompt tells the agent to name things the way the pages and their Words do, to describe
-  changes as the player sees them ("the hero now jumps twice") before naming types and Blocks, and to ask in game terms.
-- **Keeping pages true:** every write command's result names the pages that mention what it changed ("`screenplay/hero.md`
-  mentions `Player`"), computed from the mentions, so the agent knows where to look without reading every page. The system prompt
-  asks for the matching page edits within the same turn, so Keep and Undo take the change and its description together.
-- **Writing rules** (`ScreenplayStyle`, in `:creator:core`), checked on every page the AI writes, with a rejection that says what
-  to change, and shown to the user only as quiet hints:
-  - Present tense, describing the game as it is; no history ("used to", "now", "was changed", "fixed", "no longer", dates).
-  - No narration of the conversation or the work ("I added", "we decided", "as requested").
-  - Design, not implementation: no Kotlin, no Block-by-Block retelling; what a page says about a thing links to it instead.
-  - Tunable numbers are named by their Property's mention rather than copied, so they can't drift.
-  - Planned items are short, one per line or subheading, and leave Planned when built.
-  - Pages under a length limit, and one topic per page; a page past it is split.
-- **The game's notes and the screenplay:** `AGENTS.md` stays the AI's working rules for this project (conventions, what to avoid),
-  and the design moves to pages. `set_game_notes`' description and the system prompt say which goes where; a project whose notes
-  hold design gets the move offered once by the agent. The template's `AGENTS.md` points outside agents (Claude Code in a
-  terminal) at `screenplay/`.
-- **The Game map** shows the pages beside the cast, the crew, and the Scenes.
 
 ## Keeping it up to date
 
@@ -118,7 +92,8 @@ playable version of them, then the next, playing and showing each one.
    field), whose answers the panel shows as buttons; the tool returns the choice. Creator owns it, so every agent gets it, not only
    ones with a question tool of their own. The order: the core loop, controls, winning and losing, the cast, the look, and what the
    first version leaves out.
-3. **Pages first:** the agent writes "The game" and a page per main part, with everything not yet built under Planned, before any
+3. **Pages first:** the agent writes "The game" (the pitch, the core loop, who plays it and on what, and the look, plus a
+   **Words** list mapping the game's own names to the project's, "the hero" is `Player`) and a page per main part, with everything not yet built under Planned, before any
    Actor type. The user sees them appear and can edit them before the next step.
 4. **Slices:** the agent picks the smallest playable slice from the Planned items, lays it out as a plan to approve
    (`PlanChecklist`), builds it with Blocks rather than Kotlin Blocks where the Block set allows, plays it (`start_game`,
@@ -134,16 +109,13 @@ and Undo. Shapes and colors drawn by Blocks stand in for art until the sprite ed
 
 ## Order
 
-The AI's side of pages next (what is left of deleting what is referred to comes with each kind's delete), then keeping them
-up to date, then the writers' room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
+Keeping pages up to date next (what is left of deleting what is referred to comes with each kind's delete), then the writers'
+room (`ask_user` and the Blank template first). Search (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages
 and `search_project` include their mentions and text.
 
 ## Testing
 
-- Unit tests for deleting what mentions point at, `ScreenplayStyle`'s
-  rules (each with what it must not flag), the health checks, and the commands with undo, as for the other kinds.
-- `EvalSetTest` requests that touch pages ("make the hero jump twice" editing `hero.md` too), and `TokenBudgetTest` budgets for the
-  page index and `read_pages`.
+- Unit tests for deleting what mentions point at, the health checks, and the commands with undo, as for the other kinds.
 - A `FakeAgent` run through the writers' room, with `ask_user` answered by the test, from pitch to a project that builds; the
   Blank template in `ProjectTemplateIntegrationTest`.
 - A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape above, and
