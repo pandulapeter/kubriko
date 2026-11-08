@@ -104,6 +104,7 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadDocuments
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ViewPageImage
 
 /**
  * Every command of the editor. The AI tool list is generated from it, so a command reaches the AI as soon as it is
@@ -150,6 +151,7 @@ public class CommandRegistry(
                 ReadGameNotes,
                 ListPages,
                 ReadPages,
+                ViewPageImage,
                 ReadDocuments,
                 GetKubrikoApi,
                 ReadConsole,

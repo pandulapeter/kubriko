@@ -680,6 +680,7 @@
     <string name="command_set_game_notes">Change the game's notes</string>
     <string name="command_list_pages">List the screenplay's pages</string>
     <string name="command_read_pages">Read pages of the screenplay</string>
+    <string name="command_view_page_image">Look at an image on a page</string>
     <string name="command_create_page">Create a page</string>
     <string name="command_edit_page">Change a page</string>
     <string name="command_move_page">Move a page</string>

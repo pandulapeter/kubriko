@@ -87,7 +87,8 @@ class ScreenplayCommandsTest {
         assertEquals(listOf("README", "hero"), list.map { it.jsonObject.getValue("page").jsonPrimitive.content })
         assertEquals("A knight who jumps.", list[1].jsonObject.getValue("summary").jsonPrimitive.content)
         val pages = assertIs<CommandOutcome.Success>(ReadPages.read(context, ReadPages.Input(listOf("hero")))).result.jsonObject
-        assertEquals(hero, pages.getValue("hero").jsonPrimitive.content)
+        assertEquals(hero, pages.getValue("hero").jsonObject.getValue("text").jsonPrimitive.content)
+        assertEquals(null, pages.getValue("hero").jsonObject["images"])
         assertIs<CommandOutcome.Rejected>(ReadPages.read(context, ReadPages.Input(listOf("villain"))))
     }
 

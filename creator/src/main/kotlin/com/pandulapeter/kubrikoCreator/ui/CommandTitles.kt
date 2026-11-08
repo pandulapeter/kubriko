@@ -105,6 +105,7 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.MoveDocument
 import com.pandulapeter.kubrikoCreator.commands.screenplay.MovePage
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadDocuments
 import com.pandulapeter.kubrikoCreator.commands.screenplay.ReadPages
+import com.pandulapeter.kubrikoCreator.commands.screenplay.ViewPageImage
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.command_add_block
 import kubriko.creator.generated.resources.command_add_document_to_screenplay
@@ -200,6 +201,7 @@ import kubriko.creator.generated.resources.command_start_version_control
 import kubriko.creator.generated.resources.command_stop_game
 import kubriko.creator.generated.resources.command_take_screenshot
 import kubriko.creator.generated.resources.command_upgrade_project
+import kubriko.creator.generated.resources.command_view_page_image
 import kubriko.creator.generated.resources.command_wait
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -284,6 +286,7 @@ private val commandTitles = mapOf(
     SetGameNotes.name to Res.string.command_set_game_notes,
     ListPages.name to Res.string.command_list_pages,
     ReadPages.name to Res.string.command_read_pages,
+    ViewPageImage.name to Res.string.command_view_page_image,
     CreatePage.name to Res.string.command_create_page,
     EditPage.name to Res.string.command_edit_page,
     MovePage.name to Res.string.command_move_page,
