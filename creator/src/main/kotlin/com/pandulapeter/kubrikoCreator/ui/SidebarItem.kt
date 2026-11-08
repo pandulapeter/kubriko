@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,15 +29,18 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.context.HealthFinding
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
+import com.pandulapeter.kubrikoCreator.ui.components.WithTooltip
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
 import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.gameMap.text
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_more_options
 import org.jetbrains.compose.resources.DrawableResource
@@ -61,6 +65,7 @@ internal fun SidebarItem(
     actions: List<ContextAction> = emptyList(),
     isTopLevel: Boolean = false,
     modifier: Modifier = Modifier,
+    hints: List<HealthFinding> = emptyList(),
 ) {
     val menu = rememberRightClickMenuState()
     val hover = rememberHoverRevealState()
@@ -112,6 +117,7 @@ internal fun SidebarItem(
                 )
             }
         }
+        if (hints.isNotEmpty()) HintMarker(hints)
         if (actions.isNotEmpty()) {
             RowActionsButton(
                 modifier = Modifier.revealedWhen(hover.isActive || menu.isOpen),
@@ -149,3 +155,11 @@ internal val SIDEBAR_ROW_START = 28.dp
  * place on every row.
  */
 internal val SIDEBAR_ROW_END = 4.dp
+
+/**
+ * A quiet dot saying that something about the row is worth a look ([hints]), which its tooltip says.
+ */
+@Composable
+private fun HintMarker(hints: List<HealthFinding>) = WithTooltip(label = hints.map { it.text() }.joinToString("\n")) {
+    Box(Modifier.padding(4.dp).size(6.dp).background(Accent.SCREENPLAY.color, CircleShape))
+}

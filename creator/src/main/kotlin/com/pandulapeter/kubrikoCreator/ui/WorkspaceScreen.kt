@@ -104,6 +104,7 @@ internal fun WorkspaceScreen(
     CompositionLocalProvider(
         LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
         LocalMentionedIn provides rememberMentionedIn(controller.commands.context, controller.selection),
+        LocalSidebarHints provides rememberSidebarHints(controller.screenplayHealth.findings, controller.blockTypes?.types),
     ) {
         WorkspaceContent(
             controller = controller,

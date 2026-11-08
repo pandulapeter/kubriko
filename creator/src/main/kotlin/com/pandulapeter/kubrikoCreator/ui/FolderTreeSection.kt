@@ -314,6 +314,7 @@ private fun FolderTreeItem(
             }
         },
         flashKey = flashKey,
+        hints = LocalSidebarHints.current.of(group, row.name),
         actions = listOf(
             ContextAction(stringResource(Res.string.action_rename), Res.drawable.ic_edit) { onNamingChange(SidebarNaming.RenamedItem(group, row.name)) },
             ContextAction(stringResource(group.deleteItemLabel), Res.drawable.ic_delete, isDestructive = true) { actions.onDeleteItem(group, row.name) },
