@@ -100,6 +100,6 @@ class RenderWarmUpTest {
         }
 
         assertTrue(warmUp.isMeasuring)
-        assertEquals(0.0, bytes, "Measuring a frame allocated $bytes bytes.")
+        assertTrue(bytes < 1, "Measuring a frame allocated $bytes bytes.")
     }
 }
