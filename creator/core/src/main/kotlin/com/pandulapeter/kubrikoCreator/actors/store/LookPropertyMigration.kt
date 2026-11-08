@@ -29,8 +29,10 @@ import java.io.File
  * Format version 3: generated Actor types are drawn through a member called `look`, so no Property may have that name any
  * more ([PropertyNaming]). A Property called that is renamed to the first free name after it (`look2`) in the type that
  * declares it, and, as renaming it in Kubriko Creator does, in the Blocks, texts, and Kotlin of every type that uses it
- * and in the values the Actors of its family keep in the Scenes. The Scenes are changed first, so a migration that fails
- * halfway finds the Property where it was when it runs again. Type files that can't be read are left as they are.
+ * and in the values the Actors of its family keep in the Scenes. The Scenes are changed first, so a Scene that can't be
+ * written leaves every type as it was for the next try. The types are saved after them, declarers last, so the one rare
+ * failure left (a declarer that can't be saved after another of its family was) can only leave a family whose Property
+ * has two names until it is renamed in Kubriko Creator. Type files that can't be read are left as they are.
  */
 internal object LookPropertyMigration : FormatMigration {
 
@@ -71,7 +73,8 @@ internal object LookPropertyMigration : FormatMigration {
             users.forEach { newNamesByType[it.name] = newName }
         }
         if (newNamesByType.isNotEmpty()) renameSceneValues(rootDirectory, newNamesByType)
-        renamedTypes.values.forEach(store::save)
+        val (declarers, users) = types.filter { it.name in renamedTypes }.partition { it.declaresReservedName() }
+        (users + declarers).forEach { store.save(renamedTypes.getValue(it.name)) }
     }
 
     /**

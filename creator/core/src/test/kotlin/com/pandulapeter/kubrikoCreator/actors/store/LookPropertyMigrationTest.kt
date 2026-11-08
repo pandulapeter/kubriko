@@ -86,6 +86,16 @@ class LookPropertyMigrationTest {
     }
 
     @Test
+    fun aRunAfterTheUsersWereSavedButNotTheDeclarerRenamesItTheSameWay() {
+        val store = assertNotNull(BlockTypeStore.open(root))
+        store.save(ActorTypeDefinition(name = "Enemy", properties = listOf(PropertyDefinition.Number("look"))))
+        store.save(ActorTypeDefinition(name = "Ghost", parent = "Enemy", events = everyFrame(BlockDefinition.Kotlin("look2 = 0f"))))
+        val types = migratedTypes()
+        assertEquals(listOf(PropertyDefinition.Number("look2")), (types.getValue("Enemy") as ActorTypeDefinition).properties)
+        assertEquals(everyFrame(BlockDefinition.Kotlin("look2 = 0f")), (types.getValue("Ghost") as ActorTypeDefinition).events)
+    }
+
+    @Test
     fun aManagerTypesLookIsRenamedInEveryTypeThatUsesIt() {
         val store = assertNotNull(BlockTypeStore.open(root))
         store.save(ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("look"))))
