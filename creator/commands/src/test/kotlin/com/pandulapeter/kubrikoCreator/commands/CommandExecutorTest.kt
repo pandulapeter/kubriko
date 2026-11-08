@@ -243,6 +243,15 @@ class CommandExecutorTest {
         assertEquals(null, after["mentionedIn"])
     }
 
+    @OptIn(EditorMutation::class)
+    @Test
+    fun aDeleteNamesThePagesThatStillMentionWhatItDeleted() = runTest {
+        val (executor, context) = executor(ball)
+        context.screenplay.write("README", "The [ball](../.kubriko/actors/Ball.json) bounces.")
+        val result = assertIs<CommandOutcome.Success>(executor.call("delete_actor_type", buildJsonObject { put("actorType", "Ball") })).result.jsonObject
+        assertEquals(listOf("screenplay/README.md"), result.getValue("mentionedIn").jsonArray.map { it.jsonPrimitive.content })
+    }
+
     @Test
     fun aToolCallThatThrowsStillFinishesItsStep() = runTest {
         val failing = object : WriteCommand<NoInput> {

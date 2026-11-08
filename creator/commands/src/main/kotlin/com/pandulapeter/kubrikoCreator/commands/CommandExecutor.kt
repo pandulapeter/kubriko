@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.context.Usage
+import com.pandulapeter.kubrikoCreator.context.mentionPathsOf
 import com.pandulapeter.kubrikoCreator.context.pagesMentioning
 import com.pandulapeter.kubrikoCreator.context.writeSummary
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
@@ -103,6 +104,8 @@ public class CommandExecutor(
     private suspend fun applyChange(invocation: Invocation<*>, origin: AiStepOrigin?, isByAi: Boolean): CommandOutcome {
         validate(invocation)?.let { return CommandOutcome.Rejected(it) }
         if (isByAi) invocation.validateByAi(context)?.let { return CommandOutcome.Rejected(it) }
+        // Read before the change too, since a delete leaves nothing to find the pages that still mention it by.
+        val mentionedBefore = if (isByAi) mentionPathsOrNone { context.mentionPathsOf(invocation.targets(context)) } else emptySet()
         val applied = try {
             invocation.apply(context)
         } catch (exception: Exception) {
@@ -116,15 +119,8 @@ public class CommandExecutor(
             record(HistoryEntry(revert = inverse.copy(isRestoring = true), reapply = invocation.copy(isRestoring = true), conversationId = origin?.conversationId, revision = revision, isByAi = isByAi).withContentHashes())
         }
         if (!isByAi || applied.result != JsonNull) return CommandOutcome.Success(applied.result)
-        val mentionedIn = try {
-            withContext(context.ioDispatcher) { context.pagesMentioning(invocation.targets(context)) }
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (_: Exception) {
-            // Which pages mention the change only helps the agent; the change is made all the same.
-            emptyList()
-        }
-        return CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn) + applied.details.orEmpty()))
+        val mentionedIn = mentionPathsOrNone { context.pagesMentioning(mentionedBefore + context.mentionPathsOf(invocation.targets(context))) }
+        return CommandOutcome.Success(JsonObject(context.writeSummary(revision, invocation.commandName, target, mentionedIn.toList()) + applied.details.orEmpty()))
     }
 
     /**
@@ -246,6 +242,18 @@ public class CommandExecutor(
         } finally {
             publish(step.copy(target = runCatching { command.target(context, input) }.getOrNull() ?: step.target, isRunning = false, rejection = rejection))
         }
+    }
+
+    /**
+     * What [read] reads on the I/O dispatcher, or nothing when it fails: which pages mention a change only helps the agent,
+     * and the change is made all the same.
+     */
+    private suspend fun <T> mentionPathsOrNone(read: () -> Collection<T>): Collection<T> = try {
+        withContext(context.ioDispatcher) { read() }
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (_: Exception) {
+        emptyList()
     }
 
     /**

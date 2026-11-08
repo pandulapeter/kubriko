@@ -16,17 +16,22 @@ import com.pandulapeter.kubrikoCreator.commands.screenplay.projectPathOf
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
 /**
- * The paths from the project's root of the pages that mention the types and Scenes among [targets], so that the agent
- * that changed them knows which pages may need the same change. Reads the disk.
+ * The paths from the project's root of the files of the types and Scenes among [targets] that exist now: what a change
+ * to them may leave a page saying about them. Reads the disk.
  */
-internal fun CommandContext.pagesMentioning(targets: Collection<CommandTarget>): List<String> {
-    val paths = targets.mapNotNull { target ->
-        when (target) {
-            is CommandTarget.BlockType -> blockTypes?.get(target.name)?.let(DefinitionPaths::definitionPath)
-            is CommandTarget.Scene -> scenes.fileOf(target.name).takeIf { it.isFile }?.let(::projectPathOf)
-            else -> null
-        }
+internal fun CommandContext.mentionPathsOf(targets: Collection<CommandTarget>): Set<String> = targets.mapNotNullTo(LinkedHashSet()) { target ->
+    when (target) {
+        is CommandTarget.BlockType -> blockTypes?.get(target.name)?.let(DefinitionPaths::definitionPath)
+        is CommandTarget.Scene -> scenes.fileOf(target.name).takeIf { it.isFile }?.let(::projectPathOf)
+        else -> null
     }
+}
+
+/**
+ * The paths from the project's root of the pages that mention any of [paths], so that the agent that changed what is
+ * there knows which pages may need the same change. Reads the disk.
+ */
+internal fun CommandContext.pagesMentioning(paths: Collection<String>): List<String> {
     if (paths.isEmpty()) return emptyList()
     val index = mentionIndex()
     return paths.flatMap(index::pagesMentioning).distinct().map(PageNaming::pathOf)
