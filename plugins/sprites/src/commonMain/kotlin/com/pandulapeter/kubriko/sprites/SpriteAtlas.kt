@@ -52,7 +52,11 @@ class SpriteAtlas internal constructor(
     /** Whether the pages are packed and [getRegion] returns the sprites' regions. */
     val isLoaded get() = state.value is PackedAtlas
 
-    /** The packed pages, or an empty list until [isLoaded] (and again once the atlas is unloaded). */
+    /**
+     * The packed pages, or an empty list until [isLoaded] (and again once the atlas is unloaded). A sprite too large
+     * for a page keeps its own bitmap, which isn't listed here, and so does every sprite if the pages could not be
+     * drawn (Android can't draw a hardware bitmap into one), leaving this empty.
+     */
     val pages: List<ImageBitmap> get() = (state.value as? PackedAtlas)?.pages.orEmpty()
 
     /**
