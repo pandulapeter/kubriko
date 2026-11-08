@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
+import com.pandulapeter.kubrikoCreator.ui.git.ScreenplayReminder
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.settings.CreatorSettingsDialog
 import com.pandulapeter.kubrikoCreator.ui.theme.ThemeChoice
@@ -86,6 +87,9 @@ class AiFeaturesOffTest {
         }
         WelcomeScreen(error = null, errorArguments = emptyList(), recentProjects = emptyList(), onNewProject = {}, onOpenProject = {}, onForgetRecentProject = {}, onOpenSettings = {})
         WorkspaceHint(Modifier.height(240.dp))
+        CompositionLocalProvider(LocalDescriptionWriter provides DescriptionWriter(isBusy = false) {}) {
+            ScreenplayReminder()
+        }
     }
 
     private fun ComposeUiTest.shownTexts() = onAllNodes(SemanticsMatcher("any node") { true }, useUnmergedTree = true)

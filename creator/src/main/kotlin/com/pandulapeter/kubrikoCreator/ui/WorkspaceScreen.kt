@@ -374,6 +374,7 @@ private fun WorkspaceGitSidePanelOf(
     row: PanelRow,
 ) = WorkspaceGitSidePanel(
     gitState = controller.git.state,
+    rootDirectory = controller.project.rootDirectory,
     onCommand = controller.commands::dispatch,
     width = width,
     row = row,

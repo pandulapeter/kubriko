@@ -55,6 +55,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param onCommit Commits the changes with the message, calling `onCommitted` once they are committed, which clears the
  * message (a commit that fails keeps it).
+ * @param areScreenplayRemindersShown Whether to say when the game changed but no page of the screenplay did.
  */
 @Composable
 internal fun GitPanel(
@@ -63,6 +64,7 @@ internal fun GitPanel(
     onCommit: (message: String, onCommitted: () -> Unit) -> Unit,
     onDiscard: (ChangeEntry) -> Unit,
     modifier: Modifier = Modifier,
+    areScreenplayRemindersShown: Boolean = false,
 ) = Column(
     modifier = modifier,
 ) {
@@ -73,7 +75,7 @@ internal fun GitPanel(
     when (val state = state.collectAsState().value) {
         GitState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally))
         GitState.NoRepository -> NoRepository(onStartVersionControl)
-        is GitState.Ready -> Repository(state, onCommit, onDiscard)
+        is GitState.Ready -> Repository(state, onCommit, onDiscard, areScreenplayRemindersShown)
     }
 }
 
@@ -99,6 +101,7 @@ private fun Repository(
     state: GitState.Ready,
     onCommit: (message: String, onCommitted: () -> Unit) -> Unit,
     onDiscard: (ChangeEntry) -> Unit,
+    areScreenplayRemindersShown: Boolean,
 ) {
     var message by remember { mutableStateOf("") }
     var entryToDiscard by remember { mutableStateOf<ChangeEntry?>(null) }
@@ -137,6 +140,9 @@ private fun Repository(
             )
         }
         if (state.changes.isNotEmpty()) {
+            if (areScreenplayRemindersShown && isScreenplayReminderDue(state.changes)) {
+                item { ScreenplayReminder(modifier = Modifier.padding(top = 8.dp)) }
+            }
             item {
                 CommitForm(
                     message = message,

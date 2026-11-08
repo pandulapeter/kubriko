@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.testing.showing
+import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.ui.components.PanelRow
@@ -43,6 +44,7 @@ class WorkspaceGitSidePanelTest {
             Row {
                 WorkspaceGitSidePanel(
                     gitState = state,
+                    rootDirectory = testDirectory(),
                     onCommand = { invocation, onSuccess ->
                         invocations += invocation
                         onSuccess()
