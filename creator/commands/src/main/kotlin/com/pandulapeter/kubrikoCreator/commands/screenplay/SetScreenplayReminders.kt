@@ -40,6 +40,7 @@ public object SetScreenplayReminders : WriteCommand<SetScreenplayReminders.Input
         val previous = ScreenplaySettings.readOrNull(root) ?: return@withContext Applied.failed(Rejection(CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE, ScreenplaySettings.FILE))
         ScreenplaySettings.write(root, previous.copy(areRemindersShown = input.isOn))
         context.scenes.ownWrites.record(File(root, ScreenplaySettings.FILE))
+        context.screenplay.onFilesChanged()
         Applied(inverse = Invocation(SetScreenplayReminders, Input(previous.areRemindersShown)))
     }
 

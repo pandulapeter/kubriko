@@ -41,6 +41,7 @@ class ProjectWatcherTest {
     fun filesAreSortedIntoTheAreaTheyBelongTo() {
         assertEquals(ProjectChange.BLOCK_TYPE_DEFINITIONS, ProjectWatcher.areaOf(".kubriko/actors/Ball.json"))
         assertEquals(ProjectChange.SETTINGS, ProjectWatcher.areaOf(".kubriko/project.json"))
+        assertEquals(ProjectChange.SCREENPLAY, ProjectWatcher.areaOf(".kubriko/screenplay.json"))
         assertEquals(ProjectChange.DOCUMENTS, ProjectWatcher.areaOf("README.md"))
         assertEquals(ProjectChange.DOCUMENTS, ProjectWatcher.areaOf("docs/guide.md"))
         assertEquals(ProjectChange.SCREENPLAY, ProjectWatcher.areaOf("screenplay/README.md"))

@@ -45,6 +45,7 @@ class WorkspaceGitSidePanelTest {
                 WorkspaceGitSidePanel(
                     gitState = state,
                     rootDirectory = testDirectory(),
+                    screenplayRevision = MutableStateFlow(0),
                     onCommand = { invocation, onSuccess ->
                         invocations += invocation
                         onSuccess()

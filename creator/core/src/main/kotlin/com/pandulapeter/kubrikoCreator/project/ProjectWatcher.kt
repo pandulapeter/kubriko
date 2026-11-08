@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.project
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.foundation.ATOMIC_WRITE_SUFFIX
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
+import com.pandulapeter.kubrikoCreator.screenplay.ScreenplaySettings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -109,7 +110,7 @@ public class ProjectWatcher(
             path == BlockTypeStore.SETTINGS_FILE -> ProjectChange.SETTINGS
             path.startsWith(".kubriko/actors/") || path.startsWith(".kubriko/managers/") -> ProjectChange.BLOCK_TYPE_DEFINITIONS
             ResourceScanner.classify(path) == ResourceGroup.SCENES -> ProjectChange.SCENES
-            path.startsWith(PageNaming.FOLDER + "/") -> ProjectChange.SCREENPLAY
+            path.startsWith(PageNaming.FOLDER + "/") || path == ScreenplaySettings.FILE -> ProjectChange.SCREENPLAY
             ResourceScanner.isDocument(path) -> ProjectChange.DOCUMENTS
             ResourceScanner.isBuildFile(path) || path in SETTINGS_FILES || path == VersionCatalog.FILE -> ProjectChange.MODULES
             path.startsWith("src/") || "/src/" in path -> ProjectChange.SOURCES

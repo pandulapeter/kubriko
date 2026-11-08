@@ -363,6 +363,7 @@ private fun WorkspaceGitSidePanelOf(
 ) = WorkspaceGitSidePanel(
     gitState = controller.git.state,
     rootDirectory = controller.project.rootDirectory,
+    screenplayRevision = controller.commands.context.screenplay.revision,
     onCommand = controller.commands::dispatch,
     width = width,
     row = row,

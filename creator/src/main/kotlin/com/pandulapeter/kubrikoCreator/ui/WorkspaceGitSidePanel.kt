@@ -35,19 +35,21 @@ import java.io.File
  * The workspace's Version control panel, after the splitter that resizes it, with every change made through a command.
  *
  * @param rootDirectory The project's folder, whose screenplay settings say whether to remind about the pages.
+ * @param screenplayRevision Raised whenever those settings may have changed, here or outside Kubriko Creator.
  * @param onCommand Dispatches a command, calling its second argument once the command succeeded.
  */
 @Composable
 internal fun WorkspaceGitSidePanel(
     gitState: StateFlow<GitState>,
     rootDirectory: File,
+    screenplayRevision: StateFlow<Int>,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     width: PanelWidthState,
     row: PanelRow,
 ) {
     PanelSplitter(width, row)
-    val currentGitState by gitState.collectAsState()
-    val areRemindersShown by produceState(false, rootDirectory, currentGitState) {
+    val currentRevision by screenplayRevision.collectAsState()
+    val areRemindersShown by produceState(false, rootDirectory, currentRevision) {
         value = withContext(Dispatchers.IO) { ScreenplaySettings.read(rootDirectory).areRemindersShown }
     }
     GitPanel(

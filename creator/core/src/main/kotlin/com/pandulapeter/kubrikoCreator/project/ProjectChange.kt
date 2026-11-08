@@ -35,7 +35,7 @@ public enum class ProjectChange {
     SOURCES,
 
     /**
-     * The screenplay's pages and their images, in `screenplay/`.
+     * The screenplay's pages and their images, in `screenplay/`, and how it is kept (`.kubriko/screenplay.json`).
      */
     SCREENPLAY,
 

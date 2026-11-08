@@ -72,7 +72,9 @@ class ScreenplayChecksTest {
         val context = commandContext(ActorTypeDefinition(name = "Ball"))
         context.screenplay.write("README", "# Game\n\nA game.\n")
         assertEquals(listOf(HealthFinding(HealthFinding.Kind.UNMENTIONED, RelationSubject.Type("Ball"))), context.healthFindings().filter { it.kind == HealthFinding.Kind.UNMENTIONED })
+        val revision = context.screenplay.revision.value
         context.assertRoundTrip(Invocation(SetScreenplayReminders, SetScreenplayReminders.Input(isOn = false))) { ScreenplaySettings.read(context.project.rootDirectory) }
+        assertEquals(true, context.screenplay.revision.value > revision, "What follows the settings reads them again.")
         assertEquals(emptyList(), context.healthFindings().filter { it.kind == HealthFinding.Kind.UNMENTIONED })
     }
 
