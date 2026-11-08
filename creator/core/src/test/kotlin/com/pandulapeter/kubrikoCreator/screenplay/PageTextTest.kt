@@ -92,4 +92,14 @@ class PageTextTest {
         assertEquals("Planned", PageText.plannedSectionOf(hero)?.heading)
         assertNull(PageText.plannedSectionOf("# Game\n\n### Planned\n\n- Not this one"))
     }
+
+    @Test
+    fun plannedItemsAreTheListItemsOfThePlannedSection() {
+        val page = "# Game\n\n- Not planned\n\n## Planned\n\n- Wall jump\n* Bosses\n1. A shield\n\nSome prose.\n\n### Later\n\n- Boats\n-   \n"
+        assertEquals(
+            listOf(PageText.PlannedItem(6, "Wall jump"), PageText.PlannedItem(7, "Bosses"), PageText.PlannedItem(8, "A shield"), PageText.PlannedItem(14, "Boats")),
+            PageText.plannedItemsOf(page),
+        )
+        assertEquals(emptyList(), PageText.plannedItemsOf("# Game\n\n- Nothing planned"))
+    }
 }

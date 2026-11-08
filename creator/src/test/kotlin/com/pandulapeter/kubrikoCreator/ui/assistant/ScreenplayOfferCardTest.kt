@@ -63,4 +63,19 @@ class ScreenplayOfferCardTest {
         onNodeWithText("Write the screenplay").performClick()
         assertEquals(1, prompts.size)
     }
+
+    @Test
+    fun thePanelsMenuContinuesInTheWritersRoomAndPlansFeatures() = uiTest {
+        val prompts = mutableListOf<String>()
+        showing {
+            CompositionLocalProvider(LocalWritersRoom provides { prompts += it }) {
+                AiPanelHeader(view = AiPanelView.ASSISTANT, onViewSelected = {})
+            }
+        }
+        onNodeWithContentDescription("More AI options").performClick()
+        onNodeWithText("Continue in the writers' room").performClick()
+        onNodeWithContentDescription("More AI options").performClick()
+        onNodeWithText("Plan a feature").performClick()
+        assertEquals(2, prompts.size)
+    }
 }

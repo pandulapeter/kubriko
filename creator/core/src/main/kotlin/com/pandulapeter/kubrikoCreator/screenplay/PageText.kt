@@ -67,6 +67,25 @@ public object PageText {
     public fun plannedSectionOf(text: String): Section? = sectionsOf(text).firstOrNull { it.level == 2 && it.heading.equals(PLANNED, ignoreCase = true) }
 
     /**
+     * An item of a page's Planned list: its [line] and its [text] without the list marker.
+     */
+    public data class PlannedItem(
+        val line: Int,
+        val text: String,
+    )
+
+    /**
+     * The items of the page's Planned list ([plannedSectionOf]), in order: its list items, outside its subheadings' own
+     * lines.
+     */
+    public fun plannedItemsOf(text: String): List<PlannedItem> {
+        val section = plannedSectionOf(text) ?: return emptyList()
+        val lines = text.lines()
+        return section.lines.drop(1).mapNotNull { index -> listMarker.find(lines[index])?.let { PlannedItem(index, lines[index].substring(it.range.last + 1).trim()) } }
+            .filter { it.text.isNotEmpty() }
+    }
+
+    /**
      * [text] with the first section headed [heading] (ignoring case) replaced by [replacement], which brings its own
      * heading, or null if there is no such section. The line breaks of [text] are kept.
      */
@@ -98,4 +117,5 @@ public object PageText {
     }
 
     private val heading = Regex("(#{1,6})\\s+(.*)")
+    private val listMarker = Regex("^\\s*([-*+]|\\d+[.)])\\s+")
 }

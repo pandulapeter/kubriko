@@ -47,6 +47,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import com.pandulapeter.kubrikoCreator.ui.assistant.LocalWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.assistant.StartingTheWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.components.AnimatedSidePanel
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
@@ -97,6 +98,7 @@ internal fun WorkspaceScreen(
         LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
         LocalMentionedIn provides rememberMentionedIn(controller.commands.context, controller.selection),
         LocalSidebarHints provides rememberSidebarHints(controller.screenplayHealth.findings, controller.blockTypes?.types),
+        LocalWritersRoom provides assistant::startWritersRoom,
     ) {
         WorkspaceContent(
             controller = controller,

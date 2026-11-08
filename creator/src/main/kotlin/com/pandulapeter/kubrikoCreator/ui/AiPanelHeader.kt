@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.ui.assistant.LocalWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.RowActionsButton
@@ -36,12 +37,18 @@ import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_ai_panel_more
 import kubriko.creator.generated.resources.action_back_to_assistant
+import kubriko.creator.generated.resources.action_continue_writers_room
+import kubriko.creator.generated.resources.action_continue_writers_room_description
+import kubriko.creator.generated.resources.action_plan_feature
+import kubriko.creator.generated.resources.action_plan_feature_description
 import kubriko.creator.generated.resources.action_use_own_ai_tool
 import kubriko.creator.generated.resources.action_use_own_ai_tool_description
 import kubriko.creator.generated.resources.action_write_screenplay
 import kubriko.creator.generated.resources.action_write_screenplay_description
 import kubriko.creator.generated.resources.ai_panel_assistant
 import kubriko.creator.generated.resources.ai_panel_own_tool
+import kubriko.creator.generated.resources.assistant_prompt_continue_writers_room
+import kubriko.creator.generated.resources.assistant_prompt_plan_feature
 import kubriko.creator.generated.resources.assistant_prompt_write_screenplay
 import kubriko.creator.generated.resources.game_map_description
 import kubriko.creator.generated.resources.game_map_title
@@ -125,6 +132,7 @@ private fun MoreAiOptions(
         label = Res.string.action_ai_panel_more,
         actions = listOfNotNull(
             writeScreenplayAction(),
+            *writersRoomActions().toTypedArray(),
             ContextAction(
                 label = stringResource(Res.string.game_map_title),
                 description = stringResource(Res.string.game_map_description),
@@ -153,5 +161,29 @@ private fun writeScreenplayAction(): ContextAction? {
         description = stringResource(Res.string.action_write_screenplay_description),
         icon = Res.drawable.ic_page,
         onClick = { writer.write(prompt) },
+    )
+}
+
+/**
+ * The writers' room's ways in: continuing from the pages, and planning a new feature's page.
+ */
+@Composable
+private fun writersRoomActions(): List<ContextAction> {
+    val writersRoom = LocalWritersRoom.current ?: return emptyList()
+    val continuePrompt = stringResource(Res.string.assistant_prompt_continue_writers_room)
+    val featurePrompt = stringResource(Res.string.assistant_prompt_plan_feature)
+    return listOf(
+        ContextAction(
+            label = stringResource(Res.string.action_continue_writers_room),
+            description = stringResource(Res.string.action_continue_writers_room_description),
+            icon = Res.drawable.ic_ai,
+            onClick = { writersRoom(continuePrompt) },
+        ),
+        ContextAction(
+            label = stringResource(Res.string.action_plan_feature),
+            description = stringResource(Res.string.action_plan_feature_description),
+            icon = Res.drawable.ic_page,
+            onClick = { writersRoom(featurePrompt) },
+        ),
     )
 }

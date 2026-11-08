@@ -37,12 +37,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.screenplay.PageChunks
+import com.pandulapeter.kubrikoCreator.screenplay.PageText
 import com.pandulapeter.kubrikoCreator.screenplay.ScreenplayStyle
+import com.pandulapeter.kubrikoCreator.ui.assistant.LocalWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
+import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
+import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.components.MarkdownText
+import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
+import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
+import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
 import kotlinx.coroutines.delay
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_build_with_assistant
+import kubriko.creator.generated.resources.assistant_prompt_build_planned_item
 import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.page_add_paragraph
 import kubriko.creator.generated.resources.page_empty
@@ -106,7 +115,8 @@ internal fun PageEditor(
                 if (chunks.isEmpty()) {
                     Text(stringResource(Res.string.page_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                chunks.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(index) } }
+                val buildActions = rememberBuildActions(name, state.text, chunks)
+                chunks.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links, buildActions[index].orEmpty()) { state.edit(index) } }
             } else {
                 remember(session.frame) { PageChunks.of(session.frame.before) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = false)) } }
                 PageChunkField(
@@ -153,16 +163,45 @@ private fun PageTitle(name: String) = Row(
 private fun RenderedChunk(
     text: String,
     links: PageLinksState?,
+    actions: List<ContextAction> = emptyList(),
     onClick: () -> Unit,
-) = MarkdownText(
-    modifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(6.dp))
-        .clickable(onClick = onClick)
-        .padding(horizontal = 8.dp, vertical = 6.dp),
-    text = text,
-    links = links,
-)
+) = Box {
+    val menu = rememberRightClickMenuState()
+    MarkdownText(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick)
+            .then(if (actions.isEmpty()) Modifier else Modifier.rightClickMenu(menu))
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        text = text,
+        links = links,
+    )
+    if (actions.isNotEmpty()) RightClickMenu(state = menu, actions = actions)
+}
+
+/**
+ * "Build this with the assistant" for each chunk of the page [name] holding Planned items, by the chunk's index: it starts
+ * the writers' room on the item chosen. None while AI features are off, or outside a workspace.
+ */
+@Composable
+private fun rememberBuildActions(name: String, text: String, chunks: List<PageChunks.Chunk>): Map<Int, List<ContextAction>> {
+    val writersRoom = LocalWritersRoom.current?.takeIf { LocalIsAiEnabled.current } ?: return emptyMap()
+    val label = stringResource(Res.string.action_build_with_assistant)
+    val prompt = stringResource(Res.string.assistant_prompt_build_planned_item, name, "%2\$s")
+    val items = remember(text) { PageText.plannedItemsOf(text) }
+    return remember(items, chunks, writersRoom, label, prompt) {
+        chunks.withIndex().associate { (index, chunk) ->
+            val chunkItems = items.filter { it.line in chunk.lines }
+            val start = { item: PageText.PlannedItem -> writersRoom(prompt.replace("%2\$s", item.text)) }
+            index to when (chunkItems.size) {
+                0 -> emptyList()
+                1 -> listOf(ContextAction(label) { start(chunkItems.single()) })
+                else -> listOf(ContextAction(label = label, children = chunkItems.map { item -> ContextAction(item.text) { start(item) } }))
+            }
+        }
+    }
+}
 
 /**
  * What the toolbar's Image menu and pasting offer for the page [state] edits, or null when the page can't take images

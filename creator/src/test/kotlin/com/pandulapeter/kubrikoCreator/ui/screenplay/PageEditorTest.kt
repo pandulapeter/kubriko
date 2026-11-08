@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.screenplay
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,17 +19,22 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.rightClick
 import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import com.pandulapeter.kubrikoCreator.testing.uiTest
+import com.pandulapeter.kubrikoCreator.ui.assistant.LocalWritersRoom
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
@@ -183,5 +189,22 @@ class PageEditorTest {
         isPage = false
         waitForIdle()
         onNodeWithText("Writing hints").assertDoesNotExist()
+    }
+
+    @Test
+    fun aPlannedItemIsBuiltWithTheAssistantFromItsRightClickMenu() = uiTest(width = 900, height = 520) {
+        val prompts = mutableListOf<String>()
+        showing {
+            CompositionLocalProvider(LocalWritersRoom provides { prompts += it }) {
+                PageEditor(name = "hero", text = page.replace("- Wall jump", "- Wall jump\n- Double jump"), onTextChange = {})
+            }
+        }
+        onNodeWithText("Wall jump", substring = true).performMouseInput { rightClick() }
+        waitForIdle()
+        onNodeWithText("Build this with the assistant").performClick()
+        waitForIdle()
+        saveSnapshot("page-editor-build-planned")
+        onAllNodesWithText("Double jump").onLast().performClick()
+        assertEquals(listOf("Let's build this Planned item of the page hero in the writers' room: Double jump"), prompts)
     }
 }

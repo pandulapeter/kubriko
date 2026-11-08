@@ -51,11 +51,7 @@ internal object ScreenplayChecks {
         }
     }
 
-    private fun plannedItemsMentioningWhatExists(name: String, text: String, subjectPaths: Set<String>): List<String> {
-        val planned = PageText.plannedSectionOf(text) ?: return emptyList()
-        val lines = text.lines()
-        return planned.lines.drop(1).map { lines[it].trim() }.filter { it.startsWith("- ") || it.startsWith("* ") }.filter { item ->
-            PageLinks.linksOf(item).any { link -> PageLinks.resolve(PageNaming.pathOf(name), link.destination) in subjectPaths }
-        }.map { it.drop(2).let { item -> if (item.length > ITEM_LENGTH) item.take(ITEM_LENGTH).trimEnd() + "…" else item } }
-    }
+    private fun plannedItemsMentioningWhatExists(name: String, text: String, subjectPaths: Set<String>): List<String> = PageText.plannedItemsOf(text)
+        .filter { item -> PageLinks.linksOf(item.text).any { link -> PageLinks.resolve(PageNaming.pathOf(name), link.destination) in subjectPaths } }
+        .map { item -> if (item.text.length > ITEM_LENGTH) item.text.take(ITEM_LENGTH).trimEnd() + "…" else item.text }
 }
