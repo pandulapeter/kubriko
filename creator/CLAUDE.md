@@ -376,7 +376,12 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   switches reach the app as launch arguments, which `NSUserDefaults` reads as property lists, so a Scene's name is quoted. `simctl launch --console-pty` prints what the app prints (a pty, so its output
   isn't held back in a buffer), run inside `script`, since `simctl` itself holds back what it prints into a pipe until the
   app ends, and names the app's process once it runs, sometimes after the app's first lines, so those are held
-  until then. Stop is `simctl terminate`.
+  until then. Stop is `simctl terminate`. New simulators are made in Creator's own dialog (`IosSimulatorSetup`, through
+  `simctl create`): only iPhones and iPads an installed iOS version runs are offered, the newest first by the oldest version
+  they run, since `simctl`'s own order changes between Xcode versions, and the iPod touch calls itself an iPhone. A name any
+  iOS simulator has is refused, since Play's menu would show two alike, and the dialog can't be closed while `create` runs,
+  which closing would stop halfway. The new simulator is chosen before Play's places are looked for again, so whichever
+  look ends last keeps it chosen.
 - **Logs elsewhere:** Kubriko's `Logger` only keeps its entries, which only the desktop's session reports, so a Log Block also
   prints what it logs (on one line, as `[source] message`), and the Scene loader its failures: Creator reads them back from a
   device's output (`PrintedLogs`), and the browser shows them in its console. The print is generated into each Block rather

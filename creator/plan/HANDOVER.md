@@ -28,9 +28,8 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 `04-screenplay.md` is done except what waits for other work: each remaining kind's delete (sprites, sounds, music, Timers,
 folders with contents) comes with that kind's own delete, a deleted sprite's page images with sprite deletes, and the live
 writers' room scenario is written but not run (below). Next is `05-settings.md`'s Release, Icons, and Signing, each extending
-the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s new iOS simulator dialog
-(Setting up emulators and simulators) is small and waits for nothing, so it can go in between; its Android emulator dialog
-waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s engine and sprite atlas
+the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s Android emulator dialog (Setting up
+emulators and simulators) waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md`'s engine and sprite atlas
 parts touch only `engine/` and `plugins/sprites`, so they can run beside `05` in a session of their own; its Creator part
 follows them. Then `06` to `10` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements,
 git) or for the benchmarks.
@@ -79,7 +78,8 @@ never item by item.
 - A game with Android and iOS turned on running on a phone or tablet of each (the integration test builds both apps but never
   launches them), and Play on a real Android phone and emulator: an emulator started from the menu, the console's logs, Stop,
   unplugging the phone mid-game, and a phone that hasn't allowed debugging yet; and Play on an iOS simulator with a real game:
-  DeviceHub (or the Simulator app) showing it, Log Blocks in the console, starting from a Scene, and Stop; and a real phone
+  DeviceHub (or the Simulator app) showing it, Log Blocks in the console, starting from a Scene, and Stop, and one made in
+  the New simulator dialog against a real Xcode (its tests replay `simctl`'s recorded lists, but never ran `create`); and a real phone
   connected through ADB appearing in the Android submenu, including one that hasn't allowed debugging yet.
 - The Scene editor's middle-button pan and scroll pan with a real mouse wheel.
 - A real Claude sign-in through the browser (with a scratch `CLAUDE_CONFIG_DIR`) and a real API key in the macOS keychain.
