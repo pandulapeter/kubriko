@@ -159,6 +159,7 @@ Besides its tests passing, a change:
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
 | `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes; an open Scene shows the change. |
 | `screenplay/**/*.md` (the screenplay's pages) | Shared | Read again within a second; Creator writes them only through the page commands (`ScreenplayStore`), which check the folder again before writing, so a page made outside meanwhile is never written over. |
+| A page's images next to it (`screenplay/**/<page>-<n>.<ext>`) | Shared | Written only as new files by `add_page_image`, scaled to `PageImages.MAXIMUM_WIDTH` since pages live in git, and deleted only by undoing it (`ReplaceFiles`). |
 | Every other Markdown file (the documents, outside build folders) | User | Rescanned within a second; Creator writes one only through the document commands (`DocumentStore`, which knows the paths from the last scan and its own writes), never over a file there, and undoes a delete only with the bytes it read, refusing a file that isn't UTF-8 text. |
 | `AGENTS.md` (the game's notes) and the `CLAUDE.md` importing it | Shared | Read at the start of every conversation; Creator writes `AGENTS.md` through `set_game_notes`, and `CLAUDE.md` only when the project has none. |
 | Hand-written Kotlin and resources | User | Sidebar refreshes; an open Scene is built again. |
@@ -234,7 +235,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   commands take either kind of type (`actorType` names an Actor type or a Manager type).
 - **Renames follow everywhere:** Blocks, collision Events, placeholders, texts, Kotlin Blocks and Kotlin UI (`KotlinIdentifiers`,
   which knows no grammar, so a local variable of the same name is renamed too; the import lines a Kotlin Block or Kotlin UI
-  starts with are left alone), the Actors of every Scene, and a Property's saved values in Scenes. Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
+  starts with are left alone), the Actors of every Scene, a Property's saved values in Scenes, and the screenplay's mentions
+  and images of every file a rename or move moves (`withMentionsFollowed`, which also writes a moved page's or document's own
+  links again from where it is now; undo moves back, then writes the files back byte for byte with `RestoreMarkdown`, so a
+  stale link isn't turned into another). Removing a Property keeps its Scene values (undo brings them back); adding one drops a leftover value of another
   kind, which wouldn't load; a Property's kind can't change. Renaming a Property renames it through the family of the Actor type that
   declares it, and is refused on one that only inherits it; adding a Property or a parent is refused when a descendant has one of
   that name of another kind.
@@ -542,6 +546,11 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   inside the text around it as it was when the chunk opened (`PageEditorState`), so typing a blank line doesn't move the
   field; it saves the whole page through `edit_page` a moment after typing pauses, and a change from elsewhere while typing
   ends the typing.
+- A page's links are relative Markdown links to the thing's own file (`PageLinks`), so they work on GitHub and in IntelliJ
+  too; `Mention` tells what they name from the path alone, so a mention of something deleted still says what it was. A page
+  may come from anyone, so an address is shown before the system opens it, and a project file Creator has no view of opens
+  in the system's app only for kinds it can't run (`canOpenOutside`). Creator's own moves are recorded (`MovedFiles`) so the
+  open page follows them, keeping what is being typed (`MarkdownIdentity`).
 - Documents (every Markdown file outside `screenplay/`) have no group: each is a row in the band of the folder it is
   in (`SidebarModules`' `bandOf`: the nearest module, or folder holding only modules, above it), after the band's
   groups, a plain folder of them a folder row closed at first, so where a document lies stays visible. Every band,
