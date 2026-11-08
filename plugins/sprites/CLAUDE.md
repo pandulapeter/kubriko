@@ -78,3 +78,10 @@ override fun DrawScope.draw() {
 ```
 For static sprites: `spriteManager.get(resource)?.let { drawImage(it) }`. Both paths are
 allocation-free when the bitmap is cached.
+
+## Mip chains
+`TextureMipChain` (built lazily, each level once, every level marked immutable through the engine's `markImmutable`) and
+`TextureMipChainCache` (one chain per texture key, rebuilt only when the key's bitmap is replaced) moved here from
+Tesselar. `SpriteManager.getMipChain` hands every caller one shared chain per resource and drops it on `unload`. Chains
+are not thread-safe: build and read them from the drawing thread. Tests replace the downscale and the immutable marking
+through the internal constructor, since library test classpaths have no Skia runtime.

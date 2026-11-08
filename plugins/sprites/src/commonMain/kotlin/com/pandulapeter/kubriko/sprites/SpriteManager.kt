@@ -95,6 +95,20 @@ sealed class SpriteManager(
      */
     abstract fun unload(resource: SpriteResource)
 
+    /**
+     * The [TextureMipChain] of the given [drawableResource], for drawing it smaller than its own size, or null while
+     * [get] would return null. Every caller is handed the same chain, so each level is built only once; it is dropped
+     * when the resource is [unload]ed.
+     */
+    abstract fun getMipChain(drawableResource: DrawableResource): TextureMipChain?
+
+    /**
+     * The [TextureMipChain] of the given sprite [resource], for drawing it smaller than its own size, or null while
+     * [get] would return null. Every caller is handed the same chain, so each level is built only once; it is dropped
+     * when the resource is [unload]ed.
+     */
+    abstract fun getMipChain(resource: SpriteResource): TextureMipChain?
+
     companion object {
         /**
          * Creates a new [SpriteManager] instance.

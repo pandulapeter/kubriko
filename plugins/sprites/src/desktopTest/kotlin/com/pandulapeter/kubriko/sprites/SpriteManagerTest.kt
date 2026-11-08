@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
@@ -31,10 +32,15 @@ class SpriteManagerTest {
 
     private val requestedResources: MutableList<SpriteResource> = Collections.synchronizedList(mutableListOf())
     private val pendingLoads = ConcurrentHashMap<SpriteResource, CompletableDeferred<ImageBitmap>>()
-    private val spriteManager = SpriteManager.newInstance(
+    private val spriteManager = SpriteManagerImpl(
+        isLoggingEnabled = false,
+        instanceNameForLogging = null,
         imageLoader = { resource ->
             requestedResources.add(resource)
             pendingLoadOf(resource).await()
+        },
+        mipChains = TextureMipChainCache { base ->
+            TextureMipChain(base, TextureMipChain.DEFAULT_LEVEL_COUNT, downscale = { _, width, height -> FakeImageBitmap(width, height) }, finish = { it })
         },
     )
     private val kubriko: ManualKubriko = newManualKubriko(spriteManager)
@@ -128,6 +134,22 @@ class SpriteManagerTest {
 
         assertNull(spriteManager.get(resource))
         awaitCondition { requestedResources.size == 2 }
+    }
+
+    @Test
+    fun mipChainIsNullWhileLoadingThenSharedUntilUnloaded() {
+        val resource = spriteResource("sprite")
+        val bitmap = FakeImageBitmap(width = 8, height = 8)
+
+        assertNull(spriteManager.getMipChain(resource))
+        finishLoading(resource, bitmap)
+        awaitCondition { spriteManager.get(resource) != null }
+
+        val chain = assertNotNull(spriteManager.getMipChain(resource))
+        assertSame(bitmap, chain.base)
+        assertSame(chain, spriteManager.getMipChain(resource))
+        spriteManager.unload(resource)
+        assertNull(spriteManager.getMipChain(resource))
     }
 
     private fun finishLoading(resource: SpriteResource, bitmap: ImageBitmap) {

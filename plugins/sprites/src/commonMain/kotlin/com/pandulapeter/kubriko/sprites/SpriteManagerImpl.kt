@@ -44,6 +44,7 @@ internal class SpriteManagerImpl(
     instanceNameForLogging: String?,
     private val initialRetryDelayInMilliseconds: Long = INITIAL_RETRY_DELAY_MS,
     private val imageLoader: (suspend (SpriteResource) -> ImageBitmap?)? = null,
+    private val mipChains: TextureMipChainCache = TextureMipChainCache(),
 ) : SpriteManager(isLoggingEnabled, instanceNameForLogging) {
 
     private val cache = MutableStateFlow(persistentMapOf<SpriteResource, ImageBitmap?>())
@@ -167,7 +168,12 @@ internal class SpriteManagerImpl(
     override fun unload(resource: SpriteResource) {
         pendingWarmingUp.update { it.removing(resource) }
         cache.update { it.removing(resource) }
+        mipChains.remove(resource)
     }
+
+    override fun getMipChain(drawableResource: DrawableResource) = getMipChain(drawableResource.asDefaultSpriteResource())
+
+    override fun getMipChain(resource: SpriteResource) = get(resource)?.let { mipChains.get(resource, it) }
 
     private suspend fun loadImage(spriteResource: SpriteResource, isFirstAttempt: Boolean): ImageBitmap? = try {
         if (imageLoader == null) decodeImage(spriteResource) else imageLoader(spriteResource)
