@@ -52,5 +52,7 @@ class PageImageReadingTest {
         listOf("../outside.png", "notes.txt", "missing.png", "/etc/passwd").forEach { path ->
             assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_IMAGE_UNREADABLE, path)), ViewPageImage.read(context, ViewPageImage.Input(path)), path)
         }
+        File(context.project.rootDirectory, "a.webp").writeBytes("RIFF\u0000\u0000\u0000\u0000WEBPVP8 ".toByteArray(Charsets.ISO_8859_1))
+        assertEquals(CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_IMAGE_NOT_VIEWABLE, "a.webp")), ViewPageImage.read(context, ViewPageImage.Input("a.webp")))
     }
 }

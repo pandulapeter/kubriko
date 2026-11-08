@@ -21,9 +21,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
-import java.awt.RenderingHints
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -38,6 +35,7 @@ public object ViewPageImage : ReadCommand<ViewPageImage.Input> {
         val file = File(root, input.image).canonicalFile
         val isInProject = file.path.startsWith(root.path + File.separator)
         if (!isInProject || file.extension.lowercase() !in PageImages.EXTENSIONS) return CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_IMAGE_UNREADABLE, input.image))
+        if (file.extension.equals("webp", ignoreCase = true)) return CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_IMAGE_NOT_VIEWABLE, input.image))
         val png = withContext(context.ioDispatcher) { pngOf(file) } ?: return CommandOutcome.Rejected(Rejection(CommandProblem.PAGE_IMAGE_UNREADABLE, input.image))
         return CommandOutcome.Success(JsonPrimitive(input.image), image = png)
     }
@@ -52,14 +50,7 @@ public object ViewPageImage : ReadCommand<ViewPageImage.Input> {
             null
         } ?: return null
         if (image.width <= MAXIMUM_WIDTH && file.extension.equals("png", ignoreCase = true)) return file.readBytes()
-        val scale = (MAXIMUM_WIDTH.toFloat() / image.width).coerceAtMost(1f)
-        val result = BufferedImage((image.width * scale).toInt().coerceAtLeast(1), (image.height * scale).toInt().coerceAtLeast(1), BufferedImage.TYPE_INT_ARGB)
-        result.createGraphics().apply {
-            setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
-            drawImage(image, 0, 0, result.width, result.height, null)
-            dispose()
-        }
-        return ByteArrayOutputStream().also { ImageIO.write(result, "png", it) }.toByteArray()
+        return PageImages.scaledDown(image, MAXIMUM_WIDTH)
     }
 
     private const val MAXIMUM_WIDTH = 1280

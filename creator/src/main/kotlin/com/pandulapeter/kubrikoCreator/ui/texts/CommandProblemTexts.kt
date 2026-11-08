@@ -56,6 +56,7 @@ import kubriko.creator.generated.resources.error_command_not_changed_by_hand
 import kubriko.creator.generated.resources.error_command_nothing_to_commit
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
+import kubriko.creator.generated.resources.error_command_page_image_not_viewable
 import kubriko.creator.generated.resources.error_command_page_image_source
 import kubriko.creator.generated.resources.error_command_page_image_unreadable
 import kubriko.creator.generated.resources.error_command_page_invalid
@@ -170,6 +171,7 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.MARKDOWN_MISSING -> Res.string.error_command_markdown_missing
     CommandProblem.PAGE_IMAGE_SOURCE -> Res.string.error_command_page_image_source
     CommandProblem.PAGE_IMAGE_UNREADABLE -> Res.string.error_command_page_image_unreadable
+    CommandProblem.PAGE_IMAGE_NOT_VIEWABLE -> Res.string.error_command_page_image_not_viewable
     CommandProblem.PAGE_SECTION_MISSING -> Res.string.error_command_page_section_missing
     CommandProblem.PAGE_TAKEN -> Res.string.error_command_page_taken
     CommandProblem.PAGE_TOO_LONG -> Res.string.error_command_page_too_long
