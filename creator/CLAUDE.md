@@ -566,7 +566,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   mentions, and their checks all stay, being the editor's.
 - While a turn offered for review (Keep and Undo after a turn) changed the open page, the page editor shows the page as a diff
   of its Markdown from before the turn, with the turn's Keep and Undo, instead of the page (`PageReview`); what it was is
-  read back from the undo history (`pageBeforeTurn`), following the turn's moves, so nothing is copied while a turn runs.
+  read back from the undo history (`pageBeforeTurn`), following the turn's moves, so nothing is copied while a turn runs. It
+  counts only what the turn's Undo would undo (the conversation's changes newer than anyone else's), and none while a later
+  turn of the conversation runs, so the diff is always what Undo brings back.
 - The screenplay's findings (`ScreenplayHealth`, kept up to date only while the sidebar collects them) show as a quiet dot
   on the row they are about (`SidebarHints`); the rest of the health checks stay in the Game map. The project's Markdown is
   read once per change to a page or document (`screenplayTexts`, keyed by their revisions, which every write Creator makes

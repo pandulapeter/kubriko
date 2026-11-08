@@ -16,13 +16,16 @@ import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
 /**
  * What the page [page] held before the changes the conversation at the tool address [conversationId] made after
- * [sinceRevision], which undoing them brings back: an empty text for a page they created, or null when they didn't
- * change it. The page is named as it is now, so one they moved is followed back to where it was.
+ * [sinceRevision], as undoing them ([com.pandulapeter.kubrikoCreator.commands.CommandExecutor.undoTurn]) brings it back:
+ * only the conversation's changes newer than anyone else's count, as only those are undone. An empty text stands for a page
+ * they created, and null for one they didn't change. The page is named as it is now, so one they moved is followed back
+ * to where it was.
  */
 public fun CommandHistory.pageBeforeTurn(conversationId: String, sinceRevision: Int, page: String): String? {
     val tracked = TrackedPage(page)
-    undoable.asReversed().forEach { entry ->
-        if (entry.conversationId == conversationId && entry.revision > sinceRevision) tracked.revert(entry.revert)
+    for (entry in undoable.asReversed()) {
+        if (entry.conversationId != conversationId || entry.revision <= sinceRevision) break
+        tracked.revert(entry.revert)
     }
     return tracked.before
 }
@@ -36,11 +39,14 @@ private class TrackedPage(var name: String) {
     fun revert(invocation: Invocation<*>) {
         when (val input = invocation.input) {
             is CompositeCommand.Input -> input.parts.forEach(::revert)
-            is EditPage.Input -> if (input.page == name && input.section == null) before = input.text
-            is CreatePage.Input -> if (input.page == name) before = input.text
-            is DeletePage.Input -> if (input.page == name) before = ""
-            is MovePage.Input -> if (input.page == name) name = input.newPage
+            is EditPage.Input -> if (isTracked(input.page) && input.section == null) before = input.text
+            is CreatePage.Input -> if (isTracked(input.page)) before = input.text
+            is DeletePage.Input -> if (isTracked(input.page)) before = ""
+            is MovePageToDocument.Input -> if (isTracked(input.page)) before = ""
+            is MovePage.Input -> if (isTracked(input.page)) name = input.newPage
             is RestoreMarkdown.Input -> input.contents[PageNaming.pathOf(name)]?.let { before = it }
         }
     }
+
+    private fun isTracked(page: String) = page == name
 }

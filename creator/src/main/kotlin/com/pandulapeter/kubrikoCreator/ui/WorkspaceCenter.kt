@@ -41,6 +41,7 @@ import com.pandulapeter.kubrikoCreator.ui.screenplay.PageEditor
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageImageSource
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageLinksState
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
+import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberReviewOf
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_preparing
@@ -171,7 +172,7 @@ internal fun WorkspaceCenter(
                 sprites = remember(resources) { SpriteFiles.of(resources).paths },
                 onAddImage = onAddPageImage,
                 showsWritingHints = selection is WorkspaceSelection.Page,
-                review = (selection as? WorkspaceSelection.Page)?.let { LocalPageReviews.current(it.name) },
+                review = (selection as? WorkspaceSelection.Page)?.let { LocalPageReviews.current.rememberReviewOf(it.name) },
             )
         }
     } else if (selection == WorkspaceSelection.None) {

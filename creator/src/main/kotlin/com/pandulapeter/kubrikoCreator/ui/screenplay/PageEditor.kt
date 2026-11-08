@@ -92,7 +92,9 @@ internal fun PageEditor(
 ) {
     val state = remember(identity) { PageEditorState(text, onTextChange) }
     val currentOnAddImage by rememberUpdatedState(onAddImage)
-    val images = rememberPageImageChoices(state, sprites, isShown = onAddImage != null) { source, section -> currentOnAddImage?.invoke(source, section) }
+    // While the assistant's changes are reviewed, the page shows as a diff that nothing is added to.
+    val isReviewed = state.session == null && review != null && review.before != text
+    val images = rememberPageImageChoices(state, sprites, isShown = onAddImage != null && !isReviewed) { source, section -> currentOnAddImage?.invoke(source, section) }
     state.onTextChange = onTextChange
     LaunchedEffect(text) { state.onPageChanged(text) }
     // What was typed in the last moment before the editor goes (another page or type is shown) is saved too.
@@ -116,7 +118,7 @@ internal fun PageEditor(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             PageTitle(name)
-            if (session == null && review != null && review.before != text) {
+            if (isReviewed && review != null) {
                 PageChangeReview(before = review.before, after = text, onKeep = review.onKeep, onUndo = review.onUndo)
             } else {
                 if (session == null) {

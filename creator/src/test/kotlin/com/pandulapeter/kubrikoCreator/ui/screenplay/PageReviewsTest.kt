@@ -35,12 +35,14 @@ class PageReviewsTest {
     }
 
     @Test
-    fun aTurnIsOfferedWhileTheConversationsLastReviewIs() {
-        val offered = AssistantTranscript(listOf(TranscriptItem.TurnReview(3, TranscriptItem.TurnReview.State.KEPT), TranscriptItem.AgentMessage("Done"), TranscriptItem.TurnReview(7)))
-        assertEquals(OfferedTurn(chat, "tools-1", 7), offeredTurnOf(chat, offered, "tools-1"))
-        assertNull(offeredTurnOf(chat, offered, conversationId = null))
-        assertNull(offeredTurnOf(chat, AssistantTranscript(listOf(TranscriptItem.TurnReview(7, TranscriptItem.TurnReview.State.UNDONE))), "tools-1"))
-        assertNull(offeredTurnOf(chat, AssistantTranscript(listOf(TranscriptItem.AgentMessage("Hi"))), "tools-1"))
+    fun aTurnIsOfferedWhileTheConversationsLastReviewIsAndNoLaterTurnRuns() {
+        val transcript = AssistantTranscript(listOf(TranscriptItem.TurnReview(3, TranscriptItem.TurnReview.State.KEPT), TranscriptItem.AgentMessage("Done"), TranscriptItem.TurnReview(7)))
+        val last = lastReviewOf(transcript)
+        assertEquals(OfferedTurn(chat, "tools-1", 7), offeredTurnOf(chat, last, "tools-1", isBusy = false))
+        assertNull(offeredTurnOf(chat, last, "tools-1", isBusy = true))
+        assertNull(offeredTurnOf(chat, last, conversationId = null, isBusy = false))
+        assertNull(offeredTurnOf(chat, TranscriptItem.TurnReview(7, TranscriptItem.TurnReview.State.UNDONE), "tools-1", isBusy = false))
+        assertNull(lastReviewOf(AssistantTranscript(listOf(TranscriptItem.AgentMessage("Hi")))))
     }
 
     @Test

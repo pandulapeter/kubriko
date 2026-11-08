@@ -41,11 +41,32 @@ class PageBeforeTurnTest {
         executor.execute(Invocation(CreatePage, CreatePage.Input("hero", hero)))
         val since = executor.changeLog.revision
         executor.byAi("edit_page", arguments = arrayOf("page" to "hero", "text" to "# The hero\n\nA knight who rolls.\n"))
-        executor.execute(Invocation(EditPage, EditPage.Input("hero", "# The hero\n\nA knight who rolls far.\n")))
-        executor.byAi("edit_page", AiStepOrigin(conversationId = "another"), "page" to "hero", "text" to "# The hero\n\nA knight.\n")
         executor.byAi("edit_page", arguments = arrayOf("page" to "hero", "text" to "# The hero\n\nA knight who swims.\n"))
         assertEquals(hero, executor.before(since, "hero"))
         assertNull(executor.history.value.pageBeforeTurn("conversation", executor.changeLog.revision, "hero"))
+    }
+
+    @Test
+    fun onlyTheChangesNewerThanAnyoneElsesCountAsUndoingStopsAtTheirs() = runTest {
+        val executor = executor()
+        executor.execute(Invocation(CreatePage, CreatePage.Input("hero", hero)))
+        val since = executor.changeLog.revision
+        val rolls = "# The hero\n\nA knight who rolls.\n"
+        executor.byAi("edit_page", arguments = arrayOf("page" to "hero", "text" to rolls))
+        executor.byAi("edit_page", AiStepOrigin(conversationId = "another"), "page" to "hero", "text" to "# The hero\n\nA knight.\n")
+        executor.byAi("edit_page", arguments = arrayOf("page" to "hero", "text" to "# The hero\n\nA knight who swims.\n"))
+        assertEquals("# The hero\n\nA knight.\n", executor.before(since, "hero"))
+        executor.execute(Invocation(EditPage, EditPage.Input("hero", "# The hero\n\nA knight who swims far.\n")))
+        assertNull(executor.before(since, "hero"))
+    }
+
+    @Test
+    fun aPageTheTurnMadeFromADocumentWasEmpty() = runTest {
+        val executor = executor()
+        executor.execute(Invocation(CreateDocument, CreateDocument.Input("design.md", hero)))
+        val since = executor.changeLog.revision
+        executor.byAi("add_document_to_screenplay", arguments = arrayOf("document" to "design.md", "page" to "hero"))
+        assertEquals("", executor.before(since, "hero"))
     }
 
     @Test
