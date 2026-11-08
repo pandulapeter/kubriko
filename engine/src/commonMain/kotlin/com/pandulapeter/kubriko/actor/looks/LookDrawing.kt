@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.helpers.TriangleBatchSupport
+import com.pandulapeter.kubriko.implementation.pixelsPerLocalUnit
 
 /** The one-off batch [drawLook] fills, reused across calls; drawing-thread only. */
 private val directBatch = TriangleBatch()
@@ -23,8 +24,8 @@ private val identityTransform = LookTransform()
 
 /**
  * Draws [look] over a [width] × [height] body into this [DrawScope], which is already transformed to the body: the
- * path for anything drawing a batched actor directly rather than through the layers. One screen pixel is taken to be
- * one unit of the body, which sizes the edge smoothing.
+ * path for anything drawing a batched actor directly rather than through the layers. The canvas's own transform says
+ * how many pixels a unit of the body covers, which sizes the edge smoothing and an ellipse's segments.
  */
 internal fun DrawScope.drawLook(look: Look, width: Float, height: Float) {
     if (look is SpriteLook && TriangleBatchSupport.knownResult != true) {
@@ -34,7 +35,8 @@ internal fun DrawScope.drawLook(look: Look, width: Float, height: Float) {
     val batch = directBatch
     batch.reset()
     identityTransform.setToIdentity()
-    LookEmitter.emit(look, batch, width, height, identityTransform, pixelsPerUnit = 1f, isStandIn = false)
+    val canvas = drawContext.canvas
+    LookEmitter.emit(look, batch, width, height, identityTransform, canvas.pixelsPerLocalUnit(), isStandIn = false)
     when (look) {
         is SpriteLook -> {
             batch.texture = look.texture
@@ -48,7 +50,7 @@ internal fun DrawScope.drawLook(look: Look, width: Float, height: Float) {
         }
         is RectangleLook, is EllipseLook -> batch.texture = null
     }
-    batch.flush(drawContext.canvas)
+    batch.flush(canvas)
     batch.texture = null
 }
 
