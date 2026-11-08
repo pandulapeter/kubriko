@@ -43,12 +43,7 @@ health checks.
 Pages exist (`../CLAUDE.md` → Files and ownership, and UI): plain Markdown in `screenplay/`, the page commands and tools, the
 Screenplay group in the sidebar, and a page editor that edits one chunk at a time in place. What is left:
 
-- **One shape per page:** a `# Title`, a one-sentence summary as the first paragraph (what the page index shows), what is in
-  the game as headed sections, and at the end an optional `## Planned` list (`PageText` reads them), checked by the health
-  checks below but never forced on the user. A page holding only Planned is a feature not started; a built item leaves Planned,
-  and nothing records that it once was planned.
 - **The page editor** still lacks the AI's edits shown as a diff before Keep.
-- **AI features off** changes nothing here: pages, mentions, and their checks are the editor's, not the AI's.
 
 ## Deleting what is referred to
 
@@ -65,18 +60,9 @@ dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is le
 - **Renames read `ProjectReferences` too** (each kind follows its own rename code today), so a rename can't miss what a delete
   sees; find usages (`07-resource-organization.md`) reads it as well.
 
-## The writers' room
-
-The writers' room exists (`../CLAUDE.md` → AI): "Start from an idea" on the new project screen, the Blank template, `ask_user`,
-the conversation's own rules (`AssistantSystemPrompt.WRITERS_ROOM`), and its ways in from the AI panel's menu and a Planned
-item's right-click menu. What is left:
-
-- **The targets** on the idea's form, beside the pitch and the name, turned on as the project is created, as Project settings →
-  Targets turns them on afterwards today.
-
 ## Order
 
-The writers' room's targets next (what is left of deleting what is referred to comes with each kind's delete). Search
+The page editor's diff next (what is left of deleting what is referred to comes with each kind's delete). Search
 (`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages and `search_project` include
 their mentions and text.
 

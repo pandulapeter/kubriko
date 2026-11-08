@@ -561,6 +561,9 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   may come from anyone, so only a web or mail address opens, after it is shown, and a project file Creator has no view of opens
   in the system's app only for kinds it can't run (`canOpenOutside`). Creator's own moves are recorded (`MovedFiles`) so the
   open page follows them, keeping what is being typed (`MarkdownIdentity`).
+- A page's shape (a `# Title`, a one-sentence summary as its first paragraph, headed sections, and an optional `## Planned`
+  list at the end, read by `PageText`) is checked by the health checks, never forced on the user; with AI features off, pages,
+  mentions, and their checks all stay, being the editor's.
 - The screenplay's findings (`ScreenplayHealth`, kept up to date only while the sidebar collects them) show as a quiet dot
   on the row they are about (`SidebarHints`); the rest of the health checks stay in the Game map. The project's Markdown is
   read once per change to a page or document (`screenplayTexts`, keyed by their revisions, which every write Creator makes
