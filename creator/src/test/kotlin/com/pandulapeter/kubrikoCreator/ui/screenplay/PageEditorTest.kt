@@ -9,14 +9,19 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.screenplay
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import com.pandulapeter.kubrikoCreator.screenplay.Mention
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalTestApi::class)
 class PageEditorTest {
@@ -43,5 +48,30 @@ class PageEditorTest {
         onNodeWithText("Add a paragraph").performClick()
         waitForIdle()
         onNodeWithText("Heading").assertExists()
+    }
+
+    @Test
+    fun mentionsAreChipsThatOpenWhatTheyNameAndWebAddressesAreShownFirst() = uiTest(width = 900, height = 400) {
+        val opened = mutableListOf<Mention>()
+        val links = PageLinksState { opened += it }
+        links.looks = mapOf(
+            "../.kubriko/actors/Player.json" to MentionLook(Mention.ActorType("Player", ".kubriko/actors/Player.json"), exists = true),
+            "villain.md" to MentionLook(Mention.Page("villain", "screenplay/villain.md"), exists = false),
+        )
+        val text = "# The game\n\nThe [hero](../.kubriko/actors/Player.json) meets the [villain](villain.md).\n\n[Read more](https://example.com)\n"
+        showing { PageEditor(name = "README", text = text, onTextChange = {}, links = links) }
+        onNodeWithText("The hero meets the villain.").assertExists()
+        saveSnapshot("page-editor-mentions")
+        onNodeWithText("hero").performClick()
+        waitForIdle()
+        assertEquals(listOf<Mention>(Mention.ActorType("Player", ".kubriko/actors/Player.json")), opened)
+        onNodeWithText("Bold").assertDoesNotExist()
+        onNodeWithText("Read more").performTouchInput { click(Offset(8f, centerY)) }
+        waitForIdle()
+        onNodeWithText("https://example.com").assertExists()
+        saveSnapshot("page-editor-address")
+        onNodeWithText("Cancel").performClick()
+        waitForIdle()
+        assertNull(links.pendingAddress)
     }
 }

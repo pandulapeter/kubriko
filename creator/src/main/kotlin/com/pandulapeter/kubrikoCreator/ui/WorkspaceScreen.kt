@@ -68,7 +68,9 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownEditOf
+import com.pandulapeter.kubrikoCreator.ui.screenplay.open
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberOpenMarkdownText
+import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageLinks
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
@@ -481,4 +483,16 @@ private fun WorkspaceCenterOf(
     onSceneViewFailed = controller.sceneEditing::onViewFailed,
     markdownText = markdownText,
     onMarkdownTextChange = { text -> markdownEditOf(selection, text)?.let(controller.commands::dispatch) },
+    markdownLinks = rememberPageLinks(
+        rootDirectory = controller.commands.context.project.rootDirectory,
+        selection = selection,
+        text = markdownText,
+        projectRevision = listOf(
+            blockTypes,
+            resources,
+            controller.commands.context.screenplay.current.collectAsState().value,
+            controller.commands.context.documents.structureRevision.collectAsState().value,
+        ),
+        onOpen = controller.selection::open,
+    ),
 )

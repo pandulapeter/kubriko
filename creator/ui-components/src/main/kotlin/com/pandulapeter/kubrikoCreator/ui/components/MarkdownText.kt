@@ -31,26 +31,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 
 /**
  * [text], written in Markdown, drawn as the blocks [MarkdownParser] reads from it ([StreamingMarkdown], so a streaming
  * message isn't read whole again for each chunk).
+ *
+ * @param links What its links point at, drawing some as chips and following clicks on the others; without it, a link
+ *   opens in the browser.
  */
 @Composable
 public fun MarkdownText(
     text: String,
     modifier: Modifier = Modifier,
+    links: MarkdownLinks? = null,
 ): Unit = Column(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -62,12 +59,13 @@ public fun MarkdownText(
     val body = MaterialTheme.typography.bodyMedium
     blocks.forEach { block ->
         when (block) {
-            is MarkdownBlock.Paragraph -> InlineText(block.text, body, codeBackground, linkColor)
+            is MarkdownBlock.Paragraph -> InlineText(block.text, body, codeBackground, linkColor, links)
             is MarkdownBlock.Heading -> InlineText(
                 text = block.text,
                 style = if (block.level <= 2) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
                 codeBackground = codeBackground,
                 linkColor = linkColor,
+                links = links,
             )
             is MarkdownBlock.ListItem -> Row(
                 modifier = Modifier.padding(start = (block.depth * 16).dp),
@@ -77,7 +75,7 @@ public fun MarkdownText(
                     text = block.number?.let { "$it." } ?: BULLET,
                     style = body,
                 )
-                InlineText(block.text, body, codeBackground, linkColor)
+                InlineText(block.text, body, codeBackground, linkColor, links)
             }
             is MarkdownBlock.Quote -> Row(
                 modifier = Modifier.height(IntrinsicSize.Min),
@@ -89,6 +87,7 @@ public fun MarkdownText(
                     style = body.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                     codeBackground = codeBackground,
                     linkColor = linkColor,
+                    links = links,
                 )
             }
             is MarkdownBlock.Code -> Text(
@@ -102,7 +101,7 @@ public fun MarkdownText(
                 softWrap = false,
             )
             MarkdownBlock.Rule -> HorizontalDivider()
-            is MarkdownBlock.Table -> Table(block, body, codeBackground, linkColor)
+            is MarkdownBlock.Table -> Table(block, body, codeBackground, linkColor, links)
         }
     }
 }
@@ -113,6 +112,7 @@ private fun Table(
     style: TextStyle,
     codeBackground: Color,
     linkColor: Color,
+    links: MarkdownLinks?,
 ) = Column(
     modifier = Modifier
         .fillMaxWidth()
@@ -131,37 +131,7 @@ private fun Table(
                     style = if (index == 0) style.copy(fontWeight = FontWeight.SemiBold) else style,
                     codeBackground = codeBackground,
                     linkColor = linkColor,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun InlineText(
-    text: String,
-    style: TextStyle,
-    codeBackground: Color,
-    linkColor: Color,
-    modifier: Modifier = Modifier,
-) = Text(
-    modifier = modifier,
-    text = remember(text, codeBackground, linkColor) { InlineMarkdown.parse(text).toAnnotatedString(codeBackground, linkColor) },
-    style = style,
-)
-
-private fun InlineMarkdown.toAnnotatedString(codeBackground: Color, linkColor: Color): AnnotatedString = buildAnnotatedString {
-    append(text)
-    spans.forEach { span ->
-        when (span.style) {
-            InlineMarkdown.Style.BOLD -> addStyle(SpanStyle(fontWeight = FontWeight.SemiBold), span.start, span.end)
-            InlineMarkdown.Style.ITALIC -> addStyle(SpanStyle(fontStyle = FontStyle.Italic), span.start, span.end)
-            InlineMarkdown.Style.CODE -> addStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = codeBackground), span.start, span.end)
-            InlineMarkdown.Style.LINK -> span.url?.let { url ->
-                addLink(
-                    LinkAnnotation.Url(url, TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))),
-                    span.start,
-                    span.end,
+                    links = links,
                 )
             }
         }

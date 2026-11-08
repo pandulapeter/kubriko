@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.screenplay.PageChunks
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.MarkdownText
+import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import kotlinx.coroutines.delay
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_page
@@ -50,6 +51,7 @@ import org.jetbrains.compose.resources.stringResource
  * ([PageChunkField]), saved through [onTextChange] a moment after typing pauses and when the chunk is left.
  *
  * @param text The page as it is on disk.
+ * @param links What its links point at, drawing its mentions as chips.
  */
 @Composable
 internal fun PageEditor(
@@ -57,6 +59,7 @@ internal fun PageEditor(
     text: String,
     onTextChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    links: PageLinksState? = null,
 ) {
     val state = remember(name) { PageEditorState(text, onTextChange) }
     state.onTextChange = onTextChange
@@ -84,18 +87,28 @@ internal fun PageEditor(
                 if (chunks.isEmpty()) {
                     Text(stringResource(Res.string.page_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                chunks.forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(index) } }
+                chunks.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(index) } }
             } else {
-                remember(session.frame) { PageChunks.of(session.frame.before) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(state.indexOf(index, isAfter = false)) } }
+                remember(session.frame) { PageChunks.of(session.frame.before) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = false)) } }
                 PageChunkField(
                     value = session.draft,
                     onValueChange = state::onDraftChange,
                     onDone = state::finish,
                 )
-                remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text) { state.edit(state.indexOf(index, isAfter = true)) } }
+                remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = true)) } }
             }
             TextButton(onClick = state::append) { Text(stringResource(Res.string.page_add_paragraph)) }
         }
+    }
+    links?.pendingAddress?.let { address ->
+        AddressConfirmation(
+            address = address,
+            onOpen = {
+                links.pendingAddress = null
+                runCatching { openInBrowser(address) }
+            },
+            onDismiss = { links.pendingAddress = null },
+        )
     }
 }
 
@@ -117,6 +130,7 @@ private fun PageTitle(name: String) = Row(
 @Composable
 private fun RenderedChunk(
     text: String,
+    links: PageLinksState?,
     onClick: () -> Unit,
 ) = MarkdownText(
     modifier = Modifier
@@ -125,6 +139,7 @@ private fun RenderedChunk(
         .clickable(onClick = onClick)
         .padding(horizontal = 8.dp, vertical = 6.dp),
     text = text,
+    links = links,
 )
 
 private const val SAVE_DELAY_IN_MILLISECONDS = 600L
