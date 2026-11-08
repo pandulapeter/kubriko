@@ -328,6 +328,8 @@
     <string name="actor_type_parent">Based on</string>
     <string name="actor_type_children">Base of</string>
     <string name="actor_type_children_more">%1$d more</string>
+    <string name="mentioned_in">Mentioned in</string>
+    <string name="mentioned_in_more">%1$d more</string>
     <string name="actor_type_parent_none">None</string>
     <string name="actor_type_inherited_events">From the parent</string>
     <string name="actor_type_inherited_property">%1$s (%2$s, from the parent)</string>

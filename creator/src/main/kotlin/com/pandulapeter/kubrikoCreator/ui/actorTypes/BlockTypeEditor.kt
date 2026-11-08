@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -39,6 +40,7 @@ import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.ui.WriteDescriptionButton
 import com.pandulapeter.kubrikoCreator.ui.components.DescriptionPreview
 import com.pandulapeter.kubrikoCreator.ui.components.DragPreviewChip
+import com.pandulapeter.kubrikoCreator.ui.screenplay.MentionedInRow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_properties_empty
 import kubriko.creator.generated.resources.assistant_prompt_describe_actor_type
@@ -223,6 +225,10 @@ private fun TypeDetails(
             val prompt = if (definition is ManagerTypeDefinition) Res.string.assistant_prompt_describe_manager_type else Res.string.assistant_prompt_describe_actor_type
             WriteDescriptionButton(prompt = stringResource(prompt, definition.name))
         },
+    )
+    MentionedInRow(
+        modifier = Modifier.padding(start = 12.dp, end = 16.dp, bottom = 6.dp),
+        path = DefinitionPaths.definitionPath(definition),
     )
     if (isChangedByHand) {
         ChangedByHandNotice(

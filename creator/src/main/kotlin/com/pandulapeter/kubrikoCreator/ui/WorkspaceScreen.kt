@@ -68,9 +68,11 @@ import com.pandulapeter.kubrikoCreator.ui.components.PanelWidthState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelWidths.Panel
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.ui.screenplay.LocalMentionedIn
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownEditOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.pageImageAdderOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberMarkdownIdentity
+import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberMentionedIn
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberOpenMarkdownText
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageLinks
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
@@ -98,7 +100,10 @@ internal fun WorkspaceScreen(
     onOpenSettings: () -> Unit,
 ) {
     val uiState = rememberWorkspaceUiState(controller)
-    CompositionLocalProvider(LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant)) {
+    CompositionLocalProvider(
+        LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
+        LocalMentionedIn provides rememberMentionedIn(controller.commands.context.screenplay, controller.selection::openPage),
+    ) {
         WorkspaceContent(
             controller = controller,
             uiState = uiState,

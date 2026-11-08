@@ -59,6 +59,8 @@ import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.components.openInSystemEditor
 import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
+import com.pandulapeter.kubrikoCreator.ui.screenplay.LocalMentionedIn
+import com.pandulapeter.kubrikoCreator.ui.screenplay.MentionedInRow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
 import kubriko.creator.generated.resources.action_delete_scene
@@ -136,6 +138,10 @@ internal fun SceneEditorPane(
         maximumLength = SetDescription.MAXIMUM_LENGTH,
         onDescriptionChange = { onCommand(Invocation(SetDescription, SetDescription.Input(scene = state.sceneName, description = it))) },
         action = { WriteDescriptionButton(prompt = stringResource(Res.string.assistant_prompt_describe_scene, state.sceneName)) },
+    )
+    MentionedInRow(
+        modifier = Modifier.padding(start = 8.dp, end = 12.dp, bottom = 6.dp),
+        path = LocalMentionedIn.current?.pathOf(state.scene.file),
     )
     HorizontalDivider()
     if (isSettingsShown) {
