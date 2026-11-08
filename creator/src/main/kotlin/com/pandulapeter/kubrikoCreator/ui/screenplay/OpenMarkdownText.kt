@@ -71,13 +71,14 @@ internal fun rememberOpenMarkdownText(
         }
         if (isKnown) return@LaunchedEffect
         val root = screenplay.rootDirectory
-        val (isOnDisk, moved) = withContext(Dispatchers.IO) {
-            File(root, path).isFile to movedFiles.whereIs(path)?.takeIf { File(root, it).isFile }
+        // A move is looked at first: after a rename that changes only the case, the old name still finds the file on
+        // macOS and Windows.
+        val (moved, isOnDisk) = withContext(Dispatchers.IO) {
+            movedFiles.whereIs(path)?.takeIf { File(root, it).isFile } to File(root, path).isFile
         }
         when {
-            isOnDisk -> Unit
             moved != null -> currentOnMoved(markdownSelectionOf(moved))
-            else -> currentOnGone()
+            !isOnDisk -> currentOnGone()
         }
     }
     val revision = when (selection) {

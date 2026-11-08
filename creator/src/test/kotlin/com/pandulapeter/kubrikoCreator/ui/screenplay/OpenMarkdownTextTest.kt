@@ -85,6 +85,8 @@ class OpenMarkdownTextTest {
         screenplay.refresh()
         waitUntil { selection == WorkspaceSelection.Page("combat") }
         waitUntil { onAllNodesWithText("Swords.").fetchSemanticsNodes().isNotEmpty() }
+        screenplay.move("combat", "Combat")
+        waitUntil { selection == WorkspaceSelection.Page("Combat") }
         assertEquals(0, goneCount)
     }
 
