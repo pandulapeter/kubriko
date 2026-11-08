@@ -20,7 +20,7 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-internal class MovingBox(state: State) : MovingBoxBase(state), Visible {
+internal class MovingBox(state: State, shouldRandomizeScale: Boolean = true) : MovingBoxBase(state, shouldRandomizeScale), Visible {
 
     override fun onAppearanceChanged() = Unit
 

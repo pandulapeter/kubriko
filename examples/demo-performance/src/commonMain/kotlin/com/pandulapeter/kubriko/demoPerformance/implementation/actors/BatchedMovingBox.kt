@@ -19,7 +19,10 @@ import com.pandulapeter.kubriko.helpers.TriangleBatch
  * Its geometry is rebuilt only when it moves, turns, or changes color, which for a moving box is every frame: what it
  * saves is the canvas operations, not the arithmetic.
  */
-internal class BatchedMovingBox(state: MovingBox.State) : MovingBoxBase(state), Batched {
+internal class BatchedMovingBox(
+    state: MovingBox.State,
+    shouldRandomizeScale: Boolean = true,
+) : MovingBoxBase(state, shouldRandomizeScale), Batched {
 
     override val look = object : CustomLook() {
         override fun emit(batch: TriangleBatch, width: Float, height: Float, pixelsPerUnit: Float) =

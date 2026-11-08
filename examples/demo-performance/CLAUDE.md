@@ -41,8 +41,8 @@ no position drift. Draws a rectangle and an inscribed circle.
 the serialization metadata and the Scene Editor know) and a `Batched` one (`BatchedMovingBox`, `BatchedBoxWithCircle`)
 whose `CustomLook` emits the same picture (`OutlinedShapes.kt`) and is invalidated by the base's
 `onAppearanceChanged()`. Kotlin cannot call an interface's default member extension through `super`, so a batched
-actor cannot inherit a plain one's class. The overlay's switch has `PerformanceDemoManager` swap every box for its
-counterpart in the same state (`inRenderingMode`), and freshly deserialized scenes follow the current mode.
+actor cannot inherit a plain one's class. The overlay's switch has `PerformanceDemoManager` swap only the boxes (the camera stays), each for its
+counterpart in the same state, scale included (`inRenderingMode` turns off the random scale a loaded box starts from), and freshly deserialized scenes follow the current mode.
 
 **`Camera`** (`Unique`, `Dynamic`, `Positionable`, `Editable`) — the single camera actor. It moves
 the viewport in a circular orbit of radius 2500 su around the origin, computed as

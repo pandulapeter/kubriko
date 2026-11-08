@@ -22,8 +22,14 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.random.Random
 
-/** The state and behavior every [MovingBox] shares, plain or batched; only drawing differs between the two. */
-internal abstract class MovingBoxBase(state: MovingBox.State) : Dynamic, Editable<MovingBox> {
+/**
+ * The state and behavior every [MovingBox] shares, plain or batched; only drawing differs between the two. A box given a
+ * random scale when added ([shouldRandomizeScale]) starts pulsing from it; one switched from the other kind keeps its own.
+ */
+internal abstract class MovingBoxBase(
+    state: MovingBox.State,
+    private val shouldRandomizeScale: Boolean,
+) : Dynamic, Editable<MovingBox> {
     override val body = state.body
 
     @set:Exposed(name = "isRotatingClockwise")
@@ -39,7 +45,7 @@ internal abstract class MovingBoxBase(state: MovingBox.State) : Dynamic, Editabl
     private var isGrowing = true
 
     override fun onAdded(kubriko: Kubriko) {
-        body.scale = ((5..16).random() / 10f).let { Scale(it, it) }
+        if (shouldRandomizeScale) body.scale = ((5..16).random() / 10f).let { Scale(it, it) }
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {

@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.inRenderingMode
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.isBox
 import com.pandulapeter.kubriko.demoPerformance.implementation.ui.PerformanceDemoOverlay
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -79,9 +80,9 @@ internal class PerformanceDemoManager(
     private fun toggleBatching() {
         val isBatched = !_isBatched.value
         _isBatched.value = isBatched
-        val actors = actorManager.allActors.value
-        actorManager.removeAll()
-        actorManager.add(actors.map { it.inRenderingMode(isBatched) })
+        val boxes = actorManager.allActors.value.filter { it.isBox }
+        actorManager.remove(boxes)
+        actorManager.add(boxes.map { it.inRenderingMode(isBatched) })
     }
 
     @OptIn(ExperimentalResourceApi::class)
