@@ -61,6 +61,32 @@ class PageEditorTest {
     }
 
     @Test
+    fun theAssistantsChangesShowAsADiffUntilTheyAreKept() = uiTest(width = 900, height = 640) {
+        var kept = 0
+        var review by mutableStateOf<PageReview?>(PageReview(before = page.replace("jumps", "walks"), onKeep = { kept++ }, onUndo = {}))
+        val long = page.replace("islands.", "islands, " + "over seas and under skies, ".repeat(8) + "and home.")
+        showing { PageEditor(name = "hero", text = long, onTextChange = {}, review = review) }
+        onNodeWithText("The assistant changed this page").assertExists()
+        onNodeWithText("- A knight who walks between **floating** islands.").assertExists()
+        onNodeWithText("+ A knight who jumps between **floating** islands", substring = true).assertExists()
+        onNodeWithText("Add a paragraph").assertDoesNotExist()
+        saveSnapshot("page-editor-review")
+        onNodeWithText("Keep").performClick()
+        assertEquals(1, kept)
+        review = null
+        waitForIdle()
+        onNodeWithText("The assistant changed this page").assertDoesNotExist()
+        onNodeWithText("Add a paragraph").assertExists()
+    }
+
+    @Test
+    fun aReviewOfAPageThatIsAsItWasShowsThePage() = uiTest(width = 900, height = 400) {
+        showing { PageEditor(name = "hero", text = page, onTextChange = {}, review = PageReview(before = page, onKeep = {}, onUndo = {})) }
+        onNodeWithText("The assistant changed this page").assertDoesNotExist()
+        onNodeWithText("Add a paragraph").assertExists()
+    }
+
+    @Test
     fun anEmptyPageSaysHowToStartIt() = uiTest(width = 700, height = 300) {
         showing { PageEditor(name = "villain", text = "", onTextChange = {}) }
         onNodeWithText("This page is empty. Add a paragraph to start it.").assertExists()

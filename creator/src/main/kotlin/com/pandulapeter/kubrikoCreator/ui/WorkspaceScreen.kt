@@ -49,6 +49,7 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.assistant.LocalWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.assistant.StartingTheWritersRoom
+import com.pandulapeter.kubrikoCreator.ui.assistant.rememberWritersRoom
 import com.pandulapeter.kubrikoCreator.ui.components.AnimatedSidePanel
 import com.pandulapeter.kubrikoCreator.ui.components.LocalIsAiEnabled
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
@@ -60,12 +61,14 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.git.RefreshingGitOnWindowFocus
 import com.pandulapeter.kubrikoCreator.ui.screenplay.LocalMentionedIn
+import com.pandulapeter.kubrikoCreator.ui.screenplay.LocalPageReviews
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownEditOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberMarkdownIdentity
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberMentionedIn
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberOpenMarkdownText
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageImageAdder
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageLinks
+import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberPageReviews
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 import com.pandulapeter.kubrikoCreator.workspace.SessionState
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
@@ -98,12 +101,8 @@ internal fun WorkspaceScreen(
         LocalDescriptionWriter provides rememberDescriptionWriter(assistant, uiState::showAssistant),
         LocalMentionedIn provides rememberMentionedIn(controller.commands.context, controller.selection),
         LocalSidebarHints provides rememberSidebarHints(controller.screenplayHealth.findings, controller.blockTypes?.types),
-        LocalWritersRoom provides remember(uiState, assistant) {
-            { prompt ->
-                uiState.showAssistant()
-                assistant.startWritersRoom(prompt)
-            }
-        },
+        LocalWritersRoom provides rememberWritersRoom(uiState::showAssistant, assistant::startWritersRoom),
+        LocalPageReviews provides rememberPageReviews(assistant.chats, controller.commands.history),
     ) {
         WorkspaceContent(
             controller = controller,

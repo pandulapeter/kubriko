@@ -74,6 +74,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param showsWritingHints Whether it is a page of the screenplay, whose writing rules are hinted at under it.
  * @param identity What tells the page apart from the one shown before ([MarkdownIdentity]), so that a page moved meanwhile
  *   keeps what is being typed.
+ * @param review What the assistant changed on the page in a turn offered for review, shown as a diff instead of the page
+ *   until it is kept or undone.
  */
 @Composable
 internal fun PageEditor(
@@ -86,6 +88,7 @@ internal fun PageEditor(
     sprites: List<String> = emptyList(),
     onAddImage: ((PageImageSource, section: String?) -> Unit)? = null,
     showsWritingHints: Boolean = false,
+    review: PageReview? = null,
 ) {
     val state = remember(identity) { PageEditorState(text, onTextChange) }
     val currentOnAddImage by rememberUpdatedState(onAddImage)
@@ -113,25 +116,29 @@ internal fun PageEditor(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             PageTitle(name)
-            if (session == null) {
-                val chunks = remember(state.text) { PageChunks.of(state.text) }
-                if (chunks.isEmpty()) {
-                    Text(stringResource(Res.string.page_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                val buildActions = rememberBuildActions(name, state.text, chunks)
-                chunks.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links, buildActions[index].orEmpty()) { state.edit(index) } }
+            if (session == null && review != null && review.before != text) {
+                PageChangeReview(before = review.before, after = text, onKeep = review.onKeep, onUndo = review.onUndo)
             } else {
-                remember(session.frame) { PageChunks.of(session.frame.before) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = false)) } }
-                PageChunkField(
-                    value = session.draft,
-                    onValueChange = state::onDraftChange,
-                    onDone = state::finish,
-                    links = links,
-                    images = images,
-                )
-                remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = true)) } }
+                if (session == null) {
+                    val chunks = remember(state.text) { PageChunks.of(state.text) }
+                    if (chunks.isEmpty()) {
+                        Text(stringResource(Res.string.page_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    val buildActions = rememberBuildActions(name, state.text, chunks)
+                    chunks.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links, buildActions[index].orEmpty()) { state.edit(index) } }
+                } else {
+                    remember(session.frame) { PageChunks.of(session.frame.before) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = false)) } }
+                    PageChunkField(
+                        value = session.draft,
+                        onValueChange = state::onDraftChange,
+                        onDone = state::finish,
+                        links = links,
+                        images = images,
+                    )
+                    remember(session.frame) { PageChunks.of(session.frame.after) }.forEachIndexed { index, chunk -> RenderedChunk(chunk.text, links) { state.edit(state.indexOf(index, isAfter = true)) } }
+                }
+                TextButton(onClick = state::append) { Text(stringResource(Res.string.page_add_paragraph)) }
             }
-            TextButton(onClick = state::append) { Text(stringResource(Res.string.page_add_paragraph)) }
             if (showsWritingHints) WritingHints(remember(state.text) { ScreenplayStyle.problemsOf(state.text) })
         }
     }

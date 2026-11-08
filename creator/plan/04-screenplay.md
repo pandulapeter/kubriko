@@ -38,13 +38,6 @@ health checks.
   `CLAUDE.md` holding only `@AGENTS.md` when the project has none, since Claude Code doesn't read `AGENTS.md` by itself; pages are
   plain Markdown with no vendor's file, and `AGENTS.md` points every agent at `screenplay/`. No part of this is Claude's alone.
 
-## Pages
-
-Pages exist (`../CLAUDE.md` → Files and ownership, and UI): plain Markdown in `screenplay/`, the page commands and tools, the
-Screenplay group in the sidebar, and a page editor that edits one chunk at a time in place. What is left:
-
-- **The page editor** still lacks the AI's edits shown as a diff before Keep.
-
 ## Deleting what is referred to
 
 Deleting an Actor type, Manager type, Scene, or Property cleans up what refers to it, asks first, and shows what still
@@ -62,13 +55,13 @@ dangles after a change outside Creator (`../CLAUDE.md` → Commands). What is le
 
 ## Order
 
-The page editor's diff next (what is left of deleting what is referred to comes with each kind's delete). Search
-(`07-resource-organization.md`) covers pages once it lands: quick open lists them, and find usages and `search_project` include
+What is left of deleting what is referred to comes with each kind's delete. Search (`07-resource-organization.md`) covers
+pages once it lands: quick open lists them, and find usages and `search_project` include
 their mentions and text.
 
 ## Testing
 
-- A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape above, and
+- A live scenario (`AssistantLiveScenariosTest`): a one-paragraph pitch to a game that plays, has pages in the shape `../CLAUDE.md` gives them, and
   passes `ScreenplayStyle`.
 - Unit tests for deleting each remaining kind as `DeletingWithUsagesTest` and `DeletingEveryThingTest` have them for types,
   Scenes, and Properties: every usage, its cleanup, and a byte-for-byte undo.

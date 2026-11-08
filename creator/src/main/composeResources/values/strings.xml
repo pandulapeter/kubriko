@@ -651,6 +651,8 @@
     <string name="screenplay_style_too_long">Split this page: it is past the length one page holds.</string>
     <string name="page_address_title">Open this address?</string>
     <string name="action_open_address">Open</string>
+    <string name="page_review_title">The assistant changed this page</string>
+    <string name="page_review_note">Keep or undo everything it changed in its answer, as its card in the conversation does.</string>
     <string name="page_empty">This page is empty. Add a paragraph to start it.</string>
     <string name="page_format_heading">Heading</string>
     <string name="page_format_bold">Bold</string>

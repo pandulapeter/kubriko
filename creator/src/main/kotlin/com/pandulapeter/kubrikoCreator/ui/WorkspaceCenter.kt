@@ -35,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.ProgressScreen
 import com.pandulapeter.kubrikoCreator.ui.components.fadeInOnChange
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneNotice
+import com.pandulapeter.kubrikoCreator.ui.screenplay.LocalPageReviews
 import com.pandulapeter.kubrikoCreator.ui.screenplay.MarkdownIdentity
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageEditor
 import com.pandulapeter.kubrikoCreator.ui.screenplay.PageImageSource
@@ -170,6 +171,7 @@ internal fun WorkspaceCenter(
                 sprites = remember(resources) { SpriteFiles.of(resources).paths },
                 onAddImage = onAddPageImage,
                 showsWritingHints = selection is WorkspaceSelection.Page,
+                review = (selection as? WorkspaceSelection.Page)?.let { LocalPageReviews.current(it.name) },
             )
         }
     } else if (selection == WorkspaceSelection.None) {
