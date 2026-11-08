@@ -172,6 +172,22 @@ class BatchedLayerDrawerTest {
     }
 
     @Test
+    fun `looks sampling one texture with different defaults for untextured vertices take runs of their own`() {
+        val texture = ImageBitmap(4, 4)
+        val scene = listOf(
+            TestBatched(TexturedQuadsLook(texture, defaultU = 1f)),
+            TestBatched(TexturedQuadsLook(texture, defaultU = 3f)),
+            TestBatched(TexturedQuadsLook(texture, defaultU = 1f)),
+        )
+
+        draw(scene)
+
+        assertEquals(listOf("run:8", "run:4"), target.events)
+        assertEquals(1f, target.runBatches[0].defaultU)
+        assertEquals(3f, target.runBatches[1].defaultU)
+    }
+
+    @Test
     fun `actors of different drawing orders keep their order across textures`() {
         val first = ImageBitmap(4, 4)
         val second = ImageBitmap(4, 4)

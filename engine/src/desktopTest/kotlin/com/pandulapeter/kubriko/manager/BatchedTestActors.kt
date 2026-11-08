@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.body.BoxBody
@@ -44,6 +45,14 @@ internal class QuadsLook(private val quadCount: Int) : CustomLook() {
     override fun emit(batch: TriangleBatch, width: Float, height: Float, pixelsPerUnit: Float) {
         emitCount++
         repeat(quadCount) { batch.addQuad(0f, 0f, width, 0f, width, height, 0f, height, argb = -1) }
+    }
+}
+
+/** One untextured quad that samples [texture] at ([defaultU], 0) through the batch's defaults. */
+internal class TexturedQuadsLook(override val texture: ImageBitmap, private val defaultU: Float) : CustomLook() {
+    override fun emit(batch: TriangleBatch, width: Float, height: Float, pixelsPerUnit: Float) {
+        batch.defaultU = defaultU
+        batch.addQuad(0f, 0f, width, 0f, width, height, 0f, height, argb = -1)
     }
 }
 

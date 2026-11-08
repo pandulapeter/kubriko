@@ -98,10 +98,15 @@ internal class LookGeometry {
         }
     }
 
-    /** Whether two geometries can share one draw call: the same texture, sampled the same way. */
+    /**
+     * Whether two geometries can share one draw call: the same texture, sampled the same way, and the same texel for
+     * the vertices that sample none, which a run can only give all of its members alike.
+     */
     fun canShareRunWith(other: LookGeometry) = texture === other.texture &&
         tileMode == other.tileMode &&
-        filterQuality == other.filterQuality
+        filterQuality == other.filterQuality &&
+        batch.defaultU == other.batch.defaultU &&
+        batch.defaultV == other.batch.defaultV
 
     private fun isStandIn(look: SpriteLook, body: BoxBody, pixelsPerUnit: Float): Boolean {
         if (look.texture == null) return false

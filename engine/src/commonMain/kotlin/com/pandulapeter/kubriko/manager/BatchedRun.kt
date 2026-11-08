@@ -39,9 +39,7 @@ internal class BatchedRun {
 
     /** Starts this frame's fill of the run with the texture and sampling of [geometry]. */
     fun begin(geometry: LookGeometry) {
-        val hasSameKey = canHold(geometry) &&
-            batch.defaultU == geometry.batch.defaultU &&
-            batch.defaultV == geometry.batch.defaultV
+        val hasSameKey = canHold(geometry)
         if (!hasSameKey) {
             batch.texture = geometry.texture
             batch.textureTileMode = geometry.tileMode
@@ -55,10 +53,15 @@ internal class BatchedRun {
         vertexCount = 0
     }
 
-    /** Whether [geometry] samples the texture this run does, the same way. */
+    /**
+     * Whether [geometry] samples the texture this run does, the same way, with the same texel for its vertices that
+     * sample none.
+     */
     fun canHold(geometry: LookGeometry) = batch.texture === geometry.texture &&
         batch.textureTileMode == geometry.tileMode &&
-        batch.textureFilterQuality == geometry.filterQuality
+        batch.textureFilterQuality == geometry.filterQuality &&
+        batch.defaultU == geometry.batch.defaultU &&
+        batch.defaultV == geometry.batch.defaultV
 
     fun append(actor: Batched, geometry: LookGeometry) {
         vertexCount += geometry.batch.vertexCount
