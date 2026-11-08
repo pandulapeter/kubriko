@@ -10,16 +10,15 @@
 package com.pandulapeter.kubrikoCreator.screenplay
 
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
-import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
-import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
+import com.pandulapeter.kubrikoCreator.foundation.JsonFileStore
+import com.pandulapeter.kubrikoCreator.foundation.valueOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
  * How the project's screenplay is kept, in `.kubriko/screenplay.json`, a file of its own rather than `project.json`, so
- * that an older Kubriko Creator, which doesn't know it, just keeps reminding.
+ * that an older Kubriko Creator, which doesn't know it, just keeps reminding. A project keeping the defaults has no file.
  *
  * @param areRemindersShown Whether the health checks and the commit form remind about pages that don't keep up with the
  *   game, as they do for a new project.
@@ -31,30 +30,14 @@ public data class ScreenplaySettings(
     public companion object {
         public const val FILE: String = "${DefinitionPaths.CREATOR_DIRECTORY}/screenplay.json"
 
-        private val json = Json {
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            prettyPrint = true
-        }
+        /**
+         * Where the settings of the project in [rootDirectory] are kept.
+         */
+        public fun store(rootDirectory: File): JsonFileStore<ScreenplaySettings> = JsonFileStore(File(rootDirectory, FILE), serializer())
 
         /**
          * The settings of the project in [rootDirectory]; the defaults when it has none, or they can't be read. Blocks.
          */
-        public fun read(rootDirectory: File): ScreenplaySettings = readOrNull(rootDirectory) ?: ScreenplaySettings()
-
-        /**
-         * The settings of the project in [rootDirectory]: the defaults when it has none, or null when its file can't be
-         * read, which nothing may write over. Blocks.
-         */
-        public fun readOrNull(rootDirectory: File): ScreenplaySettings? {
-            val file = File(rootDirectory, FILE).takeIf { it.exists() } ?: return ScreenplaySettings()
-            return runCatching { json.decodeFromString(serializer(), file.readText()) }.getOrNull()
-        }
-
-        /**
-         * Writes [settings] for the project in [rootDirectory]. Blocks.
-         */
-        @EditorMutation
-        public fun write(rootDirectory: File, settings: ScreenplaySettings): Unit = File(rootDirectory, FILE).writeTextAtomically(json.encodeToString(serializer(), settings) + "\n")
+        public fun read(rootDirectory: File): ScreenplaySettings = store(rootDirectory).read().valueOrNull() ?: ScreenplaySettings()
     }
 }

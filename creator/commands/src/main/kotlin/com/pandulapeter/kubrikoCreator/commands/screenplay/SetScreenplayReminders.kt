@@ -37,9 +37,16 @@ public object SetScreenplayReminders : WriteCommand<SetScreenplayReminders.Input
 
     override suspend fun apply(context: CommandContext, input: Input): Applied = withContext(context.ioDispatcher) {
         val root = context.project.rootDirectory
-        val previous = ScreenplaySettings.readOrNull(root) ?: return@withContext Applied.failed(Rejection(CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE, ScreenplaySettings.FILE))
-        ScreenplaySettings.write(root, previous.copy(areRemindersShown = input.isOn))
-        context.scenes.ownWrites.record(File(root, ScreenplaySettings.FILE))
+        val file = File(root, ScreenplaySettings.FILE)
+        var previous = ScreenplaySettings()
+        val isWritten = ScreenplaySettings.store(root).update { current ->
+            current?.let { previous = it }
+            (current ?: ScreenplaySettings()).copy(areRemindersShown = input.isOn)
+        }
+        if (!isWritten) return@withContext Applied.failed(Rejection(CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE, ScreenplaySettings.FILE))
+        // A project keeping the defaults has no file, so that undoing the first change leaves none behind.
+        if (ScreenplaySettings.read(root) == ScreenplaySettings()) file.delete()
+        context.scenes.ownWrites.record(file)
         context.screenplay.onFilesChanged()
         Applied(inverse = Invocation(SetScreenplayReminders, Input(previous.areRemindersShown)))
     }

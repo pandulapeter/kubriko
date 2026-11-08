@@ -168,7 +168,7 @@ Besides its tests passing, a change:
 | The `game.*` keys of `gradle.properties` (the game's identity and settings) | Creator | Edited line by line by Project settings; a value changed by hand shows there the next time it opens. |
 | A target's own files (`androidApp/`, `iosApp/`, `src/androidMain`, `src/iosMain`) | User after creation | Created by turning the target on when missing, never rewritten, and kept when it is turned off. |
 | The `PRODUCT_BUNDLE_IDENTIFIER` line of `iosApp/Configuration/Config.xcconfig` | Creator | Follows `game.applicationId`; the Xcode build fails, naming both, while they differ. |
-| `.kubriko/screenplay.json` | Creator | How the screenplay is kept (`ScreenplaySettings`, its reminders), in a file of its own rather than `project.json`, so an older Creator just keeps reminding and no format raise is needed; one that can't be read is never written over. |
+| `.kubriko/screenplay.json` | Creator | How the screenplay is kept (`ScreenplaySettings`, its reminders), in a file of its own rather than `project.json`, so an older Creator just keeps reminding and no format raise is needed; kept through `JsonFileStore`, and absent while it would hold only the defaults, so undoing the first change leaves no file. |
 | `.kubriko/local/` | Creator | Git-ignored, by a `.gitignore` of its own (`LocalProjectStore`), since a project Creator didn't make doesn't ignore it. |
 
 ## Threads, writes, and failures

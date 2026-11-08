@@ -79,15 +79,19 @@ class ScreenplayChecksTest {
     }
 
     @Test
-    fun `a settings file that can't be read is left alone`() = runTest {
+    fun `turning the reminders off and on again leaves no file, and a broken one is set aside`() = runTest {
         val context = commandContext()
-        val file = File(context.project.rootDirectory, ScreenplaySettings.FILE).apply { parentFile.mkdirs() }.apply { writeText("{ not json") }
-        assertEquals(
-            Rejection(CommandProblem.SCREENPLAY_SETTINGS_UNREADABLE, ScreenplaySettings.FILE),
-            SetScreenplayReminders.apply(context, SetScreenplayReminders.Input(isOn = false)).failure,
-        )
-        assertEquals("{ not json", file.readText())
-        assertEquals(true, ScreenplaySettings.read(context.project.rootDirectory).areRemindersShown)
+        val file = File(context.project.rootDirectory, ScreenplaySettings.FILE)
+        val after = context.assertRoundTrip(Invocation(SetScreenplayReminders, SetScreenplayReminders.Input(isOn = false))) { file.takeIf { it.isFile }?.readText() }
+        assertEquals(false, ScreenplaySettings.read(context.project.rootDirectory).areRemindersShown)
+        assertEquals(true, after != null)
+        SetScreenplayReminders.apply(context, SetScreenplayReminders.Input(isOn = true))
+        assertEquals(false, file.exists())
+        file.writeText("{ not json")
+        val applied = SetScreenplayReminders.apply(context, SetScreenplayReminders.Input(isOn = false))
+        assertEquals(null, applied.failure)
+        assertEquals("{ not json", File(file.parentFile, "${file.name}.bak").readText())
+        assertEquals(false, ScreenplaySettings.read(context.project.rootDirectory).areRemindersShown)
     }
 
     @OptIn(EditorMutation::class)
