@@ -31,6 +31,33 @@ from them in two more steps, always generated into ordinary Compose (no runtime 
 2. **Hand-written Composables:** a Manager shows a `@Composable` from the project's own code, chosen by name, so a project that
    outgrows Creator's UI keeps it in its own files.
 
+## Simple behavior without Kotlin
+
+Kotlin Blocks are for advanced cases only, and the agent writes one only when no combination of Blocks can do the job or the
+user asks for code (`AssistantSystemPrompt`). A first game from the writers' room (a side-scrolling shooter with
+scrolling stars and exploding aliens) still needed twelve Kotlin Blocks, all for simple behavior. Each item below replaces
+some of them, and is checked by asking the eval set (`EvalSetTest`) for the same game with no Kotlin Block left:
+
+- **Random values:** any number a Block takes can be a fixed number, a random number between two (whole or not), or a
+  Property, as one value type every number field shares rather than a random variant of each Block. A Property as a value
+  covers "Set velocity to the speed Property" too. This is the format raise that "the random Blocks" of
+  `16-rehearsals.md` build on, all drawing from the one generated `Random`. Covers a Drifter appearing at a random height
+  (`jumpTo` with a random y) and filling the sky with stars at random places. Without it, the agent passed `x: -1` to
+  addActor as a hidden signal its Kotlin then read.
+- **Moving in a direction:** set the velocity by an angle and a speed, either of them random, so debris can fly out in
+  every direction at different speeds.
+- **Color and opacity:** a Block that sets the color, to one color or one picked at random from a few, and Blocks that set
+  the opacity or change it by an amount. They are properties of the type's batched look, like the size and scale Blocks
+  below.
+- **Animating over time:** "Animate" takes the scale, opacity, color, or position from a start to an end over some
+  seconds (with an easing), and can remove the Actor when it ends. A growing, fading flash is then one Block, with no
+  `age` Property counting frames and no timer of the same length to keep in step. Generated as a small tween the
+  every-frame update advances, allocating nothing per frame.
+- **Staying inside the Scene:** a Block, or a setting in the Actor type's movement, that keeps an Actor inside the Scene's
+  bounds. The player's ship could fly off the screen, and nothing but Kotlin could stop it.
+- **Steering with keys:** "Move with keys" (the arrow keys or WASD, four or eight directions, a speed), in place of a Stop
+  and an If section per key. Four sections are readable, but every top-down or shooter game starts with them.
+
 ## Next additions
 
 - **More Properties:** color and Actor type reference Properties.

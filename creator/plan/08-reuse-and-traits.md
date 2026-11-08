@@ -53,7 +53,7 @@ interfaces and overrides the examples write by hand. The plugins they need come 
 | Trait | In Creator |
 |---|---|
 | `Unique` | "Only one at a time": adding another removes the first. The Scene editor warns when a Scene has two. |
-| `Visible` | Drawing order and layer in the appearance; a "visible" toggle each Actor keeps (and a Block to show or hide it); all of them properties of the generated batched look (`core/.../actors/CLAUDE.md`). Clip to bounds only for a type that draws with code of its own, a plain `Visible`, since a look never reaches past its body. |
+| `Visible` | Drawing order and layer in the appearance (the first writers' room game drew its stars over the aliens, and no Block could change it); a "visible" toggle each Actor keeps (and a Block to show or hide it); all of them properties of the generated batched look (`core/.../actors/CLAUDE.md`). Clip to bounds only for a type that draws with code of its own, a plain `Visible`, since a look never reaches past its body. |
 | `Dynamic.isAlwaysActive` | "Sleep while far off screen": generated Actors are always active, so a per-type choice for big levels. |
 | `Identifiable` | A name per placed Actor, set in the Scene editor's inspector, that Blocks can refer to ("the Actor named Player"). |
 | `Overlay` | "Draw on the screen": the Actor is drawn in screen space, for HUD pieces that are Actors. |
@@ -61,7 +61,7 @@ interfaces and overrides the examples write by hand. The plugins they need come 
 | `PointerInputAware` | Pointer Events: clicked or touched (this Actor), pressed, released, and moved anywhere. |
 | `GamepadInputAware` | Gamepad Events (button pressed and released, sticks) and conditions. |
 | `RigidBody` (physics) | A Physics section: shape (from the shape), mass, friction, bounciness, fixed or moving; Blocks for forces and impulses. Collision Events then come from physics. |
-| `ParticleEmitter` | Particle effects as an appearance or a Block ("burst of sparks"), with their settings. |
+| `ParticleEmitter` | Particle effects as an appearance or a Block ("burst of sparks"), with their settings. The first writers' room game built its explosion from two extra Actor types and Kotlin; a burst with a count, speeds, colors, and a lifetime is the Block it wanted. |
 | `Shader` | Scene effects, as Actors placed in a Scene with the built-in shaders' settings. |
 | `Disposable`, `Serializable`, `Editable` | Generated as needed; never shown. |
 

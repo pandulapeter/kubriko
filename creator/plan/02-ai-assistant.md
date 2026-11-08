@@ -17,6 +17,11 @@ commands, the MCP server, one-click setup, the game tools, and the activity view
 
 - **Actors' positions and states** for the AI, read from the running game rather than from screenshots and logs, once the debug agent
   (`12-debugger.md`) exists.
+- **Watching short effects:** a game tool that slows the running game down (a time scale through the session protocol), or
+  pauses it and steps it a frame at a time, so the agent can screenshot an explosion that is over in half a second. In the
+  first writers' room game, the agent changed four Blocks to slow the explosion twelvefold, then changed them back, which
+  leaves the game wrong if the turn stops in between. Pausing and stepping share their `TickSource` work with the
+  debugger (`12-debugger.md`).
 - **The activity view:** lighting Scenes up beyond the sidebar (opening one compiles the project), and numbering steps per project
   rather than per run of Creator.
 

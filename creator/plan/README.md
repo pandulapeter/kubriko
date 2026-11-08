@@ -39,8 +39,10 @@ The files are numbered in the order they are worked on. Every item of `01` to `0
    engine's batched looks and atlases, and an end-to-end comparison of a generated game drawn plain and batched.
 7. [Folders and search](07-resource-organization.md) - the rest of the sidebar filter, quick open, find usages, and the search AI tools.
 8. [Reuse, Traits, and bigger games](08-reuse-and-traits.md) - functions, Traits, and what bigger games need.
-9. [Blocks, Actor types, and Manager types](09-blocks.md) - the rest of the Block set, the Scene editor's handles and snapping, sprite
-   sheets and animation, UI elements, the Paddle game template, Convert to code, and more drag and drop.
+9. [Blocks, Actor types, and Manager types](09-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for
+   (random values, directions, color and opacity, animating over time, staying inside the Scene, steering with keys), the rest of
+   the Block set, the Scene editor's handles and snapping, sprite sheets and animation, UI elements, the Paddle game template,
+   Convert to code, and more drag and drop.
 10. [Sprite editor](10-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
     GameMaker 6.1's; it follows sprite sheets in `09-blocks.md`.
 11. [Version control](11-git.md) - sidebar change markers, restoring old versions, branches, remotes.
