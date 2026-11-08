@@ -54,16 +54,18 @@ public object ScreenplayStyle {
     /**
      * Where [text] breaks the rules.
      *
-     * @param tunableNumbers The values of the Properties of what the text mentions, as they would be written (`240`).
+     * @param pagePath The path of the page from the project's root, which its mentions are read from.
+     * @param tunableNumbers The values of each mentioned type's Properties as they would be written (`240`), by the path of
+     *   the type's file: a line mentioning the type is to name such a number by its Property's mention.
      * @param isWholePage Whether [text] is a whole page rather than a section of one, which only a whole page's length
      *   is checked for.
      */
-    public fun problemsOf(text: String, tunableNumbers: Set<String> = emptySet(), isWholePage: Boolean = true): List<Problem> {
+    public fun problemsOf(text: String, pagePath: String? = null, tunableNumbers: Map<String, Set<String>> = emptyMap(), isWholePage: Boolean = true): List<Problem> {
         val problems = ArrayList<Problem>()
         val lines = text.lines()
         val planned = PageText.sectionsOf(text).firstOrNull { it.level == 2 && it.heading.equals(PageText.PLANNED, ignoreCase = true) }?.lines
         var isInCode = false
-        val numberPatterns = tunableNumbers.map { number -> number to Regex("(?<![\\w.])" + Regex.escape(number) + "(?![\\w]|\\.\\d)") }
+        val numberPatterns = tunableNumbers.values.flatten().distinct().associateWith { number -> Regex("(?<![\\w.])" + Regex.escape(number) + "(?![\\w]|\\.\\d)") }
         lines.forEachIndexed { index, line ->
             val lineNumber = index + 1
             if (line.trimStart().startsWith("```") || line.trimStart().startsWith("~~~")) {
@@ -75,8 +77,7 @@ public object ScreenplayStyle {
             val prose = proseOf(line)
             history.find(prose)?.let { problems += Problem(Rule.HISTORY, lineNumber, it.value) }
             narration.find(prose)?.let { problems += Problem(Rule.NARRATION, lineNumber, it.value) }
-            val unlinked = prose.replace(link, " ")
-            numberPatterns.firstOrNull { (_, pattern) -> pattern.containsMatchIn(unlinked) }?.let { (number, _) -> problems += Problem(Rule.COPIED_NUMBER, lineNumber, number) }
+            copiedNumberOf(line, prose, pagePath, tunableNumbers, numberPatterns)?.let { problems += Problem(Rule.COPIED_NUMBER, lineNumber, it) }
             if (planned != null && index in planned && index != planned.first && line.isNotBlank()) {
                 val trimmed = line.trim()
                 when {
@@ -88,6 +89,17 @@ public object ScreenplayStyle {
         }
         if (isWholePage && text.length > LENGTH_LIMIT) problems += Problem(Rule.TOO_LONG, lines.size, "${text.length} characters")
         return problems
+    }
+
+    /**
+     * The first number on [line] that is the value of a Property of a type the line mentions, written as prose ([prose],
+     * outside its links) rather than as the Property's mention.
+     */
+    private fun copiedNumberOf(line: String, prose: String, pagePath: String?, tunableNumbers: Map<String, Set<String>>, patterns: Map<String, Regex>): String? {
+        if (pagePath == null || tunableNumbers.isEmpty()) return null
+        val numbers = PageLinks.linksOf(line).mapNotNull { PageLinks.resolve(pagePath, it.destination) }.flatMap { tunableNumbers[it].orEmpty() }
+        val unlinked = prose.replace(link, " ")
+        return numbers.firstOrNull { patterns.getValue(it).containsMatchIn(unlinked) }
     }
 
     /**

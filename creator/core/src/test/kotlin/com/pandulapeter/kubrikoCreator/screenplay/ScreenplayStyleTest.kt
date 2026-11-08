@@ -15,7 +15,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ScreenplayStyleTest {
-    private fun rulesOf(text: String, numbers: Set<String> = emptySet(), isWholePage: Boolean = true) = ScreenplayStyle.problemsOf(text, numbers, isWholePage).map { it.rule to it.excerpt }
+    private fun rulesOf(text: String, numbers: Set<String> = emptySet(), isWholePage: Boolean = true) =
+        ScreenplayStyle.problemsOf(text, "screenplay/README.md", mapOf(".kubriko/actors/Ball.json" to numbers), isWholePage).map { it.rule to it.excerpt }
 
     @Test
     fun `a page in the shape the rules ask for keeps them`() {
@@ -67,7 +68,12 @@ class ScreenplayStyleTest {
     fun `a Property's number copied into prose is named, but not inside a link or another number`() {
         assertEquals(
             listOf(Rule.COPIED_NUMBER to "240"),
-            rulesOf("It moves at 240 pixels a second.\nNot 2400, 1240, 240.5, or [240](a.md), or `240`.", numbers = setOf("240")),
+            rulesOf(
+                "The [ball](../.kubriko/actors/Ball.json) moves at 240 pixels a second.\n" +
+                    "The [ball](../.kubriko/actors/Ball.json): not 2400, 1240, 240.5, or [240](a.md), or `240`.\n" +
+                    "The game has 240 levels, on a line that doesn't mention the ball.",
+                numbers = setOf("240"),
+            ),
         )
     }
 

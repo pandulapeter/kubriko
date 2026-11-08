@@ -46,24 +46,26 @@ internal const val PAGE_NAME_DESCRIPTION = "The name of the page: its path in th
  * ([ScreenplayStyle]), numbers included, which are the values of the Properties of the types it mentions.
  */
 internal fun CommandContext.validatePageStyle(pagePath: String, text: String, isWholePage: Boolean): Rejection? {
-    val problems = ScreenplayStyle.problemsOf(text, tunableNumbersOf(pagePath, text), isWholePage)
+    val problems = ScreenplayStyle.problemsOf(text, pagePath, tunableNumbersOf(pagePath, text), isWholePage)
     return if (problems.isEmpty()) null else Rejection(CommandProblem.SCREENPLAY_STYLE, problems.joinToString("; "))
 }
 
 /**
- * The values of the number Properties of the types [text], written in the page at [pagePath], mentions, as prose would
- * write them; 0 and 1 are left out, since they are as often words as numbers.
+ * The values of the number Properties of each type [text], written in the page at [pagePath], mentions, as prose would
+ * write them, by the path of the type's file; 0 and 1 are left out, since they are as often words as numbers.
  */
-private fun CommandContext.tunableNumbersOf(pagePath: String, text: String): Set<String> = PageLinks.linksOf(text)
+private fun CommandContext.tunableNumbersOf(pagePath: String, text: String): Map<String, Set<String>> = PageLinks.linksOf(text)
     .mapNotNull { PageLinks.resolve(pagePath, it.destination) }
+    .distinct()
     .mapNotNull { path ->
-        when (val mention = Mention.of(path)) {
+        val name = when (val mention = Mention.of(path)) {
             is Mention.ActorType -> mention.name
             is Mention.ManagerType -> mention.name
             else -> null
         }
+        val numbers = name?.let { blockTypes?.get(it) }?.properties?.filterIsInstance<PropertyDefinition.Number>()?.map { it.initialValue }
+            ?.filter { it != 0f && it != 1f }
+            ?.mapTo(HashSet()) { value -> if (value % 1f == 0f) value.toLong().toString() else value.toString() }
+        numbers?.takeIf { it.isNotEmpty() }?.let { path to it }
     }
-    .mapNotNull { blockTypes?.get(it) }
-    .flatMap { type -> type.properties.filterIsInstance<PropertyDefinition.Number>().map { it.initialValue } }
-    .filter { it != 0f && it != 1f }
-    .mapTo(HashSet()) { value -> if (value % 1f == 0f) value.toLong().toString() else value.toString() }
+    .toMap()
