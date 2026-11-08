@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandHistory
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.project.SetProjectSettings
 import com.pandulapeter.kubrikoCreator.commands.project.SetTarget
+import com.pandulapeter.kubrikoCreator.commands.screenplay.SetScreenplayReminders
 import com.pandulapeter.kubrikoCreator.project.LibraryInUse
 import com.pandulapeter.kubrikoCreator.project.ProjectSettingsSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
@@ -87,6 +88,7 @@ internal fun ProjectSettings(
         onReviewUpgrade = onReviewUpgrade,
         onDismiss = onDismiss,
         initialPage = initialPage,
+        onScreenplayRemindersChange = { onCommand(Invocation(SetScreenplayReminders, SetScreenplayReminders.Input(it))) },
     )
     pendingTarget?.let { change ->
         TargetChangeDialog(

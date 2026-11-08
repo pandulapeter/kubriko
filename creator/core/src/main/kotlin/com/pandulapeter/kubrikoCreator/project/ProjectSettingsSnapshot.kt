@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.project
 
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
+import com.pandulapeter.kubrikoCreator.screenplay.ScreenplaySettings
 import java.io.File
 
 /**
@@ -19,12 +20,14 @@ import java.io.File
  * @param identity The game's identity, or null if its build doesn't read one.
  * @param game The game's settings, or null if its build doesn't read them.
  * @param scenes The project's Scenes, which the game can start with.
+ * @param screenplay How the project's screenplay is kept.
  */
 public data class ProjectSettingsSnapshot(
     val identity: GameIdentity?,
     val game: GameSettingsReading?,
     val libraries: List<LibraryInUse>,
     val scenes: List<String>,
+    val screenplay: ScreenplaySettings = ScreenplaySettings(),
 ) {
     public companion object {
 
@@ -43,6 +46,7 @@ public data class ProjectSettingsSnapshot(
             game = GameSettings.read(rootDirectory),
             libraries = emptyList(),
             scenes = scenes.names(),
+            screenplay = ScreenplaySettings.read(rootDirectory),
         )
     }
 }

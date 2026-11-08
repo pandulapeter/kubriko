@@ -39,13 +39,18 @@ import kubriko.creator.generated.resources.action_review_upgrade
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_desktop
 import kubriko.creator.generated.resources.ic_edit
+import kubriko.creator.generated.resources.ic_page
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.project_settings_game_description
 import kubriko.creator.generated.resources.project_settings_identity_description
 import kubriko.creator.generated.resources.project_settings_libraries_description
+import kubriko.creator.generated.resources.project_settings_screenplay_description
+import kubriko.creator.generated.resources.project_settings_screenplay_reminders
+import kubriko.creator.generated.resources.project_settings_screenplay_reminders_description
 import kubriko.creator.generated.resources.project_settings_section_game
 import kubriko.creator.generated.resources.project_settings_section_identity
 import kubriko.creator.generated.resources.project_settings_section_libraries
+import kubriko.creator.generated.resources.project_settings_section_screenplay
 import kubriko.creator.generated.resources.project_settings_section_targets
 import kubriko.creator.generated.resources.project_settings_targets_description
 import kubriko.creator.generated.resources.project_settings_title
@@ -61,6 +66,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onToggleTarget Asks to turn a target on or off, which is shown before it is made.
  * @param onReviewUpgrade Opens the template upgrade that makes the build read the settings, if there is one.
  * @param initialPage The page it opens on, or null for the first one.
+ * @param onScreenplayRemindersChange Turns the screenplay's reminders on or off.
  */
 @Composable
 internal fun ProjectSettingsDialog(
@@ -72,6 +78,7 @@ internal fun ProjectSettingsDialog(
     onReviewUpgrade: (() -> Unit)?,
     onDismiss: () -> Unit,
     initialPage: ProjectSettingsPage? = null,
+    onScreenplayRemindersChange: (Boolean) -> Unit = {},
 ) = MasterDetailDialog(
     title = stringResource(Res.string.project_settings_title),
     onDismiss = onDismiss,
@@ -90,7 +97,7 @@ internal fun ProjectSettingsDialog(
                 )
             },
         )
-        settings != null -> projectSettingsPages(settings, targets, onChange, onToggleTarget, onReviewUpgrade)
+        settings != null -> projectSettingsPages(settings, targets, onChange, onToggleTarget, onReviewUpgrade) + screenplayPage(settings, onScreenplayRemindersChange)
         else -> emptyList()
     },
 )
@@ -219,4 +226,22 @@ private fun UnavailableNotice(
             Text(stringResource(Res.string.action_review_upgrade))
         }
     }
+}
+
+@Composable
+private fun screenplayPage(
+    settings: ProjectSettingsSnapshot,
+    onRemindersChange: (Boolean) -> Unit,
+) = DialogPage(
+    key = ProjectSettingsPage.SCREENPLAY.key,
+    icon = Res.drawable.ic_page,
+    title = stringResource(Res.string.project_settings_section_screenplay),
+    description = stringResource(Res.string.project_settings_screenplay_description),
+) {
+    SettingsSwitch(
+        label = stringResource(Res.string.project_settings_screenplay_reminders),
+        description = stringResource(Res.string.project_settings_screenplay_reminders_description),
+        checked = settings.screenplay.areRemindersShown,
+        onCheckedChange = onRemindersChange,
+    )
 }

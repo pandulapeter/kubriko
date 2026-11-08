@@ -169,6 +169,25 @@ class ProjectSettingsDialogTest {
     }
 
     @Test
+    fun theScreenplayPageTurnsItsRemindersOff() = uiTest(width = 960, height = 640) {
+        val changes = mutableListOf<Boolean>()
+        showing {
+            ProjectSettingsDialog(
+                settings = ProjectSettingsSnapshot(identity, GameSettingsReading(GameSettings()), emptyList(), scenes = listOf("main")),
+                onChange = {},
+                onReviewUpgrade = null,
+                onDismiss = {},
+                initialPage = ProjectSettingsPage.SCREENPLAY,
+                onScreenplayRemindersChange = { changes += it },
+            )
+        }
+        onNodeWithText("Remind me to keep the pages up to date").assertExists()
+        saveSnapshot("project-settings-screenplay")
+        onNodeWithText("Remind me to keep the pages up to date").performClick()
+        assertEquals(listOf(false), changes)
+    }
+
+    @Test
     fun aFirstSceneThatIsGoneSaysSo() = uiTest(width = 960, height = 640) {
         showing {
             ProjectSettingsDialog(

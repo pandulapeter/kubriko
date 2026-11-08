@@ -17,4 +17,5 @@ internal enum class ProjectSettingsPage(val key: String) {
     GAME("game"),
     TARGETS("targets"),
     LIBRARIES("libraries"),
+    SCREENPLAY("screenplay"),
 }

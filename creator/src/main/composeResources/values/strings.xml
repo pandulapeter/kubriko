@@ -954,6 +954,10 @@
     <string name="project_settings_aspect_ratio_stretched_description">The window always shows exactly the width and height below, stretched to its shape.</string>
     <string name="project_settings_unreadable_keys">gradle.properties holds values the build can't read (%1$s), shown here at their defaults. Choosing a value writes it again.</string>
     <string name="project_settings_section_libraries">Libraries in use</string>
+    <string name="project_settings_section_screenplay">Screenplay</string>
+    <string name="project_settings_screenplay_description">The game's design, as pages in screenplay/ that you and the assistant keep up to date.</string>
+    <string name="project_settings_screenplay_reminders">Remind me to keep the pages up to date</string>
+    <string name="project_settings_screenplay_reminders_description">What no page mentions, pages without a title or summary, and Planned items that may be built show among what is worth a look, and committing says when the game changed but no page did.</string>
     <string name="project_settings_libraries_description">The Kubriko libraries the build depends on. Kubriko Creator adds one when something needs it and removes it when nothing does.</string>
     <string name="project_settings_library_always">Every game uses it.</string>
     <string name="project_settings_library_generated">Used by the code Kubriko Creator generates.</string>
