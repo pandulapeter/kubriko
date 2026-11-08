@@ -21,7 +21,7 @@ import java.io.File
 
 /**
  * What the links of the page or document the page editor shows point at: its mentions, drawn as chips in their kind's
- * accent that open what they name ([onOpen]), and its addresses, shown first ([pendingAddress]) and only then opened.
+ * accent that open what they name ([onOpen]), and its web addresses, shown first ([pendingAddress]) and only then opened.
  *
  * @param pagePath The path of the page or document from the project's root, which its links are written from.
  * @param rootDirectory The project's folder, which images are read from.
@@ -54,13 +54,13 @@ internal class PageLinksState(
         ?.let { File(rootDirectory, it.mention.path) }
 
     /**
-     * Opens a project file no chip stands for, if the system can open it safely, or shows an address before it is opened.
+     * Opens a project file no chip stands for, if the system can open it safely, or shows a web address before it is opened.
      */
     override fun onLinkClick(destination: String) {
         val look = looks[destination]
         when {
             look != null -> if (look.exists && canOpenOutside(look.mention)) onOpen(look.mention)
-            hasScheme(destination) -> pendingAddress = destination
+            isWebAddress(destination) -> pendingAddress = destination
         }
     }
 }
@@ -111,9 +111,10 @@ internal fun mentionLooksOf(rootDirectory: File, pagePath: String, text: String)
     .associate { (destination, path) -> destination to MentionLook(Mention.of(path), File(rootDirectory, path).exists()) }
 
 /**
- * Whether [destination] is an address with a scheme (`https:`, `mailto:`), which the system opens after it is shown.
+ * Whether [destination] is a web or mail address, which the system opens after it is shown. Other schemes (`file:`, a
+ * drive letter) aren't, since the system runs some of what they point at.
  */
-internal fun hasScheme(destination: String): Boolean = scheme.containsMatchIn(destination)
+internal fun isWebAddress(destination: String): Boolean = webAddress.containsMatchIn(destination)
 
 /**
  * Whether [mention], a file Kubriko Creator has no view of, may be opened in the app the system opens its kind of file
@@ -126,5 +127,5 @@ internal fun canOpenOutside(mention: Mention): Boolean = when (mention) {
 }
 
 private val imageExtensions = setOf("png", "jpg", "jpeg", "gif", "webp", "bmp")
-private val scheme = Regex("^[A-Za-z][A-Za-z0-9+.-]*:")
+private val webAddress = Regex("^(https?://|mailto:)", RegexOption.IGNORE_CASE)
 private val openableExtensions = imageExtensions + setOf("txt", "json", "properties", "toml", "xml", "yaml", "yml", "csv", "wav", "mp3", "ogg", "kt", "kts", "gradle")

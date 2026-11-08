@@ -548,7 +548,7 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   ends the typing.
 - A page's links are relative Markdown links to the thing's own file (`PageLinks`), so they work on GitHub and in IntelliJ
   too; `Mention` tells what they name from the path alone, so a mention of something deleted still says what it was. A page
-  may come from anyone, so an address is shown before the system opens it, and a project file Creator has no view of opens
+  may come from anyone, so only a web or mail address opens, after it is shown, and a project file Creator has no view of opens
   in the system's app only for kinds it can't run (`canOpenOutside`). Creator's own moves are recorded (`MovedFiles`) so the
   open page follows them, keeping what is being typed (`MarkdownIdentity`).
 - Documents (every Markdown file outside `screenplay/`) have no group: each is a row in the band of the folder it is

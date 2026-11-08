@@ -54,7 +54,7 @@ class PageLinksStateTest {
     }
 
     @Test
-    fun `addresses wait to be shown, and project files open outside only when that is safe`() {
+    fun `web addresses wait to be shown, and project files open outside only when that is safe`() {
         val opened = mutableListOf<Mention>()
         val state = PageLinksState("screenplay/README.md", File(".")) { opened += it }
         state.looks = mapOf(
@@ -68,8 +68,10 @@ class PageLinksStateTest {
         assertNull(state.pendingAddress)
         state.onLinkClick("../notes.txt")
         assertEquals(listOf<Mention>(Mention.OtherFile("notes.txt")), opened)
-        state.onLinkClick("ftp://example.com")
-        assertEquals("ftp://example.com", state.pendingAddress)
+        listOf("ftp://example.com", "file:///Users/x/run.command", "C:/Windows/calc.exe").forEach(state::onLinkClick)
+        assertNull(state.pendingAddress)
+        state.onLinkClick("mailto:a@example.com")
+        assertEquals("mailto:a@example.com", state.pendingAddress)
         state.onLinkClick("HTTPS://example.com/a")
         assertEquals("HTTPS://example.com/a", state.pendingAddress)
     }
