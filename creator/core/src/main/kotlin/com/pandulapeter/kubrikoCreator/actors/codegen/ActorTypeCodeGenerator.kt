@@ -180,7 +180,8 @@ public object ActorTypeCodeGenerator {
 
     /**
      * The sprite stretched over the body, its pixels kept sharp, as pixel art wants them: a part of the shared images the
-     * game's sprites are loaded onto ([SpritesCodeGenerator]), so nothing is drawn until they are loaded.
+     * game's sprites are loaded onto ([SpritesCodeGenerator]), so nothing is drawn until they are loaded. The region is
+     * looked up only until it is found, since an atlas the game declares is never unloaded, so a frame reads it once.
      */
     private val SPRITE_LOOK = """
         |    /**
@@ -188,7 +189,7 @@ public object ActorTypeCodeGenerator {
         |     */
         |    override val look = SpriteLook(texture = null, filterQuality = FilterQuality.None)
         |        get() {
-        |            field.setRegion(sprite?.let { $SPRITE_MANAGER_FIELD.getRegion(it) })
+        |            if (field.texture == null) field.setRegion(sprite?.let { $SPRITE_MANAGER_FIELD.getRegion(it) })
         |            return field
         |        }
     """.trimMargin()

@@ -738,7 +738,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "        spriteManager = kubriko.get()\n")
         assertContains(code, "        private val sprite = Res.allDrawableResources[\"player_1\"]\n")
         assertContains(code, "    override val look = SpriteLook(texture = null, filterQuality = FilterQuality.None)\n")
-        assertContains(code, "            field.setRegion(sprite?.let { spriteManager.getRegion(it) })\n")
+        assertContains(code, "            if (field.texture == null) field.setRegion(sprite?.let { spriteManager.getRegion(it) })\n")
         assertContains(code, "import com.pandulapeter.kubriko.sprites.setRegion\n")
         assertFalse("EllipseLook" in code || "DrawScope" in code)
         // The shape is still the collision mask's.
