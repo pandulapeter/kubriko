@@ -41,6 +41,8 @@
     <string name="new_project_version_control">Start version control (a git repository with a first commit)</string>
     <string name="new_project_folder">The project will be created in %1$s.</string>
     <string name="creating_project">Creating %1$s… The first project takes a while, as Gradle downloads itself.</string>
+    <string name="template_blank_title">Blank</string>
+    <string name="template_blank_description">One empty Scene and nothing in it, for a game designed from scratch.</string>
     <string name="template_starter_title">Starter</string>
     <string name="template_starter_description">A desktop and web game with one Scene and a bouncing Ball Actor type you can place and edit.</string>
     <string name="error_project_name_empty">Give the project a name.</string>

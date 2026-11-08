@@ -17,10 +17,17 @@ internal object TemplateFiles {
 
     const val TEMPLATE_SUFFIX = ".template"
 
-    fun load(template: ProjectTemplate): List<TemplateFile> = readResource("${template.root}/files.txt")
-        .lines()
-        .filter { it.isNotBlank() }
-        .map { path -> TemplateFile(path = path, content = readResource("${template.root}/$path$TEMPLATE_SUFFIX")) }
+    fun load(template: ProjectTemplate): List<TemplateFile> {
+        val own = ownPathsOf(template).map { path -> TemplateFile(path = path, content = readResource("${template.root}/$path$TEMPLATE_SUFFIX")) }
+        val base = template.base ?: return own
+        val replaced = own.mapTo(HashSet()) { it.path } + listOf("${template.root}/removed.txt").flatMap { readResource(it).lines() }.filter { it.isNotBlank() }
+        return (load(base).filter { it.path !in replaced } + own).sortedBy { it.path }
+    }
+
+    /**
+     * The paths of the files [template] lists itself, which its own folder holds.
+     */
+    fun ownPathsOf(template: ProjectTemplate): List<String> = readResource("${template.root}/files.txt").lines().filter { it.isNotBlank() }
 
     internal val ProjectTemplate.root get() = "templates/$id"
 

@@ -177,6 +177,13 @@ public class AssistantController(
         openChat { owner, directory, permissions, _ -> owner.newConversation(directory, permissions, LastConversation.withProject(openProject.digest(), lastConversationOf(directory))) }
     }
 
+    override fun startWritersRoom(prompt: String) {
+        if (!host.isOn) return
+        openChat(firstPrompt = prompt) { owner, directory, permissions, _ ->
+            owner.newConversation(directory, permissions, LastConversation.withProject(openProject.digest(), null), rules = AssistantSystemPrompt.WRITERS_ROOM)
+        }
+    }
+
     private suspend fun lastConversationOf(directory: File) = withContext(ioDispatcher) { storage.conversations?.of(directory, selection.agent.value.id)?.firstOrNull() }
 
     override fun resume(conversation: SavedConversation) {
@@ -185,7 +192,7 @@ public class AssistantController(
         openChat(lastMessageAt = conversation.updatedAt) { owner, directory, permissions, onHistory -> owner.resumeConversation(directory, conversation.id, permissions, onHistory) }
     }
 
-    private fun openChat(lastMessageAt: Long? = null, start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
+    private fun openChat(lastMessageAt: Long? = null, firstPrompt: String? = null, start: suspend (Assistant, File, PermissionHandler, suspend (SessionUpdate) -> Unit) -> AgentConversation) {
         val directory = project ?: return
         val agentId = selection.agent.value.id
         var owner: Assistant? = null
@@ -202,6 +209,7 @@ public class AssistantController(
             },
             lastMessageAt = lastMessageAt,
             clock = clock,
+            firstPrompt = firstPrompt,
         )
         chatList.add(chat)
     }

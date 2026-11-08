@@ -40,7 +40,18 @@ class TemplateFilesTest {
             .filter { it.isFile && it.name.endsWith(TemplateFiles.TEMPLATE_SUFFIX) }
             .map { it.relativeTo(directory).invariantSeparatorsPath.removeSuffix(TemplateFiles.TEMPLATE_SUFFIX) }
             .toSortedSet()
-        assertEquals(shipped, TemplateFiles.load(template).map { it.path }.toSortedSet(), template.id)
+        assertEquals(shipped, TemplateFiles.ownPathsOf(template).toSortedSet(), template.id)
+    }
+
+    @Test
+    fun aTemplateMadeFromAnotherLeavesOutOnlyFilesTheOtherShips() = ProjectTemplate.entries.forEach { template ->
+        val base = template.base ?: return@forEach
+        val removed = File("src/main/resources", "${template.root}/removed.txt").readLines().filter { it.isNotBlank() }
+        val basePaths = TemplateFiles.load(base).map { it.path }
+        removed.forEach { assertTrue(it in basePaths, "${template.id} leaves out $it, which ${base.id} doesn't ship.") }
+        val paths = TemplateFiles.load(template).map { it.path }
+        assertTrue(removed.none { it in paths }, template.id)
+        assertEquals(paths.size, paths.toSet().size, template.id)
     }
 
     @Test

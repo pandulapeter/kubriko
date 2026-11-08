@@ -61,6 +61,10 @@ internal class FakeAssistantPanelModel(
         calls += "newChat"
     }
 
+    override fun startWritersRoom(prompt: String) {
+        calls += "startWritersRoom: $prompt"
+    }
+
     override fun resume(conversation: SavedConversation) {
         calls += "resume"
     }

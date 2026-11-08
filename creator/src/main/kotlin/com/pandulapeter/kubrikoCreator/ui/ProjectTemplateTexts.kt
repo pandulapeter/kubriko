@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import com.pandulapeter.kubrikoCreator.template.ProjectTemplate
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.template_blank_description
+import kubriko.creator.generated.resources.template_blank_title
 import kubriko.creator.generated.resources.template_starter_description
 import kubriko.creator.generated.resources.template_starter_title
 import org.jetbrains.compose.resources.StringResource
@@ -18,9 +20,11 @@ import org.jetbrains.compose.resources.StringResource
 internal val ProjectTemplate.title: StringResource
     get() = when (this) {
         ProjectTemplate.STARTER -> Res.string.template_starter_title
+        ProjectTemplate.BLANK -> Res.string.template_blank_title
     }
 
 internal val ProjectTemplate.description: StringResource
     get() = when (this) {
         ProjectTemplate.STARTER -> Res.string.template_starter_description
+        ProjectTemplate.BLANK -> Res.string.template_blank_description
     }

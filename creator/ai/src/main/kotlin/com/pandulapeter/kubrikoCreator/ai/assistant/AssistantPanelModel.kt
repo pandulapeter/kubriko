@@ -139,6 +139,12 @@ public interface AssistantPanelModel {
     public fun newChat()
 
     /**
+     * Starts a conversation in the writers' room ([AssistantSystemPrompt.WRITERS_ROOM]), where the assistant designs the
+     * game with the user and builds it a slice at a time, sends it [prompt] once it is ready, and shows it.
+     */
+    public fun startWritersRoom(prompt: String)
+
+    /**
      * Continues [conversation], an earlier one about the open project, and shows it.
      */
     public fun resume(conversation: SavedConversation)

@@ -136,6 +136,21 @@ class AssistantControllerTest {
     }
 
     @Test
+    fun theWritersRoomStartsAConversationOfItsOwnWithItsRulesAndTheIdea() = blockingTest {
+        val controller = controller()
+        val first = controller.startChat()
+        first.state.first { it == ChatState.Ready }
+        onMain { controller.startWritersRoom("hello") }
+        val room = controller.currentChat.value!!
+        assertNotSame(first, room)
+        room.transcript.first { it.items.lastOrNull() == TranscriptItem.AgentMessage("Hi there") }
+        val agent = launcher.agents.single()
+        assertEquals(listOf("hello"), agent.prompts)
+        val told = agent.leadingTexts + agent.newSessions.map { it._meta.toString() }
+        assertEquals(1, told.count { "This conversation is the writers' room" in it }, "Only the writers' room is told its rules.")
+    }
+
+    @Test
     fun conversationsNeedAnOpenProject() = blockingTest {
         val controller = controller()
         onMain { controller.newChat() }

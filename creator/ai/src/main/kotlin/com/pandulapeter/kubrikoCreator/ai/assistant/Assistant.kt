@@ -71,11 +71,18 @@ public class Assistant(
      * Starts a conversation about the project in [projectDirectory].
      *
      * @param projectContext What the conversation is told about the project at its start: its digest.
+     * @param rules What this conversation alone is told after that, such as the writers' room's
+     *   ([AssistantSystemPrompt.WRITERS_ROOM]).
      * @throws AgentStartException If the agent couldn't be started.
      * @throws java.io.IOException If the tools couldn't be served.
      */
-    internal suspend fun newConversation(projectDirectory: File, permissions: PermissionHandler = PermissionHandler.Reject, projectContext: String? = null): AgentConversation {
-        val prompt = systemPrompt(projectContext)
+    internal suspend fun newConversation(
+        projectDirectory: File,
+        permissions: PermissionHandler = PermissionHandler.Reject,
+        projectContext: String? = null,
+        rules: String? = null,
+    ): AgentConversation {
+        val prompt = listOfNotNull(systemPrompt(projectContext), rules).joinToString("\n\n").ifEmpty { null }
         return withTools(projectDirectory, permissions) { workingDirectory, mcpServers, guarded ->
             agent.newConversation(
                 workingDirectory = workingDirectory,

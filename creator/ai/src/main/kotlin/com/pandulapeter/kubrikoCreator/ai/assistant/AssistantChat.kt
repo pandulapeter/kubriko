@@ -57,6 +57,8 @@ import kotlinx.coroutines.launch
  * @param lastMessageAt When the last message of a continued conversation was said, or null for a new one, which counts
  *   from now.
  * @param clock The time, in milliseconds since the epoch.
+ * @param firstPrompt What is sent as soon as the conversation is ready, for one started with a request, such as the
+ *   writers' room's.
  */
 public class AssistantChat(
     parentScope: CoroutineScope,
@@ -69,8 +71,10 @@ public class AssistantChat(
     private val undoTurn: suspend (toolsId: String, sinceRevision: Int) -> Int = { _, _ -> 0 },
     lastMessageAt: Long? = null,
     private val clock: () -> Long = System::currentTimeMillis,
+    firstPrompt: String? = null,
 ) {
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job]))
+    private var pendingFirstPrompt = firstPrompt
     private val _state = MutableStateFlow<ChatState>(ChatState.Starting)
     /**
      * Whether the conversation is starting, ready, or failed.
@@ -333,6 +337,10 @@ public class AssistantChat(
             scope.launch(start = CoroutineStart.UNDISPATCHED) { started.availableCommands.collect { _availableCommands.value = it } }
             scope.launch(start = CoroutineStart.UNDISPATCHED) {
                 started.isLost.collect { isLost -> if (isLost && !isClosed) _state.value = ChatState.Failed(FailureReason.CONVERSATION_LOST) }
+            }
+            pendingFirstPrompt?.let { prompt ->
+                pendingFirstPrompt = null
+                send(prompt)
             }
         }
     }
