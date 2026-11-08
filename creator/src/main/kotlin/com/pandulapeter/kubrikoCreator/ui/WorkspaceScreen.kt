@@ -48,6 +48,7 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RenameScene
+import com.pandulapeter.kubrikoCreator.commands.screenplay.unusedImagesOf
 import com.pandulapeter.kubrikoCreator.context.RelationSubject
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
@@ -78,6 +79,8 @@ import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
 import com.pandulapeter.kubrikoCreator.workspace.captureGameScreen
 import com.pandulapeter.kubrikoCreator.workspace.toRejection
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * An open project: the toolbar, the sidebar with the project's contents, the editor of what is selected, and the console.
@@ -320,6 +323,7 @@ private fun WorkspaceDialogsOf(
     gitState = controller.git.state,
     onCommand = controller.commands::dispatch,
     usagesOf = controller.commands::usagesOf,
+    unusedImagesOf = { page -> withContext(Dispatchers.IO) { controller.commands.context.unusedImagesOf(page) } },
     onConfirmedDelete = controller.commands::dispatch,
     validate = controller.commands::validate,
     onUsageSelected = { usage ->

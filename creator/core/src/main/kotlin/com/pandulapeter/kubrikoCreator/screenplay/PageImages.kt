@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.screenplay
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.imageio.ImageIO
 
 /**
@@ -70,6 +71,38 @@ public object PageImages {
     public fun nextPathOf(page: String, extension: String, isTaken: (String) -> Boolean): String {
         val base = PageNaming.pathOf(page).removeSuffix(".${PageNaming.EXTENSION}")
         return generateSequence(1) { it + 1 }.map { "$base-$it.$extension" }.first { !isTaken(it) }
+    }
+
+    /**
+     * The paths from the project's root of the page [page]'s own images in the project in [rootDirectory]: the image files
+     * next to it named after it and numbered, as [nextPathOf] names them, in the order of their numbers. Reads the disk.
+     */
+    public fun ownImagesOf(rootDirectory: File, page: String): List<String> {
+        val pagePath = PageNaming.pathOf(page)
+        val base = page.substringAfterLast('/')
+        val folder = File(rootDirectory, pagePath).parentFile ?: return emptyList()
+        val pattern = Regex(Regex.escape(base) + "-(\\d+)\\.([A-Za-z]+)")
+        return folder.listFiles().orEmpty()
+            .mapNotNull { file -> pattern.matchEntire(file.name)?.takeIf { file.isFile && it.groupValues[2].lowercase() in EXTENSIONS }?.let { file to it.groupValues[1].toInt() } }
+            .sortedBy { it.second }
+            .map { (file, _) -> pagePath.substringBeforeLast('/', "").let { if (it.isEmpty()) file.name else "$it/${file.name}" } }
+    }
+
+    /**
+     * Where the image at [path], one of the page [page]'s own ([ownImagesOf]), goes when the page is renamed to [newPage]:
+     * next to it, named after it, with the same number and extension.
+     */
+    public fun movedImagePathOf(path: String, page: String, newPage: String): String {
+        val suffix = path.substringAfterLast('/').removePrefix(page.substringAfterLast('/'))
+        return PageNaming.pathOf(newPage).removeSuffix(".${PageNaming.EXTENSION}") + suffix
+    }
+
+    /**
+     * The page [page]'s own images ([ownImagesOf]) that none of [otherPages] (their names and texts) shows or links to.
+     */
+    public fun unusedImagesOf(rootDirectory: File, page: String, otherPages: Map<String, String>): List<String> {
+        val used = otherPages.flatMapTo(HashSet()) { (name, text) -> PageLinks.linksOf(text).mapNotNull { PageLinks.resolve(PageNaming.pathOf(name), it.destination) } }
+        return ownImagesOf(rootDirectory, page).filter { it !in used }
     }
 
     /**

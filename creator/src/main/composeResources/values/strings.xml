@@ -597,6 +597,12 @@
     <string name="new_page_hint">New page name</string>
     <string name="new_document_hint">New document name</string>
     <string name="document_delete_title">Delete %1$s?</string>
+    <string name="page_delete_title">Delete the page %1$s?</string>
+    <string name="page_delete_text">The page is deleted from the screenplay. Undo brings it back as it was, with its images.</string>
+    <plurals name="page_delete_images">
+        <item quantity="one">Also delete the image only this page shows</item>
+        <item quantity="other">Also delete the %1$d images only this page shows</item>
+    </plurals>
     <string name="document_delete_text">The file is deleted from the project. Undo brings it back as it was.</string>
     <string name="document_add_to_screenplay_title">Add %1$s to the screenplay?</string>
     <string name="document_add_to_screenplay_page">Page name</string>

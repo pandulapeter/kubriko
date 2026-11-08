@@ -17,8 +17,11 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
 import com.pandulapeter.kubrikoCreator.commands.scenes.renameScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.sceneNotMoved
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
+import com.pandulapeter.kubrikoCreator.project.ProjectTree
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import kotlinx.coroutines.withContext
+import java.io.File
 
 @EditorMutation
 internal suspend fun CommandContext.createFolder(group: FolderGroup, path: String) {
@@ -70,6 +73,7 @@ internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String,
                 }
                 movedPages += page
             }
+            moveFilesLeft(File(project.rootDirectory, "${PageNaming.FOLDER}/$path"), File(project.rootDirectory, "${PageNaming.FOLDER}/$newPath"))
             null
         }?.let { return it }
         FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> requireBlockTypes.types.value
@@ -78,4 +82,21 @@ internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String,
     }
     deleteFolder(group, path)
     return null
+}
+
+/**
+ * Moves the files still in [from] (a page folder's images, once its pages moved) to the same places in [to]; one that
+ * can't be moved stays, and so does the folder holding it.
+ */
+@EditorMutation
+private fun CommandContext.moveFilesLeft(from: File, to: File) {
+    if (!from.isDirectory) return
+    ProjectTree.walk(from).filter { it.isFile }.toList().forEach { file ->
+        val target = File(to, file.relativeTo(from).path)
+        target.parentFile?.mkdirs()
+        if (!target.exists() && file.moveWithoutReplacing(target)) {
+            scenes.ownWrites.record(file)
+            scenes.ownWrites.record(target)
+        }
+    }
 }

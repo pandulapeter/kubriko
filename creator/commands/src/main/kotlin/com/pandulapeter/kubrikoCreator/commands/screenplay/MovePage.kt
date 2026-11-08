@@ -28,7 +28,7 @@ import kotlinx.serialization.Serializable
 @OptIn(EditorMutation::class)
 public object MovePage : WriteCommand<MovePage.Input> {
     override val name: String = "move_page"
-    override val description: String = "Renames a page of the screenplay, or moves it into another folder. Every link to it, and its own links, follow."
+    override val description: String = "Renames a page of the screenplay, or moves it into another folder. Its own images move with it, and every link to it, and its own links, follow."
     override val inputSerializer: KSerializer<Input> = Input.serializer()
 
     override fun target(context: CommandContext, input: Input): CommandTarget = CommandTarget.Page(if (context.screenplay.existingName(input.newPage) == input.newPage) input.newPage else input.page)
@@ -49,8 +49,9 @@ public object MovePage : WriteCommand<MovePage.Input> {
             return@withContext Applied.failed(Rejection(CommandProblem.PAGE_TAKEN, input.newPage))
         }
         if (!context.screenplay.move(input.page, input.newPage)) return@withContext Applied.failed(Rejection(CommandProblem.PAGE_NOT_MOVED, input.page))
+        val imageMoves = context.movePageImages(input.page, input.newPage)
         context.withMentionsFollowed(
-            moves = listOf(PathMove(PageNaming.pathOf(input.page), PageNaming.pathOf(input.newPage))),
+            moves = listOf(PathMove(PageNaming.pathOf(input.page), PageNaming.pathOf(input.newPage))) + imageMoves,
             applied = Applied(inverse = Invocation(MovePage, Input(input.newPage, input.page))),
         )
     }

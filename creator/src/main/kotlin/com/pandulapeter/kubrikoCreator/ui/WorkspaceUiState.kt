@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.commands.DeletingCommand
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
 import com.pandulapeter.kubrikoCreator.ui.settings.ProjectSettingsPage
 
 /**
@@ -126,7 +127,7 @@ internal class WorkspaceUiState {
     fun dispatch(invocation: Invocation<*>, onSuccess: () -> Unit, dispatch: (Invocation<*>, () -> Unit) -> Unit) {
         when (invocation.command) {
             is DeletingCommand<*> -> pendingDelete = PendingDelete(invocation, onSuccess)
-            DeleteDocument, AddDocumentToScreenplay -> confirmDocumentChange(invocation) { onSuccess() }
+            DeleteDocument, AddDocumentToScreenplay, DeletePage -> confirmDocumentChange(invocation) { onSuccess() }
             else -> dispatch(invocation, onSuccess)
         }
     }

@@ -48,6 +48,7 @@ import java.io.File
  * @param gitState The project's version control, collected only while the upgrade offers to commit first.
  * @param onCommand Dispatches a command.
  * @param usagesOf Reads what a delete would do to each usage of what it deletes.
+ * @param unusedImagesOf Reads the images only the page given shows, which deleting it offers to delete too.
  * @param onConfirmedDelete Dispatches a delete (or a change to a document) the user confirmed, with what runs once it was
  *   applied.
  * @param validate Why a change can't be made, or null, for what a confirmation lets the user still change.
@@ -65,6 +66,7 @@ internal fun WorkspaceDialogs(
     gitState: StateFlow<GitState>,
     onCommand: (Invocation<*>) -> Unit,
     usagesOf: suspend (Invocation<*>) -> List<Usage>?,
+    unusedImagesOf: suspend (page: String) -> List<String>,
     onConfirmedDelete: (Invocation<*>, () -> Unit) -> Unit,
     validate: (Invocation<*>) -> Rejection?,
     onUsageSelected: (Usage) -> Unit,
@@ -72,6 +74,7 @@ internal fun WorkspaceDialogs(
     uiState.pendingDocumentChange?.let { pending ->
         DocumentChangeConfirmation(
             pending = pending,
+            unusedImagesOf = unusedImagesOf,
             validate = validate,
             onConfirm = { confirmed ->
                 uiState.finishDocumentChange()

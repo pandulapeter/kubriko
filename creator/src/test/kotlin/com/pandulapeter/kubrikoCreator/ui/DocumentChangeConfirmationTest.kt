@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
@@ -20,6 +23,7 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
@@ -32,7 +36,7 @@ class DocumentChangeConfirmationTest {
     @Test
     fun deletingADocumentSaysWhatHappensToTheFile() = uiTest(width = 700, height = 400) {
         var confirmed = 0
-        showing { DocumentChangeConfirmation(PendingDocumentChange(Invocation(DeleteDocument, DeleteDocument.Input("docs/combat.md"))), validate = { null }, onConfirm = { confirmed++ }, onDismiss = {}) }
+        showing { DocumentChangeConfirmation(PendingDocumentChange(Invocation(DeleteDocument, DeleteDocument.Input("docs/combat.md"))), unusedImagesOf = { emptyList() }, validate = { null }, onConfirm = { confirmed++ }, onDismiss = {}) }
         onNodeWithText("Delete docs/combat.md?").assertExists()
         saveSnapshot("document-delete-confirmation")
         onNodeWithText("Delete").performClick()
@@ -46,6 +50,7 @@ class DocumentChangeConfirmationTest {
         showing {
             DocumentChangeConfirmation(
                 PendingDocumentChange(Invocation(AddDocumentToScreenplay, AddDocumentToScreenplay.Input("docs/combat.md", "combat"))),
+                unusedImagesOf = { emptyList() },
                 validate = { invocation -> (invocation.input as AddDocumentToScreenplay.Input).page.takeIf { it == "hero" }?.let { Rejection(CommandProblem.PAGE_TAKEN, it) } },
                 onConfirm = { confirmed += it },
                 onDismiss = { dismissed++ },
@@ -69,5 +74,28 @@ class DocumentChangeConfirmationTest {
     fun aPageADocumentBecomesIsOfferedUnderAFreeName() {
         assertEquals("combat", freePageName("combat") { false })
         assertEquals("README 3", freePageName("README") { it == "README" || it == "README 2" })
+    }
+
+    @Test
+    fun deletingAPageOffersItsImagesOnlyWhenItHasSomeOnlyItShows() = uiTest(width = 700, height = 400) {
+        val confirmed = mutableListOf<Invocation<*>>()
+        var page by mutableStateOf("hero")
+        showing {
+            DocumentChangeConfirmation(
+                PendingDocumentChange(Invocation(DeletePage, DeletePage.Input(page))),
+                unusedImagesOf = { if (it == "hero") listOf("screenplay/hero-1.png", "screenplay/hero-2.png") else emptyList() },
+                validate = { null },
+                onConfirm = { confirmed += it },
+                onDismiss = {},
+            )
+        }
+        onNodeWithText("Also delete the 2 images only this page shows").assertExists()
+        saveSnapshot("page-delete-confirmation")
+        onNodeWithText("Also delete the 2 images only this page shows").performClick()
+        onNodeWithText("Delete").performClick()
+        assertEquals(listOf<Any>(DeletePage.Input("hero", deleteImages = false)), confirmed.map { it.input })
+        page = "villain"
+        waitUntil { confirmed.size == 2 }
+        assertEquals(DeletePage.Input("villain"), confirmed.last().input)
     }
 }

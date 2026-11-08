@@ -18,8 +18,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -28,9 +30,11 @@ import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.screenplay.AddDocumentToScreenplay
 import com.pandulapeter.kubrikoCreator.commands.screenplay.DeleteDocument
+import com.pandulapeter.kubrikoCreator.commands.screenplay.DeletePage
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CreatorDialog
+import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_to_screenplay
 import kubriko.creator.generated.resources.action_cancel
@@ -40,11 +44,15 @@ import kubriko.creator.generated.resources.document_add_to_screenplay_text
 import kubriko.creator.generated.resources.document_add_to_screenplay_title
 import kubriko.creator.generated.resources.document_delete_text
 import kubriko.creator.generated.resources.document_delete_title
+import kubriko.creator.generated.resources.page_delete_images
+import kubriko.creator.generated.resources.page_delete_text
+import kubriko.creator.generated.resources.page_delete_title
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * Asks before [pending] changes one of the user's documents: deleting it, or moving it into the screenplay as a page,
- * each saying what happens to the file. The page's name can still be changed, and is checked with [validate] as it is
+ * each saying what happens to the file; or before deleting a page, whether its images ([unusedImagesOf]) go with it. The page's name can still be changed, and is checked with [validate] as it is
  * typed, since the one offered may be taken. Anything else is never pending, so it shows nothing.
  *
  * @param onConfirm Makes the change as confirmed.
@@ -52,6 +60,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun DocumentChangeConfirmation(
     pending: PendingDocumentChange,
+    unusedImagesOf: suspend (page: String) -> List<String>,
     validate: (Invocation<*>) -> Rejection?,
     onConfirm: (Invocation<*>) -> Unit,
     onDismiss: () -> Unit,
@@ -92,7 +101,42 @@ internal fun DocumentChangeConfirmation(
                 Text(text = stringResource(Res.string.document_add_to_screenplay_text, PageNaming.pathOf(page.trim())), style = MaterialTheme.typography.bodyMedium)
             }
         }
+        is DeletePage.Input -> PageDeleteConfirmation(input, unusedImagesOf, onConfirm, onDismiss)
         else -> Unit
+    }
+}
+
+/**
+ * Deletes a page at once when it has no images only it shows, and otherwise asks whether they go with it (they do unless
+ * the user says otherwise), saying how many there are.
+ */
+@Composable
+private fun PageDeleteConfirmation(
+    input: DeletePage.Input,
+    unusedImagesOf: suspend (page: String) -> List<String>,
+    onConfirm: (Invocation<*>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val images = produceState<List<String>?>(null, input.page) { value = runCatching { unusedImagesOf(input.page) }.getOrDefault(emptyList()) }.value ?: return
+    if (images.isEmpty()) {
+        LaunchedEffect(input) { onConfirm(Invocation(DeletePage, input.copy(deleteImages = false))) }
+        return
+    }
+    var deletesImages by remember(input) { mutableStateOf(true) }
+    DocumentConfirmation(
+        title = stringResource(Res.string.page_delete_title, input.page),
+        confirmLabel = stringResource(Res.string.action_delete),
+        isDestructive = true,
+        onConfirm = { onConfirm(Invocation(DeletePage, input.copy(deleteImages = deletesImages))) },
+        onDismiss = onDismiss,
+    ) {
+        Text(text = stringResource(Res.string.page_delete_text), style = MaterialTheme.typography.bodyMedium)
+        LabeledSwitch(
+            label = pluralStringResource(Res.plurals.page_delete_images, images.size, images.size),
+            checked = deletesImages,
+            onCheckedChange = { deletesImages = it },
+            labelStyle = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 
