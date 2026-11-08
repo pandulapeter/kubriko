@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.project
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicLong
 public class OwnWrites {
     private val stamps = ConcurrentHashMap<File, FileStamp>()
     private val recordCount = AtomicLong()
+    private val listeners = CopyOnWriteArrayList<(File) -> Unit>()
 
     /**
      * Raised by every [record], so that a [ProjectSnapshot] taken before one of Creator's own writes can be told apart.
@@ -33,6 +35,15 @@ public class OwnWrites {
     public fun record(file: File) {
         stamps[file.absoluteFile] = FileStamp.of(file)
         recordCount.incrementAndGet()
+        listeners.forEach { it(file.absoluteFile) }
+    }
+
+    /**
+     * Calls [listener] with every file [record] notes from now on, on the thread that wrote it: how what reads files
+     * Creator writes through more than one store hears of all of them, since the watcher doesn't report Creator's own.
+     */
+    public fun addListener(listener: (File) -> Unit) {
+        listeners += listener
     }
 
     /**

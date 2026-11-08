@@ -45,6 +45,16 @@ public class ScreenplayStore(
     private val _currentFolders = MutableStateFlow(emptySet<String>())
     private val _revision = MutableStateFlow(0)
 
+    init {
+        // Pages are written only through this store, which follows them itself; the other files among them (images) and
+        // the settings are written by whichever command needs to, and heard of here.
+        val settings = File(rootDirectory, ScreenplaySettings.FILE).absoluteFile
+        ownWrites.addListener { file ->
+            val isAmongPages = file.startsWith(folder.absoluteFile) && file.extension != PageNaming.EXTENSION
+            if (isAmongPages || file == settings) _revision.update { it + 1 }
+        }
+    }
+
     /**
      * The page names as last known, for what shows them.
      */
@@ -127,14 +137,6 @@ public class ScreenplayStore(
         file.writeTextAtomically(previous?.let(text::withLineBreaksOf) ?: text)
         ownWrites.record(file)
         if (previous == null) refresh() else _revision.update { it + 1 }
-    }
-
-    /**
-     * Follows Kubriko Creator's own write of another file among the pages (an image), so that what reads them reads them
-     * again.
-     */
-    public fun onFilesChanged() {
-        _revision.update { it + 1 }
     }
 
     /**

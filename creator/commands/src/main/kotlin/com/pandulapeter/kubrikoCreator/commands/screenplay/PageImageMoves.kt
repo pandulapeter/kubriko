@@ -41,7 +41,7 @@ internal fun CommandContext.movePageImages(page: String, newPage: String): List<
         scenes.ownWrites.record(source)
         scenes.ownWrites.record(target)
         PathMove(path, newPath)
-    }.also { moves -> if (moves.isNotEmpty()) screenplay.onFilesChanged() }
+    }
 }
 
 /**

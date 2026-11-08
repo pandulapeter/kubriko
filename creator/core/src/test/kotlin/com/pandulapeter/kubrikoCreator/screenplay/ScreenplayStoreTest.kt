@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.screenplay
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import java.io.File
 import kotlin.test.Test
@@ -63,5 +64,18 @@ class ScreenplayStoreTest {
     fun namesAreValidatedPartByPart() {
         listOf("hero", "levels/cave", "Level 1-2", "a_b").forEach { assertTrue(PageNaming.isValid(it), it) }
         listOf("", "/hero", "levels/", "../x", "a\\b", "hero.md", " lead", "trail ", "x".repeat(121)).forEach { assertFalse(PageNaming.isValid(it), it) }
+    }
+
+    @Test
+    fun creatorsOwnWritesOfImagesAmongThePagesAndOfTheSettingsAreHeardOf() {
+        val ownWrites = OwnWrites()
+        val followed = ScreenplayStore(root, ownWrites)
+        val start = followed.revision.value
+        ownWrites.record(File(root, "screenplay/levels/cave-1.png"))
+        ownWrites.record(File(root, ScreenplaySettings.FILE))
+        assertEquals(start + 2, followed.revision.value)
+        ownWrites.record(File(root, "docs/other.png"))
+        ownWrites.record(File(root, "screenplay/hero.md"))
+        assertEquals(start + 2, followed.revision.value)
     }
 }

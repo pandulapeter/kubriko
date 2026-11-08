@@ -47,7 +47,6 @@ public object SetScreenplayReminders : WriteCommand<SetScreenplayReminders.Input
         // A project keeping the defaults has no file, so that undoing the first change leaves none behind.
         if (ScreenplaySettings.read(root) == ScreenplaySettings()) file.delete()
         context.scenes.ownWrites.record(file)
-        context.screenplay.onFilesChanged()
         Applied(inverse = Invocation(SetScreenplayReminders, Input(previous.areRemindersShown)))
     }
 

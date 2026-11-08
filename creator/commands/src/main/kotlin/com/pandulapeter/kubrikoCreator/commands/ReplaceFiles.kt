@@ -11,7 +11,6 @@ package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.writeBytesAtomically
-import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import java.io.File
@@ -71,7 +70,6 @@ internal object ReplaceFiles : WriteCommand<ReplaceFiles.Input> {
             file.writeBytesAtomically(bytes)
         }
         scenes.ownWrites.record(file)
-        if (file.relativeTo(project.rootDirectory).invariantSeparatorsPath.startsWith("${PageNaming.FOLDER}/")) screenplay.onFilesChanged()
     }
 
     /**
