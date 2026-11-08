@@ -56,7 +56,8 @@ import org.jetbrains.compose.resources.stringResource
  * @param links What its links point at, drawing its mentions as chips.
  * @param sprites The sprites the page can show, by their paths from `composeResources`.
  * @param onAddImage Puts an image on the page, at the end of the section given (or of the page), or null if this page can't
- *   take images. Images dropped onto it, pasted, or chosen in the toolbar go after the chunk being typed into.
+ *   take images. Images dropped onto it, pasted, or chosen in the toolbar go at the end of the section of the chunk being
+ *   typed into, which is saved first.
  * @param identity What tells the page apart from the one shown before ([MarkdownIdentity]), so that a page moved meanwhile
  *   keeps what is being typed.
  */
@@ -161,7 +162,7 @@ private fun RenderedChunk(
 
 /**
  * What the toolbar's Image menu and pasting offer for the page [state] edits, or null when the page can't take images
- * ([isShown]); an image goes at the end of the section being typed into when it is chosen.
+ * ([isShown]); an image goes at the end of the section being typed into as it is chosen, after what was typed is saved.
  */
 @Composable
 private fun rememberPageImageChoices(
@@ -177,7 +178,11 @@ private fun rememberPageImageChoices(
         remember(state, sprites) {
             PageImageChoices(
                 sprites = sprites,
-                onStart = { section[0] = state.currentSection() },
+                onStart = {
+                    section[0] = state.currentSection()
+                    // Saved first, so that the image is added to the page as typed, rather than ending the typing unsaved.
+                    state.save()
+                },
                 onChoose = { source -> onAddImage(source, section[0]) },
             )
         }

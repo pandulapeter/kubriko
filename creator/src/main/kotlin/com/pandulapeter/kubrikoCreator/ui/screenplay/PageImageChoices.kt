@@ -19,7 +19,7 @@ import javax.swing.filechooser.FileNameExtensionFilter
  *
  * @param sprites The sprites the page can show, by their paths from `composeResources`.
  * @param onStart Called as an image is about to be chosen, while the chunk typed into still is, so that the image goes
- *   after it.
+ *   into its section and what was typed is saved before the image changes the page.
  * @param onChoose Puts the chosen image on the page.
  */
 internal class PageImageChoices(

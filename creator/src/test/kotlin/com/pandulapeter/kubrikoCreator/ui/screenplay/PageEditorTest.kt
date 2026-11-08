@@ -144,11 +144,12 @@ class PageEditorTest {
         val links = PageLinksState("screenplay/hero.md", root) {}
         links.looks = mapOf("hero-1.png" to MentionLook(Mention.OtherFile("screenplay/hero-1.png"), exists = true))
         val added = mutableListOf<Pair<PageImageSource, String?>>()
+        val saved = mutableListOf<String>()
         showing {
             PageEditor(
                 name = "hero",
                 text = page.replace("## Planned", "![The hero](hero-1.png)\n\n## Planned"),
-                onTextChange = {},
+                onTextChange = { saved += it },
                 links = links,
                 sprites = listOf("drawable/bat.png"),
                 onAddImage = { source, section -> added += source to section },
@@ -158,7 +159,10 @@ class PageEditorTest {
         saveSnapshot("page-editor-image")
         onNodeWithText("Moves").performClick()
         waitForIdle()
+        onNode(hasSetTextAction()).performTextInput(" and more")
         onNodeWithText("Image").performClick()
+        waitForIdle()
+        assertEquals(listOf(true), saved.map { "## Moves and more" in it })
         waitForIdle()
         onNodeWithText("From a file…").assertExists()
         onNodeWithText("A sprite").performClick()
@@ -166,6 +170,6 @@ class PageEditorTest {
         saveSnapshot("page-editor-image-menu")
         onNodeWithText("bat.png").performClick()
         waitForIdle()
-        assertEquals(listOf<Pair<PageImageSource, String?>>(PageImageSource.Sprite("drawable/bat.png") to "Moves"), added)
+        assertEquals(listOf<Pair<PageImageSource, String?>>(PageImageSource.Sprite("drawable/bat.png") to "Moves and more"), added)
     }
 }
