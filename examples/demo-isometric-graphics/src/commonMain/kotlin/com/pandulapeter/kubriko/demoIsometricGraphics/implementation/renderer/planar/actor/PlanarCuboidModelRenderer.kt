@@ -21,11 +21,7 @@ import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.da
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.animation.applyTo
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.animation.buildTracks
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.model.ProjectionPlane
-import com.pandulapeter.kubriko.helpers.extensions.rad
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.helpers.extensions.shortestDeltaTo
-import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.SceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.lerp
 
 open class PlanarCuboidModelRenderer(
     renderableCuboidModel: RenderableCuboidModel,
@@ -167,15 +163,15 @@ open class PlanarCuboidModelRenderer(
     private fun blendCuboids(cuboids: Map<String, Cuboid>, fromSnapshots: Map<String, Cuboid>, alpha: Float) {
         cuboids.forEach { (id, cuboid) ->
             val from = fromSnapshots[id] ?: return@forEach
-            cuboid.positionX = lerpSceneUnit(from.positionX, cuboid.positionX, alpha)
-            cuboid.positionY = lerpSceneUnit(from.positionY, cuboid.positionY, alpha)
-            cuboid.positionZ = lerpSceneUnit(from.positionZ, cuboid.positionZ, alpha)
-            cuboid.sizeX = lerpSceneUnit(from.sizeX, cuboid.sizeX, alpha)
-            cuboid.sizeY = lerpSceneUnit(from.sizeY, cuboid.sizeY, alpha)
-            cuboid.sizeZ = lerpSceneUnit(from.sizeZ, cuboid.sizeZ, alpha)
-            cuboid.rotationX = lerpAngle(from.rotationX, cuboid.rotationX, alpha)
-            cuboid.rotationY = lerpAngle(from.rotationY, cuboid.rotationY, alpha)
-            cuboid.rotationZ = lerpAngle(from.rotationZ, cuboid.rotationZ, alpha)
+            cuboid.positionX = lerp(from.positionX, cuboid.positionX, alpha)
+            cuboid.positionY = lerp(from.positionY, cuboid.positionY, alpha)
+            cuboid.positionZ = lerp(from.positionZ, cuboid.positionZ, alpha)
+            cuboid.sizeX = lerp(from.sizeX, cuboid.sizeX, alpha)
+            cuboid.sizeY = lerp(from.sizeY, cuboid.sizeY, alpha)
+            cuboid.sizeZ = lerp(from.sizeZ, cuboid.sizeZ, alpha)
+            cuboid.rotationX = lerp(from.rotationX, cuboid.rotationX, alpha)
+            cuboid.rotationY = lerp(from.rotationY, cuboid.rotationY, alpha)
+            cuboid.rotationZ = lerp(from.rotationZ, cuboid.rotationZ, alpha)
             cuboid.colorXPlus = lerpColor(from.colorXPlus, cuboid.colorXPlus, alpha)
             cuboid.colorXMinus = lerpColor(from.colorXMinus, cuboid.colorXMinus, alpha)
             cuboid.colorYPlus = lerpColor(from.colorYPlus, cuboid.colorYPlus, alpha)
@@ -186,12 +182,6 @@ open class PlanarCuboidModelRenderer(
     }
 
     private fun lerpFloat(from: Float, to: Float, alpha: Float) = from + alpha * (to - from)
-
-    private fun lerpSceneUnit(from: SceneUnit, to: SceneUnit, alpha: Float): SceneUnit =
-        lerpFloat(from.raw, to.raw, alpha).sceneUnit
-
-    private fun lerpAngle(from: AngleRadians, to: AngleRadians, alpha: Float): AngleRadians =
-        (from.raw + alpha * from.shortestDeltaTo(to).raw).rad
 
     private fun lerpColor(from: Color?, to: Color?, alpha: Float): Color? = when {
         from == null && to == null -> null
