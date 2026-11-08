@@ -188,7 +188,7 @@ class ProjectGeneratorTest {
     fun aTargetThisComputerCantBuildForCreatesNoProject() {
         val exception = assertFailsWith<ProjectCreationException> { starterGenerator().create(request.copy(targets = setOf(GameTarget.ANDROID))) }
         assertEquals(TemplateProblem.TARGET_NOT_SET_UP, exception.reason)
-        assertEquals(listOf("android"), exception.arguments)
+        assertEquals(TargetProblem.ANDROID_SDK_MISSING, exception.targetProblem)
         assertFalse(File(parentDirectory, "my-game").exists())
     }
 }
