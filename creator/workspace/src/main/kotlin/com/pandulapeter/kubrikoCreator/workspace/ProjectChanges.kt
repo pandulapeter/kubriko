@@ -75,7 +75,8 @@ internal class ProjectChanges(
                 try {
                     scanResources(if (isWalkNeeded) null else snapshot)
                 } catch (throwable: Throwable) {
-                    scope.reportProblem(throwable)
+                    // A scan failing while the workspace closes is no problem of a project still open.
+                    if (scope.isActive) scope.reportProblem(throwable)
                 }
             }
         }
