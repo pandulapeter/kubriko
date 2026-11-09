@@ -30,13 +30,13 @@ internal object ScreenshotImage {
             // ImageIO throws unchecked exceptions too on a malformed image.
             null
         } ?: return png
-        val x = (left.coerceIn(0f, 1f) * image.width).toInt()
-        val y = (top.coerceIn(0f, 1f) * image.height).toInt()
+        val x = (left.coerceIn(0f, 1f) * image.width).toInt().coerceAtMost(image.width - 1)
+        val y = (top.coerceIn(0f, 1f) * image.height).toInt().coerceAtMost(image.height - 1)
         val width = ((right.coerceIn(0f, 1f) * image.width).toInt() - x).coerceAtLeast(1)
         val height = ((bottom.coerceIn(0f, 1f) * image.height).toInt() - y).coerceAtLeast(1)
         val isCropped = x > 0 || y > 0 || width < image.width || height < image.height
         if (!isCropped && image.width <= maximumWidth) return png
-        val cropped = image.getSubimage(x.coerceAtMost(image.width - 1), y.coerceAtMost(image.height - 1), width.coerceAtMost(image.width - x), height.coerceAtMost(image.height - y))
+        val cropped = image.getSubimage(x, y, width.coerceAtMost(image.width - x), height.coerceAtMost(image.height - y))
         val scale = (maximumWidth.toFloat() / cropped.width).coerceAtMost(1f)
         val result = BufferedImage((cropped.width * scale).toInt().coerceAtLeast(1), (cropped.height * scale).toInt().coerceAtLeast(1), BufferedImage.TYPE_INT_RGB)
         result.createGraphics().apply {

@@ -37,6 +37,12 @@ class ScreenshotImageTest {
     }
 
     @Test
+    fun aRegionStartingAtTheRightOrBottomEdgeKeepsAPixel() {
+        assertEquals(1 to 200, read(ScreenshotImage.edited(png, maximumWidth = 200, left = 1f)).let { it.width to it.height })
+        assertEquals(200 to 1, read(ScreenshotImage.edited(png, maximumWidth = 200, top = 1f)).let { it.width to it.height })
+    }
+
+    @Test
     fun aScreenshotIsScaledDownToTheWidthAsked() {
         val image = read(ScreenshotImage.edited(png, maximumWidth = 200))
         assertEquals(200 to 100, image.width to image.height)
