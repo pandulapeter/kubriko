@@ -473,7 +473,7 @@ class CommandExecutorTest {
     }
 
     @Test
-    fun aReportThatThrowsDoesntHideTheCancellation() = runTest {
+    fun aReportThatThrowsFailsNeitherAChangeNorItsCancellation() = runTest {
         val context = commandContext()
         val executor = CommandExecutor(
             context = context,
@@ -481,8 +481,9 @@ class CommandExecutorTest {
             onSceneChanges = { throw IllegalStateException("Not delivered.") },
             reportProblem = { throw IllegalStateException("Not reported.") },
         )
-        val cancellation = assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(CancellationException("Stopped.")), NoInput)) }
-        assertEquals(listOf("Not reported."), cancellation.suppressed.map { it.message })
+        val cancellation = CancellationException("Stopped.")
+        assertEquals(cancellation, assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(cancellation), NoInput)) })
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("a"))))
     }
 
     @Test
@@ -497,7 +498,7 @@ class CommandExecutorTest {
         assertEquals<List<List<SceneChange>>>(listOf(listOf(SceneChange.Written("b", isNew = true))), delivery.delivered)
         delivery.failures = 1
         delivery.failure = CancellationException("Stopped.")
-        assertFailsWith<CancellationException> { executor.execute(Invocation(CreateScene, CreateScene.Input("c"))) }
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("c"))))
         assertEquals(1, delivery.reported.size)
     }
 

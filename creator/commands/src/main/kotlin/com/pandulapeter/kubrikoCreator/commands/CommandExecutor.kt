@@ -44,8 +44,9 @@ import kotlinx.serialization.json.JsonObject
  * @param onSceneChanges Receives what each command, undo, or redo changed in the Scene files, as the Scenes recorded it,
  *   once it finished (whether it succeeded or not), still holding the change lock. Each change is handed over once, so
  *   it follows every one even when a part of it fails. What it throws never hides what the command threw, nor fails
- *   one that succeeded, unless it is a cancellation.
- * @param reportProblem Receives what [onSceneChanges] threw when the command can't carry it: it succeeded, or was cancelled.
+ *   one that succeeded.
+ * @param reportProblem Receives what [onSceneChanges] threw when the command can't carry it: it succeeded, or was
+ *   cancelled. A cancellation isn't reported.
  */
 public class CommandExecutor(
     public val context: CommandContext,
@@ -308,28 +309,32 @@ public class CommandExecutor(
 
     /**
      * Runs [change], then hands over the Scene changes it made, even when it throws, and announces what [broughtBackOf]
-     * says it brought back once they were handed over. A delivery that fails is added to the change's own failure as
-     * suppressed rather than hiding it, and reported when the change was made all the same or was cancelled, since a
-     * cancellation's suppressed are never read. A delivery cancelled after a change that was made is thrown on.
+     * says it brought back once they were handed over. A delivery that fails never fails a change that was made, nor hides
+     * what one threw: it is added to that as suppressed, or reported when the change was made or cancelled, since a
+     * cancellation's suppressed are never read.
      */
     private inline fun <T> deliveringSceneChanges(broughtBackOf: (T) -> ActorsBroughtBack? = { null }, change: () -> T): T {
         val result = try {
             change()
         } catch (throwable: Throwable) {
-            val failure = deliverSceneChanges()
-            when {
-                failure == null || failure === throwable -> Unit
-                throwable !is CancellationException -> throwable.addSuppressed(failure)
-                failure !is CancellationException -> runCatching { reportProblem(failure) }.exceptionOrNull()?.let(throwable::addSuppressed)
+            deliverSceneChanges()?.takeIf { it !== throwable }?.let { failure ->
+                if (throwable is CancellationException) report(failure) else throwable.addSuppressed(failure)
             }
             throw throwable
         }
         when (val failure = deliverSceneChanges()) {
             null -> broughtBackOf(result)?.let(_broughtBack::tryEmit)
-            is CancellationException -> throw failure
-            else -> reportProblem(failure)
+            else -> report(failure)
         }
         return result
+    }
+
+    /**
+     * Hands [failure] to [reportProblem], unless it is a cancellation, which only says the workspace is closing. What
+     * reporting throws has nowhere else to go.
+     */
+    private fun report(failure: Throwable) {
+        if (failure !is CancellationException) runCatching { reportProblem(failure) }
     }
 
     /**

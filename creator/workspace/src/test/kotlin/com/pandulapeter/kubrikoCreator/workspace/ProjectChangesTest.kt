@@ -13,9 +13,12 @@ import com.pandulapeter.kubrikoCreator.project.FileStamp
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -25,6 +28,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProjectChangesTest {
@@ -35,13 +39,14 @@ class ProjectChangesTest {
 
     private fun TestScope.router(
         isUnconfined: Boolean = true,
-        scan: suspend (ProjectSnapshot?) -> Unit = { scannedSnapshots += it; scanCount++ },
-    ) = ProjectChanges(
-        scope = CoroutineScope(
+        scope: CoroutineScope = CoroutineScope(
             backgroundScope.coroutineContext +
                 (if (isUnconfined) UnconfinedTestDispatcher(testScheduler) else StandardTestDispatcher(testScheduler)) +
                 CoroutineExceptionHandler { _, exception -> problems += exception },
         ),
+        scan: suspend (ProjectSnapshot?) -> Unit = { scannedSnapshots += it; scanCount++ },
+    ) = ProjectChanges(
+        scope = scope,
         scanResources = scan,
         onScenesChanged = { calls += "scenes changed $it" },
         onSceneRenamed = { oldName, newName -> calls += "renamed $oldName to $newName" },
@@ -60,12 +65,26 @@ class ProjectChangesTest {
 
     @Test
     fun aPartFollowingSceneChangesThatThrowsLeavesTheOthersFollowingThem() = runTest {
+        val failures = listOf(IllegalStateException("Broken."), NotImplementedError("Missing."), CancellationException("A cancelled read."))
+        failures.forEach { failure ->
+            calls.clear()
+            regenerate = { throw failure }
+            router().onSceneChanges(listOf(SceneChange.Moved("a", "b")))
+            assertEquals(listOf("renamed a to b", "scenes changed [a, b]", "code changed", "git"), calls)
+        }
+        assertEquals<List<Throwable>>(failures, problems)
+    }
+
+    @Test
+    fun aFailureFollowingSceneChangesIsThrownWhenTheScopeIsCancelledOrCantReportIt() = runTest {
+        val cancellation = CancellationException("Closing.")
+        regenerate = { throw cancellation }
+        val closing = CoroutineScope(Job().apply { cancel() } + CoroutineExceptionHandler { _, exception -> problems += exception })
+        assertEquals(cancellation, assertFailsWith<CancellationException> { router(scope = closing).onSceneChanges(listOf(SceneChange.Written("main", isNew = false))) })
         val broken = IllegalStateException("Broken.")
         regenerate = { throw broken }
-        router().onSceneChanges(listOf(SceneChange.Moved("a", "b")))
-        assertEquals(listOf("renamed a to b", "scenes changed [a, b]", "code changed", "git"), calls)
-        assertEquals(listOf<Throwable>(broken), problems)
-        assertEquals(1, scanCount)
+        assertEquals(broken, assertFailsWith<IllegalStateException> { router(scope = CoroutineScope(Job())).onSceneChanges(listOf(SceneChange.Written("main", isNew = false))) })
+        assertEquals(emptyList(), problems)
     }
 
     @Test

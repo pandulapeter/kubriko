@@ -16,7 +16,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -67,7 +67,7 @@ internal class ProjectChanges(
                     scanResources(if (isWalkNeeded) null else snapshot)
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
-                    currentCoroutineContext()[CoroutineExceptionHandler]?.handleException(currentCoroutineContext(), exception)
+                    isReported(exception)
                 }
             }
         }
@@ -82,7 +82,8 @@ internal class ProjectChanges(
 
     /**
      * Follows what one command, undo, or redo changed in the Scene files, which it is handed only once, so every part
-     * that follows them does so whatever another one throws, and what one throws goes to the scope's handler.
+     * that follows them does so whatever another one throws, and what one throws goes to the scope's handler. Only a
+     * cancellation of the scope, or a failure without a handler to go to, is thrown on.
      */
     fun onSceneChanges(changes: List<SceneChange>) {
         following { if (changes.any { it !is SceneChange.Written || it.isNew }) refreshResources() }
@@ -96,10 +97,20 @@ internal class ProjectChanges(
     private inline fun following(follower: () -> Unit) {
         try {
             follower()
-        } catch (exception: Exception) {
-            if (exception is CancellationException) throw exception
-            scope.coroutineContext[CoroutineExceptionHandler]?.handleException(scope.coroutineContext, exception)
+        } catch (throwable: Throwable) {
+            if ((throwable is CancellationException && !scope.isActive) || !isReported(throwable)) throw throwable
         }
+    }
+
+    /**
+     * Hands [throwable] to the scope's handler.
+     *
+     * @return Whether the scope has one.
+     */
+    private fun isReported(throwable: Throwable): Boolean {
+        val handler = scope.coroutineContext[CoroutineExceptionHandler] ?: return false
+        handler.handleException(scope.coroutineContext, throwable)
+        return true
     }
 
     /**
