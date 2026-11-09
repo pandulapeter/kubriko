@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
+import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -53,7 +54,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
- * @param historySteps What each undo or redo applied, which the Scene editor follows.
+ * @param broughtBack The Actors each undo or redo put back, which the Scene editor selects.
  * @param markdownText The text of the page or document shown, once it is read, or null.
  * @param onMarkdownTextChange Saves the page or document shown.
  * @param markdownLinks What the links of the page or document shown point at.
@@ -76,7 +77,7 @@ internal fun WorkspaceCenter(
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentBlockType: (name: String) -> BlockTypeDefinition?,
     onCommandIfValid: (Invocation<*>) -> Rejection?,
-    historySteps: Flow<Invocation<*>>,
+    broughtBack: Flow<ActorsBroughtBack>,
     onTypeSelected: (String) -> Unit,
     onPlayScene: (sceneName: String) -> Unit,
     onReloadScene: () -> Unit,
@@ -102,7 +103,7 @@ internal fun WorkspaceCenter(
             actorTypes = actorTypes,
             music = audioFiles?.music,
             description = sceneDescriptions[sceneEditing.sceneName],
-            historySteps = historySteps,
+            broughtBack = broughtBack,
             onPlay = { onPlayScene(sceneEditing.sceneName) },
             onReload = onReloadScene,
             onClose = onCloseScene,

@@ -36,10 +36,12 @@ public object RestoreActors : WriteCommand<RestoreActors.Input> {
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateRestorations(input.scene, input.actors)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val restoredIds = context.restoreActors(input.scene, input.actors)
+        val restored = context.restoreActors(input.scene, input.actors)
+        val restoredIds = restored.actors.map { it.id }
         return Applied(
             inverse = Invocation(RemoveActors, RemoveActors.Input(input.scene, restoredIds)),
             result = buildJsonObject { putJsonArray("actorIds") { restoredIds.forEach { add(it) } } },
+            broughtBack = restored,
         )
     }
 

@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.scenes
 
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
@@ -19,12 +20,10 @@ import com.pandulapeter.kubriko.creator.CreatorEntryPoint
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubrikoCreator.actors.codegen.SceneSettingsCodeGenerator
+import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.scenes.PlaceActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
-import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActor
-import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActors
-import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
@@ -35,7 +34,10 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.SidebarDragState
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -44,58 +46,76 @@ import kotlin.test.assertNull
 @OptIn(ExperimentalTestApi::class)
 class SceneEditorPaneTest {
     private val ball = SceneActorEntry("Ball", SceneDocument.blockBuiltState(1f, 2f, 3f, 4f), "ball")
-    private val restoreBall = Invocation(RestoreActor, RestoreActor.Input("level", 0, ball.typeId, ball.state, ball.id), isRestoring = true)
+    private val ballBack = ActorsBroughtBack("level", listOf(ball))
 
     @Test
     fun undoingAnActorsRemovalSelectsItAgain() = uiTest(width = 900, height = 600) {
-        val steps = MutableSharedFlow<Invocation<*>>(extraBufferCapacity = 4)
+        val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
         val commands = mutableListOf<Invocation<*>>()
-        showing {
-            SceneEditorPane(
-                state = SceneEditingState.Open(
-                    scene = ProjectResource(ResourceGroup.SCENES, File("/game/src/commonMain/composeResources/files/scenes/level.json"), "src/commonMain/composeResources/files/scenes/level.json"),
-                    entryPoint = PlainEntryPoint,
-                    actors = listOf(ball),
-                    revision = 1,
-                ),
-                onCommand = { commands += it },
-                actorTypeDragState = SidebarDragState(),
-                panelLayout = PanelLayout(emptyMap(), onSizeChange = { _, _ -> }, onSizeReset = {}),
-                actorTypes = emptyList(),
-                music = emptyList(),
-                description = null,
-                historySteps = steps,
-                onPlay = {},
-                onReload = {},
-                onClose = {},
-                onViewFailed = { _, _ -> },
-            )
-        }
+        showPane(broughtBack, onCommand = { commands += it })
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(INSPECTOR_HINT)).fetchSemanticsNodes().isNotEmpty() }
-        steps.tryEmit(restoreBall.copy(input = restoreBall.input.copy(scene = "other")))
+        broughtBack.tryEmit(ballBack.copy(scene = "other"))
         waitForIdle()
         onNodeWithText(INSPECTOR_HINT).assertExists()
-        steps.tryEmit(restoreBall)
+        broughtBack.tryEmit(ballBack)
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
         onNodeWithContentDescription(REMOVE).performClick()
         assertEquals(listOf<Invocation<*>>(Invocation(RemoveActor, RemoveActor.Input("level", "ball"))), commands)
         onNodeWithText(INSPECTOR_HINT).assertExists()
-        steps.tryEmit(restoreBall)
+        broughtBack.tryEmit(ballBack)
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
         onNodeWithText(INSPECTOR_HINT).assertDoesNotExist()
         saveSnapshot("scene-editor-removal-undone")
     }
 
     @Test
-    fun onlyAStepBringingOneActorBackIntoThisSceneNamesIt() {
-        assertEquals("ball", actorBroughtBackBy(restoreBall, "level"))
-        assertNull(actorBroughtBackBy(restoreBall, "other"))
-        val one = RestoreActors.Restored(0, ball.typeId, ball.state, "ball")
-        assertEquals("ball", actorBroughtBackBy(Invocation(RestoreActors, RestoreActors.Input("level", listOf(one))), "level"))
-        assertNull(actorBroughtBackBy(Invocation(RestoreActors, RestoreActors.Input("level", listOf(one, one.copy(actorId = "wall")))), "level"))
-        assertEquals("ball", actorBroughtBackBy(Invocation(PlaceActor, PlaceActor.Input("level", "Ball", 1f, 2f, "ball")), "level"))
-        assertNull(actorBroughtBackBy(Invocation(RemoveActor, RemoveActor.Input("level", "ball")), "level"))
-        assertNull(actorBroughtBackBy(Invocation(SetActorValues, SetActorValues.Input("level", "ball")), "level"))
+    fun onlyOneActorBroughtBackIntoThisSceneIsSelectedAndNeverItsSettings() {
+        assertEquals("ball", restoredSelectionOf(ballBack, "level"))
+        assertNull(restoredSelectionOf(ballBack, "other"))
+        assertNull(restoredSelectionOf(ballBack.copy(actors = listOf(ball, ball.copy(id = "wall"))), "level"))
+        assertNull(restoredSelectionOf(ballBack.copy(actors = listOf(SceneActorEntry(SceneSettingsCodeGenerator.SETTINGS_NAME, "{}", "settings"))), "level"))
+    }
+
+    @Test
+    fun anActorBroughtBackWhileTheSceneIsStillPreparedIsSelectedOnceItShows() = uiTest(width = 900, height = 600) {
+        val broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = 4)
+        val entryPoint = SlowEntryPoint()
+        showPane(broughtBack, entryPoint = entryPoint)
+        waitUntil(timeoutMillis = 5_000) { broughtBack.subscriptionCount.value > 0 }
+        broughtBack.tryEmit(ballBack)
+        entryPoint.isReady.complete(Unit)
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasContentDescription(REMOVE)).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    private fun ComposeUiTest.showPane(broughtBack: Flow<ActorsBroughtBack>, entryPoint: CreatorEntryPoint = PlainEntryPoint, onCommand: (Invocation<*>) -> Unit = {}) = showing {
+        SceneEditorPane(
+            state = SceneEditingState.Open(
+                scene = ProjectResource(ResourceGroup.SCENES, File("/game/src/commonMain/composeResources/files/scenes/level.json"), "src/commonMain/composeResources/files/scenes/level.json"),
+                entryPoint = entryPoint,
+                actors = listOf(ball),
+                revision = 1,
+            ),
+            onCommand = onCommand,
+            actorTypeDragState = SidebarDragState(),
+            panelLayout = PanelLayout(emptyMap(), onSizeChange = { _, _ -> }, onSizeReset = {}),
+            actorTypes = emptyList(),
+            music = emptyList(),
+            description = null,
+            broughtBack = broughtBack,
+            onPlay = {},
+            onReload = {},
+            onClose = {},
+            onViewFailed = { _, _ -> },
+        )
+    }
+
+    private class SlowEntryPoint : CreatorEntryPoint {
+        val isReady = CompletableDeferred<Unit>()
+
+        override fun createSerializationManager(): SerializationManager<EditableMetadata<*>, Editable<*>> {
+            runBlocking { isReady.await() }
+            return EditableMetadata.newSerializationManagerInstance()
+        }
     }
 
     private object PlainEntryPoint : CreatorEntryPoint {

@@ -25,6 +25,7 @@ import kotlinx.serialization.json.JsonObject
  * @param isRewritingFiles Whether the change rewrote the project's files without an inverse (discarding changes through
  *   git, for example), which leaves the steps recorded against the files before it pointless or wrong, so the history is
  *   cleared.
+ * @param broughtBack The Actors the change put back into a Scene, for following them in the editor.
  */
 public data class Applied(
     val inverse: Invocation<*>?,
@@ -32,6 +33,7 @@ public data class Applied(
     val failure: Rejection? = null,
     val isRewritingFiles: Boolean = false,
     val details: JsonObject? = null,
+    val broughtBack: ActorsBroughtBack? = null,
 ) {
     public companion object {
 

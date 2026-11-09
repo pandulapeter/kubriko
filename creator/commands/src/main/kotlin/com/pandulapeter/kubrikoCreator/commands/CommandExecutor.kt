@@ -60,13 +60,14 @@ public class CommandExecutor(
      */
     public val aiSteps: StateFlow<List<AiStep>> = _aiSteps.asStateFlow()
     private var nextAiStepId = 0
-    private val _steps = MutableSharedFlow<Invocation<*>>(extraBufferCapacity = STEP_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _broughtBack = MutableSharedFlow<ActorsBroughtBack>(extraBufferCapacity = BROUGHT_BACK_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     /**
-     * What each undo or redo applied, once it was applied, so that the editor can follow what a step brought back (the
-     * Actor an undone removal restored).
+     * The Actors each [undo] or [redo] put back into a Scene (an undone removal), once their Scene was written, so that the
+     * Scene editor can select them as it selects a placed one. Undoing an AI turn ([undoTurn]) isn't the user's step, so
+     * it leaves the selection alone.
      */
-    public val steps: SharedFlow<Invocation<*>> = _steps.asSharedFlow()
+    public val broughtBack: SharedFlow<ActorsBroughtBack> = _broughtBack.asSharedFlow()
     private val changes = Mutex()
 
     /**
@@ -153,12 +154,16 @@ public class CommandExecutor(
      */
     public suspend fun usagesOf(invocation: Invocation<*>): List<Usage>? = invocation.deletedSubject?.let { subject -> changes.withLock { context.usagesOf(subject) } }
 
-    public fun undo() {
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { step(isUndo = true)?.report() }
-    }
+    public fun undo(): Unit = stepForUser(isUndo = true)
 
-    public fun redo() {
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { step(isUndo = false)?.report() }
+    public fun redo(): Unit = stepForUser(isUndo = false)
+
+    private fun stepForUser(isUndo: Boolean) {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            var broughtBack: ActorsBroughtBack? = null
+            step(isUndo) { broughtBack = it.broughtBack }?.report()
+            broughtBack?.let(_broughtBack::tryEmit)
+        }
     }
 
     /**
@@ -167,15 +172,17 @@ public class CommandExecutor(
      *
      * @return What happened, or null if there was nothing to step.
      */
-    public suspend fun step(isUndo: Boolean): CommandOutcome? = changes.withLock {
+    public suspend fun step(isUndo: Boolean): CommandOutcome? = step(isUndo) {}
+
+    private suspend fun step(isUndo: Boolean, onApplied: (Applied) -> Unit): CommandOutcome? = changes.withLock {
         try {
-            stepHistory(isUndo)
+            stepHistory(isUndo, onApplied)
         } finally {
             deliverSceneChanges()
         }
     }
 
-    private suspend fun stepHistory(isUndo: Boolean): CommandOutcome? {
+    private suspend fun stepHistory(isUndo: Boolean, onApplied: (Applied) -> Unit): CommandOutcome? {
         val history = _history.value
         val entry = (if (isUndo) history.undoable else history.redoable).lastOrNull() ?: return null
         val invocation = if (isUndo) entry.revert else entry.reapply
@@ -209,7 +216,7 @@ public class CommandExecutor(
             isUndo -> remaining.copy(redoable = remaining.redoable + stepped)
             else -> remaining.copy(undoable = remaining.undoable + stepped)
         }
-        _steps.tryEmit(invocation)
+        onApplied(applied)
         return CommandOutcome.Success(applied.result)
     }
 
@@ -335,7 +342,7 @@ public class CommandExecutor(
     private companion object {
         const val HISTORY_SIZE = 200
         const val AI_STEP_COUNT = 500
-        const val STEP_BUFFER = 16
+        const val BROUGHT_BACK_BUFFER = 16
         val json = Json { ignoreUnknownKeys = false }
     }
 }

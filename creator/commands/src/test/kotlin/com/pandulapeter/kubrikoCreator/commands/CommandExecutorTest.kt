@@ -25,7 +25,6 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireType
 import com.pandulapeter.kubrikoCreator.commands.project.GetKubrikoApi
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.RemoveActor
-import com.pandulapeter.kubrikoCreator.commands.scenes.RestoreActor
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetActorValues
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
@@ -106,24 +105,24 @@ class CommandExecutorTest {
     }
 
     @Test
-    fun eachUndoAndRedoTellsWhatItApplied() = runTest {
+    fun theUsersUndoTellsWhichActorsItBroughtBackOnceTheSceneIsWritten() = runTest {
         val context = commandContext()
         val wall = SceneActorEntry("Wall", """{"body":{"position":{"x":1.0,"y":2.0}}}""", "wall")
         @OptIn(EditorMutation::class)
         context.scenes.write("main", SceneDocument.format(listOf(wall)))
         val executor = CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it })
-        val steps = mutableListOf<Invocation<*>>()
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { executor.steps.collect(steps::add) }
+        val broughtBack = mutableListOf<Pair<ActorsBroughtBack, String?>>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { executor.broughtBack.collect { broughtBack += it to context.scenes.read("main") } }
         executor.execute(Invocation(RemoveActor, RemoveActor.Input("main", "wall")))
-        assertEquals(emptyList(), steps)
         executor.step(isUndo = true)
-        assertEquals(listOf<Invocation<*>>(Invocation(RestoreActor, RestoreActor.Input("main", 0, "Wall", wall.state, "wall"), isRestoring = true)), steps)
         executor.step(isUndo = false)
-        assertEquals(Invocation(RemoveActor, RemoveActor.Input("main", "wall"), isRestoring = true), steps.last())
-        @OptIn(EditorMutation::class)
-        context.scenes.write("main", SceneDocument.format(listOf(SceneActorEntry("Music", "{}", "music"))))
-        assertIs<CommandOutcome.Rejected>(executor.step(isUndo = true))
-        assertEquals(2, steps.size)
+        assertEquals(emptyList<Pair<ActorsBroughtBack, String?>>(), broughtBack)
+        executor.undo()
+        runCurrent()
+        assertEquals(listOf<Pair<ActorsBroughtBack, String?>>(ActorsBroughtBack("main", listOf(wall)) to SceneDocument.format(listOf(wall))), broughtBack)
+        executor.redo()
+        runCurrent()
+        assertEquals(1, broughtBack.size)
     }
 
     @Test

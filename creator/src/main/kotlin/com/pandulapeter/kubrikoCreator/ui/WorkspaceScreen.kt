@@ -478,7 +478,7 @@ private fun WorkspaceCenterOf(
     onCommand = { invocation, onSuccess -> uiState.dispatch(invocation, onSuccess, controller.commands::dispatch) },
     currentBlockType = { controller.blockTypes?.get(it) },
     onCommandIfValid = { controller.commands.dispatchIfValid(it) },
-    historySteps = controller.commands.steps,
+    broughtBack = controller.commands.broughtBack,
     onTypeSelected = { controller.selection.selectType(it) },
     onPlayScene = { controller.play(firstScene = it) },
     onReloadScene = controller.sceneEditing::reload,

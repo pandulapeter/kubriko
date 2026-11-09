@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
+import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -146,15 +147,13 @@ internal fun CommandContext.validateRestorations(scene: String, restorations: Li
  *
  * @return The IDs of the Actors put in, in the order given.
  */
-internal suspend fun CommandContext.restoreActors(scene: String, restorations: List<RestoreActors.Restored>): List<String> {
+internal suspend fun CommandContext.restoreActors(scene: String, restorations: List<RestoreActors.Restored>): ActorsBroughtBack {
     val actors = readScene(scene).toMutableList()
     val ids = actors.mapTo(HashSet()) { it.id }
     restorations.forEach { restored -> restored.actorId?.let(ids::add) }
-    val restoredIds = restorations.map { restored ->
-        val id = restored.actorId ?: SceneDocument.newId(ids).also(ids::add)
-        actors.add(restored.actorIndex, SceneActorEntry(restored.typeId, restored.state, id))
-        id
+    val restored = restorations.map { restored ->
+        SceneActorEntry(restored.typeId, restored.state, restored.actorId ?: SceneDocument.newId(ids).also(ids::add)).also { actors.add(restored.actorIndex, it) }
     }
     writeScene(scene, actors)
-    return restoredIds
+    return ActorsBroughtBack(scene, restored)
 }

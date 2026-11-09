@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.commands.ActorsBroughtBack
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -96,7 +97,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param actorTypes The project's block-built Actor types.
  * @param music The project's music files, by their path from `composeResources`.
  * @param description What the Scene is for.
- * @param historySteps What each undo or redo applied: one bringing an Actor back selects it.
+ * @param broughtBack The Actors each undo or redo put back: one put back into this Scene is selected.
  * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
  */
 @Composable
@@ -108,7 +109,7 @@ internal fun SceneEditorPane(
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>?,
     description: String?,
-    historySteps: Flow<Invocation<*>>,
+    broughtBack: Flow<ActorsBroughtBack>,
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onClose: () -> Unit,
@@ -117,11 +118,11 @@ internal fun SceneEditorPane(
 ) = Column(
     modifier = modifier,
 ) {
-    val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     var selectedId by remember(state.scene.file) { mutableStateOf<String?>(null) }
-    LaunchedEffect(historySteps, state.sceneName) {
-        historySteps.collect { step -> actorBroughtBackBy(step, state.sceneName)?.let { selectedId = it } }
+    LaunchedEffect(broughtBack, state.sceneName) {
+        broughtBack.collect { actors -> restoredSelectionOf(actors, state.sceneName)?.let { selectedId = it } }
     }
+    val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     var isActorListShown by remember { mutableStateOf(false) }
     var isSettingsShown by remember(state.scene.file) { mutableStateOf(false) }
     SceneHeader(

@@ -57,7 +57,7 @@ class WorkspaceCenterTest {
                     onCommand = { _, _ -> },
                     currentBlockType = { null },
                     onCommandIfValid = { null },
-                    historySteps = emptyFlow(),
+                    broughtBack = emptyFlow(),
                     onTypeSelected = {},
                     onPlayScene = {},
                     onReloadScene = { reloads++ },
