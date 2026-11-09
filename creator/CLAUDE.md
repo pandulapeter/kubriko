@@ -218,7 +218,7 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   runs outside the change lock; a `ReadCommand` runs under it, so an AI never reads a change half made (one that reads only
   Creator's own knowledge says `readsProject = false`, so a download doesn't hold up edits).
 - **`CommandExecutor`** (one per workspace) applies changes one at a time. Consecutive changes with the same `mergeKey` (typing into
-  one field) are one undo step, as are those `mergesWith` joins (the renames of one Property); steps of different conversations,
+  one field) are one undo step; steps of different conversations,
   or of an AI client and the user, never merge. A step that no longer validates, or whose type or Scene changed outside Kubriko
   Creator since (each step keeps a hash of what it touches; a Scene that can't be read right now isn't compared), is dropped. A command that throws is rejected with
   the reason (an undo step that throws is dropped), and commands that change several Scenes write them all or none

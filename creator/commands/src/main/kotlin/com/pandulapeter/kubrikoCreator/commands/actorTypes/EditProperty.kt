@@ -116,11 +116,9 @@ public object EditProperty : WriteCommand<EditProperty.Input> {
     }
 
     /**
-     * Typing into one Property's field: each change names the Property as the one before left it.
+     * Typing into one Property's initial value. A rename is a step of its own, made once the name is typed.
      */
-    override fun mergesWith(previous: Input, next: Input): Boolean = next.actorType == previous.actorType && next.property == previous.newProperty.name
-
-    override fun mergeReverts(first: Input, latest: Input): EditProperty.Input = first.copy(property = latest.property)
+    override fun mergeKey(input: Input): Any? = if (input.newProperty.name == input.property) input.actorType to input.property else null
 
     @Serializable
     public data class Input(

@@ -29,14 +29,10 @@ public data class Invocation<I>(
     internal fun targets(context: CommandContext) = command.targets(context, input)
 
     /**
-     * Whether [next], made right after this, is undone together with it ([WriteCommand.mergesWith]).
+     * Whether [next], made right after this, is undone together with it: both have the same non-null
+     * [WriteCommand.mergeKey].
      */
-    internal fun mergesWith(next: Invocation<*>): Boolean = next.command == command && command.mergesWith(input, castInput(next))
-
-    /**
-     * What reverts this change together with the one reverted by [latest], made after it ([WriteCommand.mergeReverts]).
-     */
-    internal fun mergedWith(latest: Invocation<*>): Invocation<I> = copy(input = command.mergeReverts(input, castInput(latest)))
+    internal fun mergesWith(next: Invocation<*>): Boolean = next.command == command && command.mergeKey(input)?.let { it == command.mergeKey(castInput(next)) } == true
 
     @Suppress("UNCHECKED_CAST")
     private fun castInput(other: Invocation<*>) = other.input as I

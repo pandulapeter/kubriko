@@ -313,7 +313,7 @@ public class CommandExecutor(
         val previous = undoable.lastOrNull()
         _history.value = CommandHistory(
             undoable = if (previous != null && _history.value.redoable.isEmpty() && previous.conversationId == entry.conversationId && previous.isByAi == entry.isByAi && previous.reapply.mergesWith(entry.reapply)) {
-                undoable.dropLast(1) + entry.copy(revert = previous.revert.mergedWith(entry.revert), contentHashes = previous.contentHashes + entry.contentHashes)
+                undoable.dropLast(1) + entry.copy(revert = previous.revert, contentHashes = previous.contentHashes + entry.contentHashes)
             } else {
                 (undoable + entry).takeLast(HISTORY_SIZE)
             },

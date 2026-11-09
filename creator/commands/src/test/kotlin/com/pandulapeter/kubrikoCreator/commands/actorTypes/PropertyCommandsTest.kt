@@ -63,6 +63,14 @@ class PropertyCommandsTest {
     private fun CommandContext.states() = SceneDocument.parse(scenes.read("main")!!).map { it.state }
 
     @Test
+    fun onlyChangesThatKeepAPropertysNameAreUndoneTogether() {
+        val typed = EditProperty.mergeKey(EditProperty.Input("Player", "score", PropertyDefinition.Number("score", 1f)))
+        assertEquals(typed, EditProperty.mergeKey(EditProperty.Input("Player", "score", PropertyDefinition.Number("score", 12f))))
+        assertEquals(null, EditProperty.mergeKey(EditProperty.Input("Player", "score", PropertyDefinition.Number("points", 5f))))
+        assertEquals(false, typed == EditProperty.mergeKey(EditProperty.Input("Player", "lives", PropertyDefinition.Number("lives", 1f))))
+    }
+
+    @Test
     fun propertiesAreAddedEditedAndRemovedAndEachIsUndone() = runTest {
         val context = context()
         val lives = PropertyDefinition.Number("lives", 3f)
@@ -118,21 +126,24 @@ class PropertyCommandsTest {
     }
 
     @Test
-    fun renamingAPropertyByTypingIsOneStepThatUndoes() = runTest {
+    fun aRenameIsAStepOfItsOwnAndTypingAValueIsOne() = runTest {
         val context = context(SceneActorEntry("Player", """{"score":7.0}""", "p"))
         val executor = CommandExecutor(context, testScope())
-        var name = "score"
-        listOf("scor", "sco", "s", "sp", "spe", "spee", "speed").forEach { typed ->
-            assertIs<CommandOutcome.Success>(executor.execute(Invocation(EditProperty, EditProperty.Input("Player", name, score.copy(name = typed)))))
-            name = typed
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "score", score.copy(name = "speed")))))
+        assertIs<CommandOutcome.Success>(executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "speed", score.copy(name = "pace")))))
+        listOf(8f, 9f).forEach { value ->
+            assertIs<CommandOutcome.Success>(executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "pace", score.copy(name = "pace", initialValue = value)))))
         }
-        assertIs<CommandOutcome.Success>(executor.execute(Invocation(EditProperty, EditProperty.Input("Player", "speed", score.copy(name = "speed", initialValue = 9f)))))
-        assertEquals(1, executor.history.value.undoable.size)
+        assertEquals(3, executor.history.value.undoable.size)
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(listOf(score.copy(name = "pace"), title), context.player().properties)
+        assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
+        assertEquals(listOf(score.copy(name = "speed"), title), context.player().properties)
         assertIs<CommandOutcome.Success>(executor.step(isUndo = true))
         assertEquals(player, context.player())
         assertEquals(listOf("""{"score":7.0}"""), context.states())
-        assertIs<CommandOutcome.Success>(executor.step(isUndo = false))
-        assertEquals(listOf(score.copy(name = "speed", initialValue = 9f), title), context.player().properties)
+        repeat(3) { assertIs<CommandOutcome.Success>(executor.step(isUndo = false)) }
+        assertEquals(listOf(score.copy(name = "pace", initialValue = 9f), title), context.player().properties)
     }
 
     @Test

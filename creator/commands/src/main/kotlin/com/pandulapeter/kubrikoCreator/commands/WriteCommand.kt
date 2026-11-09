@@ -57,16 +57,4 @@ public interface WriteCommand<I> : EditorCommand<I> {
      * Consecutive changes with the same non-null key are undone together, so that typing into one field is a single step.
      */
     public fun mergeKey(input: I): Any? = null
-
-    /**
-     * Whether [next], made right after [previous], is undone together with it: by default, when both have the same
-     * non-null [mergeKey].
-     */
-    public fun mergesWith(previous: I, next: I): Boolean = mergeKey(previous)?.let { it == mergeKey(next) } == true
-
-    /**
-     * What reverts two changes undone together, given what reverts the earlier one ([first]) and the later one ([latest]).
-     * By default [first], which is right for a change that addresses what it changes the same way before and after it.
-     */
-    public fun mergeReverts(first: I, latest: I): I = first
 }
