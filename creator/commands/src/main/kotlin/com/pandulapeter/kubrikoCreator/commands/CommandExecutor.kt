@@ -313,7 +313,7 @@ public class CommandExecutor(
      * Runs [change], then hands over the Scene changes it made, even when it throws. A delivery that fails never hides
      * what the change threw, nor fails one that was made: it is added to what the change threw as suppressed, or
      * reported when the change was made or cancelled, since a cancellation's suppressed are never read. A cancelled
-     * delivery is no problem, and is thrown on only when the caller or [scope] was cancelled.
+     * delivery is no problem; after a change that was made, it stops only a caller that was cancelled.
      */
     private suspend inline fun <T> deliveringSceneChanges(change: () -> T): T {
         val result = try {
@@ -322,8 +322,9 @@ public class CommandExecutor(
             // The coroutine's own cancellation may come back from the delivery, and can't suppress itself.
             deliverSceneChanges()?.takeIf { it !== throwable }?.let { failure ->
                 when {
+                    failure is CancellationException -> Unit
                     throwable is CancellationException -> scope.reportProblem(failure)
-                    failure !is CancellationException -> throwable.addSuppressed(failure)
+                    else -> throwable.addSuppressed(failure)
                 }
             }
             throw throwable

@@ -16,8 +16,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertSame
 
 class UnexpectedProblemHandlerTest {
     private val reported = mutableListOf<Throwable>()
@@ -31,12 +29,10 @@ class UnexpectedProblemHandlerTest {
     }
 
     @Test
-    fun aCancellationIsNoProblemButStopsWhatACancelledScopeDoes() {
+    fun aCancellationIsNoProblemAndIsntThrown() {
         scope.reportProblem(CancellationException("A read that timed out."))
-        assertEquals(emptyList(), reported)
         scope.cancel()
-        val closing = CancellationException("Closing.")
-        assertSame(closing, assertFailsWith<CancellationException> { scope.reportProblem(closing) })
+        scope.reportProblem(CancellationException("Closing."))
         assertEquals(emptyList(), reported)
     }
 

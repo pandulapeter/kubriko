@@ -16,6 +16,9 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -70,6 +73,7 @@ internal class ProjectChanges(
                 try {
                     scanResources(if (isWalkNeeded) null else snapshot)
                 } catch (throwable: Throwable) {
+                    currentCoroutineContext().ensureActive()
                     scope.reportProblem(throwable)
                 }
             }
@@ -97,9 +101,10 @@ internal class ProjectChanges(
 
     /**
      * Runs [follower], one part that follows a change, reporting what it throws ([reportProblem]), so the parts after it
-     * still follow the change, unless the scope was cancelled.
+     * still follow the change. Once the scope is cancelled (the workspace is closing), nothing follows changes any more.
      */
     private inline fun following(follower: () -> Unit) {
+        if (!scope.isActive) return
         try {
             follower()
         } catch (throwable: Throwable) {

@@ -84,18 +84,38 @@ class ProjectChangesTest {
     }
 
     @Test
-    fun aClosingScopeStopsFollowingSceneChanges() = runTest {
-        val cancellation = CancellationException("Closing.")
-        regenerate = { throw cancellation }
-        val closing = CoroutineScope(Job().apply { cancel() } + CoroutineExceptionHandler { _, exception -> problems += exception })
-        assertEquals(cancellation, assertFailsWith<CancellationException> { router(scope = closing).onSceneChanges(listOf(SceneChange.Written("main", isNew = false))) })
+    fun nothingFollowsChangesOnceTheScopeIsCancelled() = runTest {
+        val closing = CoroutineScope(Job() + CoroutineExceptionHandler { _, exception -> problems += exception })
+        val router = router(scope = closing)
+        regenerate = {
+            closing.cancel()
+            throw CancellationException("Closing.")
+        }
+        router.onSceneChanges(listOf(SceneChange.Written("main", isNew = false)))
+        router.onProjectChanged(setOf(ProjectChange.SCENES))
         assertEquals(listOf("scenes changed [main]"), calls)
         assertEquals(emptyList(), problems)
     }
 
     @Test
+    fun aScanStopsTheScansOnceTheScopeIsCancelled() = runTest {
+        val scope = CoroutineScope(backgroundScope.coroutineContext + Job(backgroundScope.coroutineContext[Job]) + UnconfinedTestDispatcher(testScheduler) + CoroutineExceptionHandler { _, exception -> problems += exception })
+        val router = router(scope = scope) {
+            scanCount++
+            scope.cancel()
+            throw CancellationException("Closing.")
+        }
+        router.refreshResources()
+        router.refreshResources()
+        assertEquals(1, scanCount)
+        assertEquals(emptyList(), problems)
+    }
+
+    @Test
     fun aScopeWithoutAHandlerIsRefused() = runTest {
-        assertFailsWith<IllegalStateException> { router(scope = CoroutineScope(Job().apply { cancel() })) }
+        val scope = CoroutineScope(Job())
+        assertFailsWith<IllegalStateException> { router(scope = scope) }
+        scope.cancel()
     }
 
     @Test
