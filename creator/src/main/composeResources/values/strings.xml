@@ -88,6 +88,13 @@
     <string name="error_project_newer_format_unknown_version">This project was saved by a newer Kubriko Creator, so this one can only browse, build, and play it. Open it in a newer version to change it.</string>
     <string name="error_project_format_not_upgraded_on_open">Kubriko Creator couldn't bring this project's files up to its format, since one of them couldn't be written.</string>
     <string name="error_project_format_not_upgraded">Kubriko Creator couldn't bring this project's files up to its format: %1$s</string>
+    <string name="error_project_file_not_read">%1$s couldn't be read: %2$s</string>
+    <string name="error_project_file_not_json">%1$s isn't valid JSON: something on line %2$s is out of place. Fix it in a text editor, or bring it back from version control.</string>
+    <string name="error_project_file_not_an_object">%1$s should start with { and end with }, as a JSON object does.</string>
+    <string name="error_project_file_value_missing">%1$s has no "%2$s", which Kubriko Creator needs.</string>
+    <string name="error_project_file_value_not_text">"%2$s" in %1$s should be a text between quotation marks.</string>
+    <string name="error_project_file_value_not_number">"%2$s" in %1$s should be a whole number.</string>
+    <string name="error_project_file_not_decoded">%1$s doesn't hold what Kubriko Creator expects: %2$s</string>
     <string name="project_upgrade_notice">This project was made by an older Kubriko Creator, and its template files need a few small changes for what this version generates.</string>
     <string name="project_upgrade_title">Upgrade the template files</string>
     <string name="project_upgrade_message">These files belong to you, so nothing changes until you apply this. Commit first to be able to go back with version control.</string>

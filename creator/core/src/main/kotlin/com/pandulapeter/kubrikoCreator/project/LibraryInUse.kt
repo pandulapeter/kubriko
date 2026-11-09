@@ -14,7 +14,6 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.PluginUse
 import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
-import kotlinx.serialization.SerializationException
 import java.io.File
 import java.io.IOException
 
@@ -76,8 +75,6 @@ public data class LibraryInUse(
         private fun generatedPathOf(rootDirectory: File) = try {
             BlockTypeStore.open(rootDirectory)?.generatedPath
         } catch (_: IOException) {
-            null
-        } catch (_: SerializationException) {
             null
         }
 

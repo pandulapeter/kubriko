@@ -134,7 +134,7 @@ internal class AppController(
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: ProjectInspectionException) {
-                AppScreen.Welcome(error = exception.reason.resource)
+                AppScreen.Welcome(error = exception.reason.resource, errorArguments = exception.arguments)
             } catch (exception: Exception) {
                 exception.printStackTrace()
                 AppScreen.Welcome(error = Res.string.error_project_not_opened, errorArguments = listOf(exception.message ?: exception.toString()))

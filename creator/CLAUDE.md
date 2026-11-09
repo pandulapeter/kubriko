@@ -154,7 +154,7 @@ Besides its tests passing, a change:
 | Path | Owner | When changed elsewhere |
 |---|---|---|
 | `.kubriko/actors/**/*.json`, `.kubriko/managers/**/*.json` | Creator | Reloaded within a second; code regenerated. |
-| `.kubriko/project.json` | Creator | Its format is checked again within a second. |
+| `.kubriko/project.json` | Creator | Its format is checked again within a second; one that can't be read stops the opening, naming the file and what is wrong in it in plain words rather than the parser's (`ProjectSettingsReader`). |
 | `.kubriko/scenes.json` (Scene descriptions) | Creator | Read again whenever it is used; a file that can't be read holds none. |
 | `<package>/generated/*.kt` | Creator | Checksum mismatch → Creator stops updating it and offers to discard the edits. Committed, so projects build without Creator. |
 | `composeResources/files/scenes/**/*.json` | Shared | Sidebar refreshes; an open Scene shows the change. |

@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
+import com.pandulapeter.kubrikoCreator.project.UnreadableProjectFileException
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
 import com.pandulapeter.kubrikoCreator.session.GameProcess
@@ -57,12 +58,13 @@ public class GradleWorkspaceOpener(
         val ownWrites = OwnWrites()
         val creatorLibraries = withContext(Dispatchers.IO) { loadCreatorLibraries() }
         val projectFormat = ProjectFormat(directory, configuration.kubrikoVersion)
-        val formatStatus = try {
-            withContext(Dispatchers.IO) { projectFormat.prepare() }
+        val (formatStatus, blockTypeStore) = try {
+            withContext(Dispatchers.IO) { projectFormat.prepare() to BlockTypeStore.open(directory, ownWrites) }
+        } catch (exception: UnreadableProjectFileException) {
+            throw ProjectInspectionException(exception.reason, exception.arguments)
         } catch (_: IOException) {
             throw ProjectInspectionException(ProjectProblem.FORMAT_NOT_UPGRADED_ON_OPEN)
         }
-        val blockTypeStore = withContext(Dispatchers.IO) { BlockTypeStore.open(directory, ownWrites) }
         return openWorkspace(scope) { opening ->
             val connection = opening.track(GradleProjectConnection(directory))
             WorkspaceController(

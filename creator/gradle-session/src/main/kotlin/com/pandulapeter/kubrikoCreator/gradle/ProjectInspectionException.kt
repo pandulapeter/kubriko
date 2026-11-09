@@ -13,7 +13,10 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 
 /**
  * A folder that Gradle could open, but that is not a project Kubriko Creator can work with.
+ *
+ * @param arguments The arguments of [reason]'s placeholders.
  */
 public class ProjectInspectionException(
     public val reason: ProjectProblem,
+    public val arguments: List<String> = emptyList(),
 ) : Exception()

@@ -44,4 +44,26 @@ class GradleWorkspaceOpenerTest {
             kubriko.setWritable(true)
         }
     }
+
+    @Test
+    fun aProjectWhoseProjectFileIsInvalidIsRefusedNamingTheFileAndTheMistake() = runTest {
+        val directory = testDirectory()
+        File(directory, "settings.gradle.kts").writeText("rootProject.name = \"game\"\n")
+        val settingsFile = File(directory, ".kubriko/project.json").apply { parentFile.mkdirs() }
+        settingsFile.writeText("{\n  \"packageName\": \"com.example.game\",\n}\n")
+        val exception = assertFailsWith<ProjectInspectionException> { opener.open(directory, backgroundScope) }
+        assertEquals(ProjectProblem.PROJECT_FILE_NOT_JSON, exception.reason)
+        assertEquals(listOf(settingsFile.path, "2"), exception.arguments)
+    }
+
+    @Test
+    fun aProjectFileThatAnOlderFormatsMigrationCantReadIsNamedToo() = runTest {
+        val directory = testDirectory()
+        File(directory, "settings.gradle.kts").writeText("rootProject.name = \"game\"\n")
+        val settingsFile = File(directory, ".kubriko/project.json").apply { parentFile.mkdirs() }
+        settingsFile.writeText("""{ "formatVersion": 0 }""")
+        val exception = assertFailsWith<ProjectInspectionException> { opener.open(directory, backgroundScope) }
+        assertEquals(ProjectProblem.PROJECT_FILE_VALUE_MISSING, exception.reason)
+        assertEquals(listOf(settingsFile.path, "packageName"), exception.arguments)
+    }
 }

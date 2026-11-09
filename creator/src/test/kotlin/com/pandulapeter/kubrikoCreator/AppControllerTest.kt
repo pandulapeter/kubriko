@@ -43,6 +43,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
+import kubriko.creator.generated.resources.error_project_file_not_json
 import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_project_not_opened
 import kubriko.creator.generated.resources.status_unexpected_problem
@@ -223,6 +224,16 @@ class AppControllerTest {
         val controller = createController { _, _ -> throw ProjectInspectionException(ProjectProblem.NO_DESKTOP_MODULE) }
         controller.openProject(directory)
         assertEquals(AppScreen.Welcome(error = Res.string.error_no_desktop_module), controller.screen.value)
+    }
+
+    @Test
+    fun aProjectWhoseProjectFileIsUnreadableReturnsToWelcomeNamingTheFileAndTheMistake() = runTest {
+        val controller = createController { _, _ -> throw ProjectInspectionException(ProjectProblem.PROJECT_FILE_NOT_JSON, listOf("/projects/game/.kubriko/project.json", "3")) }
+        controller.openProject(directory)
+        assertEquals(
+            AppScreen.Welcome(error = Res.string.error_project_file_not_json, errorArguments = listOf("/projects/game/.kubriko/project.json", "3")),
+            controller.screen.value,
+        )
     }
 
     @Test

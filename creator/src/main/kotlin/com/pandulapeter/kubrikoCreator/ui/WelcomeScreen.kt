@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import kubriko.creator.generated.resources.Res
@@ -123,8 +124,10 @@ private fun WelcomeContent(
         }
         if (error != null) {
             Text(
+                modifier = Modifier.padding(horizontal = 32.dp).widthIn(max = 560.dp),
                 text = stringResource(error, *errorArguments.toTypedArray()),
                 color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
             )
         }
         if (recentProjects.isNotEmpty()) {

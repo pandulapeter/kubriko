@@ -399,9 +399,12 @@ public class BlockTypeStore private constructor(
 
         /**
          * The store of the project in [rootDirectory], or null if the project hasn't opted in to block-built Actor types.
+         *
+         * @throws com.pandulapeter.kubrikoCreator.project.UnreadableProjectFileException If its `.kubriko/project.json`
+         *   can't be read or doesn't hold valid settings, saying what is wrong in it.
          */
         public fun open(rootDirectory: File, ownWrites: OwnWrites = OwnWrites()): BlockTypeStore? = File(rootDirectory, SETTINGS_FILE).takeIf { it.isFile }?.let { settingsFile ->
-            BlockTypeStore(rootDirectory, json.decodeFromString(CreatorProjectSettings.serializer(), settingsFile.readText()), ownWrites)
+            BlockTypeStore(rootDirectory, ProjectSettingsReader.read(settingsFile, json), ownWrites)
         }
     }
 }
