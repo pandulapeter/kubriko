@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeFamily
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import java.util.IdentityHashMap
 
 /**
@@ -35,6 +36,8 @@ internal class TypeEditorContextCache {
     private var outlines: List<TypeOutline>? = null
     private var outlinesByDefinition = IdentityHashMap<BlockTypeDefinition, TypeOutline>()
     private var family: ActorTypeFamily? = null
+    private var managerTypes: List<ManagerTypeDefinition> = emptyList()
+    private var actorTypesByName: Map<String, ActorTypeDefinition> = emptyMap()
     private var scopeKey: List<Any?>? = null
     private var scope: BlockScope? = null
     private var inheritanceKey: List<Any?>? = null
@@ -54,7 +57,7 @@ internal class TypeEditorContextCache {
             sceneNames = sceneNames,
             audioFiles = audioFiles,
             family = family,
-        ).also {
+        ).copy(managerTypes = managerTypes).also {
             this.scopeKey = scopeKey
             this.scope = it
         }
@@ -62,7 +65,7 @@ internal class TypeEditorContextCache {
             family,
             definition.name,
             definition.events.map { it.trigger },
-            family.ancestorsOf(definition.name).map { ancestor -> types.firstOrNull { it.name == ancestor }?.events },
+            family.ancestorsOf(definition.name).map { actorTypesByName[it]?.events },
         )
         val inheritance = inheritance?.takeIf { inheritanceKey == this.inheritanceKey } ?: Inheritance.of(definition, types, family).also {
             this.inheritanceKey = inheritanceKey
@@ -73,17 +76,21 @@ internal class TypeEditorContextCache {
 
     /**
      * The family of [types]' Actor types, the same instance for as long as their outlines stay the same. A definition
-     * kept from the last list keeps its outline, so a keystroke outlines only the type it changed.
+     * kept from the last list keeps its outline, so a keystroke outlines only the type it changed. The family and the
+     * scope's Manager types are built from the outlines ([TypeOutline.toDefinition]), so what is kept holds no Events.
      */
     private fun familyOf(types: List<BlockTypeDefinition>): ActorTypeFamily {
         val current = family
         if (current != null && types === this.types) return current
         this.types = types
+        actorTypesByName = types.filterIsInstance<ActorTypeDefinition>().associateBy { it.name }
         val previousOutlines = outlinesByDefinition
         outlinesByDefinition = IdentityHashMap<BlockTypeDefinition, TypeOutline>(types.size)
         val outlines = types.map { definition -> (previousOutlines[definition] ?: TypeOutline.of(definition)).also { outlinesByDefinition[definition] = it } }
         if (current != null && outlines == this.outlines) return current
         this.outlines = outlines
-        return ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()).also { family = it }
+        val definitions = outlines.map(TypeOutline::toDefinition)
+        managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
+        return ActorTypeFamily(definitions.filterIsInstance<ActorTypeDefinition>()).also { family = it }
     }
 }

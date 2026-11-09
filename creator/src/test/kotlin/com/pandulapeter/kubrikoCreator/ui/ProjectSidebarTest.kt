@@ -51,7 +51,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalTestApi::class)
 class ProjectSidebarTest {
     private val folderGroups = folderTreeGroups(
-        types = listOf(ActorTypeDefinition(name = "Ball"), ActorTypeDefinition(name = "Bat", folder = "enemies")),
+        types = listOf(ActorTypeDefinition(name = "Ball"), ActorTypeDefinition(name = "Bat", folder = "enemies")).map(SidebarType::of),
         typeFolders = emptyMap(),
         selectedTypeName = null,
         sceneNames = listOf("Intro", "Level", "Finale"),
@@ -224,7 +224,7 @@ class ProjectSidebarTest {
                 modifier = Modifier.fillMaxSize(),
                 resources = emptyMap(),
                 folderGroups = folderTreeGroups(
-                    types = listOf(ActorTypeDefinition(name = "Bat", folder = "enemies/flying"), ActorTypeDefinition(name = "Slime", folder = "enemies")),
+                    types = listOf(ActorTypeDefinition(name = "Bat", folder = "enemies/flying"), ActorTypeDefinition(name = "Slime", folder = "enemies")).map(SidebarType::of),
                     typeFolders = emptyMap(),
                     selectedTypeName = null,
                     sceneNames = emptyList(),
@@ -266,7 +266,7 @@ class ProjectSidebarTest {
                     resource(ResourceGroup.KOTLIN, "tools/src/desktopMain/kotlin/com/game/Tool.kt", "tools"),
                 ).groupBy { it.group },
                 folderGroups = folderTreeGroups(
-                    types = listOf(ActorTypeDefinition(name = "Ball")),
+                    types = listOf(ActorTypeDefinition(name = "Ball")).map(SidebarType::of),
                     typeFolders = emptyMap(),
                     selectedTypeName = null,
                     sceneNames = listOf("Intro", "Sandbox"),

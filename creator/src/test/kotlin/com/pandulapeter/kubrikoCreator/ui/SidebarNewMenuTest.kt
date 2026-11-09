@@ -39,7 +39,7 @@ import kotlin.test.assertNull
 @OptIn(ExperimentalTestApi::class)
 class SidebarNewMenuTest {
     private val folderGroups = folderTreeGroups(
-        types = listOf(ActorTypeDefinition(name = "Ball")),
+        types = listOf(ActorTypeDefinition(name = "Ball")).map(SidebarType::of),
         typeFolders = emptyMap(),
         selectedTypeName = null,
         sceneNames = listOf("Intro"),

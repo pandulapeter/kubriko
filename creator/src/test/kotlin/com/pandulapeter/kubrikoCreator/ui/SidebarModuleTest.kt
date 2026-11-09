@@ -32,7 +32,7 @@ class SidebarModuleTest {
         resource(ResourceGroup.KOTLIN, "androidApp/src/main/kotlin/com/game/MainActivity.kt", "androidApp", "com.game"),
     ).groupBy { it.group }
     private val folderGroups = folderTreeGroups(
-        types = listOf(ActorTypeDefinition(name = "Ball")),
+        types = listOf(ActorTypeDefinition(name = "Ball")).map(SidebarType::of),
         typeFolders = emptyMap(),
         selectedTypeName = null,
         sceneNames = listOf("levels/1-1", "sandbox", "fresh"),
@@ -228,7 +228,7 @@ class SidebarModuleTest {
     @Test
     fun theScreenplayIsInTheGamesModuleOnlyAndInAProjectThatIsntOptedInOnlyOnceItHasPages() {
         val (_, android, tools) = modules
-        assertEquals(listOf("README" to "", "levels/cave" to "levels"), sidebarModules(resources, folderTreeGroups(listOf(ActorTypeDefinition(name = "Ball")), emptyMap(), null, emptyList(), emptySet(), null, pageGroupState(listOf("README", "levels/cave"), setOf("levels"), null)), ProjectLayout(typeModule = "game", sceneModule = "game")).first().folderGroups.getValue(FolderGroup.PAGES).items)
+        assertEquals(listOf("README" to "", "levels/cave" to "levels"), sidebarModules(resources, folderTreeGroups(listOf(SidebarType.of(ActorTypeDefinition(name = "Ball"))), emptyMap(), null, emptyList(), emptySet(), null, pageGroupState(listOf("README", "levels/cave"), setOf("levels"), null)), ProjectLayout(typeModule = "game", sceneModule = "game")).first().folderGroups.getValue(FolderGroup.PAGES).items)
         listOf(android, tools).forEach { assertEquals(false, FolderGroup.PAGES in it.folderGroups) }
         val layout = ProjectLayout(sceneModule = "", modules = modulesOf("" to false, "gameplay" to true))
         val kotlin = mapOf(ResourceGroup.KOTLIN to listOf(resource(ResourceGroup.KOTLIN, "gameplay/src/main/kotlin/Main.kt", "gameplay", "")))

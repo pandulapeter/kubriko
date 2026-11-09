@@ -130,7 +130,7 @@ internal fun WorkspaceCenter(
     // The selection follows the Scene state a dispatch later, so the type editor waits for the Scene to close too.
     if (sceneEditing == SceneEditingState.Closed && selectedBlockType != null) {
         key(selectedBlockType.name) {
-            val context = typeEditorContexts.contextOf(selectedBlockType, blockTypes, sceneNames, audioFiles)
+            val context = remember(selectedBlockType, blockTypes, sceneNames, audioFiles) { typeEditorContexts.contextOf(selectedBlockType, blockTypes, sceneNames, audioFiles) }
             BlockTypeEditor(
                 modifier = contentModifier,
                 definition = selectedBlockType,

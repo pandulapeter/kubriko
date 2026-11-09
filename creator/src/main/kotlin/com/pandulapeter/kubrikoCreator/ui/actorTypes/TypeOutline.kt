@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.timerNames
 
@@ -25,6 +26,14 @@ internal data class TypeOutline(
     val properties: List<PropertyDefinition>,
     val timerNames: List<String>,
 ) {
+    /**
+     * A definition of the type holding only its outline: no Events, and so no Blocks that could go stale while it is kept.
+     */
+    fun toDefinition(): BlockTypeDefinition = when (kind) {
+        BlockTypeKind.ACTOR -> ActorTypeDefinition(name = name, parent = parent, properties = properties)
+        BlockTypeKind.MANAGER -> ManagerTypeDefinition(name = name, properties = properties)
+    }
+
     companion object {
         fun of(definition: BlockTypeDefinition) = TypeOutline(
             kind = definition.kind,

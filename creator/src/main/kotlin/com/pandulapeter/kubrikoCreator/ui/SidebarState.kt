@@ -11,17 +11,15 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.FolderPaths
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.folders.FolderGroup
 import com.pandulapeter.kubrikoCreator.screenplay.PageNaming
 
 /**
  * What the sidebar's groups with folders show ([folderTreeGroups]), computed again only when one of these changes (of
- * [types], only their kinds, names, and folders, so typing into a Block doesn't).
+ * [types], only what the sidebar shows of them, so typing into a Block doesn't).
  *
  * @param types The project's block-built types, or null if it hasn't opted in to them.
  */
@@ -35,9 +33,9 @@ internal fun rememberFolderTreeGroups(
     openSceneName: String?,
     pages: FolderTreeGroupState,
 ): Map<FolderGroup, FolderTreeGroupState> {
-    val typeEntries = remember(types) { types?.map { Triple(it.kind, it.name, it.folder) } }
-    return remember(typeEntries, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages) {
-        folderTreeGroups(types, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages)
+    val sidebarTypes = remember(types) { types?.map(SidebarType::of) }
+    return remember(sidebarTypes, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages) {
+        folderTreeGroups(sidebarTypes, typeFolders, selectedTypeName, sceneNames, sceneFolders, openSceneName, pages)
     }
 }
 
@@ -49,7 +47,7 @@ internal fun rememberFolderTreeGroups(
  * @param pages The pages with their folders and the one open in the center ([pageGroupState]).
  */
 internal fun folderTreeGroups(
-    types: List<BlockTypeDefinition>?,
+    types: List<SidebarType>?,
     typeFolders: Map<BlockTypeKind, Set<String>>,
     selectedTypeName: String?,
     sceneNames: List<String>,
@@ -59,8 +57,8 @@ internal fun folderTreeGroups(
 ): Map<FolderGroup, FolderTreeGroupState> = buildMap {
     put(FolderGroup.PAGES, pages)
     if (types != null) {
-        put(FolderGroup.ACTOR_TYPES, FolderTreeGroupState(types.filterIsInstance<ActorTypeDefinition>().map { it.name to it.folder }, typeFolders[FolderGroup.ACTOR_TYPES.kind].orEmpty(), selectedTypeName))
-        put(FolderGroup.MANAGER_TYPES, FolderTreeGroupState(types.filterIsInstance<ManagerTypeDefinition>().map { it.name to it.folder }, typeFolders[FolderGroup.MANAGER_TYPES.kind].orEmpty(), selectedTypeName))
+        put(FolderGroup.ACTOR_TYPES, FolderTreeGroupState(types.filter { it.kind == BlockTypeKind.ACTOR }.map { it.name to it.folder }, typeFolders[FolderGroup.ACTOR_TYPES.kind].orEmpty(), selectedTypeName))
+        put(FolderGroup.MANAGER_TYPES, FolderTreeGroupState(types.filter { it.kind == BlockTypeKind.MANAGER }.map { it.name to it.folder }, typeFolders[FolderGroup.MANAGER_TYPES.kind].orEmpty(), selectedTypeName))
     }
     put(FolderGroup.SCENES, FolderTreeGroupState(sceneNames.map { it to FolderPaths.parentOf(it) }, sceneFolders, openSceneName))
 }

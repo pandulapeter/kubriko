@@ -46,6 +46,16 @@ class TypeEditorContextCacheTest {
     }
 
     @Test
+    fun editingAManagerTypesBlocksKeepsAScopeHoldingNoBlocks() {
+        val withBlocks = game.withEvents(listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("a")))))
+        val before = cache.contextOf(bat, listOf(enemy, bat, withBlocks), sceneNames, audioFiles)
+        val edited = game.withEvents(listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("ab")))))
+        val after = cache.contextOf(bat, listOf(enemy, bat, edited), sceneNames, audioFiles)
+        assertSame(before.scope, after.scope)
+        assertEquals(listOf(ManagerTypeDefinition(name = "Game", properties = game.properties)), after.scope.managerTypes)
+    }
+
+    @Test
     fun theContextIsWhatTheScopeAndTheInheritanceWouldBe() {
         types.forEach { definition ->
             assertEquals(
@@ -87,10 +97,11 @@ class TypeEditorContextCacheTest {
     @Test
     fun theInheritanceFollowsAnAncestorsEventsAndTheTypesOwnTriggers() {
         val before = cache.contextOf(bat, types, sceneNames, audioFiles)
-        val parentChanged = enemy.withEvents(enemy.events + EventDefinition(EventType.TIMER_FINISHED, timer = "spawn"))
+        val parentChanged = enemy.withEvents(enemy.events.map { if (it.type == EventType.ADDED_TO_SCENE) it.copy(blocks = listOf(BlockDefinition.Stop)) else it })
         val afterParent = cache.contextOf(bat, listOf(parentChanged, bat, game), sceneNames, audioFiles)
         assertEquals(Inheritance.of(bat, listOf(parentChanged, bat, game)), afterParent.inheritance)
         assertNotSame(before.inheritance, afterParent.inheritance)
+        assertSame(before.scope, afterParent.scope)
         val replacing = bat.withEvents(bat.events + EventDefinition(EventType.ADDED_TO_SCENE))
         val typesNow: List<BlockTypeDefinition> = listOf(parentChanged, replacing, game)
         assertEquals(Inheritance.of(replacing, typesNow), cache.contextOf(replacing, typesNow, sceneNames, audioFiles).inheritance)
