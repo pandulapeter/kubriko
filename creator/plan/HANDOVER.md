@@ -25,15 +25,21 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (renaming rewriting Scenes per keystroke) and go through it in order,
+Continue `01-known-issues.md` at its first item (reordering an Actor rebuilding the Scene) and go through it in order,
 then `02`.
 
-The last session stopped the type editor from rebuilding the project's family, scope, and inheritance per keystroke
-(`TypeEditorContextCache`, keyed on each type's `TypeOutline`, with the family and the scope's Manager types built from the
-outlines so nothing kept holds Events; the sidebar's groups keyed on `SidebarType`). `CreatorBenchmarkTest` gained the
-type editor's steps: selecting a member of the wide family takes about 1.4 ms, ten keystrokes about 1 ms together. The
-`/code-review` ran; its findings were fixed in their own commit, except that the cache, remembered per workspace, keeps the
-last types until it is used again (the controller holds the same definitions, so nothing extra stays alive).
+The last session finished the first two items, each reviewed with `/code-review` and its findings fixed in commits of
+their own:
+
+- The type editor no longer rebuilds the project's family, scope, and inheritance per keystroke (`TypeEditorContextCache`,
+  keyed on each type's `TypeOutline`; the sidebar's groups on `SidebarType`). `CreatorBenchmarkTest` times it: selecting a
+  member of the wide family about 1.4 ms, ten keystrokes about 1 ms together. Left from the review: the cache, remembered
+  per workspace, keeps the last types until it is used again (the controller holds the same definitions).
+- A Property is renamed once its name is done (Enter, leaving the field, or the field going away), validated first
+  through `dispatchIfValid`, so a refused rename says why on Enter and reverts when left; each rename is its own undo
+  step (`EditProperty.mergeKey` merges only typed initial values, and `WriteCommand.mergesWith`/`mergeReverts` are gone).
+  A Scene folder's Scenes are renamed as one batch (`renameScenes`), going through the types, the first Scene setting,
+  and the Kotlin once.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

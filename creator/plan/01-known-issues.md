@@ -18,10 +18,6 @@ Creator has to hold up for games the size GameMaker made (hundreds of Actor type
 user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
 enough to matter:
 
-- **Renaming rewrites Scenes per keystroke.** `EditProperty` renames a Property's values in every Scene (`changeSceneStates`) on each
-  keystroke of the name field, so a type placed in 50 Scenes rewrites up to 50 files per character; and renaming a Scene folder calls
-  `renameScene` per Scene, each walking the whole project and reading every `.kt` file (`SceneRenaming.kt`). Fix: rename in Scenes
-  when the name is committed (or once per merged step), and scan hand-written files once per folder rename.
 - **Reordering an Actor rebuilds the Scene.** `ScenePatch` gives up on any change of order (`move_actor_order`, undoing a removal,
   placing anywhere but at the end), so `SceneView` creates every Actor again: in a Scene of thousands, every bring-to-front and undo
   deserializes them all. Fix: keep the Actors before the first changed index and recreate only the rest.
