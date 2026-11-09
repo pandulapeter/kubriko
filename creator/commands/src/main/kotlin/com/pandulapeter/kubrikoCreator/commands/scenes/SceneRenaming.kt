@@ -28,7 +28,17 @@ import java.io.IOException
  * @return Whether the file was moved; if it wasn't, nothing changed.
  */
 @EditorMutation
-internal suspend fun CommandContext.renameScene(oldName: String, newName: String): Boolean {
+internal suspend fun CommandContext.renameScene(oldName: String, newName: String): Boolean =
+    moveScene(oldName, newName).also { if (it) reportScenesNamedInCode(mapOf(oldName to newName)) }
+
+/**
+ * Moves the Scene [oldName] to [newName], with every goToScene Block and the game's first Scene ([renameScene] without
+ * looking through the Kotlin, for moving many at once).
+ *
+ * @return Whether the file was moved; if it wasn't, nothing changed.
+ */
+@EditorMutation
+internal suspend fun CommandContext.moveScene(oldName: String, newName: String): Boolean {
     if (!withContext(ioDispatcher) { scenes.move(oldName, newName) }) return false
     blockTypes?.let { blockTypes ->
         blockTypes.types.value.forEach { definition ->
@@ -41,10 +51,21 @@ internal suspend fun CommandContext.renameScene(oldName: String, newName: String
     } catch (exception: IOException) {
         report(ConsoleEntry.Status(CommandProblem.FIRST_SCENE_NOT_FOLLOWED, isError = true, arguments = listOf(oldName, exception.message ?: exception.toString())))
     }
-    withContext(ioDispatcher) { HandWrittenKotlin.read(project.rootDirectory) }.filterValues { "\"$oldName\"" in it }.keys.sorted().forEach { path ->
-        report(ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf(path, oldName, newName)))
-    }
     return true
+}
+
+/**
+ * Says in the console which hand-written Kotlin files still name a Scene of [renamed] (each old name with its new one),
+ * reading them once however many Scenes moved.
+ */
+internal suspend fun CommandContext.reportScenesNamedInCode(renamed: Map<String, String>) {
+    if (renamed.isEmpty()) return
+    val kotlin = withContext(ioDispatcher) { HandWrittenKotlin.read(project.rootDirectory) }.toSortedMap()
+    renamed.forEach { (oldName, newName) ->
+        kotlin.filterValues { "\"$oldName\"" in it }.keys.forEach { path ->
+            report(ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf(path, oldName, newName)))
+        }
+    }
 }
 
 @EditorMutation

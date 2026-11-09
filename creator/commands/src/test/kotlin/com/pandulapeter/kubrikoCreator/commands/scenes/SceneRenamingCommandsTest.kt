@@ -83,6 +83,22 @@ class SceneRenamingCommandsTest {
     }
 
     @Test
+    @OptIn(EditorMutation::class)
+    fun renamingASceneFolderSaysOnceForEachOfItsScenesWhereCodeStillNamesIt() = runTest {
+        val context = context()
+        File(context.project.rootDirectory, "src/commonMain/kotlin/Levels.kt").writeText("""val levels = listOf("levels/1", "levels/2")""")
+        context.scenes.write("levels/1", "[]")
+        context.scenes.write("levels/2", "[]")
+        RenameFolder.apply(context, RenameFolder.Input(FolderGroup.SCENES, "levels", "world"))
+        assertEquals(
+            listOf("levels/1" to "world/1", "levels/2" to "world/2").map { (oldName, newName) ->
+                ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf("src/commonMain/kotlin/Levels.kt", oldName, newName))
+            },
+            reports.filterIsInstance<ConsoleEntry.Status>().filter { it.text == CommandProblem.SCENE_NAMED_IN_CODE },
+        )
+    }
+
+    @Test
     fun aSceneThatCantBeMovedIsRenamedNowhereAndSaysSo() = runTest {
         val context = context()
         val folder = context.scenes.fileOf("main").parentFile

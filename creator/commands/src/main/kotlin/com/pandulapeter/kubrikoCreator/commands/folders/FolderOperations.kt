@@ -14,7 +14,8 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.requireBlockTypes
-import com.pandulapeter.kubrikoCreator.commands.scenes.renameScene
+import com.pandulapeter.kubrikoCreator.commands.scenes.moveScene
+import com.pandulapeter.kubrikoCreator.commands.scenes.reportScenesNamedInCode
 import com.pandulapeter.kubrikoCreator.commands.scenes.sceneNotMoved
 import com.pandulapeter.kubrikoCreator.foundation.EditorMutation
 import com.pandulapeter.kubrikoCreator.foundation.moveWithoutReplacing
@@ -55,13 +56,14 @@ internal suspend fun CommandContext.moveFolder(group: FolderGroup, path: String,
         FolderGroup.SCENES -> {
             val movedScenes = ArrayList<String>()
             withContext(ioDispatcher) { scenes.scanNames() }.filter { FolderPaths.isWithin(FolderPaths.parentOf(it), path) }.forEach { scene ->
-                if (!renameScene(scene, moved(scene))) {
-                    movedScenes.asReversed().forEach { renameScene(moved(it), it) }
+                if (!moveScene(scene, moved(scene))) {
+                    movedScenes.asReversed().forEach { moveScene(moved(it), it) }
                     deleteFolder(group, newPath)
                     return sceneNotMoved(scene)
                 }
                 movedScenes += scene
             }
+            reportScenesNamedInCode(movedScenes.associateWith(::moved))
         }
         FolderGroup.PAGES -> withContext(ioDispatcher) {
             val movedPages = ArrayList<String>()
