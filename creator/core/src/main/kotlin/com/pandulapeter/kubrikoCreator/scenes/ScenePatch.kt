@@ -82,6 +82,7 @@ public class ScenePatch(
             previousDrawnRanks: IntArray? = null,
             isRecreated: (SceneActorEntry) -> Boolean = { false },
         ): ScenePatch {
+            require(previousDrawnRanks == null || previousDrawnRanks.size == previous.size) { "One drawn rank is needed for each previous entry." }
             val previousIndices = HashMap<String, Int>(previous.size * 2)
             previous.forEachIndexed { index, entry -> previousIndices[entry.id] = index }
             val actions = next.map { entry ->
@@ -95,7 +96,7 @@ public class ScenePatch(
                     else -> Action.Replace(previousIndex)
                 }
             }
-            val tailStart = orderedTailStart(actions) { previousIndex -> previousDrawnRanks?.get(previousIndex) ?: previousIndex }
+            val tailStart = if (previousDrawnRanks == null) orderedTailStart(actions) { it } else orderedTailStart(actions) { previousDrawnRanks[it] }
             val nextIds = next.mapTo(HashSet(next.size * 2)) { it.id }
             return ScenePatch(
                 actions = actions.mapIndexed { index, action -> if (index >= tailStart && action is Action.Kept) Action.Replace(action.previousIndex) else action },
@@ -108,34 +109,37 @@ public class ScenePatch(
          * Only a new order (an Actor that stays coming before one it came after, or after a new one) needs it, and then
          * it starts at that Actor, or earlier at the first new or changed one, or at the first one drawn out of its order
          * ([drawnRankOf] its previous index smaller than one before it), so that what stays is drawn in order and what
-         * is created goes after it. Without a new order, it is [actions]' size.
+         * is created goes after it. A changed Actor's old place counts toward the new order like any other. Without a
+         * new order, it is [actions]' size.
          */
         private inline fun orderedTailStart(actions: List<Action>, drawnRankOf: (Int) -> Int): Int {
             var lastPreviousIndex = -1
             var lastRank = Int.MIN_VALUE
             var firstAdded = -1
-            var firstCreated = -1
-            var firstOutOfDrawnOrder = -1
+            var firstUnsafe = -1
             actions.forEachIndexed { index, action ->
+                val previousIndex = when (action) {
+                    is Action.Kept -> action.previousIndex
+                    is Action.Replace -> action.previousIndex
+                    Action.Add -> -1
+                }
+                if (previousIndex >= 0 && (firstAdded >= 0 || previousIndex < lastPreviousIndex)) {
+                    return if (firstUnsafe >= 0) firstUnsafe else index
+                }
                 when (action) {
                     is Action.Kept -> {
-                        if (firstAdded >= 0 || action.previousIndex < lastPreviousIndex) {
-                            return listOf(index, firstCreated, firstOutOfDrawnOrder).filter { it >= 0 }.min()
-                        }
-                        lastPreviousIndex = action.previousIndex
-                        val rank = drawnRankOf(action.previousIndex)
+                        val rank = drawnRankOf(previousIndex)
                         if (rank < lastRank) {
-                            if (firstOutOfDrawnOrder < 0) firstOutOfDrawnOrder = index
+                            if (firstUnsafe < 0) firstUnsafe = index
                         } else {
                             lastRank = rank
                         }
                     }
-                    Action.Add -> {
-                        if (firstAdded < 0) firstAdded = index
-                        if (firstCreated < 0) firstCreated = index
-                    }
-                    is Action.Replace -> if (firstCreated < 0) firstCreated = index
+                    Action.Add -> if (firstAdded < 0) firstAdded = index
+                    is Action.Replace -> Unit
                 }
+                if (action !is Action.Kept && firstUnsafe < 0) firstUnsafe = index
+                if (previousIndex >= 0) lastPreviousIndex = previousIndex
             }
             return actions.size
         }

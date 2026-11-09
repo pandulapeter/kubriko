@@ -36,6 +36,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Image
 import java.io.File
@@ -92,6 +94,11 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
     private var nextDrawnRank = 0
 
     /**
+     * Held by [load] from working out what changed until it is shown, so loads never interleave.
+     */
+    private val loading = Mutex()
+
+    /**
      * The IDs of the Actors that couldn't be created from their states (of a type whose class is gone, for example),
      * which are neither drawn nor selectable on the canvas.
      */
@@ -126,7 +133,7 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      * the types in [previews] are drawn from those looks instead of their classes, and are created again when their
      * type's look changes.
      */
-    public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews) {
+    public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews): Unit = loading.withLock {
         apply(ScenePatch.between(entries, next, drawnRanks) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }, next, previews)
         indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
         uncreatedIds = uncreatedIdsOf(entries, actors)
@@ -208,7 +215,7 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      */
     public fun boundsOf(id: String): SceneHitTest.Bounds? = indicesById[id]?.let(::boundsAt)
 
-    private fun boundsAt(index: Int) = actors.getOrNull(index)?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME) }
+    private fun boundsAt(index: Int) = actors.getOrNull(index)?.let { boundsOf(index, it, entries[index].typeId == SceneSettingsCodeGenerator.SETTINGS_NAME, drawnRanks[index]) }
 
     /**
      * Moves and zooms the camera to show the Scene's bounds, or without Scene settings, every Actor.
@@ -285,15 +292,15 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
         /**
          * The rectangle [actor] covers, or for one without a size, a small square around its position.
          */
-        public fun boundsOf(index: Int, actor: Editable<*>, isBackground: Boolean = false): SceneHitTest.Bounds {
+        public fun boundsOf(index: Int, actor: Editable<*>, isBackground: Boolean = false, drawnRank: Int = index): SceneHitTest.Bounds {
             val body = actor.body
             val drawingOrder = (actor as? Visible)?.drawingOrder ?: 0f
             return if (body is BoxBody) {
                 val box = body.axisAlignedBoundingBox
-                SceneHitTest.Bounds(index, box.min.x.raw, box.min.y.raw, box.max.x.raw, box.max.y.raw, drawingOrder, isBackground)
+                SceneHitTest.Bounds(index, box.min.x.raw, box.min.y.raw, box.max.x.raw, box.max.y.raw, drawingOrder, isBackground, drawnRank)
             } else {
                 val (x, y) = body.position.x.raw to body.position.y.raw
-                SceneHitTest.Bounds(index, x - POINT_SIZE, y - POINT_SIZE, x + POINT_SIZE, y + POINT_SIZE, drawingOrder, isBackground)
+                SceneHitTest.Bounds(index, x - POINT_SIZE, y - POINT_SIZE, x + POINT_SIZE, y + POINT_SIZE, drawingOrder, isBackground, drawnRank)
             }
         }
 

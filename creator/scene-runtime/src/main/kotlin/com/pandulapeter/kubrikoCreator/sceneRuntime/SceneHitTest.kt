@@ -20,6 +20,8 @@ public object SceneHitTest {
      * @param index The Actor's index in the Scene.
      * @param drawingOrder Lower is drawn on top, as Kubriko's `Visible.drawingOrder`.
      * @param isBackground Whether it is only picked when nothing else is there (the Scene settings, which fill the bounds).
+     * @param drawnRank Where the Actor is in the order Kubriko draws Actors of the same drawing order (the order they
+     *   were added in), increasing with it; the index by default.
      */
     public data class Bounds(
         val index: Int,
@@ -29,17 +31,18 @@ public object SceneHitTest {
         val bottom: Float,
         val drawingOrder: Float = 0f,
         val isBackground: Boolean = false,
+        val drawnRank: Int = index,
     ) {
         internal fun contains(x: Float, y: Float) = x in left..right && y in top..bottom
     }
 
     /**
      * Whether these bounds are drawn above [other]: those of a background never are, then the lowest drawing order is,
-     * and of equal ones the Actor added later, which Kubriko draws later.
+     * and of equal ones the Actor added later ([Bounds.drawnRank]), which Kubriko draws later.
      */
     internal fun Bounds.isDrawnAbove(other: Bounds) = when {
         isBackground != other.isBackground -> !isBackground
         drawingOrder != other.drawingOrder -> drawingOrder < other.drawingOrder
-        else -> index > other.index
+        else -> drawnRank > other.drawnRank
     }
 }

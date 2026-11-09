@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.scenes
 import com.pandulapeter.kubrikoCreator.scenes.ScenePatch.Action
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -84,6 +85,23 @@ class ScenePatchTest {
             listOf(Action.Keep(0), Action.Replace(2), Action.Replace(1)),
             ScenePatch.between(scene, listOf(actor("a"), actor("c"), actor("b")), drawnRanks).actions,
         )
+    }
+
+    @Test
+    fun aChangedActorMovedInFrontOfOthersStillCountsAsANewOrder() {
+        assertEquals(
+            listOf(Action.Replace(1), Action.Replace(0)),
+            ScenePatch.between(listOf(actor("a"), actor("b")), listOf(actor("b", width = 20f), actor("a"))).actions,
+        )
+        assertEquals(
+            listOf(Action.Keep(0), Action.Replace(2), Action.Replace(1)),
+            ScenePatch.between(scene, listOf(actor("a"), actor("c", width = 20f), actor("b"))).actions,
+        )
+    }
+
+    @Test
+    fun drawnRanksHaveToMatchThePreviousEntries() {
+        assertFailsWith<IllegalArgumentException> { ScenePatch.between(scene, scene, intArrayOf(1, 2)) }
     }
 
     @Test

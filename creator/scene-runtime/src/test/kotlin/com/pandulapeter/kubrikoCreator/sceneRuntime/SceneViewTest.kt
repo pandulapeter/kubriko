@@ -134,6 +134,14 @@ class SceneViewTest {
     }
 
     @Test
+    fun aChangedActorDrawnOnTopOfAnotherIsPicked() = runTest {
+        view.load(listOf(box("a", 0f, 0f), box("b", 5f, 5f)))
+        assertEquals("b", pickAt(3f, 3f))
+        view.load(listOf(box("a", 0f, 0f).copy(state = SceneDocument.blockBuiltState(0f, 0f, SIZE + 1f, SIZE)), box("b", 5f, 5f)))
+        assertEquals("a", pickAt(3f, 3f))
+    }
+
+    @Test
     fun ofOverlappingActorsTheLaterOneIsPicked() = runTest {
         view.load(listOf(box("a", 0f, 0f), box("b", 5f, 5f)))
         assertEquals("b", pickAt(3f, 3f))
