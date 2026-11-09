@@ -18,6 +18,7 @@ import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.KubrikoBuildFiles
 import com.pandulapeter.kubrikoCreator.project.OwnWrites
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
+import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
@@ -58,13 +59,14 @@ public class GradleWorkspaceOpener(
         val ownWrites = OwnWrites()
         val creatorLibraries = withContext(Dispatchers.IO) { loadCreatorLibraries() }
         val projectFormat = ProjectFormat(directory, configuration.kubrikoVersion)
-        val (formatStatus, blockTypeStore) = try {
-            withContext(Dispatchers.IO) { projectFormat.prepare() to BlockTypeStore.open(directory, ownWrites) }
+        val formatStatus = try {
+            withContext(Dispatchers.IO) { projectFormat.prepare() }
         } catch (exception: UnreadableProjectFileException) {
             throw ProjectInspectionException(exception.reason, exception.arguments)
         } catch (_: IOException) {
             throw ProjectInspectionException(ProjectProblem.FORMAT_NOT_UPGRADED_ON_OPEN)
         }
+        val blockTypeStore = withContext(Dispatchers.IO) { openBlockTypeStore(directory, ownWrites, formatStatus) }
         return openWorkspace(scope) { opening ->
             val connection = opening.track(GradleProjectConnection(directory))
             WorkspaceController(
@@ -105,10 +107,22 @@ public class GradleWorkspaceOpener(
         }
     }
 
-    private companion object {
+    internal companion object {
+        /**
+         * The type store of the project in [directory], refusing the project when its settings can't be read, unless it
+         * is [ProjectFormatStatus.ReadOnly]: a newer Kubriko Creator may have changed what they hold, and such a project is
+         * only browsed, built, and played, which needs no store.
+         */
+        fun openBlockTypeStore(directory: File, ownWrites: OwnWrites, formatStatus: ProjectFormatStatus): BlockTypeStore? = try {
+            BlockTypeStore.open(directory, ownWrites)
+        } catch (exception: UnreadableProjectFileException) {
+            if (formatStatus !is ProjectFormatStatus.ReadOnly) throw ProjectInspectionException(exception.reason, exception.arguments)
+            null
+        }
+
         /**
          * How long changes wait to be written together with the next ones, which typing into a field makes many of.
          */
-        const val WRITE_DELAY_IN_MILLISECONDS = 100L
+        private const val WRITE_DELAY_IN_MILLISECONDS = 100L
     }
 }

@@ -13,13 +13,16 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_not_a_gradle_project
+import kubriko.creator.generated.resources.error_project_file_empty
 import kubriko.creator.generated.resources.error_project_file_not_an_object
 import kubriko.creator.generated.resources.error_project_file_not_decoded
 import kubriko.creator.generated.resources.error_project_file_not_json
+import kubriko.creator.generated.resources.error_project_file_not_json_somewhere
 import kubriko.creator.generated.resources.error_project_file_not_read
 import kubriko.creator.generated.resources.error_project_file_value_missing
 import kubriko.creator.generated.resources.error_project_file_value_not_number
 import kubriko.creator.generated.resources.error_project_file_value_not_text
+import kubriko.creator.generated.resources.error_project_file_value_too_large
 import kubriko.creator.generated.resources.error_project_format_not_upgraded
 import kubriko.creator.generated.resources.error_project_format_not_upgraded_on_open
 import kubriko.creator.generated.resources.error_project_newer_format
@@ -37,10 +40,13 @@ internal fun ProjectProblem.toResource(): StringResource = when (this) {
     ProjectProblem.NEWER_FORMAT -> Res.string.error_project_newer_format
     ProjectProblem.NEWER_FORMAT_UNKNOWN_VERSION -> Res.string.error_project_newer_format_unknown_version
     ProjectProblem.PROJECT_FILE_NOT_READ -> Res.string.error_project_file_not_read
+    ProjectProblem.PROJECT_FILE_EMPTY -> Res.string.error_project_file_empty
     ProjectProblem.PROJECT_FILE_NOT_JSON -> Res.string.error_project_file_not_json
     ProjectProblem.PROJECT_FILE_NOT_AN_OBJECT -> Res.string.error_project_file_not_an_object
     ProjectProblem.PROJECT_FILE_VALUE_MISSING -> Res.string.error_project_file_value_missing
     ProjectProblem.PROJECT_FILE_VALUE_NOT_TEXT -> Res.string.error_project_file_value_not_text
     ProjectProblem.PROJECT_FILE_VALUE_NOT_NUMBER -> Res.string.error_project_file_value_not_number
+    ProjectProblem.PROJECT_FILE_NOT_JSON_SOMEWHERE -> Res.string.error_project_file_not_json_somewhere
+    ProjectProblem.PROJECT_FILE_VALUE_TOO_LARGE -> Res.string.error_project_file_value_too_large
     ProjectProblem.PROJECT_FILE_NOT_DECODED -> Res.string.error_project_file_not_decoded
 }

@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
+import com.pandulapeter.kubrikoCreator.project.UnreadableProjectFileException
 import com.pandulapeter.kubrikoCreator.sceneRuntime.ClassLoaderEntryPointLoader
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingController
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneRuntimeSetup
@@ -399,6 +400,9 @@ public class WorkspaceController(
         scope.launch {
             val status = try {
                 withContext(ioDispatcher) { projectFormat.prepare() }
+            } catch (exception: UnreadableProjectFileException) {
+                appendToConsole(ConsoleEntry.Status(exception.reason, isError = true, arguments = exception.arguments))
+                return@launch
             } catch (exception: IOException) {
                 appendToConsole(ConsoleEntry.Status(ProjectProblem.FORMAT_NOT_UPGRADED, isError = true, arguments = listOf(exception.message ?: exception.toString())))
                 return@launch

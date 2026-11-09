@@ -13,13 +13,13 @@ import com.pandulapeter.kubrikoCreator.actors.store.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.store.KotlinBlockImportsMigration
 import com.pandulapeter.kubrikoCreator.actors.store.LookPropertyMigration
 import com.pandulapeter.kubrikoCreator.actors.store.ManagerFieldMigration
+import com.pandulapeter.kubrikoCreator.actors.store.ProjectSettingsReader
 import com.pandulapeter.kubrikoCreator.foundation.writeTextAtomically
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 
@@ -51,9 +51,10 @@ public class ProjectFormat(
      * Brings an older project up to this Kubriko Creator's format version, recording the version after each migration, so
      * that one that fails halfway is carried on from where it stopped next time.
      *
-     * @return Whether this Kubriko Creator may change the project. One that hasn't opted in (it has no readable
+     * @return Whether this Kubriko Creator may change the project. One that hasn't opted in (it has no
      *   `.kubriko/project.json`) counts as writable.
-     * @throws java.io.IOException If a migration couldn't write a file.
+     * @throws java.io.IOException If a migration couldn't write a file, or an [UnreadableProjectFileException] if
+     *   `.kubriko/project.json` can't be read or holds no JSON object.
      */
     public fun prepare(): ProjectFormatStatus {
         val settings = readSettings() ?: return ProjectFormatStatus.Writable
@@ -68,9 +69,7 @@ public class ProjectFormat(
         return ProjectFormatStatus.Writable
     }
 
-    private fun readSettings() = settingsFile.takeIf { it.isFile }?.let { file ->
-        runCatching { json.parseToJsonElement(file.readText()).jsonObject }.getOrNull()
-    }
+    private fun readSettings() = settingsFile.takeIf { it.isFile }?.let { file -> ProjectSettingsReader.parse(file, json) }
 
     private fun recordVersion(version: Int) {
         val settings = readSettings() ?: return

@@ -95,9 +95,10 @@ class ProjectFormatTest {
     }
 
     @Test
-    fun anUnreadableSettingsFileIsLeftToTheTypeStoreToReport() {
+    fun anUnreadableSettingsFileIsRefusedAsTheTypeStoreRefusesIt() {
         settingsFile.writeText("{ not json")
-        assertEquals(ProjectFormatStatus.Writable, format(migration("first")).prepare())
+        val exception = assertFailsWith<UnreadableProjectFileException> { format(migration("first")).prepare() }
+        assertEquals(ProjectProblem.PROJECT_FILE_NOT_JSON, exception.reason)
         assertEquals(emptyList(), applied)
     }
 

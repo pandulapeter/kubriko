@@ -12,11 +12,13 @@ package com.pandulapeter.kubrikoCreator.actors.store
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.project.UnreadableProjectFileException
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 
 class ProjectSettingsReaderTest {
@@ -44,10 +46,12 @@ class ProjectSettingsReaderTest {
     }
 
     @Test
-    fun anEmptyFileIsInvalidJsonOnItsFirstLine() {
-        val exception = failureOf("")
-        assertEquals(ProjectProblem.PROJECT_FILE_NOT_JSON, exception.reason)
-        assertEquals(listOf(settingsFile.path, "1"), exception.arguments)
+    fun anEmptyFileIsNamedAsSuch() {
+        listOf("", " \n").forEach { text ->
+            val exception = failureOf(text)
+            assertEquals(ProjectProblem.PROJECT_FILE_EMPTY, exception.reason)
+            assertEquals(listOf(settingsFile.path), exception.arguments)
+        }
     }
 
     @Test
@@ -65,8 +69,32 @@ class ProjectSettingsReaderTest {
     }
 
     @Test
-    fun aRequiredValueThatIsNullCountsAsMissing() {
-        assertEquals(ProjectProblem.PROJECT_FILE_VALUE_MISSING, failureOf("""{ "packageName": null }""").reason)
+    fun aRequiredValueThatIsNullIsOfTheWrongKind() {
+        assertEquals(ProjectProblem.PROJECT_FILE_VALUE_NOT_TEXT, failureOf("""{ "packageName": null }""").reason)
+        assertEquals(ProjectProblem.PROJECT_FILE_VALUE_NOT_NUMBER, failureOf("""{ "packageName": "com.example.game", "formatVersion": null }""").reason)
+    }
+
+    @Test
+    fun aWholeNumberBetweenQuotationMarksIsReadAsTheDecoderReadsIt() {
+        settingsFile.parentFile.mkdirs()
+        settingsFile.writeText("""{ "packageName": "com.example.game", "templateVersion": "2" }""")
+        assertNotNull(BlockTypeStore.open(root))
+    }
+
+    @Test
+    fun aWholeNumberTooLargeIsNamedAsSuch() {
+        listOf("3000000000", "-3000000000").forEach { value ->
+            val exception = failureOf("""{ "packageName": "com.example.game", "formatVersion": $value }""")
+            assertEquals(ProjectProblem.PROJECT_FILE_VALUE_TOO_LARGE, exception.reason, value)
+            assertEquals(listOf(settingsFile.path, "formatVersion"), exception.arguments)
+        }
+    }
+
+    @Test
+    fun aParserMessageNamingNoPlaceGivesNoLine() {
+        assertEquals(null, ProjectSettingsReader.lineOfMistake("{\n}", SerializationException("Broken.")))
+        assertEquals(null, ProjectSettingsReader.lineOfMistake("{}", SerializationException("Unexpected JSON token at offset 40: x")))
+        assertEquals(2, ProjectSettingsReader.lineOfMistake("{\n}", SerializationException("Unexpected JSON token at offset 2: x")))
     }
 
     @Test
@@ -85,7 +113,7 @@ class ProjectSettingsReaderTest {
 
     @Test
     fun aNumberThatIsNotAWholeNumberIsNamed() {
-        listOf("\"3\"", "3.5", "{}").forEach { value ->
+        listOf("\"three\"", "3.5", "{}", "true").forEach { value ->
             val exception = failureOf("""{ "packageName": "com.example.game", "templateVersion": $value }""")
             assertEquals(ProjectProblem.PROJECT_FILE_VALUE_NOT_NUMBER, exception.reason, value)
             assertEquals(listOf(settingsFile.path, "templateVersion"), exception.arguments)
@@ -105,5 +133,6 @@ class ProjectSettingsReaderTest {
         val exception = assertFailsWith<UnreadableProjectFileException> { ProjectSettingsReader.read(settingsFile, Json) }
         assertEquals(ProjectProblem.PROJECT_FILE_NOT_READ, exception.reason)
         assertEquals(settingsFile.path, exception.arguments.first())
+        assertFalse(settingsFile.path in exception.arguments[1], "the path isn't named twice: ${exception.arguments[1]}")
     }
 }

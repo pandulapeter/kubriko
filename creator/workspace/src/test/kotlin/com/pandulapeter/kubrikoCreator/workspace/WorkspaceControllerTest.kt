@@ -793,6 +793,25 @@ class WorkspaceControllerTest {
         }
     }
 
+    @Test
+    fun aProjectFileBrokenWhileOpenIsNamedInTheConsoleAndKeepsTheFormatStatus() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            val settingsFile = File(root, ".kubriko/project.json").apply { parentFile.mkdirs() }
+            settingsFile.writeText("""{ "packageName": "com.example.game", "formatVersion": ${ProjectFormat.CURRENT_VERSION} }""")
+            val controller = createController(blockTypeRepository = FakeBlockTypeRepository(), rootDirectory = root)
+            settingsFile.writeText("{\n  \"packageName\": \"com.example.game\",,\n}")
+            controller.onProjectChanged(setOf(ProjectChange.SETTINGS))
+            assertEquals(ProjectFormatStatus.Writable, controller.formatStatus.value)
+            assertEquals(
+                ConsoleEntry.Status(ProjectProblem.PROJECT_FILE_NOT_JSON, isError = true, arguments = listOf(settingsFile.path, "2")),
+                controller.console.value.entries.last(),
+            )
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     private companion object {
         const val CREATOR_KUBRIKO_VERSION = "1.0.0"
     }

@@ -11,6 +11,8 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.foundation.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.gradle.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.project.OwnWrites
+import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.project.ProjectProblem
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.runTest
@@ -19,6 +21,7 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class GradleWorkspaceOpenerTest {
     private val opener = GradleWorkspaceOpener(CreatorConfiguration.load(), loadCreatorLibraries = { emptyMap() })
@@ -65,5 +68,14 @@ class GradleWorkspaceOpenerTest {
         val exception = assertFailsWith<ProjectInspectionException> { opener.open(directory, backgroundScope) }
         assertEquals(ProjectProblem.PROJECT_FILE_VALUE_MISSING, exception.reason)
         assertEquals(listOf(settingsFile.path, "packageName"), exception.arguments)
+    }
+
+    @Test
+    fun aNewerProjectWhoseSettingsThisCreatorCantReadIsBrowsedWithoutItsTypes() {
+        val directory = testDirectory()
+        File(directory, ".kubriko/project.json").apply { parentFile.mkdirs() }.writeText("""{ "packageName": { "root": "com.example.game" }, "formatVersion": 99 }""")
+        assertNull(GradleWorkspaceOpener.openBlockTypeStore(directory, OwnWrites(), ProjectFormatStatus.ReadOnly(99, "9.0.0")))
+        val exception = assertFailsWith<ProjectInspectionException> { GradleWorkspaceOpener.openBlockTypeStore(directory, OwnWrites(), ProjectFormatStatus.Writable) }
+        assertEquals(ProjectProblem.PROJECT_FILE_VALUE_NOT_TEXT, exception.reason)
     }
 }
