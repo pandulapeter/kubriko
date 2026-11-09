@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.endToEnd
 
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.GameStep
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.test.runTest
 import java.awt.image.BufferedImage
@@ -20,9 +21,17 @@ import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class EndToEndScenarioTest {
+    private companion object {
+        const val RED = 0xFF0000
+        const val BLUE = 0x0000FF
+    }
+
     private val outputDirectory = testDirectory()
 
     private fun ServedProject.scenario() = EndToEndScenario("a scenario", project = testDirectory(), outputDirectory, tools, logTail = { "Last line." })
@@ -58,6 +67,48 @@ class EndToEndScenarioTest {
         withServedTools {
             val failure = assertFailsWith<ScenarioFailure> { scenario().step("Opening") { error("Too slow.") } }
             assertEquals("\"a scenario\" failed at \"Opening\": Too slow.\nNo images were taken before it.\nThe end of Kubriko Creator's log:\nLast line.", failure.message)
+        }
+    }
+
+    private fun png(color: Int) = ByteArrayOutputStream().also { stream ->
+        ImageIO.write(BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB).apply { setRGB(0, 0, color) }, "png", stream)
+    }.toByteArray()
+
+    @Test
+    fun waitingForTheGameReturnsTheFrameItAccepted() = runTest {
+        val runner = FakeProjectRunner(step = GameStep.Done(console = emptyList(), png = png(RED)))
+        withServedTools(runner) {
+            open()
+            val image = scenario().awaitGame("game") { frame ->
+                runner.step = GameStep.Done(console = emptyList(), png = png(BLUE))
+                frame.getRGB(0, 0) and 0xFFFFFF == RED
+            }
+            assertEquals(RED, image.getRGB(0, 0) and 0xFFFFFF)
+            assertEquals(RED, ImageIO.read(File(outputDirectory, "01-game.png")).getRGB(0, 0) and 0xFFFFFF)
+        }
+    }
+
+    @Test
+    fun waitingForTheGameThroughUnreadableFramesEndsWithWhyTheLastFailed() = runTest {
+        withServedTools(FakeProjectRunner(step = GameStep.Done(console = emptyList(), png = png(RED).copyOf(40)))) {
+            open()
+            val scenario = scenario()
+            val failure = assertFailsWith<IllegalStateException> { scenario.awaitGame("game", timeout = 1.seconds) { true } }
+            assertEquals("take_screenshot's image can't be read.", failure.message)
+        }
+    }
+
+    @Test
+    fun toolsAndTheConsoleAreWaitedForAndTheirFailuresNamed() = runTest {
+        withServedTools(console = listOf(ConsoleEntry.Log(message = "Ready.", source = null, isImportant = false))) {
+            val scenario = scenario()
+            assertFailsWith<AssertionError> { scenario.succeed("read_console") }
+            assertFailsWith<AssertionError> { scenario.awaitSuccess("read_console", emptyMap(), timeout = 1.seconds) }
+            open()
+            assertFalse(scenario.succeed("read_console").isError)
+            scenario.awaitConsole("Ready.", timeout = 1.seconds)
+            val missing = assertFailsWith<IllegalStateException> { scenario.awaitConsole("Done.", timeout = 1.seconds) }
+            assertTrue(missing.message!!.startsWith("The console never showed \"Done.\""), missing.message)
         }
     }
 

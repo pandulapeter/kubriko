@@ -16,9 +16,11 @@ import java.awt.Toolkit
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.IOException
 import javax.imageio.ImageIO
 import kotlin.test.assertFalse
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -56,12 +58,9 @@ internal class EndToEndScenario(
      */
     fun awaitScreen(imageName: String, timeout: Duration = SCREEN_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage {
         val robot = Robot()
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        while (true) {
-            val screen = robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize))
-            if (isReady(screen) || System.nanoTime() >= deadline) return screen.also { save(imageName, it) }
-            Thread.sleep(SCREEN_POLLING_INTERVAL_IN_MILLISECONDS)
-        }
+        return poll(timeout, SCREEN_POLLING_INTERVAL) { isLast ->
+            robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize)).takeIf { isLast || isReady(it) }
+        }.also { save(imageName, it) }
     }
 
     /**
@@ -72,7 +71,20 @@ internal class EndToEndScenario(
         val result = tools.call("take_screenshot")
         check(!result.isError) { "take_screenshot failed: ${result.text}" }
         val png = checkNotNull(result.png) { "take_screenshot returned no image: ${result.text}" }
-        return checkNotNull(ImageIO.read(ByteArrayInputStream(png))) { "take_screenshot's image can't be read." }.also { save(imageName, it) }
+        return checkNotNull(decode(png)) { "take_screenshot's image can't be read." }.also { save(imageName, it) }
+    }
+
+    /**
+     * What the running game shows once [isReady] accepts it, saved as [imageName], or as it is after [timeout]. Until
+     * then a screenshot that fails or can't be read counts as not ready, since a game restarting shows nothing for a
+     * while; the last one says why.
+     */
+    fun awaitGame(imageName: String, timeout: Duration = GAME_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage = poll(timeout, CreatorTools.POLLING_INTERVAL) { isLast ->
+        if (isLast) {
+            captureGame(imageName)
+        } else {
+            tools.call("take_screenshot").png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
+        }
     }
 
     /**
@@ -83,40 +95,23 @@ internal class EndToEndScenario(
     }
 
     /**
-     * What the running game shows once [isReady] accepts it, or as it is after [timeout], saved as [imageName].
-     */
-    fun awaitGame(imageName: String, timeout: Duration, isReady: (BufferedImage) -> Boolean): BufferedImage {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        while (true) {
-            val png = tools.call("take_screenshot").png
-            val image = png?.let { ImageIO.read(it.inputStream()) }
-            if ((image != null && isReady(image)) || System.nanoTime() >= deadline) return captureGame(imageName)
-            Thread.sleep(TOOL_POLLING_INTERVAL_IN_MILLISECONDS)
-        }
-    }
-
-    /**
      * Calls [tool] with [arguments] until it succeeds, failing the step when it still fails after [timeout].
      */
-    fun awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        while (true) {
-            val result = tools.call(tool, arguments)
-            if (!result.isError || System.nanoTime() >= deadline) return result.also { assertFalse(it.isError, "$tool failed: ${it.text}") }
-            Thread.sleep(TOOL_POLLING_INTERVAL_IN_MILLISECONDS)
-        }
-    }
+    fun awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult = poll(timeout, CreatorTools.POLLING_INTERVAL) { isLast ->
+        tools.call(tool, arguments).takeIf { isLast || !it.isError }
+    }.also { assertFalse(it.isError, "$tool failed: ${it.text}") }
 
     /**
      * Waits until Kubriko Creator's console shows [line], failing the step when it doesn't within [timeout].
      */
     fun awaitConsole(line: String, timeout: Duration = 30.seconds) {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        while (true) {
+        poll(timeout, CreatorTools.POLLING_INTERVAL) { isLast ->
             val console = tools.call("read_console").text
-            if (line in console) return
-            check(System.nanoTime() < deadline) { "The console never showed \"$line\":\n$console" }
-            Thread.sleep(TOOL_POLLING_INTERVAL_IN_MILLISECONDS)
+            when {
+                line in console -> true
+                isLast -> error("The console never showed \"$line\":\n$console")
+                else -> null
+            }
         }
     }
 
@@ -130,6 +125,26 @@ internal class EndToEndScenario(
             File(outputDirectory, "%02d-%s-console.txt".format(images.size, imageName)).writeText(chrome.console.joinToString("\n"))
         }
 
+    /**
+     * What [attempt] returns once it returns something, trying again every [interval] until [timeout] has passed. Its last
+     * attempt is told so, and returns or throws.
+     */
+    private inline fun <T : Any> poll(timeout: Duration, interval: Duration, attempt: (isLast: Boolean) -> T?): T {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        while (true) {
+            val isLast = System.nanoTime() >= deadline
+            attempt(isLast)?.let { return it }
+            check(!isLast) { "The last attempt returned nothing." }
+            Thread.sleep(interval.inWholeMilliseconds)
+        }
+    }
+
+    private fun decode(png: ByteArray): BufferedImage? = try {
+        ImageIO.read(ByteArrayInputStream(png))
+    } catch (_: IOException) {
+        null
+    }
+
     private fun save(imageName: String, image: BufferedImage) {
         val file = File(outputDirectory, "%02d-%s.png".format(images.size + 1, imageName))
         ImageIO.write(image, "png", file)
@@ -138,9 +153,9 @@ internal class EndToEndScenario(
 
     private companion object {
         const val LAST_IMAGES = 3
-        const val SCREEN_POLLING_INTERVAL_IN_MILLISECONDS = 250L
-        const val TOOL_POLLING_INTERVAL_IN_MILLISECONDS = 500L
+        val SCREEN_POLLING_INTERVAL = 250.milliseconds
         val SCREEN_TIMEOUT = 15.seconds
+        val GAME_TIMEOUT = 30.seconds
         val BROWSER_TIMEOUT = 60.seconds
     }
 }

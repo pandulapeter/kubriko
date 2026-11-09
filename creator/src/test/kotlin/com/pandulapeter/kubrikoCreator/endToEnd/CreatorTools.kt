@@ -120,7 +120,11 @@ internal class CreatorTools(
 
     companion object {
         private const val OPENING_PROBE = "get_project_overview"
-        private val POLLING_INTERVAL = 500.milliseconds
+
+        /**
+         * How long to wait before asking again for what isn't ready yet.
+         */
+        val POLLING_INTERVAL = 500.milliseconds
         private val PROBE_TIMEOUT = 10.seconds
         val DEFAULT_TIMEOUT = 1.minutes
         val OPENING_TIMEOUT = 3.minutes

@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.FakeProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.commands.testScope
+import com.pandulapeter.kubrikoCreator.console.ConsoleEntry
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.McpSettings
@@ -33,14 +34,18 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * Kubriko Creator's real MCP server, turned on by the settings folder [CreatorProcess.writeMcpSettings] seeds, as the
- * started app's is, serving a project whose game is [runner]. [block] gets [CreatorTools] reaching it, and opens the
+ * started app's is, serving a project whose game is [runner] and whose console shows [console]. [block] gets [CreatorTools] reaching it, and opens the
  * project with [ServedProject.open]; it runs on [Dispatchers.IO], since the tools block.
  */
-internal suspend fun TestScope.withServedTools(runner: FakeProjectRunner = FakeProjectRunner(), block: suspend ServedProject.() -> Unit) {
+internal suspend fun TestScope.withServedTools(
+    runner: FakeProjectRunner = FakeProjectRunner(),
+    console: List<ConsoleEntry> = emptyList(),
+    block: suspend ServedProject.() -> Unit,
+) {
     val settingsDirectory = testDirectory()
     val settings = McpSettings(isEnabled = true, port = TestPorts.shared.next(), token = "end-to-end-token")
     CreatorProcess.writeMcpSettings(settingsDirectory, settings)
-    val project = ServedProject(CreatorTools(settings), CommandExecutor(commandContext(runner = runner), testScope()))
+    val project = ServedProject(CreatorTools(settings), CommandExecutor(commandContext(runner = runner, console = console), testScope()))
     val serverScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val controller = McpController(
         server = McpToolServer(executor = { project.openExecutor }, callDispatcher = Dispatchers.Default, version = "1.0.0"),
