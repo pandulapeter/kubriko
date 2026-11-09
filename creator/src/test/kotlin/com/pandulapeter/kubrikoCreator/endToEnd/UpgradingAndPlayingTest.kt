@@ -142,39 +142,6 @@ class UpgradingAndPlayingTest {
         }
     }
 
-    private fun EndToEndScenario.succeed(tool: String, arguments: Map<String, Any?> = emptyMap()) = tools.call(tool, arguments).also { result ->
-        assertFalse(result.isError, "$tool failed: ${result.text}")
-    }
-
-    private fun EndToEndScenario.awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        while (true) {
-            val result = tools.call(tool, arguments)
-            if (!result.isError || System.nanoTime() >= deadline) return result.also { assertFalse(it.isError, "$tool failed: ${it.text}") }
-            Thread.sleep(POLLING_INTERVAL_IN_MILLISECONDS)
-        }
-    }
-
-    private fun EndToEndScenario.awaitConsole(line: String, timeout: Duration = 30.seconds) {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        while (true) {
-            val console = tools.call("read_console").text
-            if (line in console) return
-            check(System.nanoTime() < deadline) { "The console never showed \"$line\":\n$console" }
-            Thread.sleep(POLLING_INTERVAL_IN_MILLISECONDS)
-        }
-    }
-
-    private fun EndToEndScenario.awaitGame(imageName: String, timeout: Duration, isReady: (BufferedImage) -> Boolean): BufferedImage {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        while (true) {
-            val png = tools.call("take_screenshot").png
-            val image = png?.let { ImageIO.read(it.inputStream()) }
-            if ((image != null && isReady(image)) || System.nanoTime() >= deadline) return captureGame(imageName)
-            Thread.sleep(POLLING_INTERVAL_IN_MILLISECONDS)
-        }
-    }
-
     private fun writeSprite(file: File) {
         file.parentFile.mkdirs()
         val image = BufferedImage(SPRITE_SIZE, SPRITE_SIZE, BufferedImage.TYPE_INT_RGB)
@@ -199,7 +166,6 @@ class UpgradingAndPlayingTest {
         const val TEXT = 0x202020
         const val LOGGED_LINE = "A gem is in place."
         const val VIEWPORT_MODIFIER = "modifier = modifier,"
-        const val POLLING_INTERVAL_IN_MILLISECONDS = 500L
 
         /**
          * Taller than any screen the checks run on, so that the fixed viewport fills the game's height and leaves bars beside it.

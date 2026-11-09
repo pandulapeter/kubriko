@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
 import javax.imageio.ImageIO
+import kotlin.test.assertFalse
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -75,6 +76,51 @@ internal class EndToEndScenario(
     }
 
     /**
+     * Calls [tool] with [arguments], failing the step when it fails.
+     */
+    fun succeed(tool: String, arguments: Map<String, Any?> = emptyMap()) = tools.call(tool, arguments).also { result ->
+        assertFalse(result.isError, "$tool failed: ${result.text}")
+    }
+
+    /**
+     * What the running game shows once [isReady] accepts it, or as it is after [timeout], saved as [imageName].
+     */
+    fun awaitGame(imageName: String, timeout: Duration, isReady: (BufferedImage) -> Boolean): BufferedImage {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        while (true) {
+            val png = tools.call("take_screenshot").png
+            val image = png?.let { ImageIO.read(it.inputStream()) }
+            if ((image != null && isReady(image)) || System.nanoTime() >= deadline) return captureGame(imageName)
+            Thread.sleep(TOOL_POLLING_INTERVAL_IN_MILLISECONDS)
+        }
+    }
+
+    /**
+     * Calls [tool] with [arguments] until it succeeds, failing the step when it still fails after [timeout].
+     */
+    fun awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        while (true) {
+            val result = tools.call(tool, arguments)
+            if (!result.isError || System.nanoTime() >= deadline) return result.also { assertFalse(it.isError, "$tool failed: ${it.text}") }
+            Thread.sleep(TOOL_POLLING_INTERVAL_IN_MILLISECONDS)
+        }
+    }
+
+    /**
+     * Waits until Kubriko Creator's console shows [line], failing the step when it doesn't within [timeout].
+     */
+    fun awaitConsole(line: String, timeout: Duration = 30.seconds) {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        while (true) {
+            val console = tools.call("read_console").text
+            if (line in console) return
+            check(System.nanoTime() < deadline) { "The console never showed \"$line\":\n$console" }
+            Thread.sleep(TOOL_POLLING_INTERVAL_IN_MILLISECONDS)
+        }
+    }
+
+    /**
      * What [chrome]'s page shows once [isReady] accepts it, or as it is after [timeout], saved as [imageName] with what the
      * page logged and threw beside it, which is all there is to tell why a page that never gets ready doesn't.
      */
@@ -93,6 +139,7 @@ internal class EndToEndScenario(
     private companion object {
         const val LAST_IMAGES = 3
         const val SCREEN_POLLING_INTERVAL_IN_MILLISECONDS = 250L
+        const val TOOL_POLLING_INTERVAL_IN_MILLISECONDS = 500L
         val SCREEN_TIMEOUT = 15.seconds
         val BROWSER_TIMEOUT = 60.seconds
     }
