@@ -13,6 +13,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -23,6 +24,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
+import com.pandulapeter.kubrikoCreator.git.CommitSummary
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -85,15 +87,15 @@ class GitPanelTest {
     }
 
     @Test
-    fun inAShortWindowTheFormScrollsWithinHalfOfTheHeightAndTheChangesKeepTheirRoom() = uiTest(height = 260) {
+    fun inAShortWindowTheFormTakesAtMostHalfOfTheHeightAndScrollsWithinIt() = uiTest(height = 260) {
         val changes = (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf(".kubriko/actors/Type$it.json"), isBlockType = true) }
         showing { GitPanel(state = MutableStateFlow(GitState.Ready("main", changes, emptyList())), onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}, areScreenplayRemindersShown = true) }
         saveSnapshot("git-short-window")
         onNodeWithText("Changes (60)").assertIsDisplayed()
         onNodeWithText("Type1").assertIsDisplayed()
-        val formTop = onNodeWithText("On branch main").getUnclippedBoundsInRoot().top
+        val form = onNode(hasScrollAction() and !hasScrollToNodeAction()).getUnclippedBoundsInRoot()
         val list = onNode(hasScrollToNodeAction()).getUnclippedBoundsInRoot()
-        assertTrue(list.bottom - list.top >= (list.bottom - formTop) / 3)
+        assertTrue(form.bottom - form.top <= (list.bottom - form.top) / 2)
         onNodeWithText("Commit the 60 changes").performScrollTo().assertIsDisplayed()
     }
 
@@ -113,6 +115,21 @@ class GitPanelTest {
         val definition = ChangeEntry("Ball", ChangeKind.MODIFIED, listOf(".kubriko/actors/Ball.json"), isBlockType = true)
         assertEquals(changeKeyOf(definition), changeKeyOf(definition.copy(paths = definition.paths + "src/commonMain/kotlin/generated/Ball.kt")))
         assertNotEquals(changeKeyOf(definition), changeKeyOf(ChangeEntry("Ball", ChangeKind.ADDED, listOf("Ball"), isBlockType = false)))
+    }
+
+    @Test
+    fun theHistorysHeadingTakesTheCountsPlaceOnceTheHistoryIsScrolledTo() = uiTest {
+        val history = (1..30).map { CommitSummary("abc$it", "Commit $it", "Péter", it.toLong()) }
+        showing { GitPanel(state = MutableStateFlow(manyChanges().copy(history = history)), onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}) }
+        onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Commit 30"))
+        onNodeWithText("History").assertIsDisplayed()
+        onNodeWithText("Changes (60)").assertDoesNotExist()
+        saveSnapshot("git-history-scrolled")
+    }
+
+    @Test
+    fun commitsWithTheSameAbbreviatedIdAreToldApart() {
+        assertNotEquals(commitKeyOf(CommitSummary("abc1234", "One", "Péter", 1)), commitKeyOf(CommitSummary("abc1234", "Two", "Péter", 2)))
     }
 
     private fun manyChanges() = GitState.Ready("main", (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf("Type$it.kt"), isBlockType = true) }, emptyList())

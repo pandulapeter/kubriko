@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.git
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
+import com.pandulapeter.kubrikoCreator.git.CommitSummary
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -100,6 +102,10 @@ private fun NoRepository(
     }
 }
 
+/**
+ * The commit form, kept in sight above the changes and the history, which scroll under it. The form comes first, so it
+ * takes at most half of the panel's height ([atMostHalfTheHeight]), scrolling within it in a short window.
+ */
 @Composable
 private fun Repository(
     state: GitState.Ready,
@@ -138,11 +144,6 @@ private fun Repository(
             )
         }
     }
-    Text(
-        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
-        text = stringResource(Res.string.git_changes, state.changes.size),
-        style = MaterialTheme.typography.titleSmall,
-    )
     ChangesAndHistory(
         modifier = Modifier.weight(1f),
         state = state,
@@ -160,6 +161,10 @@ private fun Repository(
     }
 }
 
+/**
+ * The changes and the history, each under a heading that stays at the top while its rows are scrolled through, so the
+ * count of changes stays in sight until the history's heading takes its place.
+ */
 @Composable
 private fun ChangesAndHistory(
     state: GitState.Ready,
@@ -168,6 +173,13 @@ private fun ChangesAndHistory(
 ) = LazyColumn(
     modifier = modifier,
 ) {
+    stickyHeader(key = CHANGES_KEY) {
+        Text(
+            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow).padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
+            text = stringResource(Res.string.git_changes, state.changes.size),
+            style = MaterialTheme.typography.titleSmall,
+        )
+    }
     if (state.changes.isEmpty()) {
         item(key = NO_CHANGES_KEY) {
             Text(
@@ -184,8 +196,10 @@ private fun ChangesAndHistory(
             onDiscard = { onDiscard(entry) },
         )
     }
-    item(key = HISTORY_KEY) {
-        Column {
+    stickyHeader(key = HISTORY_KEY) {
+        Column(
+            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerLow),
+        ) {
             HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
             PanelHeader(
                 icon = Res.drawable.ic_history,
@@ -193,23 +207,29 @@ private fun ChangesAndHistory(
             )
         }
     }
-    items(state.history) { commit ->
+    items(state.history, key = ::commitKeyOf) { commit ->
         CommitRow(commit)
     }
 }
 
 /**
  * What keeps a change's row in place while the rows above it come and go: its title, unique among the types and among the
- * files, and not its paths, which change as a type's generated code joins or leaves it.
+ * files (the repository lists each path once), and not its paths, which change as a type's generated code joins or leaves it.
  */
-internal fun changeKeyOf(entry: ChangeEntry): Any = entry.isBlockType to entry.title
+internal fun changeKeyOf(entry: ChangeEntry): String = if (entry.isBlockType) "type:${entry.title}" else "file:${entry.title}"
 
 /**
- * Measures with at most half of the height available, so that what scrolls below (the changes) always keeps the rest,
- * however long the commit message or short the window.
+ * What keeps a commit's row in place: its abbreviated ID, which two commits may share, together with its time.
+ */
+internal fun commitKeyOf(commit: CommitSummary): String = "${commit.id}:${commit.time}"
+
+/**
+ * Measures with at most half of the height its parent has left, so that what scrolls below (the changes) always keeps the
+ * rest, however long the commit message or short the window.
  */
 private fun Modifier.atMostHalfTheHeight() = layout { measurable, constraints ->
-    val placeable = measurable.measure(if (constraints.hasBoundedHeight) constraints.copy(maxHeight = constraints.maxHeight / 2, minHeight = 0) else constraints)
+    val bounded = if (constraints.hasBoundedHeight) constraints.copy(maxHeight = (constraints.maxHeight / 2).coerceAtLeast(constraints.minHeight)) else constraints
+    val placeable = measurable.measure(bounded)
     layout(placeable.width, placeable.height) { placeable.place(0, 0) }
 }
 
@@ -236,5 +256,6 @@ private fun CommitForm(
     }
 }
 
+private const val CHANGES_KEY = "changes"
 private const val NO_CHANGES_KEY = "noChanges"
 private const val HISTORY_KEY = "history"
