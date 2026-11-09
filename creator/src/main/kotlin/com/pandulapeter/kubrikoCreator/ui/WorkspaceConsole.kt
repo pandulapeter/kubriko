@@ -26,8 +26,8 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The workspace's console under a splitter that resizes it (opening it when it is closed), in a column [availableHeight]
- * tall. It opens by itself for lines worth seeing that arrive while it is shown ([ConsoleOpening]), what the game logs
- * once per play session.
+ * tall. It opens by itself for lines worth seeing that arrive while it is shown ([ConsoleOpening]), of what the game
+ * logs only for its first line since it was started or the console cleared.
  */
 @Composable
 internal fun WorkspaceConsole(

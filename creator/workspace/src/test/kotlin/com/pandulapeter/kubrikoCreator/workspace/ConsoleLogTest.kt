@@ -129,6 +129,36 @@ class ConsoleLogTest {
     }
 
     @Test
+    fun buildOutputAndErrorStatusesAreNoProblemsOfTheirOwn() {
+        val log = ConsoleLog(capacity = 10)
+        log.append(ConsoleEntry.BuildOutput("FAILURE"))
+        log.append(ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true))
+        log.append(ConsoleEntry.Log("Tick", source = null, isImportant = true))
+        assertEquals(null, log.lines.value.latestProblem)
+    }
+
+    @Test
+    fun clearingMakesTheNextLoggedLineTheFirstAgain() {
+        val log = ConsoleLog(capacity = 10)
+        val tick = ConsoleEntry.Log("Tick", source = null, isImportant = false)
+        log.append(tick)
+        log.append(tick)
+        log.clear()
+        assertEquals(null, log.lines.value.firstLogNumber)
+        log.append(tick)
+        assertEquals(2L, log.lines.value.firstLogNumber)
+    }
+
+    @Test
+    fun consoleLinesAreComparedWithoutTheirLinesWhenTheyDifferOtherwise() {
+        val lines = ConsoleLines(revision = 1, entries = listOf(line(1)))
+        assertEquals(lines, ConsoleLines(revision = 1, entries = listOf(line(1))))
+        assertEquals(lines.hashCode(), ConsoleLines(revision = 1, entries = listOf(line(1))).hashCode())
+        assertNotEquals(lines, ConsoleLines(revision = 1, entries = listOf(line(2))))
+        assertNotEquals(lines, ConsoleLines(revision = 2, entries = listOf(line(1))))
+    }
+
+    @Test
     fun aConsoleKeepsAtLeastOneLine() {
         assertTrue(runCatching { ConsoleLog(capacity = 0) }.exceptionOrNull() is IllegalArgumentException)
     }

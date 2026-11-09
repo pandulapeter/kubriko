@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 
 /**
  * When the console opens by itself: for every line that [opensConsole] added since [initial] or the last [opensFor],
- * except that of what the game logs, only its first line since it was played ([ConsoleLines.firstLogNumber]) does, so a
+ * except that of what the game logs, only its first line since it started ([ConsoleLines.firstLogNumber]) does, so a
  * game logging every frame doesn't open it again each time it is closed. That holds for its important lines too, as
  * importance only says how a line is shown (Kubriko's engine logs routine messages as important, and a device's
  * printed Log Blocks all are); what goes wrong opens it every time as a problem or a failure.

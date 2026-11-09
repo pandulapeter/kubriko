@@ -123,7 +123,7 @@ internal fun Console(
                     try {
                         listState.scrollToItem(shown.entries.lastIndex)
                     } catch (exception: CancellationException) {
-                        // The user scrolled meanwhile: what they look at now decides, not the newest line.
+                        // The user scrolled meanwhile (dragging, the wheel, keys, or selecting text): what they look at now decides.
                         ensureActive()
                     }
                 }

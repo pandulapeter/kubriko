@@ -164,7 +164,7 @@ internal class SessionController(
     private fun onMessage(message: SessionMessage) = when (message) {
         is SessionMessage.Hello -> if (message.protocolVersion >= MINIMUM_PROTOCOL_VERSION) {
             protocolVersion = minOf(message.protocolVersion, SessionProtocol.VERSION)
-            if (message.mode == SessionMode.PLAY) console.startPlaySession()
+            console.startPlaySession()
             _state.value = SessionState.Running(message.mode)
             console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED))
         } else {

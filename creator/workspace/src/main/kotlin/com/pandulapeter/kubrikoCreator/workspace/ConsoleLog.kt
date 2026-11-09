@@ -74,13 +74,16 @@ internal class ConsoleLog(private val capacity: Int = CONSOLE_SIZE) {
             start = 0
             end = 0
             latestProblem = null
+            firstLogNumber = null
+            isLogAwaited = true
             publish()
         }
     }
 
     /**
-     * Starts a new play session, once the game is up, so that the first line it logs ([ConsoleLines.firstLogNumber]) is
-     * its own rather than one a game played before left behind.
+     * Starts a new session, once its game is up (whether played or not), so that the first line it logs
+     * ([ConsoleLines.firstLogNumber]) is its own rather than one a game before it left behind; clearing the console does
+     * the same.
      */
     fun startPlaySession() {
         synchronized(lock) { isLogAwaited = true }

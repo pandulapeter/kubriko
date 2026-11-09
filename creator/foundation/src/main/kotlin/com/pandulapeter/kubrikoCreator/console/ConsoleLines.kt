@@ -16,8 +16,8 @@ package com.pandulapeter.kubrikoCreator.console
  *
  * @param firstNumber The number of the first of [entries] among every line ever added, so that a line keeps its number
  *   while older ones are dropped.
- * @param firstLogNumber The number of the first line the game logged ([ConsoleEntry.Log]) since it was last played, if
- *   any, so that only that one opens the console by itself however often the console is shown again.
+ * @param firstLogNumber The number of the first line the game logged ([ConsoleEntry.Log]) since it was started or the
+ *   console cleared, if any, so that only that one opens the console by itself however often the console is shown again.
  * @param latestProblem The newest [ConsoleEntry.Failing] line among [entries], unless a status that isn't an error came
  *   after it (something went well since), kept as lines are added rather than looked for among them.
  */
@@ -27,4 +27,23 @@ public data class ConsoleLines(
     val firstNumber: Long = 0,
     val firstLogNumber: Long? = null,
     val latestProblem: ConsoleEntry.Failing? = null,
-)
+) {
+    /**
+     * Equal when everything but the lines is, and the lines are the same list or, failing that, equal: a console's lines
+     * are only ever compared with an earlier revision's, whose [revision] already differs.
+     */
+    override fun equals(other: Any?): Boolean = this === other || (
+        other is ConsoleLines &&
+            revision == other.revision &&
+            firstNumber == other.firstNumber &&
+            firstLogNumber == other.firstLogNumber &&
+            latestProblem == other.latestProblem &&
+            entries.size == other.entries.size &&
+            (entries === other.entries || entries == other.entries)
+        )
+
+    /**
+     * Left out of [entries], which may hold thousands of lines: equal ones have equal revisions and sizes anyway.
+     */
+    override fun hashCode(): Int = 31 * revision.hashCode() + entries.size
+}
