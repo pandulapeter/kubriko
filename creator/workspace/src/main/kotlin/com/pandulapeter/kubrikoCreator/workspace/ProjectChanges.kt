@@ -9,19 +9,18 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.foundation.reportProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
  * The one table routing every change to the project, Creator's own writes ([onSceneChanges], [onTypesSaved]) and the
- * watcher's ([onProjectChanged]), to the parts that follow it. Used from the main thread only.
+ * watcher's ([onProjectChanged]), to the parts that follow it, each of which follows it whatever another one throws.
+ * Used from the main thread only.
  *
  * A Scene edit refreshes only the Scene view and what is built from the Scenes; a new, deleted, or moved Scene or a folder
  * the resource tree too; and every change the Version control panel. Resource refreshes are coalesced: at most one scan
@@ -52,7 +51,6 @@ internal class ProjectChanges(
     private val reloadTypes: () -> Unit,
     private val refreshProjectUpgrade: () -> Unit,
 ) {
-    private val problemHandler = checkNotNull(scope.coroutineContext[CoroutineExceptionHandler]) { "ProjectChanges reports what fails through its scope's handler, which it lacks." }
     private val resourceRefreshes = Channel<ResourceRefresh>(Channel.UNLIMITED)
 
     init {
@@ -67,7 +65,7 @@ internal class ProjectChanges(
                 try {
                     scanResources(if (isWalkNeeded) null else snapshot)
                 } catch (throwable: Throwable) {
-                    handle(throwable)
+                    scope.reportProblem(throwable)
                 }
             }
         }
@@ -81,8 +79,7 @@ internal class ProjectChanges(
     }
 
     /**
-     * Follows what one command, undo, or redo changed in the Scene files, which it is handed only once, so every part
-     * that follows them does so whatever another one throws ([handle]).
+     * Follows what one command, undo, or redo changed in the Scene files, which it is handed only once.
      */
     fun onSceneChanges(changes: List<SceneChange>) {
         following { if (changes.any { it !is SceneChange.Written || it.isNew }) refreshResources() }
@@ -93,29 +90,15 @@ internal class ProjectChanges(
         following(refreshGit)
     }
 
+    /**
+     * Runs [follower], one part that follows a change, reporting what it throws ([reportProblem]), so the parts after it
+     * still follow the change.
+     */
     private inline fun following(follower: () -> Unit) {
         try {
             follower()
         } catch (throwable: Throwable) {
-            handle(throwable)
-        }
-    }
-
-    /**
-     * Hands what a part following a change threw to the scope's handler, so the rest still follow it. A cancellation is
-     * thrown on while the scope is cancelled, and is no problem otherwise (a read that timed out); what the handler
-     * throws has nowhere else to go than the error stream.
-     */
-    private fun handle(throwable: Throwable) {
-        if (throwable is CancellationException) {
-            if (!scope.isActive) throw throwable
-            return
-        }
-        try {
-            problemHandler.handleException(scope.coroutineContext, throwable)
-        } catch (handlerFailure: Throwable) {
-            handlerFailure.addSuppressed(throwable)
-            handlerFailure.printStackTrace()
+            scope.reportProblem(throwable)
         }
     }
 
@@ -125,33 +108,33 @@ internal class ProjectChanges(
      */
     fun onTypesSaved(haveTypesChanged: Boolean) {
         if (haveTypesChanged) {
-            markSceneOutdated()
-            onCodeChanged()
+            following(markSceneOutdated)
+            following(onCodeChanged)
         }
-        refreshGit()
+        following(refreshGit)
     }
 
     /**
      * Follows files that changed on disk outside Kubriko Creator, which [snapshot] (if known) shows as they are now.
      */
     fun onProjectChanged(changes: Set<ProjectChange>, snapshot: ProjectSnapshot? = null) {
-        if (ProjectChange.SETTINGS in changes) refreshFormatStatus()
-        if (ProjectChange.BLOCK_TYPE_DEFINITIONS in changes) reloadTypes()
+        if (ProjectChange.SETTINGS in changes) following(refreshFormatStatus)
+        if (ProjectChange.BLOCK_TYPE_DEFINITIONS in changes) following(reloadTypes)
         if (ProjectChange.SOURCES in changes) {
-            markSceneOutdated()
-            refreshProjectUpgrade()
+            following(markSceneOutdated)
+            following(refreshProjectUpgrade)
         }
         if (ProjectChange.SCENES in changes) {
-            regenerate()
-            onScenesChangedOnDisk()
+            following(regenerate)
+            following(onScenesChangedOnDisk)
         }
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) {
             resourceRefreshes.trySend(ResourceRefresh(snapshot))
-            onCodeChanged()
+            following(onCodeChanged)
         } else if (ProjectChange.MODULES in changes || ProjectChange.DOCUMENTS in changes) {
             resourceRefreshes.trySend(ResourceRefresh(snapshot))
         }
-        refreshGit()
+        following(refreshGit)
     }
 
     /**

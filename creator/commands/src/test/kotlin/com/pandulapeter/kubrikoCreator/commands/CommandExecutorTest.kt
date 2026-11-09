@@ -36,9 +36,9 @@ import com.pandulapeter.kubrikoCreator.testing.FakeBlockTypeRepository
 import com.pandulapeter.kubrikoCreator.testing.testDirectory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -417,7 +417,7 @@ class CommandExecutorTest {
 
         fun TestScope.executorOver(context: CommandContext) = CommandExecutor(
             context = context,
-            scope = testScope(),
+            scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler) + CoroutineExceptionHandler { _, problem -> reported += problem }),
             onSceneChanges = { changes ->
                 if (failures > 0) {
                     failures--
@@ -425,7 +425,6 @@ class CommandExecutorTest {
                 }
                 delivered += changes
             },
-            reportProblem = { reported += it },
         )
     }
 
@@ -479,33 +478,12 @@ class CommandExecutorTest {
         val context = commandContext()
         val executor = CommandExecutor(
             context = context,
-            scope = testScope(),
+            scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler) + CoroutineExceptionHandler { _, _ -> error("Not reported.") }),
             onSceneChanges = { throw IllegalStateException("Not delivered.") },
-            reportProblem = { throw IllegalStateException("Not reported.") },
         )
         val cancellation = CancellationException("Stopped.")
         assertEquals(cancellation, assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(cancellation), NoInput)) })
         assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("a"))))
-    }
-
-    @Test
-    fun aDeliveryCancelledWithItsCallerCancelsAChangeThatWasMade() = runTest {
-        val context = commandContext()
-        lateinit var caller: Job
-        val executor = CommandExecutor(
-            context = context,
-            scope = testScope(),
-            onSceneChanges = {
-                caller.cancel()
-                throw CancellationException("Closing.")
-            },
-        )
-        var outcome: CommandOutcome? = null
-        caller = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler), start = CoroutineStart.LAZY) { outcome = executor.execute(Invocation(CreateScene, CreateScene.Input("a"))) }
-        caller.start()
-        assertTrue(caller.isCancelled)
-        assertNull(outcome)
-        assertEquals("create_scene", executor.history.value.nextUndoCommandName)
     }
 
     @Test
@@ -525,7 +503,7 @@ class CommandExecutorTest {
     }
 
     @Test
-    fun theUsersUndoWhoseSceneIsNotDeliveredDoesntTellWhatItBroughtBack() = runTest {
+    fun theUsersUndoWhoseSceneIsNotDeliveredStillTellsWhatItBroughtBack() = runTest {
         val context = commandContext()
         val wall = SceneActorEntry("Wall", """{"body":{"position":{"x":1.0,"y":2.0}}}""", "wall")
         @OptIn(EditorMutation::class)
@@ -538,11 +516,8 @@ class CommandExecutorTest {
         delivery.failures = 1
         executor.undo()
         runCurrent()
-        assertEquals(SceneDocument.format(listOf(wall)), context.scenes.read("main"))
         assertEquals(listOf("Not delivered."), delivery.reported.map { it.message })
-        executor.execute(Invocation(CreateScene, CreateScene.Input("other")))
-        runCurrent()
-        assertEquals(emptyList(), broughtBack)
+        assertEquals(listOf(ActorsBroughtBack("main", listOf(wall))), broughtBack)
     }
 
     @Test

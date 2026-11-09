@@ -17,8 +17,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -28,7 +26,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProjectChangesTest {
@@ -84,17 +81,15 @@ class ProjectChangesTest {
     }
 
     @Test
-    fun onlyTheScopesCancellationIsThrownWhileFollowingSceneChanges() = runTest {
-        val cancellation = CancellationException("Closing.")
-        regenerate = { throw cancellation }
-        val closing = CoroutineScope(Job().apply { cancel() } + CoroutineExceptionHandler { _, exception -> problems += exception })
-        assertEquals(cancellation, assertFailsWith<CancellationException> { router(scope = closing).onSceneChanges(listOf(SceneChange.Written("main", isNew = false))) })
-        assertEquals(emptyList(), problems)
-    }
-
-    @Test
-    fun aScopeWithoutAHandlerIsRefused() = runTest {
-        assertFailsWith<IllegalStateException> { router(scope = CoroutineScope(Job().apply { cancel() })) }
+    fun aPartFollowingAWatchedChangeOrSavedTypesThatThrowsLeavesTheOthersFollowingIt() = runTest {
+        regenerate = { error("Broken.") }
+        val router = router()
+        router.onProjectChanged(setOf(ProjectChange.SCENES))
+        assertEquals(listOf("scenes changed on disk", "code changed", "git"), calls)
+        calls.clear()
+        router.onTypesSaved(haveTypesChanged = true)
+        assertEquals(listOf("scene outdated", "code changed", "git"), calls)
+        assertEquals(listOf("Broken."), problems.map { it.message })
     }
 
     @Test

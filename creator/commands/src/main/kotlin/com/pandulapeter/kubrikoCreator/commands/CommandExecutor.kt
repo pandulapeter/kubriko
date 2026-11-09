@@ -14,13 +14,12 @@ import com.pandulapeter.kubrikoCreator.context.mentionPathsOf
 import com.pandulapeter.kubrikoCreator.context.mentionedPathOf
 import com.pandulapeter.kubrikoCreator.context.pagesMentioning
 import com.pandulapeter.kubrikoCreator.context.writeSummary
+import com.pandulapeter.kubrikoCreator.foundation.reportProblem
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -46,9 +45,7 @@ import kotlinx.serialization.json.JsonObject
  * @param onSceneChanges Receives what each command, undo, or redo changed in the Scene files, as the Scenes recorded it,
  *   once it finished (whether it succeeded or not), still holding the change lock. Each change is handed over once, so
  *   it follows every one even when a part of it fails. What it throws never hides what the command threw, nor fails
- *   one that succeeded.
- * @param reportProblem Receives what [onSceneChanges] threw when the command can't carry it: it succeeded, or was
- *   cancelled. A cancellation isn't reported. Prints it by default.
+ *   one that was made: it goes to [scope]'s handler then ([reportProblem]).
  */
 public class CommandExecutor(
     public val context: CommandContext,
@@ -56,7 +53,6 @@ public class CommandExecutor(
     private val onRejected: (Rejection) -> Unit = {},
     private val registry: CommandRegistry = CommandRegistry.editor,
     private val onSceneChanges: (List<SceneChange>) -> Unit = {},
-    private val reportProblem: (Throwable) -> Unit = Throwable::printStackTrace,
 ) {
     private val _history = MutableStateFlow(CommandHistory())
     public val history: StateFlow<CommandHistory> = _history.asStateFlow()
@@ -175,11 +171,13 @@ public class CommandExecutor(
 
     /**
      * @param isUsers Whether the user stepped ([undo], [redo]), whose step announces what it brought back ([broughtBack])
-     *   once its Scenes are delivered (and not when they couldn't be), still holding the change lock, so a later step's
-     *   announcement can't come first.
+     *   once its Scenes were delivered (or failed to be, since the Scene editor selects them only once its Scene shows
+     *   them), still holding the change lock, so a later step's announcement can't come first.
      */
     private suspend fun step(isUndo: Boolean, isUsers: Boolean): CommandOutcome? = changes.withLock {
-        deliveringSceneChanges(broughtBackOf = { stepped -> stepped?.broughtBack?.takeIf { isUsers } }) { stepHistory(isUndo) }?.outcome
+        val stepped = deliveringSceneChanges { stepHistory(isUndo) }
+        if (isUsers) stepped?.broughtBack?.let(_broughtBack::tryEmit)
+        stepped?.outcome
     }
 
     private class Stepped(val outcome: CommandOutcome, val broughtBack: ActorsBroughtBack? = null)
@@ -310,40 +308,22 @@ public class CommandExecutor(
     }
 
     /**
-     * Runs [change], then hands over the Scene changes it made, even when it throws, and announces what [broughtBackOf]
-     * says it brought back once they were handed over. A delivery that fails never fails a change that was made, nor hides
-     * what one threw: it is added to that as suppressed, or reported when the change was made or cancelled, since a
-     * cancellation's suppressed are never read. A cancelled delivery is no problem, unless this coroutine was cancelled.
+     * Runs [change], then hands over the Scene changes it made, even when it throws. A delivery that fails never hides
+     * what the change threw, nor fails one that was made: it is added to what the change threw as suppressed, or
+     * reported when the change was made or cancelled, since a cancellation's suppressed are never read.
      */
-    private suspend inline fun <T> deliveringSceneChanges(broughtBackOf: (T) -> ActorsBroughtBack? = { null }, change: () -> T): T {
+    private inline fun <T> deliveringSceneChanges(change: () -> T): T {
         val result = try {
             change()
         } catch (throwable: Throwable) {
+            // The coroutine's own cancellation may come back from the delivery, and can't suppress itself.
             deliverSceneChanges()?.takeIf { it !== throwable }?.let { failure ->
-                if (throwable is CancellationException) report(failure) else throwable.addSuppressed(failure)
+                if (throwable is CancellationException) scope.reportProblem(failure) else throwable.addSuppressed(failure)
             }
             throw throwable
         }
-        when (val failure = deliverSceneChanges()) {
-            null -> broughtBackOf(result)?.let(_broughtBack::tryEmit)
-            is CancellationException -> currentCoroutineContext().ensureActive()
-            else -> report(failure)
-        }
+        deliverSceneChanges()?.let(scope::reportProblem)
         return result
-    }
-
-    /**
-     * Hands [failure] to [reportProblem], unless it is a cancellation. What reporting throws has nowhere else to go than
-     * the error stream.
-     */
-    private fun report(failure: Throwable) {
-        if (failure is CancellationException) return
-        try {
-            reportProblem(failure)
-        } catch (reportFailure: Throwable) {
-            reportFailure.addSuppressed(failure)
-            reportFailure.printStackTrace()
-        }
     }
 
     /**
