@@ -38,8 +38,8 @@ import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.AccentIcon
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
-import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NewNameField
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import com.pandulapeter.kubrikoCreator.ui.components.flashBackground
 import com.pandulapeter.kubrikoCreator.ui.toFieldError
 import kubriko.creator.generated.resources.Res
@@ -169,7 +169,7 @@ private fun ChildTypes(
     }
     val rest = children.drop(MAXIMUM_SHOWN_CHILDREN)
     if (rest.isNotEmpty()) {
-        MenuButton(
+        SearchableChoiceButton(
             label = stringResource(Res.string.actor_type_children_more, rest.size),
             options = rest,
             optionText = { it },

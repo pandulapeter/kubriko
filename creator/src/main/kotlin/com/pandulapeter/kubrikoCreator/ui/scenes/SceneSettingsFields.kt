@@ -22,9 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.commands.scenes.SetSceneSettings
 import com.pandulapeter.kubrikoCreator.scenes.SceneSettingsState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.audioFileLabel
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.isMissingChoice
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.missingChoiceLabel
 import com.pandulapeter.kubrikoCreator.ui.components.ColorField
-import com.pandulapeter.kubrikoCreator.ui.components.MenuButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
+import com.pandulapeter.kubrikoCreator.ui.components.SearchableChoiceButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.actor_type_height
 import kubriko.creator.generated.resources.actor_type_width
@@ -78,11 +80,16 @@ internal fun SceneSettingsFields(
             style = MaterialTheme.typography.labelMedium,
         )
         val none = stringResource(Res.string.scene_settings_music_none)
-        MenuButton(
-            label = values.music.ifEmpty { null }?.let(::audioFileLabel) ?: none,
+        val isMissing = isMissingChoice(values.music, music)
+        SearchableChoiceButton(
+            label = when {
+                isMissing -> missingChoiceLabel(audioFileLabel(values.music))
+                else -> values.music.ifEmpty { null }?.let(::audioFileLabel) ?: none
+            },
             options = listOf("") + music,
             optionText = { it.ifEmpty { null }?.let(::audioFileLabel) ?: none },
             onSelected = { path -> onChange { copy(music = path) } },
+            isMissing = isMissing,
         )
     }
 }
