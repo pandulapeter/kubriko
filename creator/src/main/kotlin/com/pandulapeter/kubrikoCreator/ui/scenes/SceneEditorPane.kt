@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberPanelWidth
 import com.pandulapeter.kubrikoCreator.ui.components.sidePanel
 import com.pandulapeter.kubrikoCreator.ui.screenplay.LocalMentionedIn
 import com.pandulapeter.kubrikoCreator.ui.screenplay.MentionedInRow
+import kotlinx.coroutines.flow.Flow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_close_scene
 import kubriko.creator.generated.resources.action_delete_scene
@@ -94,6 +96,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param actorTypes The project's block-built Actor types.
  * @param music The project's music files, by their path from `composeResources`.
  * @param description What the Scene is for.
+ * @param historySteps What each undo or redo applied: one bringing an Actor back selects it.
  * @param onViewFailed Called when the project's code threw while the view of the Scene was being created.
  */
 @Composable
@@ -105,6 +108,7 @@ internal fun SceneEditorPane(
     actorTypes: List<ActorTypeDefinition>,
     music: List<String>?,
     description: String?,
+    historySteps: Flow<Invocation<*>>,
     onPlay: () -> Unit,
     onReload: () -> Unit,
     onClose: () -> Unit,
@@ -115,6 +119,9 @@ internal fun SceneEditorPane(
 ) {
     val view = rememberSceneView(state, onViewFailed) ?: return@Column ProgressScreen(stringResource(Res.string.scene_preparing, state.scene.name))
     var selectedId by remember(state.scene.file) { mutableStateOf<String?>(null) }
+    LaunchedEffect(historySteps, state.sceneName) {
+        historySteps.collect { step -> actorBroughtBackBy(step, state.sceneName)?.let { selectedId = it } }
+    }
     var isActorListShown by remember { mutableStateOf(false) }
     var isSettingsShown by remember(state.scene.file) { mutableStateOf(false) }
     SceneHeader(

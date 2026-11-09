@@ -25,6 +25,7 @@ import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import com.pandulapeter.kubrikoCreator.ui.components.PanelLayout
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
+import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -56,6 +57,7 @@ class WorkspaceCenterTest {
                     onCommand = { _, _ -> },
                     currentBlockType = { null },
                     onCommandIfValid = { null },
+                    historySteps = emptyFlow(),
                     onTypeSelected = {},
                     onPlayScene = {},
                     onReloadScene = { reloads++ },

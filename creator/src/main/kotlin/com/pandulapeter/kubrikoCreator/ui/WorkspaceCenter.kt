@@ -38,6 +38,7 @@ import com.pandulapeter.kubrikoCreator.ui.screenplay.PageLinksState
 import com.pandulapeter.kubrikoCreator.ui.screenplay.markdownTitleOf
 import com.pandulapeter.kubrikoCreator.ui.screenplay.rememberReviewOf
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceSelection
+import kotlinx.coroutines.flow.Flow
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.scene_preparing
 import org.jetbrains.compose.resources.stringResource
@@ -52,6 +53,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param onCommand Applies a command, calling its `onSuccess` unless it is rejected.
  * @param currentBlockType The type of the given name as it is now, not as last composed.
  * @param onCommandIfValid Applies a command unless it is rejected, returning why it was.
+ * @param historySteps What each undo or redo applied, which the Scene editor follows.
  * @param markdownText The text of the page or document shown, once it is read, or null.
  * @param onMarkdownTextChange Saves the page or document shown.
  * @param markdownLinks What the links of the page or document shown point at.
@@ -74,6 +76,7 @@ internal fun WorkspaceCenter(
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentBlockType: (name: String) -> BlockTypeDefinition?,
     onCommandIfValid: (Invocation<*>) -> Rejection?,
+    historySteps: Flow<Invocation<*>>,
     onTypeSelected: (String) -> Unit,
     onPlayScene: (sceneName: String) -> Unit,
     onReloadScene: () -> Unit,
@@ -99,6 +102,7 @@ internal fun WorkspaceCenter(
             actorTypes = actorTypes,
             music = audioFiles?.music,
             description = sceneDescriptions[sceneEditing.sceneName],
+            historySteps = historySteps,
             onPlay = { onPlayScene(sceneEditing.sceneName) },
             onReload = onReloadScene,
             onClose = onCloseScene,

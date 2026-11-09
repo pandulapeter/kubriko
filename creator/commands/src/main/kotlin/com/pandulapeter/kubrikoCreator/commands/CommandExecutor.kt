@@ -18,8 +18,12 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneChange
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -56,6 +60,13 @@ public class CommandExecutor(
      */
     public val aiSteps: StateFlow<List<AiStep>> = _aiSteps.asStateFlow()
     private var nextAiStepId = 0
+    private val _steps = MutableSharedFlow<Invocation<*>>(extraBufferCapacity = STEP_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    /**
+     * What each undo or redo applied, once it was applied, so that the editor can follow what a step brought back (the
+     * Actor an undone removal restored).
+     */
+    public val steps: SharedFlow<Invocation<*>> = _steps.asSharedFlow()
     private val changes = Mutex()
 
     /**
@@ -198,6 +209,7 @@ public class CommandExecutor(
             isUndo -> remaining.copy(redoable = remaining.redoable + stepped)
             else -> remaining.copy(undoable = remaining.undoable + stepped)
         }
+        _steps.tryEmit(invocation)
         return CommandOutcome.Success(applied.result)
     }
 
@@ -323,6 +335,7 @@ public class CommandExecutor(
     private companion object {
         const val HISTORY_SIZE = 200
         const val AI_STEP_COUNT = 500
+        const val STEP_BUFFER = 16
         val json = Json { ignoreUnknownKeys = false }
     }
 }
