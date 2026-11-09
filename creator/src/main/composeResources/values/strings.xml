@@ -919,7 +919,7 @@
     <string name="assistant_custom_agent_note">The command that starts an Agent Client Protocol agent, as you would type it in a terminal, like "goose acp" or "OPENCODE_MODEL=ollama/qwen opencode acp".</string>
     <string name="assistant_custom_agent_hint">Command</string>
     <string name="assistant_configuration_menu">Claude Code configuration</string>
-    <string name="assistant_empty">Ask for a change to your game, like "add a Paddle moved with A and D" or "make the Ball faster".</string>
+    <string name="assistant_empty">Ask for a change to your game, like a new character, a rule, or a Scene, or ask how something in it works.</string>
     <string name="assistant_note">Claude Agent runs Claude Code, signed in as you are. Its changes go through the editor, so they show up as they happen and can be undone like your own.</string>
     <string name="assistant_note_untested">%1$s works through the editor, so its changes show up as they happen and can be undone like your own. It wasn't tried with Kubriko Creator yet, so some things may not work, and its own edits to files and commands are turned down.</string>
     <string name="assistant_starting">Starting %1$s…</string>
