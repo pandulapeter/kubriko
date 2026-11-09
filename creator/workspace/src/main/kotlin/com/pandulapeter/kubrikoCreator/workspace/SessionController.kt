@@ -88,7 +88,6 @@ internal class SessionController(
         lastPrepareLaunch = prepareLaunch
         launchSession(PlayTarget.DESKTOP) {
             channel.expectSession()
-            console.startPlaySession()
             _state.value = SessionState.Starting(SessionMode.PLAY)
             when (val preparation = prepareLaunch()) {
                 is GameLaunchPreparation.Ready -> runGame(preparation.launch, systemPropertiesOf(firstScene)).also(::reportFailure).isSuccessful
@@ -107,9 +106,9 @@ internal class SessionController(
      * [run] calls its argument once the game is up, and plays until it returns whether it ended well, or is cancelled.
      */
     fun playElsewhere(target: PlayTarget, run: suspend (onUp: () -> Unit) -> Boolean) = launchSession(target) {
-        console.startPlaySession()
         _state.value = SessionState.Starting(SessionMode.PLAY, target)
         run {
+            console.startPlaySession()
             _state.value = SessionState.Running(SessionMode.PLAY, target)
             console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED))
         }
@@ -165,6 +164,7 @@ internal class SessionController(
     private fun onMessage(message: SessionMessage) = when (message) {
         is SessionMessage.Hello -> if (message.protocolVersion >= MINIMUM_PROTOCOL_VERSION) {
             protocolVersion = minOf(message.protocolVersion, SessionProtocol.VERSION)
+            if (message.mode == SessionMode.PLAY) console.startPlaySession()
             _state.value = SessionState.Running(message.mode)
             console.append(ConsoleEntry.Status(WorkspaceStatus.SESSION_STARTED))
         } else {

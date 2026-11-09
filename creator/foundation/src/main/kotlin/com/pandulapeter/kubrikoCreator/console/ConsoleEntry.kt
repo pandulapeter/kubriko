@@ -17,6 +17,18 @@ import com.pandulapeter.kubrikoCreator.foundation.DomainText
 public sealed interface ConsoleEntry {
 
     /**
+     * Something that went wrong, which the user or the AI may want to fix: a [Problem] or a [SessionFailure].
+     */
+    public sealed interface Failing : ConsoleEntry {
+        public val message: String
+
+        /**
+         * Where it went wrong, when that is known.
+         */
+        public val location: String?
+    }
+
+    /**
      * Something Kubriko Creator itself reports, such as a session starting or ending.
      *
      * @param arguments The values of the [text]'s placeholders.
@@ -31,9 +43,9 @@ public sealed interface ConsoleEntry {
      * A compiler or build error, with its location when Gradle reported one.
      */
     public data class Problem(
-        val message: String,
-        val location: String?,
-    ) : ConsoleEntry
+        override val message: String,
+        override val location: String?,
+    ) : Failing
 
     /**
      * A raw line of build output, shown only when a build fails without reporting a [Problem].
@@ -55,6 +67,8 @@ public sealed interface ConsoleEntry {
      * The session process could not start what it was asked to, in its own words.
      */
     public data class SessionFailure(
-        val message: String,
-    ) : ConsoleEntry
+        override val message: String,
+    ) : Failing {
+        override val location: String? get() = null
+    }
 }

@@ -16,15 +16,15 @@ package com.pandulapeter.kubrikoCreator.console
  *
  * @param firstNumber The number of the first of [entries] among every line ever added, so that a line keeps its number
  *   while older ones are dropped.
- * @param playSession Which play session the newest lines belong to, raised whenever the game is played again.
- * @param latestProblem The newest [ConsoleEntry.Problem] or [ConsoleEntry.SessionFailure] among [entries], unless a
- *   status that isn't an error came after it (something went well since), kept as lines are added rather than looked
- *   for among them.
+ * @param firstLogNumber The number of the first line the game logged ([ConsoleEntry.Log]) since it was last played, if
+ *   any, so that only that one opens the console by itself however often the console is shown again.
+ * @param latestProblem The newest [ConsoleEntry.Failing] line among [entries], unless a status that isn't an error came
+ *   after it (something went well since), kept as lines are added rather than looked for among them.
  */
 public data class ConsoleLines(
     val revision: Long = 0,
     val entries: List<ConsoleEntry> = emptyList(),
     val firstNumber: Long = 0,
-    val playSession: Int = 0,
-    val latestProblem: ConsoleEntry? = null,
+    val firstLogNumber: Long? = null,
+    val latestProblem: ConsoleEntry.Failing? = null,
 )

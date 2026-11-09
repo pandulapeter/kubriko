@@ -14,37 +14,25 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 
 /**
  * When the console opens by itself: for every line that [opensConsole] added since [initial] or the last [opensFor],
- * except that what the game logs opens it only once per play session ([ConsoleLines.playSession]), so a game logging
- * every frame doesn't open it again each time it is closed. That holds for its important lines too, as importance only
- * says how a line is shown (Kubriko's engine logs routine messages as important, and a device's printed Log Blocks all
- * are); what goes wrong opens it every time as a problem or a failure.
+ * except that of what the game logs, only its first line since it was played ([ConsoleLines.firstLogNumber]) does, so a
+ * game logging every frame doesn't open it again each time it is closed. That holds for its important lines too, as
+ * importance only says how a line is shown (Kubriko's engine logs routine messages as important, and a device's
+ * printed Log Blocks all are); what goes wrong opens it every time as a problem or a failure.
  */
 internal class ConsoleOpening(initial: ConsoleLines) {
     private var seenLineCount = initial.lineCount
-    private var playSession = initial.playSession
-    private var hasLogOpened = false
 
     /**
      * Whether [lines] added a line that opens the console since the last call; every line added since is looked at,
      * however many came between two frames.
      */
     fun opensFor(lines: ConsoleLines): Boolean {
-        if (lines.playSession != playSession) {
-            playSession = lines.playSession
-            hasLogOpened = false
-        }
         val added = (lines.lineCount - seenLineCount).coerceIn(0, lines.entries.size.toLong()).toInt()
         seenLineCount = lines.lineCount
         var opens = false
         for (index in lines.entries.size - added until lines.entries.size) {
             val entry = lines.entries[index]
-            when {
-                entry is ConsoleEntry.Log -> if (!hasLogOpened) {
-                    hasLogOpened = true
-                    opens = true
-                }
-                entry.opensConsole -> opens = true
-            }
+            opens = opens || if (entry is ConsoleEntry.Log) lines.firstNumber + index == lines.firstLogNumber else entry.opensConsole
         }
         return opens
     }

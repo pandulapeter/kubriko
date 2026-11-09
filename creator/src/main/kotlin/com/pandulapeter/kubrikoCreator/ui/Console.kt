@@ -28,9 +28,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -43,6 +42,8 @@ import com.pandulapeter.kubrikoCreator.console.ConsoleLines
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.theme.CreatorMotion
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_clear_console
 import kubriko.creator.generated.resources.action_collapse_console
@@ -109,15 +110,24 @@ internal fun Console(
         exit = shrinkVertically(CreatorMotion.medium()) + fadeOut(CreatorMotion.short()),
     ) {
         val listState = rememberLazyListState()
-        var shownLastNumber by remember { mutableStateOf<Long?>(null) }
-        var wasFollowing by remember { mutableStateOf(true) }
-        LaunchedEffect(lines.revision) {
-            val visibleItems = listState.layoutInfo.visibleItemsInfo
-            val isFollowingNow = isFollowing(shownLastNumber, lines.firstNumber, wasFollowing) { number -> visibleItems.any { it.key == number } }
-            wasFollowing = isFollowingNow
-            if (isFollowingNow && lines.entries.isNotEmpty()) listState.scrollToItem(lines.entries.lastIndex)
-            // Only once the list shows them, so a scroll cut short by the next lines still counts as following.
-            shownLastNumber = lines.lastNumber
+        val currentLines by rememberUpdatedState(lines)
+        LaunchedEffect(listState) {
+            var shownLastNumber: Long? = null
+            // One collector rather than an effect per revision, so only the user's own scrolling can cut a scroll short.
+            snapshotFlow { currentLines }.collect { shown ->
+                val visibleItems = listState.layoutInfo.visibleItemsInfo
+                val previousLastNumber = shownLastNumber
+                shownLastNumber = shown.lastNumber
+                val isFollowingNow = isFollowing(previousLastNumber, shown.firstNumber) { number -> visibleItems.any { item -> item.key.let { it is Long && it == number } } }
+                if (shown.entries.isNotEmpty() && isFollowingNow) {
+                    try {
+                        listState.scrollToItem(shown.entries.lastIndex)
+                    } catch (exception: CancellationException) {
+                        // The user scrolled meanwhile: what they look at now decides, not the newest line.
+                        ensureActive()
+                    }
+                }
+            }
         }
         SelectionContainer {
             LazyColumn(
@@ -134,15 +144,11 @@ internal fun Console(
 
 /**
  * Whether the console's list goes on showing the newest line: it shows the one that was last before
- * ([previousLastNumber], [isShown]), or nothing was shown yet. When that line is gone (older than [firstNumber], the
- * first one kept), as when more lines than the console keeps came at once, there is no telling, so it does as it did
- * before ([wasFollowing]).
+ * ([previousLastNumber], [isShown]), or nothing was shown yet, or that line is gone (older than [firstNumber], the first
+ * one kept), as when more lines came at once than the console keeps, which leaves nothing the user was reading.
  */
-internal inline fun isFollowing(previousLastNumber: Long?, firstNumber: Long, wasFollowing: Boolean, isShown: (Long) -> Boolean): Boolean = when {
-    previousLastNumber == null -> true
-    previousLastNumber < firstNumber -> wasFollowing
-    else -> isShown(previousLastNumber)
-}
+internal inline fun isFollowing(previousLastNumber: Long?, firstNumber: Long, isShown: (Long) -> Boolean): Boolean =
+    previousLastNumber == null || previousLastNumber < firstNumber || isShown(previousLastNumber)
 
 private val ConsoleLines.lastNumber get() = entries.lastIndex.takeIf { it >= 0 }?.let { firstNumber + it }
 

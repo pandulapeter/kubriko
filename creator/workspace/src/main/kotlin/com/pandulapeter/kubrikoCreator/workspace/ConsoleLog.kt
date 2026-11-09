@@ -20,8 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 /**
  * The lines of the workspace console, oldest first, at most [capacity] of them, and the recordings the AI's action tools
  * take of them. A game may log every frame, from any thread, so adding a line copies nothing: the lines live in an
- * array that later lines only ever go after, and each [lines] shows a part of it that never changes (a view, as
- * [Array.asList] gives, of slots nothing writes to again).
+ * array that later lines only ever go after, and each [lines] shows a part of it that never changes.
  */
 internal class ConsoleLog(private val capacity: Int = CONSOLE_SIZE) {
     private val lock = Any()
@@ -30,8 +29,9 @@ internal class ConsoleLog(private val capacity: Int = CONSOLE_SIZE) {
     private var end = 0
     private var revision = 0L
     private var addedCount = 0L
-    private var playSession = 0
-    private var latestProblem: ConsoleEntry? = null
+    private var firstLogNumber: Long? = null
+    private var isLogAwaited = true
+    private var latestProblem: ConsoleEntry.Failing? = null
     private var latestProblemNumber = -1L
     private val _lines = MutableStateFlow(ConsoleLines())
     val lines: StateFlow<ConsoleLines> = _lines.asStateFlow()
@@ -52,11 +52,15 @@ internal class ConsoleLog(private val capacity: Int = CONSOLE_SIZE) {
             storage[end++] = entry
             if (end - start > capacity) start++
             when {
-                entry is ConsoleEntry.Problem || entry is ConsoleEntry.SessionFailure -> {
+                entry is ConsoleEntry.Failing -> {
                     latestProblem = entry
                     latestProblemNumber = addedCount
                 }
                 entry is ConsoleEntry.Status && !entry.isError -> latestProblem = null
+                entry is ConsoleEntry.Log && isLogAwaited -> {
+                    firstLogNumber = addedCount
+                    isLogAwaited = false
+                }
             }
             addedCount++
             publish()
@@ -75,25 +79,21 @@ internal class ConsoleLog(private val capacity: Int = CONSOLE_SIZE) {
     }
 
     /**
-     * Starts a new play session, whose first lines the game logs open the console again.
+     * Starts a new play session, once the game is up, so that the first line it logs ([ConsoleLines.firstLogNumber]) is
+     * its own rather than one a game played before left behind.
      */
     fun startPlaySession() {
-        synchronized(lock) {
-            playSession++
-            publish()
-        }
+        synchronized(lock) { isLogAwaited = true }
     }
 
     private fun publish() {
         val firstNumber = addedCount - (end - start)
 
-        @Suppress("UNCHECKED_CAST")
-        val entries = storage.asList().subList(start, end) as List<ConsoleEntry>
         _lines.value = ConsoleLines(
             revision = ++revision,
-            entries = entries,
+            entries = ConsoleWindow(storage, start, end),
             firstNumber = firstNumber,
-            playSession = playSession,
+            firstLogNumber = firstLogNumber,
             latestProblem = latestProblem?.takeIf { latestProblemNumber >= firstNumber },
         )
     }
@@ -113,6 +113,23 @@ internal class ConsoleLog(private val capacity: Int = CONSOLE_SIZE) {
     }
 
     private fun newStorage() = arrayOfNulls<ConsoleEntry>(capacity * 2)
+
+    /**
+     * The lines from [start] to [end] of [storage], which nothing writes to again: one object per line added, where a
+     * view of the standard library's would take two and check for changes on every read.
+     */
+    private class ConsoleWindow(
+        private val storage: Array<ConsoleEntry?>,
+        private val start: Int,
+        private val end: Int,
+    ) : AbstractList<ConsoleEntry>(), RandomAccess {
+        override val size get() = end - start
+
+        override fun get(index: Int): ConsoleEntry {
+            if (index !in 0..<size) throw IndexOutOfBoundsException("Index $index of $size lines.")
+            return checkNotNull(storage[start + index])
+        }
+    }
 
     private companion object {
         const val CONSOLE_SIZE = 2000

@@ -114,10 +114,18 @@ class ConsoleLogTest {
     }
 
     @Test
-    fun aNewPlaySessionIsANewRevision() {
-        val log = ConsoleLog(capacity = 3)
+    fun theFirstLineTheGameLogsInEachPlaySessionIsNumbered() {
+        val log = ConsoleLog(capacity = 10)
+        val tick = ConsoleEntry.Log("Tick", source = null, isImportant = false)
+        log.append(line(0))
+        log.append(tick)
+        log.append(tick)
+        assertEquals(1L, log.lines.value.firstLogNumber)
         log.startPlaySession()
-        assertEquals(ConsoleLines(revision = 1, playSession = 1), log.lines.value)
+        log.append(line(3))
+        assertEquals(1L, log.lines.value.firstLogNumber, "until the game logs again")
+        log.append(tick)
+        assertEquals(4L, log.lines.value.firstLogNumber)
     }
 
     @Test

@@ -93,16 +93,12 @@ public sealed interface AttentionChip {
             openScene: String?,
             selectedType: String?,
             isSelectedTypeManager: Boolean,
-            latestProblem: ConsoleEntry?,
+            latestProblem: ConsoleEntry.Failing?,
             canSendGameScreen: Boolean = false,
         ): List<AttentionChip> = listOfNotNull(
             openScene?.let(::Scene),
             selectedType?.takeIf { openScene == null }?.let { BlockType(it, isSelectedTypeManager) },
-            when (latestProblem) {
-                is ConsoleEntry.Problem -> Problem(latestProblem.message, latestProblem.location)
-                is ConsoleEntry.SessionFailure -> Problem(latestProblem.message, null)
-                else -> null
-            },
+            latestProblem?.let { Problem(it.message, it.location) },
             GameScreen.takeIf { canSendGameScreen },
         )
 

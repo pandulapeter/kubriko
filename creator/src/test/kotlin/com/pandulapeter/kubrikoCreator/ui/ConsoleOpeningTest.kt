@@ -23,29 +23,38 @@ class ConsoleOpeningTest {
     private var lineCount = 0L
 
     /**
-     * The console after [added] more lines, of which [entries] are the newest, in play session [playSession].
+     * The console after [added] more lines, of which [entries] are the newest, the game's first logged one numbered
+     * [firstLogNumber].
      */
-    private fun lines(added: Int, vararg entries: ConsoleEntry, playSession: Int = 0): ConsoleLines {
+    private fun lines(added: Int, vararg entries: ConsoleEntry, firstLogNumber: Long? = null): ConsoleLines {
         lineCount += added
-        return ConsoleLines(revision = lineCount, entries = entries.toList(), firstNumber = lineCount - entries.size, playSession = playSession)
+        return ConsoleLines(revision = lineCount, entries = entries.toList(), firstNumber = lineCount - entries.size, firstLogNumber = firstLogNumber)
     }
 
     @Test
-    fun whatTheGameLogsOpensTheConsoleOncePerPlaySession() {
+    fun onlyTheFirstLineTheGameLoggedSinceItWasPlayedOpensTheConsole() {
         val opening = ConsoleOpening(ConsoleLines())
-        assertEquals(true, opening.opensFor(lines(1, log)))
-        assertEquals(false, opening.opensFor(lines(1, log, log)))
-        assertEquals(true, opening.opensFor(lines(1, log, log, log, playSession = 1)))
-        assertEquals(false, opening.opensFor(lines(1, log, log, log, log, playSession = 1)))
+        assertEquals(true, opening.opensFor(lines(1, log, firstLogNumber = 0)))
+        assertEquals(false, opening.opensFor(lines(1, log, log, firstLogNumber = 0)))
+        assertEquals(true, opening.opensFor(lines(1, log, log, log, firstLogNumber = 2)))
+        assertEquals(false, opening.opensFor(lines(1, log, log, log, log, firstLogNumber = 2)))
+    }
+
+    @Test
+    fun aConsoleShownAgainDoesntOpenForTheSameFirstLogAgain() {
+        val before = lines(1, log, firstLogNumber = 0)
+        assertEquals(true, ConsoleOpening(ConsoleLines()).opensFor(before))
+        val again = ConsoleOpening(before)
+        assertEquals(false, again.opensFor(lines(1, log, log, firstLogNumber = 0)))
     }
 
     @Test
     fun problemsAndErrorsOpenItEveryTime() {
         val opening = ConsoleOpening(ConsoleLines())
-        assertEquals(true, opening.opensFor(lines(1, log)))
-        assertEquals(true, opening.opensFor(lines(1, log, problem)))
-        assertEquals(true, opening.opensFor(lines(1, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true))))
-        assertEquals(false, opening.opensFor(lines(1, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true), chatter)))
+        assertEquals(true, opening.opensFor(lines(1, log, firstLogNumber = 0)))
+        assertEquals(true, opening.opensFor(lines(1, log, problem, firstLogNumber = 0)))
+        assertEquals(true, opening.opensFor(lines(1, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true), firstLogNumber = 0)))
+        assertEquals(false, opening.opensFor(lines(1, log, problem, ConsoleEntry.Status(WorkspaceStatus.BUILT, isError = true), chatter, firstLogNumber = 0)))
     }
 
     @Test
@@ -58,8 +67,8 @@ class ConsoleOpeningTest {
 
     @Test
     fun linesAlreadyThereWhenTheConsoleIsShownDontOpenIt() {
-        val opening = ConsoleOpening(lines(2, problem, log))
-        assertEquals(false, opening.opensFor(lines(0, problem, log)))
-        assertEquals(true, opening.opensFor(lines(1, problem, log, log)))
+        val opening = ConsoleOpening(lines(2, problem, log, firstLogNumber = 1))
+        assertEquals(false, opening.opensFor(lines(0, problem, log, firstLogNumber = 1)))
+        assertEquals(true, opening.opensFor(lines(1, problem, log, problem, firstLogNumber = 1)))
     }
 }

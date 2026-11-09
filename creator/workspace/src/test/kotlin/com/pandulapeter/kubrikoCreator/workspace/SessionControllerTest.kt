@@ -107,6 +107,22 @@ class SessionControllerTest {
     }
 
     @Test
+    fun onlyTheFirstLineTheGameLogsOnceItIsUpCountsAsItsFirst() = runTest {
+        val controller = createController()
+        fun log(message: String) = channel.receive(SessionMessage.Log(id = message, message = message, details = null, source = null, timestamp = 0L, importance = "LOW"))
+        controller.play()
+        hello()
+        log("First run")
+        controller.play()
+        log("Left over from the first run")
+        hello()
+        log("Second run")
+        val lines = console.lines.value
+        val firstLog = lines.entries[(checkNotNull(lines.firstLogNumber) - lines.firstNumber).toInt()]
+        assertEquals(ConsoleEntry.Log(message = "Second run", source = null, isImportant = false), firstLog)
+    }
+
+    @Test
     fun aSessionFailureAppearsInTheConsoleInTheSessionsWords() = runTest {
         createController()
         channel.receive(SessionMessage.Failure(message = "No entry point."))
@@ -148,9 +164,6 @@ class SessionControllerTest {
         assertTrue(build.runs[0].isCancelled, "the first session")
         assertFalse(build.currentRun.isCancelled)
         assertEquals(SessionState.Starting(SessionMode.PLAY), controller.state.value)
-        assertEquals(2, console.lines.value.playSession, "each play starts a play session of the console")
-        controller.playElsewhere(PlayTarget.WEB) { false }
-        assertEquals(3, console.lines.value.playSession)
     }
 
     @Test

@@ -29,7 +29,6 @@ class AttentionChipTest {
     fun theLatestProblemIsOfferedAsText() {
         assertEquals(listOf<AttentionChip>(AttentionChip.Problem(problem.message, problem.location)), AttentionChip.of(null, null, false, problem))
         assertEquals(listOf<AttentionChip>(AttentionChip.Problem("The game stopped", null)), AttentionChip.of(null, null, false, ConsoleEntry.SessionFailure("The game stopped")))
-        assertEquals(emptyList(), AttentionChip.of(null, null, false, ConsoleEntry.BuildOutput("FAILURE")))
     }
 
     @Test

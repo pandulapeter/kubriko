@@ -71,12 +71,11 @@ class ConsoleTest {
     }
 
     @Test
-    fun theListFollowsWhenTheLastLineIsShownOrNothingWasYetAndOtherwiseAsBeforeIfItIsGone() {
-        assertEquals(true, isFollowing(previousLastNumber = null, firstNumber = 0, wasFollowing = false) { false })
-        assertEquals(true, isFollowing(previousLastNumber = 9, firstNumber = 0, wasFollowing = false) { it == 9L })
-        assertEquals(false, isFollowing(previousLastNumber = 9, firstNumber = 0, wasFollowing = true) { it < 2 })
-        assertEquals(true, isFollowing(previousLastNumber = 9, firstNumber = 20, wasFollowing = true) { false })
-        assertEquals(false, isFollowing(previousLastNumber = 9, firstNumber = 20, wasFollowing = false) { false })
+    fun theListFollowsWhenTheLastLineIsShownNothingWasYetOrItIsGone() {
+        assertEquals(true, isFollowing(previousLastNumber = null, firstNumber = 0) { false })
+        assertEquals(true, isFollowing(previousLastNumber = 9, firstNumber = 0) { it == 9L })
+        assertEquals(false, isFollowing(previousLastNumber = 9, firstNumber = 0) { it < 2 })
+        assertEquals(true, isFollowing(previousLastNumber = 9, firstNumber = 20) { false })
     }
 
     private companion object {
