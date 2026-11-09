@@ -29,8 +29,7 @@ done once the session reaches it. An item that turns out to wait for later work 
 in an earlier one, and an item that waits for something outside this repository (a protocol, a vendor, a release) is listed under
 its file's Waiting on others. Inside a file, its Order section says what comes first.
 
-1. [Known issues](01-known-issues.md) - costs that grow with the project, mistakes a beginner meets in the first hour, and missing
-   checks, all found in review.
+1. [Known issues](01-known-issues.md) - missing checks found in review.
 2. [AI assistant](02-ai-assistant.md) - other agents' changes, accounts, chips, more context for large games, the activity view, and
    what waits on ACP, the Kotlin SDK, and vendors.
 3. [Resources and search](03-resources-and-search.md) - adding, renaming, and deleting sprites, sounds, and music, the remaining

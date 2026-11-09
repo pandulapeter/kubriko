@@ -12,12 +12,6 @@
 Problems found in review that need no other plan, fixed before any new feature. Each one gets its fix, a test that would have
 caught it, and the review (`README.md`).
 
-## Mistakes and failures in the first hour
-
-What someone who knows neither Kotlin nor Gradle meets when something goes wrong:
-
-- **The audio Blocks' file menus** are empty when the project has no sounds or music. Fix: say how to add some instead.
-
 ## Missing checks
 
 - **Plain and batched drawing compared in Creator:** a generated game's Scene drawn with batched looks and drawn plain, compared as
@@ -26,4 +20,4 @@ What someone who knows neither Kotlin nor Gradle meets when something goes wrong
 
 ## Order
 
-As listed: the first hour's mistakes, then the missing checks.
+As listed.

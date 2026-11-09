@@ -25,7 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (the audio Blocks' file menus) and go through it in order, then `02`.
+Continue `01-known-issues.md` at its first item (Plain and batched drawing compared in Creator, under Missing checks), then `02`.
 
 This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
 fixed in commits of their own:
@@ -70,6 +70,10 @@ fixed in commits of their own:
   the Scenes are delivered, and `SceneSelection` selects it once the Scene shows it, dropping it if the next load
   doesn't or it is the Scene settings. Declined from the review: redoing a placement not selecting, since its redo
   applies `RestoreActor` (`redoingAPlacementTellsWhichActorItBroughtBack`).
+- The sound and music menus (the Blocks' and the Scene settings') say how to add files when the project has none, and
+  that Kubriko Creator hasn't read the project's files while `AudioFiles.ofScanned` is null (before the first scan, or
+  after one failed), through `SearchableChoiceButton`'s new `hint`, shown below the options and kept in sight below a
+  long list.
 
 The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
