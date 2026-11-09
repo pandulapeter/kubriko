@@ -28,8 +28,9 @@ import kotlin.time.Duration.Companion.minutes
  * The harness's own scenario: Breakout opens in Kubriko Creator, builds, and plays, drawing its Actors where its Scene
  * places them. Then shapes drawn through the batched looks every generated Actor type has look the same as when they are
  * drawn plain, as the engine's `BatchedRenderingComparisonTest` checks for the engine alone: here through a generated
- * game, its build, and its viewport. Twins of the shape types make themselves invisible and draw the shape plain instead,
- * through a Kotlin Block, so the two Scenes differ only in how their shapes are drawn.
+ * game, its build, and its viewport. Twins of the shape types make their batched look invisible and draw the shape plain
+ * instead, through a Kotlin Block, so the two Scenes differ only in how their shapes are drawn; a tile that only hides its
+ * look, where the batched Scene shows nothing, keeps that hiding honest.
  */
 class OpeningAndPlayingTest {
 
@@ -80,11 +81,14 @@ class OpeningAndPlayingTest {
                 succeed("create_actor_type", type.definition())
                 succeed("create_actor_type", type.definition(name = PLAIN_PREFIX + type.name, events = listOf(type.drawnPlain())))
             }
+            succeed("create_actor_type", TILE.definition(name = HIDDEN_TILE, events = listOf(TILE.hidden())))
             listOf(BATCHED_SCENE to "", PLAIN_SCENE to PLAIN_PREFIX).forEach { (scene, prefix) ->
                 succeed("create_scene", mapOf("scene" to scene))
                 succeed("place_actors", mapOf("scene" to scene, "actors" to shapes.mapIndexed { index, shape -> mapOf("actorType" to prefix + shape.type.name, "x" to shape.x, "y" to shape.y, "actorId" to "shape$index") }))
                 succeed("set_actors_values", mapOf("scene" to scene, "actors" to shapes.mapIndexed { index, shape -> mapOf("actorId" to "shape$index", "width" to shape.width, "height" to shape.height, "rotation" to shape.rotation) }))
             }
+            // Where the batched Scene shows nothing, so a twin whose batched look still showed would differ.
+            succeed("place_actors", mapOf("scene" to PLAIN_SCENE, "actors" to listOf(mapOf("actorType" to HIDDEN_TILE, "x" to 0, "y" to HIDDEN_TILE_Y))))
         }
         val batched = step("The Scene of shapes drawn through their batched looks plays") { playShapes(BATCHED_SCENE, scale) }
         val plain = step("The Scene of shapes drawn plain plays") { playShapes(PLAIN_SCENE, scale) }
@@ -125,6 +129,14 @@ class OpeningAndPlayingTest {
 
         fun definition(name: String = this.name, events: List<Map<String, Any?>> = emptyList()) =
             mapOf("name" to name, "shape" to shape, "color" to "#%06X".format(color), "events" to events)
+
+        /**
+         * The added-to-the-Scene Event of an Actor type that only hides its batched look.
+         */
+        fun hidden() = mapOf(
+            "type" to "addedToScene",
+            "blocks" to listOf(mapOf("type" to "kotlin", "code" to "import androidx.compose.ui.graphics.Color\ncolor = Color.Transparent")),
+        )
 
         /**
          * The added-to-the-Scene Event of a twin that hides its batched look and adds an Actor drawing the shape plain
@@ -182,6 +194,8 @@ class OpeningAndPlayingTest {
             PlacedShape(BUBBLE, x = 160f, y = 110f, width = 170f, height = 80f, rotation = -30f),
         )
         const val PLAIN_PREFIX = "Plain"
+        const val HIDDEN_TILE = "HiddenTile"
+        const val HIDDEN_TILE_Y = 230f
         const val BATCHED_SCENE = "batched-shapes"
         const val PLAIN_SCENE = "plain-shapes"
 
