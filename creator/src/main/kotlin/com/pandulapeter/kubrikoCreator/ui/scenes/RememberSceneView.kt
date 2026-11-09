@@ -20,11 +20,11 @@ import androidx.compose.runtime.setValue
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneView
 import com.pandulapeter.kubrikoCreator.sceneRuntime.createDisposingIfCancelled
-import com.pandulapeter.kubrikoCreator.sceneRuntime.disposeEach
+import com.pandulapeter.kubrikoCreator.sceneRuntime.disposeLeftOver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * The view that draws [state]'s Scene, or null while the first one is being created. Creating a view runs the project's
@@ -44,33 +44,42 @@ internal fun rememberSceneView(
 ): SceneView? {
     var shown by remember(state.scene.file) { mutableStateOf<SceneView?>(null) }
     val currentOnFailed by rememberUpdatedState(onFailed)
+    val preparing = remember { Mutex() }
     LaunchedEffect(state.scene.file, state.revision) {
-        val next = try {
-            createDisposingIfCancelled(Dispatchers.Default, create = { SceneView(state.entryPoint) }, dispose = SceneView::dispose)
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (exception: Exception) {
-            currentOnFailed(exception, shown != null)
-            return@LaunchedEffect
-        } catch (error: LinkageError) {
-            currentOnFailed(error, shown != null)
-            return@LaunchedEffect
-        }
-        try {
-            shown?.let { previous ->
-                next.load(state.actors, state.previews)
-                next.camera = previous.camera
+        // An effect cancelled by a newer revision still disposes its view, which the newer one waits for.
+        preparing.withLock {
+            val next = try {
+                createDisposingIfCancelled(Dispatchers.Default, create = { SceneView(state.entryPoint) }, dispose = SceneView::dispose)
+            } catch (throwable: Throwable) {
+                currentOnFailed.reportUnlessFatal(throwable, isShowingOlderClasses = shown != null)
+                return@LaunchedEffect
             }
-        } catch (exception: CancellationException) {
-            // Never shown, so no viewport ticks it on the main thread, which the shown one is disposed on.
-            withContext(NonCancellable + Dispatchers.Default) { disposeEach(listOf(next), SceneView::dispose) }
-            throw exception
+            try {
+                shown?.let { previous ->
+                    next.load(state.actors, state.previews)
+                    next.camera = previous.camera
+                }
+            } catch (throwable: Throwable) {
+                // Never shown, so no viewport ticks it on the main thread, which the shown one is disposed on.
+                disposeLeftOver(throwable, Dispatchers.Default, listOf(next), SceneView::dispose)
+                currentOnFailed.reportUnlessFatal(throwable, isShowingOlderClasses = true)
+                return@LaunchedEffect
+            }
+            shown = next
         }
-        shown = next
     }
     val view = shown
     DisposableEffect(view) {
         onDispose { view?.dispose() }
     }
     return view
+}
+
+/**
+ * Hands [throwable] to this failure callback, or throws it on if it is a cancellation or a [VirtualMachineError],
+ * which no notice can help with.
+ */
+private fun ((Throwable, Boolean) -> Unit).reportUnlessFatal(throwable: Throwable, isShowingOlderClasses: Boolean) {
+    if (throwable is CancellationException || throwable is VirtualMachineError) throw throwable
+    invoke(throwable, isShowingOlderClasses)
 }

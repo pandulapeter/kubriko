@@ -43,6 +43,28 @@ class RememberSceneViewTest {
         assertEquals(listOf<Pair<String?, Boolean>>(PROBLEM to false), failures.map { (exception, isShowingOlderClasses) -> exception.message to isShowingOlderClasses })
     }
 
+    @Test
+    fun anErrorWhileCreatingTheViewIsReportedToo() = uiTest {
+        val failures = mutableListOf<Pair<Throwable, Boolean>>()
+        val state = SceneEditingState.Open(
+            scene = ProjectResource(ResourceGroup.SCENES, File("main.json"), "main.json"),
+            entryPoint = ErrorEntryPoint,
+            actors = emptyList(),
+            revision = 1,
+        )
+        showing {
+            rememberSceneView(state) { exception, isShowingOlderClasses -> failures += exception to isShowingOlderClasses }
+        }
+        waitUntil(timeoutMillis = 5_000) { failures.isNotEmpty() }
+        assertEquals(listOf<Pair<String?, Boolean>>(PROBLEM to false), failures.map { (exception, isShowing) -> exception.message to isShowing })
+    }
+
+    private object ErrorEntryPoint : CreatorEntryPoint {
+        override fun createSerializationManager(): SerializationManager<EditableMetadata<*>, Editable<*>> = EditableMetadata.newSerializationManagerInstance()
+
+        override fun createCustomManagers(): List<Manager> = throw AssertionError(PROBLEM)
+    }
+
     private object ThrowingEntryPoint : CreatorEntryPoint {
         override fun createSerializationManager(): SerializationManager<EditableMetadata<*>, Editable<*>> = EditableMetadata.newSerializationManagerInstance()
 

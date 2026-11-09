@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.sceneRuntime
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -20,7 +21,9 @@ import kotlinx.coroutines.test.runTest
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -68,16 +71,18 @@ class CreateDisposingIfCancelledTest {
     }
 
     @Test
-    fun eachValueIsDisposedWhateverTheOthersThrowUntilAVirtualMachineError() {
+    fun eachValueIsDisposedWhateverTheOthersThrowButAVirtualMachineError() {
         disposeEach(listOf("a", "b", "c")) {
             disposed += it
             if (it == "a") throw AssertionError()
             if (it == "b") error("Broken.")
         }
         assertEquals(listOf("a", "b", "c"), disposed.toList())
-        disposeEach(listOf("d", "e")) {
-            disposed += it
-            throw StackOverflowError()
+        assertFailsWith<StackOverflowError> {
+            disposeEach(listOf("d", "e")) {
+                disposed += it
+                throw StackOverflowError()
+            }
         }
         assertEquals(listOf("a", "b", "c", "d"), disposed.toList())
     }
@@ -134,6 +139,24 @@ class CreateDisposingIfCancelledTest {
             createEachDisposingIfCancelled(Dispatchers.IO, count = 2, create = { index -> if (index == 1) throw StackOverflowError() else "0" }, dispose = { disposed += it })
         }
         assertTrue(disposed.isEmpty())
+    }
+
+    @Test
+    fun aDispatcherThatTakesNoMoreWorkIsAddedToTheCauseRatherThanThrown(): Unit = runBlocking {
+        val cause = CancellationException("Cancelled.")
+        val refusing = object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) = throw RejectedExecutionException("Closed.")
+        }
+        disposeLeftOver(cause, refusing, listOf("view")) { disposed += it }
+        assertTrue(cause.suppressed.isNotEmpty())
+        assertTrue(disposed.isEmpty())
+    }
+
+    @Test
+    fun nothingLeftOverIsNothingToDispose(): Unit = runBlocking {
+        val cause = IllegalStateException()
+        disposeLeftOver(cause, Dispatchers.IO, emptyList<String>()) { disposed += it }
+        assertTrue(cause.suppressed.isEmpty())
     }
 
     /**

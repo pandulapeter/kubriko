@@ -17,7 +17,8 @@ import kotlinx.coroutines.withContext
 /**
  * Runs [create] on [dispatcher] (off the main thread, where what the project's code throws can't take the user
  * interface down with it), and if the caller was cancelled meanwhile, disposes what it created on [dispatcher] before
- * the cancellation goes on, rather than throwing it away undisposed ([createEachDisposingIfCancelled] for one value).
+ * the cancellation goes on, rather than throwing it away undisposed: what [createEachDisposingIfCancelled] does for a
+ * single value.
  *
  * @throws Exception What [create] threw, and [LinkageError]s too (a project class that is gone or changed since).
  */
@@ -52,24 +53,40 @@ public suspend fun <T : Any> createEachDisposingIfCancelled(
     } catch (error: VirtualMachineError) {
         throw error
     } catch (throwable: Throwable) {
-        val leftOver = created.filterNotNull()
-        if (leftOver.isNotEmpty()) withContext(NonCancellable + dispatcher) { disposeEach(leftOver, dispose) }
+        disposeLeftOver(throwable, dispatcher, created.filterNotNull(), dispose)
         throw throwable
     }
     return created
 }
 
 /**
+ * Disposes [values], left over because of [cause], on [dispatcher] even though the caller may be cancelled
+ * ([disposeEach]), waiting until it is done, so that they are gone before anything the caller does next. What stops
+ * it from being done (a [dispatcher] that no longer takes work) is added to [cause] as suppressed, so it never takes
+ * the place of why they were left.
+ */
+public suspend fun <T> disposeLeftOver(cause: Throwable, dispatcher: CoroutineDispatcher, values: List<T>, dispose: (T) -> Unit) {
+    if (values.isEmpty()) return
+    try {
+        withContext(NonCancellable + dispatcher) { disposeEach(values, dispose) }
+    } catch (error: VirtualMachineError) {
+        throw error
+    } catch (throwable: Throwable) {
+        if (throwable !== cause) cause.addSuppressed(throwable)
+    }
+}
+
+/**
  * Disposes each of [values], going on with the rest whatever one of them throws, since nothing uses them any more and
- * what disposing them throws mustn't take the place of why they were left. A [VirtualMachineError] stops it without
- * going further, as running more of the project's code could only make it worse.
+ * what disposing them throws mustn't take the place of why they were left. A [VirtualMachineError] stops it and is
+ * thrown on, as running more of the project's code could only make it worse.
  */
 public fun <T> disposeEach(values: List<T>, dispose: (T) -> Unit) {
     for (value in values) {
         try {
             dispose(value)
-        } catch (_: VirtualMachineError) {
-            return
+        } catch (error: VirtualMachineError) {
+            throw error
         } catch (_: Throwable) {
         }
     }
