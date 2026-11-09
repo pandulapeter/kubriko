@@ -18,9 +18,6 @@ Creator has to hold up for games the size GameMaker made (hundreds of Actor type
 user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
 enough to matter:
 
-- **Two choosers list everything.** The Scene settings' music choice (`SceneSettingsFields`) and the type header's list of further
-  children (`BlockTypeHeader`) still compose every option of a `MenuButton`'s `DropdownMenu`. Fix: `SearchableChoiceButton`, which
-  the other project choices use, and folder paths in its options.
 - **Sidebar rows** are rebuilt inside the lazy list's builder on every AI step's flash (`folderTreeSection` calls `folderTreeRows`
   each time). Fix: remember the rows per group.
 

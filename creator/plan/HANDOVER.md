@@ -25,10 +25,10 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (the two choosers that list everything) and go through it in order,
-then `02`.
+Continue `01-known-issues.md` at its first item (the sidebar rows rebuilt on every AI step's flash) and go through it
+in order, then `02`.
 
-The last session finished the first four items, each reviewed with `/code-review` and its findings fixed in commits of
+The last session finished the first five items, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
 
 - The type editor no longer rebuilds the project's family, scope, and inheritance per keystroke (`TypeEditorContextCache`,
@@ -52,6 +52,9 @@ their own:
   logged line since its session started, and the latest problem, all kept as lines arrive). The console follows new
   lines while it shows the last one (one collector; the user's own scrolling stops it), keys lines by number, and opens
   by itself for what the game logs only at its first line per session (`ConsoleOpening`).
+- The Scene settings' music and a type's further children are `SearchableChoiceButton`s (music through `AudioFileChoice`,
+  which can offer none). A Scene's music that is gone is a missing reference (`sceneMusic`), and no audio file counts as
+  missing before the project is scanned (`AudioFiles.ofScanned`).
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
