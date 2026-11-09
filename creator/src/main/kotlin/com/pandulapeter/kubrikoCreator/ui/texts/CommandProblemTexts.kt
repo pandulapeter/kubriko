@@ -95,7 +95,6 @@ import kubriko.creator.generated.resources.error_command_type_missing
 import kubriko.creator.generated.resources.error_command_unknown
 import kubriko.creator.generated.resources.error_command_upgrade_by_hand
 import kubriko.creator.generated.resources.error_command_upgrade_not_needed
-import kubriko.creator.generated.resources.error_document_path_too_long
 import kubriko.creator.generated.resources.error_folder_exists
 import kubriko.creator.generated.resources.error_folder_missing
 import kubriko.creator.generated.resources.error_folder_not_empty
@@ -109,7 +108,6 @@ import kubriko.creator.generated.resources.error_game_not_on_desktop
 import kubriko.creator.generated.resources.error_game_not_running
 import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_mcp_internal
-import kubriko.creator.generated.resources.error_page_name_too_long
 import kubriko.creator.generated.resources.error_scene_folder_reserved
 import kubriko.creator.generated.resources.error_scene_name_taken
 import kubriko.creator.generated.resources.error_scene_not_moved
@@ -154,11 +152,9 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.NUMBER_INVALID -> Res.string.error_command_number_invalid
     CommandProblem.DOCUMENT_MISSING -> Res.string.error_command_document_missing
     CommandProblem.DOCUMENT_NOT_MOVED -> Res.string.error_command_document_not_moved
-    CommandProblem.DOCUMENT_PATH_TOO_LONG -> Res.string.error_document_path_too_long
     CommandProblem.DOCUMENT_TAKEN -> Res.string.error_command_document_taken
     CommandProblem.DOCUMENT_TOO_LONG -> Res.string.error_command_document_too_long
     CommandProblem.DOCUMENT_UNREADABLE -> Res.string.error_command_document_unreadable
-    CommandProblem.PAGE_NAME_TOO_LONG -> Res.string.error_page_name_too_long
     CommandProblem.PAGE_MISSING -> Res.string.error_command_page_missing
     CommandProblem.PAGE_NOT_MOVED -> Res.string.error_command_page_not_moved
     CommandProblem.MENTIONS_NOT_FOLLOWED -> Res.string.error_command_mentions_not_followed

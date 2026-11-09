@@ -31,8 +31,21 @@ internal object ProjectNaming {
         when {
             trimmed.isEmpty() -> TemplateProblem.NAME_EMPTY
             !Character.isLetter(trimmed.codePointAt(0)) -> TemplateProblem.NAME_FIRST_CHARACTER
-            trimmed.codePoints().anyMatch { !Character.isLetterOrDigit(it) && it.toChar() !in " _-" && !NameFlaw.isMark(it) } -> TemplateProblem.NAME_CHARACTERS
+            !areAllowed(trimmed) -> TemplateProblem.NAME_CHARACTERS
             else -> null
+        }
+    }
+
+    /**
+     * Whether every character of [name] is a letter, a digit, a space, a dash, an underscore, or a mark written on a
+     * letter, read by code point.
+     */
+    private fun areAllowed(name: String): Boolean {
+        var followsLetter = false
+        return name.codePoints().allMatch { codePoint ->
+            val isMarkOnLetter = NameFlaw.isMark(codePoint) && followsLetter
+            followsLetter = Character.isLetter(codePoint) || isMarkOnLetter
+            isMarkOnLetter || Character.isLetterOrDigit(codePoint) || codePoint == ' '.code || codePoint == '_'.code || codePoint == '-'.code
         }
     }
 

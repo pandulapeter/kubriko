@@ -51,8 +51,9 @@ class DocumentNamingTest {
             "docs./notes.md" to NameProblem.DOCUMENT_END,
             "docs//notes.md" to NameProblem.PATH_PART_EMPTY,
             "jegyzetek/ötletek.md" to NameProblem.NAME_LETTER_BEYOND_A_TO_Z,
-        ).forEach { (path, problem) -> assertEquals(problem, DocumentNaming.validate(path), path) }
-        assertNull(DocumentNaming.validate("a".repeat(DocumentNaming.MAXIMUM_LENGTH) + ".md"))
+        ).forEach { (path, problem) -> assertEquals(problem to emptyList(), DocumentNaming.validate(path), path) }
+        assertNull(DocumentNaming.validate("a".repeat(197) + ".md"))
+        assertEquals(NameProblem.DOCUMENT_PATH_TOO_LONG to listOf("200"), DocumentNaming.validate("a".repeat(198) + ".md"))
     }
 
     @Test

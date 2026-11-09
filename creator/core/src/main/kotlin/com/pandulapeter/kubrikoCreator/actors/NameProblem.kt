@@ -36,6 +36,8 @@ public enum class NameProblem(override val english: String) : DomainText {
     TYPE_TAKEN("There's already an Actor type or Manager type with that name."),
     SCENE_FIRST_CHARACTER("Start the Scene's name, and every folder in it, with a letter or a number."),
     SCENE_CHARACTERS("Use only letters, numbers, dashes, and underscores, like level-1, with a / between folders."),
+    PAGE_NAME_TOO_LONG("A page's name, with its folders, can be at most %1\$s characters long."),
+    DOCUMENT_PATH_TOO_LONG("A document's path can be at most %1\$s characters long."),
     DOCUMENT_NOT_MARKDOWN("A document's name ends with .md."),
     DOCUMENT_IN_SCREENPLAY("The screenplay folder holds pages, not documents. Choose another folder."),
     DOCUMENT_IN_LEFT_OUT_FOLDER("Kubriko Creator leaves build and tool folders out, so a document can't go in one. Choose another folder."),

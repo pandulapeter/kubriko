@@ -582,13 +582,10 @@
     <string name="error_command_page_section_missing">%1$s has no section headed %2$s.</string>
     <string name="error_command_page_taken">There's already a page called %1$s.</string>
     <string name="error_command_page_too_long">A page can be at most %1$s characters long. Split it into pages of one topic each.</string>
-    <string name="error_placement_block_only_in_edge_touched">That Block works only in a When an edge of the screen is touched Event, the only one that knows which edge was touched.</string>
-    <string name="error_placement_block_only_in_collision">That Block works only in a When it collides with Event, the only one that knows the other Actor.</string>
-    <string name="error_placement_block_only_in_another_event">That Block doesn't work in this kind of Event.</string>
+    <string name="error_placement_block_bounce_off_edge_outside_edge_touched">Bounce off the edge works only in a When an edge of the screen is touched Event, the only one that knows which edge was touched.</string>
+    <string name="error_placement_block_bounce_off_other_outside_collision">Bounce off it works only in a When it collides with Event, the only one that knows what was hit.</string>
+    <string name="error_placement_block_remove_other_outside_collision">Remove the other Actor works only in a When it collides with Event, the only one that knows the other Actor.</string>
     <string name="error_placement_block_remove_other_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove the other Actor Block.</string>
-    <string name="error_placement_block_needs_actor_in_manager_type">A Manager type isn't in a Scene, so it can't have that Block, which needs an Actor.</string>
-    <string name="error_placement_event_only_in_actor_type">Only an Actor type can have that Event.</string>
-    <string name="error_placement_event_only_in_manager_type">Only a Manager type can have that Event.</string>
     <string name="error_placement_block_movement_in_manager_type">A Manager type isn't in a Scene, so it has nothing for the Movement Blocks to move. They belong in an Actor type.</string>
     <string name="error_placement_block_remove_self_in_manager_type">A Manager type isn't in a Scene, so it can't have a Remove this Actor Block.</string>
     <string name="error_placement_block_run_parent_event_in_manager_type">Only Actor types have parents, so a Manager type can't have a Run the parent's Event Block.</string>
@@ -648,7 +645,7 @@
     <string name="error_command_scene_content_invalid">That isn't valid Scene content.</string>
     <string name="error_command_scene_actor_missing">%1$s has no Actor with the ID %2$s.</string>
     <string name="error_command_actor_id_empty">An Actor's ID can't be empty.</string>
-    <string name="error_command_actor_id_letter_beyond_a_to_z">%1$s can't be an Actor's ID. Use only the letters a to z, without accents.</string>
+    <string name="error_command_actor_id_letter_beyond_a_to_z">%1$s can't be an Actor's ID: its letters have to be a to z, without accents.</string>
     <string name="error_command_actor_id_invalid">%1$s can't be an Actor's ID. Use only letters, numbers, dashes, and underscores, with no spaces or other signs.</string>
     <string name="error_command_actor_id_taken">Another Actor in the Scene has the ID %1$s.</string>
     <string name="error_command_scene_actor_without_position">The Actor %1$s has no position.</string>

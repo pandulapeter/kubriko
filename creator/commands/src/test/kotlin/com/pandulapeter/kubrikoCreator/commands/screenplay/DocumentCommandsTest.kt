@@ -80,7 +80,7 @@ class DocumentCommandsTest {
         context.write("README.md", "# Game\n")
         assertEquals(Rejection(CommandProblem.DOCUMENT_TAKEN, "readme.md"), CreateDocument.validate(context, CreateDocument.Input("readme.md", "")))
         assertEquals(Rejection(NameProblem.DOCUMENT_IN_SCREENPLAY), CreateDocument.validate(context, CreateDocument.Input("screenplay/hero.md", "")))
-        assertEquals(Rejection(CommandProblem.DOCUMENT_PATH_TOO_LONG, "200"), CreateDocument.validate(context, CreateDocument.Input("a".repeat(200) + ".md", "")))
+        assertEquals(Rejection(NameProblem.DOCUMENT_PATH_TOO_LONG, "200"), CreateDocument.validate(context, CreateDocument.Input("a".repeat(200) + ".md", "")))
         assertEquals(Rejection(NameProblem.DOCUMENT_IN_LEFT_OUT_FOLDER), CreateDocument.validate(context, CreateDocument.Input("build/notes.md", "")))
         assertEquals(
             Rejection(CommandProblem.DOCUMENT_TOO_LONG, DOCUMENT_MAXIMUM_LENGTH.toString()),

@@ -53,10 +53,18 @@ class PlacementsTest {
     }
 
     @Test
+    fun everyBlockHasAReasonOfItsOwnExactlyWhereItNeedsOne() {
+        BlockKind.entries.forEach { blockKind ->
+            assertEquals(blockKind.needsActor, blockKind.managerTypeProblem != null, "$blockKind in a Manager type")
+            assertEquals(blockKind.onlyIn != null, blockKind.otherEventProblem != null, "$blockKind outside its Event")
+        }
+    }
+
+    @Test
     fun aBlockIsRejectedForItsOwnReasonAndAManagerTypesFirst() {
-        assertEquals(PlacementProblem.BLOCK_ONLY_IN_EDGE_TOUCHED, BlockKind.BOUNCE_OFF_EDGE.problemIn(EventType.EVERY_FRAME, BlockTypeKind.ACTOR))
-        assertEquals(PlacementProblem.BLOCK_ONLY_IN_COLLISION, BlockKind.BOUNCE_OFF_OTHER.problemIn(EventType.EDGE_TOUCHED, BlockTypeKind.ACTOR))
-        assertEquals(PlacementProblem.BLOCK_ONLY_IN_COLLISION, BlockKind.REMOVE_OTHER.problemIn(EventType.KEY_PRESSED, BlockTypeKind.ACTOR))
+        assertEquals(PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED, BlockKind.BOUNCE_OFF_EDGE.problemIn(EventType.EVERY_FRAME, BlockTypeKind.ACTOR))
+        assertEquals(PlacementProblem.BLOCK_BOUNCE_OFF_OTHER_OUTSIDE_COLLISION, BlockKind.BOUNCE_OFF_OTHER.problemIn(EventType.EDGE_TOUCHED, BlockTypeKind.ACTOR))
+        assertEquals(PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION, BlockKind.REMOVE_OTHER.problemIn(EventType.KEY_PRESSED, BlockTypeKind.ACTOR))
         assertEquals(PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, BlockKind.BOUNCE_OFF_EDGE.problemIn(EventType.EVERY_FRAME, BlockTypeKind.MANAGER))
         assertEquals(PlacementProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, BlockKind.JUMP_TO.problemIn(EventType.GAME_STARTED, BlockTypeKind.MANAGER))
         assertEquals(PlacementProblem.BLOCK_REMOVE_SELF_IN_MANAGER_TYPE, BlockKind.REMOVE_SELF.problemIn(EventType.EVERY_FRAME, BlockTypeKind.MANAGER))
@@ -75,8 +83,9 @@ class PlacementsTest {
             PlacementProblem.KEY_NOT_ALLOWED to listOf(EventType.KEY_PRESSED.serialName),
             PlacementProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED to listOf(EventType.COLLISION.serialName),
             PlacementProblem.TIMER_NOT_ALLOWED to listOf(EventType.TIMER_FINISHED.serialName),
-            PlacementProblem.BLOCK_ONLY_IN_EDGE_TOUCHED to listOf(EventType.EDGE_TOUCHED.serialName),
-            PlacementProblem.BLOCK_ONLY_IN_COLLISION to listOf(EventType.COLLISION.serialName),
+            PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED to listOf(BlockKind.BOUNCE_OFF_EDGE.serialName, EventType.EDGE_TOUCHED.serialName),
+            PlacementProblem.BLOCK_BOUNCE_OFF_OTHER_OUTSIDE_COLLISION to listOf(BlockKind.BOUNCE_OFF_OTHER.serialName, EventType.COLLISION.serialName),
+            PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION to listOf(BlockKind.REMOVE_OTHER.serialName, EventType.COLLISION.serialName),
             PlacementProblem.BLOCK_REMOVE_SELF_IN_MANAGER_TYPE to listOf(BlockKind.REMOVE_SELF.serialName),
             PlacementProblem.BLOCK_REMOVE_OTHER_IN_MANAGER_TYPE to listOf(BlockKind.REMOVE_OTHER.serialName),
             PlacementProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE to listOf(BlockKind.RUN_PARENT_EVENT.serialName),

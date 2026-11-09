@@ -113,7 +113,7 @@ class ScreenplayCommandsTest {
         val renamed = context.assertRoundTrip(Invocation(RenameFolder, RenameFolder.Input(FolderGroup.PAGES, "levels", "worlds"))) { context.screenplay.scanNames() to context.screenplay.scanFolders() }
         assertEquals(listOf("worlds/cave", "worlds/deep/pit") to setOf("people", "worlds", "worlds/deep"), renamed)
         assertEquals(Rejection(CommandProblem.FOLDER_NOT_EMPTY, "worlds"), DeleteFolder.validate(context, DeleteFolder.Input(FolderGroup.PAGES, "worlds")))
-        assertEquals(Rejection(CommandProblem.PAGE_NAME_TOO_LONG, "120"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.PAGES, "a".repeat(121))))
+        assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG, "120"), CreateFolder.validate(context, CreateFolder.Input(FolderGroup.PAGES, "a".repeat(121))))
         val left = context.assertRoundTrip(Invocation(DeleteFolder, DeleteFolder.Input(FolderGroup.PAGES, "people"))) { context.screenplay.scanFolders() }
         assertEquals(setOf("worlds", "worlds/deep"), left)
     }

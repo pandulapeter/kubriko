@@ -105,7 +105,7 @@ class ActorTypeCommandsTest {
         )
         assertNull(context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Paddle")))))
         assertEquals(
-            Rejection(PlacementProblem.BLOCK_ONLY_IN_EDGE_TOUCHED),
+            Rejection(PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.BounceOffEdge))))),
         )
         assertEquals(
@@ -287,8 +287,8 @@ class ActorTypeCommandsTest {
     @Test
     fun blockChangesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(PlacementProblem.BLOCK_ONLY_IN_COLLISION), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RemoveOther)))
-        assertEquals(Rejection(PlacementProblem.BLOCK_ONLY_IN_EDGE_TOUCHED), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.BounceOffEdge)))
+        assertEquals(Rejection(PlacementProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.RemoveOther)))
+        assertEquals(Rejection(PlacementProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED), context.rejection(EditBlock, EditBlock.Input("Ball", 0, 0, BlockDefinition.BounceOffEdge)))
         assertEquals(Rejection(CommandProblem.BLOCK_MISSING, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
         assertEquals(Rejection(CommandProblem.INDEX_INVALID, "2"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
         assertEquals(EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, jump)), EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, stop)))

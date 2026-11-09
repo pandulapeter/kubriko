@@ -69,10 +69,10 @@ private fun CommandContext.validateFreeFolder(group: FolderGroup, path: String):
  * Why [path] can't name a folder of [group]: a Scene's folders are part of its name, and so are a page's.
  */
 private fun folderNameRejection(group: FolderGroup, path: String): Rejection? = when (group) {
-    FolderGroup.SCENES -> SceneNaming.validate(path)?.let(::Rejection)
+    FolderGroup.SCENES -> (SceneNaming.validate(path) ?: FolderPaths.validatePath(path))?.let(::Rejection)
     FolderGroup.PAGES -> validatePageName(path)
-    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> null
-} ?: FolderPaths.validatePath(path)?.let(::Rejection)
+    FolderGroup.ACTOR_TYPES, FolderGroup.MANAGER_TYPES -> FolderPaths.validatePath(path)?.let(::Rejection)
+}
 
 /**
  * Whether anything (a type, a Scene, or a folder) is in the folder at [path] of [group].
