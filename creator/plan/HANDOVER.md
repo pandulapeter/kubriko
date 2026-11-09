@@ -25,8 +25,19 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (an unreadable project file reading as any other opening failure) and go
-through it in order, then `02`.
+Continue `01-known-issues.md` at its first item (creating a project that fails losing the form) and go through it in order,
+then `02`.
+
+This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
+fixed in commits of their own:
+
+- An unreadable `.kubriko/project.json` is named with what is wrong in it (`ProjectSettingsReader`: empty, not JSON with the
+  line of the mistake, not an object, or a value missing, of the wrong kind, or too large), in plain words rather than the
+  parser's, through `ProjectProblem`'s `PROJECT_FILE_*` entries and `ProjectInspectionException`'s arguments. `ProjectFormat`
+  parses it through the same reader, so the two never disagree about a file; while the project is open, a broken one is
+  reported in the console. A newer format's project whose settings this Creator can't read opens without its types, since
+  browsing needs none. `UnreadableProjectFileException` is an `IOException`, so what already gave up on an unreadable file
+  still does. Opening reads the small file twice (the format, then the store), more only while migrating.
 
 The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:

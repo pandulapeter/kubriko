@@ -16,10 +16,6 @@ caught it, and the review (`README.md`).
 
 What someone who knows neither Kotlin nor Gradle meets when something goes wrong:
 
-- **An unreadable project file reads as any other opening failure.** `AppController.openProject` turns any exception other than a
-  `ProjectInspectionException` into `error_project_not_opened` with the cause's own message, so an invalid `.kubriko/project.json`
-  says the same as a daemon that can't start. Fix: a message of its own for an unreadable `.kubriko/project.json`, naming the file
-  and what is wrong in it.
 - **Creating a project that fails loses the form.** `AppScreen.NewProject(error = …)` comes back with an empty form, since its state
   lives in `NewProjectScreen`'s `remember`, and `error_project_not_created` never says why. Fix: keep the request in
   `AppScreen.NewProject` and show the cause (network, disk, or permission).
