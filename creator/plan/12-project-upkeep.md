@@ -23,7 +23,8 @@ packaged Creator built from `main` after a version bump would otherwise break th
 ## Incremental builds
 
 Creator's builds turn on Kotlin's internal incremental compilation of common code (`IncrementalCompilationPolicy`, around KT-62686).
-Once projects are on Kotlin 2.5, use its separate compilation of common code instead, and remove the policy.
+Once projects are on Kotlin 2.5, use its separate compilation of common code instead, and remove the policy (waits for that
+Kotlin release).
 
 ## Kubriko dependencies
 
@@ -124,13 +125,22 @@ IntelliJ is read as it is, its run configurations included, without Creator chan
   - IntelliJ's files change only when the user edits such an entry point in Creator (below), as a confirmed diff that keeps every
     element and attribute Creator doesn't know, in the order it found them, so IntelliJ opens the file as it was plus the change.
     A file that changes outside Creator is read again within a second, as the build files are.
-- **Settings per entry point.** Project settings → Entry points (`05-settings.md`) shows and edits them. Each value lives where
+- **Settings per entry point.** Project settings → Entry points (below) shows and edits them. Each value lives where
   IntelliJ would read it too, so a project opened in IntelliJ starts what Creator starts: an entry point's name, task or main class,
   arguments, JVM options, environment, and working directory are a shared run configuration in `.run/`, which Creator writes only
   once an entry point needs more than the build gives it, so a beginner's project gains no file; what only Creator needs (game or
   tool, the edition, the default for each kind, hidden) is in `.kubriko/project.json` under the entry point's ID; and what is this
   computer's only (a path on this machine, a secret in an environment variable) goes to `.kubriko/local/entry-points.json`, merged
   over the shared one. Format raise with an empty migration.
+- **Project settings → Entry points:** the entry points found in the build, IntelliJ's, and Creator's own, as a master-detail page
+  grouped into the game's and the tools, each by platform, with a filter by edition once there are several. A beginner's project
+  shows one row per target and a New entry point button, nothing else. A row's detail shows where it comes from (the build,
+  IntelliJ, or Creator; shared or this computer's only), its name, whether it is the game's or a tool, its edition, and whether it is
+  its kind's default; then, folded under Advanced, what its kind takes: on the desktop the program arguments, JVM options,
+  environment variables, working directory, and Gradle properties; on the web the Gradle properties and the browser it opens in (this
+  computer's); on Android the flavor and the launch activity; on iOS the scheme and the configuration. A value that is this
+  computer's only says so in the row, and one that can't play says why rather than being left out. Targets keeps turning the
+  template's targets on and off; what each one turned on adds shows here.
 - **Adding one.** New entry point (Project settings → Entry points, and the `create_entry_point` command and AI tool) makes one of
   three, the simplest first, each with its own short explanation in the dialog:
   - **A variation:** an existing entry point under a name of its own with other arguments ("Desktop, starting in Scene `boss`",
@@ -162,8 +172,11 @@ A demo and a full version, a free and a paid one, a build for an event: the same
   Creator passes, and IntelliJ and plain Gradle leave out, building the default) into a generated `GameEdition` constant beside
   `GameSettings`. Blocks get a condition "the edition is", and hand-written code reads `GameEdition.current`. The constant is known at
   compile time in a release build, so the shrinker drops what only another edition uses, as it drops Log Blocks
-  (`13-export-and-distribution.md`), and the export check looks for it. Each edition other than the default gets a run configuration
+  (`10-export.md`), and the export check looks for it. Each edition other than the default gets a run configuration
   per target in `.run/`, so IntelliJ plays the demo too. Removing the last edition but one removes the block again as a diff.
+- **Project settings → Editions:** added, renamed, reordered (the first is the default), and removed, each with its name, application
+  ID suffix, version, and the Scenes it leaves out. Identity shows each value with the edition overriding it, so a demo's name is set
+  where the game's is.
 - **Scenes per edition.** An edition can leave Scenes and Scene folders out (`.kubriko/project.json`); its generated Scene registry
   lists only its own, a Block naming a left-out Scene is a health check warning for that edition, and its build leaves the files out
   of its resources. Whether Compose resources can be filtered per build without a module per edition is the first thing to find
@@ -174,18 +187,13 @@ A demo and a full version, a free and a paid one, a build for an event: the same
   they treat the generated ones, without Creator touching the build; a project with editions of both kinds is fine.
 - **Playing and exporting.** Play's menu offers the edition only when there are several. Choosing one chooses every target's entry
   point together and the Scene editor's classes (a Block reading `GameEdition` previews as it plays); Export makes the editions
-  chosen in one go, each named, versioned, and signed as its own identity says (`13-export-and-distribution.md`).
+  chosen in one go, each named, versioned, and signed as its own identity says (`10-export.md`).
 - **Checked** with unit tests over the property block (parsed exactly as the template's Gradle code parses it, as `GameSettings.of`
   is), the registry per edition, and recorded flavor models, and one end-to-end scenario on a copy of the Breakout fixture that adds a
   demo edition leaving a Scene out, builds both, and plays the demo, whose `GameEdition` Block shows.
 
-**Tesselar** (two Kubriko instances, procedural world, its own cuboid model format, a version catalog, and code in `:gameplay` with
-`:app:desktop` beside the desktop `:editor:model` and `:editor:region` tools) is the advanced reference. It plays unchanged on the desktop,
-`:app:desktop` being the first of its desktop modules, and the toolbar picks another; its `:app:web`, `:app:android`, and `app/ios/iosApp`
-(with the shared `[iOS] Tesselar` scheme), and its four shared IntelliJ run configurations, wait for Entry points, which tells its
-`:editor:model` and `:editor:region` apart as tools. Scene editing needs its logic-layer Actors to adopt `Editable` and `.kubriko/project.json` to name the
-editable instance, and is worth little there: its levels are procedural regions, edited in its own region editor. Its models and regions
-need the asset editor extension point (`17-later.md`), where its two editor modules would be the first editors Creator hosts; until
-then they run from the Tools menu. Blocks don't
-apply. The goal is working on Tesselar entirely inside Creator: its play, debugging, version control, and AI host, with its own editors
-inside, on the engine's rendering rather than private copies of it (`06-batched-rendering.md`).
+## Order
+
+Kubriko dependencies and the code's module first, since every multi-module layout needs them, then Entry points, Editions, types and
+Scenes in every module, every resource, the rest of opting existing projects in, Kubriko versions, and template drift. Incremental
+builds wait for Kotlin 2.5.

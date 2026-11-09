@@ -10,19 +10,18 @@
 # Sprite editor
 
 A pixel-art editor for sprites and their animations, inspired by GameMaker 6.1's sprite and image editors: a beginner draws the ball, the
-paddle, or a walking character without leaving Creator, frame by frame, with onion skinning. It follows sprites as an appearance
-(`09-blocks.md` → Appearance), which gives it something to edit.
+paddle, or a walking character without leaving Creator, frame by frame, with onion skinning. It follows sprite sheets as an appearance
+(`04-blocks.md` → Appearance), which gives it something to edit.
 
 ## Files
 
 - **The PNG sprite sheet is the source of truth**, in the project's `composeResources/drawable`. Kubriko's sprites plugin already plays an
   animation from a sheet (`AnimatedSprite`: frames of one size in rows, `framesPerRow` wide), so that is the format under the hood, not
   a format of Creator's own or GIF: the game and IntelliJ need nothing else (`../CLAUDE.md` → Principles 1).
-- `.kubriko/sprites/<name>.json` keeps what the sheet can't: frame size, frame count, frames per row, frames per second, and the origin
-  (the pivot). Deleting it leaves a plain image, which can be opened again by entering the frame size.
-- Sprites live in the sidebar beside Actor types and Scenes, in virtual folders kept in their JSON (`07-resource-organization.md`; Compose
-  resources take no subfolders in `drawable`). Renaming one follows every Actor type that uses it, like an Actor type rename follows
-  collision Events.
+- `.kubriko/sprites/<name>.json` keeps what the sheet can't (frame size, frame count, frames per row, frames per second, and the
+  origin), as sprite sheets already use it. Deleting it leaves a plain image, which can be opened again by entering the frame size.
+- New sprites are added, renamed, and deleted as `03-resources-and-search.md` makes them; the editor adds New sprite and opens a
+  sprite from the sidebar.
 - A new sprite starts as one fully transparent frame of the size the user picks (32 by 32 by default).
 - Importing: a PNG, a sheet sliced by frame size, or a strip of separate images (one per frame). Exporting is the sheet itself.
 
@@ -63,10 +62,8 @@ paddle, or a walking character without leaving Creator, frame by frame, with oni
 
 ## Sprites in the game
 
-Actor types already draw a whole image as their sprite (`set_appearance`, `SpriteFiles`), with the sprites plugin coming and going
-with that code. What the editor adds is used through `09-blocks.md` → Appearance: sprite sheets drawn with `AnimatedSprite`, the size
-defaulting to the frame size, and Blocks to set the animation's frame, speed, and whether it loops, with sprite thumbnails in the
-Scene editor (`09-blocks.md` → Scene editor).
+A sheet the editor changes reaches the game through the appearance sprite sheets already have (`04-blocks.md` → Appearance), and a
+new Actor type's size defaults to the frame size of the sprite it is given.
 
 ## Later
 

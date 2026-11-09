@@ -21,41 +21,41 @@ started), fix what it finds in commits of their own, verify it with unit tests f
 
 ## Roadmap, in order
 
-The files are numbered in the order they are worked on. Every item of `01` to `08` is to be done, none capped in number.
+The files are numbered in the order they are worked on, and each depends only on the files before it, so every item of a file can be
+done once the session reaches it. An item that turns out to wait for later work moves to the file it waits for, never staying behind
+in an earlier one, and an item that waits for something outside this repository (a protocol, a vendor, a release) is listed under
+its file's Waiting on others. Inside a file, its Order section says what comes first.
 
-1. [Large projects](01-large-projects.md) - costs that grow with the project (wide families, per-keystroke work, Scene reorders, a
-   flooded console, two long menus), then what is left once the plans it waits for land: screen texts in any layout, Actor names, and
-   what the benchmarks show is needed.
-2. [AI assistant](02-ai-assistant.md) - what is left of the in-app assistant (ACP protocol 2, the registry's icons, other agents'
-   fallbacks, Codex's profile, searching a project's conversations), more context for large games, and more for the MCP server,
-   alongside `07` to `10`.
-3. [Playing on every target](03-playing-on-every-target.md) - Play in the browser, on Android devices and emulators, and on iOS
-   simulators and devices, from the same button and the same `play` command.
-4. [Screenplay and the writers' room](04-screenplay.md) - the game's design documents as Markdown pages in the project, kept up
-   to date by the user and the AI, and a guided start that asks what the game is, writes its first pages, and builds its first
-   playable version with the user.
-5. [Settings](05-settings.md) - the rest of Project settings (Release, Icons, and Signing) and of Creator settings.
-6. [Batched rendering](06-batched-rendering.md) - what Tesselar still needs before it can drop its own rendering for the
-   engine's batched looks and atlases, and an end-to-end comparison of a generated game drawn plain and batched.
-7. [Folders and search](07-resource-organization.md) - the rest of the sidebar filter, quick open, find usages, and the search AI tools.
-8. [Reuse, Traits, and bigger games](08-reuse-and-traits.md) - functions, Traits, and what bigger games need.
-9. [Blocks, Actor types, and Manager types](09-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for
-   (random values, directions, color and opacity, animating over time, staying inside the Scene, steering with keys), the rest of
-   the Block set, the Scene editor's handles and snapping, sprite sheets and animation, UI elements, the Paddle game template,
-   Convert to code, and more drag and drop.
-10. [Sprite editor](10-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning, like
-    GameMaker 6.1's; it follows sprite sheets in `09-blocks.md`.
-11. [Version control](11-git.md) - sidebar change markers, restoring old versions, branches, remotes.
-12. [Debugger](12-debugger.md) - the debug agent, debugger panels, `tools/debug-overlay`, retiring the debug menu.
-13. [Export and distribution](13-export-and-distribution.md) - debug and release builds, signed Android builds, desktop installers,
-    web export, iOS, and Creator's own installers.
-14. [Project upkeep](14-project-upkeep.md) - template drift, Kubriko version upgrades, opting existing projects in, every entry
-    point (IntelliJ's run configurations and tools included), and editions such as a demo and a full version.
-15. [Onboarding](15-onboarding.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress, five bundled demo
-    games of increasing complexity, and cloning a project from version control.
-16. [Rehearsals](16-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a
-    test kit for games in Kotlin, and the AI writing and keeping them; finding existing tests waits for nothing and can be pulled forward.
-17. [Later](17-later.md) - code editor, language server, asset editor extension point.
+1. [Known issues](01-known-issues.md) - costs that grow with the project, mistakes a beginner meets in the first hour, and missing
+   checks, all found in review.
+2. [AI assistant](02-ai-assistant.md) - other agents' changes, accounts, chips, more context for large games, the activity view, and
+   what waits on ACP, the Kotlin SDK, and vendors.
+3. [Resources and search](03-resources-and-search.md) - adding, renaming, and deleting sprites, sounds, and music, the remaining
+   deletes, folders, the sidebar filter, quick open, find usages, and searching conversations.
+4. [Blocks, Actor types, and Manager types](04-blocks.md) - Blocks for the simple behavior a first game still needs Kotlin for, the
+   rest of the Block set, sprite sheets, UI elements, the Scene editor's handles and snapping, Convert to code, and the Paddle game
+   template.
+5. [Reuse, Traits, and bigger games](05-reuse-and-traits.md) - parent types, functions, Traits, what bigger games need, and the
+   platformer and top-down templates.
+6. [Sprite editor](06-sprite-editor.md) - a pixel-art editor for sprites and their animations, frame by frame with onion skinning,
+   like GameMaker 6.1's.
+7. [Version control](07-git.md) - change markers, restoring, checkpoints, nested repositories, branches, remotes, cloning, and
+   conflicts.
+8. [Debugger](08-debugger.md) - pausing, stepping, and slowing the game for the user and the AI, the debug agent and its panels, other
+   targets, and retiring the debug menu.
+9. [Installing Creator](09-installing-creator.md) - first-run setup that downloads the JDK, Gradle, and the Android SDK with progress,
+   a new Android emulator from Play's menu, installers, and updates.
+10. [Export](10-export.md) - release builds stripped of Creator, Release, Icons, and Signing settings, exports for every target, and
+    Play on an iOS device.
+11. [Demo games](11-demo-games.md) - five bundled games of increasing complexity, each built entirely in Creator, improving Creator
+    wherever it falls short.
+12. [Project upkeep](12-project-upkeep.md) - multi-module projects, every entry point (IntelliJ's run configurations included),
+    editions such as a demo and a full version, opting existing projects in, Kubriko versions, and template drift.
+13. [Tesselar in Creator](13-tesselar.md) - playing Tesselar and running its tools from Creator, its rendering on the engine's batched
+    looks, and the asset editor extension point that hosts its editors.
+14. [Rehearsals](14-rehearsals.md) - automated tests: the ones a project already has found, listed, and run with one click, a test kit
+    for games in Kotlin, and the AI writing and keeping them.
+15. [Later](15-later.md) - the code editor and what waits for demand, a decision, or the benchmarks.
 
 ## Structure
 
@@ -74,7 +74,7 @@ Gradle project that builds in IntelliJ exactly as if written by hand.
 compatibility or a copy of its look, icons, or action set; running Creator itself on mobile or the web.
 
 **Two reference projects keep the design honest:** a beginner game built only from Blocks (the Getting started paddle game, and the
-Breakout in `~/Projects/breakout`), and Tesselar (see `14-project-upkeep.md`). The principles every plan keeps, and who owns which
+Breakout in `~/Projects/breakout`), and Tesselar (`13-tesselar.md`). The principles every plan keeps, and who owns which
 project file, are in `../CLAUDE.md`.
 
 ## Terminology
@@ -112,4 +112,6 @@ Our own names, icons, and wording throughout; "inspired by GameMaker" is a factu
 3. Whether web export should offer one-click hosting.
 4. Whether a free, MPL-2.0 desktop app hosting Claude Code over ACP (as Android Studio does) has to accept Anthropic's Commercial Terms
    itself. The terms now allow users to sign in to a hosted, unmodified Claude Code with their own subscription, so this is asked before
-   release, not before building; see `02-ai-assistant.md` → What the terms allow.
+   release, not before building: ask Anthropic (Claude Code's Legal and compliance page points to sales), naming Android Studio, Zed,
+   and JetBrains IDEs, which host the same adapter, as the precedent.
+5. Whether the Kubriko library's own documentation should recommend the `screenplay/` folder to games written without Creator.

@@ -14,11 +14,11 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
 - **Change markers** in the sidebar for new and changed Actor types, Scenes, and files.
 - **Restore** an Actor type or Scene from any commit in the history; show what a commit changed.
 - **Branches:** create and switch from a menu. Merging is left to other tools at first.
-- **Checkpoints:** offer to commit before risky operations (Convert to code, deleting an Actor type, upgrading Kubriko, AI changes).
+- **Checkpoints:** offer to commit before risky operations (Convert to code, deleting an Actor type, upgrading Kubriko, and AI changes).
 - **Remotes:** publish to a new GitHub repository, push, and pull (fast-forward only, explaining when histories diverged), credentials in the OS
-  keychain. A generated GitHub Actions workflow builds every platform (`13-export-and-distribution.md`).
+  keychain. A generated GitHub Actions workflow building every platform comes with exporting (`10-export.md`).
 - **Conflicts:** never write conflict markers into Creator's JSON; stop before changing anything and explain which files clash. Since every
-  Scene Actor has a stable ID, a Scene conflict can later be shown, and resolved, Actor by Actor (`01-large-projects.md`).
+  Scene Actor has a stable ID, a Scene conflict is then shown, and resolved, Actor by Actor.
 - **Projects inside a larger repository** (not at its root: a monorepo, a game beside its website, a folder of several games). Today such
   a project shows "no repository", and Start version control (or a new project with git on) creates a repository nested inside the
   other one. Support every layout: find the repository by looking up the parent folders (JGit's `findGitDir`), and work on the
@@ -26,3 +26,17 @@ Kept to what a beginner needs, while the project stays an ordinary repository ot
   paths shown relative to the project); Start version control and new projects offer to use the enclosing repository, and only
   create a nested one when asked. Git worktrees and submodules (a `.git` file rather than a folder) open the same way, and a project
   whose repository root is above it says so in the version control panel.
+
+## Cloning
+
+- **Clone** on the project list: a URL (HTTPS or SSH), a folder, and a progress bar, through JGit, so no git installation is needed;
+  GitHub sign-in and private repositories use the remotes' keychain credentials (above).
+- After cloning, the project opens like any other: a Kubriko project that isn't opted in is offered the opt-in
+  (`12-project-upkeep.md` → Existing projects, which shows what it can until then), and one that isn't a Kubriko project at all is
+  explained rather than opened half-way.
+- Submodules and Git LFS: reported when the repository uses them, and opened like any other repository, their contents left as they
+  are.
+
+## Order
+
+Change markers, Restore, and Checkpoints first, then projects inside a larger repository, Branches, Remotes, Cloning, and Conflicts.

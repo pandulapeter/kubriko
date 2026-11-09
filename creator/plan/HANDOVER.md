@@ -18,40 +18,17 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 - Ask before every push (`git log origin/main..HEAD` shows what would go).
 - `library.version` is 0.8.1, unreleased (0.8.0 is on Maven Central). It holds library changes Creator uses: `Logger.log` building
   its list once, and the `SpriteManager.newInstance(imageLoader, …)` overload.
-- Creator is AI-centric. `02-ai-assistant.md` is built except what needs a real session or someone else's work:
-  Codex's profile (Codex is out of quota until Nov 21, 2026), ACP protocol 2 and its `systemPrompt` field (not final, not in the
-  Kotlin SDK), Actors' states for the AI (needs `12-debugger.md`), the registry's icons (each vendor's trademark rules), and the
-  smaller follow-ups the file lists.
+- `README.md` → Roadmap is in dependency order as of 2026-11-09: every file depends only on the ones before it, so work goes
+  file by file from `01`. Leftovers that waited on later work were moved into the file they wait for, and what waits on something
+  outside this repository is under its file's Waiting on others (ACP protocol 2, the Kotlin SDK's `systemPrompt`, Codex's quota
+  until Nov 21, 2026, and the registry's icons, all in `02-ai-assistant.md`).
 
 ## Next
 
-`04-screenplay.md` is done except what waits for other work: each remaining kind's delete (sprites, sounds, music, Timers,
-folders with contents) comes with that kind's own delete, a deleted sprite's page images with sprite deletes, and the live
-writers' room scenario is written but not run (below). Next is `05-settings.md`'s Release, Icons, and Signing, each extending
-the Project settings dialog and its tools, after which `03`'s iOS devices can follow Signing. `03`'s Android emulator dialog (Setting up
-emulators and simulators) waits for `15-onboarding.md`'s download of the SDK's command-line tools. `06-batched-rendering.md` is done except its Tesselar
-side and its end-to-end comparison under Xvfb. Then `07` to `10` in order. What is left in `01-large-projects.md` waits for other plans (Traits, UI elements,
-git) or for the benchmarks.
+Start `01-known-issues.md` at its first item (wide families regenerating quadratically) and go through it in order, then `02`.
 
-What the last session did (`e60f4dfd3..HEAD`, unattended, every item reviewed with `/code-review` and every finding
-fixed in its own commit, `:creator:allTests` green at every commit):
-
-- **Mentions and images:** links between pages and into the project show as chips that open what they name (only a web or
-  mail address opens outside, after it is shown), the `@` suggestions, pictures pasted, dropped, or chosen, scaled down and
-  moved with their page, renames and moves following every mention (`withMentionsFollowed`), and "Mentioned in" on what pages
-  mention.
-- **The AI's side of pages:** the page index at a conversation's start, `ScreenplayStyle` holding what the AI writes (shown to
-  the user only as quiet hints), `mentionedIn` on every write's result, the screenplay's health checks (as dots in the
-  sidebar), the reminders and the offer to write the screenplay, and Project settings → Screenplay.
-- **The writers' room:** the Blank template, "Start from an idea" on the new project form with its targets (only those this
-  computer can build), `ask_user`, the room's own rules (kept when a conversation is continued, and its unanswered idea kept
-  when the agent is replaced), and its ways in from the AI panel's menu and a Planned item's right-click menu.
-- **The AI's changes to a page as a diff** in the page editor until its turn is kept or undone (`PageReview`), always what the
-  turn's Undo would bring back.
-- **Deleting what is mentioned:** a deleted type's, Scene's, or page's mentions in pages become plain text in the delete's undo
-  step (documents are the user's, so theirs are left, as renames leave them); deleting a page goes through `deleteWithUsages`
-  like every other delete and confirms when it would change other pages, listing them; `RenamingFollowsReferencesTest` holds
-  every rename to what a delete would clean up.
+The last session only reorganized `plan/` (documentation, no code, so no review was owed) and added the rule on Claude's names and
+sign-in to `../CLAUDE.md` → AI.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

@@ -12,7 +12,7 @@
 What GameMaker had for games past a few objects: parent objects, scripts, and settings per object (persistent, visible, depth), plus
 Kubriko's own Traits. Without them, 20 enemy types are 20 copies of the same Blocks, and a growing game leaves Creator for Kotlin.
 Every addition lands with its command, AI tool, generator tests, and a case in the integration test's every-Block types, as in
-`09-blocks.md`.
+`04-blocks.md`.
 
 **Order:** functions, then Traits, then the rest. Each is generated into ordinary Kotlin, as now: no runtime interpreter. Both
 build on how code is generated (`:creator:core`'s `actors.codegen`): a Block is one descriptor (`BlockKind`), its code a structured
@@ -53,15 +53,15 @@ interfaces and overrides the examples write by hand. The plugins they need come 
 | Trait | In Creator |
 |---|---|
 | `Unique` | "Only one at a time": adding another removes the first. The Scene editor warns when a Scene has two. |
-| `Visible` | Drawing order and layer in the appearance (the first writers' room game drew its stars over the aliens, and no Block could change it); a "visible" toggle each Actor keeps (and a Block to show or hide it); all of them properties of the generated batched look (`core/.../actors/CLAUDE.md`). Clip to bounds only for a type that draws with code of its own, a plain `Visible`, since a look never reaches past its body. |
+| `Visible` | Drawing order and layer in the appearance, and Blocks that change them; a "visible" toggle each Actor keeps (and a Block to show or hide it); all of them properties of the generated batched look (`core/.../actors/CLAUDE.md`). Clip to bounds only for a type that draws with code of its own, a plain `Visible`, since a look never reaches past its body. |
 | `Dynamic.isAlwaysActive` | "Sleep while far off screen": generated Actors are always active, so a per-type choice for big levels. |
-| `Identifiable` | A name per placed Actor, set in the Scene editor's inspector, that Blocks can refer to ("the Actor named Player"). |
+| `Identifiable` | A user-facing name per placed Actor, set in the Scene editor's inspector, that Blocks can refer to ("the Actor named Player"); the Actor's ID stays internal and stable when the name changes. |
 | `Overlay` | "Draw on the screen": the Actor is drawn in screen space, for HUD pieces that are Actors. |
 | `Group` | Compound Actor types: an Actor type made of other Actors placed relative to it (a prefab), added and removed together. |
 | `PointerInputAware` | Pointer Events: clicked or touched (this Actor), pressed, released, and moved anywhere. |
 | `GamepadInputAware` | Gamepad Events (button pressed and released, sticks) and conditions. |
 | `RigidBody` (physics) | A Physics section: shape (from the shape), mass, friction, bounciness, fixed or moving; Blocks for forces and impulses. Collision Events then come from physics. |
-| `ParticleEmitter` | Particle effects as an appearance or a Block ("burst of sparks"), with their settings. The first writers' room game built its explosion from two extra Actor types and Kotlin; a burst with a count, speeds, colors, and a lifetime is the Block it wanted. |
+| `ParticleEmitter` | Particle effects as an appearance or a Block ("burst of sparks"), with their settings: a burst with a count, speeds, colors, and a lifetime is one Block, where an explosion takes extra Actor types and Kotlin today. |
 | `Shader` | Scene effects, as Actors placed in a Scene with the built-in shaders' settings. |
 | `Disposable`, `Serializable`, `Editable` | Generated as needed; never shown. |
 
@@ -74,3 +74,7 @@ interfaces and overrides the examples write by hand. The plugins they need come 
   (`GeneratedScenes` keeps it like Managers' Actors).
 - **Saving the game:** Blocks that save and load Manager Properties through the persistence plugin.
 - **Creating with values:** addActor that sets the new Actor's Properties.
+
+## Templates
+
+**Platformer** and **top-down** starters (physics or collision, keyboard and gamepad input), built on the Traits above.

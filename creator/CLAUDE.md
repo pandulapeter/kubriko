@@ -469,6 +469,10 @@ Creator's own Scene editor (the Scene files in core's `scenes/`, the runtime in 
   (`questionsOf`; an outside client's at the top of the AI panel). An agent may stop waiting without telling the server (Claude
   Code's timeout sends no cancellation), so a question whose call or turn ended (`isLate`) is answered as the user's next
   message, never into a call nobody reads.
+- **Claude's names and sign-in:** Creator never offers a Claude.ai login of its own, routes requests through a user's plan, or
+  touches Claude.ai credentials; Claude Code signs in by itself, through Anthropic's own flow, and runs unmodified from the registry's
+  adapter. Creator may say in plain text that it runs Claude Code, but no feature carries Claude Code's or Anthropic's names or logos:
+  the panel is "Assistant", and the agent "Claude Agent", as the registry names it.
 - **Guards:** `EvalSetTest` replays the calls models make for realistic requests, so a tool change that would break them fails
   without tokens, and `TokenBudgetTest` keeps the tool list, the digest, and the big reads under budgets set just above what they
   cost.

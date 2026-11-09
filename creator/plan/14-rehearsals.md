@@ -30,8 +30,7 @@ Keep and Undo for a turn's changes (`TurnChangesCard`), the AI activity settings
 `TickSource.manual()` and what `:tools:test-fixtures` already does for this repository's own tests (a manual-tick instance,
 `awaitProcessed`).
 
-This is the last plan: it comes after everything else, since rehearsals are most useful once the Block set, Traits, and the screenplay
-exist. Its first part, finding a project's existing tests, waits for nothing and can be pulled forward on its own.
+It comes last, since rehearsals are most useful once the Block set and Traits exist and the demo games are there to rehearse.
 
 ## Finding the tests a project has
 
@@ -97,7 +96,7 @@ yet, and come later (below).
   failure has them, the rehearsal's own lines around the failing one, highlighted, and the stack trace shortened to the project's
   frames, each a link to its file and line. What the rehearsal printed is a fold away.
 - **A test file in the center** opens read-only with Kotlin highlighting, its rehearsals' results in the gutter, until the code editor
-  (`17-later.md`) makes it editable; "Open in IntelliJ" is in its header.
+  (`15-later.md`) makes it editable; "Open in IntelliJ" is in its header.
 - **Next to what they rehearse:** an Actor type's, Manager type's, or Scene's header lists the rehearsals that touch it and their state,
   and its right-click menu offers "Write a rehearsal with the assistant".
 - **Committing** (`ui/git`): when rehearsals are failing, or game code changed since the last run, the commit form says so with
@@ -201,7 +200,7 @@ Test files are Kotlin the user may also write by hand, so Creator writes them on
   Scene send their prompt to the conversation the assistant shows (`WriteDescriptionButton`'s way), so the work is seen and reviewed
   like any other turn. The fix prompt asks the agent to decide first whether the game or the rehearsal is wrong, and to ask the user
   when it can't tell.
-- **The screenplay and the writers' room** (`04-screenplay.md`): each slice the writers' room builds ends with a rehearsal of its rule,
+- **The screenplay and the writers' room:** each slice the writers' room builds ends with a rehearsal of its rule,
   run and passing; a page's rule can link to its rehearsal, and the Game map shows the rehearsals beside the cast, the crew, and the
   Scenes.
 - **Health checks:** failing rehearsals, rehearsals that don't compile, and rehearsals that name something deleted.
@@ -216,7 +215,7 @@ Test files are Kotlin the user may also write by hand, so Creator writes them on
 ## Later
 
 - **The other targets' rehearsals:** the web's in the headless Chrome Creator already finds (`HeadlessChrome`), iOS's on a simulator,
-  and Android's instrumented tests on the devices and emulators Play lists (`03-playing-on-every-target.md`).
+  and Android's instrumented tests on the devices and emulators Play lists.
 - **Rehearsing on every change,** as a Creator setting, off by default, once runs are fast enough not to compete with the Scene editor's
   builds.
 - **A CI workflow** offered once in Project settings (a GitHub Actions file running the rehearsals on every push), shown as a diff like

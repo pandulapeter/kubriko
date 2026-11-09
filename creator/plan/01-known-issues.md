@@ -1,0 +1,84 @@
+<!--
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+-->
+# Known issues
+
+Problems found in review that need no other plan, fixed before any new feature. Each one gets its fix, a test that would have
+caught it, and the review (`README.md`).
+
+## Costs that grow with the project
+
+Creator has to hold up for games the size GameMaker made (hundreds of Actor types, Scenes with thousands of Actors), and nothing a
+user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
+enough to matter:
+
+- **Wide families regenerate quadratically.** Every member of a family shares one `ActorTypeFamily` per regeneration, but
+  generating each member (`ActorFamilyCodeGenerator`, in `:creator:core`'s `actors.codegen`) builds the family's
+  `ActorTypeFeatures` with a `BlockScope` per member (each O(types)) again, and `ActorTypeFamily.childrenOf` scans every parent
+  link per call (`descendantsOf` recursively), so 200 enemies under one parent cost about 200 × 200 scopes per regeneration,
+  after every edit; `PluginManagers.of` also builds a second `ActorTypeFamily`. `BenchmarkProject` only has families of ten, so
+  nothing catches it. Fix: a wide family in the benchmark, a children map in `ActorTypeFamily`, the features computed once per
+  family per regeneration, and the family passed into `PluginManagers.of`.
+- **The Block editor rebuilds the project's scope per keystroke.** `WorkspaceCenter` remembers the `ActorTypeFamily`,
+  `BlockScope.of(…)`, and `Inheritance.of`, and `rememberFolderTreeGroups` the folder groups, on the whole `blockTypes` list,
+  which changes with every character typed into a Block, on the main thread. Fix: remember them on a structural projection
+  (names, parents, Properties, Timers), or derive them off the main thread in a state holder beside `WorkspaceUiState` (as
+  `GameMapState` derives the Game map), and add a UI-latency case to `CreatorBenchmarkTest`.
+- **Renaming rewrites Scenes per keystroke.** `EditProperty` renames a Property's values in every Scene (`changeSceneStates`) on each
+  keystroke of the name field, so a type placed in 50 Scenes rewrites up to 50 files per character; and renaming a Scene folder calls
+  `renameScene` per Scene, each walking the whole project and reading every `.kt` file (`SceneRenaming.kt`). Fix: rename in Scenes
+  when the name is committed (or once per merged step), and scan hand-written files once per folder rename.
+- **Reordering an Actor rebuilds the Scene.** `ScenePatch` gives up on any change of order (`move_actor_order`, undoing a removal,
+  placing anywhere but at the end), so `SceneView` creates every Actor again: in a Scene of thousands, every bring-to-front and undo
+  deserializes them all. Fix: keep the Actors before the first changed index and recreate only the rest.
+- **A game that logs every frame floods the UI thread.** Session messages are collected on the main thread and each log line copies
+  the console's list (`ConsoleLog.append`, up to 2,000 entries) and emits it; the console then stops following new lines once it is
+  full, since it scrolls on a change of size (`ui/Console.kt`), and each new line reopens a collapsed console
+  (`ui/WorkspaceConsole.kt`). Fix: append in batches into a ring buffer, follow the end only while the list is at its end, and open
+  the console by itself once per play session.
+- **Two choosers list everything.** The Scene settings' music choice (`SceneSettingsFields`) and the type header's list of further
+  children (`BlockTypeHeader`) still compose every option of a `MenuButton`'s `DropdownMenu`. Fix: `SearchableChoiceButton`, which
+  the other project choices use, and folder paths in its options.
+- **Sidebar rows** are rebuilt inside the lazy list's builder on every AI step's flash (`folderTreeSection` calls `folderTreeRows`
+  each time). Fix: remember the rows per group.
+
+## Mistakes and failures in the first hour
+
+What someone who knows neither Kotlin nor Gradle meets when something goes wrong:
+
+- **An unreadable project file reads as any other opening failure.** `AppController.openProject` turns any exception other than a
+  `ProjectInspectionException` into `error_project_not_opened` with the cause's own message, so an invalid `.kubriko/project.json`
+  says the same as a daemon that can't start. Fix: a message of its own for an unreadable `.kubriko/project.json`, naming the file
+  and what is wrong in it.
+- **Creating a project that fails loses the form.** `AppScreen.NewProject(error = …)` comes back with an empty form, since its state
+  lives in `NewProjectScreen`'s `remember`, and `error_project_not_created` never says why. Fix: keep the request in
+  `AppScreen.NewProject` and show the cause (network, disk, or permission).
+- **Creating a project can't be cancelled.** Opening one can, but `ProgressScreen` offers no Cancel while a project is created, and a
+  first project waiting minutes for Gradle's download leaves only quitting. `ProjectGenerator.create` blocks, so cancelling the job
+  alone would let it finish writing in the background. Fix: make the wrapper download cancellable, and remove the folder when
+  creation is cancelled, as it already is when creation fails.
+- **Messages in code words.** Rejections name Events by their IDs (`error_command_event_not_allowed`, `error_command_key_not_allowed`:
+  "an Actor type can't have a gameStarted one", "Only keyPressed Events have a key"), though the editor calls them "When the game
+  starts"; a Timer named `class` is told to start with a lowercase letter; and project names with accents (`Kalandjáték`) are refused
+  for not using "only letters". Fix: the editor's Event titles in user-facing rejections (the AI gets both), and one message per
+  actual reason.
+- **The git panel** puts the commit form below every change (`ui/git/GitPanel.kt`), out of sight in a big change set. Fix: put the
+  form first.
+- **Undoing an Actor's removal** clears the Scene editor's selection. Fix: select the Actor again, as placing one does.
+- **The audio Blocks' file menus** are empty when the project has no sounds or music. Fix: say how to add some instead.
+
+## Missing checks
+
+- **Plain and batched drawing compared in Creator:** a generated game's Scene drawn with batched looks and drawn plain, compared as
+  images in the end-to-end harness under Xvfb, with a tolerance for edge smoothing on ellipses (the engine's own comparison is
+  `BatchedRenderingComparisonTest`).
+
+## Order
+
+As listed: the costs first, since every later plan adds to the project sizes they grow with.
