@@ -298,6 +298,10 @@ input's serial descriptor (`JsonSchema`, `@Description` on every property).
   downloaded from where it looks (`template/KubrikoAvailability`: Maven Local for a development build, Maven Central otherwise),
   which a Creator started without its libraries would otherwise do to every project it opens; it keeps its version, the console
   says why, and a new project isn't created at all.
+- **New projects** (`template/ProjectGenerator`): a creation that fails removes what it wrote and comes back to the form as
+  it was filled in (`AppScreen.NewProject.request`), saying why in the user's terms (`CreationFailure`: no network, a full
+  disk, or a folder Creator may not write in, told from the causes, since Gradle's Tooling API wraps them) before the
+  cause's own message. A location Creator may not write in is refused before anything is written.
 - **Scenes** (`scenes/SceneStore`) are written with one Actor per line, so they diff and merge. Each entry's `id` is ignored by
   Kubriko's serialization (`ignoreUnknownKeys`), so games load the files unchanged; an Actor without an ID, or with an earlier one's,
   gets one from its index, the same every time, so a Scene changes only when a command writes it. Undoing a removal brings back

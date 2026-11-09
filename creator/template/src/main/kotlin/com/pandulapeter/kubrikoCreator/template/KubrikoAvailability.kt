@@ -37,20 +37,47 @@ public class KubrikoAvailability(
      * Whether [version] can be downloaded. Asking Maven Central blocks for up to a few seconds, so it is called off the main
      * thread.
      */
-    override fun invoke(version: String): Boolean = version in available || isFound(version).also { if (it) available += version }
+    override fun invoke(version: String): Boolean = lookUp(version) == Lookup.FOUND
 
-    private fun isFound(version: String): Boolean {
+    /**
+     * Whether [version] can be downloaded, telling a version that isn't there from a repository that can't be reached.
+     * Asking Maven Central blocks for up to a few seconds, so it is called off the main thread.
+     */
+    public fun lookUp(version: String): Lookup = if (version in available) {
+        Lookup.FOUND
+    } else {
+        find(version).also { if (it == Lookup.FOUND) available += version }
+    }
+
+    private fun find(version: String): Lookup {
         val path = "${KubrikoArtifact.GROUP.replace('.', '/')}/${KubrikoArtifact.ENGINE.artifactId}/$version/${KubrikoArtifact.ENGINE.artifactId}-$version.pom"
-        if (useMavenLocal) return File(mavenLocal, path).isFile
+        if (useMavenLocal) return if (File(mavenLocal, path).isFile) Lookup.FOUND else Lookup.MISSING
         return try {
             val request = HttpRequest.newBuilder(mavenCentral.resolve(path)).method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(TIMEOUT).build()
-            client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode() == 200
+            when (client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode()) {
+                200 -> Lookup.FOUND
+                404, 410 -> Lookup.MISSING
+                else -> Lookup.UNREACHABLE
+            }
         } catch (_: IOException) {
-            false
+            Lookup.UNREACHABLE
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
-            false
+            Lookup.UNREACHABLE
         }
+    }
+
+    /**
+     * What looking a Kubriko version up found.
+     */
+    public enum class Lookup {
+        FOUND,
+        MISSING,
+
+        /**
+         * The repository didn't answer, or answered with an error of its own: no network, or Maven Central is down.
+         */
+        UNREACHABLE,
     }
 
     public companion object {

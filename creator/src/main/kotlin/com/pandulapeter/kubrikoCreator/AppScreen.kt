@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator
 
+import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
@@ -23,7 +24,11 @@ internal sealed interface AppScreen {
         val errorArguments: List<String> = emptyList(),
     ) : AppScreen
 
+    /**
+     * @param request What was asked for last, when creating it failed, which the form starts from again.
+     */
     data class NewProject(
+        val request: NewProjectRequest? = null,
         val error: StringResource? = null,
         val errorArguments: List<String> = emptyList(),
     ) : AppScreen

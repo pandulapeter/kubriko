@@ -85,7 +85,7 @@ internal class AppGraph(
             val controller = AppController(
                 parentScope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
                 workspaceOpener = GradleWorkspaceOpener(configuration, isKubrikoAvailable = isKubrikoAvailable),
-                projectCreator = ProjectGenerator(configuration, isKubrikoAvailable = isKubrikoAvailable),
+                projectCreator = ProjectGenerator(configuration, lookUpKubriko = isKubrikoAvailable::lookUp),
             )
             val scope = controller.scope
             val creatorSettings = CreatorSettingsController(CreatorSettingsStore.default(), scope, Dispatchers.IO)

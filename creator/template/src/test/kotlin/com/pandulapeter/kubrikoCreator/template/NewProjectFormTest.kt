@@ -77,4 +77,30 @@ class NewProjectFormTest {
         assertEquals(setOf(GameTarget.DESKTOP, GameTarget.ANDROID), chosen.shownTargets)
         assertEquals(setOf(GameTarget.ANDROID), chosen.request?.targets)
     }
+
+    @Test
+    fun aRequestBringsBackTheFormItWasMadeFrom() {
+        val named = emptyForm.withName("My Game")
+        listOf(
+            named,
+            named.withPackageName("io.github.me.game"),
+            named.copy(isUnderVersionControl = false, template = ProjectTemplate.BLANK),
+            named.withTarget(GameTarget.ANDROID, isOn = true).withTarget(GameTarget.WEB, isOn = false),
+            named.copy(pitch = "A cat who herds sheep."),
+        ).forEach { form ->
+            val request = assertNotNull(form.request)
+            val restored = NewProjectForm.of(request)
+            assertEquals(request, restored.request)
+            assertEquals(form.isPackageNameEdited, restored.isPackageNameEdited)
+            assertEquals(form.shownTargets, restored.shownTargets)
+        }
+    }
+
+    @Test
+    fun aRestoredFormsPackageFollowsTheNameOnlyIfItDidBefore() {
+        val restored = NewProjectForm.of(assertNotNull(emptyForm.withName("My Game").request))
+        assertEquals("com.example.another", restored.withName("Another").packageName)
+        val edited = NewProjectForm.of(assertNotNull(emptyForm.withName("My Game").withPackageName("io.github.me.game").request))
+        assertEquals("io.github.me.game", edited.withName("Another").packageName)
+    }
 }

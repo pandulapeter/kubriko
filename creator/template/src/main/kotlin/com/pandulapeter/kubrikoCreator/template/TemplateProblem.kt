@@ -19,7 +19,10 @@ public enum class TemplateProblem(override val english: String) : DomainText {
     FOLDER_NOT_EMPTY("That folder already exists and isn't empty."),
     NAME_EMPTY("Give the project a name."),
     NAME_INVALID("Start with a letter, and use only letters, numbers, spaces, dashes, and underscores."),
-    NOT_CREATED("Kubriko Creator couldn't create the project."),
+    NOT_CREATED("Kubriko Creator couldn't create the project: %1\$s"),
+    NOT_CREATED_OFFLINE("Kubriko Creator couldn't create the project, since it couldn't reach the internet, where a new project's Kubriko and Gradle come from. Check the connection, and try again."),
+    NOT_CREATED_DISK_FULL("Kubriko Creator couldn't create the project, since the disk is full. Make some room, and try again."),
+    NOT_CREATED_NOT_ALLOWED("Kubriko Creator isn't allowed to write in %1\$s. Choose another location, or change that folder's permissions."),
     TARGET_NOT_SET_UP("The project couldn't be built for one of its targets on this computer, so it wasn't created."),
     KUBRIKO_UNAVAILABLE(
         "Kubriko %1\$s, the version of this Kubriko Creator, can't be downloaded, so a project made with it wouldn't build. A Kubriko " +

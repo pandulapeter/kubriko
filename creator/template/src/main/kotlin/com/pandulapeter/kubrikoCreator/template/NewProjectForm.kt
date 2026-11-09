@@ -84,7 +84,21 @@ public data class NewProjectForm(
     public fun withTarget(target: GameTarget, isOn: Boolean): NewProjectForm =
         if (target == GameTarget.DESKTOP) this else copy(targets = if (isOn) shownTargets + target else shownTargets - target)
 
-    private companion object {
-        val TEMPLATE_TARGETS = setOf(GameTarget.DESKTOP, GameTarget.WEB)
+    public companion object {
+        private val TEMPLATE_TARGETS = setOf(GameTarget.DESKTOP, GameTarget.WEB)
+
+        /**
+         * The form [request] was made from, so a creation that failed comes back to the form as it was filled in.
+         */
+        public fun of(request: NewProjectRequest): NewProjectForm = NewProjectForm(
+            name = request.name,
+            packageName = request.packageName,
+            parentDirectory = request.parentDirectory,
+            isPackageNameEdited = request.packageName != ProjectNaming.defaultPackageName(request.name),
+            isUnderVersionControl = request.isUnderVersionControl,
+            template = request.template,
+            pitch = request.pitch,
+            targets = request.targets?.plus(GameTarget.DESKTOP),
+        )
     }
 }

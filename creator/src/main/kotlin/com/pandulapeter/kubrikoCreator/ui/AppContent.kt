@@ -136,6 +136,7 @@ private fun ScreenContent(
             onOpenSettings = onOpenSettings,
         )
         is AppScreen.NewProject -> NewProjectScreen(
+            request = screen.request,
             error = screen.error,
             errorArguments = screen.errorArguments,
             defaultParentDirectory = defaultParentDirectory,

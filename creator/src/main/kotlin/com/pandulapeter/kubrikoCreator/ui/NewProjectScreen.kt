@@ -61,14 +61,15 @@ import java.io.File
 
 @Composable
 internal fun NewProjectScreen(
+    request: NewProjectRequest?,
     error: StringResource?,
     errorArguments: List<String>,
     defaultParentDirectory: File,
     onCreate: (NewProjectRequest) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var form by remember { mutableStateOf(NewProjectForm(parentDirectory = defaultParentDirectory)) }
-    var areMoreOptionsShown by remember { mutableStateOf(false) }
+    var form by remember(request) { mutableStateOf(request?.let(NewProjectForm::of) ?: NewProjectForm(parentDirectory = defaultParentDirectory)) }
+    var areMoreOptionsShown by remember(request) { mutableStateOf(form.isPackageNameEdited) }
     val pickerTitle = stringResource(Res.string.choose_parent_folder)
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -139,9 +140,9 @@ internal fun NewProjectScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            form.request?.let { request ->
+            form.request?.let { formRequest ->
                 Text(
-                    text = stringResource(Res.string.new_project_folder, request.directory.path),
+                    text = stringResource(Res.string.new_project_folder, formRequest.directory.path),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }

@@ -30,21 +30,28 @@ public class ProjectGenerator(
     private val wrapperInstaller: WrapperInstaller = GradleWrapperInstaller,
     private val loadTemplate: (ProjectTemplate) -> List<TemplateFile> = TemplateFiles::load,
     private val startVersionControl: (directory: File, message: String) -> Unit = { directory, message -> JGitRepository.create(directory, message) },
-    private val isKubrikoAvailable: (String) -> Boolean = { true },
+    private val lookUpKubriko: (String) -> KubrikoAvailability.Lookup = { KubrikoAvailability.Lookup.FOUND },
     private val targetHost: TargetHost = TargetHost.System,
 ) : ProjectCreator {
 
     /**
      * @return The new project's folder.
-     * @throws ProjectCreationException If the folder already has files in it, Kubriko Creator's Kubriko version can't be
-     *   downloaded, or the project could not be written.
+     * @throws ProjectCreationException If the folder already has files in it, Kubriko Creator may not write there, its
+     *   Kubriko version can't be downloaded, or the project could not be written, saying why (no network, a full disk, or
+     *   no permission).
      */
     override fun create(request: NewProjectRequest): File {
         val directory = request.directory
         if (directory.exists() && (!directory.isDirectory || !directory.list().isNullOrEmpty())) {
             throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY)
         }
-        if (!isKubrikoAvailable(configuration.kubrikoVersion)) throw ProjectCreationException(TemplateProblem.KUBRIKO_UNAVAILABLE, arguments = listOf(configuration.kubrikoVersion))
+        val writableFolder = CreationFailure.nearestExisting(directory)
+        if (!writableFolder.canWrite()) throw ProjectCreationException(TemplateProblem.NOT_CREATED_NOT_ALLOWED, arguments = listOf(writableFolder.path))
+        when (lookUpKubriko(configuration.kubrikoVersion)) {
+            KubrikoAvailability.Lookup.FOUND -> Unit
+            KubrikoAvailability.Lookup.MISSING -> throw ProjectCreationException(TemplateProblem.KUBRIKO_UNAVAILABLE, arguments = listOf(configuration.kubrikoVersion))
+            KubrikoAvailability.Lookup.UNREACHABLE -> throw ProjectCreationException(TemplateProblem.NOT_CREATED_OFFLINE)
+        }
         val values = placeholderValues(request)
         val didExist = directory.exists()
         try {
@@ -106,7 +113,7 @@ public class ProjectGenerator(
     private fun notCreated(directory: File, didExist: Boolean, cause: Exception): ProjectCreationException {
         directory.deleteRecursively()
         if (didExist) directory.mkdirs()
-        return ProjectCreationException(TemplateProblem.NOT_CREATED, cause)
+        return CreationFailure.of(directory, cause)
     }
 
     internal fun placeholderValues(request: NewProjectRequest) = mapOf(

@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.recent.RecentProjectsStore
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
 import com.pandulapeter.kubrikoCreator.template.ProjectCreator
+import com.pandulapeter.kubrikoCreator.template.TemplateProblem
 import com.pandulapeter.kubrikoCreator.ui.resource
 import com.pandulapeter.kubrikoCreator.ui.texts.toResource
 import com.pandulapeter.kubrikoCreator.workspace.CLOSE_GAME_TIMEOUT_IN_MILLISECONDS
@@ -105,8 +106,14 @@ internal class AppController(
             awaitClosing()
             val directory = try {
                 withContext(ioDispatcher) { projectCreator.create(request) }
+            } catch (exception: CancellationException) {
+                throw exception
             } catch (exception: ProjectCreationException) {
-                _screen.value = AppScreen.NewProject(error = exception.targetProblem?.toResource() ?: exception.reason.resource, errorArguments = exception.arguments)
+                _screen.value = AppScreen.NewProject(request, error = exception.targetProblem?.toResource() ?: exception.reason.resource, errorArguments = exception.arguments)
+                return@launchOperation
+            } catch (exception: Exception) {
+                exception.printStackTrace()
+                _screen.value = AppScreen.NewProject(request, error = TemplateProblem.NOT_CREATED.resource, errorArguments = listOf(exception.message ?: exception.toString()))
                 return@launchOperation
             }
             ensureActive()

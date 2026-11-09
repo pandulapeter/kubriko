@@ -27,8 +27,13 @@ class KubrikoAvailabilityTest {
     private val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).apply {
         createContext("/maven2/") { exchange ->
             requests.incrementAndGet()
-            val isFound = exchange.requestMethod == "HEAD" && exchange.requestURI.path == "/maven2/io/github/pandulapeter/kubriko/engine/0.8.0/engine-0.8.0.pom"
-            exchange.sendResponseHeaders(if (isFound) 200 else 404, -1)
+            val path = exchange.requestURI.path
+            val status = when {
+                exchange.requestMethod == "HEAD" && path == "/maven2/io/github/pandulapeter/kubriko/engine/0.8.0/engine-0.8.0.pom" -> 200
+                "/0.9.0/" in path -> 503
+                else -> 404
+            }
+            exchange.sendResponseHeaders(status, -1)
             exchange.close()
         }
         start()
@@ -65,5 +70,22 @@ class KubrikoAvailabilityTest {
     fun anUnreachableRepositoryHasNothing() {
         server.stop(0)
         assertFalse(KubrikoAvailability(useMavenLocal = false, mavenLocal = mavenLocal, mavenCentral = mavenCentral)("0.8.0"))
+    }
+
+    @Test
+    fun aLookUpTellsAMissingVersionFromARepositoryThatDoesntAnswer() {
+        val availability = KubrikoAvailability(useMavenLocal = false, mavenLocal = mavenLocal, mavenCentral = mavenCentral)
+        assertEquals(KubrikoAvailability.Lookup.FOUND, availability.lookUp("0.8.0"))
+        assertEquals(KubrikoAvailability.Lookup.MISSING, availability.lookUp("0.8.1"))
+        assertEquals(KubrikoAvailability.Lookup.UNREACHABLE, availability.lookUp("0.9.0"))
+        assertFalse(availability("0.9.0"))
+        server.stop(0)
+        assertEquals(KubrikoAvailability.Lookup.FOUND, availability.lookUp("0.8.0"), "a version found is remembered")
+        assertEquals(KubrikoAvailability.Lookup.UNREACHABLE, availability.lookUp("0.8.1"))
+    }
+
+    @Test
+    fun aDevelopmentBuildsVersionIsNeverUnreachable() {
+        assertEquals(KubrikoAvailability.Lookup.MISSING, KubrikoAvailability(useMavenLocal = true, mavenLocal = mavenLocal, mavenCentral = mavenCentral).lookUp("0.8.1-creator"))
     }
 }

@@ -45,6 +45,8 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
 import kubriko.creator.generated.resources.error_project_file_not_json
 import kubriko.creator.generated.resources.error_project_folder_not_empty
+import kubriko.creator.generated.resources.error_project_not_created
+import kubriko.creator.generated.resources.error_project_not_created_offline
 import kubriko.creator.generated.resources.error_project_not_opened
 import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
@@ -318,8 +320,22 @@ class AppControllerTest {
     fun aProjectThatCantBeCreatedReturnsToTheFormWithItsReason() = runTest {
         val controller = createController(creator = { throw ProjectCreationException(TemplateProblem.FOLDER_NOT_EMPTY) })
         controller.createProject(request)
-        assertEquals(AppScreen.NewProject(error = Res.string.error_project_folder_not_empty), controller.screen.value)
+        assertEquals(AppScreen.NewProject(request, error = Res.string.error_project_folder_not_empty), controller.screen.value)
         assertTrue(openedDirectories.isEmpty())
+    }
+
+    @Test
+    fun aProjectThatFailsToBeCreatedUnexpectedlyReturnsToTheFormSayingWhy() = runTest {
+        val controller = createController(creator = { throw IllegalStateException("Broken template.") })
+        controller.createProject(request)
+        assertEquals(AppScreen.NewProject(request, error = Res.string.error_project_not_created, errorArguments = listOf("Broken template.")), controller.screen.value)
+    }
+
+    @Test
+    fun aProjectCreatedWithoutANetworkReturnsToTheFormSayingSo() = runTest {
+        val controller = createController(creator = { throw ProjectCreationException(TemplateProblem.NOT_CREATED_OFFLINE) })
+        controller.createProject(request)
+        assertEquals(AppScreen.NewProject(request, error = Res.string.error_project_not_created_offline), controller.screen.value)
     }
 
     @Test

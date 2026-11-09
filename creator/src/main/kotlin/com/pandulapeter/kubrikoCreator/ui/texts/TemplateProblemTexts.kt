@@ -17,6 +17,9 @@ import kubriko.creator.generated.resources.error_project_kubriko_unavailable
 import kubriko.creator.generated.resources.error_project_name_empty
 import kubriko.creator.generated.resources.error_project_name_invalid
 import kubriko.creator.generated.resources.error_project_not_created
+import kubriko.creator.generated.resources.error_project_not_created_disk_full
+import kubriko.creator.generated.resources.error_project_not_created_not_allowed
+import kubriko.creator.generated.resources.error_project_not_created_offline
 import kubriko.creator.generated.resources.error_project_target_not_set_up
 import org.jetbrains.compose.resources.StringResource
 
@@ -29,6 +32,9 @@ internal fun TemplateProblem.toResource(): StringResource = when (this) {
     TemplateProblem.NAME_EMPTY -> Res.string.error_project_name_empty
     TemplateProblem.NAME_INVALID -> Res.string.error_project_name_invalid
     TemplateProblem.NOT_CREATED -> Res.string.error_project_not_created
+    TemplateProblem.NOT_CREATED_OFFLINE -> Res.string.error_project_not_created_offline
+    TemplateProblem.NOT_CREATED_DISK_FULL -> Res.string.error_project_not_created_disk_full
+    TemplateProblem.NOT_CREATED_NOT_ALLOWED -> Res.string.error_project_not_created_not_allowed
     TemplateProblem.KUBRIKO_UNAVAILABLE -> Res.string.error_project_kubriko_unavailable
     TemplateProblem.TARGET_NOT_SET_UP -> Res.string.error_project_target_not_set_up
 }

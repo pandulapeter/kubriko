@@ -14,8 +14,10 @@ import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.project.ProjectFormat
 import com.pandulapeter.kubrikoCreator.project.ProjectFormatStatus
 import com.pandulapeter.kubrikoCreator.testing.testConfiguration
+import org.junit.Assume.assumeFalse
 import java.io.File
 import java.io.IOException
+import java.net.UnknownHostException
 import kotlin.io.path.createTempDirectory
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -77,7 +79,7 @@ class ProjectGeneratorTest {
 
     @Test
     fun aProjectIsntCreatedOnAKubrikoVersionThatCantBeDownloaded() {
-        val generator = ProjectGenerator(configuration, { _, _ -> wrapperInstallations += parentDirectory to "" }, loadTemplate = { template }, isKubrikoAvailable = { false })
+        val generator = ProjectGenerator(configuration, { _, _ -> wrapperInstallations += parentDirectory to "" }, loadTemplate = { template }, lookUpKubriko = { KubrikoAvailability.Lookup.MISSING })
         val exception = assertFailsWith<ProjectCreationException> { generator.create(request) }
         assertEquals(TemplateProblem.KUBRIKO_UNAVAILABLE, exception.reason)
         assertEquals(listOf("1.0.0"), exception.arguments)
@@ -113,7 +115,39 @@ class ProjectGeneratorTest {
             generator(wrapperInstaller = { _, _ -> throw IOException("Offline.") }).create(request)
         }
         assertEquals(TemplateProblem.NOT_CREATED, exception.reason)
+        assertEquals(listOf("Offline."), exception.arguments)
         assertFalse(File(parentDirectory, "my-game").exists(), "what was written is removed, so trying again works")
+    }
+
+    @Test
+    fun aWrapperDownloadWithoutANetworkSaysSo() {
+        val exception = assertFailsWith<ProjectCreationException> {
+            generator(wrapperInstaller = { _, _ -> throw IllegalStateException("Could not install Gradle distribution.", UnknownHostException("services.gradle.org")) }).create(request)
+        }
+        assertEquals(TemplateProblem.NOT_CREATED_OFFLINE, exception.reason)
+        assertFalse(File(parentDirectory, "my-game").exists())
+    }
+
+    @Test
+    fun aKubrikoVersionThatCantBeLookedUpSaysTheNetworkIsMissing() {
+        val generator = ProjectGenerator(configuration, { _, _ -> }, loadTemplate = { template }, lookUpKubriko = { KubrikoAvailability.Lookup.UNREACHABLE })
+        assertEquals(TemplateProblem.NOT_CREATED_OFFLINE, assertFailsWith<ProjectCreationException> { generator.create(request) }.reason)
+        assertFalse(File(parentDirectory, "my-game").exists())
+    }
+
+    @Test
+    fun aLocationKubrikoCreatorMayNotWriteInIsNamedBeforeAnythingIsWritten() {
+        val location = File(parentDirectory, "locked").apply { mkdirs() }
+        location.setWritable(false)
+        try {
+            assumeFalse("the folder still takes new files", runCatching { File(location, "probe").createNewFile() }.getOrDefault(false))
+            val exception = assertFailsWith<ProjectCreationException> { generator().create(request.copy(parentDirectory = File(location, "games"))) }
+            assertEquals(TemplateProblem.NOT_CREATED_NOT_ALLOWED, exception.reason)
+            assertEquals(listOf(location.absolutePath), exception.arguments)
+            assertTrue(wrapperInstallations.isEmpty())
+        } finally {
+            location.setWritable(true)
+        }
     }
 
     @Test
