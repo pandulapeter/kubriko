@@ -25,10 +25,10 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (reordering an Actor rebuilding the Scene) and go through it in order,
-then `02`.
+Continue `01-known-issues.md` at its first item (a game that logs every frame flooding the UI thread) and go through it
+in order, then `02`.
 
-The last session finished the first two items, each reviewed with `/code-review` and its findings fixed in commits of
+The last session finished the first three items, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
 
 - The type editor no longer rebuilds the project's family, scope, and inheritance per keystroke (`TypeEditorContextCache`,
@@ -39,6 +39,11 @@ their own:
   step (`EditProperty.mergeKey` merges only typed initial values, and `WriteCommand.mergesWith`/`mergeReverts` are gone).
   A Scene folder's Scenes are renamed as one batch (`renameScenes`), going through the types, the first Scene setting,
   and the Kotlin once.
+- Reordering or restoring Actors keeps the ones in front of the first change of order and creates only the rest again
+  (`ScenePatch`). `SceneView` tracks the order Kubriko draws its Actors in (`drawnRanks`), so a reorder also takes in a
+  changed Actor drawn out of order before it, and the picking grid is built again whenever an index changes
+  (`ScenePatch.hasNewIndices`). Re-adding the same Actors instead isn't safe: `ActorManager` may split the removal and
+  the addition into two batches, disposing Actors that stay.
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 

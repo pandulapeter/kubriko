@@ -18,9 +18,6 @@ Creator has to hold up for games the size GameMaker made (hundreds of Actor type
 user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
 enough to matter:
 
-- **Reordering an Actor rebuilds the Scene.** `ScenePatch` gives up on any change of order (`move_actor_order`, undoing a removal,
-  placing anywhere but at the end), so `SceneView` creates every Actor again: in a Scene of thousands, every bring-to-front and undo
-  deserializes them all. Fix: keep the Actors before the first changed index and recreate only the rest.
 - **A game that logs every frame floods the UI thread.** Session messages are collected on the main thread and each log line copies
   the console's list (`ConsoleLog.append`, up to 2,000 entries) and emits it; the console then stops following new lines once it is
   full, since it scrolls on a change of size (`ui/Console.kt`), and each new line reopens a collapsed console
