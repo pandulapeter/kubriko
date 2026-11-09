@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoCreator.commands.game
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import javax.imageio.ImageIO
 
 /**
@@ -27,7 +26,8 @@ internal object ScreenshotImage {
     fun edited(png: ByteArray, maximumWidth: Int, left: Float = 0f, top: Float = 0f, right: Float = 1f, bottom: Float = 1f): ByteArray {
         val image = try {
             ImageIO.read(png.inputStream())
-        } catch (_: IOException) {
+        } catch (_: Exception) {
+            // ImageIO throws unchecked exceptions too on a malformed image.
             null
         } ?: return png
         val x = (left.coerceIn(0f, 1f) * image.width).toInt()

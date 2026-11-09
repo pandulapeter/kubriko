@@ -16,11 +16,11 @@ import java.awt.Toolkit
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.IOException
 import javax.imageio.ImageIO
 import kotlin.test.assertFalse
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -58,8 +58,8 @@ internal class EndToEndScenario(
      */
     fun awaitScreen(imageName: String, timeout: Duration = SCREEN_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage {
         val robot = Robot()
-        return poll(timeout, SCREEN_POLLING_INTERVAL) { isLast ->
-            robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize)).takeIf { isLast || isReady(it) }
+        return poll(timeout, SCREEN_POLLING_INTERVAL) { remaining ->
+            robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize)).takeIf { !remaining.isPositive() || isReady(it) }
         }.also { save(imageName, it) }
     }
 
@@ -76,14 +76,18 @@ internal class EndToEndScenario(
 
     /**
      * What the running game shows once [isReady] accepts it, saved as [imageName], or as it is after [timeout]. Until
-     * then a screenshot that fails or can't be read counts as not ready, since a game restarting shows nothing for a
-     * while; the last one says why.
+     * then a screenshot that fails, throws, or can't be read counts as not ready, since a game restarting shows nothing
+     * for a while; the last one says why.
      */
-    fun awaitGame(imageName: String, timeout: Duration = GAME_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage = poll(timeout, CreatorTools.POLLING_INTERVAL) { isLast ->
-        if (isLast) {
+    fun awaitGame(imageName: String, timeout: Duration = GAME_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
+        if (!remaining.isPositive()) {
             captureGame(imageName)
         } else {
-            tools.call("take_screenshot").png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
+            try {
+                tools.call("take_screenshot", timeout = remaining.atLeastOneCall()).png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
+            } catch (_: Exception) {
+                null
+            }
         }
     }
 
@@ -97,19 +101,19 @@ internal class EndToEndScenario(
     /**
      * Calls [tool] with [arguments] until it succeeds, failing the step when it still fails after [timeout].
      */
-    fun awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult = poll(timeout, CreatorTools.POLLING_INTERVAL) { isLast ->
-        tools.call(tool, arguments).takeIf { isLast || !it.isError }
+    fun awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
+        tools.call(tool, arguments, timeout = remaining.atLeastOneCall()).takeIf { !remaining.isPositive() || !it.isError }
     }.also { assertFalse(it.isError, "$tool failed: ${it.text}") }
 
     /**
      * Waits until Kubriko Creator's console shows [line], failing the step when it doesn't within [timeout].
      */
     fun awaitConsole(line: String, timeout: Duration = 30.seconds) {
-        poll(timeout, CreatorTools.POLLING_INTERVAL) { isLast ->
-            val console = tools.call("read_console").text
+        poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
+            val console = tools.call("read_console", timeout = remaining.atLeastOneCall()).text
             when {
                 line in console -> true
-                isLast -> error("The console never showed \"$line\":\n$console")
+                !remaining.isPositive() -> error("The console never showed \"$line\":\n$console")
                 else -> null
             }
         }
@@ -126,22 +130,30 @@ internal class EndToEndScenario(
         }
 
     /**
-     * What [attempt] returns once it returns something, trying again every [interval] until [timeout] has passed. Its last
-     * attempt is told so, and returns or throws.
+     * What [attempt] returns once it returns something, trying again every [interval] until [timeout] has passed. Each
+     * attempt is told how much of the timeout is left, which an attempt waiting for a tool keeps to; the last, told
+     * none is, returns or throws.
      */
-    private inline fun <T : Any> poll(timeout: Duration, interval: Duration, attempt: (isLast: Boolean) -> T?): T {
+    private inline fun <T : Any> poll(timeout: Duration, interval: Duration, attempt: (remaining: Duration) -> T?): T {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
         while (true) {
-            val isLast = System.nanoTime() >= deadline
-            attempt(isLast)?.let { return it }
-            check(!isLast) { "The last attempt returned nothing." }
+            val remaining = (deadline - System.nanoTime()).nanoseconds
+            attempt(remaining)?.let { return it }
+            check(remaining.isPositive()) { "The last attempt returned nothing." }
             Thread.sleep(interval.inWholeMilliseconds)
         }
     }
 
+    /**
+     * How long a tool call may take with this much of a wait left: what is left, but at least long enough for one answer,
+     * and as long as any call may take once nothing is.
+     */
+    private fun Duration.atLeastOneCall() = if (isPositive()) coerceAtLeast(MINIMUM_CALL_TIMEOUT) else CreatorTools.DEFAULT_TIMEOUT
+
     private fun decode(png: ByteArray): BufferedImage? = try {
         ImageIO.read(ByteArrayInputStream(png))
-    } catch (_: IOException) {
+    } catch (_: Exception) {
+        // ImageIO throws unchecked exceptions too on a malformed image.
         null
     }
 
@@ -156,6 +168,7 @@ internal class EndToEndScenario(
         val SCREEN_POLLING_INTERVAL = 250.milliseconds
         val SCREEN_TIMEOUT = 15.seconds
         val GAME_TIMEOUT = 30.seconds
+        val MINIMUM_CALL_TIMEOUT = 5.seconds
         val BROWSER_TIMEOUT = 60.seconds
     }
 }
