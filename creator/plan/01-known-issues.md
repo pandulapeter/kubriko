@@ -18,11 +18,6 @@ Creator has to hold up for games the size GameMaker made (hundreds of Actor type
 user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
 enough to matter:
 
-- **A game that logs every frame floods the UI thread.** Session messages are collected on the main thread and each log line copies
-  the console's list (`ConsoleLog.append`, up to 2,000 entries) and emits it; the console then stops following new lines once it is
-  full, since it scrolls on a change of size (`ui/Console.kt`), and each new line reopens a collapsed console
-  (`ui/WorkspaceConsole.kt`). Fix: append in batches into a ring buffer, follow the end only while the list is at its end, and open
-  the console by itself once per play session.
 - **Two choosers list everything.** The Scene settings' music choice (`SceneSettingsFields`) and the type header's list of further
   children (`BlockTypeHeader`) still compose every option of a `MenuButton`'s `DropdownMenu`. Fix: `SearchableChoiceButton`, which
   the other project choices use, and folder paths in its options.

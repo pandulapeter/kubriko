@@ -25,10 +25,10 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (a game that logs every frame flooding the UI thread) and go through it
-in order, then `02`.
+Continue `01-known-issues.md` at its first item (the two choosers that list everything) and go through it in order,
+then `02`.
 
-The last session finished the first three items, each reviewed with `/code-review` and its findings fixed in commits of
+The last session finished the first four items, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
 
 - The type editor no longer rebuilds the project's family, scope, and inheritance per keystroke (`TypeEditorContextCache`,
@@ -47,6 +47,11 @@ their own:
   returns (`createEachDisposingIfCancelled`), so the next load waits for it; that `ActorManager` disposes replaced Actors
   on its own thread while the next load creates others is accepted (the user, 2026-11-09), since games live with the
   same and Principle 4 rules out an engine change for it.
+- A game logging every frame no longer floods the UI thread: `ConsoleLog` adds a line without copying (a window over an
+  array later lines only go after) and publishes `ConsoleLines` (a revision, the first line's number, the game's first
+  logged line since its session started, and the latest problem, all kept as lines arrive). The console follows new
+  lines while it shows the last one (one collector; the user's own scrolling stops it), keys lines by number, and opens
+  by itself for what the game logs only at its first line per session (`ConsoleOpening`).
 
 Not verified in the real app yet (all covered by unit and offscreen tests, none by a person or a live agent):
 
