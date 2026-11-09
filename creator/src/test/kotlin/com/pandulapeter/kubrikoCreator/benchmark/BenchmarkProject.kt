@@ -32,13 +32,15 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
- * A project the size of a big GameMaker game, for [CreatorBenchmarkTest]: [ACTOR_TYPE_COUNT] Actor types in families of
- * ten (each with Properties, and Events that refer to other types), [MANAGER_TYPE_COUNT] Manager types with texts, and
+ * A project the size of a big GameMaker game, for [CreatorBenchmarkTest]: [ACTOR_TYPE_COUNT] Actor types, the first
+ * [WIDE_FAMILY_ROOT] of them in families of ten and the rest children of one wide family (each with Properties, and Events
+ * that refer to other types), [MANAGER_TYPE_COUNT] Manager types with texts, and
  * Scenes of every size in [SCENE_SIZES].
  */
 internal object BenchmarkProject {
 
     const val ACTOR_TYPE_COUNT = 200
+    const val WIDE_FAMILY_ROOT = 100
     const val MANAGER_TYPE_COUNT = 20
     val SCENE_SIZES = listOf(50, 1_000, 5_000)
     const val PACKAGE_NAME = "com.example.benchmark"
@@ -71,7 +73,7 @@ internal object BenchmarkProject {
         val directory = generator.create(NewProjectRequest(name = "Benchmark", packageName = PACKAGE_NAME, parentDirectory = parentDirectory, isUnderVersionControl = false))
         val actors = File(directory, "${DefinitionPaths.CREATOR_DIRECTORY}/actors").apply { deleteRecursively() }
         repeat(ACTOR_TYPE_COUNT) { index ->
-            val folder = File(actors, "family${index / 10}").apply { mkdirs() }
+            val folder = File(actors, "family${minOf(index, WIDE_FAMILY_ROOT) / 10}").apply { mkdirs() }
             File(folder, "${actorTypeName(index)}.json").writeText(json.encodeToString(ActorTypeDefinition.serializer(), actorType(index)) + "\n")
         }
         val managers = File(directory, "${DefinitionPaths.CREATOR_DIRECTORY}/managers").apply { mkdirs() }
@@ -87,7 +89,11 @@ internal object BenchmarkProject {
         val other = actorTypeName((index + 1) % ACTOR_TYPE_COUNT)
         return ActorTypeDefinition(
             name = actorTypeName(index),
-            parent = if (index % 10 == 0) null else actorTypeName(index - index % 10),
+            parent = when {
+                index > WIDE_FAMILY_ROOT -> actorTypeName(WIDE_FAMILY_ROOT)
+                index == WIDE_FAMILY_ROOT || index % 10 == 0 -> null
+                else -> actorTypeName(index - index % 10)
+            },
             shape = if (index % 2 == 0) ActorShape.CIRCLE else ActorShape.RECTANGLE,
             width = 32f,
             height = 32f,

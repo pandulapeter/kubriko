@@ -18,13 +18,6 @@ Creator has to hold up for games the size GameMaker made (hundreds of Actor type
 user builds is capped in number. Each of these was found in review rather than measured, but grows with the project and runs often
 enough to matter:
 
-- **Wide families regenerate quadratically.** Every member of a family shares one `ActorTypeFamily` per regeneration, but
-  generating each member (`ActorFamilyCodeGenerator`, in `:creator:core`'s `actors.codegen`) builds the family's
-  `ActorTypeFeatures` with a `BlockScope` per member (each O(types)) again, and `ActorTypeFamily.childrenOf` scans every parent
-  link per call (`descendantsOf` recursively), so 200 enemies under one parent cost about 200 × 200 scopes per regeneration,
-  after every edit; `PluginManagers.of` also builds a second `ActorTypeFamily`. `BenchmarkProject` only has families of ten, so
-  nothing catches it. Fix: a wide family in the benchmark, a children map in `ActorTypeFamily`, the features computed once per
-  family per regeneration, and the family passed into `PluginManagers.of`.
 - **The Block editor rebuilds the project's scope per keystroke.** `WorkspaceCenter` remembers the `ActorTypeFamily`,
   `BlockScope.of(…)`, and `Inheritance.of`, and `rememberFolderTreeGroups` the folder groups, on the whole `blockTypes` list,
   which changes with every character typed into a Block, on the main thread. Fix: remember them on a structural projection

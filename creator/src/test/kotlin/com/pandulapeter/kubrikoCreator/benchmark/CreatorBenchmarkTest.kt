@@ -126,6 +126,13 @@ class CreatorBenchmarkTest {
         blockTypes.awaitWrites()
         report("Add a Block to an Actor type (until its code is written)", mainTime, System.nanoTime() - totalStart)
 
+        val wideFamilyMember = BenchmarkProject.actorTypeName(BenchmarkProject.WIDE_FAMILY_ROOT + 50)
+        totalStart = System.nanoTime()
+        mainTime = withContext(main) { timed { controller.commands.dispatch(Invocation(AddBlock, AddBlock.Input(wideFamilyMember, eventIndex = 1, block = BlockDefinition.Stop))) } }
+        awaitHistorySize(controller, 2)
+        blockTypes.awaitWrites()
+        report("Add a Block to a member of a family of ${BenchmarkProject.ACTOR_TYPE_COUNT - BenchmarkProject.WIDE_FAMILY_ROOT} (until written)", mainTime, System.nanoTime() - totalStart)
+
         totalStart = System.nanoTime()
         mainTime = 0L
         repeat(TYPING_COUNT) { index ->
@@ -133,11 +140,11 @@ class CreatorBenchmarkTest {
                 timed { controller.commands.dispatch(Invocation(AddBlock, AddBlock.Input(type, eventIndex = 1, block = BlockDefinition.Log("Typed $index")))) }
             }
         }
-        awaitHistorySize(controller, 1 + TYPING_COUNT)
+        awaitHistorySize(controller, 2 + TYPING_COUNT)
         blockTypes.awaitWrites()
         report("$TYPING_COUNT quick changes to one Actor type, as typing makes (until written)", mainTime, System.nanoTime() - totalStart)
 
-        var historySize = 1 + TYPING_COUNT
+        var historySize = 2 + TYPING_COUNT
         BenchmarkProject.SCENE_SIZES.forEach { size ->
             totalStart = System.nanoTime()
             mainTime = withContext(main) {

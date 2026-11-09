@@ -16,10 +16,8 @@ import com.pandulapeter.kubrikoCreator.actors.BlockScope
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
 import com.pandulapeter.kubrikoCreator.actors.DefinitionPaths
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
-import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.appendPropertyFields
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskClassOf
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorClassCode.maskTypeOf
@@ -39,46 +37,34 @@ import com.pandulapeter.kubrikoCreator.actors.codegen.EventFunctions.appendFunct
 internal object ActorFamilyCodeGenerator {
 
     /**
-     * @param actorTypes Every Actor type of the project, which make up the families.
+     * @param families The families of the project, which [definition] is a member of.
      */
     fun generate(
         definition: ActorTypeDefinition,
         packageName: String,
-        actorTypes: List<ActorTypeDefinition>,
-        managerTypes: List<ManagerTypeDefinition>,
-        collidableActorTypeNames: Set<String>,
-        family: ActorTypeFamily = ActorTypeFamily(actorTypes),
+        families: GeneratedFamilies,
     ): String {
-        val byName = actorTypes.associateBy { it.name }
+        val family = families.family
         val name = definition.name
-        val root = family.rootOf(name)
-        val members = family.familyOf(root).mapNotNull(byName::get)
-        val types = actorTypes + managerTypes
-        fun scopeOf(type: ActorTypeDefinition, parentEventCall: String? = null) = BlockScope.of(type, types, family = family).copy(parentEventCall = parentEventCall)
-        val rootScope = scopeOf(byName.getValue(root))
+        val generatedFamily = families.of(name)
+        val root = generatedFamily.root
+        val rootScope = generatedFamily.rootScope
+        val features = generatedFamily.features
         val role = ActorClassEmitter.Role.FAMILY_ROOT
-        val features = ActorTypeFeatures(
-            events = members.flatMap { family.eventsOf(it.name) },
-            scope = rootScope,
-            shapes = members.mapTo(mutableSetOf()) { it.shape },
-            hasSprite = members.any { it.sprite?.let(SpriteFiles::accessorOf) != null },
-            isCollidableAnyway = members.any { it.name in collidableActorTypeNames },
-            isFamily = role.isFamily,
-            eventScopes = members.map { it.events to scopeOf(it) },
-        )
         val hookOf = { event: EventDefinition -> EventFunctions.of(event, rootScope) }
+        val ownScope = generatedFamily.scopeOf(name)
         val imports = definition.events.filter { hookOf(it) != null }
-            .fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, scopeOf(definition)) }
+            .fold(BlockCode.NONE) { code, event -> code + eventCode(event.blocks, event.type, ownScope) }
             .imports.toMutableSet()
         val code = buildString {
             if (name == root) {
                 with(ActorClassEmitter(features, role, rootScope, family, imports)) { appendClass(definition, family.propertiesOf(name), packageName) }
                 appendLine()
             } else if (family.hasChildren(name)) {
-                appendBase(definition, family, features, hookOf, imports) { scopeOf(definition, it) }
+                appendBase(definition, family, features, hookOf, imports) { generatedFamily.scopeOf(name, it) }
                 appendLine()
             }
-            appendConcrete(definition, family, features, hookOf, packageName, imports) { scopeOf(definition, it) }
+            appendConcrete(definition, family, features, hookOf, packageName, imports) { generatedFamily.scopeOf(name, it) }
         }
         return GeneratedFile.withHeader(" from ${DefinitionPaths.definitionPath(definition)}", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")

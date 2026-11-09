@@ -22,6 +22,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
 import com.pandulapeter.kubrikoCreator.actors.codegen.ActorTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.AudioCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.codegen.GeneratedFamilies
 import com.pandulapeter.kubrikoCreator.actors.codegen.GeneratedFile
 import com.pandulapeter.kubrikoCreator.actors.codegen.ManagerTypeCodeGenerator
 import com.pandulapeter.kubrikoCreator.actors.codegen.PluginManagers
@@ -212,7 +213,8 @@ public class BlockTypeStore private constructor(
         val family = ActorTypeFamily(actorTypes)
         val actorTypeNames = actorTypes.map { it.name }
         val managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
-        val pluginManagers = PluginManagers.of(definitions, sceneMusic)
+        val pluginManagers = PluginManagers.of(definitions, sceneMusic, family)
+        val families = GeneratedFamilies(actorTypes, managerTypes, pluginManagers.collidableActorTypeNames, family)
         generatedDirectory.mkdirs()
         definitions.forEach { definition ->
             writeUnlessChangedByHand(
@@ -226,7 +228,7 @@ public class BlockTypeStore private constructor(
                         managerTypes = managerTypes,
                         collidableActorTypeNames = pluginManagers.collidableActorTypeNames,
                         actorTypes = actorTypes,
-                        family = family,
+                        families = families,
                     )
                     is ManagerTypeDefinition -> ManagerTypeCodeGenerator.generateManagerType(definition, settings.packageName, actorTypeNames, managerTypes)
                 },

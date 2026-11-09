@@ -45,11 +45,15 @@ internal data class PluginManagers(
     companion object {
         /**
          * @param sceneMusic The music of every Scene that has some, by its path from `composeResources`.
+         * @param family The families of the Actor types among [definitions], passed in when the caller has them already.
          */
-        fun of(definitions: List<BlockTypeDefinition>, sceneMusic: Set<String> = emptySet()): PluginManagers {
+        fun of(
+            definitions: List<BlockTypeDefinition>,
+            sceneMusic: Set<String> = emptySet(),
+            family: ActorTypeFamily = ActorTypeFamily(definitions.filterIsInstance<ActorTypeDefinition>()),
+        ): PluginManagers {
             val actorTypes = definitions.filterIsInstance<ActorTypeDefinition>()
             val actorTypeNames = actorTypes.mapTo(mutableSetOf()) { it.name }
-            val family = ActorTypeFamily(actorTypes)
             // A parent stands for its children, and children inherit their parent's Events.
             val collidableActorTypeNames = actorTypes.flatMapTo(mutableSetOf()) { definition ->
                 family.eventsOf(definition.name)

@@ -22,7 +22,8 @@ public class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
             type.parent?.takeIf { it in byName && !isAncestor(type.name, it, declaredParents) }?.let { type.name to it }
         }.toMap()
     }
-    internal val namesWithChildren: Set<String> = parents.values.toSet()
+    private val children: Map<String, List<String>> = parents.entries.groupBy({ it.value }, { it.key }).mapValues { (_, names) -> names.sorted() }
+    internal val namesWithChildren: Set<String> = children.keys
 
     public fun parentOf(name: String): String? = parents[name]
 
@@ -31,12 +32,19 @@ public class ActorTypeFamily(actorTypes: List<ActorTypeDefinition>) {
      */
     public fun ancestorsOf(name: String): List<String> = generateSequence(parents[name]) { parents[it] }.toList()
 
-    public fun childrenOf(name: String): List<String> = parents.filterValues { it == name }.keys.sorted()
+    public fun childrenOf(name: String): List<String> = children[name].orEmpty()
 
     /**
-     * Every Actor type that inherits from [name], however far down.
+     * Every Actor type that inherits from [name], however far down, each child followed by its own descendants.
      */
-    public fun descendantsOf(name: String): List<String> = childrenOf(name).flatMap { listOf(it) + descendantsOf(it) }
+    public fun descendantsOf(name: String): List<String> = buildList { addDescendantsOf(name) }
+
+    private fun MutableList<String>.addDescendantsOf(name: String) {
+        childrenOf(name).forEach { child ->
+            add(child)
+            addDescendantsOf(child)
+        }
+    }
 
     public fun hasChildren(name: String): Boolean = name in namesWithChildren
 

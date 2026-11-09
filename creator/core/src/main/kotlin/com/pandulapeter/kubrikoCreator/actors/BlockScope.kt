@@ -103,23 +103,45 @@ public data class BlockScope(
             family: ActorTypeFamily = ActorTypeFamily(types.filterIsInstance<ActorTypeDefinition>()),
         ): BlockScope {
             val actorTypes = types.filterIsInstance<ActorTypeDefinition>()
-            return BlockScope(
-                typeName = definition.name,
-                kind = definition.kind,
-                properties = if (definition is ActorTypeDefinition) family.propertiesOf(definition.name).ifEmpty { definition.properties } else definition.properties,
-                actorTypeNames = actorTypes.map { it.name },
-                managerTypes = types.filterIsInstance<ManagerTypeDefinition>(),
-                sceneNames = sceneNames,
-                audioFiles = audioFiles,
-                baseClassNames = family.namesWithChildren,
-                ancestorNames = family.ancestorsOf(definition.name),
-                timerNames = if (definition is ActorTypeDefinition) {
-                    val members = family.familyOf(family.rootOf(definition.name)).toSet()
-                    actorTypes.filter { it.name in members }.flatMap { it.timerNames }
-                } else {
-                    definition.timerNames
-                }.distinct().sorted(),
-            )
+            val timerNames = if (definition is ActorTypeDefinition) {
+                val members = family.familyOf(family.rootOf(definition.name)).toSet()
+                actorTypes.filter { it.name in members }.flatMap { it.timerNames }
+            } else {
+                definition.timerNames
+            }
+            return scopeOf(definition, actorTypes.map { it.name }, types.filterIsInstance<ManagerTypeDefinition>(), sceneNames, audioFiles, family, timerNames)
         }
+
+        /**
+         * The scope of each of [members], every Actor type of one family of [family], by its name: what [of] makes for each,
+         * with what they share worked out once rather than per member.
+         */
+        internal fun ofFamily(members: List<ActorTypeDefinition>, types: List<BlockTypeDefinition>, family: ActorTypeFamily): Map<String, BlockScope> {
+            val actorTypeNames = types.filterIsInstance<ActorTypeDefinition>().map { it.name }
+            val managerTypes = types.filterIsInstance<ManagerTypeDefinition>()
+            val timerNames = members.flatMap { it.timerNames }
+            return members.associate { it.name to scopeOf(it, actorTypeNames, managerTypes, sceneNames = null, audioFiles = null, family, timerNames) }
+        }
+
+        private fun scopeOf(
+            definition: BlockTypeDefinition,
+            actorTypeNames: List<String>,
+            managerTypes: List<ManagerTypeDefinition>,
+            sceneNames: List<String>?,
+            audioFiles: AudioFiles?,
+            family: ActorTypeFamily,
+            timerNames: List<String>,
+        ) = BlockScope(
+            typeName = definition.name,
+            kind = definition.kind,
+            properties = if (definition is ActorTypeDefinition) family.propertiesOf(definition.name).ifEmpty { definition.properties } else definition.properties,
+            actorTypeNames = actorTypeNames,
+            managerTypes = managerTypes,
+            sceneNames = sceneNames,
+            audioFiles = audioFiles,
+            baseClassNames = family.namesWithChildren,
+            ancestorNames = family.ancestorsOf(definition.name),
+            timerNames = timerNames.distinct().sorted(),
+        )
     }
 }

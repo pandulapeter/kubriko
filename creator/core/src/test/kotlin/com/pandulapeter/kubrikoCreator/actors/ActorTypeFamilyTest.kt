@@ -44,6 +44,18 @@ class ActorTypeFamilyTest {
     }
 
     @Test
+    fun childrenAreSortedByNameAndDescendantsFollowTheirParent() {
+        val wide = ActorTypeFamily(
+            listOf(ActorTypeDefinition(name = "Root")) +
+                listOf("C", "A", "B").map { ActorTypeDefinition(name = it, parent = "Root") } +
+                ActorTypeDefinition(name = "AChild", parent = "A"),
+        )
+        assertEquals(listOf("A", "B", "C"), wide.childrenOf("Root"))
+        assertEquals(listOf("A", "AChild", "B", "C"), wide.descendantsOf("Root"))
+        assertEquals(emptyList(), wide.childrenOf("C"))
+    }
+
+    @Test
     fun namesWithChildrenAreTheParents() {
         assertEquals(setOf("Enemy", "Flying"), family.namesWithChildren)
     }
