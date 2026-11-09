@@ -21,7 +21,6 @@ import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_actors_empty
 import kubriko.creator.generated.resources.error_command_already_under_version_control
 import kubriko.creator.generated.resources.error_command_block_missing
-import kubriko.creator.generated.resources.error_command_block_not_allowed
 import kubriko.creator.generated.resources.error_command_change_missing
 import kubriko.creator.generated.resources.error_command_changed_outside
 import kubriko.creator.generated.resources.error_command_changes_not_written
@@ -36,7 +35,6 @@ import kubriko.creator.generated.resources.error_command_document_taken
 import kubriko.creator.generated.resources.error_command_document_too_long
 import kubriko.creator.generated.resources.error_command_document_unreadable
 import kubriko.creator.generated.resources.error_command_event_missing
-import kubriko.creator.generated.resources.error_command_event_not_allowed
 import kubriko.creator.generated.resources.error_command_failed
 import kubriko.creator.generated.resources.error_command_first_scene_not_followed
 import kubriko.creator.generated.resources.error_command_game_notes_too_long
@@ -75,7 +73,6 @@ import kubriko.creator.generated.resources.error_command_project_settings_unavai
 import kubriko.creator.generated.resources.error_command_property_inherited
 import kubriko.creator.generated.resources.error_command_property_kind_changed
 import kubriko.creator.generated.resources.error_command_property_kind_in_descendant
-import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_property_value_invalid
 import kubriko.creator.generated.resources.error_command_question_invalid
@@ -127,6 +124,12 @@ import org.jetbrains.compose.resources.StringResource
  */
 internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.TURN_CANCELLED -> Res.string.assistant_turn_cancelled
+    CommandProblem.EVENT_GAME_STARTED_IN_ACTOR_TYPE, CommandProblem.EVENT_ADDED_TO_SCENE_IN_MANAGER_TYPE, CommandProblem.EVENT_EDGE_TOUCHED_IN_MANAGER_TYPE,
+    CommandProblem.EVENT_COLLISION_IN_MANAGER_TYPE, CommandProblem.BLOCK_BOUNCE_OFF_EDGE_OUTSIDE_EDGE_TOUCHED, CommandProblem.BLOCK_BOUNCE_OFF_OTHER_OUTSIDE_COLLISION,
+    CommandProblem.BLOCK_REMOVE_OTHER_OUTSIDE_COLLISION, CommandProblem.BLOCK_MOVEMENT_IN_MANAGER_TYPE, CommandProblem.BLOCK_REMOVE_SELF_IN_MANAGER_TYPE,
+    CommandProblem.BLOCK_RUN_PARENT_EVENT_IN_MANAGER_TYPE, CommandProblem.NUMBER_PROPERTY_MISSING, CommandProblem.TEXT_PROPERTY_MISSING,
+    CommandProblem.TOGGLE_PROPERTY_MISSING,
+    -> placementResource()
     CommandProblem.ACTOR_ID_INVALID -> Res.string.error_command_actor_id_invalid
     CommandProblem.ACTOR_ID_REPEATED -> Res.string.error_command_actor_id_repeated
     CommandProblem.ACTOR_ID_TAKEN -> Res.string.error_command_actor_id_taken
@@ -136,7 +139,6 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.ACTORS_EMPTY -> Res.string.error_command_actors_empty
     CommandProblem.ALREADY_UNDER_VERSION_CONTROL -> Res.string.error_command_already_under_version_control
     CommandProblem.BLOCK_MISSING -> Res.string.error_command_block_missing
-    CommandProblem.BLOCK_NOT_ALLOWED -> Res.string.error_command_block_not_allowed
     CommandProblem.CHANGE_MISSING -> Res.string.error_command_change_missing
     CommandProblem.CHANGED_OUTSIDE -> Res.string.error_command_changed_outside
     CommandProblem.CHANGES_NOT_WRITTEN -> Res.string.error_command_changes_not_written
@@ -145,7 +147,6 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.CONDITION_NOT_ALLOWED -> Res.string.error_command_condition_not_allowed
     CommandProblem.DESCRIPTION_INVALID -> Res.string.error_command_description_invalid
     CommandProblem.EVENT_MISSING -> Res.string.error_command_event_missing
-    CommandProblem.EVENT_NOT_ALLOWED -> Res.string.error_command_event_not_allowed
     CommandProblem.FAILED -> Res.string.error_command_failed
     CommandProblem.GAME_NOTES_TOO_LONG -> Res.string.error_command_game_notes_too_long
     CommandProblem.GENERATED_CODE_NOT_WRITTEN -> Res.string.error_command_generated_code_not_written
@@ -193,7 +194,6 @@ internal fun CommandProblem.toResource(): StringResource = when (this) {
     CommandProblem.PROPERTY_INHERITED -> Res.string.error_command_property_inherited
     CommandProblem.PROPERTY_KIND_CHANGED -> Res.string.error_command_property_kind_changed
     CommandProblem.PROPERTY_KIND_IN_DESCENDANT -> Res.string.error_command_property_kind_in_descendant
-    CommandProblem.PROPERTY_MISSING -> Res.string.error_command_property_missing
     CommandProblem.PROPERTY_UNKNOWN -> Res.string.error_command_property_unknown
     CommandProblem.PROPERTY_VALUE_INVALID -> Res.string.error_command_property_value_invalid
     CommandProblem.RELATIONS_PROPERTY_MISSING -> Res.string.error_command_relations_property_missing

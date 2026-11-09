@@ -107,8 +107,8 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
     val key = event.key
     val timer = event.timer
     val otherActorType = event.otherActorType
+    event.type.problemIn(scope.kind)?.let { return Rejection(it) }
     return when {
-        !event.type.isAvailableIn(scope.kind) -> Rejection(CommandProblem.EVENT_NOT_ALLOWED, event.type.serialName)
         key != null && event.type != EventType.KEY_PRESSED -> Rejection(CommandProblem.KEY_NOT_ALLOWED)
         key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, key.composeKeyName)
         otherActorType != null && event.type != EventType.COLLISION -> Rejection(CommandProblem.OTHER_ACTOR_TYPE_NOT_ALLOWED)
@@ -123,8 +123,7 @@ internal fun validateEvent(event: EventDefinition, scope: BlockScope): Rejection
  * Why [block] can't be in an Event of [eventType] of the type [scope] is about. A Block may leave its Property or Actor
  * type unchosen, but not name one that doesn't exist.
  */
-internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: BlockScope): Rejection? = when {
-    !BlockKind.of(block).isAvailableIn(eventType, scope.kind) -> Rejection(CommandProblem.BLOCK_NOT_ALLOWED, block.serialName, eventType.serialName)
+internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: BlockScope): Rejection? = BlockKind.of(block).problemIn(eventType, scope.kind)?.let(::Rejection) ?: when {
     block is BlockDefinition.If && !ConditionKind.of(block.condition).isAvailableIn(scope.kind) -> Rejection(CommandProblem.CONDITION_NOT_ALLOWED)
     !block.areNumbersFinite -> Rejection(CommandProblem.NUMBER_INVALID)
     ((block as? BlockDefinition.If)?.condition as? ConditionDefinition.KeyHeld)?.key?.isKnown == false -> Rejection(CommandProblem.GAME_KEY_UNKNOWN, (block.condition as ConditionDefinition.KeyHeld).key.composeKeyName)
@@ -137,7 +136,7 @@ internal fun validateBlock(block: BlockDefinition, eventType: EventType, scope: 
         val manager = reference.manager
         when {
             manager != null && scope.propertiesOf(manager) == null -> Rejection(CommandProblem.MANAGER_TYPE_MISSING, manager)
-            reference.name.isNotEmpty() && !scope.hasProperty(reference) -> Rejection(CommandProblem.PROPERTY_MISSING, reference.name, reference.kind.serialName)
+            reference.name.isNotEmpty() && !scope.hasProperty(reference) -> Rejection(reference.kind.missingProblem, reference.name, manager ?: scope.typeName)
             else -> null
         }
     }
