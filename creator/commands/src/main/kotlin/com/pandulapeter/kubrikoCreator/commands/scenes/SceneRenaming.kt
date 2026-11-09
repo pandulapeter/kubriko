@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
-import com.pandulapeter.kubrikoCreator.actors.withSceneRenamed
+import com.pandulapeter.kubrikoCreator.actors.withScenesRenamed
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandProblem
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -28,50 +28,79 @@ import java.io.IOException
  * @return Whether the file was moved; if it wasn't, nothing changed.
  */
 @EditorMutation
-internal suspend fun CommandContext.renameScene(oldName: String, newName: String): Boolean =
-    moveScene(oldName, newName).also { if (it) reportScenesNamedInCode(mapOf(oldName to newName)) }
+internal suspend fun CommandContext.renameScene(oldName: String, newName: String): Boolean = renameScenes(mapOf(oldName to newName)) == null
 
 /**
- * Moves the Scene [oldName] to [newName], with every goToScene Block and the game's first Scene ([renameScene] without
- * looking through the Kotlin, for moving many at once).
+ * Moves each Scene of [renamed] (each old name with its new one), then the goToScene Blocks and the game's first Scene
+ * naming them, and says in the console which hand-written Kotlin files still name them; the types, the settings, and the
+ * Kotlin are each gone through once, however many Scenes move. It stops at the first Scene that can't be moved, moving
+ * back the ones moved before it, so that nothing changes.
  *
- * @return Whether the file was moved; if it wasn't, nothing changed.
+ * @return The Scene that couldn't be moved, or null if every one was.
  */
 @EditorMutation
-internal suspend fun CommandContext.moveScene(oldName: String, newName: String): Boolean {
-    if (!withContext(ioDispatcher) { scenes.move(oldName, newName) }) return false
+internal suspend fun CommandContext.renameScenes(renamed: Map<String, String>): String? {
+    if (renamed.isEmpty()) return null
+    val notMoved = withContext(ioDispatcher) {
+        val moved = ArrayList<String>()
+        for ((oldName, newName) in renamed) {
+            if (!scenes.move(oldName, newName)) {
+                moved.asReversed().forEach { scenes.move(renamed.getValue(it), it) }
+                return@withContext oldName
+            }
+            moved += oldName
+        }
+        null
+    }
+    if (notMoved != null) return notMoved
     blockTypes?.let { blockTypes ->
         blockTypes.types.value.forEach { definition ->
-            val renamed = definition.withSceneRenamed(oldName, newName)
-            if (renamed != definition) blockTypes.put(renamed)
+            val withScenesRenamed = definition.withScenesRenamed(renamed)
+            if (withScenesRenamed != definition) blockTypes.put(withScenesRenamed)
         }
     }
-    try {
-        withContext(ioDispatcher) { followFirstScene(project.rootDirectory, oldName, newName) }
-    } catch (exception: IOException) {
-        report(ConsoleEntry.Status(CommandProblem.FIRST_SCENE_NOT_FOLLOWED, isError = true, arguments = listOf(oldName, exception.message ?: exception.toString())))
-    }
-    return true
+    followFirstScene(renamed)
+    reportScenesNamedInCode(renamed)
+    return null
 }
 
 /**
- * Says in the console which hand-written Kotlin files still name a Scene of [renamed] (each old name with its new one),
- * reading them once however many Scenes moved.
+ * Says in the console which hand-written Kotlin files still name a Scene of [renamed], looking through each file once for
+ * all of them.
  */
-internal suspend fun CommandContext.reportScenesNamedInCode(renamed: Map<String, String>) {
-    if (renamed.isEmpty()) return
-    val kotlin = withContext(ioDispatcher) { HandWrittenKotlin.read(project.rootDirectory) }.toSortedMap()
+private suspend fun CommandContext.reportScenesNamedInCode(renamed: Map<String, String>) {
+    val namesByPath = withContext(ioDispatcher) {
+        HandWrittenKotlin.read(project.rootDirectory).mapValues { (_, text) -> quotedTexts(text).filter { it in renamed } }
+    }
     renamed.forEach { (oldName, newName) ->
-        kotlin.filterValues { "\"$oldName\"" in it }.keys.forEach { path ->
+        namesByPath.filterValues { oldName in it }.keys.sorted().forEach { path ->
             report(ConsoleEntry.Status(CommandProblem.SCENE_NAMED_IN_CODE, isError = true, arguments = listOf(path, oldName, newName)))
         }
     }
 }
 
+/**
+ * Every piece of [text] between two of its consecutive quotes: each string literal's content, among others, so that a
+ * name is in it exactly when [text] holds the name in quotes.
+ */
+internal fun quotedTexts(text: String): Set<String> = text.split('"').drop(1).dropLast(1).toSet()
+
+/**
+ * Makes the game start from the Scene's new name if it starts from one of [renamed], saying so in the console if it can't.
+ */
 @EditorMutation
-private fun followFirstScene(rootDirectory: File, oldName: String, newName: String) {
-    val settings = firstSceneSettings(rootDirectory)?.takeIf { it.firstScene == oldName } ?: return
-    GameSettings.write(rootDirectory, settings.copy(firstScene = newName), listOf(GameSettings.FIRST_SCENE))
+private suspend fun CommandContext.followFirstScene(renamed: Map<String, String>) {
+    var firstScene: String? = null
+    try {
+        withContext(ioDispatcher) {
+            val settings = firstSceneSettings(project.rootDirectory) ?: return@withContext
+            val newName = renamed[settings.firstScene] ?: return@withContext
+            firstScene = settings.firstScene
+            GameSettings.write(project.rootDirectory, settings.copy(firstScene = newName), listOf(GameSettings.FIRST_SCENE))
+        }
+    } catch (exception: IOException) {
+        report(ConsoleEntry.Status(CommandProblem.FIRST_SCENE_NOT_FOLLOWED, isError = true, arguments = listOf(firstScene ?: renamed.keys.first(), exception.message ?: exception.toString())))
+    }
 }
 
 /**

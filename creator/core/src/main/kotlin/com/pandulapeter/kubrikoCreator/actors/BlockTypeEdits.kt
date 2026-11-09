@@ -110,10 +110,10 @@ internal fun BlockTypeDefinition.withOtherActorTypeRenamed(oldName: String, newN
 }
 
 /**
- * Every goToScene Block that goes to the Scene [oldName] goes to [newName] instead.
+ * Every goToScene Block that goes to a Scene of [renamed] (each old name with its new one) goes to its new name instead.
  */
-public fun BlockTypeDefinition.withSceneRenamed(oldName: String, newName: String): BlockTypeDefinition = withBlocks { block ->
-    if (block is BlockDefinition.GoToScene && block.scene == oldName) block.copy(scene = newName) else block
+public fun BlockTypeDefinition.withScenesRenamed(renamed: Map<String, String>): BlockTypeDefinition = withBlocks { block ->
+    if (block is BlockDefinition.GoToScene && block.scene in renamed) block.copy(scene = renamed.getValue(block.scene)) else block
 }
 
 /**

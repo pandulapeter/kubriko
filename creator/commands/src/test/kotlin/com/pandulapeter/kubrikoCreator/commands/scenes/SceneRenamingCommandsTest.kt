@@ -99,6 +99,13 @@ class SceneRenamingCommandsTest {
     }
 
     @Test
+    fun quotedTextsAreWhatStandsBetweenTwoQuotes() {
+        assertEquals(setOf("main", ", ", "levels/1"), quotedTexts("""goTo("main", "levels/1")"""))
+        assertEquals(emptySet(), quotedTexts("val x = 1"))
+        assertEquals(setOf(""), quotedTexts("""val empty = """""))
+    }
+
+    @Test
     fun aSceneThatCantBeMovedIsRenamedNowhereAndSaysSo() = runTest {
         val context = context()
         val folder = context.scenes.fileOf("main").parentFile
