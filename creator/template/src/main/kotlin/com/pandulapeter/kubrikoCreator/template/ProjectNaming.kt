@@ -83,7 +83,7 @@ internal object ProjectNaming {
      * [name] in lowercase, with every letter that has an accent written without it.
      */
     private fun folded(name: String) = Normalizer.normalize(name.trim().lowercase(), Normalizer.Form.NFD)
-        .filter { it.category != CharCategory.NON_SPACING_MARK }
+        .filter { !NameFlaw.isAccent(it.code) && !NameFlaw.isSelector(it.code) }
         .fold(StringBuilder()) { result, character -> result.append(foldedLetters[character] ?: character) }
         .toString()
 }

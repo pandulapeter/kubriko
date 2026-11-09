@@ -63,6 +63,8 @@ class ProjectNamingTest {
             "Игра" to "game",
             "Игра 2" to "game-2",
             "冒険 Quest" to "quest",
+            "ab\u093Ecd" to "abcd",
+            "ab\u20DDcd" to "abcd",
         ).forEach { (name, id) -> assertEquals(id, ProjectNaming.projectId(name), name) }
     }
 

@@ -45,13 +45,13 @@ public object RenameFolder : WriteCommand<RenameFolder.Input> {
     }
 
     /**
-     * Why a page in the folder can't be named as it would be after the rename (its name, with its folders, grows past
-     * the limit), or null if every one can.
+     * Why a page or a folder in the folder can't be named as it would be after the rename (its name, with its folders,
+     * grows past the limit), or null if every one can.
      */
     private fun validateMovedPages(context: CommandContext, input: Input): Rejection? = if (input.group == FolderGroup.PAGES) {
-        context.itemsOf(FolderGroup.PAGES)
-            .filter { (_, folder) -> FolderPaths.isWithin(folder, input.path) }
-            .firstNotNullOfOrNull { (page, _) -> validatePageName(renamed(input) + page.removePrefix(input.path)) }
+        (context.itemsOf(FolderGroup.PAGES).filter { (_, folder) -> FolderPaths.isWithin(folder, input.path) }.map { (page, _) -> page } +
+            context.foldersOf(FolderGroup.PAGES).filter { it != input.path && FolderPaths.isWithin(it, input.path) })
+            .firstNotNullOfOrNull { path -> validatePageName(renamed(input) + path.removePrefix(input.path)) }
     } else {
         null
     }

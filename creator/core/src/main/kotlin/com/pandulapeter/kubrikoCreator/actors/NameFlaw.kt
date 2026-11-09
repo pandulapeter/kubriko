@@ -57,14 +57,14 @@ public enum class NameFlaw {
          * Whether [predicate] holds for any code point of [text], told whether that code point is an accent written on the
          * letter before it (directly, or after other accents on it).
          */
-        public fun anyCodePoint(text: String, predicate: (codePoint: Int, isAccentOnLetter: Boolean) -> Boolean): Boolean {
+        public inline fun anyCodePoint(text: String, predicate: (codePoint: Int, isAccentOnLetter: Boolean) -> Boolean): Boolean {
             var followsLetter = false
             var index = 0
             while (index < text.length) {
                 val codePoint = text.codePointAt(index)
                 val isAccentOnLetter = followsLetter && isAccent(codePoint)
                 if (predicate(codePoint, isAccentOnLetter)) return true
-                followsLetter = Character.isLetter(codePoint) || isAccentOnLetter
+                if (!isSelector(codePoint)) followsLetter = Character.isLetter(codePoint) || isAccentOnLetter
                 index += Character.charCount(codePoint)
             }
             return false
@@ -72,14 +72,20 @@ public enum class NameFlaw {
 
         /**
          * Whether [codePoint] is a mark written on the character before it, other than the invisible ones that only choose
-         * how it is shown (variation selectors) or how it sorts (the combining grapheme joiner).
+         * how it is shown or sorts ([isSelector]).
          */
-        private fun isAccent(codePoint: Int): Boolean = when {
-            codePoint in 0xFE00..0xFE0F || codePoint in 0xE0100..0xE01EF || codePoint == 0x034F -> false
+        public fun isAccent(codePoint: Int): Boolean = when {
+            isSelector(codePoint) -> false
             else -> when (Character.getType(codePoint).toByte()) {
                 Character.NON_SPACING_MARK, Character.COMBINING_SPACING_MARK, Character.ENCLOSING_MARK -> true
                 else -> false
             }
         }
+
+        /**
+         * Whether [codePoint] is an invisible mark that only chooses how the character before it is shown (a variation
+         * selector) or how it sorts (the combining grapheme joiner), which neither is nor ends an accent.
+         */
+        public fun isSelector(codePoint: Int): Boolean = codePoint in 0xFE00..0xFE0F || codePoint in 0xE0100..0xE01EF || codePoint == 0x034F
     }
 }

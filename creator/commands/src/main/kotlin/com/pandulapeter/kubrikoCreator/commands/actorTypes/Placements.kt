@@ -19,17 +19,21 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
  * Why a type of [kind] can't have an Event of this type, or null if it can: the Event's own reason
  * ([EventType.misplacedProblem]), named as the editor names it.
  */
-internal fun EventType.problemIn(kind: BlockTypeKind): PlacementProblem? = if (isAvailableIn(kind)) null else misplacedProblem
+internal fun EventType.problemIn(kind: BlockTypeKind): PlacementProblem? = if (isAvailableIn(kind)) {
+    null
+} else {
+    checkNotNull(misplacedProblem) { "$this has no misplacedProblem, though a $kind type can't have it." }
+}
 
 /**
  * Why a Block of this kind can't be in an Event of [eventType] of a type of [kind], or null if it can: what a Manager
  * type lacks comes first, since no Event of one could take the Block, then the Event the Block needs. Each reason is the
  * Block's own ([BlockKind.managerTypeProblem], [BlockKind.otherEventProblem]).
  */
-internal fun BlockKind.problemIn(eventType: EventType, kind: BlockTypeKind): PlacementProblem? = when {
-    isAvailableIn(eventType, kind) -> null
-    needsActor && kind == BlockTypeKind.MANAGER -> managerTypeProblem
-    else -> otherEventProblem
+internal fun BlockKind.problemIn(eventType: EventType, kind: BlockTypeKind): PlacementProblem? = if (isAvailableIn(eventType, kind)) {
+    null
+} else {
+    checkNotNull(managerTypeProblem.takeIf { kind == BlockTypeKind.MANAGER } ?: otherEventProblem) { "$this has no reason for not being in a $eventType Event of a $kind type." }
 }
 
 /**

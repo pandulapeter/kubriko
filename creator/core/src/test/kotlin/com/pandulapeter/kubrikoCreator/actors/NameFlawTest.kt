@@ -34,6 +34,7 @@ class NameFlawTest {
         assertEquals(NameFlaw.CHARACTER, flawOf("game\uD83C\uDFAE"))
         assertEquals(NameFlaw.CHARACTER, flawOf("game \u20DD"))
         listOf("ball\uFE0F", "ball\u034F", "ball\uDB40\uDD00").forEach { assertEquals(NameFlaw.CHARACTER, flawOf(it), it) }
+        listOf("e\uFE0F\u0301let", "e\u034F\u0301let").forEach { assertEquals(NameFlaw.LETTER_BEYOND_A_TO_Z, flawOf(it), it) }
     }
 
     @Test

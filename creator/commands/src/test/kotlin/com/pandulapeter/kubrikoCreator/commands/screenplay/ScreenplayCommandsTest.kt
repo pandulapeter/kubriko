@@ -124,6 +124,8 @@ class ScreenplayCommandsTest {
         CreatePage.apply(context, CreatePage.Input("a/" + "p".repeat(110), hero))
         assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG, "120"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.PAGES, "a", "b".repeat(15))))
         assertNull(RenameFolder.validate(context, RenameFolder.Input(FolderGroup.PAGES, "a", "b".repeat(9))))
+        CreateFolder.apply(context, CreateFolder.Input(FolderGroup.PAGES, "c/" + "f".repeat(110)))
+        assertEquals(Rejection(NameProblem.PAGE_NAME_TOO_LONG, "120"), RenameFolder.validate(context, RenameFolder.Input(FolderGroup.PAGES, "c", "d".repeat(15))))
     }
 
     @Test
