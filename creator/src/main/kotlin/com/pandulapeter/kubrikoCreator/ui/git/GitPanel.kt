@@ -10,7 +10,6 @@
 package com.pandulapeter.kubrikoCreator.ui.git
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -32,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.GitState
@@ -100,11 +100,6 @@ private fun NoRepository(
     }
 }
 
-/**
- * The commit form above the list of changes and the history: the form stays in sight however far the list is scrolled,
- * and while it takes more than half of the panel's height (a short window, or a long message), it scrolls within that
- * half, so the list always keeps the rest.
- */
 @Composable
 private fun Repository(
     state: GitState.Ready,
@@ -112,45 +107,47 @@ private fun Repository(
     onDiscard: (ChangeEntry) -> Unit,
     areScreenplayRemindersShown: Boolean,
     modifier: Modifier = Modifier,
-) = BoxWithConstraints(
+) = Column(
     modifier = modifier,
 ) {
     var message by remember { mutableStateOf("") }
     var entryToDiscard by remember { mutableStateOf<ChangeEntry?>(null) }
-    val formHeight = maxHeight / 2
-    Column {
-        Column(
-            modifier = Modifier.heightIn(max = formHeight).verticalScroll(rememberScrollState()),
-        ) {
-            state.branch?.let { branch ->
-                Text(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    text = stringResource(Res.string.git_branch, branch),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (state.changes.isNotEmpty()) {
-                if (areScreenplayRemindersShown && isScreenplayReminderDue(state.changes)) {
-                    ScreenplayReminder(modifier = Modifier.padding(top = 8.dp))
-                }
-                CommitForm(
-                    message = message,
-                    changeCount = state.changes.size,
-                    onMessageChange = { message = it },
-                    onCommit = {
-                        val sent = message
-                        onCommit(sent) { if (message == sent) message = "" }
-                    },
-                )
-            }
+    Column(
+        modifier = Modifier.atMostHalfTheHeight().verticalScroll(rememberScrollState()),
+    ) {
+        state.branch?.let { branch ->
+            Text(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                text = stringResource(Res.string.git_branch, branch),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        ChangesAndHistory(
-            modifier = Modifier.weight(1f),
-            state = state,
-            onDiscard = { entryToDiscard = it },
-        )
+        if (state.changes.isNotEmpty()) {
+            if (areScreenplayRemindersShown && isScreenplayReminderDue(state.changes)) {
+                ScreenplayReminder(modifier = Modifier.padding(top = 8.dp))
+            }
+            CommitForm(
+                message = message,
+                changeCount = state.changes.size,
+                onMessageChange = { message = it },
+                onCommit = {
+                    val sent = message
+                    onCommit(sent) { if (message == sent) message = "" }
+                },
+            )
+        }
     }
+    Text(
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
+        text = stringResource(Res.string.git_changes, state.changes.size),
+        style = MaterialTheme.typography.titleSmall,
+    )
+    ChangesAndHistory(
+        modifier = Modifier.weight(1f),
+        state = state,
+        onDiscard = { entryToDiscard = it },
+    )
     entryToDiscard?.let { entry ->
         DiscardConfirmation(
             entry = entry,
@@ -163,10 +160,6 @@ private fun Repository(
     }
 }
 
-/**
- * The changes under their count, then the history of commits, each row keyed by what it shows, so a row the user is
- * looking at stays in place when rows above it come or go.
- */
 @Composable
 private fun ChangesAndHistory(
     state: GitState.Ready,
@@ -175,13 +168,6 @@ private fun ChangesAndHistory(
 ) = LazyColumn(
     modifier = modifier,
 ) {
-    item(key = CHANGES_KEY) {
-        Text(
-            modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
-            text = stringResource(Res.string.git_changes, state.changes.size),
-            style = MaterialTheme.typography.titleSmall,
-        )
-    }
     if (state.changes.isEmpty()) {
         item(key = NO_CHANGES_KEY) {
             Text(
@@ -192,7 +178,7 @@ private fun ChangesAndHistory(
             )
         }
     }
-    items(state.changes, key = { it.paths }) { entry ->
+    items(state.changes, key = ::changeKeyOf) { entry ->
         ChangeRow(
             entry = entry,
             onDiscard = { onDiscard(entry) },
@@ -207,9 +193,24 @@ private fun ChangesAndHistory(
             )
         }
     }
-    items(state.history, key = { it.id }) { commit ->
+    items(state.history) { commit ->
         CommitRow(commit)
     }
+}
+
+/**
+ * What keeps a change's row in place while the rows above it come and go: its title, unique among the types and among the
+ * files, and not its paths, which change as a type's generated code joins or leaves it.
+ */
+internal fun changeKeyOf(entry: ChangeEntry): Any = entry.isBlockType to entry.title
+
+/**
+ * Measures with at most half of the height available, so that what scrolls below (the changes) always keeps the rest,
+ * however long the commit message or short the window.
+ */
+private fun Modifier.atMostHalfTheHeight() = layout { measurable, constraints ->
+    val placeable = measurable.measure(if (constraints.hasBoundedHeight) constraints.copy(maxHeight = constraints.maxHeight / 2, minHeight = 0) else constraints)
+    layout(placeable.width, placeable.height) { placeable.place(0, 0) }
 }
 
 @Composable
@@ -235,6 +236,5 @@ private fun CommitForm(
     }
 }
 
-private const val CHANGES_KEY = "changes"
 private const val NO_CHANGES_KEY = "noChanges"
 private const val HISTORY_KEY = "history"

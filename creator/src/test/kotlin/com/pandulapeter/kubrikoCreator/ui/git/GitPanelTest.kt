@@ -21,7 +21,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
 import com.pandulapeter.kubrikoCreator.git.GitState
@@ -33,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.ui.LocalDescriptionWriter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
@@ -71,6 +71,7 @@ class GitPanelTest {
         onNodeWithText("Type60").assertIsDisplayed()
         onNodeWithText("What did you change?").assertIsDisplayed()
         onNodeWithText("Commit the 60 changes").assertIsDisplayed()
+        onNodeWithText("Changes (60)").assertIsDisplayed()
         saveSnapshot("git-many-changes-scrolled")
     }
 
@@ -84,7 +85,7 @@ class GitPanelTest {
     }
 
     @Test
-    fun inAShortWindowTheFormTakesAtMostHalfOfTheHeightAndScrollsWithinIt() = uiTest(height = 260) {
+    fun inAShortWindowTheFormScrollsWithinHalfOfTheHeightAndTheChangesKeepTheirRoom() = uiTest(height = 260) {
         val changes = (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf(".kubriko/actors/Type$it.json"), isBlockType = true) }
         showing { GitPanel(state = MutableStateFlow(GitState.Ready("main", changes, emptyList())), onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}, areScreenplayRemindersShown = true) }
         saveSnapshot("git-short-window")
@@ -92,7 +93,7 @@ class GitPanelTest {
         onNodeWithText("Type1").assertIsDisplayed()
         val formTop = onNodeWithText("On branch main").getUnclippedBoundsInRoot().top
         val list = onNode(hasScrollToNodeAction()).getUnclippedBoundsInRoot()
-        assertTrue(list.top - formTop <= (list.bottom - formTop) / 2 + 1.dp)
+        assertTrue(list.bottom - list.top >= (list.bottom - formTop) / 3)
         onNodeWithText("Commit the 60 changes").performScrollTo().assertIsDisplayed()
     }
 
@@ -105,6 +106,13 @@ class GitPanelTest {
         state.value = state.value.copy(changes = state.value.changes.drop(1))
         waitForIdle()
         assertEquals(before, onNodeWithText("Type40").assertIsDisplayed().getUnclippedBoundsInRoot().top)
+    }
+
+    @Test
+    fun aChangesRowKeepsItsKeyWhileItsPathsChange() {
+        val definition = ChangeEntry("Ball", ChangeKind.MODIFIED, listOf(".kubriko/actors/Ball.json"), isBlockType = true)
+        assertEquals(changeKeyOf(definition), changeKeyOf(definition.copy(paths = definition.paths + "src/commonMain/kotlin/generated/Ball.kt")))
+        assertNotEquals(changeKeyOf(definition), changeKeyOf(ChangeEntry("Ball", ChangeKind.ADDED, listOf("Ball"), isBlockType = false)))
     }
 
     private fun manyChanges() = GitState.Ready("main", (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf("Type$it.kt"), isBlockType = true) }, emptyList())
