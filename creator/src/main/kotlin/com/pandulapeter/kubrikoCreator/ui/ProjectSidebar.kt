@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,7 +98,8 @@ internal fun ProjectSidebar(
     val shownModules = remember(query, modules) { if (isFiltering) filteredModules(modules, query) else modules }
     val tree = remember(outline, expansion, isFiltering) { SidebarTree(outline, expansion, isFiltering) }
     val listState = rememberLazyListState()
-    val rows = remember { SidebarRowsCache() }
+    val shownStructure = remember(query, structure) { if (isFiltering) filteredModules(structure, query) else structure }
+    val rows by remember(shownStructure, tree) { derivedStateOf { SidebarRows.of(shownStructure, tree) } }
     val currentFlash by rememberUpdatedState(SidebarFlash(flashedName, flashKey))
     val flash = remember { { currentFlash } }
     var revealedKey by remember { mutableStateOf<String?>(null) }
@@ -197,7 +199,7 @@ private fun LazyListScope.moduleSections(
     tree: SidebarTree,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
-    rows: SidebarRowsCache,
+    rows: SidebarRows,
     flash: () -> SidebarFlash,
 ) {
     FolderGroup.entries.forEach { group ->

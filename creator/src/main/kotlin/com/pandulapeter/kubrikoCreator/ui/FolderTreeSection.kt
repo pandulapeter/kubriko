@@ -110,7 +110,7 @@ internal sealed interface SidebarNaming {
  *
  * @param tree Which folders are open, by their [SidebarKeys].
  * @param naming What is being named in the sidebar, if anything.
- * @param rows Where the rows are kept between builds of the list.
+ * @param rows The rows of every group ([SidebarRows]), worked out outside the list's builder.
  * @param flash What the AI just changed, read by the rows.
  */
 internal fun LazyListScope.folderTreeSection(
@@ -121,7 +121,7 @@ internal fun LazyListScope.folderTreeSection(
     tree: SidebarTree,
     naming: SidebarNaming?,
     onNamingChange: (SidebarNaming?) -> Unit,
-    rows: SidebarRowsCache,
+    rows: SidebarRows,
     flash: () -> SidebarFlash,
 ) {
     val state = module.folderGroups[group] ?: return
@@ -166,10 +166,10 @@ internal fun LazyListScope.folderTreeSection(
             )
         }
     }
-    val collapsed = tree.collapsedFolders(groupKey)
-    val folderOfItem = rows.valueOf("$groupKey-folders", state.items) { state.items.toMap() }
+    val groupRows = rows.of(module.path, group) ?: return
+    val folderOfItem = groupRows.folderOfItem
     items(
-        rows.valueOf(groupKey, state.items, state.folders, collapsed) { folderTreeRows(state.items, state.folders, collapsed) },
+        groupRows.rows,
         key = { row ->
             when (row) {
                 is FolderTreeRow.Folder -> "$groupKey-folder-${row.path}"

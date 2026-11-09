@@ -53,7 +53,7 @@ internal class DocumentActions(
  * folder, a band, or another document moves into that one's folder, in any module.
  *
  * @param selectedDocument The path of the document shown in the center, if any.
- * @param rows Where the rows are kept between builds of the list.
+ * @param rows The documents' rows ([SidebarRows]), worked out outside the list's builder.
  * @param flash What the AI just changed, read by the rows.
  */
 internal fun LazyListScope.documentRows(
@@ -65,7 +65,7 @@ internal fun LazyListScope.documentRows(
     onNamingChange: (SidebarNaming?) -> Unit,
     selectedDocument: String?,
     onSelectionCleared: () -> Unit,
-    rows: SidebarRowsCache,
+    rows: SidebarRows,
     flash: () -> SidebarFlash,
 ) {
     val documentsKey = SidebarKeys.documents(module.path)
@@ -82,13 +82,8 @@ internal fun LazyListScope.documentRows(
         }
     }
     if (module.documents.isEmpty()) return
-    val items = rows.valueOf("$documentsKey-items", module.documents) { module.documentItems() }
-    val folders = rows.valueOf("$documentsKey-folders", items) {
-        folderTreeRows(items, emptySet(), collapsed = emptySet()).filterIsInstance<FolderTreeRow.Folder>().map { it.path }
-    }
-    val collapsed = folders.filterTo(HashSet()) { !tree.isExpanded(SidebarKeys.folder(documentsKey, it)) }
     items(
-        rows.valueOf(documentsKey, items, collapsed) { folderTreeRows(items, emptySet(), collapsed) },
+        rows.documentsOf(module.path),
         key = { row ->
             when (row) {
                 is FolderTreeRow.Folder -> "$documentsKey-folder-${row.path}"
