@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.foundation.reportProblem
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectSnapshot
 import com.pandulapeter.kubrikoCreator.scenes.SceneChange
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -54,6 +55,10 @@ internal class ProjectChanges(
     private val resourceRefreshes = Channel<ResourceRefresh>(Channel.UNLIMITED)
 
     init {
+        checkNotNull(scope.coroutineContext[CoroutineExceptionHandler]) { "ProjectChanges reports what fails through its scope's handler, which it lacks." }
+    }
+
+    init {
         scope.launch {
             for (first in resourceRefreshes) {
                 var snapshot = first.snapshot
@@ -92,7 +97,7 @@ internal class ProjectChanges(
 
     /**
      * Runs [follower], one part that follows a change, reporting what it throws ([reportProblem]), so the parts after it
-     * still follow the change.
+     * still follow the change, unless the scope was cancelled.
      */
     private inline fun following(follower: () -> Unit) {
         try {

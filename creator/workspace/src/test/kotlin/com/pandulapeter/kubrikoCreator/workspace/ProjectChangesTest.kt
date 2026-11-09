@@ -17,6 +17,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -26,6 +28,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProjectChangesTest {
@@ -78,6 +81,21 @@ class ProjectChangesTest {
         val scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler) + CoroutineExceptionHandler { _, _ -> error("Not reported.") })
         router(scope = scope).onSceneChanges(listOf(SceneChange.Written("main", isNew = false)))
         assertEquals(listOf("scenes changed [main]", "code changed", "git"), calls)
+    }
+
+    @Test
+    fun aClosingScopeStopsFollowingSceneChanges() = runTest {
+        val cancellation = CancellationException("Closing.")
+        regenerate = { throw cancellation }
+        val closing = CoroutineScope(Job().apply { cancel() } + CoroutineExceptionHandler { _, exception -> problems += exception })
+        assertEquals(cancellation, assertFailsWith<CancellationException> { router(scope = closing).onSceneChanges(listOf(SceneChange.Written("main", isNew = false))) })
+        assertEquals(listOf("scenes changed [main]"), calls)
+        assertEquals(emptyList(), problems)
+    }
+
+    @Test
+    fun aScopeWithoutAHandlerIsRefused() = runTest {
+        assertFailsWith<IllegalStateException> { router(scope = CoroutineScope(Job().apply { cancel() })) }
     }
 
     @Test

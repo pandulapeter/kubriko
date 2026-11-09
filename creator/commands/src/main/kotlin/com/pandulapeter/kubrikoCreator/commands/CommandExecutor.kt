@@ -20,6 +20,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -310,19 +312,26 @@ public class CommandExecutor(
     /**
      * Runs [change], then hands over the Scene changes it made, even when it throws. A delivery that fails never hides
      * what the change threw, nor fails one that was made: it is added to what the change threw as suppressed, or
-     * reported when the change was made or cancelled, since a cancellation's suppressed are never read.
+     * reported when the change was made or cancelled, since a cancellation's suppressed are never read. A cancelled
+     * delivery is no problem, and is thrown on only when the caller or [scope] was cancelled.
      */
-    private inline fun <T> deliveringSceneChanges(change: () -> T): T {
+    private suspend inline fun <T> deliveringSceneChanges(change: () -> T): T {
         val result = try {
             change()
         } catch (throwable: Throwable) {
             // The coroutine's own cancellation may come back from the delivery, and can't suppress itself.
             deliverSceneChanges()?.takeIf { it !== throwable }?.let { failure ->
-                if (throwable is CancellationException) scope.reportProblem(failure) else throwable.addSuppressed(failure)
+                when {
+                    throwable is CancellationException -> scope.reportProblem(failure)
+                    failure !is CancellationException -> throwable.addSuppressed(failure)
+                }
             }
             throw throwable
         }
-        deliverSceneChanges()?.let(scope::reportProblem)
+        deliverSceneChanges()?.let { failure ->
+            if (failure is CancellationException) currentCoroutineContext().ensureActive()
+            scope.reportProblem(failure)
+        }
         return result
     }
 

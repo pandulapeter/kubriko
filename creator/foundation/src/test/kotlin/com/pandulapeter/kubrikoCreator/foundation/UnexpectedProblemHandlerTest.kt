@@ -13,8 +13,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 
 class UnexpectedProblemHandlerTest {
     private val reported = mutableListOf<Throwable>()
@@ -28,8 +31,12 @@ class UnexpectedProblemHandlerTest {
     }
 
     @Test
-    fun aCancellationIsNoProblem() {
-        scope.reportProblem(CancellationException("Stopped."))
+    fun aCancellationIsNoProblemButStopsWhatACancelledScopeDoes() {
+        scope.reportProblem(CancellationException("A read that timed out."))
+        assertEquals(emptyList(), reported)
+        scope.cancel()
+        val closing = CancellationException("Closing.")
+        assertSame(closing, assertFailsWith<CancellationException> { scope.reportProblem(closing) })
         assertEquals(emptyList(), reported)
     }
 

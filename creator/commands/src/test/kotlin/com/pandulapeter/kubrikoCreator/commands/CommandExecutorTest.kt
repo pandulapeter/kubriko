@@ -38,7 +38,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -484,6 +486,39 @@ class CommandExecutorTest {
         val cancellation = CancellationException("Stopped.")
         assertEquals(cancellation, assertFailsWith<CancellationException> { executor.execute(Invocation(context.breaking(cancellation), NoInput)) })
         assertIs<CommandOutcome.Success>(executor.execute(Invocation(CreateScene, CreateScene.Input("a"))))
+    }
+
+    @Test
+    fun aDeliveryCancelledWithItsCallerCancelsAChangeThatWasMade() = runTest {
+        val context = commandContext()
+        lateinit var caller: Job
+        val executor = CommandExecutor(
+            context = context,
+            scope = testScope(),
+            onSceneChanges = {
+                caller.cancel()
+                throw CancellationException("Closing.")
+            },
+        )
+        var outcome: CommandOutcome? = null
+        caller = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler), start = CoroutineStart.LAZY) { outcome = executor.execute(Invocation(CreateScene, CreateScene.Input("a"))) }
+        caller.start()
+        assertTrue(caller.isCancelled)
+        assertNull(outcome)
+        assertEquals("create_scene", executor.history.value.nextUndoCommandName)
+    }
+
+    @Test
+    fun aCancelledDeliveryIsntSuppressedIntoWhatTheChangeThrew() = runTest {
+        val context = commandContext()
+        val delivery = FailingDelivery().apply {
+            failures = 1
+            failure = CancellationException("A read that timed out.")
+        }
+        val executor = with(delivery) { executorOver(context) }
+        val changeFailure = assertFailsWith<AssertionError> { executor.execute(Invocation(context.breaking(), NoInput)) }
+        assertEquals(emptyList(), changeFailure.suppressed.toList())
+        assertEquals(emptyList(), delivery.reported)
     }
 
     @Test
