@@ -13,7 +13,6 @@ import com.pandulapeter.kubrikoCreator.scenes.ScenePatch.Action
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ScenePatchTest {
@@ -24,34 +23,55 @@ class ScenePatchTest {
 
     @Test
     fun anUnchangedSceneKeepsEveryActor() {
-        val patch = ScenePatch.between(scene, scene)!!
+        val patch = ScenePatch.between(scene, scene)
         assertEquals(listOf(Action.Keep(0), Action.Keep(1), Action.Keep(2)), patch.actions)
         assertEquals(emptyList(), patch.removedIndices)
     }
 
     @Test
     fun aMovedActorIsOnlyMovedAndAChangedOneIsCreatedAgain() {
-        val patch = ScenePatch.between(scene, listOf(actor("a", x = 5f), actor("b", width = 20f), actor("c", typeId = "Wall")))!!
+        val patch = ScenePatch.between(scene, listOf(actor("a", x = 5f), actor("b", width = 20f), actor("c", typeId = "Wall")))
         assertEquals(listOf(Action.Move(0, 5f, 0f), Action.Replace(1), Action.Replace(2)), patch.actions)
     }
 
     @Test
     fun removedActorsGoAndNewOnesAtTheEndAreAdded() {
-        val patch = ScenePatch.between(scene, listOf(actor("a"), actor("c"), actor("d")))!!
+        val patch = ScenePatch.between(scene, listOf(actor("a"), actor("c"), actor("d")))
         assertEquals(listOf(Action.Keep(0), Action.Keep(2), Action.Add), patch.actions)
         assertEquals(listOf(1), patch.removedIndices)
     }
 
     @Test
     fun anActorThatIsCreatedAsSomethingElseNowIsCreatedAgainEvenIfUnchanged() {
-        val patch = ScenePatch.between(scene, listOf(actor("a"), actor("b", x = 5f), actor("c", typeId = "Wall"))) { it.id != "c" }!!
+        val patch = ScenePatch.between(scene, listOf(actor("a"), actor("b", x = 5f), actor("c", typeId = "Wall"))) { it.id != "c" }
         assertEquals(listOf(Action.Replace(0), Action.Replace(1), Action.Replace(2)), patch.actions)
     }
 
     @Test
-    fun aNewOrderCreatesTheSceneAgain() {
-        assertNull(ScenePatch.between(scene, listOf(actor("b"), actor("a"), actor("c"))))
-        assertNull(ScenePatch.between(scene, listOf(actor("d"), actor("a"), actor("b"), actor("c"))))
+    fun theActorsFromWhereTheOrderChangedOnAreCreatedAgain() {
+        assertEquals(
+            listOf(Action.Keep(0), Action.Keep(2), Action.Replace(1)),
+            ScenePatch.between(scene, listOf(actor("a"), actor("c"), actor("b"))).actions,
+        )
+        assertEquals(
+            listOf(Action.Keep(1), Action.Keep(2), Action.Replace(0)),
+            ScenePatch.between(scene, listOf(actor("b"), actor("c"), actor("a"))).actions,
+        )
+    }
+
+    @Test
+    fun newActorsBeforeOldOnesAreAddedWithTheOnesAfterThemCreatedAgain() {
+        val restored = ScenePatch.between(listOf(actor("a"), actor("c")), listOf(actor("a"), actor("b"), actor("c", x = 5f)))
+        assertEquals(listOf(Action.Keep(0), Action.Add, Action.Replace(1)), restored.actions)
+        assertEquals(emptyList(), restored.removedIndices)
+        assertEquals(listOf(Action.Add, Action.Replace(0), Action.Replace(1), Action.Replace(2)), ScenePatch.between(scene, listOf(actor("d")) + scene).actions)
+    }
+
+    @Test
+    fun newActorsAtTheEndOfAReorderedSceneAreStillOnlyAdded() {
+        val patch = ScenePatch.between(scene, listOf(actor("b"), actor("a"), actor("d")))
+        assertEquals(listOf(Action.Keep(1), Action.Replace(0), Action.Add), patch.actions)
+        assertEquals(listOf(2), patch.removedIndices)
     }
 
     @Test

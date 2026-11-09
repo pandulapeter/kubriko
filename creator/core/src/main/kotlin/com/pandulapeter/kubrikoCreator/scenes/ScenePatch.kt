@@ -47,8 +47,9 @@ public class ScenePatch(
     public companion object {
 
         /**
-         * The patch from [previous] to [next], or null if the Actors that stay changed their order, or new ones came
-         * before old ones, which only creating the Scene again keeps in the order Kubriko draws and picks them in.
+         * The patch from [previous] to [next]. Kubriko draws Actors of the same drawing order in the order they were
+         * added, and new ones always go last, so where the order of the Actors that stay changes, or new ones come
+         * before old ones, the Actors from there on are created again ([orderedTailStart]), and the ones before it stay.
          *
          * @param isRecreated Whether the Actor of an entry that stays is created again even if its state didn't change,
          *   because what it is created as did.
@@ -57,22 +58,15 @@ public class ScenePatch(
             previous: List<SceneActorEntry>,
             next: List<SceneActorEntry>,
             isRecreated: (SceneActorEntry) -> Boolean = { false },
-        ): ScenePatch? {
+        ): ScenePatch {
             val previousIndices = HashMap<String, Int>(previous.size * 2)
             previous.forEachIndexed { index, entry -> previousIndices[entry.id] = index }
-            var lastPreviousIndex = -1
-            var hasAdded = false
-            val actions = next.map { entry ->
-                val previousIndex = previousIndices[entry.id]
-                if (previousIndex == null) {
-                    hasAdded = true
-                    return@map Action.Add
-                }
-                if (hasAdded || previousIndex < lastPreviousIndex) return null
-                lastPreviousIndex = previousIndex
+            val tailStart = orderedTailStart(next) { previousIndices[it.id] }
+            val actions = next.mapIndexed { index, entry ->
+                val previousIndex = previousIndices[entry.id] ?: return@mapIndexed Action.Add
                 val old = previous[previousIndex]
                 when {
-                    isRecreated(entry) -> Action.Replace(previousIndex)
+                    index >= tailStart || isRecreated(entry) -> Action.Replace(previousIndex)
                     old == entry -> Action.Keep(previousIndex)
                     old.typeId == entry.typeId && SceneDocument.isOnlyMoved(old.state, entry.state) ->
                         SceneDocument.positionOf(entry.state)?.let { (x, y) -> Action.Move(previousIndex, x, y) } ?: Action.Replace(previousIndex)
@@ -81,6 +75,26 @@ public class ScenePatch(
             }
             val nextIds = next.mapTo(HashSet(next.size * 2)) { it.id }
             return ScenePatch(actions, previous.indices.filter { previous[it].id !in nextIds })
+        }
+
+        /**
+         * The index of [next] from which its Actors are created again so that they end up in its order: the first new
+         * entry or the first one out of order ([previousIndexOf] smaller than one before it), whichever comes first,
+         * if an Actor that stays comes after it; [next]'s size if none does.
+         */
+        private fun orderedTailStart(next: List<SceneActorEntry>, previousIndexOf: (SceneActorEntry) -> Int?): Int {
+            var lastPreviousIndex = -1
+            var firstAdded = -1
+            next.forEachIndexed { index, entry ->
+                val previousIndex = previousIndexOf(entry)
+                when {
+                    previousIndex == null -> if (firstAdded < 0) firstAdded = index
+                    firstAdded >= 0 -> return firstAdded
+                    previousIndex < lastPreviousIndex -> return index
+                    else -> lastPreviousIndex = previousIndex
+                }
+            }
+            return next.size
         }
     }
 }

@@ -116,22 +116,12 @@ public class SceneView(entryPoint: CreatorEntryPoint) {
      * Shows the Scene's [next] Actors, its new and changed ones created off the main thread. Only what changed
      * since the last [load] changes in the Kubriko instance ([ScenePatch]): a moved Actor is moved, a changed one is
      * created again (so it is drawn after others of its drawing order until the Scene is opened again), and the rest
-     * stay, unless their order changed, which creates the whole Scene again. The Actors of the types in [previews] are
-     * drawn from those looks instead of their classes, and are created again when their type's look changes.
+     * stay, apart from those from where their order changed on, which are created again in the new order. The Actors of
+     * the types in [previews] are drawn from those looks instead of their classes, and are created again when their
+     * type's look changes.
      */
     public suspend fun load(next: List<SceneActorEntry>, previews: Map<String, ActorTypeLook> = this.previews) {
-        val patch = ScenePatch.between(entries, next) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }
-        if (patch == null) {
-            val created = withContext(Dispatchers.Default) { next.map { createActor(it, previews) } }
-            this.previews = previews
-            entries = next
-            actors = created
-            isBoundsGridOutdated = true
-            actorManager.removeAll()
-            actorManager.add(created.filterNotNull())
-        } else {
-            apply(patch, next, previews)
-        }
+        apply(ScenePatch.between(entries, next) { entry -> this.previews[entry.typeId] != previews[entry.typeId] }, next, previews)
         indicesById = entries.withIndex().associate { (index, entry) -> entry.id to index }
         uncreatedIds = uncreatedIdsOf(entries, actors)
         _loadRevision.update { it + 1 }

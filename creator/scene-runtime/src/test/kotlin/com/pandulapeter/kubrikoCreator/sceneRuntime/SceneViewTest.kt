@@ -107,6 +107,18 @@ class SceneViewTest {
     }
 
     @Test
+    fun aNewOrderCreatesOnlyTheActorsFromWhereItChangedAgain() = runTest {
+        view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f), box("c", 200f, 0f), box("d", 300f, 0f)))
+        val before = listOf("a", "b", "c", "d").associateWith { view.actorOf(it) }
+        view.load(listOf(box("a", 0f, 0f), box("c", 200f, 0f), box("b", 100f, 0f), box("d", 300f, 0f)))
+        assertSame(before["a"], view.actorOf("a"))
+        assertSame(before["c"], view.actorOf("c"))
+        listOf("b", "d").forEach { assertNotSame(before[it], view.actorOf(it)) }
+        assertEquals("b", pickAt(100f, 0f))
+        assertEquals("d", pickAt(300f, 0f))
+    }
+
+    @Test
     fun ofOverlappingActorsTheLaterOneIsPicked() = runTest {
         view.load(listOf(box("a", 0f, 0f), box("b", 5f, 5f)))
         assertEquals("b", pickAt(3f, 3f))
