@@ -35,7 +35,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
@@ -44,6 +44,7 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_not_opened
 import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Creates, opens, and closes projects, deciding which [AppScreen] the window shows.
@@ -110,7 +111,7 @@ internal class AppController(
     fun createProject(form: NewProjectForm) {
         val request = form.request ?: return
         closeProject()
-        _screen.value = AppScreen.CreatingProject(request.directory, form)
+        _screen.value = AppScreen.CreatingProject(form)
         launchOperation {
             awaitClosing()
             val directory = try {
@@ -118,10 +119,12 @@ internal class AppController(
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Throwable) {
-                ensureActive()
-                val failure = exception as? ProjectCreationException ?: CreationFailure.of(request.directory, exception)
-                _screen.value = AppScreen.NewProject(form, error = failure.targetProblem?.toResource() ?: failure.reason.resource, errorArguments = failure.arguments)
+                if (isActive) {
+                    val failure = exception as? ProjectCreationException ?: CreationFailure.of(request.directory, exception)
+                    _screen.value = AppScreen.NewProject(form, error = failure.targetProblem?.toResource() ?: failure.reason.resource, errorArguments = failure.arguments)
+                }
                 if (exception !is Exception) throw exception
+                ensureActive()
                 return@launchOperation
             }
             openProject(directory, writersRoomPitch = request.pitch)
@@ -140,16 +143,22 @@ internal class AppController(
 
     /**
      * Creates the project [request] asks for, interrupting the creation when this is cancelled. A project finished just as
-     * it was cancelled is removed, as the creation removes one cancelled halfway.
+     * it was cancelled is removed, as the creation removes one cancelled halfway, leaving a folder that was there before.
      */
     private suspend fun create(request: NewProjectRequest): File {
+        val didExist = withContext(ioDispatcher) { request.directory.exists() }
         var created: File? = null
         try {
             val directory = runInterruptible(ioDispatcher) { projectCreator.create(request).also { created = it } }
             currentCoroutineContext().ensureActive()
             return directory
         } catch (exception: CancellationException) {
-            created?.let { directory -> withContext(NonCancellable + ioDispatcher) { directory.deleteRecursively() } }
+            created?.let { directory ->
+                withContext(NonCancellable + ioDispatcher) {
+                    directory.deleteRecursively()
+                    if (didExist) directory.mkdirs()
+                }
+            }
             throw exception
         }
     }
@@ -187,7 +196,12 @@ internal class AppController(
      * cancel it however the scope dispatches.
      */
     private fun launchOperation(operation: suspend CoroutineScope.() -> Unit) {
-        val operationJob = scope.launch(start = CoroutineStart.LAZY, block = operation)
+        val previous = job
+        val operationJob = scope.launch(start = CoroutineStart.LAZY) {
+            // A cancelled creation removes what it wrote, which may be where this one writes; it bounds its own wait for Gradle.
+            previous?.join()
+            operation()
+        }
         job = operationJob
         operationJob.start()
     }
@@ -211,12 +225,21 @@ internal class AppController(
         val operation = job?.also { it.cancel() }
         val workspaceClosing = (_screen.value as? AppScreen.Workspace)?.controller?.close()
         val unfinished = listOfNotNull(closing, operation, workspaceClosing).filterNot { it.isCompleted }.distinct()
-        closing = if (unfinished.size > 1) scope.launch { unfinished.joinAll() } else unfinished.firstOrNull() ?: closing
+        closing = if (unfinished.size > 1) allOf(unfinished) else unfinished.firstOrNull() ?: closing
         _screen.value = AppScreen.Welcome()
         return closing
     }
 
     companion object {
+        /**
+         * A job that completes once all of [jobs] did, however they did, belonging to no scope, since the app's may be
+         * cancelled already while what it waits for still runs.
+         */
+        internal fun allOf(jobs: List<Job>): Job = Job().also { all ->
+            val remaining = AtomicInteger(jobs.size)
+            jobs.forEach { job -> job.invokeOnCompletion { if (remaining.decrementAndGet() == 0) all.complete() } }
+        }
+
         /**
          * How long closing a project may take after its waits for the game ([CLOSE_GAME_TIMEOUT_IN_MILLISECONDS]) and for
          * a failed write ([CLOSE_WRITE_TIMEOUT_IN_MILLISECONDS]) ran out: stopping its work and closing its Gradle connection.

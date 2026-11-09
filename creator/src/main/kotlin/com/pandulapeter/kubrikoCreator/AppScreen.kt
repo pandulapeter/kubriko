@@ -34,12 +34,13 @@ internal sealed interface AppScreen {
     ) : AppScreen
 
     /**
-     * @param form What the project is created from, which cancelling the creation comes back to.
+     * @param form What the project is created from, which cancelling the creation comes back to; always complete.
      */
     data class CreatingProject(
-        val directory: File,
         val form: NewProjectForm,
-    ) : AppScreen
+    ) : AppScreen {
+        val directory: File get() = requireNotNull(form.request) { "Only a complete form is created." }.directory
+    }
 
     data class Opening(
         val directory: File,

@@ -33,6 +33,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
@@ -301,7 +302,7 @@ class AppControllerTest {
         val created = mutableListOf<NewProjectRequest>()
         val controller = createController(creator = { created += it; File("/projects/my-game") }, ioDispatcher = dispatcher)
         controller.createProject(form)
-        assertEquals(AppScreen.CreatingProject(request.directory, form), controller.screen.value)
+        assertEquals(AppScreen.CreatingProject(form), controller.screen.value)
         runCurrent()
         assertEquals(listOf(request), created)
         assertEquals(listOf(File("/projects/my-game")), openedDirectories)
@@ -413,5 +414,16 @@ class AppControllerTest {
         controller.forgetRecentProject(project)
         assertTrue(controller.recentProjects.value.isEmpty())
         assertTrue(recentProjectsStore.load().isEmpty())
+    }
+
+    @Test
+    fun theJobOfSeveralCompletesOnlyOnceAllOfThemDidHoweverTheyDid() {
+        val first = Job()
+        val second = Job()
+        val all = AppController.allOf(listOf(first, second))
+        first.cancel()
+        assertFalse(all.isCompleted)
+        second.complete()
+        assertTrue(all.isCompleted)
     }
 }

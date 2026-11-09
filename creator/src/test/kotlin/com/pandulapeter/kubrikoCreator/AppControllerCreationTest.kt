@@ -19,6 +19,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_unexpected_problem
 import java.io.File
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
@@ -101,17 +103,65 @@ class AppControllerCreationTest {
         assertEquals(listOf("first cleaned up", "second started"), events.toList())
     }
 
+    /**
+     * A controller whose creation finishes only once the test cancelled it, as if the cancel came right as it finished.
+     */
+    private fun finishingAsCancelled(created: CountDownLatch, cancelled: CountDownLatch) = controller { request ->
+        request.directory.mkdirs()
+        File(request.directory, "settings.gradle.kts").writeText("")
+        created.countDown()
+        while (true) {
+            try {
+                cancelled.await()
+                break
+            } catch (_: InterruptedException) {
+            }
+        }
+        request.directory
+    }
+
     @Test
     fun aProjectFinishedJustAsItWasCancelledIsRemoved() = blockingTest {
-        lateinit var controller: AppController
-        controller = controller { request ->
-            request.directory.mkdirs()
-            File(request.directory, "settings.gradle.kts").writeText("")
-            controller.cancelCreatingProject()
-            request.directory
-        }
+        val created = CountDownLatch(1)
+        val cancelled = CountDownLatch(1)
+        val controller = finishingAsCancelled(created, cancelled)
         controller.createProject(form)
+        created.await()
+        controller.cancelCreatingProject()
+        cancelled.countDown()
         controller.closeProject()?.join()
         assertFalse(directory.exists())
+    }
+
+    @Test
+    fun anEmptyFolderThatWasThereStaysWhenAProjectFinishedJustAsItWasCancelledIsRemoved() = blockingTest {
+        directory.mkdirs()
+        val created = CountDownLatch(1)
+        val cancelled = CountDownLatch(1)
+        val controller = finishingAsCancelled(created, cancelled)
+        controller.createProject(form)
+        created.await()
+        controller.cancelCreatingProject()
+        cancelled.countDown()
+        controller.closeProject()?.join()
+        assertEquals(emptyList(), directory.list()?.toList())
+    }
+
+    @Test
+    fun anErrorAfterTheCreationWasCancelledIsStillReported() = blockingTest {
+        val started = CountDownLatch(1)
+        val controller = controller { _ ->
+            started.countDown()
+            try {
+                Thread.sleep(Long.MAX_VALUE)
+            } catch (_: InterruptedException) {
+            }
+            throw StackOverflowError()
+        }
+        controller.createProject(form)
+        started.await()
+        controller.cancelCreatingProject()
+        controller.closeProject()?.join()
+        assertEquals(AppScreen.Welcome(error = Res.string.status_unexpected_problem, errorArguments = listOf("java.lang.StackOverflowError")), controller.screen.value)
     }
 }

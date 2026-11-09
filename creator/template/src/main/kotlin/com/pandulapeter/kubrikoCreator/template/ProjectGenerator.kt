@@ -59,18 +59,22 @@ public class ProjectGenerator(
         val didExist = directory.exists()
         try {
             loadTemplate(request.template).forEach { file ->
+                throwIfInterrupted()
                 File(directory, TemplateRenderer.renderPath(file.path, request.packageName)).apply {
                     parentFile.mkdirs()
                     writeText(TemplateRenderer.renderContent(file.content, values))
                 }
             }
-            BlockTypeStore.open(directory)?.regenerateAll()
-            request.targets?.let { targets -> setTargets(directory, targets) }
-            KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync()
-            throwIfInterrupted()
-            wrapperInstaller.install(directory, configuration.gradleVersion)
-            throwIfInterrupted()
-            if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
+            listOf(
+                { BlockTypeStore.open(directory)?.regenerateAll() },
+                { request.targets?.let { targets -> setTargets(directory, targets) } },
+                { KubrikoBuildFiles(directory, configuration.kubrikoVersion, configuration.useMavenLocal).sync() },
+                { wrapperInstaller.install(directory, configuration.gradleVersion) },
+                { if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE) },
+            ).forEach { step ->
+                throwIfInterrupted()
+                step()
+            }
             throwIfInterrupted()
         } catch (exception: Exception) {
             removeWritten(directory, didExist)

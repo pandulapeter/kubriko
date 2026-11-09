@@ -9,8 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.template
 
+import com.pandulapeter.kubrikoCreator.gradle.ToolingOutcome
 import org.gradle.tooling.GradleConnector
 import java.io.File
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Generates the wrapper by running Gradle's own `wrapper` task, so Kubriko Creator doesn't have to ship the wrapper's
@@ -20,18 +22,29 @@ internal object GradleWrapperInstaller : WrapperInstaller {
 
     override fun install(projectDirectory: File, gradleVersion: String) {
         val cancellation = GradleConnector.newCancellationTokenSource()
-        GradleConnector.newConnector()
+        val outcome = ToolingOutcome<Void?>(cancel = cancellation::cancel, stopTimeout = STOP_TIMEOUT)
+        val connection = GradleConnector.newConnector()
             .forProjectDirectory(projectDirectory)
             .useGradleVersion(gradleVersion)
             .connect()
-            .use { connection ->
-                // The wrapper task writes the version of the Gradle running it, which useGradleVersion pins.
-                awaitInterruptibly<Void?>(cancel = cancellation::cancel) { handler ->
-                    connection.newBuild()
-                        .forTasks("wrapper")
-                        .withCancellationToken(cancellation.token())
-                        .run(handler)
-                }
-            }
+        var isStarted = false
+        try {
+            // The wrapper task writes the version of the Gradle running it, which useGradleVersion pins.
+            connection.newBuild()
+                .forTasks("wrapper")
+                .withCancellationToken(cancellation.token())
+                .run(outcome)
+            isStarted = true
+            outcome.awaitBlocking()
+        } finally {
+            // Closing waits for the operation, so one that never confirmed its cancel keeps its connection.
+            if (outcome.hasEnded || !isStarted) connection.close()
+        }
     }
+
+    /**
+     * How long a cancelled download is waited for before what was written is removed anyway, so that a Gradle that never
+     * confirms the cancel can't hold the creation, the next one, or quitting.
+     */
+    private val STOP_TIMEOUT = 30.seconds
 }

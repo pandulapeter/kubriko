@@ -176,6 +176,22 @@ class ProjectGeneratorTest {
     }
 
     @Test
+    fun aCreationInterruptedWhileItsTemplateIsWrittenStopsBeforeTheNextStep() {
+        val generator = ProjectGenerator(
+            configuration,
+            wrapperInstaller = { directory, version -> wrapperInstallations += directory to version },
+            loadTemplate = { template.also { Thread.currentThread().interrupt() } },
+        )
+        try {
+            assertFailsWith<InterruptedException> { generator.create(request) }
+            assertFalse(File(parentDirectory, "my-game").exists())
+            assertTrue(wrapperInstallations.isEmpty())
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
     fun aCreationInterruptedWhileCommittingRemovesWhatItWrote() {
         val generator = ProjectGenerator(configuration, { _, _ -> }, loadTemplate = { template }, startVersionControl = { _, _ -> Thread.currentThread().interrupt() })
         try {

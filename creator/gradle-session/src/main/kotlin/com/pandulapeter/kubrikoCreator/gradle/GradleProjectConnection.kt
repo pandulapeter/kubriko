@@ -9,15 +9,10 @@
  */
 package com.pandulapeter.kubrikoCreator.gradle
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Severity
@@ -36,23 +31,9 @@ public class GradleProjectConnection(
 
     internal suspend fun <T> model(type: Class<T>): T {
         val cancellation = GradleConnector.newCancellationTokenSource()
-        val outcome = CompletableDeferred<T>()
-        connection.model(type).withCancellationToken(cancellation.token()).get(object : ResultHandler<T> {
-            override fun onComplete(result: T) {
-                outcome.complete(result)
-            }
-
-            override fun onFailure(failure: GradleConnectionException) {
-                outcome.completeExceptionally(failure)
-            }
-        })
-        return try {
-            outcome.await()
-        } catch (exception: CancellationException) {
-            cancellation.cancel()
-            withContext(NonCancellable) { outcome.join() }
-            throw exception
-        }
+        val outcome = ToolingOutcome<T>(cancel = cancellation::cancel)
+        connection.model(type).withCancellationToken(cancellation.token()).get(outcome)
+        return outcome.await()
     }
 
     override suspend fun run(
@@ -61,7 +42,8 @@ public class GradleProjectConnection(
         onEvent: (GradleBuildEvent) -> Unit,
     ): Boolean {
         val cancellation = GradleConnector.newCancellationTokenSource()
-        val outcome = CompletableDeferred<Boolean>()
+        // Until Gradle stops a cancelled build, its daemon is busy, and the next build would start another one.
+        val outcome = ToolingOutcome<Void?>(cancel = cancellation::cancel)
         connection.newBuild()
             .forTasks(taskPath)
             .withArguments(arguments)
@@ -73,27 +55,17 @@ public class GradleProjectConnection(
                     event.toBuildEvent()?.let(onEvent)
                 }
             }, setOf(OperationType.PROBLEMS))
-            .run(object : ResultHandler<Void?> {
-                override fun onComplete(result: Void?) {
-                    outcome.complete(true)
-                }
-
-                override fun onFailure(failure: GradleConnectionException) {
-                    // A failed build has printed why, but Gradle failing to start (offline, an unusable JDK) prints nothing.
-                    if (failure !is BuildException && failure !is BuildCancelledException) {
-                        val cause = generateSequence<Throwable>(failure) { it.cause }.last()
-                        onEvent(GradleBuildEvent.Output(cause.message ?: cause.toString(), isError = true))
-                    }
-                    outcome.complete(false)
-                }
-            })
+            .run(outcome)
         return try {
             outcome.await()
-        } catch (exception: CancellationException) {
-            cancellation.cancel()
-            // Until Gradle stops the build, its daemon is busy, and the next build would start another one.
-            withContext(NonCancellable) { outcome.join() }
-            throw exception
+            true
+        } catch (failure: GradleConnectionException) {
+            // A failed build has printed why, but Gradle failing to start (offline, an unusable JDK) prints nothing.
+            if (failure !is BuildException && failure !is BuildCancelledException) {
+                val cause = generateSequence<Throwable>(failure) { it.cause }.last()
+                onEvent(GradleBuildEvent.Output(cause.message ?: cause.toString(), isError = true))
+            }
+            false
         }
     }
 

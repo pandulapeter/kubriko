@@ -15,9 +15,9 @@ plugins {
 dependencies {
     api(projects.creator.core)
     implementation(projects.creator.git)
+    implementation(projects.creator.gradleSession)
     implementation(libs.gradle.toolingApi)
     implementation(libs.jgit)
-    testImplementation(projects.creator.gradleSession)
     testImplementation(testFixtures(projects.creator.core))
     testImplementation(testFixtures(projects.creator.foundation))
 }
