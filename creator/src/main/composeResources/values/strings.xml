@@ -268,6 +268,9 @@
     <string name="block_stop_music">Stop the music</string>
     <string name="block_sound_choose">Choose a sound</string>
     <string name="block_music_choose">Choose music</string>
+    <string name="block_sounds_none_yet">No sounds yet. Put .wav files in the files folder of composeResources, like files/sounds/hit.wav, to play them.</string>
+    <string name="block_music_none_yet">No music yet. Put .mp3 or .ogg files in the files folder of composeResources, like files/music/theme.mp3, to play them.</string>
+    <string name="audio_files_not_read">The project's files are still being read.</string>
     <string name="block_parameter_looping">Looping</string>
     <string name="timer_new">New Timer…</string>
     <string name="timer_rename">Rename this Timer…</string>

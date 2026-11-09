@@ -60,4 +60,14 @@ class SceneSettingsFieldsTest {
         }
         onNodeWithText("music/theme.mp3").assertExists()
     }
+
+    @Test
+    fun aProjectWithoutMusicOffersNoneAndSaysHowToAddSome() = uiTest(width = 400, height = 600) {
+        showing {
+            SceneSettingsFields(values = SceneSettingsState.Values(), music = emptyList(), onChange = {})
+        }
+        onNodeWithText("None").performClick()
+        onNodeWithText("No music yet. Put .mp3 or .ogg files in the files folder of composeResources, like files/music/theme.mp3, to play them.").assertExists()
+        saveSnapshot("scene-settings-music-none-yet")
+    }
 }

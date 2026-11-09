@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -102,5 +103,46 @@ class BlockRowTest {
             )
         }
         onAllNodesWithText("no longer exists", substring = true).assertCountEquals(0)
+    }
+
+    @Test
+    fun anAudioMenuOfAProjectWithoutSuchFilesSaysHowToAddSome() = uiTest(width = 520, height = 360) {
+        showAudioBlock(BlockDefinition.PlaySound(), AudioFiles(music = listOf("files/music/theme.mp3")))
+        onNodeWithText("Choose a sound").performClick()
+        onNodeWithText(SOUNDS_NONE_YET).assertExists()
+        onNodeWithText("Nothing matches.").assertDoesNotExist()
+        saveSnapshot("block-sound-menu-none-yet")
+    }
+
+    @Test
+    fun anAudioMenuBeforeTheProjectIsReadSaysSoRatherThanThatThereAreNone() = uiTest(width = 520, height = 360) {
+        showAudioBlock(BlockDefinition.PlayMusic(), audioFiles = null)
+        onNodeWithText("Choose music").performClick()
+        onNodeWithText("The project's files are still being read.").assertExists()
+        onNodeWithText("No music yet", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun anAudioMenuWithFilesListsThemWithoutAHint() = uiTest(width = 520, height = 360) {
+        showAudioBlock(BlockDefinition.PlaySound(), AudioFiles(sounds = listOf("files/sounds/hit.wav")))
+        onNodeWithText("Choose a sound").performClick()
+        onNodeWithText("sounds/hit.wav").assertExists()
+        onNodeWithText(SOUNDS_NONE_YET).assertDoesNotExist()
+    }
+
+    private fun ComposeUiTest.showAudioBlock(block: BlockDefinition, audioFiles: AudioFiles?) = showing {
+        BlockRow(
+            block = block,
+            nesting = BlockNesting(0, BlockNesting.Role.PLAIN),
+            scope = BlockScope.of(ball, listOf(ball), audioFiles = audioFiles),
+            index = 0,
+            dragState = BlockDragState(onDrop = { _, _ -> }),
+            onBlockChange = {},
+            onRemove = {},
+        )
+    }
+
+    private companion object {
+        const val SOUNDS_NONE_YET = "No sounds yet. Put .wav files in the files folder of composeResources, like files/sounds/hit.wav, to play them."
     }
 }

@@ -50,6 +50,8 @@ import org.jetbrains.compose.resources.stringResource
  * Enter with nothing typed picks nothing, since the first option is often "none", which would clear the choice.
  *
  * @param isMissing Whether the chosen option no longer exists ([MenuButtonFace]).
+ * @param hint Shown below the options, saying why there are none (or none besides choosing nothing) and how to add some,
+ *   instead of an empty panel.
  */
 @Composable
 public fun <T> SearchableChoiceButton(
@@ -58,6 +60,7 @@ public fun <T> SearchableChoiceButton(
     optionText: @Composable (T) -> String,
     onSelected: (T) -> Unit,
     isMissing: Boolean = false,
+    hint: String? = null,
 ): Unit = Box {
     var isExpanded by remember { mutableStateOf(false) }
     MenuButtonFace(
@@ -74,6 +77,7 @@ public fun <T> SearchableChoiceButton(
             ChoicePanel(
                 label = label,
                 titles = titles,
+                hint = hint,
                 onSelected = { index ->
                     isExpanded = false
                     onSelected(options[index])
@@ -93,6 +97,7 @@ internal const val SEARCH_THRESHOLD = 8
 private fun ChoicePanel(
     label: String,
     titles: List<String>,
+    hint: String?,
     onSelected: (index: Int) -> Unit,
     onDismissed: () -> Unit,
 ) = Surface(
@@ -113,7 +118,7 @@ private fun ChoicePanel(
                 onDismissed = onDismissed,
             )
         }
-        if (matches.isEmpty()) {
+        if (matches.isEmpty() && hint == null) {
             Text(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 text = stringResource(Res.string.choice_none_found),
@@ -138,6 +143,14 @@ private fun ChoicePanel(
                     color = if (titles[index] == label) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 )
             }
+        }
+        hint?.let {
+            Text(
+                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = if (titles.isEmpty()) 8.dp else 0.dp, bottom = 8.dp),
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

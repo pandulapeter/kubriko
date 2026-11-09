@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.components
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -100,12 +103,29 @@ class SearchableChoiceButtonTest {
         assertNull(selected)
     }
 
-    private fun ComposeUiTest.showChoice(options: List<String>, onSelected: (String) -> Unit) = showing {
+    @Test
+    fun aHintTakesThePlaceOfAnEmptyPanelAndFollowsTheOptions() = uiTest(width = 400, height = 300) {
+        var options by mutableStateOf(emptyList<String>())
+        showChoice(options = { options }, hint = "Add some first.") {}
+        onNodeWithText("Choose").performClick()
+        onNodeWithText("Add some first.").assertExists()
+        onNodeWithText("Nothing matches.").assertDoesNotExist()
+        saveSnapshot("searchable-choice-hint")
+        options = listOf("None")
+        waitForIdle()
+        onNodeWithText("None").assertExists()
+        onNodeWithText("Add some first.").assertExists()
+    }
+
+    private fun ComposeUiTest.showChoice(options: List<String>, onSelected: (String) -> Unit) = showChoice({ options }, hint = null, onSelected)
+
+    private fun ComposeUiTest.showChoice(options: () -> List<String>, hint: String?, onSelected: (String) -> Unit) = showing {
         SearchableChoiceButton(
             label = "Choose",
-            options = options,
+            options = options(),
             optionText = { it },
             onSelected = onSelected,
+            hint = hint,
         )
     }
 }

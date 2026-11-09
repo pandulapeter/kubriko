@@ -57,6 +57,7 @@ import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.block_else_stray
 import kubriko.creator.generated.resources.block_end_stray
 import kubriko.creator.generated.resources.block_music_choose
+import kubriko.creator.generated.resources.block_music_none_yet
 import kubriko.creator.generated.resources.block_parameter_code
 import kubriko.creator.generated.resources.block_parameter_looping
 import kubriko.creator.generated.resources.block_parameter_message
@@ -68,6 +69,7 @@ import kubriko.creator.generated.resources.block_parameter_times
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
 import kubriko.creator.generated.resources.block_sound_choose
+import kubriko.creator.generated.resources.block_sounds_none_yet
 import kubriko.creator.generated.resources.block_velocity_unit
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_drag_handle
@@ -227,13 +229,13 @@ private fun InlineParameters(
     }
     is BlockDefinition.StopTimer -> TimerChoice(block.timer, scope.timerNames, { onBlockChange(block.copy(timer = it)) })
     is BlockDefinition.GoToScene -> SceneChoice(block.scene, scope.sceneNames) { onBlockChange(block.copy(scene = it)) }
-    is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds, Res.string.block_sound_choose) { onBlockChange(block.copy(sound = it)) }
+    is BlockDefinition.PlaySound -> AudioFileChoice(block.sound, scope.audioFiles?.sounds, Res.string.block_sound_choose, Res.string.block_sounds_none_yet) { onBlockChange(block.copy(sound = it)) }
     is BlockDefinition.PlayMusic -> FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        AudioFileChoice(block.music, scope.audioFiles?.music, Res.string.block_music_choose) { onBlockChange(block.copy(music = it)) }
+        AudioFileChoice(block.music, scope.audioFiles?.music, Res.string.block_music_choose, Res.string.block_music_none_yet) { onBlockChange(block.copy(music = it)) }
         LabeledSwitch(
             label = stringResource(Res.string.block_parameter_looping),
             checked = block.isLooping,
