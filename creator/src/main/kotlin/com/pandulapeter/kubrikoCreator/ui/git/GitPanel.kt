@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.git
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -50,8 +51,8 @@ import kubriko.creator.generated.resources.ic_history
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Version control for the project: a message and a button to commit what changed since the last commit, above what
- * changed so that a long list of changes never pushes them out of sight, and the history of commits.
+ * Version control for the project: a message and a button to commit what changed since the last commit, kept in sight
+ * above the list of what changed and the history of commits, however long that list is.
  *
  * @param onCommit Commits the changes with the message, calling `onCommitted` once they are committed, which clears the
  * message (a commit that fails keeps it).
@@ -97,7 +98,7 @@ private fun NoRepository(
 }
 
 @Composable
-private fun Repository(
+private fun ColumnScope.Repository(
     state: GitState.Ready,
     onCommit: (message: String, onCommitted: () -> Unit) -> Unit,
     onDiscard: (ChangeEntry) -> Unit,
@@ -105,39 +106,35 @@ private fun Repository(
 ) {
     var message by remember { mutableStateOf("") }
     var entryToDiscard by remember { mutableStateOf<ChangeEntry?>(null) }
-    LazyColumn {
-        state.branch?.let { branch ->
-            item {
-                Text(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    text = stringResource(Res.string.git_branch, branch),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    state.branch?.let { branch ->
+        Text(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            text = stringResource(Res.string.git_branch, branch),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    Text(
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
+        text = stringResource(Res.string.git_changes, state.changes.size),
+        style = MaterialTheme.typography.titleSmall,
+    )
+    if (state.changes.isNotEmpty()) {
+        if (areScreenplayRemindersShown && isScreenplayReminderDue(state.changes)) {
+            ScreenplayReminder(modifier = Modifier.padding(top = 4.dp))
         }
-        if (state.changes.isNotEmpty()) {
-            if (areScreenplayRemindersShown && isScreenplayReminderDue(state.changes)) {
-                item { ScreenplayReminder(modifier = Modifier.padding(top = 8.dp)) }
-            }
-            item {
-                CommitForm(
-                    message = message,
-                    onMessageChange = { message = it },
-                    onCommit = {
-                        val sent = message
-                        onCommit(sent) { if (message == sent) message = "" }
-                    },
-                )
-            }
-        }
-        item {
-            Text(
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
-                text = stringResource(Res.string.git_changes, state.changes.size),
-                style = MaterialTheme.typography.titleSmall,
-            )
-        }
+        CommitForm(
+            message = message,
+            onMessageChange = { message = it },
+            onCommit = {
+                val sent = message
+                onCommit(sent) { if (message == sent) message = "" }
+            },
+        )
+    }
+    LazyColumn(
+        modifier = Modifier.weight(1f),
+    ) {
         if (state.changes.isEmpty()) {
             item {
                 Text(
@@ -193,7 +190,7 @@ private fun CommitForm(
         isSingleLine = false,
     )
     Button(
-        modifier = Modifier.padding(horizontal = 12.dp),
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
         enabled = message.isNotBlank(),
         onClick = onCommit,
     ) {

@@ -12,9 +12,13 @@ package com.pandulapeter.kubrikoCreator.ui.git
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
 import com.pandulapeter.kubrikoCreator.git.ChangeEntry
 import com.pandulapeter.kubrikoCreator.git.ChangeKind
@@ -27,6 +31,7 @@ import com.pandulapeter.kubrikoCreator.ui.LocalDescriptionWriter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class GitPanelTest {
@@ -54,15 +59,19 @@ class GitPanelTest {
     }
 
     @Test
-    fun theCommitFormComesBeforeEveryChangeSoABigChangeSetDoesNotHideIt() = uiTest {
+    fun theCommitFormStaysAboveTheChangesWhileABigChangeSetIsScrolled() = uiTest {
         val changes = (1..60).map { ChangeEntry("Type$it", ChangeKind.MODIFIED, listOf("Type$it.kt"), isBlockType = true) }
         val many = MutableStateFlow<GitState>(GitState.Ready("main", changes, emptyList()))
         showing { GitPanel(state = many, onStartVersionControl = {}, onCommit = { _, _ -> }, onDiscard = {}) }
+        val commitButton = onNodeWithText("Commit").assertIsDisplayed().getUnclippedBoundsInRoot()
+        assertTrue(commitButton.bottom <= onNodeWithText("Type1").getUnclippedBoundsInRoot().top)
+        onNodeWithText("Changes (60)").assertIsDisplayed()
+        saveSnapshot("git-many-changes")
+        onNode(hasScrollAction()).performScrollToNode(hasText("Type60"))
+        onNodeWithText("Type60").assertIsDisplayed()
         onNodeWithText("What did you change?").assertIsDisplayed()
         onNodeWithText("Commit").assertIsDisplayed()
-        onNodeWithText("Type1").assertIsDisplayed()
-        onNodeWithText("Type60").assertDoesNotExist()
-        saveSnapshot("git-many-changes")
+        saveSnapshot("git-many-changes-scrolled")
     }
 
     @Test
