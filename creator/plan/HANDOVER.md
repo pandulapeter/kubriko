@@ -25,8 +25,7 @@ review (`README.md`) ran and what it fixed; one that stopped before the review s
 
 ## Next
 
-Continue `01-known-issues.md` at its first item (creating a project that can't be cancelled) and go through it in order,
-then `02`.
+Continue `01-known-issues.md` at its first item (messages in code words) and go through it in order, then `02`.
 
 This session works through Mistakes and failures in the first hour, each item reviewed with `/code-review` and its findings
 fixed in commits of their own:
@@ -44,6 +43,12 @@ fixed in commits of their own:
   and otherwise names the root cause. `KubrikoAvailability.lookUp` tells a missing version, no network, and an error
   answer (a proxy) apart; `invoke` still says only whether it was found. Writability is checked first with
   `Files.isWritable`, skipped when no folder above the location exists (an unplugged drive).
+- Creating a project can be cancelled (Cancel on its progress screen, back to the form). `ProjectCreator` stays blocking
+  and is cancelled by interrupting its thread (`runInterruptible`); `ProjectGenerator` checks between files and steps and
+  removes what it wrote. The wrapper download waits through `ToolingOutcome` (`:creator:gradle-session`, which
+  `GradleProjectConnection` uses too), at most 30 seconds after a cancel; past that the connection is left open, since
+  closing it would wait too. Each operation waits for the one before it (a cancelled creation may still be removing the
+  folder the next writes), and quitting waits for both through `AppController.allOf`, which belongs to no scope.
 
 The last session finished every item of Costs that grow with the project, each reviewed with `/code-review` and its findings fixed in commits of
 their own:
