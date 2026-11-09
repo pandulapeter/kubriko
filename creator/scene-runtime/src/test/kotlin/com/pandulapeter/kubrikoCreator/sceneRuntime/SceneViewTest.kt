@@ -30,6 +30,8 @@ import kotlinx.serialization.json.float
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.util.Collections
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -54,7 +56,11 @@ class SceneViewTest {
     )
 
     @AfterTest
-    fun tearDown() = view.dispose()
+    fun tearDown() {
+        view.dispose()
+        createdBoxes.clear()
+        onBoxCreated = {}
+    }
 
     @Test
     fun aClickPicksTheActorUnderIt() = runTest {
@@ -185,20 +191,25 @@ class SceneViewTest {
     }
 
     @Test
-    fun aCancelledLoadDisposesTheActorsItCreated() = runTest {
+    fun aLoadCancelledMidwayStopsCreatingAndDisposesWhatItCreated() = runTest {
         view.load(listOf(box("a", 0f, 0f)))
         createdBoxes.clear()
+        val isCreating = CountDownLatch(1)
+        val mayFinish = CountDownLatch(1)
+        onBoxCreated = {
+            isCreating.countDown()
+            mayFinish.await()
+        }
         val cancelled = launch { view.load(listOf(box("a", 0f, 0f), box("b", 100f, 0f), box("c", 200f, 0f))) }
         runCurrent()
-        val deadline = System.nanoTime() + 5_000_000_000L
-        while (createdBoxes.size < 2 && System.nanoTime() < deadline) Thread.yield()
+        assertTrue(isCreating.await(5, TimeUnit.SECONDS))
         cancelled.cancel()
+        mayFinish.countDown()
         cancelled.join()
         assertEquals(listOf("a"), view.entries.map { it.id })
-        synchronized(createdBoxes) {
-            assertEquals(2, createdBoxes.size)
-            createdBoxes.forEach { assertTrue(it.isDisposed) }
-        }
+        val created = synchronized(createdBoxes) { createdBoxes.toList() }
+        assertEquals(1, created.size, "nothing is created once the load is cancelled")
+        assertTrue(created.single().isDisposed)
     }
 
     @Test
@@ -218,6 +229,7 @@ class SceneViewTest {
 
         init {
             createdBoxes += this
+            onBoxCreated()
         }
 
         override fun dispose() {
@@ -242,6 +254,9 @@ class SceneViewTest {
         const val TYPE_ID = "Box"
         const val SIZE = 20f
         val createdBoxes: MutableList<Box> = Collections.synchronizedList(ArrayList())
+
+        @Volatile
+        var onBoxCreated: () -> Unit = {}
     }
 
     @Test

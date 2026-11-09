@@ -9,12 +9,16 @@
  */
 package com.pandulapeter.kubrikoCreator.sceneRuntime
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -56,5 +60,57 @@ class CreateDisposingIfCancelledTest {
         mayFinish.countDown()
         runCatching { creation.await() }
         assertEquals(listOf("view"), synchronized(disposed) { disposed.toList() })
+    }
+
+    @Test
+    fun whatIsCreatedAfterTheCallerWasCancelledIsDisposedOnTheCreatingDispatcher() = runBlocking {
+        val executor = Executors.newSingleThreadExecutor { Thread(it, "creating") }
+        try {
+            val dispatcher = executor.asCoroutineDispatcher()
+            val isCreating = CountDownLatch(1)
+            val mayFinish = CountDownLatch(1)
+            var disposingThread: String? = null
+            val creation = async(Dispatchers.Default) {
+                createDisposingIfCancelled(
+                    dispatcher,
+                    create = {
+                        isCreating.countDown()
+                        mayFinish.await()
+                        "view"
+                    },
+                    dispose = { disposingThread = Thread.currentThread().name },
+                )
+            }
+            isCreating.await()
+            creation.cancel()
+            mayFinish.countDown()
+            runCatching { creation.await() }
+            assertTrue(disposingThread?.startsWith("creating") == true, "disposed on $disposingThread")
+        } finally {
+            executor.shutdown()
+        }
+    }
+
+    @Test
+    fun aCreationThatStopsBecauseTheCallerWasCancelledDisposesNothingItself() = runBlocking {
+        val isCreating = CountDownLatch(1)
+        val mayFinish = CountDownLatch(1)
+        val creation = async(Dispatchers.Default) {
+            createDisposingIfCancelled(
+                Dispatchers.IO,
+                create = {
+                    isCreating.countDown()
+                    mayFinish.await()
+                    ensureActive()
+                    "view"
+                },
+                dispose = { synchronized(disposed) { disposed += it } },
+            )
+        }
+        isCreating.await()
+        creation.cancel()
+        mayFinish.countDown()
+        assertFailsWith<CancellationException> { creation.await() }
+        assertTrue(synchronized(disposed) { disposed.isEmpty() })
     }
 }

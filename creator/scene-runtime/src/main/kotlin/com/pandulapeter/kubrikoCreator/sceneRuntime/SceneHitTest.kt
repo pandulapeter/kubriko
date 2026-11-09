@@ -41,8 +41,7 @@ public object SceneHitTest {
 
     /**
      * Whether these bounds are drawn above [other]: those of a background never are, then the later layer is, then the
-     * lowest drawing order is,
-     * and of equal ones the Actor added later ([Bounds.drawnRank]), which Kubriko draws later.
+     * lowest drawing order is, and of equal ones the Actor added later ([Bounds.drawnRank]), which Kubriko draws later.
      */
     internal fun Bounds.isDrawnAbove(other: Bounds) = when {
         isBackground != other.isBackground -> !isBackground
