@@ -67,8 +67,8 @@ internal class EndToEndScenario(
      * What the running game shows, through `take_screenshot` (the game's own drawing, wherever its window is), saved as
      * [imageName].
      */
-    fun captureGame(imageName: String): BufferedImage {
-        val result = tools.call("take_screenshot")
+    fun captureGame(imageName: String, timeout: Duration = CreatorTools.DEFAULT_TIMEOUT): BufferedImage {
+        val result = tools.call("take_screenshot", timeout = timeout)
         check(!result.isError) { "take_screenshot failed: ${result.text}" }
         val png = checkNotNull(result.png) { "take_screenshot returned no image: ${result.text}" }
         return checkNotNull(decode(png)) { "take_screenshot's image can't be read." }.also { save(imageName, it) }
@@ -81,13 +81,9 @@ internal class EndToEndScenario(
      */
     fun awaitGame(imageName: String, timeout: Duration = GAME_TIMEOUT, isReady: (BufferedImage) -> Boolean): BufferedImage = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
         if (!remaining.isPositive()) {
-            captureGame(imageName)
+            captureGame(imageName, timeout = MINIMUM_CALL_TIMEOUT)
         } else {
-            try {
-                tools.call("take_screenshot", timeout = remaining.atLeastOneCall()).png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
-            } catch (_: Exception) {
-                null
-            }
+            callOrNull("take_screenshot", emptyMap(), remaining)?.png?.let(::decode)?.takeIf(isReady)?.also { save(imageName, it) }
         }
     }
 
@@ -102,7 +98,11 @@ internal class EndToEndScenario(
      * Calls [tool] with [arguments] until it succeeds, failing the step when it still fails after [timeout].
      */
     fun awaitSuccess(tool: String, arguments: Map<String, Any?>, timeout: Duration = 15.seconds): ToolResult = poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
-        tools.call(tool, arguments, timeout = remaining.atLeastOneCall()).takeIf { !remaining.isPositive() || !it.isError }
+        if (!remaining.isPositive()) {
+            tools.call(tool, arguments, timeout = MINIMUM_CALL_TIMEOUT)
+        } else {
+            callOrNull(tool, arguments, remaining)?.takeIf { !it.isError }
+        }
     }.also { assertFalse(it.isError, "$tool failed: ${it.text}") }
 
     /**
@@ -110,7 +110,7 @@ internal class EndToEndScenario(
      */
     fun awaitConsole(line: String, timeout: Duration = 30.seconds) {
         poll(timeout, CreatorTools.POLLING_INTERVAL) { remaining ->
-            val console = tools.call("read_console", timeout = remaining.atLeastOneCall()).text
+            val console = if (remaining.isPositive()) callOrNull("read_console", emptyMap(), remaining)?.text.orEmpty() else tools.call("read_console", timeout = MINIMUM_CALL_TIMEOUT).text
             when {
                 line in console -> true
                 !remaining.isPositive() -> error("The console never showed \"$line\":\n$console")
@@ -131,8 +131,8 @@ internal class EndToEndScenario(
 
     /**
      * What [attempt] returns once it returns something, trying again every [interval] until [timeout] has passed. Each
-     * attempt is told how much of the timeout is left, which an attempt waiting for a tool keeps to; the last, told
-     * none is, returns or throws.
+     * attempt is told how much of the timeout is left; the last, told none is, returns or throws. A wait outlasts its
+     * timeout by at most two tool calls of [MINIMUM_CALL_TIMEOUT].
      */
     private inline fun <T : Any> poll(timeout: Duration, interval: Duration, attempt: (remaining: Duration) -> T?): T {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
@@ -145,10 +145,16 @@ internal class EndToEndScenario(
     }
 
     /**
-     * How long a tool call may take with this much of a wait left: what is left, but at least long enough for one answer,
-     * and as long as any call may take once nothing is.
+     * What [tool] answers within what is [remaining] of a wait (at least [MINIMUM_CALL_TIMEOUT]), or null when the call
+     * fails on the way, which a wait takes for not ready yet. An interrupt is never taken for that.
      */
-    private fun Duration.atLeastOneCall() = if (isPositive()) coerceAtLeast(MINIMUM_CALL_TIMEOUT) else CreatorTools.DEFAULT_TIMEOUT
+    private fun callOrNull(tool: String, arguments: Map<String, Any?>, remaining: Duration): ToolResult? = try {
+        tools.call(tool, arguments, timeout = remaining.coerceIn(MINIMUM_CALL_TIMEOUT, CreatorTools.DEFAULT_TIMEOUT))
+    } catch (exception: InterruptedException) {
+        throw exception
+    } catch (_: Exception) {
+        null
+    }
 
     private fun decode(png: ByteArray): BufferedImage? = try {
         ImageIO.read(ByteArrayInputStream(png))
@@ -168,7 +174,7 @@ internal class EndToEndScenario(
         val SCREEN_POLLING_INTERVAL = 250.milliseconds
         val SCREEN_TIMEOUT = 15.seconds
         val GAME_TIMEOUT = 30.seconds
-        val MINIMUM_CALL_TIMEOUT = 5.seconds
+        val MINIMUM_CALL_TIMEOUT = 10.seconds
         val BROWSER_TIMEOUT = 60.seconds
     }
 }
