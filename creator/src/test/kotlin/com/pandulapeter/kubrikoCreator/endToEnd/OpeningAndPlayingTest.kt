@@ -29,8 +29,8 @@ import kotlin.time.Duration.Companion.minutes
  * places them. Then shapes drawn through the batched looks every generated Actor type has look the same as when they are
  * drawn plain, as the engine's `BatchedRenderingComparisonTest` checks for the engine alone: here through a generated
  * game, its build, and its viewport. Twins of the shape types make their batched look invisible and draw the shape plain
- * instead, through a Kotlin Block, so the two Scenes differ only in how their shapes are drawn; a tile that only hides its
- * look, where the batched Scene shows nothing, keeps that hiding honest.
+ * instead, through a Kotlin Block, so the two Scenes differ only in how their shapes are drawn; a rectangle and a circle that
+ * only hide their looks, where the batched Scene shows nothing, keep that hiding honest.
  */
 class OpeningAndPlayingTest {
 
@@ -81,14 +81,14 @@ class OpeningAndPlayingTest {
                 succeed("create_actor_type", type.definition())
                 succeed("create_actor_type", type.definition(name = PLAIN_PREFIX + type.name, events = listOf(type.drawnPlain())))
             }
-            succeed("create_actor_type", TILE.definition(name = HIDDEN_TILE, events = listOf(TILE.hidden())))
+            listOf(TILE, BUBBLE).forEach { type -> succeed("create_actor_type", type.definition(name = HIDDEN_PREFIX + type.name, events = listOf(type.hidden()))) }
             listOf(BATCHED_SCENE to "", PLAIN_SCENE to PLAIN_PREFIX).forEach { (scene, prefix) ->
                 succeed("create_scene", mapOf("scene" to scene))
                 succeed("place_actors", mapOf("scene" to scene, "actors" to shapes.mapIndexed { index, shape -> mapOf("actorType" to prefix + shape.type.name, "x" to shape.x, "y" to shape.y, "actorId" to "shape$index") }))
                 succeed("set_actors_values", mapOf("scene" to scene, "actors" to shapes.mapIndexed { index, shape -> mapOf("actorId" to "shape$index", "width" to shape.width, "height" to shape.height, "rotation" to shape.rotation) }))
             }
             // Where the batched Scene shows nothing, so a twin whose batched look still showed would differ.
-            succeed("place_actors", mapOf("scene" to PLAIN_SCENE, "actors" to listOf(mapOf("actorType" to HIDDEN_TILE, "x" to 0, "y" to HIDDEN_TILE_Y))))
+            succeed("place_actors", mapOf("scene" to PLAIN_SCENE, "actors" to hiddenShapes.map { (type, y) -> mapOf("actorType" to HIDDEN_PREFIX + type.name, "x" to 0, "y" to y) }))
         }
         val batched = step("The Scene of shapes drawn through their batched looks plays") { playShapes(BATCHED_SCENE, scale) }
         val plain = step("The Scene of shapes drawn plain plays") { playShapes(PLAIN_SCENE, scale) }
@@ -98,6 +98,12 @@ class OpeningAndPlayingTest {
             assertTrue(drawn >= expected * MINIMUM_DRAWN_SHARE, "Only $drawn pixels of the shapes were drawn, of about $expected (at $scale pixels a unit).")
             val differing = (ImageChecks.differenceBetween(batched, plain, tolerance = EDGE_TOLERANCE) * batched.width * batched.height).roundToInt()
             assertTrue(differing < drawn / MAXIMUM_DIFFERING_SHARE, "$differing pixels differ between the shapes drawn batched and plain, of $drawn drawn.")
+            // The camera starts at the Scene's origin, in the middle of the game.
+            hiddenShapes.forEach { (type, y) ->
+                val screenY = (batched.height / 2 + y * scale).roundToInt()
+                assertTrue(screenY in 0 until batched.height, "The hidden ${type.name} at $y is off the screen, at $screenY.")
+                assertTrue(ImageChecks.matches(plain.getRGB(batched.width / 2, screenY), batched.getRGB(batched.width / 2, screenY)), "The hidden ${type.name} shows.")
+            }
         }
     }
 
@@ -194,8 +200,12 @@ class OpeningAndPlayingTest {
             PlacedShape(BUBBLE, x = 160f, y = 110f, width = 170f, height = 80f, rotation = -30f),
         )
         const val PLAIN_PREFIX = "Plain"
-        const val HIDDEN_TILE = "HiddenTile"
-        const val HIDDEN_TILE_Y = 230f
+        const val HIDDEN_PREFIX = "Hidden"
+
+        /**
+         * Shapes that only hide their look, by their vertical place in the plain Scene, where the batched one shows nothing.
+         */
+        val hiddenShapes = listOf(TILE to 230f, BUBBLE to -220f)
         const val BATCHED_SCENE = "batched-shapes"
         const val PLAIN_SCENE = "plain-shapes"
 
