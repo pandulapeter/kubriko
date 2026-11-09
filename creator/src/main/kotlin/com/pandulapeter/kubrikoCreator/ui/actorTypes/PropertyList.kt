@@ -24,12 +24,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
@@ -44,6 +47,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
 import com.pandulapeter.kubrikoCreator.ui.components.NumberField
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.RightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.components.confirmingOnEnter
 import com.pandulapeter.kubrikoCreator.ui.components.hoverReveal
 import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
@@ -203,7 +207,10 @@ private fun PropertyRow(
 }
 
 /**
- * Keeps whatever is being typed, and renames the Property whenever the text is a name it can have.
+ * Keeps whatever is being typed, and renames the Property once its name is done: on Enter, when the field loses the
+ * focus, or when it leaves the screen. Renaming rewrites every Scene holding the type's Actors, so it never happens per
+ * keystroke, and each name typed renames it once, though leaving the screen also loses the focus. Escape, or leaving the
+ * field with a name the Property can't have, brings its name back.
  */
 @Composable
 private fun PropertyNameField(
@@ -213,18 +220,34 @@ private fun PropertyNameField(
     modifier: Modifier = Modifier,
 ) {
     var text by remember(name) { mutableStateOf(name) }
-    val isValid = PropertyNaming.validate(text, otherNames) == null
-    if (isValid && text != name) {
-        text = name
+    var renamedTo by remember(name) { mutableStateOf<String?>(null) }
+    val finish by rememberUpdatedState {
+        val newName = renamedPropertyName(text, name, otherNames)
+        when {
+            newName == null -> text = name
+            newName != renamedTo -> {
+                renamedTo = newName
+                onRename(newName)
+            }
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose { finish() }
     }
     CompactTextField(
-        modifier = modifier,
+        modifier = modifier
+            .onFocusChanged { if (!it.isFocused) finish() }
+            .confirmingOnEnter(onConfirm = { finish() }, onCancel = { text = name }),
         value = text,
-        onValueChange = { newText ->
-            text = newText
-            if (newText != name && PropertyNaming.validate(newText, otherNames) == null) onRename(newText)
-        },
+        onValueChange = { text = it },
         label = stringResource(Res.string.property_name),
-        isError = !isValid,
+        isError = PropertyNaming.validate(text, otherNames) != null,
     )
 }
+
+/**
+ * What a Property called [name] is renamed to once [text] is done being typed: [text], if it differs and is a name the
+ * Property can have beside [otherNames], or null.
+ */
+internal fun renamedPropertyName(text: String, name: String, otherNames: List<String>): String? =
+    text.takeIf { it != name && PropertyNaming.validate(it, otherNames) == null }

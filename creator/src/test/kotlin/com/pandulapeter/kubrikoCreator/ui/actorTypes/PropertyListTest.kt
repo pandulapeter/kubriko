@@ -14,12 +14,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.testing.showing
@@ -68,5 +71,72 @@ class PropertyListTest {
         typedField.performTextReplacement("B3")
         waitForIdle()
         assertEquals(listOf("B3", "C"), properties.map { (it as PropertyDefinition.Text).initialValue })
+    }
+
+    @Test
+    fun aPropertyIsRenamedOnlyOnceItsNameIsDone() = uiTest {
+        val renames = mutableListOf<String>()
+        var properties by mutableStateOf<List<PropertyDefinition>>(listOf(PropertyDefinition.Number(name = "speed"), PropertyDefinition.Text(name = "cry")))
+        var isShown by mutableStateOf(true)
+        showing {
+            if (isShown) {
+                val itemKeys = remember { ListItemKeys<PropertyDefinition>() }
+                val keys = remember(itemKeys, properties) { itemKeys.update(properties) }
+                LazyColumn {
+                    propertyListItems(
+                        properties = properties,
+                        propertyKeys = keys,
+                        emptyHint = Res.string.actor_type_properties_empty,
+                        onAdded = {},
+                        onChanged = { name, property ->
+                            renames += property.name
+                            properties = properties.map { if (it.name == name) property else it }
+                        },
+                        onRemoved = {},
+                    )
+                }
+            }
+        }
+        fun field(text: String) = onNode(hasSetTextAction() and hasText(text))
+        fun typeInto(text: String, newText: String) = field(text).run {
+            requestFocus()
+            performTextReplacement(newText)
+        }
+        fun focusTheInitialValue() = field("0").requestFocus().also { waitForIdle() }
+        typeInto("speed", "s")
+        field("s").performTextReplacement("sp")
+        field("sp").performTextReplacement("agility")
+        waitForIdle()
+        assertEquals(emptyList(), renames)
+        field("agility").performKeyInput { pressKey(Key.Enter) }
+        waitForIdle()
+        assertEquals(listOf("agility"), renames)
+
+        typeInto("agility", "cry")
+        focusTheInitialValue()
+        assertEquals(listOf("agility"), renames)
+        field("agility").assertExists()
+
+        typeInto("agility", "pace")
+        field("pace").performKeyInput { pressKey(Key.Escape) }
+        waitForIdle()
+        field("agility").assertExists()
+
+        typeInto("agility", "pace")
+        focusTheInitialValue()
+        assertEquals(listOf("agility", "pace"), renames)
+
+        typeInto("pace", "tempo")
+        isShown = false
+        waitForIdle()
+        assertEquals(listOf("agility", "pace", "tempo"), renames)
+    }
+
+    @Test
+    fun aNameIsRenamedToOnlyWhenItIsNewAndValid() {
+        assertEquals("pace", renamedPropertyName("pace", "speed", listOf("cry")))
+        assertEquals(null, renamedPropertyName("speed", "speed", listOf("cry")))
+        assertEquals(null, renamedPropertyName("cry", "speed", listOf("cry")))
+        assertEquals(null, renamedPropertyName("", "speed", listOf("cry")))
     }
 }
