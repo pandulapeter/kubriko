@@ -17,12 +17,9 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.AudioFiles
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.SpriteFiles
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
-import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.sceneRuntime.SceneEditingState
@@ -140,14 +137,7 @@ internal fun WorkspaceCenter(
                 isChangedByHand = selectedBlockType.name in changedByHand,
                 onCommand = onCommand,
                 currentDefinition = { currentBlockType(selectedBlockType.name) },
-                onRename = { newName ->
-                    onCommandIfValid(
-                        when (selectedBlockType) {
-                            is ActorTypeDefinition -> Invocation(RenameActorType, RenameActorType.Input(selectedBlockType.name, newName))
-                            is ManagerTypeDefinition -> Invocation(RenameManagerType, RenameManagerType.Input(selectedBlockType.name, newName))
-                        },
-                    )
-                },
+                onCommandIfValid = onCommandIfValid,
                 onTypeSelected = onTypeSelected,
                 highlight = shownAiStep?.let { it.step.highlightIn(selectedBlockType.name, it.flashKey) },
             )

@@ -20,11 +20,15 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.commands.CommandProblem
+import com.pandulapeter.kubrikoCreator.commands.Rejection
+import com.pandulapeter.kubrikoCreator.testing.saveSnapshot
 import com.pandulapeter.kubrikoCreator.testing.showing
 import com.pandulapeter.kubrikoCreator.testing.uiTest
 import kubriko.creator.generated.resources.Res
@@ -54,6 +58,7 @@ class PropertyListTest {
                     emptyHint = Res.string.actor_type_properties_empty,
                     onAdded = {},
                     onChanged = { name, property -> properties = properties.map { if (it.name == name) property else it } },
+                    onRenamed = { _, _ -> null },
                     onRemoved = { name -> properties = properties.filter { it.name != name } },
                 )
             }
@@ -88,9 +93,15 @@ class PropertyListTest {
                         propertyKeys = keys,
                         emptyHint = Res.string.actor_type_properties_empty,
                         onAdded = {},
-                        onChanged = { name, property ->
-                            renames += property.name
-                            properties = properties.map { if (it.name == name) property else it }
+                        onChanged = { _, _ -> },
+                        onRenamed = { name, property ->
+                            if (property.name == "refused") {
+                                Rejection(CommandProblem.PROPERTY_KIND_CHANGED)
+                            } else {
+                                renames += property.name
+                                properties = properties.map { if (it.name == name) property else it }
+                                null
+                            }
                         },
                         onRemoved = {},
                     )
@@ -116,6 +127,15 @@ class PropertyListTest {
         focusTheInitialValue()
         assertEquals(listOf("agility"), renames)
         field("agility").assertExists()
+
+        typeInto("agility", "refused")
+        field("refused").performKeyInput { pressKey(Key.Enter) }
+        waitForIdle()
+        onNodeWithText("A Property's kind can't change. Remove it and add a new one instead.").assertExists()
+        saveSnapshot("property-rename-refused")
+        focusTheInitialValue()
+        field("agility").assertExists()
+        assertEquals(listOf("agility"), renames)
 
         typeInto("agility", "pace")
         field("pace").performKeyInput { pressKey(Key.Escape) }

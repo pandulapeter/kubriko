@@ -37,10 +37,12 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.ui.components.Accent
 import com.pandulapeter.kubrikoCreator.ui.components.BufferedTextField
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.ContextAction
+import com.pandulapeter.kubrikoCreator.ui.components.FieldErrorText
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.LabeledSwitch
 import com.pandulapeter.kubrikoCreator.ui.components.MenuIconButton
@@ -53,6 +55,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.rememberHoverRevealState
 import com.pandulapeter.kubrikoCreator.ui.components.rememberRightClickMenuState
 import com.pandulapeter.kubrikoCreator.ui.components.revealedWhen
 import com.pandulapeter.kubrikoCreator.ui.components.rightClickMenu
+import com.pandulapeter.kubrikoCreator.ui.toFieldError
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_property
 import kubriko.creator.generated.resources.action_remove
@@ -74,7 +77,9 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @param propertyKeys The keys of [properties] (from [ListItemKeys]), so that a row keeps what is typed into it when
  * the rows above it change.
- * @param onChanged Called with a Property's current name and what it should become.
+ * @param onChanged Called with a Property's current name and what it should become, for a change of its initial value.
+ * @param onRenamed Called with a Property's current name and what it should become, for a new name, returning why the
+ *   Property can't have it.
  */
 internal fun LazyListScope.propertyListItems(
     properties: List<PropertyDefinition>,
@@ -82,6 +87,7 @@ internal fun LazyListScope.propertyListItems(
     emptyHint: StringResource,
     onAdded: (PropertyDefinition) -> Unit,
     onChanged: (name: String, PropertyDefinition) -> Unit,
+    onRenamed: (name: String, PropertyDefinition) -> Rejection?,
     onRemoved: (name: String) -> Unit,
     inheritedProperties: List<PropertyDefinition> = emptyList(),
 ) {
@@ -126,6 +132,7 @@ internal fun LazyListScope.propertyListItems(
             property = property,
             otherNames = names - property.name,
             onChange = { onChanged(property.name, it) },
+            onRename = { onRenamed(property.name, property.withName(it)) },
             onRemove = { onRemoved(property.name) },
         )
     }
@@ -148,6 +155,7 @@ private fun PropertyRow(
     property: PropertyDefinition,
     otherNames: List<String>,
     onChange: (PropertyDefinition) -> Unit,
+    onRename: (String) -> Rejection?,
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -171,7 +179,7 @@ private fun PropertyRow(
                 modifier = Modifier.weight(1f),
                 name = property.name,
                 otherNames = otherNames,
-                onRename = { onChange(property.withName(it)) },
+                onRename = onRename,
             )
             Box {
                 IconActionButton(modifier = Modifier.revealedWhen(hover.isActive), icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
@@ -209,40 +217,53 @@ private fun PropertyRow(
 /**
  * Keeps whatever is being typed, and renames the Property once its name is done: on Enter, when the field loses the
  * focus, or when it leaves the screen. Renaming rewrites every Scene holding the type's Actors, so it never happens per
- * keystroke, and each name typed renames it once, though leaving the screen also loses the focus. Escape, or leaving the
- * field with a name the Property can't have, brings its name back.
+ * keystroke, and each name typed renames it once, though leaving the screen also loses the focus. A rename refused on
+ * Enter says why; Escape, or leaving the field with a name the Property can't have, brings its name back.
  */
 @Composable
 private fun PropertyNameField(
     name: String,
     otherNames: List<String>,
-    onRename: (String) -> Unit,
+    onRename: (String) -> Rejection?,
     modifier: Modifier = Modifier,
+) = Column(
+    modifier = modifier,
 ) {
     var text by remember(name) { mutableStateOf(name) }
+    var rejection by remember(name) { mutableStateOf<Rejection?>(null) }
     var renamedTo by remember(name) { mutableStateOf<String?>(null) }
-    val finish by rememberUpdatedState {
+    val finish by rememberUpdatedState { isLeaving: Boolean ->
         val newName = renamedPropertyName(text, name, otherNames)
         when {
             newName == null -> text = name
-            newName != renamedTo -> {
-                renamedTo = newName
-                onRename(newName)
+            newName == renamedTo -> Unit
+            else -> {
+                val rejected = onRename(newName)
+                when {
+                    rejected == null -> renamedTo = newName
+                    isLeaving -> text = name
+                    else -> rejection = rejected
+                }
             }
         }
     }
     DisposableEffect(Unit) {
-        onDispose { finish() }
+        onDispose { finish(true) }
     }
     CompactTextField(
-        modifier = modifier
-            .onFocusChanged { if (!it.isFocused) finish() }
-            .confirmingOnEnter(onConfirm = { finish() }, onCancel = { text = name }),
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { if (!it.isFocused) finish(true) }
+            .confirmingOnEnter(onConfirm = { finish(false) }, onCancel = { text = name }),
         value = text,
-        onValueChange = { text = it },
+        onValueChange = {
+            text = it
+            rejection = null
+        },
         label = stringResource(Res.string.property_name),
-        isError = PropertyNaming.validate(text, otherNames) != null,
+        isError = rejection != null || PropertyNaming.validate(text, otherNames) != null,
     )
+    rejection?.let { FieldErrorText(it.toFieldError(), Modifier.padding(top = 2.dp)) }
 }
 
 /**

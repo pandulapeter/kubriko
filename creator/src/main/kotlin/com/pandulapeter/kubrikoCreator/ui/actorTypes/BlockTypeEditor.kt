@@ -55,6 +55,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param scope What its Blocks can refer to.
  * @param sprites The images an Actor type can be drawn as, by their path from `composeResources`.
  * @param inheritance What an Actor type gets from its parent, and the parents it can have.
+ * @param onCommandIfValid Applies a command unless it is rejected, returning why it was: how renames are made.
  * @param currentDefinition The type as it is now, which an add that succeeded reads to find the Event it made, since
  *   [definition] may not show it yet, or may show the AI's changes from before it.
  */
@@ -67,7 +68,7 @@ internal fun BlockTypeEditor(
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
     currentDefinition: () -> BlockTypeDefinition?,
-    onRename: (String) -> Rejection?,
+    onCommandIfValid: (Invocation<*>) -> Rejection?,
     onTypeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
@@ -79,7 +80,7 @@ internal fun BlockTypeEditor(
     val eventKeys = remember(eventSelection, definition.events) { eventSelection.keysOf(definition.events) }
     val eventIndex = eventSelection.shownIndex(eventKeys, highlight)
     val event = eventIndex?.let { definition.events[it] }
-    val actions = remember(definition, onCommand) { BlockTypeEditorActions(definition, onCommand) }
+    val actions = remember(definition, onCommand, onCommandIfValid) { BlockTypeEditorActions(definition, onCommand, onCommandIfValid) }
     val selectAddedEvent: () -> Unit = { currentDefinition()?.let { eventSelection.selectAdded(it.events) } }
     var blockListScrollToEndRequest by remember(name) { mutableIntStateOf(0) }
     val propertyItemKeys = remember(name) { ListItemKeys<PropertyDefinition>() }
@@ -91,7 +92,6 @@ internal fun BlockTypeEditor(
             inheritance = inheritance,
             isChangedByHand = isChangedByHand,
             flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
-            onRename = onRename,
             onTypeSelected = onTypeSelected,
             actions = actions,
         )
@@ -201,7 +201,6 @@ private fun TypeDetails(
     inheritance: Inheritance,
     isChangedByHand: Boolean,
     flashKey: Any?,
-    onRename: (String) -> Rejection?,
     onTypeSelected: (String) -> Unit,
     actions: BlockTypeEditorActions,
 ) {
@@ -209,7 +208,7 @@ private fun TypeDetails(
         definition = definition,
         inheritance = inheritance,
         flashKey = flashKey,
-        onRename = onRename,
+        onRename = actions::rename,
         onParentChange = actions::setParent,
         onTypeSelected = onTypeSelected,
         onDelete = actions::delete,
@@ -272,6 +271,7 @@ private fun PropertiesColumn(
         emptyHint = if (definition is ManagerTypeDefinition) Res.string.manager_type_properties_empty else Res.string.actor_type_properties_empty,
         onAdded = actions::addProperty,
         onChanged = actions::editProperty,
+        onRenamed = actions::renameProperty,
         onRemoved = actions::removeProperty,
     )
     if (definition is ManagerTypeDefinition) {

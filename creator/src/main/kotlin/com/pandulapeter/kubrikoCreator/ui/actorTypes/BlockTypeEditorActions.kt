@@ -20,6 +20,7 @@ import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
@@ -32,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameTimer
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
@@ -42,16 +44,19 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.SetKotlinUi
 import com.pandulapeter.kubrikoCreator.commands.project.SetDescription
 
 /**
  * The commands the type editor of [definition] dispatches through [onCommand], one function per thing it changes.
- * [onCommand] calls its `onSuccess` once the command was applied, never when it was rejected.
+ * [onCommand] calls its `onSuccess` once the command was applied, never when it was rejected. Renames go through
+ * [onCommandIfValid] instead, which returns why one was rejected, so the field typed into can say it.
  */
 internal class BlockTypeEditorActions(
     private val definition: BlockTypeDefinition,
     private val onCommand: (Invocation<*>, onSuccess: () -> Unit) -> Unit,
+    private val onCommandIfValid: (Invocation<*>) -> Rejection?,
 ) {
     private val name get() = definition.name
 
@@ -72,7 +77,16 @@ internal class BlockTypeEditorActions(
 
     fun addProperty(property: PropertyDefinition) = dispatch(Invocation(AddProperty, AddProperty.Input(name, property)))
 
+    fun rename(newName: String): Rejection? = onCommandIfValid(
+        when (definition) {
+            is ActorTypeDefinition -> Invocation(RenameActorType, RenameActorType.Input(name, newName))
+            is ManagerTypeDefinition -> Invocation(RenameManagerType, RenameManagerType.Input(name, newName))
+        },
+    )
+
     fun editProperty(propertyName: String, property: PropertyDefinition) = dispatch(Invocation(EditProperty, EditProperty.Input(name, propertyName, property)))
+
+    fun renameProperty(propertyName: String, property: PropertyDefinition): Rejection? = onCommandIfValid(Invocation(EditProperty, EditProperty.Input(name, propertyName, property)))
 
     fun removeProperty(propertyName: String) = dispatch(Invocation(RemoveProperty, RemoveProperty.Input(name, propertyName)))
 

@@ -17,18 +17,22 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.ScreenTextDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -39,10 +43,16 @@ class BlockTypeEditorActionsTest {
 
     private val successes = mutableListOf<() -> Unit>()
 
-    private fun actionsOf(definition: BlockTypeDefinition) = BlockTypeEditorActions(definition) { invocation, onSuccess ->
-        dispatched += invocation
-        successes += onSuccess
-    }
+    private val validDispatches = mutableListOf<Invocation<*>>()
+
+    private fun actionsOf(definition: BlockTypeDefinition) = BlockTypeEditorActions(
+        definition = definition,
+        onCommand = { invocation, onSuccess ->
+            dispatched += invocation
+            successes += onSuccess
+        },
+        onCommandIfValid = { invocation -> null.also { validDispatches += invocation } },
+    )
 
     @Test
     fun deletingUsesTheCommandOfTheKind() {
@@ -130,5 +140,21 @@ class BlockTypeEditorActionsTest {
         actionsOf(ManagerTypeDefinition("Game")).addText()
 
         assertEquals<List<Invocation<*>>>(listOf(Invocation(AddText, AddText.Input("Game", ScreenTextDefinition(text = "{score}")))), dispatched)
+    }
+
+    @Test
+    fun renamesGoThroughTheValidatingDispatch() {
+        actionsOf(ball).rename("Puck")
+        actionsOf(ManagerTypeDefinition("Game")).rename("Match")
+        actionsOf(ball).renameProperty("speed", PropertyDefinition.Number("pace"))
+        assertEquals<List<Invocation<*>>>(
+            listOf(
+                Invocation(RenameActorType, RenameActorType.Input("Ball", "Puck")),
+                Invocation(RenameManagerType, RenameManagerType.Input("Game", "Match")),
+                Invocation(EditProperty, EditProperty.Input("Ball", "speed", PropertyDefinition.Number("pace"))),
+            ),
+            validDispatches,
+        )
+        assertEquals(emptyList<Invocation<*>>(), dispatched)
     }
 }

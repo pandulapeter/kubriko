@@ -48,7 +48,7 @@ class BlockTypeEditorEventSelectionTest {
                 isChangedByHand = false,
                 onCommand = onCommand,
                 currentDefinition = { definition },
-                onRename = { null },
+                onCommandIfValid = { null },
                 onTypeSelected = {},
             )
         }
